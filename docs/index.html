@@ -46,7 +46,9 @@
         <span>STREAMS Player<span class="brand-dot">.</span></span>
       </a>
       <nav class="header-links" aria-label="Primary navigation">
+        <a class="header-link" href="#what" data-i18n="nav-what">What</a>
         <a class="header-link" href="#features" data-i18n="nav-features">Features</a>
+        <a class="header-link" href="#use" data-i18n="nav-use">How to use</a>
         <a class="header-link" href="privacy.html" data-i18n="nav-privacy">Privacy</a>
       </nav>
       <div class="language-switcher" role="group" aria-label="Language">
@@ -62,25 +64,32 @@
       <section class="hero" aria-labelledby="hero-title">
         <div>
           <div class="product-id">
-            <img class="product-icon" src="assets/streamsplayer-icon-256.png" alt="StreamsPlayer icon" width="68" height="68">
+            <img class="product-icon" src="assets/streamsplayer-icon-256.png" alt="STREAMS Player icon" width="68" height="68">
             <div>
               <span class="eyebrow" data-i18n="hero-eyebrow">STREAMS Player · Windows 10 / 11</span>
-              <h1 id="hero-title" data-i18n="hero-title">Your streams. One calm player.</h1>
+              <h1 id="hero-title" data-i18n="hero-title">Radio, live video and RTSP, in one player.</h1>
               <span class="kicker" data-i18n="hero-kicker">Internet radio · Live video · RTSP</span>
             </div>
           </div>
-          <p class="lead" data-i18n="hero-description">Browse a curated catalog, find a channel quickly, and keep your own stations close — in a focused Windows desktop app.</p>
+          <p class="lead" data-i18n="hero-description">A focused Windows desktop app: browse a curated catalog, add your own streams, and play them — no account, no ads, nothing running in the background you did not ask for.</p>
+          <div class="facts" aria-label="Key facts">
+            <span class="fact" data-i18n="fact-windows">Windows 10 / 11</span>
+            <span class="fact" data-i18n="fact-free">Free · MIT source</span>
+            <span class="fact" data-i18n="fact-account">No account</span>
+            <span class="fact" data-i18n="fact-telemetry">No telemetry</span>
+            <span class="fact" data-i18n="fact-langs">EN / RU interface</span>
+          </div>
           <div class="button-group">
-            <a class="button button-primary" href="#distribution" data-i18n="hero-status">Release status</a>
+            <a class="button button-primary" href="#use" data-i18n="hero-cta-use">How to use</a>
             <a class="button button-gold" href="https://github.com/SerZhyAle/StreamsPlayer" data-i18n="hero-source">View source</a>
-            <a class="button button-ghost" href="privacy.html" data-i18n="nav-privacy">Privacy</a>
+            <a class="button button-ghost" href="#distribution" data-i18n="hero-status">Release status</a>
           </div>
         </div>
 
         <aside class="status-card" aria-labelledby="status-title">
           <span class="status-label" data-i18n="status-label">Current status</span>
           <h2 id="status-title" data-i18n="status-title">In active development</h2>
-          <p data-i18n="status-description">The first public packages are being prepared. Follow the repository for source code and release updates.</p>
+          <p data-i18n="status-description">Source is public now. Portable ZIP, Microsoft Store, and winget packages are being prepared — none is a published download yet.</p>
           <div class="status-links">
             <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer" data-i18n="status-source">Open GitHub</a>
             <a class="button button-ghost button-small" href="#distribution" data-i18n="status-plan">Distribution plans</a>
@@ -88,36 +97,107 @@
         </aside>
       </section>
 
+      <section class="section" id="what" aria-labelledby="what-title">
+        <h2 class="section-heading" id="what-title"><span class="hash">#</span><span data-i18n="what-title">What it is &amp; why</span></h2>
+        <p class="section-description" data-i18n="what-p1">STREAMS Player is an independent Windows desktop app for internet radio, live video, and RTSP network cameras. It reads a curated, public stream catalog so you get a working list of channels on first run — then lets you search, sort, pin, and add your own, all stored locally on your machine.</p>
+        <p class="section-description" data-i18n="what-p2">The point is calm: a player that stays a player. The catalog refreshes only when you ask, your manually added and imported streams are never overwritten by an update, and there is no account, advertising, analytics, or author-run service. What runs on your PC is what you started.</p>
+      </section>
+
       <section class="section" id="features" aria-labelledby="features-title">
-        <h2 class="section-heading" id="features-title"><span class="hash">#</span><span data-i18n="features-title">Built around the stream</span></h2>
-        <p class="section-description" data-i18n="features-description">The essentials for finding, keeping, and playing internet streams without turning the player into a dashboard.</p>
-        <div class="card-grid">
-          <article class="card">
-            <span class="card-number">01</span>
-            <h3 data-i18n="feature-catalog-title">One catalog, your choices</h3>
-            <p data-i18n="feature-catalog-description">Filter by category, language, country, and media type. Search, sort, and pin the channels you return to.</p>
+        <h2 class="section-heading" id="features-title"><span class="hash">#</span><span data-i18n="features-title">What it can do</span></h2>
+        <p class="section-description" data-i18n="features-description">Everything needed to find, keep, and play a stream — grouped by what you are actually doing.</p>
+        <div class="cap-grid">
+          <article class="card cap">
+            <h3><span class="tag">01</span><span data-i18n="cap-find-title">Find a channel</span></h3>
+            <ul>
+              <li data-i18n="cap-find-1">Curated catalog on first launch — no setup.</li>
+              <li data-i18n="cap-find-2">Filter by category, language, country, media type.</li>
+              <li data-i18n="cap-find-3">Search and sort the list.</li>
+              <li data-i18n="cap-find-4">Pin the channels you return to.</li>
+            </ul>
           </article>
-          <article class="card">
-            <span class="card-number">02</span>
-            <h3 data-i18n="feature-media-title">Radio, video, and RTSP</h3>
-            <p data-i18n="feature-media-description">Start audio in the main window and open live video or network-camera streams in a focused player window.</p>
+          <article class="card cap">
+            <h3><span class="tag">02</span><span data-i18n="cap-play-title">Play the right way</span></h3>
+            <ul>
+              <li data-i18n="cap-play-1">Radio plays in the main window.</li>
+              <li data-i18n="cap-play-2">Live video &amp; RTSP open in a focused player window.</li>
+              <li data-i18n="cap-play-3">~10-second live buffer with visible buffering progress.</li>
+              <li data-i18n="cap-play-4">Volume and mute are remembered.</li>
+            </ul>
           </article>
-          <article class="card">
-            <span class="card-number">03</span>
-            <h3 data-i18n="feature-control-title">Refresh on your terms</h3>
-            <p data-i18n="feature-control-description">Catalog updates are always explicit. STREAMS Player never begins a surprise background catalog download.</p>
+          <article class="card cap">
+            <h3><span class="tag">03</span><span data-i18n="cap-window-title">Watch your way</span></h3>
+            <ul>
+              <li data-i18n="cap-window-1">Keep the main window or player always on top.</li>
+              <li data-i18n="cap-window-2">Borderless full screen with a button or F11 (Esc exits).</li>
+              <li data-i18n="cap-window-3">Small, Medium, or Large stream tiles.</li>
+            </ul>
           </article>
-          <article class="card">
-            <span class="card-number">04</span>
-            <h3 data-i18n="feature-local-title">Local by design</h3>
-            <p data-i18n="feature-local-description">Add your own stream, keep pins and playback marks locally, and use the app without an account or telemetry.</p>
+          <article class="card cap">
+            <h3><span class="tag">04</span><span data-i18n="cap-grid-title">Visual grid</span></h3>
+            <ul>
+              <li data-i18n="cap-grid-1">A grid that captures visible HTTP(S) video previews.</li>
+              <li data-i18n="cap-grid-2">Keeps the latest 64 frames locally.</li>
+              <li data-i18n="cap-grid-3">Automatic preview updates can be turned off.</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">05</span><span data-i18n="cap-yours-title">Make it yours</span></h3>
+            <ul>
+              <li data-i18n="cap-yours-1">Add a stream by URL, no account.</li>
+              <li data-i18n="cap-yours-2">Your added and imported streams survive catalog updates.</li>
+              <li data-i18n="cap-yours-3">Keep local OK / fail playback marks.</li>
+              <li data-i18n="cap-yours-4">Switch the whole interface EN ⇄ RU; the choice is restored.</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">06</span><span data-i18n="cap-local-title">Local by design</span></h3>
+            <ul>
+              <li data-i18n="cap-local-1">Catalog state, manual entries, and pins stay on your device.</li>
+              <li data-i18n="cap-local-2">Stored under %LOCALAPPDATA%\StreamsPlayer.</li>
+              <li data-i18n="cap-local-3">Refresh the catalog only when you choose.</li>
+            </ul>
           </article>
         </div>
       </section>
 
+      <section class="section" id="use" aria-labelledby="use-title">
+        <h2 class="section-heading" id="use-title"><span class="hash">#</span><span data-i18n="use-title">How to use it</span></h2>
+        <p class="section-description" data-i18n="use-description">Open it and pick a channel — that is the whole flow. Until packages ship, run it from source; you can also launch a stream directly from the command line.</p>
+        <ol class="steps">
+          <li class="step">
+            <div>
+              <h3 data-i18n="use-1-title">Run it from source</h3>
+              <p data-i18n="use-1-text">With the .NET 10 SDK installed, restore, build, and launch from the repository root.</p>
+              <pre><code>./build.ps1 -Run</code></pre>
+            </div>
+          </li>
+          <li class="step">
+            <div>
+              <h3 data-i18n="use-2-title">Pick and play</h3>
+              <p data-i18n="use-2-text">Browse the catalog, filter or search, then select a channel. Radio starts in the main window; video and RTSP open in the player window. Launching with no channel selected resumes the last one you played.</p>
+            </div>
+          </li>
+          <li class="step">
+            <div>
+              <h3 data-i18n="use-3-title">Open any URL directly</h3>
+              <p data-i18n="use-3-text">Play a stream without touching the catalog.</p>
+              <pre><code>StreamsPlayer.exe <span class="tok">--url</span> "https://example.test/live"</code></pre>
+            </div>
+          </li>
+          <li class="step">
+            <div>
+              <h3 data-i18n="use-4-title">Save a channel to a shortcut</h3>
+              <p data-i18n="use-4-text">Select a saved channel, open Settings, and use Copy command or Create desktop shortcut. Both use the channel's stored id.</p>
+              <pre><code>StreamsPlayer.exe <span class="tok">--id</span> "channel-guid"</code></pre>
+            </div>
+          </li>
+        </ol>
+      </section>
+
       <section class="section" id="distribution" aria-labelledby="distribution-title">
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span data-i18n="distribution-title">Distribution</span></h2>
-        <p class="section-description" data-i18n="distribution-description">These channels are planned, but none should be treated as a published download until its first approved release appears.</p>
+        <p class="section-description" data-i18n="distribution-description">These channels are planned. None is a published download until its first approved release appears — for now, build from source.</p>
         <div class="distribution-grid">
           <div class="channel">
             <span class="channel-mark">ZIP</span>
