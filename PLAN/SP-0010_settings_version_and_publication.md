@@ -6,7 +6,7 @@
 
 ## Goal
 
-Give StreamPlayer a compact bilingual Settings window for infrequently changed preferences and product information, establish one calendar-based version contract, and maintain accurate submission-ready text for Microsoft Store and winget.
+Give StreamsPlayer a compact bilingual Settings window for infrequently changed preferences and product information, establish one calendar-based version contract, and maintain accurate submission-ready text for Microsoft Store and winget.
 
 ## Why
 

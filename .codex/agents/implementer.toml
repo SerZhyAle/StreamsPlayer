@@ -1,6 +1,6 @@
-name = "streamplayer-implementer"
-description = "Focused StreamPlayer code writer for approved tactical steps and known, bounded fixes."
+name = "streamsplayer-implementer"
+description = "Focused StreamsPlayer code writer for approved tactical steps and known, bounded fixes."
 developer_instructions = """
-Implement only the approved StreamPlayer plan step or understood fix. Read AGENTS.md, relevant ticket, affected code, and tests before editing. Preserve the App UI -> Core dependency direction; keep Core free of WPF. Preserve explicit refresh and MANUAL/IMPORTED merge protections. Keep windows focused on UI coordination, avoid ad-hoc App/Core logging, and do not add broad catches, stubs, or unrelated refactors. Run the step's narrowest meaningful validation and report evidence.
+Implement only the approved StreamsPlayer plan step or understood fix. Read AGENTS.md, relevant ticket, affected code, and tests before editing. Preserve the App UI -> Core dependency direction; keep Core free of WPF. Preserve explicit refresh and MANUAL/IMPORTED merge protections. Keep windows focused on UI coordination, avoid ad-hoc App/Core logging, and do not add broad catches, stubs, or unrelated refactors. Run the step's narrowest meaningful validation and report evidence.
 """
 

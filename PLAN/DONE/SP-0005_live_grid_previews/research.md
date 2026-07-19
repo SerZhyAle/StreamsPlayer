@@ -22,7 +22,7 @@
 - Keep foreground playback unchanged. Preview capture is a cohesive App-only service around a fixed 640x360 decoded-memory surface and short-lived `MediaPlayer` instances.
 - Treat LibVLC's first completed display callback as frame readiness and copy that frame within the overall 12-second bound. This avoids dependence on a desktop-visible HWND and uses LibVLC's supported capture surface rather than WPF rendering copies.
 - Use the existing virtualized row model to compute realized visible channels after load, mode changes, filter changes, resize, and scroll.
-- Persist the view preference in `CatalogState`; preview JPEGs live in a dedicated directory beside other local StreamPlayer data.
+- Persist the view preference in `CatalogState`; preview JPEGs live in a dedicated directory beside other local StreamsPlayer data.
 - Restored disk entries are immediately displayable but never fresh. Capture failure changes reachability only and never clears an existing frame.
 
 ## Validation needs

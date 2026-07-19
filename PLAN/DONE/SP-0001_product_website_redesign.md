@@ -4,8 +4,8 @@
 
 ## Goal
 
-Redesign the StreamPlayer product website in the visual language of the SZA
-website while keeping StreamPlayer's product identity, factual claims, and
+Redesign the StreamsPlayer product website in the visual language of the SZA
+website while keeping StreamsPlayer's product identity, factual claims, and
 independent distribution status clear.
 
 ## Non-goals
@@ -31,7 +31,7 @@ independent distribution status clear.
 ## Acceptance criteria
 
 1. The home page visibly follows the reference's Pine + Gold design system and
-   identifies StreamPlayer immediately as a Windows stream player.
+   identifies StreamsPlayer immediately as a Windows stream player.
 2. The primary product capabilities and explicit-refresh/local-data principles
    are concise and factually aligned with the repository README.
 3. Distribution controls do not suggest that an unpublished release, Store
@@ -51,7 +51,7 @@ independent distribution status clear.
   languages.
 - Browser-only controls can flash the wrong theme if preference resolution is
   delayed until page load.
-- A close visual match can weaken the product identity unless the StreamPlayer
+- A close visual match can weaken the product identity unless the StreamsPlayer
   icon and purpose remain prominent.
 
 ## Research
@@ -63,7 +63,7 @@ screenshot.
 
 - PASS — reference visual system. expected: Pine + Gold, glass header, compact
   hero, pill controls, cards | actual: desktop and mobile screenshots show all
-  named patterns with StreamPlayer icon and content.
+  named patterns with StreamsPlayer icon and content.
 - PASS — product facts. expected: catalog controls, radio/video/RTSP, explicit
   refresh, local data | actual: all four facts match `README.md` and the privacy
   contract.

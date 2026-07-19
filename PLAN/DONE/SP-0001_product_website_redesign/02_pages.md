@@ -3,7 +3,7 @@
 **Consumes:** phase 1 shared CSS and JavaScript.  
 **Produces:** redesigned localized home and privacy pages.
 
-- [x] Rebuild `docs/index.html` around a compact StreamPlayer hero, truthful
+- [x] Rebuild `docs/index.html` around a compact StreamsPlayer hero, truthful
   release CTA, capability cards, and distribution-status section using semantic
   landmarks and translation keys.
   - Check: `rg 'data-i18n|features|distribution|site.js' docs/index.html`

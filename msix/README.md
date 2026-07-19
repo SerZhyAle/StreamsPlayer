@@ -1,13 +1,13 @@
 # Microsoft Store package
 
 `build-msix.ps1` publishes the WPF app self-contained for x64, copies the
-required StreamPlayer tile logos from `assets/msix/` and packs a full-trust MSIX. Generated `stage/`
+required StreamsPlayer tile logos from `assets/msix/` and packs a full-trust MSIX. Generated `stage/`
 and `dist/` folders are intentionally ignored by Git.
 
 It requires the Windows SDK tools `makeappx.exe` and (for `-SelfSign`)
 `signtool.exe`. Install them with `winget install Microsoft.WindowsSDK`.
 
-Before the first Store submission, reserve **StreamPlayer** in Partner Center
+Before the first Store submission, reserve **StreamsPlayer** in Partner Center
 and copy the three exact values from Product identity. They are permanent for
 this product and must be supplied on every update.
 

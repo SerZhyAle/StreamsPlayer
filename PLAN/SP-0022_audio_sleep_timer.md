@@ -8,7 +8,7 @@ Allow the listener to schedule automatic stopping of inline audio after a common
 
 ## Why
 
-A sleep timer is a small, understandable radio feature that adds value without expanding StreamPlayer into recording, downloading, or media-library management.
+A sleep timer is a small, understandable radio feature that adds value without expanding StreamsPlayer into recording, downloading, or media-library management.
 
 ## Non-goals
 

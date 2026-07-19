@@ -1,4 +1,4 @@
-# StreamPlayer Agent Cost and Fan-out
+# StreamsPlayer Agent Cost and Fan-out
 
 Work inline by default. Use a subagent only for genuinely independent research, bulky evidence isolation, or a useful fresh context. Keep the normal run below six parallel agents; estimate and request explicit approval for a larger wave.
 

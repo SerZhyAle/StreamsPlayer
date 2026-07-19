@@ -1,15 +1,15 @@
 <p align="center">
-  <img src="docs/assets/streamplayer-icon-256.png" alt="Іконка StreamPlayer" width="112">
+  <img src="docs/assets/streamsplayer-icon-256.png" alt="Іконка StreamsPlayer" width="112">
 </p>
 
-<h1 align="center">StreamPlayer</h1>
+<h1 align="center">STREAMS Player</h1>
 
 <p align="center">Інтернет-радіо, live-відео та RTSP для Windows.</p>
 
 <p align="center">
-  <a href="https://serzhyale.github.io/StreamPlayer/">Сайт</a> ·
-  <a href="https://github.com/SerZhyAle/StreamPlayer">Вихідний код</a> ·
-  <a href="https://serzhyale.github.io/StreamPlayer/privacy.html">Конфіденційність</a>
+  <a href="https://serzhyale.github.io/StreamsPlayer/">Сайт</a> ·
+  <a href="https://github.com/SerZhyAle/StreamsPlayer">Вихідний код</a> ·
+  <a href="https://serzhyale.github.io/StreamsPlayer/privacy.html">Конфіденційність</a>
 </p>
 
 <p align="center">
@@ -19,7 +19,7 @@
   <a href="README.uk.md">Українська</a>
 </p>
 
-> **Статус випуску:** StreamPlayer перебуває в активній розробці. Портативний
+> **Статус випуску:** STREAMS Player перебуває в активній розробці. Портативний
 > ZIP, Microsoft Store та winget заплановані, але ще не є доступними
 > завантаженнями.
 
@@ -29,7 +29,7 @@
 | --- | --- | --- |
 | Переглядайте каталог і фільтруйте за категорією, мовою, країною чи типом медіа. | Шукайте, сортуйте, закріплюйте та додавайте власні потоки без облікового запису. | Слухайте радіо в головному вікні або відкривайте live-відео й RTSP в окремому вікні плеєра. |
 
-StreamPlayer — незалежний desktop-застосунок для Windows для інтернет-радіо,
+STREAMS Player — незалежний desktop-застосунок для Windows для інтернет-радіо,
 live-відео та RTSP-каналів. Він використовує опублікований банк потоків
 FastMediaSorter як зовнішній контракт даних; код і можливості застосунку
 FastMediaSorter до нього не переносяться.
@@ -53,7 +53,7 @@ FastMediaSorter до нього не переносяться.
   до інструкції, проєкту, політики конфіденційності або сторінки автора.
 - Додавайте потік вручну та зберігайте локальні позначки результату відтворення.
 - Зберігайте стан каталогу, ручні записи, закріплення та діагностичний журнал поточного сеансу `Current.log` у
-  `%LOCALAPPDATA%\StreamPlayer`.
+  `%LOCALAPPDATA%\StreamsPlayer`.
 
 Аудіо відтворюється через WPF `MediaElement`; для відео й RTSP використовується
 вбудований LibVLC з цільовим 10-секундним буфером прямого ефіру та видимим ходом
@@ -71,7 +71,7 @@ FastMediaSorter до нього не переносяться.
 Або запустіть desktop-застосунок безпосередньо:
 
 ```powershell
-dotnet run --project src/StreamPlayer.App
+dotnet run --project src/StreamsPlayer.App
 ```
 
 ## Запуск потоку
@@ -79,7 +79,7 @@ dotnet run --project src/StreamPlayer.App
 Пряму адресу можна відкрити без завантаження каталогу:
 
 ```powershell
-StreamPlayer.exe --url "https://example.test/live"
+StreamsPlayer.exe --url "https://example.test/live"
 ```
 
 Для збереженого каналу виберіть його в каталозі, відкрийте «Налаштування» та
@@ -87,7 +87,7 @@ StreamPlayer.exe --url "https://example.test/live"
 варіанти використовують постійний GUID каналу:
 
 ```powershell
-StreamPlayer.exe --id "GUID-каналу"
+StreamsPlayer.exe --id "GUID-каналу"
 ```
 
 Звичайний запуск без аргументів відновлює останній вибраний збережений канал.
@@ -96,10 +96,10 @@ StreamPlayer.exe --id "GUID-каналу"
 
 | Область | Призначення |
 | --- | --- |
-| `src/StreamPlayer.Core` | Незалежні від платформи контракти каталогу, розбір, злиття та локальне зберігання. |
-| `src/StreamPlayer.App` | WPF-застосунок для Windows. |
-| `tests/StreamPlayer.Core.Tests` | Модульні та контрактні тести. |
-| `tools/StreamPlayer.CatalogHarness` | Діагностична утиліта для live-банку потоків. |
+| `src/StreamsPlayer.Core` | Незалежні від платформи контракти каталогу, розбір, злиття та локальне зберігання. |
+| `src/StreamsPlayer.App` | WPF-застосунок для Windows. |
+| `tests/StreamsPlayer.Core.Tests` | Модульні та контрактні тести. |
+| `tools/StreamsPlayer.CatalogHarness` | Діагностична утиліта для live-банку потоків. |
 | `docs/` | Сайт GitHub Pages і специфікації. |
 
 Запустіть локальну перевірку у release-стилі:
@@ -111,7 +111,7 @@ StreamPlayer.exe --id "GUID-каналу"
 Запуск перевірки live-банку:
 
 ```powershell
-dotnet run --project tools/StreamPlayer.CatalogHarness -- artifacts/favicon-sample.png
+dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png
 ```
 
 `build.ps1` — локальна збірка Windows-застосунку: вона створює self-contained EXE
@@ -121,15 +121,15 @@ dotnet run --project tools/StreamPlayer.CatalogHarness -- artifacts/favicon-samp
 
 ## Конфіденційність
 
-StreamPlayer не потребує облікового запису й не містить реклами, аналітики,
+STREAMS Player не потребує облікового запису й не містить реклами, аналітики,
 телеметрії чи сервісу, яким керує автор. Мережа використовується під час явного
 оновлення каталогу, відтворення вибраного потоку й оновлення видимих відеопрев’ю,
 доки активний режим сітки. Докладніше — на
-[сторінці конфіденційності](https://serzhyale.github.io/StreamPlayer/privacy.html).
+[сторінці конфіденційності](https://serzhyale.github.io/StreamsPlayer/privacy.html).
 
 ## Авторство та ліцензія
 
-StreamPlayer незалежно створений і належить
+STREAMS Player незалежно створений і належить
 [Сергію Жигуненку / SerZhyAle](https://github.com/SerZhyAle).
 
 Ліцензія — [MIT](LICENSE).

@@ -4,7 +4,7 @@
 
 ## Goal
 
-Expose active audio playback through Windows media controls and hardware media keys so listeners can control StreamPlayer while another application has focus.
+Expose active audio playback through Windows media controls and hardware media keys so listeners can control StreamsPlayer while another application has focus.
 
 ## Why
 
@@ -31,7 +31,7 @@ System-level control is expected for desktop audio and removes the need to retur
 2. Hardware/system Play/Pause, Stop, and Mute produce the same state transitions as their in-app equivalents.
 3. Previous/Next moves through the captured launch context, skips unavailable rows, stops cleanly at an end, and never starts hidden content.
 4. Stopping audio, closing the app, or terminal playback failure clears the active system session and stale metadata.
-5. Ordinary keyboard input in StreamPlayer and other applications is not intercepted beyond standard media-key handling.
+5. Ordinary keyboard input in StreamsPlayer and other applications is not intercepted beyond standard media-key handling.
 6. State-transition checks and a real Windows media-key/system-overlay observation pass.
 
 ## Risks

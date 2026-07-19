@@ -4,7 +4,7 @@ Use this file as the offline copy deck for Partner Center. It describes the curr
 
 ## Submission profile
 
-- Product name: `StreamPlayer`
+- Product name: `STREAMS Player`
 - Publisher display name: `SerZhyAle`
 - Primary category: `Entertainment`
 - Optional secondary category: `Music`
@@ -12,11 +12,11 @@ Use this file as the offline copy deck for Partner Center. It describes the curr
 - Minimum OS: Windows 10 version 1809 (`10.0.17763.0`)
 - Price: Free
 - License: MIT
-- Website: `https://serzhyale.github.io/StreamPlayer/`
-- Support: `https://github.com/SerZhyAle/StreamPlayer/issues`
+- Website: `https://serzhyale.github.io/StreamsPlayer/`
+- Support: `https://github.com/SerZhyAle/StreamsPlayer/issues`
 - Support email: `serzhyale@gmail.com`
-- Privacy policy: `https://serzhyale.github.io/StreamPlayer/privacy.html`
-- Source: `https://github.com/SerZhyAle/StreamPlayer`
+- Privacy policy: `https://serzhyale.github.io/StreamsPlayer/privacy.html`
+- Source: `https://github.com/SerZhyAle/StreamsPlayer`
 
 ## English (en-US)
 
@@ -29,17 +29,17 @@ Browse internet radio and live video in a focused Windows player with a curated 
 ### Description
 
 ```text
-StreamPlayer is an independent Windows desktop application for browsing and playing internet radio, live video, and RTSP stream addresses.
+STREAMS Player is an independent Windows desktop application for browsing and playing internet radio, live video, and RTSP stream addresses.
 
 Explore a curated catalog by category, language, country, or media type. Search and sort channels, pin the streams you use most, or add a direct stream URL manually. Audio plays in the main window, while video opens in a dedicated window with always-on-top and borderless fullscreen controls.
 
 Choose a compact list or a visual grid. Grid mode can capture current thumbnails for visible HTTP(S) video streams; tile size and automatic thumbnail updates are controlled in Settings. The complete interface switches between English and Russian.
 
-Catalog downloads happen only when you choose Update catalog. StreamPlayer has no account, advertising, analytics, or telemetry. Catalog state, manual entries, favorites, playback marks, settings, and cached thumbnails stay in your Windows profile.
+Catalog downloads happen only when you choose Update catalog. STREAMS Player has no account, advertising, analytics, or telemetry. Catalog state, manual entries, favorites, playback marks, settings, and cached thumbnails stay in your Windows profile.
 
-Playback compatibility depends on the stream provider, network availability, protocol, and media codecs supported by the included or Windows media components. StreamPlayer does not host or control third-party stream content.
+Playback compatibility depends on the stream provider, network availability, protocol, and media codecs supported by the included or Windows media components. STREAMS Player does not host or control third-party stream content.
 
-StreamPlayer is open source under the MIT License.
+STREAMS Player is open source under the MIT License.
 ```
 
 ### Product features
@@ -84,17 +84,17 @@ IPTV player
 ### Description
 
 ```text
-StreamPlayer — независимое приложение Windows для просмотра каталога и воспроизведения интернет-радио, live-видео и адресов RTSP-потоков.
+Трансляции — независимое приложение Windows для просмотра каталога и воспроизведения интернет-радио, live-видео и адресов RTSP-потоков.
 
 Просматривайте подобранный каталог по категории, языку, стране или типу медиа. Ищите и сортируйте каналы, закрепляйте нужные потоки и добавляйте прямые URL вручную. Аудио воспроизводится в главном окне, а видео открывается в отдельном проигрывателе с режимами «поверх всех окон» и безрамочным полноэкранным просмотром.
 
 Выбирайте компактный список или наглядную сетку. В режиме сетки приложение может получать текущие миниатюры видимых HTTP(S)-видеопотоков; размер плиток и автоматическое обновление миниатюр задаются в Настройках. Весь интерфейс переключается между русским и английским языками.
 
-Каталог загружается только после нажатия «Обновить каталог». В StreamPlayer нет аккаунта, рекламы, аналитики и телеметрии. Состояние каталога, добавленные вручную адреса, избранное, отметки воспроизведения, настройки и кэш миниатюр хранятся в профиле Windows.
+Каталог загружается только после нажатия «Обновить каталог». В Трансляции нет аккаунта, рекламы, аналитики и телеметрии. Состояние каталога, добавленные вручную адреса, избранное, отметки воспроизведения, настройки и кэш миниатюр хранятся в профиле Windows.
 
-Совместимость воспроизведения зависит от поставщика потока, сети, протокола и медиакодеков, доступных во встроенных компонентах и Windows. StreamPlayer не размещает и не контролирует содержимое сторонних потоков.
+Совместимость воспроизведения зависит от поставщика потока, сети, протокола и медиакодеков, доступных во встроенных компонентах и Windows. Трансляции не размещает и не контролирует содержимое сторонних потоков.
 
-Исходный код StreamPlayer опубликован по лицензии MIT.
+Исходный код Трансляции опубликован по лицензии MIT.
 ```
 
 ### Product features
@@ -159,7 +159,7 @@ Playback support varies by stream protocol, provider availability, and codec
 ## Certification notes
 
 ```text
-StreamPlayer does not require an account, payment, activation, or test credentials.
+STREAMS Player does not require an account, payment, activation, or test credentials.
 
 Suggested test path:
 1. Start the app and choose Update catalog.
@@ -175,7 +175,7 @@ Individual third-party streams can be offline or use formats unsupported by the 
 ## runFullTrust justification
 
 ```text
-StreamPlayer is a full-trust .NET WPF desktop application packaged as MSIX. runFullTrust is required to launch the desktop executable and use its Windows and LibVLC-based media and thumbnail components. Network requests occur only for an explicit catalog refresh, selected stream playback, or enabled Grid thumbnail updates. The app has no account, advertising, analytics, telemetry, or personal-data collection. Source code: https://github.com/SerZhyAle/StreamPlayer
+StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. runFullTrust is required to launch the desktop executable and use its Windows and LibVLC-based media and thumbnail components. Network requests occur only for an explicit catalog refresh, selected stream playback, or enabled Grid thumbnail updates. The app has no account, advertising, analytics, telemetry, or personal-data collection. Source code: https://github.com/SerZhyAle/StreamsPlayer
 ```
 
 ## Privacy and age-rating declarations

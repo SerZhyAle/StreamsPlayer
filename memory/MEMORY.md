@@ -1,4 +1,4 @@
-# StreamPlayer Agent Memory
+# StreamsPlayer Agent Memory
 
 Short index of durable, non-obvious context for future sessions. Add one link per entry; keep entry bodies in separate files and verify repo claims before relying on them.
 

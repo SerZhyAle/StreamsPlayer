@@ -4,7 +4,7 @@
 
 ## Goal
 
-Let people switch the complete StreamPlayer interface between English and Russian from the top of the main window, keep either main or video window above other applications when requested, and watch video in a decoration-free fullscreen mode.
+Let people switch the complete StreamsPlayer interface between English and Russian from the top of the main window, keep either main or video window above other applications when requested, and watch video in a decoration-free fullscreen mode.
 
 ## Why
 

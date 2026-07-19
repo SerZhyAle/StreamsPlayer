@@ -4,7 +4,7 @@
 
 ## Goal
 
-Let people switch to a persisted visual grid where visible HTTP(S) video channels progressively show a current frame captured by StreamPlayer, one channel at a time.
+Let people switch to a persisted visual grid where visible HTTP(S) video channels progressively show a current frame captured by StreamsPlayer, one channel at a time.
 
 ## Why
 
@@ -51,12 +51,12 @@ See [research dossier](SP-0005_live_grid_previews/research.md).
 
 ## Last Audit
 
-- PASS — persisted surface. expected: List/Grid survives restart and required tile overlays/actions remain usable | actual: automation observed Grid selected after restart; `tmp/streamplayer-grid-preview.png` shows the 16:9 tile, green status, title scrim, overflow and Play actions.
+- PASS — persisted surface. expected: List/Grid survives restart and required tile overlays/actions remain usable | actual: automation observed Grid selected after restart; `tmp/streamsplayer-grid-preview.png` shows the 16:9 tile, green status, title scrim, overflow and Play actions.
 - PASS — capture scope. expected: only visible HTTP(S) video reaches the capture worker | actual: eligibility rejects audio/RTSP/non-HTTP, realized viewport URLs replace the active visible set, and the worker drops URLs no longer visible.
 - PASS — sequential capture. expected: one muted decoder with a 12-second bound and unconditional teardown | actual: only the single coordinator worker calls `CaptureAsync`; the first LibVLC display callback copies one frame and `finally` stops/disposes the player and frees pinned memory.
 - PASS — cache contract. expected: stale frames remain visible, 64-entry LRU/disk caps, SHA-256 JPEG persistence | actual: eviction clears the row reference; restored entries are stale; runtime evidence is a 640x360, 36,735-byte JPEG named by 64 lowercase hex characters.
-- PASS — real frame. expected: a current broadcast image replaces the favicon without freezing or crashing | actual: 1+1 International captured a live studio frame, repainted green, refreshed the same JPEG, and the process stayed responsive; evidence: `tmp/streamplayer-grid-preview.png`.
-- PASS — lifecycle. expected: list mode, deactivation and close stop capture | actual: all three call serialized coordinator teardown; two automated launches closed with no remaining StreamPlayer process.
+- PASS — real frame. expected: a current broadcast image replaces the favicon without freezing or crashing | actual: 1+1 International captured a live studio frame, repainted green, refreshed the same JPEG, and the process stayed responsive; evidence: `tmp/streamsplayer-grid-preview.png`.
+- PASS — lifecycle. expected: list mode, deactivation and close stop capture | actual: all three call serialized coordinator teardown; two automated launches closed with no remaining StreamsPlayer process.
 - PASS — documentation. expected: user and privacy text reflect periodic Grid network access and local frames | actual: EN/RU/UK READMEs and localized privacy copy describe both.
 - PASS — release check. expected: `./scripts/check.ps1` exits zero | actual: Release restore/build succeeded with 0 warnings and 0 errors; all 27 tests passed.
 - DIAGNOSTIC — expected: scoped `dotnet format --verify-no-changes` reports the documented baseline only | actual: ENDOFLINE diagnostics match the repository's pre-existing LF/CRLF baseline; no formatting gate was claimed.

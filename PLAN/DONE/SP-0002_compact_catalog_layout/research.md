@@ -4,9 +4,9 @@
 
 ## Evidence
 
-- `tmp/streamplayer-catalog.png` shows a single full-width row per stream. Its pin and Play controls are separated from the title by the unused row width; the filter controls display values only, and the search field has no visible label or reset affordance.
-- `src/StreamPlayer.App/MainWindow.xaml` owns the catalog, search, facet selection, and row controls in one `ListView`; its container is already scrollable and virtualized.
-- `src/StreamPlayer.App/MainWindow.xaml.cs` applies filtering on `TextChanged` and `SelectionChanged`, so an explicit clear control can reuse `FilterChanged` by assigning an empty search value.
+- `tmp/streamsplayer-catalog.png` shows a single full-width row per stream. Its pin and Play controls are separated from the title by the unused row width; the filter controls display values only, and the search field has no visible label or reset affordance.
+- `src/StreamsPlayer.App/MainWindow.xaml` owns the catalog, search, facet selection, and row controls in one `ListView`; its container is already scrollable and virtualized.
+- `src/StreamsPlayer.App/MainWindow.xaml.cs` applies filtering on `TextChanged` and `SelectionChanged`, so an explicit clear control can reuse `FilterChanged` by assigning an empty search value.
 - `docs/specifications/streams.txt`, Part G, requires all category/language/country/media-kind filters, sorting, searching, pinning, outcome status, and favicon fallback to remain usable.
 
 ## Current flow and reusable patterns

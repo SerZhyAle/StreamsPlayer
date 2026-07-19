@@ -4,7 +4,7 @@
 
 ## Goal
 
-Make the StreamPlayer GitHub landing documentation feel like the author's other
+Make the StreamsPlayer GitHub landing documentation feel like the author's other
 product pages and provide an obvious English, Russian, and Ukrainian entry point
 without relying on unsupported GitHub README scripting.
 
@@ -27,7 +27,7 @@ without relying on unsupported GitHub README scripting.
 
 ## Acceptance criteria
 
-1. The main GitHub README is a clear product entry point with StreamPlayer
+1. The main GitHub README is a clear product entry point with StreamsPlayer
    identity, concise capability-led sections, direct project links, and a
    visible EN/RU/UA selector.
 2. Complete Russian and Ukrainian README variants exist with reciprocal

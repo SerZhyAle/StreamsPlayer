@@ -3,11 +3,11 @@
     <Company>SerZhyAle</Company>
     <Authors>Serhii Zhyhunenko</Authors>
     <Copyright>Copyright © 2026 Serhii Zhyhunenko (SerZhyAle)</Copyright>
-    <Product>StreamPlayer</Product>
-    <RepositoryUrl>https://github.com/SerZhyAle/StreamPlayer</RepositoryUrl>
+    <Product>StreamsPlayer</Product>
+    <RepositoryUrl>https://github.com/SerZhyAle/StreamsPlayer</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://serzhyale.github.io/StreamPlayer/</PackageProjectUrl>
+    <PackageProjectUrl>https://serzhyale.github.io/StreamsPlayer/</PackageProjectUrl>
     <Version>26.0719.0131</Version>
     <AssemblyVersion>26.0719.0131</AssemblyVersion>
     <FileVersion>26.0719.0131</FileVersion>

@@ -2,14 +2,14 @@
 
 ## Ownership and publishing boundary
 
-StreamPlayer is an independent Windows product owned and authored by **Serhii
+StreamsPlayer is an independent Windows product owned and authored by **Serhii
 Zhyhunenko** (`SerZhyAle`, `serzhyale@gmail.com`). Its public home is intended
-to be `https://github.com/SerZhyAle/StreamPlayer`, with GitHub Pages at
-`https://serzhyale.github.io/StreamPlayer/`.
+to be `https://github.com/SerZhyAle/StreamsPlayer`, with GitHub Pages at
+`https://serzhyale.github.io/StreamsPlayer/`.
 
 It consumes the published FastMediaSorter stream bank as an external data
 contract. Do not copy FastMediaSorter application code, change that repository,
-or turn a StreamPlayer feature into a FastMediaSorter feature.
+or turn a StreamsPlayer feature into a FastMediaSorter feature.
 
 Never push a tag, create a GitHub release, submit winget manifests, upload to
 Partner Center, or publish Pages unless the user explicitly asks for a release
@@ -17,11 +17,11 @@ or publication. A local build is not a release.
 
 ## Project layout
 
-- `src/StreamPlayer.Core` — platform-neutral catalog contracts, parsing, merge
+- `src/StreamsPlayer.Core` — platform-neutral catalog contracts, parsing, merge
   and persistence.
-- `src/StreamPlayer.App` — WPF Windows desktop application.
-- `tests/StreamPlayer.Core.Tests` — unit and contract tests.
-- `tools/StreamPlayer.CatalogHarness` — live-bank diagnostic harness.
+- `src/StreamsPlayer.App` — WPF Windows desktop application.
+- `tests/StreamsPlayer.Core.Tests` — unit and contract tests.
+- `tools/StreamsPlayer.CatalogHarness` — live-bank diagnostic harness.
 - `docs/specifications/streams.txt` — standalone product specification.
 - `docs/agent/` — agent workflow and validation guidance.
 - `docs/` and `assets/` — GitHub Pages and product documentation assets.
@@ -37,9 +37,9 @@ Run from the repository root in PowerShell.
 - `./build.ps1 -Deploy` — build a self-contained Release EXE and copy it to the local SZA app folders; this is not a release.
 - `./build.ps1 -Run` or `./run.ps1` — restore, build and launch the app.
 - `./scripts/check.ps1` — Release restore, build, and test check.
-- `dotnet format StreamPlayer.sln --verify-no-changes` — formatting diagnostic; it currently reports a pre-existing line-ending/encoding baseline and is not a passing gate until that baseline is normalized.
-- `dotnet run --project src/StreamPlayer.App` — run the desktop application.
-- `dotnet run --project tools/StreamPlayer.CatalogHarness -- artifacts/favicon-sample.png`
+- `dotnet format StreamsPlayer.sln --verify-no-changes` — formatting diagnostic; it currently reports a pre-existing line-ending/encoding baseline and is not a passing gate until that baseline is normalized.
+- `dotnet run --project src/StreamsPlayer.App` — run the desktop application.
+- `dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png`
   — check the live catalog contract.
 - `./msix/build-msix.ps1 -SelfSign` — build and locally test an MSIX package; use only for package work.
 - `./scripts/release.ps1` — print the manual release checklist only.
@@ -48,8 +48,8 @@ Never run `./scripts/build-local.ps1` unless the user explicitly requests a comm
 
 ## Code and test conventions
 
-- Keep catalog and delivery rules in `StreamPlayer.Core`; keep WPF concerns in
-  `StreamPlayer.App`.
+- Keep catalog and delivery rules in `StreamsPlayer.Core`; keep WPF concerns in
+  `StreamsPlayer.App`.
 - Preserve explicit catalog refresh: do not introduce automatic background
   downloads without an explicit product decision.
 - Preserve the URL merge contract and the protection of `MANUAL` and `IMPORTED`
@@ -57,8 +57,8 @@ Never run `./scripts/build-local.ps1` unless the user explicitly requests a comm
 - Use nullable reference types and implicit usings already enabled by the
   projects. Follow standard C# naming: PascalCase for types/members,
   camelCase for locals and parameters.
-- Build with `dotnet build StreamPlayer.sln -c Release` and test with
-  `dotnet test StreamPlayer.sln -c Release --no-build` before proposing a
+- Build with `dotnet build StreamsPlayer.sln -c Release` and test with
+  `dotnet test StreamsPlayer.sln -c Release --no-build` before proposing a
   release.
 
 ## Git conventions
@@ -81,13 +81,13 @@ git config init.defaultBranch main
 After the GitHub repository is created, add the remote:
 
 ```powershell
-git remote add origin https://github.com/SerZhyAle/StreamPlayer.git
+git remote add origin https://github.com/SerZhyAle/StreamsPlayer.git
 git push -u origin main
 ```
 
 ## Version convention
 
-- StreamPlayer versions use UTC release time in `YY.MMDD.HHmm` form, for example `26.0719.0131`.
+- StreamsPlayer versions use UTC release time in `YY.MMDD.HHmm` form, for example `26.0719.0131`.
 - Git tags use the same value with a `v` prefix: `v26.0719.0131`.
 - `Version`, `AssemblyVersion`, `FileVersion`, and `InformationalVersion` in `Directory.Build.props` are updated together before a release. The Settings window displays `InformationalVersion`.
 - MSIX package identity requires four components, so it appends only `.0`: `26.0719.0131.0`. Winget and GitHub retain the canonical three-component value.
@@ -103,10 +103,10 @@ git push -u origin main
 
 ### Skill routing
 
-- `$streamplayer-quick`: one trivial deterministic edit; `$streamplayer-fix`: narrow, understood behaviour bug.
-- `$streamplayer-research`: evidence-first investigation before non-trivial work.
-- `$streamplayer-spec` -> `$streamplayer-spec-tech` -> `$streamplayer-spec-dev` -> `$streamplayer-spec-check`: changes with real design decisions.
-- `$streamplayer-spec-fix`, `$streamplayer-spec-all`, `$streamplayer-ui-clarify`, `$streamplayer-verify`, `$streamplayer-review`, `$streamplayer-git`, `$streamplayer-park`, `$streamplayer-backlog`, and `streamplayer-caveman*` follow their named procedures.
+- `$streamsplayer-quick`: one trivial deterministic edit; `$streamsplayer-fix`: narrow, understood behaviour bug.
+- `$streamsplayer-research`: evidence-first investigation before non-trivial work.
+- `$streamsplayer-spec` -> `$streamsplayer-spec-tech` -> `$streamsplayer-spec-dev` -> `$streamsplayer-spec-check`: changes with real design decisions.
+- `$streamsplayer-spec-fix`, `$streamsplayer-spec-all`, `$streamsplayer-ui-clarify`, `$streamsplayer-verify`, `$streamsplayer-review`, `$streamsplayer-git`, `$streamsplayer-park`, `$streamsplayer-backlog`, and `streamsplayer-caveman*` follow their named procedures.
 
 ### Specifications, quality, and validation
 

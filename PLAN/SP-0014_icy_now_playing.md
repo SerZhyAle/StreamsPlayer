@@ -4,7 +4,7 @@
 
 ## Goal
 
-Show the current artist and track supplied by an audio stream so the listener can understand what is on air without leaving StreamPlayer.
+Show the current artist and track supplied by an audio stream so the listener can understand what is on air without leaving StreamsPlayer.
 
 ## Why
 

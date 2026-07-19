@@ -4,11 +4,11 @@
 
 ## Goal
 
-Let users bring compatible M3U channel lists into StreamPlayer and export their own curated channels or collections without requiring an account.
+Let users bring compatible M3U channel lists into StreamsPlayer and export their own curated channels or collections without requiring an account.
 
 ## Why
 
-M3U is a practical interchange format across stream players. Portable lists protect user effort and make StreamPlayer easier to adopt while preserving its local-first model.
+M3U is a practical interchange format across stream players. Portable lists protect user effort and make StreamsPlayer easier to adopt while preserving its local-first model.
 
 ## Non-goals
 

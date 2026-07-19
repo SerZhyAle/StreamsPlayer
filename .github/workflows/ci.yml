@@ -26,8 +26,8 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.sln') }}
           restore-keys: ${{ runner.os }}-nuget-
       - name: Restore
-        run: dotnet restore StreamPlayer.sln
+        run: dotnet restore StreamsPlayer.sln
       - name: Build
-        run: dotnet build StreamPlayer.sln -c Release --no-restore
+        run: dotnet build StreamsPlayer.sln -c Release --no-restore
       - name: Test
-        run: dotnet test StreamPlayer.sln -c Release --no-build --verbosity normal
+        run: dotnet test StreamsPlayer.sln -c Release --no-build --verbosity normal

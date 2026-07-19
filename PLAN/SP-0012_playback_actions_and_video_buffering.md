@@ -1,6 +1,6 @@
 # SP-0012: Playback actions, parallel player windows, and resilient video buffering
 
-**Status:** BlockNeedUserTest — live video buffering and parallel windows require observation without interrupting the user's active Debug StreamPlayer process.
+**Status:** BlockNeedUserTest — live video buffering and parallel windows require observation without interrupting the user's active Debug StreamsPlayer process.
 
 ## Goal
 
@@ -47,4 +47,4 @@ See [research dossier](SP-0012_playback_actions_and_video_buffering/research.md)
 - PASS — **Open in new window** is localized, disabled for audio, and creates a `PlayerWindow` directly rather than routing through normal playback, leaving existing audio/video untouched.
 - PASS — foreground `PlayerWindow` now owns an official LibVLC WPF `VideoView`, with 10,000 ms `NetworkCaching`, `network-caching`/`live-caching` media options, RTSP-over-TCP, localized Buffering progress, and event/disposal cleanup.
 - PASS — expected: `scripts/check.ps1` succeeds | actual: Release build completed without warnings/errors; 38/38 Core tests passed.
-- MANUAL — expected: two live windows play independently and a real stream reports buffering progress before ready video | actual: not run because a user-owned Debug StreamPlayer process is active and was left untouched.
+- MANUAL — expected: two live windows play independently and a real stream reports buffering progress before ready video | actual: not run because a user-owned Debug StreamsPlayer process is active and was left untouched.

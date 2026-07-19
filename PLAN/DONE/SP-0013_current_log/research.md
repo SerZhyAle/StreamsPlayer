@@ -2,8 +2,8 @@
 
 ## Current flow
 
-- `App.OnStartup` creates `MainWindow` and shows it; it currently has no error lifecycle hooks (`src/StreamPlayer.App/App.xaml.cs:13`).
-- `MainWindow` already owns `%LOCALAPPDATA%\StreamPlayer` and initializes its `StreamCatalogStore` there (`src/StreamPlayer.App/MainWindow.xaml.cs:18-43`).
+- `App.OnStartup` creates `MainWindow` and shows it; it currently has no error lifecycle hooks (`src/StreamsPlayer.App/App.xaml.cs:13`).
+- `MainWindow` already owns `%LOCALAPPDATA%\StreamsPlayer` and initializes its `StreamCatalogStore` there (`src/StreamsPlayer.App/MainWindow.xaml.cs:18-43`).
 - Catalog load and explicit refresh both catch exceptions at the UI boundary (`MainWindow.xaml.cs:101-130`, `161-179`), so those failure details can be recorded without changing the UI contract.
 - The README documents this local-data directory and the privacy promise of no telemetry (`README.md:55,133-136`).
 

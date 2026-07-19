@@ -1,15 +1,15 @@
 const translations = {
   en: {
-    "title-home": "StreamPlayer — internet radio, live video and RTSP for Windows",
-    "description-home": "StreamPlayer for Windows: browse and play internet radio, live video and RTSP streams.",
-    "title-privacy": "Privacy — StreamPlayer",
-    "description-privacy": "StreamPlayer privacy policy.",
+    "title-home": "STREAMS Player — internet radio, live video and RTSP for Windows",
+    "description-home": "STREAMS Player for Windows: browse and play internet radio, live video and RTSP streams.",
+    "title-privacy": "Privacy — STREAMS Player",
+    "description-privacy": "STREAMS Player privacy policy.",
     "skip-content": "Skip to content",
     "nav-features": "Features",
     "nav-privacy": "Privacy",
     "header-github": "GitHub",
     "theme-label": "Switch color theme",
-    "hero-eyebrow": "StreamPlayer · Windows 10 / 11",
+    "hero-eyebrow": "STREAMS Player · Windows 10 / 11",
     "hero-title": "Your streams. One calm player.",
     "hero-kicker": "Internet radio · Live video · RTSP",
     "hero-description": "Browse a curated catalog, find a channel quickly, and keep your own stations close — in a focused Windows desktop app.",
@@ -27,7 +27,7 @@ const translations = {
     "feature-media-title": "Radio, video, and RTSP",
     "feature-media-description": "Start audio in the main window and open live video or network-camera streams in a focused player window.",
     "feature-control-title": "Refresh on your terms",
-    "feature-control-description": "Catalog updates are always explicit. StreamPlayer never begins a surprise background catalog download.",
+    "feature-control-description": "Catalog updates are always explicit. STREAMS Player never begins a surprise background catalog download.",
     "feature-local-title": "Local by design",
     "feature-local-description": "Add your own stream, keep pins and playback marks locally, and use the app without an account or telemetry.",
     "distribution-title": "Distribution",
@@ -37,13 +37,13 @@ const translations = {
     "channel-winget": "winget",
     "status-planned": "Planned",
     "status-preparing": "Preparing",
-    "privacy-eyebrow": "StreamPlayer · Privacy",
+    "privacy-eyebrow": "STREAMS Player · Privacy",
     "privacy-title": "Private by default.",
-    "privacy-intro": "StreamPlayer has no account, advertising, analytics, telemetry, or service operated by the author.",
+    "privacy-intro": "STREAMS Player has no account, advertising, analytics, telemetry, or service operated by the author.",
     "privacy-network-title": "Network access",
     "privacy-network": "The application connects when you explicitly refresh the public stream catalog, play a selected stream, or keep Grid mode active while visible video previews refresh. Those requests go to the relevant catalog or stream provider and are subject to that provider's policies.",
     "privacy-local-title": "Local data",
-    "privacy-local": "StreamPlayer stores its catalog state, manual entries, pins, playback marks, up to 64 cached preview frames, and the current-session diagnostic Current.log under %LOCALAPPDATA%\\StreamPlayer. This data stays on your device unless you choose to copy or back it up.",
+    "privacy-local": "STREAMS Player stores its catalog state, manual entries, pins, playback marks, up to 64 cached preview frames, and the current-session diagnostic Current.log under %LOCALAPPDATA%\\StreamsPlayer. This data stays on your device unless you choose to copy or back it up.",
     "privacy-contact-title": "Contact",
     "privacy-contact": "Questions can be filed in the GitHub issue tracker or sent to serzhyale@gmail.com.",
     "footer-rights": "© 2026 Serhii Zhyhunenko",
@@ -51,16 +51,16 @@ const translations = {
     "to-top": "Back to top"
   },
   ru: {
-    "title-home": "StreamPlayer — интернет-радио, live-видео и RTSP для Windows",
-    "description-home": "StreamPlayer для Windows: каталог и воспроизведение интернет-радио, live-видео и RTSP-потоков.",
-    "title-privacy": "Конфиденциальность — StreamPlayer",
-    "description-privacy": "Политика конфиденциальности StreamPlayer.",
+    "title-home": "Трансляции — интернет-радио, live-видео и RTSP для Windows",
+    "description-home": "Трансляции для Windows: каталог и воспроизведение интернет-радио, live-видео и RTSP-потоков.",
+    "title-privacy": "Конфиденциальность — Трансляции",
+    "description-privacy": "Политика конфиденциальности Трансляции.",
     "skip-content": "Перейти к содержимому",
     "nav-features": "Возможности",
     "nav-privacy": "Конфиденциальность",
     "header-github": "GitHub",
     "theme-label": "Сменить цветовую тему",
-    "hero-eyebrow": "StreamPlayer · Windows 10 / 11",
+    "hero-eyebrow": "Трансляции · Windows 10 / 11",
     "hero-title": "Ваши потоки. Один спокойный плеер.",
     "hero-kicker": "Интернет-радио · Live-видео · RTSP",
     "hero-description": "Открывайте каталог, быстро находите нужный канал и держите свои станции под рукой — в лаконичном приложении для Windows.",
@@ -78,7 +78,7 @@ const translations = {
     "feature-media-title": "Радио, видео и RTSP",
     "feature-media-description": "Слушайте аудио в главном окне, а live-видео и сетевые камеры открывайте в отдельном окне плеера.",
     "feature-control-title": "Обновление под вашим контролем",
-    "feature-control-description": "Каталог обновляется только явно. StreamPlayer не запускает неожиданную фоновую загрузку каталога.",
+    "feature-control-description": "Каталог обновляется только явно. Трансляции не запускает неожиданную фоновую загрузку каталога.",
     "feature-local-title": "Локально по замыслу",
     "feature-local-description": "Добавляйте свои потоки, храните закрепления и отметки воспроизведения локально — без аккаунта и телеметрии.",
     "distribution-title": "Распространение",
@@ -88,13 +88,13 @@ const translations = {
     "channel-winget": "winget",
     "status-planned": "Запланировано",
     "status-preparing": "Готовится",
-    "privacy-eyebrow": "StreamPlayer · Конфиденциальность",
+    "privacy-eyebrow": "Трансляции · Конфиденциальность",
     "privacy-title": "Приватность по умолчанию.",
-    "privacy-intro": "В StreamPlayer нет аккаунта, рекламы, аналитики, телеметрии или сервиса, управляемого автором.",
+    "privacy-intro": "В Трансляции нет аккаунта, рекламы, аналитики, телеметрии или сервиса, управляемого автором.",
     "privacy-network-title": "Доступ к сети",
     "privacy-network": "Приложение подключается к сети при явном обновлении каталога, воспроизведении выбранного потока и обновлении видимых видеопревью, пока активен режим сетки. Запросы отправляются соответствующему поставщику каталога или потока и регулируются его политиками.",
     "privacy-local-title": "Локальные данные",
-    "privacy-local": "StreamPlayer хранит состояние каталога, добавленные вручную записи, закрепления, отметки воспроизведения, до 64 кадров предпросмотра и диагностический журнал текущего сеанса Current.log в %LOCALAPPDATA%\\StreamPlayer. Данные остаются на устройстве, пока вы сами не скопируете или не сохраните их резервную копию.",
+    "privacy-local": "Трансляции хранит состояние каталога, добавленные вручную записи, закрепления, отметки воспроизведения, до 64 кадров предпросмотра и диагностический журнал текущего сеанса Current.log в %LOCALAPPDATA%\\StreamsPlayer. Данные остаются на устройстве, пока вы сами не скопируете или не сохраните их резервную копию.",
     "privacy-contact-title": "Контакты",
     "privacy-contact": "Вопрос можно задать в GitHub issue tracker или отправить на serzhyale@gmail.com.",
     "footer-rights": "© 2026 Сергей Жигуненко",
@@ -102,16 +102,16 @@ const translations = {
     "to-top": "Наверх"
   },
   uk: {
-    "title-home": "StreamPlayer — інтернет-радіо, live-відео та RTSP для Windows",
-    "description-home": "StreamPlayer для Windows: каталог і відтворення інтернет-радіо, live-відео та RTSP-потоків.",
-    "title-privacy": "Конфіденційність — StreamPlayer",
-    "description-privacy": "Політика конфіденційності StreamPlayer.",
+    "title-home": "STREAMS Player — інтернет-радіо, live-відео та RTSP для Windows",
+    "description-home": "STREAMS Player для Windows: каталог і відтворення інтернет-радіо, live-відео та RTSP-потоків.",
+    "title-privacy": "Конфіденційність — STREAMS Player",
+    "description-privacy": "Політика конфіденційності STREAMS Player.",
     "skip-content": "Перейти до вмісту",
     "nav-features": "Можливості",
     "nav-privacy": "Конфіденційність",
     "header-github": "GitHub",
     "theme-label": "Змінити колірну тему",
-    "hero-eyebrow": "StreamPlayer · Windows 10 / 11",
+    "hero-eyebrow": "STREAMS Player · Windows 10 / 11",
     "hero-title": "Ваші потоки. Один спокійний плеєр.",
     "hero-kicker": "Інтернет-радіо · Live-відео · RTSP",
     "hero-description": "Переглядайте каталог, швидко знаходьте потрібний канал і тримайте власні станції поруч — у лаконічному застосунку для Windows.",
@@ -129,7 +129,7 @@ const translations = {
     "feature-media-title": "Радіо, відео та RTSP",
     "feature-media-description": "Слухайте аудіо в головному вікні, а live-відео та мережеві камери відкривайте в окремому вікні плеєра.",
     "feature-control-title": "Оновлення під вашим контролем",
-    "feature-control-description": "Каталог оновлюється лише явно. StreamPlayer не запускає несподіване фонове завантаження каталогу.",
+    "feature-control-description": "Каталог оновлюється лише явно. STREAMS Player не запускає несподіване фонове завантаження каталогу.",
     "feature-local-title": "Локально за задумом",
     "feature-local-description": "Додавайте власні потоки, зберігайте закріплення та позначки відтворення локально — без облікового запису й телеметрії.",
     "distribution-title": "Поширення",
@@ -139,13 +139,13 @@ const translations = {
     "channel-winget": "winget",
     "status-planned": "Заплановано",
     "status-preparing": "Готується",
-    "privacy-eyebrow": "StreamPlayer · Конфіденційність",
+    "privacy-eyebrow": "STREAMS Player · Конфіденційність",
     "privacy-title": "Приватність за замовчуванням.",
-    "privacy-intro": "У StreamPlayer немає облікового запису, реклами, аналітики, телеметрії чи сервісу, яким керує автор.",
+    "privacy-intro": "У STREAMS Player немає облікового запису, реклами, аналітики, телеметрії чи сервісу, яким керує автор.",
     "privacy-network-title": "Доступ до мережі",
     "privacy-network": "Застосунок підключається до мережі під час явного оновлення каталогу, відтворення вибраного потоку й оновлення видимих відеопрев’ю, доки активний режим сітки. Запити надсилаються відповідному постачальнику каталогу чи потоку й регулюються його політиками.",
     "privacy-local-title": "Локальні дані",
-    "privacy-local": "StreamPlayer зберігає стан каталогу, додані вручну записи, закріплення, позначки відтворення, до 64 кадрів попереднього перегляду та діагностичний журнал поточного сеансу Current.log у %LOCALAPPDATA%\\StreamPlayer. Дані залишаються на пристрої, доки ви самі не скопіюєте чи не створите їх резервну копію.",
+    "privacy-local": "STREAMS Player зберігає стан каталогу, додані вручну записи, закріплення, позначки відтворення, до 64 кадрів попереднього перегляду та діагностичний журнал поточного сеансу Current.log у %LOCALAPPDATA%\\StreamsPlayer. Дані залишаються на пристрої, доки ви самі не скопіюєте чи не створите їх резервну копію.",
     "privacy-contact-title": "Контакти",
     "privacy-contact": "Запитання можна поставити в GitHub issue tracker або надіслати на serzhyale@gmail.com.",
     "footer-rights": "© 2026 Сергій Жигуненко",
@@ -181,7 +181,7 @@ function readPreference(key) {
 function toggleTheme() {
   const nextTheme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
   document.documentElement.dataset.theme = nextTheme;
-  storePreference("streamplayer-theme", nextTheme);
+  storePreference("streamsplayer-theme", nextTheme);
   setThemeMeta(nextTheme);
 }
 
@@ -217,11 +217,11 @@ function setLanguage(language) {
     button.setAttribute("aria-pressed", String(button.dataset.language === languageKey));
   });
 
-  storePreference("streamplayer-lang", languageKey);
+  storePreference("streamsplayer-lang", languageKey);
 }
 
 function resolveLanguage() {
-  const stored = readPreference("streamplayer-lang");
+  const stored = readPreference("streamsplayer-lang");
   if (translations[stored]) {
     return stored;
   }

@@ -19,8 +19,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$solutionPath = Join-Path $PSScriptRoot 'StreamPlayer.sln'
-$appProjectPath = Join-Path $PSScriptRoot 'src\StreamPlayer.App\StreamPlayer.App.csproj'
+$solutionPath = Join-Path $PSScriptRoot 'StreamsPlayer.sln'
+$appProjectPath = Join-Path $PSScriptRoot 'src\StreamsPlayer.App\StreamsPlayer.App.csproj'
 $localDeployPaths = @(
     'C:\GD\i',
     'C:\GD\tc\SZA\_APP'
@@ -66,7 +66,7 @@ try {
         throw "Требуется .NET 10 SDK или новее. Найдена версия: $sdkVersion."
     }
 
-    Write-Host "StreamPlayer — .NET SDK $sdkVersion, конфигурация $Configuration" -ForegroundColor Green
+    Write-Host "StreamsPlayer — .NET SDK $sdkVersion, конфигурация $Configuration" -ForegroundColor Green
 
     if ($Clean) {
         Invoke-DotNet @('clean', $solutionPath, '--configuration', $Configuration)
@@ -121,14 +121,14 @@ try {
     if ($Deploy) {
         $localOutputPath = Join-Path $PSScriptRoot "artifacts\local\$Runtime"
         $targetExePaths = @(
-            (Join-Path $localOutputPath 'StreamPlayer.exe')
-            $localDeployPaths | ForEach-Object { Join-Path $_ 'StreamPlayer.exe' }
+            (Join-Path $localOutputPath 'StreamsPlayer.exe')
+            $localDeployPaths | ForEach-Object { Join-Path $_ 'StreamsPlayer.exe' }
         )
 
-        foreach ($process in @(Get-Process -Name 'StreamPlayer' -ErrorAction SilentlyContinue)) {
+        foreach ($process in @(Get-Process -Name 'StreamsPlayer' -ErrorAction SilentlyContinue)) {
             $processPath = try { $process.Path } catch { $null }
             if ($processPath -and $targetExePaths -contains $processPath) {
-                Write-Host "Stopping local StreamPlayer: $processPath" -ForegroundColor Cyan
+                Write-Host "Stopping local StreamsPlayer: $processPath" -ForegroundColor Cyan
                 Stop-Process -Id $process.Id -Force
                 $process.WaitForExit(5000) | Out-Null
             }
@@ -156,21 +156,21 @@ try {
             '-p:DebugSymbols=false'
         )
 
-        $localExePath = Join-Path $localOutputPath 'StreamPlayer.exe'
+        $localExePath = Join-Path $localOutputPath 'StreamsPlayer.exe'
         if (-not (Test-Path -LiteralPath $localExePath -PathType Leaf)) {
             throw "Local single-file executable was not created: $localExePath"
         }
 
         foreach ($deployPath in $localDeployPaths) {
             New-Item -ItemType Directory -Path $deployPath -Force | Out-Null
-            $targetExePath = Join-Path $deployPath 'StreamPlayer.exe'
+            $targetExePath = Join-Path $deployPath 'StreamsPlayer.exe'
             Copy-Item -LiteralPath $localExePath -Destination $targetExePath -Force
             Write-Host "Local build deployed: $targetExePath" -ForegroundColor Green
         }
     }
 
     if ($Run) {
-        Write-Host 'Запуск StreamPlayer...' -ForegroundColor Green
+        Write-Host 'Запуск StreamsPlayer...' -ForegroundColor Green
         Invoke-DotNet @(
             'run',
             '--project', $appProjectPath,

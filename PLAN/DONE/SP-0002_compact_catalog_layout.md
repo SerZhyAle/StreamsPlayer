@@ -45,7 +45,7 @@ See [research dossier](SP-0002_compact_catalog_layout/research.md).
 - PASS — `MainWindow.xaml` presents labelled search, media, category, language, country, and sort controls; Clear is visible and accessible.
 - PASS — `MainWindow.xaml` keeps each card's status, title, pin, and Play controls together, with URL and metadata below.
 - PASS — `MainWindow.xaml.cs` groups the catalog into width-dependent card rows while retaining virtualization on the outer list; it rebuilds only on a column-count change.
-- PASS — expected: `dotnet build StreamPlayer.sln -c Release` exits zero | actual: succeeded with 0 warnings and 0 errors.
-- PASS — expected: a wide catalog shows multiple compact columns | actual: launched 2048px window displayed 3 columns; evidence: `tmp/streamplayer-catalog-compact.png`.
-- PASS — expected: a narrow window remains readable | actual: launched 920px window displayed 2 columns; evidence: `tmp/streamplayer-catalog-compact-narrow.png`.
+- PASS — expected: `dotnet build StreamsPlayer.sln -c Release` exits zero | actual: succeeded with 0 warnings and 0 errors.
+- PASS — expected: a wide catalog shows multiple compact columns | actual: launched 2048px window displayed 3 columns; evidence: `tmp/streamsplayer-catalog-compact.png`.
+- PASS — expected: a narrow window remains readable | actual: launched 920px window displayed 2 columns; evidence: `tmp/streamsplayer-catalog-compact-narrow.png`.
 - PASS — expected: Clear removes the query and restores results | actual: UI Automation set a query, invoked `Clear search`, and observed an empty search value; catalog returned to 2,691 of 2,691 channels.

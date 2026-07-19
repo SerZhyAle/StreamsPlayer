@@ -11,7 +11,7 @@ try {
     [DateTime]::ParseExact($version, 'yy.MMdd.HHmm', [Globalization.CultureInfo]::InvariantCulture) | Out-Null
     $branch = git branch --show-current
     $dirty = git status --porcelain
-    Write-Host "StreamPlayer release checklist for v$version" -ForegroundColor Cyan
+    Write-Host "StreamsPlayer release checklist for v$version" -ForegroundColor Cyan
     Write-Host "Branch: $branch"
     if ($dirty) { Write-Warning 'Working tree is not clean.' }
     Write-Host @"

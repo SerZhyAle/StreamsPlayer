@@ -1,4 +1,4 @@
-# StreamPlayer Agent Memory
+# StreamsPlayer Agent Memory
 
 `memory/MEMORY.md` is the short, always-read index. Each durable entry is a separate Markdown file linked from that index.
 

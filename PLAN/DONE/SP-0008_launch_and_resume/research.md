@@ -25,8 +25,8 @@
 Use explicit options:
 
 ```text
-StreamPlayer.exe --url "https://example.test/live"
-StreamPlayer.exe --id "a persisted channel GUID"
+StreamsPlayer.exe --url "https://example.test/live"
+StreamsPlayer.exe --id "a persisted channel GUID"
 ```
 
 `--id` is the database record identifier. A missing or invalid requested

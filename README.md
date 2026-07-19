@@ -1,15 +1,15 @@
 <p align="center">
-  <img src="docs/assets/streamplayer-icon-256.png" alt="StreamPlayer icon" width="112">
+  <img src="docs/assets/streamsplayer-icon-256.png" alt="StreamsPlayer icon" width="112">
 </p>
 
-<h1 align="center">StreamPlayer</h1>
+<h1 align="center">STREAMS Player</h1>
 
 <p align="center">Internet radio, live video, and RTSP for Windows.</p>
 
 <p align="center">
-  <a href="https://serzhyale.github.io/StreamPlayer/">Website</a> ·
-  <a href="https://github.com/SerZhyAle/StreamPlayer">Source</a> ·
-  <a href="https://serzhyale.github.io/StreamPlayer/privacy.html">Privacy</a>
+  <a href="https://serzhyale.github.io/StreamsPlayer/">Website</a> ·
+  <a href="https://github.com/SerZhyAle/StreamsPlayer">Source</a> ·
+  <a href="https://serzhyale.github.io/StreamsPlayer/privacy.html">Privacy</a>
 </p>
 
 <p align="center">
@@ -19,7 +19,7 @@
   <a href="README.uk.md">Українська</a>
 </p>
 
-> **Release status:** StreamPlayer is in active development. Portable ZIP,
+> **Release status:** STREAMS Player is in active development. Portable ZIP,
 > Microsoft Store, and winget channels are planned but are not published
 > downloads yet.
 
@@ -29,7 +29,7 @@
 | --- | --- | --- |
 | Browse a curated catalog and filter by category, language, country, or media type. | Search, sort, pin, and add your own streams without an account. | Listen to radio in the main window or open live video and RTSP in a focused player window. |
 
-StreamPlayer is an independent Windows desktop application for internet radio,
+STREAMS Player is an independent Windows desktop application for internet radio,
 live video, and RTSP channels. It consumes the published FastMediaSorter stream
 bank as an external data contract; it does not share FastMediaSorter application
 code or features.
@@ -52,7 +52,7 @@ code or features.
   automatic thumbnail updates, view the `YY.MMDD.HHmm` version, and open project,
   privacy, instruction, and author pages.
 - Add a stream manually and keep local playback outcome marks.
-- Store catalog state, manual entries, pins, and the current-session diagnostic `Current.log` under `%LOCALAPPDATA%\StreamPlayer`.
+- Store catalog state, manual entries, pins, and the current-session diagnostic `Current.log` under `%LOCALAPPDATA%\StreamsPlayer`.
 
 Audio playback uses WPF `MediaElement`; video and RTSP use the bundled LibVLC
 runtime with a target 10-second live buffer and visible buffering progress. Grid
@@ -69,7 +69,7 @@ UI, and advanced player controls remain later milestones.
 Or start the desktop app directly:
 
 ```powershell
-dotnet run --project src/StreamPlayer.App
+dotnet run --project src/StreamsPlayer.App
 ```
 
 ## Launch a stream
@@ -77,7 +77,7 @@ dotnet run --project src/StreamPlayer.App
 Use a direct URL without downloading the catalog:
 
 ```powershell
-StreamPlayer.exe --url "https://example.test/live"
+StreamsPlayer.exe --url "https://example.test/live"
 ```
 
 For a saved channel, select it in the catalog, open Settings, and use **Copy
@@ -85,7 +85,7 @@ command** or **Create desktop shortcut**. These entries use the channel's
 persisted GUID:
 
 ```powershell
-StreamPlayer.exe --id "channel-guid"
+StreamsPlayer.exe --id "channel-guid"
 ```
 
 An ordinary launch without arguments resumes the last selected saved channel.
@@ -94,10 +94,10 @@ An ordinary launch without arguments resumes the last selected saved channel.
 
 | Area | Purpose |
 | --- | --- |
-| `src/StreamPlayer.Core` | Platform-neutral catalog contracts, parsing, merge, and local persistence. |
-| `src/StreamPlayer.App` | WPF desktop application. |
-| `tests/StreamPlayer.Core.Tests` | Unit and contract tests. |
-| `tools/StreamPlayer.CatalogHarness` | Live stream-bank diagnostic harness. |
+| `src/StreamsPlayer.Core` | Platform-neutral catalog contracts, parsing, merge, and local persistence. |
+| `src/StreamsPlayer.App` | WPF desktop application. |
+| `tests/StreamsPlayer.Core.Tests` | Unit and contract tests. |
+| `tools/StreamsPlayer.CatalogHarness` | Live stream-bank diagnostic harness. |
 | `docs/` | GitHub Pages product site and specifications. |
 
 Run the release-style local check:
@@ -109,7 +109,7 @@ Run the release-style local check:
 Run the live-bank harness:
 
 ```powershell
-dotnet run --project tools/StreamPlayer.CatalogHarness -- artifacts/favicon-sample.png
+dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png
 ```
 
 `build.ps1` is a local Windows-app build flow: it creates a self-contained EXE
@@ -118,15 +118,15 @@ a release. Use `-Deploy:$false` when only the ordinary solution build is needed.
 
 ## Privacy
 
-StreamPlayer does not require an account and includes no advertising, analytics,
+STREAMS Player does not require an account and includes no advertising, analytics,
 telemetry, or author-operated service. Network access happens when you explicitly
 refresh the public catalog, play a selected stream, or keep Grid mode active while
-StreamPlayer refreshes visible video previews. See the
-[privacy page](https://serzhyale.github.io/StreamPlayer/privacy.html) for details.
+STREAMS Player refreshes visible video previews. See the
+[privacy page](https://serzhyale.github.io/StreamsPlayer/privacy.html) for details.
 
 ## Ownership and license
 
-StreamPlayer is independently owned and authored by
+STREAMS Player is independently owned and authored by
 [Serhii Zhyhunenko / SerZhyAle](https://github.com/SerZhyAle).
 
 Licensed under the [MIT License](LICENSE).

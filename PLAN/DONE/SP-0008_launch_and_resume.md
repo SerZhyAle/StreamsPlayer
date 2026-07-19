@@ -4,7 +4,7 @@
 
 ## Goal
 
-Let Windows users launch StreamPlayer directly for a stream URL or local
+Let Windows users launch StreamsPlayer directly for a stream URL or local
 channel identifier, create reusable per-channel launch entries, and continue
 with their latest selected local stream on an ordinary launch.
 

@@ -1,10 +1,10 @@
 name: Bug report
-description: Report a reproducible StreamPlayer problem.
+description: Report a reproducible StreamsPlayer problem.
 labels: [bug]
 body:
   - type: markdown
     attributes:
-      value: Thank you for helping improve StreamPlayer.
+      value: Thank you for helping improve StreamsPlayer.
   - type: textarea
     id: summary
     attributes:
@@ -21,7 +21,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: StreamPlayer version
+      label: StreamsPlayer version
     validations:
       required: true
   - type: input

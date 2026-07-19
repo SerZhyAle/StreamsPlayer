@@ -1,4 +1,4 @@
-# Developer Prompt - Build the standalone StreamPlayer application for Windows
+# Developer Prompt - Build the standalone StreamsPlayer application for Windows
 
 > Hand this whole file to the developer (or AI coding agent) implementing the feature on Windows. It is
 > self-contained: the fixed data/format contracts are embedded inline, and the deeper reference is the
@@ -9,7 +9,7 @@
 ## 0. Role and goal
 
 You are implementing a new, independent **internet-streams Windows application** (live TV, internet radio,
-and RTSP channels), named **StreamPlayer**. Its behavior is a close analog of the "Трансляции" feature
+and RTSP channels), named **StreamsPlayer**. Its behavior is a close analog of the "Трансляции" feature
 already shipped in the FastMediaSorter **Android** app, which is a reference and data producer only.
 
 You will **reuse the exact same published "stream bank" and favicon atlas** the Android app uses - the same
@@ -226,7 +226,7 @@ Your media backend must handle **progressive HTTP(S)** audio and video, **HLS** 
 ## PART E - Standalone Windows entry point
 
 The Android flavor and user gates (`SUPPORT_STREAMS`, `enableStreams`) are Android-specific and do not
-apply. StreamPlayer opens directly to its dedicated **Streams window**. It may later offer an optional
+apply. StreamsPlayer opens directly to its dedicated **Streams window**. It may later offer an optional
 pinned-channel panel/strip, settings, and Windows shortcuts. The catalog download belongs behind an
 explicit "Update catalog" / "Import list" action and/or first-run onboarding.
 

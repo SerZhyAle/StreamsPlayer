@@ -14,4 +14,4 @@
 - `scripts/check.ps1`: expected zero errors/warnings and all tests passing | actual zero errors, zero warnings, 28/28 tests passed.
 - Resource parity: expected identical EN/RU keys | actual 99/99 keys, zero differences.
 - GUI automation: expected live language replacement, independent topmost, restart persistence, borderless fullscreen, Escape/F11 restoration | actual every recorded assertion returned `true`; fullscreen measured 3840 x 2160.
-- Final local preference state: expected automation cleanup | actual English selected, main/player topmost false, zero StreamPlayer processes.
+- Final local preference state: expected automation cleanup | actual English selected, main/player topmost false, zero StreamsPlayer processes.

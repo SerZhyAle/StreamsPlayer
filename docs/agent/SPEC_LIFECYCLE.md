@@ -1,4 +1,4 @@
-# StreamPlayer Spec Lifecycle
+# StreamsPlayer Spec Lifecycle
 
 This repository uses the Universal Agent Kit method: agree on *what and why* before documenting *how*.
 
@@ -12,8 +12,8 @@ The first `**Status:**` line is authoritative only when the working tree and che
 
 ## Complexity ladder
 
-- Trivial deterministic edit: use `$streamplayer-quick`; no ticket.
-- Narrow, understood bug: use `$streamplayer-fix`; local validation.
+- Trivial deterministic edit: use `$streamsplayer-quick`; no ticket.
+- Narrow, understood bug: use `$streamsplayer-fix`; local validation.
 - Small deterministic change (at most three existing files, no public type, schema, dependency-wiring, or new screen): write a primitive ticket with Problem, Approach, and Done criteria.
 - Any design uncertainty or broader impact: research, strategic spec, tactical plan, execution, audit.
 
@@ -26,12 +26,12 @@ The first `**Status:**` line is authoritative only when the working tree and che
 
 ## Workflow gates
 
-1. `$streamplayer-research` gathers cited evidence without changing ticket status.
-2. `$streamplayer-spec` produces an approved strategic spec after genuine questions are resolved.
-3. `$streamplayer-spec-tech` turns it into dependency-ordered, verifiable phases and marks it Tactical.
-4. `$streamplayer-spec-dev` executes one checked step at a time and reaches Implemented or a documented block.
-5. `$streamplayer-spec-check` audits live code against the ticket and marks Verified, Partial, Broken, or BlockNeedUserTest.
-6. `$streamplayer-spec-fix` applies mechanical audit actions, then re-audits.
+1. `$streamsplayer-research` gathers cited evidence without changing ticket status.
+2. `$streamsplayer-spec` produces an approved strategic spec after genuine questions are resolved.
+3. `$streamsplayer-spec-tech` turns it into dependency-ordered, verifiable phases and marks it Tactical.
+4. `$streamsplayer-spec-dev` executes one checked step at a time and reaches Implemented or a documented block.
+5. `$streamsplayer-spec-check` audits live code against the ticket and marks Verified, Partial, Broken, or BlockNeedUserTest.
+6. `$streamsplayer-spec-fix` applies mechanical audit actions, then re-audits.
 
 `Verified` requires zero failed, warning, or open manual criteria. A GUI/manual check stays blocked until it is actually observed.
 

@@ -4,7 +4,7 @@
 
 - `MainWindow.xaml` uses two stacked header action rows and two stacked control rows; cards are in the responsive virtualized `StreamsList`.
 - `MainWindow.xaml.cs` filters from the current search text and four selectors, then groups result rows based on width. Its scroll callback currently only schedules Grid-preview work.
-- `CatalogState` in `StreamPlayer.Core/Models.cs` is the persisted local record. `StreamCatalogStore` serializes it atomically and old JSON can deserialize with defaults for added properties.
+- `CatalogState` in `StreamsPlayer.Core/Models.cs` is the persisted local record. `StreamCatalogStore` serializes it atomically and old JSON can deserialize with defaults for added properties.
 - Existing store tests prove persistence of view, localization, window, grid, and selected-channel settings.
 
 ## Reusable patterns and constraints

@@ -1,10 +1,10 @@
 # SP-0011: Compact catalog controls and remembered browsing session
 
-**Status:** BlockNeedUserTest — restart restoration must be observed without the user's already-running StreamPlayer instance sharing the local state file.
+**Status:** BlockNeedUserTest — restart restoration must be observed without the user's already-running StreamsPlayer instance sharing the local state file.
 
 ## Goal
 
-Make the catalog header and controls consume less vertical space, and restore a person's browsing context when StreamPlayer reopens.
+Make the catalog header and controls consume less vertical space, and restore a person's browsing context when StreamsPlayer reopens.
 
 ## Why
 
@@ -45,4 +45,4 @@ See [research dossier](SP-0011_compact_catalog_controls_and_session/research.md)
 - PASS — browsing-session fields are value-only Core data and `Save_PreservesCatalogBrowsingSession` round-trips query, all selector values, sort, and the anchor GUID.
 - PASS — the App restores controls after localized options/facets, records a first-visible-channel GUID on scrolling, and delays scroll restoration until the result rows render; unavailable anchors are safely ignored.
 - PASS — expected: Release build and Core tests succeed | actual: build completed with 0 warnings/errors; 38/38 tests passed.
-- MANUAL — expected: query, all filters/sort, and a scrolled list position survive a complete close/reopen | actual: not run because a user-owned Debug StreamPlayer process is active and shares `%LOCALAPPDATA%\\StreamPlayer`; it was left untouched to avoid modifying its session.
+- MANUAL — expected: query, all filters/sort, and a scrolled list position survive a complete close/reopen | actual: not run because a user-owned Debug StreamsPlayer process is active and shares `%LOCALAPPDATA%\\StreamsPlayer`; it was left untouched to avoid modifying its session.

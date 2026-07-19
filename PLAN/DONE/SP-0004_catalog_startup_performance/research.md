@@ -4,7 +4,7 @@
 
 ## Evidence
 
-- `StreamCatalogStore.LoadAsync` already restores the persisted catalog state and atlas filename from `%LOCALAPPDATA%\StreamPlayer`; no download is needed to show a previously refreshed catalog.
+- `StreamCatalogStore.LoadAsync` already restores the persisted catalog state and atlas filename from `%LOCALAPPDATA%\StreamsPlayer`; no download is needed to show a previously refreshed catalog.
 - `FaviconTileLoader` keeps a decoded atlas and individual cropped tiles only for the process lifetime. It does cache a tile after first use, but `MainWindow.ApplyFilter` requests a favicon for every filtered channel while building `Rows`, including channels outside the viewport.
 - `MainWindow.ApplyFilter` rebuilds the entire `Rows` and `GridRows` collections on every search, facet, sort, pin, and play-outcome update. The outer `ListView` virtualizes rendered rows, but eagerly-created image sources still defeat much of that benefit.
 - `MainWindow.xaml` gives every card `MinHeight="114"`; the outer list container does not explicitly top-align content, so the observed cards have substantially more vertical whitespace than their three compact text lines need.

@@ -1,0 +1,20 @@
+{
+  "//": "Universal Agent Kit defaults, tightened for StreamsPlayer (.NET 10 / WPF on Windows). Read/glob/grep + edit/write + git, plus the .NET and PowerShell build flow so it does not prompt. Review before widening `allow`.",
+  "agent": "streamsplayer-rd-lead",
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Glob(**)",
+      "Grep(**)",
+      "Edit(**)",
+      "Write(**)",
+      "Bash(git *)",
+      "Bash(dotnet *)",
+      "Bash(pwsh *)",
+      "Bash(./build.ps1*)",
+      "Bash(./run.ps1*)",
+      "Bash(./scripts/*)"
+    ],
+    "defaultMode": "acceptEdits"
+  }
+}

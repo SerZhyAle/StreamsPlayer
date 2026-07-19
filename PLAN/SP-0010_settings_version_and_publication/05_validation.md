@@ -16,7 +16,7 @@
 ## Evidence
 
 - expected: Release build/tests pass | actual: zero warnings/errors and 37/37 tests passed.
-- expected: Settings behavior is observable | actual: English/Russian UI, version/author/links, Large/Small/Medium, preview off/on, restart persistence, and preference cleanup passed; screenshot is `tmp/streamplayer-settings-russian.png`.
+- expected: Settings behavior is observable | actual: English/Russian UI, version/author/links, Large/Small/Medium, preview off/on, restart persistence, and preference cleanup passed; screenshot is `tmp/streamsplayer-settings-russian.png`.
 - expected: current winget templates validate | actual: filled four-file schema 1.12.0 copy passed `winget validate` without warnings.
 - expected: local MSIX build reaches packaging | actual: `makeappx.exe` unavailable; script stopped before publishing or deleting stage output.
 - expected: public destinations respond | actual: GitHub author responds, intended repository/Pages await publication.
