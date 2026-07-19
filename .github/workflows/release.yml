@@ -45,7 +45,7 @@ jobs:
           dotnet test StreamsPlayer.sln -c Release --no-build
       - name: Publish portable package
         run: |
-          dotnet publish src/StreamsPlayer.App/StreamsPlayer.App.csproj -c Release -r win-x64 --self-contained true --no-restore -p:Version=${{ steps.version.outputs.version }} -p:AssemblyVersion=${{ steps.version.outputs.version }} -p:FileVersion=${{ steps.version.outputs.version }} -p:InformationalVersion=${{ steps.version.outputs.version }} -o stage/StreamsPlayer
+          dotnet publish src/StreamsPlayer.App/StreamsPlayer.App.csproj -c Release -r win-x64 --self-contained true -p:Version=${{ steps.version.outputs.version }} -p:AssemblyVersion=${{ steps.version.outputs.version }} -p:FileVersion=${{ steps.version.outputs.version }} -p:InformationalVersion=${{ steps.version.outputs.version }} -o stage/StreamsPlayer
           Copy-Item README.md, LICENSE stage/StreamsPlayer
           New-Item -ItemType Directory dist -Force | Out-Null
           $name = "StreamsPlayer-${{ steps.version.outputs.version }}-windows-x64.zip"
