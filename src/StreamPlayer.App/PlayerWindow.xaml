@@ -1,0 +1,44 @@
+<Window x:Class="StreamPlayer.App.PlayerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
+        Title="{DynamicResource PlayerWindowTitle}" Height="720" Width="1120" MinHeight="400" MinWidth="640"
+        WindowStartupLocation="CenterOwner" Background="Black" KeyDown="Window_KeyDown">
+    <Grid>
+        <vlc:VideoView x:Name="Player">
+            <Grid Background="#01000000">
+        <Border VerticalAlignment="Bottom" Background="#B0000000" Padding="12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock x:Name="TitleText" Foreground="White" FontWeight="SemiBold" FontSize="16" />
+                    <TextBlock x:Name="WaitText" Text="{DynamicResource Buffering}" Foreground="#FFD4DCE8" />
+                    <ProgressBar x:Name="BufferProgress" Height="4" Width="180" Maximum="100" Margin="0,4,0,0" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="AudioTracksButton" Content="{DynamicResource AudioTracks}" Click="AudioTracksButton_Click"
+                            Visibility="Collapsed" ToolTip="{DynamicResource AudioTracksTip}" Foreground="White" />
+                    <Button x:Name="SubtitleTracksButton" Content="{DynamicResource SubtitleTracks}" Click="SubtitleTracksButton_Click"
+                            Visibility="Collapsed" ToolTip="{DynamicResource SubtitleTracksTip}" Foreground="White" />
+                    <Button x:Name="MuteButton" Style="{StaticResource VolumeGlyphButton}" Content="{DynamicResource Mute}" Click="MuteButton_Click"
+                            ToolTip="{DynamicResource MuteTip}" Foreground="White" />
+                    <Slider x:Name="VolumeSlider" Width="100" Minimum="0" Maximum="100" Value="100" TickFrequency="10"
+                            ValueChanged="VolumeSlider_ValueChanged" VerticalAlignment="Center" Margin="4,0,8,0"
+                            ToolTip="{DynamicResource VolumeTip}" AutomationProperties.Name="{DynamicResource VolumeName}" />
+                    <CheckBox x:Name="PlayerTopmostCheckBox" Content="{DynamicResource AlwaysOnTop}"
+                              Checked="PlayerTopmostCheckBox_Changed" Unchecked="PlayerTopmostCheckBox_Changed"
+                              VerticalAlignment="Center" Margin="4,0,8,0" Foreground="White"
+                              AutomationProperties.Name="{DynamicResource PlayerAlwaysOnTopName}" />
+                    <Button x:Name="FullscreenButton" Style="{StaticResource FullscreenGlyphButton}" Content="{DynamicResource Fullscreen}" Click="FullscreenButton_Click"
+                            ToolTip="{DynamicResource FullscreenTip}" Foreground="White" />
+                    <Button Style="{StaticResource CloseGlyphButton}" Content="{DynamicResource Close}" Click="Close_Click" Foreground="White" />
+                </StackPanel>
+            </Grid>
+        </Border>
+            </Grid>
+        </vlc:VideoView>
+    </Grid>
+</Window>

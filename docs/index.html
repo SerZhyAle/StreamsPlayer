@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="StreamPlayer for Windows: browse and play internet radio, live video and RTSP streams.">
+    <meta name="theme-color" content="#0a0f0a">
+    <title>StreamPlayer — internet radio, live video and RTSP for Windows</title>
+    <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <script>
+      (function () {
+        var systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        var theme = systemTheme;
+        var language = null;
+        try {
+          theme = localStorage.getItem("streamplayer-theme") || systemTheme;
+          language = localStorage.getItem("streamplayer-lang");
+        } catch (error) {
+          theme = systemTheme;
+        }
+        if (!language) {
+          var browserLanguage = (navigator.language || "en").toLowerCase();
+          language = browserLanguage.indexOf("ru") === 0 ? "ru" : browserLanguage.indexOf("uk") === 0 ? "uk" : "en";
+        }
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.dataset.lang = language;
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="site.js" defer></script>
+  </head>
+  <body data-page="home">
+    <a class="skip-link" href="#content" data-i18n="skip-content">Skip to content</a>
+    <div class="background-glow" aria-hidden="true">
+      <div class="glow glow-one"></div>
+      <div class="glow glow-two"></div>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="./">
+        <img src="assets/streamplayer-icon-256.png" alt="" width="30" height="30">
+        <span>StreamPlayer<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="Primary navigation">
+        <a class="header-link" href="#features" data-i18n="nav-features">Features</a>
+        <a class="header-link" href="privacy.html" data-i18n="nav-privacy">Privacy</a>
+      </nav>
+      <div class="language-switcher" role="group" aria-label="Language">
+        <button type="button" data-language="ru" aria-pressed="false" onclick="setLanguage('ru')">RU</button>
+        <button type="button" data-language="en" aria-pressed="true" onclick="setLanguage('en')">EN</button>
+        <button type="button" data-language="uk" aria-pressed="false" onclick="setLanguage('uk')">UA</button>
+      </div>
+      <button class="theme-button" type="button" aria-label="Switch color theme" data-i18n-aria-label="theme-label" onclick="toggleTheme()">◐</button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamPlayer" data-i18n="header-github">GitHub</a>
+    </header>
+
+    <main class="container" id="content">
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <div class="product-id">
+            <img class="product-icon" src="assets/streamplayer-icon-256.png" alt="StreamPlayer icon" width="68" height="68">
+            <div>
+              <span class="eyebrow" data-i18n="hero-eyebrow">StreamPlayer · Windows 10 / 11</span>
+              <h1 id="hero-title" data-i18n="hero-title">Your streams. One calm player.</h1>
+              <span class="kicker" data-i18n="hero-kicker">Internet radio · Live video · RTSP</span>
+            </div>
+          </div>
+          <p class="lead" data-i18n="hero-description">Browse a curated catalog, find a channel quickly, and keep your own stations close — in a focused Windows desktop app.</p>
+          <div class="button-group">
+            <a class="button button-primary" href="#distribution" data-i18n="hero-status">Release status</a>
+            <a class="button button-gold" href="https://github.com/SerZhyAle/StreamPlayer" data-i18n="hero-source">View source</a>
+            <a class="button button-ghost" href="privacy.html" data-i18n="nav-privacy">Privacy</a>
+          </div>
+        </div>
+
+        <aside class="status-card" aria-labelledby="status-title">
+          <span class="status-label" data-i18n="status-label">Current status</span>
+          <h2 id="status-title" data-i18n="status-title">In active development</h2>
+          <p data-i18n="status-description">The first public packages are being prepared. Follow the repository for source code and release updates.</p>
+          <div class="status-links">
+            <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamPlayer" data-i18n="status-source">Open GitHub</a>
+            <a class="button button-ghost button-small" href="#distribution" data-i18n="status-plan">Distribution plans</a>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section" id="features" aria-labelledby="features-title">
+        <h2 class="section-heading" id="features-title"><span class="hash">#</span><span data-i18n="features-title">Built around the stream</span></h2>
+        <p class="section-description" data-i18n="features-description">The essentials for finding, keeping, and playing internet streams without turning the player into a dashboard.</p>
+        <div class="card-grid">
+          <article class="card">
+            <span class="card-number">01</span>
+            <h3 data-i18n="feature-catalog-title">One catalog, your choices</h3>
+            <p data-i18n="feature-catalog-description">Filter by category, language, country, and media type. Search, sort, and pin the channels you return to.</p>
+          </article>
+          <article class="card">
+            <span class="card-number">02</span>
+            <h3 data-i18n="feature-media-title">Radio, video, and RTSP</h3>
+            <p data-i18n="feature-media-description">Start audio in the main window and open live video or network-camera streams in a focused player window.</p>
+          </article>
+          <article class="card">
+            <span class="card-number">03</span>
+            <h3 data-i18n="feature-control-title">Refresh on your terms</h3>
+            <p data-i18n="feature-control-description">Catalog updates are always explicit. StreamPlayer never begins a surprise background catalog download.</p>
+          </article>
+          <article class="card">
+            <span class="card-number">04</span>
+            <h3 data-i18n="feature-local-title">Local by design</h3>
+            <p data-i18n="feature-local-description">Add your own stream, keep pins and playback marks locally, and use the app without an account or telemetry.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="distribution" aria-labelledby="distribution-title">
+        <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span data-i18n="distribution-title">Distribution</span></h2>
+        <p class="section-description" data-i18n="distribution-description">These channels are planned, but none should be treated as a published download until its first approved release appears.</p>
+        <div class="distribution-grid">
+          <div class="channel">
+            <span class="channel-mark">ZIP</span>
+            <div><strong data-i18n="channel-github">Portable ZIP</strong><span class="pill" data-i18n="status-planned">Planned</span></div>
+          </div>
+          <div class="channel">
+            <span class="channel-mark">MS</span>
+            <div><strong data-i18n="channel-store">Microsoft Store</strong><span class="pill" data-i18n="status-preparing">Preparing</span></div>
+          </div>
+          <div class="channel">
+            <span class="channel-mark">WG</span>
+            <div><strong data-i18n="channel-winget">winget</strong><span class="pill" data-i18n="status-preparing">Preparing</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-row">
+        <span data-i18n="footer-rights">© 2026 Serhii Zhyhunenko</span>
+        <span class="footer-links">
+          <a href="privacy.html" data-i18n="nav-privacy">Privacy</a>
+          <a href="https://sza.od.ua/" data-i18n="footer-tools">More tools</a>
+          <a href="https://github.com/SerZhyAle">GitHub</a>
+          <a href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+        </span>
+      </div>
+    </footer>
+    <button class="to-top" id="toTop" type="button" aria-label="Back to top" data-i18n-aria-label="to-top" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">↑</button>
+  </body>
+</html>

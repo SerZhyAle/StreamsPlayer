@@ -1,0 +1,375 @@
+<Window x:Class="StreamPlayer.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="StreamPlayer" Height="780" Width="1180" MinHeight="560" MinWidth="820"
+        Background="{StaticResource WindowBackground}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="StreamPlayer" FontSize="30" FontWeight="SemiBold" Foreground="#FF172236" />
+                <TextBlock Grid.Column="1" Text="{DynamicResource MainSubtitle}" Foreground="{StaticResource MutedBrush}"
+                           VerticalAlignment="Center" Margin="12,0,0,0" TextTrimming="CharacterEllipsis" />
+            </Grid>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button x:Name="LanguageButton" Style="{StaticResource LanguageGlyphButton}" Content="RU / EN" Click="LanguageButton_Click" IsEnabled="False"
+                        Padding="9,4" ToolTip="{DynamicResource SwitchLanguageTip}"
+                        AutomationProperties.Name="{DynamicResource SwitchLanguageName}" />
+                <CheckBox x:Name="MainTopmostCheckBox" Content="{DynamicResource AlwaysOnTop}"
+                          Checked="MainTopmostCheckBox_Changed" Unchecked="MainTopmostCheckBox_Changed"
+                          IsEnabled="False" VerticalAlignment="Center" Margin="8,0,3,0"
+                          AutomationProperties.Name="{DynamicResource MainAlwaysOnTopName}" />
+                <Button x:Name="ListModeButton" Style="{StaticResource ListGlyphButton}" Content="{DynamicResource List}" Click="ListModeButton_Click"
+                        ToolTip="{DynamicResource ListTip}" AutomationProperties.Name="{DynamicResource ListName}" />
+                <Button x:Name="GridModeButton" Style="{StaticResource GridGlyphButton}" Content="{DynamicResource Grid}" Click="GridModeButton_Click"
+                        ToolTip="{DynamicResource GridTip}" AutomationProperties.Name="{DynamicResource GridName}" />
+                <Button x:Name="RefreshPreviewsButton" Style="{StaticResource RefreshGlyphButton}" Content="{DynamicResource RefreshPreviews}" Click="RefreshPreviewsButton_Click"
+                        Visibility="Collapsed" ToolTip="{DynamicResource RefreshPreviewsTip}"
+                        AutomationProperties.Name="{DynamicResource RefreshPreviewsName}" />
+                <Button x:Name="SettingsButton" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource Settings}" Click="SettingsButton_Click"
+                        ToolTip="{DynamicResource SettingsTip}" AutomationProperties.Name="{DynamicResource SettingsName}" />
+                <Button x:Name="AddButton" Style="{StaticResource AddGlyphButton}" Content="{DynamicResource AddStreamPlain}" Click="AddButton_Click" />
+                <Button x:Name="RefreshButton" Style="{StaticResource RefreshGlyphButton}" Content="{DynamicResource UpdateCatalogPlain}" Click="RefreshButton_Click"
+                        Background="{StaticResource AccentBrush}" Foreground="White" />
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" Margin="3">
+                    <TextBlock Text="{DynamicResource SearchCatalog}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <TextBox x:Name="SearchBox" Width="180" Padding="7,4" ToolTip="{DynamicResource SearchTip}" TextChanged="FilterChanged"
+                             AutomationProperties.Name="{DynamicResource SearchName}" />
+                    <Button Style="{StaticResource ClearGlyphButton}" Content="{DynamicResource Clear}" Click="ClearSearchButton_Click"
+                            ToolTip="{DynamicResource ClearTip}" AutomationProperties.Name="{DynamicResource ClearTip}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="3">
+                    <TextBlock Text="{DynamicResource Media}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox x:Name="MediaFilter" Width="90" SelectionChanged="FilterChanged" ToolTip="{DynamicResource MediaKindTip}"
+                              AutomationProperties.Name="{DynamicResource MediaFilterName}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="3">
+                    <TextBlock Text="{DynamicResource Category}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox x:Name="CategoryFilter" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Category}"
+                              AutomationProperties.Name="{DynamicResource CategoryFilterName}" />
+                </StackPanel>
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="3">
+                    <TextBlock Text="{DynamicResource Language}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox x:Name="LanguageFilter" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Language}"
+                              AutomationProperties.Name="{DynamicResource LanguageFilterName}" />
+                </StackPanel>
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="3">
+                    <TextBlock Text="{DynamicResource Country}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox x:Name="CountryFilter" Width="80" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Country}"
+                              AutomationProperties.Name="{DynamicResource CountryFilterName}" />
+                </StackPanel>
+                <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="3">
+                    <TextBlock Text="{DynamicResource SortBy}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox x:Name="SortMode" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource SortOrderTip}"
+                              AutomationProperties.Name="{DynamicResource SortCatalogName}" />
+                </StackPanel>
+            </Grid>
+            </Viewbox>
+        </Border>
+
+        <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="4">
+            <Grid>
+                <ListView x:Name="StreamsList" ItemsSource="{Binding GridRows}" BorderThickness="0"
+                          ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          VirtualizingPanel.IsVirtualizing="True"
+                          VirtualizingPanel.VirtualizationMode="Recycling"
+                          SizeChanged="StreamsList_SizeChanged"
+                          ScrollViewer.ScrollChanged="StreamsList_ScrollChanged"
+                          MouseDoubleClick="StreamsList_MouseDoubleClick">
+                    <ListView.Resources>
+                        <Style x:Key="StreamCardBorderStyle" TargetType="Border">
+                            <Setter Property="Background" Value="#FFF8FAFC" />
+                            <Setter Property="BorderBrush" Value="#FFE1E7EE" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="Background" Value="#FFE8F1FA" />
+                                    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                    <Setter Property="BorderThickness" Value="2" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style x:Key="StreamGridTileBorderStyle" TargetType="Border">
+                            <Setter Property="Background" Value="#FF111827" />
+                            <Setter Property="BorderBrush" Value="#FFCBD5E1" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                    <Setter Property="BorderThickness" Value="3" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                        <DataTemplate x:Key="StreamCardTemplate">
+                            <Border Style="{StaticResource StreamCardBorderStyle}" CornerRadius="5" Padding="7" Margin="3" MinHeight="84"
+                                    PreviewMouseLeftButtonDown="StreamCard_PreviewMouseLeftButtonDown">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid Grid.Row="0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="38" />
+                                            <ColumnDefinition Width="24" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="32" Height="32" Background="#FFF0F2F5" CornerRadius="4" VerticalAlignment="Center">
+                                            <Image Source="{Binding Favicon}" Width="32" Height="32" Stretch="None" />
+                                        </Border>
+                                        <Ellipse Grid.Column="1" Width="10" Height="10" Fill="{Binding StatusBrush}"
+                                                 VerticalAlignment="Center" ToolTip="{Binding StatusLabel}"
+                                                 AutomationProperties.Name="{Binding StatusLabel}" />
+                                        <TextBlock Grid.Column="2" Text="{Binding DisplayTitle}" FontWeight="SemiBold" FontSize="14"
+                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding DisplayTitle}" />
+                                        <Button Grid.Column="3" ToolTip="{DynamicResource PinTip}"
+                                                AutomationProperties.Name="{DynamicResource PinName}" Tag="{Binding}" Click="PinButton_Click" MinWidth="32" Padding="6,4">
+                                            <Grid Width="16" Height="16">
+                                                <Viewbox>
+                                                    <Path Data="M8,4H16V10L19,13V15H5V13L8,10ZM12,15V21"
+                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
+                                                        <Path.Style>
+                                                            <Style TargetType="Path">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Channel.Pinned}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Path.Style>
+                                                    </Path>
+                                                </Viewbox>
+                                                <Viewbox>
+                                                    <Path Data="M8,4H16V10L19,13V15H5V13L8,10ZM12,15V21"
+                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.6">
+                                                        <Path.Style>
+                                                            <Style TargetType="Path">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Channel.Pinned}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Path.Style>
+                                                    </Path>
+                                                </Viewbox>
+                                            </Grid>
+                                        </Button>
+                                        <Button Grid.Column="4" Content="{DynamicResource Play}" ToolTip="{DynamicResource PlayTip}"
+                                                AutomationProperties.Name="{DynamicResource PlayTip}" Tag="{Binding}" Click="PlayButton_Click" MinWidth="50" Padding="8,4">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource PlayGlyphButton}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Grid.Column="4" Content="{DynamicResource Stop}" ToolTip="{DynamicResource StopTip}"
+                                                AutomationProperties.Name="{DynamicResource StopTip}" Tag="{Binding}" Click="PlayButton_Click" MinWidth="50" Padding="8,4"
+                                                Visibility="Collapsed">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource StopGlyphButton}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Grid.Column="5" Style="{StaticResource MoreGlyphButton}" Content="" Width="32" Padding="0"
+                                                Tag="{Binding}" Click="OverflowButton_Click" ToolTip="{DynamicResource MoreActionsTip}"
+                                                AutomationProperties.Name="{DynamicResource MoreActionsName}" />
+                                    </Grid>
+                                    <TextBlock Grid.Row="1" Margin="0,4,0,0" Text="{Binding Channel.Url}" Foreground="{StaticResource MutedBrush}"
+                                               FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Channel.Url}" />
+                                    <TextBlock Grid.Row="2" Margin="0,2,0,0" Text="{Binding Metadata}" Foreground="#FF386C8D"
+                                               FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Metadata}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                        <DataTemplate x:Key="StreamGridTileTemplate">
+                            <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" Margin="3">
+                                <Border Width="{Binding DataContext.GridTileWidth, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        Height="{Binding DataContext.GridTileHeight, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        Style="{StaticResource StreamGridTileBorderStyle}"
+                                        CornerRadius="7" ClipToBounds="True"
+                                        PreviewMouseLeftButtonDown="StreamCard_PreviewMouseLeftButtonDown">
+                                    <Grid>
+                                        <Image Source="{Binding TileImage}" Stretch="UniformToFill" />
+                                        <Border VerticalAlignment="Bottom" Height="70">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                    <GradientStop Color="#00111827" Offset="0" />
+                                                    <GradientStop Color="#E6111827" Offset="1" />
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                        </Border>
+                                        <StackPanel VerticalAlignment="Bottom" Margin="12,0,56,12">
+                                            <TextBlock Text="{Binding DisplayTitle}" Foreground="White" FontWeight="SemiBold"
+                                                       FontSize="15" TextTrimming="CharacterEllipsis" ToolTip="{Binding DisplayTitle}" />
+                                            <TextBlock Text="{Binding KindLabel}" Foreground="#FFD4E2F2" FontSize="10" />
+                                        </StackPanel>
+                                        <Ellipse Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                                 Margin="12,0,0,47" Fill="{Binding PreviewStatusBrush}"
+                                                 ToolTip="{Binding PreviewStatusLabel}" />
+                                        <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="9"
+                                                Padding="7,3" CornerRadius="9" Background="#D92364AA"
+                                                Visibility="{Binding PinnedVisibility}">
+                                            <TextBlock Text="{DynamicResource Pinned}" Foreground="White" FontSize="10" FontWeight="SemiBold" />
+                                        </Border>
+                                        <Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6" Style="{StaticResource MoreGlyphButton}" Content=""
+                                                Width="34" Height="30" Padding="0" Background="#C8111827" Foreground="White"
+                                                Tag="{Binding}" Click="OverflowButton_Click" ToolTip="{DynamicResource MoreActionsTip}"
+                                                AutomationProperties.Name="{DynamicResource MoreActionsName}" />
+                                        <Button HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="7" Content=""
+                                                Width="38" Height="34" Padding="0" Background="#DD2364AA" Foreground="White"
+                                                Tag="{Binding}" Click="PlayButton_Click" ToolTip="{DynamicResource PlayTip}"
+                                                AutomationProperties.Name="{DynamicResource PlayTip}">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource PlayGlyphButton}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="7" Content=""
+                                                Width="38" Height="34" Padding="0" Background="#DD2364AA" Foreground="White"
+                                                Tag="{Binding}" Click="PlayButton_Click" ToolTip="{DynamicResource StopTip}"
+                                                AutomationProperties.Name="{DynamicResource StopTip}" Visibility="Collapsed">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource StopGlyphButton}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </Viewbox>
+                        </DataTemplate>
+                    </ListView.Resources>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="VerticalContentAlignment" Value="Top" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListViewItem">
+                                        <ContentPresenter ContentSource="Content"
+                                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ItemsControl ItemsSource="{Binding Items}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="{Binding ColumnCount}" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ContentControl Content="{Binding}">
+                                            <ContentControl.Style>
+                                                <Style TargetType="ContentControl">
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource StreamCardTemplate}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding DataContext.IsGridMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource StreamGridTileTemplate}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ContentControl.Style>
+                                        </ContentControl>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <StackPanel x:Name="EmptyPanel" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+                    <Viewbox Width="48" Height="48" HorizontalAlignment="Center">
+                        <Path Data="M4,4H20V20H4ZM8,8H16V16H8Z" Fill="{StaticResource MutedBrush}" />
+                    </Viewbox>
+                    <TextBlock Text="{DynamicResource EmptyCatalog}" Margin="0,10" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Style="{StaticResource AddGlyphButton}" Content="{DynamicResource AddStreamPlain}" Click="AddButton_Click" />
+                        <Button Style="{StaticResource RefreshGlyphButton}" Content="{DynamicResource UpdateCatalogPlain}" Click="RefreshButton_Click" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="3" Background="#FF172236" CornerRadius="8" Padding="10" Margin="0,10,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock x:Name="StatusText" Text="{DynamicResource Ready}" Foreground="White" />
+                    <ProgressBar x:Name="CatalogProgress" Height="4" Margin="0,4,0,2" Width="180" HorizontalAlignment="Left"
+                                 IsIndeterminate="True" Visibility="Collapsed" AutomationProperties.Name="{DynamicResource CatalogProgressName}" />
+                    <TextBlock x:Name="NowPlayingText" Text="{DynamicResource NothingPlaying}" Foreground="#FFB8C8DB" FontSize="11" />
+                </StackPanel>
+                <Button x:Name="StopAudioButton" Grid.Column="1" Style="{StaticResource StopGlyphButton}" Content="{DynamicResource StopAudio}" Click="StopAudioButton_Click" IsEnabled="False" />
+                <MediaElement x:Name="AudioPlayer" Visibility="Collapsed" LoadedBehavior="Manual" UnloadedBehavior="Manual"
+                              MediaOpened="AudioPlayer_MediaOpened" MediaFailed="AudioPlayer_MediaFailed" />
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

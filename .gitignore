@@ -1,0 +1,29 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+.vs/
+artifacts/
+dist/
+stage/
+msix/stage/
+msix/dist/
+*.msix
+*.appx
+*.cer
+*.pfx
+*.sha256
+
+# Visual Studio and local settings
+*.user
+*.suo
+*.userprefs
+*.rsuser
+
+# Local diagnostics and secrets
+temp/
+tmp/
+*.log
+appsettings.Development.json
+secrets/
