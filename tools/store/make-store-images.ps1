@@ -141,6 +141,23 @@ $sSub = New-Object System.Drawing.Font('Segoe UI', 24, [System.Drawing.FontStyle
 $sWord.Dispose(); $sSub.Dispose()
 Save-Canvas $c (Join-Path $OutDir 'social-preview-1280x640.png')
 
+# ---- Store display images: square tile logos (300, 150, 71) -----------------
+# The Store "Store display images" slots: 1:1 App tile icon 300x300, and the
+# 150x150 / 71x71 override tiles. Rendered from the master icon (already a rounded
+# dark tile), so a high-quality downscale is exactly what the Store wants.
+foreach ($sz in 300, 150, 71) {
+    $bmp = New-Object System.Drawing.Bitmap($sz, $sz)
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+    $g.PixelOffsetMode   = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+    $img = [System.Drawing.Image]::FromFile($IconPath)
+    try { $g.DrawImage($img, 0, 0, $sz, $sz) } finally { $img.Dispose() }
+    $g.Dispose()
+    $f = Join-Path $OutDir ("tile-{0}x{0}.png" -f $sz)
+    $bmp.Save($f, [System.Drawing.Imaging.ImageFormat]::Png); $bmp.Dispose()
+    Write-Host "Wrote $f ($sz x $sz)"
+}
+
 # Remove the earlier 1x screenshot files if present (superseded by 2x).
 foreach ($old in 'screenshot-en-1366x768.png', 'screenshot-ru-1366x768.png') {
     $p = Join-Path $OutDir $old
