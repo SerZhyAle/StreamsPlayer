@@ -70,8 +70,9 @@ current two.
 
 ## Open questions
 
-1. **Language control shape** — keep a cycling button (EN→RU→UK) or switch to a
-   dropdown/menu picker? A three-item cycle is the smallest change; a picker
-   scales if more locales are ever added.
+1. **Language control shape** — RESOLVED (owner, 2026-07-23): use a
+   **dropdown/menu picker** rather than a cycling button, so the control scales if
+   more locales are added later. The tactical plan replaces the current EN↔RU
+   toggle with the picker.
 2. **String source** — reuse the `README.uk.md` / site Ukrainian copy as the
    translation base, or translate fresh from the English keys?
