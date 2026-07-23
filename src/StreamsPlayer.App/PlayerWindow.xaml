@@ -1,13 +1,15 @@
 <Window x:Class="StreamsPlayer.App.PlayerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
         Title="{DynamicResource PlayerWindowTitle}" Height="720" Width="1120" MinHeight="400" MinWidth="640"
         WindowStartupLocation="CenterOwner" Background="Black" KeyDown="Window_KeyDown">
     <Grid>
-        <vlc:VideoView x:Name="Player">
-            <Grid Background="#01000000">
-        <Border VerticalAlignment="Bottom" Background="#B0000000" Padding="12">
+        <!-- SP-0026: the selected video backend's surface is injected here at runtime. -->
+        <Grid x:Name="VideoHost" />
+        <!-- ControlsOverlay is detached at runtime and hosted inside the backend's native video
+             surface so it floats above the video (airspace) instead of being covered on resize. -->
+        <Grid x:Name="ControlsOverlay" Background="#01000000" PreviewMouseDown="VideoSurface_MouseDown">
+        <Border x:Name="ControlPanel" VerticalAlignment="Bottom" Background="#B0000000" Padding="12">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -20,11 +22,13 @@
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="AudioTracksButton" Content="{DynamicResource AudioTracks}" Click="AudioTracksButton_Click"
-                            Visibility="Collapsed" ToolTip="{DynamicResource AudioTracksTip}" Foreground="White" />
+                            Visibility="Collapsed" ToolTip="{DynamicResource AudioTracksTip}" Style="{StaticResource PlayerOverlayButton}" />
                     <Button x:Name="SubtitleTracksButton" Content="{DynamicResource SubtitleTracks}" Click="SubtitleTracksButton_Click"
-                            Visibility="Collapsed" ToolTip="{DynamicResource SubtitleTracksTip}" Foreground="White" />
-                    <Button x:Name="MuteButton" Style="{StaticResource VolumeGlyphButton}" Content="{DynamicResource Mute}" Click="MuteButton_Click"
-                            ToolTip="{DynamicResource MuteTip}" Foreground="White" />
+                            Visibility="Collapsed" ToolTip="{DynamicResource SubtitleTracksTip}" Style="{StaticResource PlayerOverlayButton}" />
+                    <Button x:Name="SaveFrameButton" Style="{StaticResource PlayerOverlaySaveIconGlyphButton}" Content="{DynamicResource SaveFrameAsIcon}"
+                            Click="SaveFrameButton_Click" ToolTip="{DynamicResource SaveFrameAsIconTip}" />
+                    <Button x:Name="MuteButton" Style="{StaticResource PlayerOverlayVolumeGlyphButton}" Content="{DynamicResource Mute}" Click="MuteButton_Click"
+                            ToolTip="{DynamicResource MuteTip}" />
                     <Slider x:Name="VolumeSlider" Width="100" Minimum="0" Maximum="100" Value="100" TickFrequency="10"
                             ValueChanged="VolumeSlider_ValueChanged" VerticalAlignment="Center" Margin="4,0,8,0"
                             ToolTip="{DynamicResource VolumeTip}" AutomationProperties.Name="{DynamicResource VolumeName}" />
@@ -32,13 +36,18 @@
                               Checked="PlayerTopmostCheckBox_Changed" Unchecked="PlayerTopmostCheckBox_Changed"
                               VerticalAlignment="Center" Margin="4,0,8,0" Foreground="White"
                               AutomationProperties.Name="{DynamicResource PlayerAlwaysOnTopName}" />
-                    <Button x:Name="FullscreenButton" Style="{StaticResource FullscreenGlyphButton}" Content="{DynamicResource Fullscreen}" Click="FullscreenButton_Click"
-                            ToolTip="{DynamicResource FullscreenTip}" Foreground="White" />
-                    <Button Style="{StaticResource CloseGlyphButton}" Content="{DynamicResource Close}" Click="Close_Click" Foreground="White" />
+                    <Button x:Name="FullscreenButton" Style="{StaticResource PlayerOverlayFullscreenGlyphButton}" Content="{DynamicResource Fullscreen}" Click="FullscreenButton_Click"
+                            ToolTip="{DynamicResource FullscreenTip}" />
+                    <Button x:Name="PinButton" Style="{StaticResource PlayerOverlayPinGlyphButton}" Content="{DynamicResource MenuPin}" Click="PinButton_Click"
+                            ToolTip="{DynamicResource PinTip}" AutomationProperties.Name="{DynamicResource PinName}" />
+                    <Button Style="{StaticResource PlayerOverlayCloseGlyphButton}" Content="{DynamicResource Close}" Click="Close_Click" />
                 </StackPanel>
             </Grid>
         </Border>
-            </Grid>
-        </vlc:VideoView>
+        <Border x:Name="FrameSavedToast" VerticalAlignment="Center" HorizontalAlignment="Center"
+                Background="#C8000000" CornerRadius="6" Padding="20,13" Opacity="0" IsHitTestVisible="False">
+            <TextBlock Text="{DynamicResource FrameSavedAsIcon}" Foreground="White" FontSize="18" FontWeight="SemiBold" />
+        </Border>
+        </Grid>
     </Grid>
 </Window>

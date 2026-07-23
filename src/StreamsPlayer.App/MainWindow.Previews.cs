@@ -42,6 +42,7 @@ public partial class MainWindow
         _state = await _store.SaveAsync(_state with { ViewMode = viewMode });
         IsGridMode = viewMode == CatalogViewMode.Grid;
         UpdateViewModeControls();
+        UpdatePinnedSectionLayout();
         _catalogColumns = 0;
         UpdateCatalogColumns();
         if (IsGridMode)
@@ -65,7 +66,10 @@ public partial class MainWindow
 
     private async Task StartPreviewsAsync()
     {
-        if (_previewCoordinator is null || !_state.UpdateStreamPreviews || !_windowActive || !IsGridMode)
+        // The coordinator runs in Grid mode to *show* stored thumbnails (capture is gated separately by the setting).
+        // Never run while something is playing: a background LibVLC decode competes with the player.
+        if (_previewCoordinator is null || !_windowActive || !IsGridMode ||
+            _openPlayerWindows > 0 || _playingAudio is not null)
         {
             return;
         }
@@ -76,7 +80,7 @@ public partial class MainWindow
 
     private void ScheduleVisiblePreviewUpdate()
     {
-        if (!_state.UpdateStreamPreviews || !IsGridMode || _previewCoordinator?.IsRunning != true)
+        if (!IsGridMode || _previewCoordinator?.IsRunning != true)
         {
             return;
         }
@@ -100,9 +104,47 @@ public partial class MainWindow
         }
     }
 
+    private void StreamTile_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (_previewCoordinator?.IsRunning != true || !IsGridMode ||
+            sender is not FrameworkElement { DataContext: ChannelRow row } ||
+            !PreviewCapturePolicy.IsCaptureable(row.Channel))
+        {
+            return;
+        }
+
+        _hoverDwell?.Cancel();
+        _hoverDwell?.Dispose();
+        _hoverDwell = new CancellationTokenSource();
+        _ = HoverCaptureAfterDwellAsync(row.Channel.Url, _hoverDwell.Token);
+    }
+
+    private void StreamTile_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e) => _hoverDwell?.Cancel();
+
+    private async Task HoverCaptureAfterDwellAsync(string url, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+            _previewCoordinator!.RequestHoverCapture(url);
+        }
+        catch (OperationCanceledException)
+        {
+            // The cursor left the tile before the dwell elapsed, or previews stopped.
+        }
+    }
+
     private IReadOnlyList<ChannelRow> GetVisibleRows()
     {
         var visible = new List<ChannelRow>();
+
+        // The pinned section is a small, non-virtualized region; when it is expanded every pinned tile
+        // is realized, so treat them all as visible (SP-0025 — previews must span both regions).
+        if (HasPinned && !PinnedSectionCollapsed && IsGridMode)
+        {
+            visible.AddRange(PinnedRows);
+        }
+
         var viewport = new Rect(0, 0, StreamsList.ActualWidth, StreamsList.ActualHeight);
         for (var index = 0; index < GridRows.Count; index++)
         {
@@ -120,7 +162,7 @@ public partial class MainWindow
             }
         }
 
-        return visible;
+        return visible.DistinctBy(row => row.Channel.Url).ToList();
     }
 
     private void ApplyPreview(string url, ImageSource image, bool? reachable)
@@ -163,10 +205,16 @@ public partial class MainWindow
         await SaveBrowsingSessionAsync();
         _viewportDebounce?.Cancel();
         _viewportDebounce?.Dispose();
+        _hoverDwell?.Cancel();
+        _hoverDwell?.Dispose();
         if (_previewCoordinator is not null)
         {
             await _previewCoordinator.DisposeAsync();
         }
+        _audioRecoveryCts?.Cancel(); // abort any pending audio recovery so it never touches a disposing window
+        StopNowPlayingMetadata();
+        DisposeSystemMediaControls(); // SP-0021: end the Windows media session with the window
         _httpClient.Dispose();
+        _icyHttpClient.Dispose();
     }
 }

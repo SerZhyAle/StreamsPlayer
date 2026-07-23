@@ -1,6 +1,27 @@
 # SP-0018: Stream quality details and filtering
 
-**Status:** Approved
+**Status:** Implemented (manual GUI observation pending — BlockNeedUserTest)
+
+Tactical plan: [SP-0018_stream_quality_details/INDEX.md](SP-0018_stream_quality_details/INDEX.md)
+
+## Verification
+
+Automated evidence (all green):
+- `./scripts/check.ps1` — Release build + **126/126** tests pass (adds parser, `StreamBitrate`,
+  and merger carry-through coverage — AC6 parsing/filter tests).
+- Smoke launch loaded the real 2182-channel state with no exception; the new ComboBox active
+  indicator and the 4th card row parse at runtime.
+- Live-bank check: `streams.csv` header carries `protocol/format/bitrate/is_live`; bitrate is
+  populated as bare integer kbps (64/96/128/192/256) for 348/400 sampled rows, 52 blank —
+  matching the parser, the `StreamBitrate` thresholds, and the AC3 default-visible/blank case.
+
+Pending (needs a human glance, after **Update catalog** repopulates the new fields): the visual
+run-and-observe of the details line, the min-bitrate filter combining with search/facets, the
+active indicator, and the RU/EN relabel. See
+[05_validation.md](SP-0018_stream_quality_details/05_validation.md).
+
+AC5 (no playback decision or success mark from metadata) held by construction: no playback,
+status-bullet, or `LastPlayOutcome` path was touched.
 
 ## Goal
 

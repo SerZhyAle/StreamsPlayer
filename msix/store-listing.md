@@ -4,7 +4,8 @@ Use this file as the offline copy deck for Partner Center. It describes the curr
 
 ## Submission profile
 
-- Product name: `STREAMS Player`
+- Product name (Store title, matches the reserved app name): `Streams Player`
+- In-app / documentation wordmark (unchanged): `STREAMS Player`
 - Publisher display name: `SerZhyAle`
 - Primary category: `Entertainment`
 - Optional secondary category: `Music`

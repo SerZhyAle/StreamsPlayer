@@ -46,6 +46,34 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <Style x:Key="PlayerOverlayButton" TargetType="Button">
+                <Setter Property="Background" Value="#99000000" />
+                <Setter Property="BorderBrush" Value="#80FFFFFF" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="Padding" Value="10,6" />
+                <Setter Property="Margin" Value="3" />
+                <Setter Property="Cursor" Value="Hand" />
+            </Style>
+            <Style x:Key="PlayerOverlayGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="Background" Value="#99000000" />
+                <Setter Property="BorderBrush" Value="#80FFFFFF" />
+                <Setter Property="Foreground" Value="White" />
+            </Style>
+            <Style x:Key="PlayerOverlayVolumeGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,10H8L13,6V18L8,14H4ZM16,9A4,4 0 0 1 16,15M18,7A7,7 0 0 1 18,17" /></Style.Resources>
+            </Style>
+            <Style x:Key="PlayerOverlaySaveIconGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M3,7H7L9,5H15L17,7H21V19H3ZM12,10A3,3 0 1 0 12,16A3,3 0 1 0 12,10" /></Style.Resources>
+            </Style>
+            <Style x:Key="PlayerOverlayFullscreenGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,10V4H10M14,4H20V10M20,14V20H14M10,20H4V14" /></Style.Resources>
+            </Style>
+            <Style x:Key="PlayerOverlayCloseGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M5,5L19,19M19,5L5,19" /></Style.Resources>
+            </Style>
+            <Style x:Key="PlayerOverlayPinGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M8,4H16V10L19,13V15H5V13L8,10ZM12,15V21" /></Style.Resources>
+            </Style>
             <Style x:Key="LanguageGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M3,5H15M3,12H15M3,19H15M5,3V21M13,3V21" /></Style.Resources>
             </Style>
@@ -61,8 +89,35 @@
             <Style x:Key="AddGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M12,4V20M4,12H20" /></Style.Resources>
             </Style>
+            <Style x:Key="ImportGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M12,3V13M8,9L12,13L16,9M4,17H20V21H4Z" /></Style.Resources>
+            </Style>
+            <Style x:Key="ExportGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M12,13V3M8,7L12,3L16,7M4,17H20V21H4Z" /></Style.Resources>
+            </Style>
             <Style x:Key="SettingsGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M9,3H15L16,6L19,5L22,10L20,12L22,14L19,19L16,18L15,21H9L8,18L5,19L2,14L4,12L2,10L5,5L8,6ZM12,9A3,3 0 1 0 12,15A3,3 0 1 0 12,9" /></Style.Resources>
+            </Style>
+            <Style x:Key="HiddenGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M3,12C5,8 8,6 12,6C16,6 19,8 21,12C19,16 16,18 12,18C8,18 5,16 3,12M12,9A3,3 0 1 0 12,15A3,3 0 1 0 12,9M4,4L20,20" /></Style.Resources>
+            </Style>
+            <!-- SP-0019: outline clock (Fill="Transparent") so the hands read against the circle, unlike the filled GlyphButton default. -->
+            <Style x:Key="HistoryGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="ContentTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Viewbox Width="16" Height="16" Margin="0,0,7,0" VerticalAlignment="Center">
+                                    <Path Data="M12,3.5 A8.5,8.5 0 1 1 11.99,3.5 M12,7.5 V12 L15,14"
+                                          Fill="Transparent"
+                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                          StrokeThickness="1.6" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                </Viewbox>
+                                <ContentPresenter Content="{Binding}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
             <Style x:Key="LinkGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M10,14L14,10M8,16H6A4,4 0 0 1 6,8H10M16,8H18A4,4 0 0 1 18,16H14" /></Style.Resources>

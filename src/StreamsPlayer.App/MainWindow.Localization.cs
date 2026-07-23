@@ -74,6 +74,7 @@ public partial class MainWindow
     {
         var selectedMedia = SelectedOptionValue(MediaFilter) ?? AllValue;
         var selectedSort = SelectedOptionValue(SortMode) ?? "Name";
+        var selectedMinBitrate = SelectedOptionValue(MinBitrateFilter) ?? AllValue;
         _updatingLocalizedOptions = true;
         try
         {
@@ -83,6 +84,12 @@ public partial class MainWindow
                 new UiOption("Audio", LocalizationService.Get("AudioOption")),
                 new UiOption("Video", LocalizationService.Get("VideoOption"))
             };
+            var minBitrateItems = new[] { new UiOption(AllValue, LocalizationService.Get("AllOption")) }
+                .Concat(new[] { 64, 128, 192, 256, 320 }
+                    .Select(kbps => new UiOption(
+                        kbps.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        string.Format(LocalizationService.Get("BitrateValue"), kbps))))
+                .ToArray();
             var sortItems = new[]
             {
                 new UiOption("Name", LocalizationService.Get("SortName")),
@@ -95,6 +102,9 @@ public partial class MainWindow
             MediaFilter.SelectedItem = mediaItems.First(item => item.Value == selectedMedia);
             SortMode.ItemsSource = sortItems;
             SortMode.SelectedItem = sortItems.First(item => item.Value == selectedSort);
+            MinBitrateFilter.ItemsSource = minBitrateItems;
+            MinBitrateFilter.SelectedItem = minBitrateItems.FirstOrDefault(item => item.Value == selectedMinBitrate)
+                ?? minBitrateItems[0];
         }
         finally
         {

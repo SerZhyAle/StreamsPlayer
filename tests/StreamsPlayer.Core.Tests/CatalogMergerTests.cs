@@ -16,7 +16,13 @@ public sealed class CatalogMergerTests
             SortIndex = -4,
             LastPlayOutcome = PlayOutcome.Ok
         };
-        var entry = Entry("New", original.Url, MediaKind.Video);
+        var entry = Entry("New", original.Url, MediaKind.Video) with
+        {
+            Protocol = "HLS",
+            Format = "AAC",
+            Bitrate = "128 kbps",
+            IsLive = true
+        };
 
         var result = CatalogMerger.Merge([original], [entry], Now);
         var merged = Assert.Single(result.Channels);
@@ -26,6 +32,11 @@ public sealed class CatalogMergerTests
         Assert.True(merged.Pinned);
         Assert.Equal(-4, merged.SortIndex);
         Assert.Equal(PlayOutcome.Ok, merged.LastPlayOutcome);
+        // SP-0018: refreshed technical metadata rides along; user/ordering state is preserved.
+        Assert.Equal("HLS", merged.Protocol);
+        Assert.Equal("AAC", merged.Format);
+        Assert.Equal("128 kbps", merged.Bitrate);
+        Assert.True(merged.IsLive);
         Assert.Equal(0, result.Added);
         Assert.Equal(1, result.Updated);
     }

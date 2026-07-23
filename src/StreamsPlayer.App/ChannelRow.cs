@@ -137,6 +137,38 @@ public sealed class ChannelRow : INotifyPropertyChanged
     public Visibility PinnedVisibility => Channel.Pinned ? Visibility.Visible : Visibility.Collapsed;
     public string Metadata => string.Join("  ·  ", new[] { KindLabel, Channel.Topic, Channel.Country, Channel.Language }
         .Where(value => !string.IsNullOrWhiteSpace(value)));
+
+    // SP-0018: compact, present-only technical claims. Absent when the catalog supplied none, so the
+    // default card is never crowded; these are untrusted maintainer claims, not measured quality.
+    public string TechnicalDetails => string.Join("  ·  ", new[]
+    {
+        Channel.Format?.Trim().ToUpperInvariant(),
+        BitrateLabel(),
+        Channel.Protocol?.Trim().ToUpperInvariant(),
+        LiveLabel()
+    }.Where(value => !string.IsNullOrWhiteSpace(value)));
+
+    public Visibility TechnicalDetailsVisibility =>
+        TechnicalDetails.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+
+    private string? BitrateLabel()
+    {
+        if (string.IsNullOrWhiteSpace(Channel.Bitrate))
+        {
+            return null;
+        }
+
+        return StreamBitrate.TryParseKbps(Channel.Bitrate, out var kbps)
+            ? string.Format(LocalizationService.Get("BitrateValue"), kbps)
+            : Channel.Bitrate.Trim();
+    }
+
+    private string? LiveLabel() => Channel.IsLive switch
+    {
+        true => LocalizationService.Get("LiveLabel"),
+        false => LocalizationService.Get("OnDemandLabel"),
+        _ => null
+    };
     public string StatusLabel => Channel.LastPlayOutcome switch
     {
         PlayOutcome.Ok => LocalizationService.Get("StatusVerified"),

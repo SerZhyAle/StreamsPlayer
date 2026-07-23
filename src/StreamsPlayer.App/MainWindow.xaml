@@ -40,8 +40,12 @@
                 <Button x:Name="RefreshPreviewsButton" Style="{StaticResource RefreshGlyphButton}" Content="{DynamicResource RefreshPreviews}" Click="RefreshPreviewsButton_Click"
                         Visibility="Collapsed" ToolTip="{DynamicResource RefreshPreviewsTip}"
                         AutomationProperties.Name="{DynamicResource RefreshPreviewsName}" />
+                <Button x:Name="HistoryButton" Style="{StaticResource HistoryGlyphButton}" Content="{DynamicResource HistoryOpen}" Click="HistoryButton_Click"
+                        ToolTip="{DynamicResource HistoryTip}" AutomationProperties.Name="{DynamicResource HistoryTip}" />
                 <Button x:Name="SettingsButton" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource Settings}" Click="SettingsButton_Click"
                         ToolTip="{DynamicResource SettingsTip}" AutomationProperties.Name="{DynamicResource SettingsName}" />
+                <Button x:Name="HiddenChannelsButton" Style="{StaticResource HiddenGlyphButton}" Content="{DynamicResource ManageHiddenOpen}" Click="HiddenChannelsButton_Click"
+                        Visibility="Collapsed" ToolTip="{DynamicResource ManageHiddenTip}" AutomationProperties.Name="{DynamicResource ManageHiddenTip}" />
                 <Button x:Name="AddButton" Style="{StaticResource AddGlyphButton}" Content="{DynamicResource AddStreamPlain}" Click="AddButton_Click" />
                 <Button x:Name="RefreshButton" Style="{StaticResource RefreshGlyphButton}" Content="{DynamicResource UpdateCatalogPlain}" Click="RefreshButton_Click"
                         Background="{StaticResource AccentBrush}" Foreground="White" />
@@ -52,6 +56,7 @@
             <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
@@ -87,6 +92,24 @@
                               AutomationProperties.Name="{DynamicResource CountryFilterName}" />
                 </StackPanel>
                 <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="3">
+                    <TextBlock Text="{DynamicResource MinBitrate}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox x:Name="MinBitrateFilter" Width="100" SelectionChanged="FilterChanged" SelectedValuePath="Value"
+                              ToolTip="{DynamicResource MinBitrateTip}" AutomationProperties.Name="{DynamicResource MinBitrateName}">
+                        <ComboBox.Style>
+                            <Style TargetType="ComboBox">
+                                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                <Setter Property="BorderThickness" Value="2" />
+                                <Style.Triggers>
+                                    <Trigger Property="SelectedValue" Value="All">
+                                        <Setter Property="BorderBrush" Value="#FFCBD5E1" />
+                                        <Setter Property="BorderThickness" Value="1" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ComboBox.Style>
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel Grid.Column="6" Orientation="Horizontal" Margin="3">
                     <TextBlock Text="{DynamicResource SortBy}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
                     <ComboBox x:Name="SortMode" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource SortOrderTip}"
                               AutomationProperties.Name="{DynamicResource SortCatalogName}" />
@@ -96,15 +119,21 @@
         </Border>
 
         <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="4">
-            <Grid>
-                <ListView x:Name="StreamsList" ItemsSource="{Binding GridRows}" BorderThickness="0"
-                          ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                          VirtualizingPanel.IsVirtualizing="True"
-                          VirtualizingPanel.VirtualizationMode="Recycling"
-                          SizeChanged="StreamsList_SizeChanged"
-                          ScrollViewer.ScrollChanged="StreamsList_ScrollChanged"
-                          MouseDoubleClick="StreamsList_MouseDoubleClick">
-                    <ListView.Resources>
+            <Grid x:Name="CatalogArea" SizeChanged="CatalogArea_SizeChanged">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.Resources>
+                        <Style x:Key="SectionHeaderBorderStyle" TargetType="Border">
+                            <Setter Property="Background" Value="#FFEEF2F7" />
+                            <Setter Property="CornerRadius" Value="6" />
+                            <Setter Property="Padding" Value="10,6" />
+                            <Setter Property="Margin" Value="3" />
+                            <Setter Property="Cursor" Value="Hand" />
+                        </Style>
                         <Style x:Key="StreamCardBorderStyle" TargetType="Border">
                             <Setter Property="Background" Value="#FFF8FAFC" />
                             <Setter Property="BorderBrush" Value="#FFE1E7EE" />
@@ -136,6 +165,7 @@
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0">
                                         <Grid.ColumnDefinitions>
@@ -149,6 +179,45 @@
                                         <Border Width="32" Height="32" Background="#FFF0F2F5" CornerRadius="4" VerticalAlignment="Center">
                                             <Image Source="{Binding Favicon}" Width="32" Height="32" Stretch="None" />
                                         </Border>
+                                        <!-- Now-playing indicator: spins over the favicon while this station's audio plays. -->
+                                        <Grid Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Grid.Style>
+                                                <Style TargetType="Grid">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Grid.Style>
+                                            <Ellipse Fill="#CC2364AA" />
+                                            <Path Data="M12,3 V13.55 C11.41,13.21 10.73,13 10,13 C7.79,13 6,14.79 6,17 C6,19.21 7.79,21 10,21 C12.21,21 14,19.21 14,17 V7 H18 V3 Z"
+                                                  Fill="White" Stretch="Uniform" Margin="5" RenderTransformOrigin="0.5,0.5">
+                                                <Path.RenderTransform>
+                                                    <RotateTransform x:Name="NoteRotateList" />
+                                                </Path.RenderTransform>
+                                                <Path.Style>
+                                                    <Style TargetType="Path">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
+                                                                <DataTrigger.EnterActions>
+                                                                    <BeginStoryboard Name="SpinNoteList">
+                                                                        <Storyboard>
+                                                                            <DoubleAnimation Storyboard.TargetProperty="(Path.RenderTransform).(RotateTransform.Angle)"
+                                                                                             From="0" To="360" Duration="0:0:1.8" RepeatBehavior="Forever" />
+                                                                        </Storyboard>
+                                                                    </BeginStoryboard>
+                                                                </DataTrigger.EnterActions>
+                                                                <DataTrigger.ExitActions>
+                                                                    <StopStoryboard BeginStoryboardName="SpinNoteList" />
+                                                                </DataTrigger.ExitActions>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Path.Style>
+                                            </Path>
+                                        </Grid>
                                         <Ellipse Grid.Column="1" Width="10" Height="10" Fill="{Binding StatusBrush}"
                                                  VerticalAlignment="Center" ToolTip="{Binding StatusLabel}"
                                                  AutomationProperties.Name="{Binding StatusLabel}" />
@@ -223,6 +292,9 @@
                                                FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Channel.Url}" />
                                     <TextBlock Grid.Row="2" Margin="0,2,0,0" Text="{Binding Metadata}" Foreground="#FF386C8D"
                                                FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Metadata}" />
+                                    <TextBlock Grid.Row="3" Margin="0,2,0,0" Text="{Binding TechnicalDetails}"
+                                               Visibility="{Binding TechnicalDetailsVisibility}" Foreground="{StaticResource MutedBrush}"
+                                               FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding TechnicalDetails}" />
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -232,7 +304,8 @@
                                         Height="{Binding DataContext.GridTileHeight, RelativeSource={RelativeSource AncestorType=Window}}"
                                         Style="{StaticResource StreamGridTileBorderStyle}"
                                         CornerRadius="7" ClipToBounds="True"
-                                        PreviewMouseLeftButtonDown="StreamCard_PreviewMouseLeftButtonDown">
+                                        PreviewMouseLeftButtonDown="StreamCard_PreviewMouseLeftButtonDown"
+                                        MouseEnter="StreamTile_MouseEnter" MouseLeave="StreamTile_MouseLeave">
                                     <Grid>
                                         <Image Source="{Binding TileImage}" Stretch="UniformToFill" />
                                         <Border VerticalAlignment="Bottom" Height="70">
@@ -243,14 +316,55 @@
                                                 </LinearGradientBrush>
                                             </Border.Background>
                                         </Border>
-                                        <StackPanel VerticalAlignment="Bottom" Margin="12,0,56,12">
-                                            <TextBlock Text="{Binding DisplayTitle}" Foreground="White" FontWeight="SemiBold"
-                                                       FontSize="15" TextTrimming="CharacterEllipsis" ToolTip="{Binding DisplayTitle}" />
-                                            <TextBlock Text="{Binding KindLabel}" Foreground="#FFD4E2F2" FontSize="10" />
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Margin="12,0,56,12">
+                                            <!-- Now-playing indicator: spins while this station's audio plays; stops on stop/switch. -->
+                                            <Grid Width="22" Height="22" Margin="0,0,8,2" VerticalAlignment="Bottom">
+                                                <Grid.Style>
+                                                    <Style TargetType="Grid">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Grid.Style>
+                                                <Ellipse Fill="#CC2364AA" />
+                                                <Path Data="M12,3 V13.55 C11.41,13.21 10.73,13 10,13 C7.79,13 6,14.79 6,17 C6,19.21 7.79,21 10,21 C12.21,21 14,19.21 14,17 V7 H18 V3 Z"
+                                                      Fill="White" Stretch="Uniform" Margin="5" RenderTransformOrigin="0.5,0.5">
+                                                    <Path.RenderTransform>
+                                                        <RotateTransform x:Name="NoteRotateGrid" />
+                                                    </Path.RenderTransform>
+                                                    <Path.Style>
+                                                        <Style TargetType="Path">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
+                                                                    <DataTrigger.EnterActions>
+                                                                        <BeginStoryboard Name="SpinNoteGrid">
+                                                                            <Storyboard>
+                                                                                <DoubleAnimation Storyboard.TargetProperty="(Path.RenderTransform).(RotateTransform.Angle)"
+                                                                                                 From="0" To="360" Duration="0:0:1.8" RepeatBehavior="Forever" />
+                                                                            </Storyboard>
+                                                                        </BeginStoryboard>
+                                                                    </DataTrigger.EnterActions>
+                                                                    <DataTrigger.ExitActions>
+                                                                        <StopStoryboard BeginStoryboardName="SpinNoteGrid" />
+                                                                    </DataTrigger.ExitActions>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Path.Style>
+                                                </Path>
+                                            </Grid>
+                                            <StackPanel VerticalAlignment="Bottom">
+                                                <TextBlock Text="{Binding DisplayTitle}" Foreground="White" FontWeight="SemiBold"
+                                                           FontSize="15" TextTrimming="CharacterEllipsis" ToolTip="{Binding DisplayTitle}" />
+                                                <TextBlock Text="{Binding KindLabel}" Foreground="#FFD4E2F2" FontSize="10" />
+                                            </StackPanel>
                                         </StackPanel>
                                         <Ellipse Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                                                 Margin="12,0,0,47" Fill="{Binding PreviewStatusBrush}"
-                                                 ToolTip="{Binding PreviewStatusLabel}" />
+                                                 Margin="12,0,0,47" Fill="{Binding StatusBrush}"
+                                                 ToolTip="{Binding StatusLabel}" />
                                         <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="9"
                                                 Padding="7,3" CornerRadius="9" Background="#D92364AA"
                                                 Visibility="{Binding PinnedVisibility}">
@@ -293,7 +407,138 @@
                                 </Border>
                             </Viewbox>
                         </DataTemplate>
-                    </ListView.Resources>
+                </Grid.Resources>
+
+                <Border Grid.Row="0" Style="{StaticResource SectionHeaderBorderStyle}"
+                        Visibility="{Binding PinnedHeaderVisibility}" MouseLeftButtonUp="PinnedHeader_Click"
+                        ToolTip="{DynamicResource CollapseSectionTip}">
+                    <StackPanel Orientation="Horizontal">
+                        <Grid Width="12" Height="12" VerticalAlignment="Center" Margin="0,0,8,0">
+                            <Path Data="M3,4.5 L6,8 L9,4.5" Stroke="#FF334155" StrokeThickness="1.6"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding PinnedSectionCollapsed}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                            <Path Data="M4.5,3 L8,6 L4.5,9" Stroke="#FF334155" StrokeThickness="1.6"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding PinnedSectionCollapsed}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                        </Grid>
+                        <TextBlock Text="{DynamicResource PinnedSectionHeader}" FontWeight="SemiBold"
+                                   Foreground="#FF172236" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" x:Name="PinnedScroll" Visibility="{Binding PinnedContentVisibility}"
+                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                              Margin="3,0,3,4" Focusable="False">
+                    <ItemsControl x:Name="PinnedItems" ItemsSource="{Binding PinnedRows}"
+                                  MouseDoubleClick="StreamsList_MouseDoubleClick">
+                        <ItemsControl.Style>
+                            <Style TargetType="ItemsControl">
+                                <Setter Property="ItemsPanel">
+                                    <Setter.Value>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsGridMode}" Value="False">
+                                        <Setter Property="ItemsPanel">
+                                            <Setter.Value>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ContentControl Content="{Binding}">
+                                    <ContentControl.Style>
+                                        <Style TargetType="ContentControl">
+                                            <Setter Property="ContentTemplate" Value="{StaticResource StreamCardTemplate}" />
+                                            <Setter Property="Width" Value="326" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataContext.IsGridMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource StreamGridTileTemplate}" />
+                                                    <Setter Property="Width" Value="{Binding DataContext.GridTileWidth, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ContentControl.Style>
+                                </ContentControl>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <Border Grid.Row="2" Style="{StaticResource SectionHeaderBorderStyle}"
+                        Visibility="{Binding MainHeaderVisibility}" MouseLeftButtonUp="MainHeader_Click"
+                        ToolTip="{DynamicResource CollapseSectionTip}">
+                    <StackPanel Orientation="Horizontal">
+                        <Grid Width="12" Height="12" VerticalAlignment="Center" Margin="0,0,8,0">
+                            <Path Data="M3,4.5 L6,8 L9,4.5" Stroke="#FF334155" StrokeThickness="1.6"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding MainSectionCollapsed}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                            <Path Data="M4.5,3 L8,6 L4.5,9" Stroke="#FF334155" StrokeThickness="1.6"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding MainSectionCollapsed}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                        </Grid>
+                        <TextBlock Text="{DynamicResource MainSectionHeader}" FontWeight="SemiBold"
+                                   Foreground="#FF172236" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <Grid Grid.Row="3" Visibility="{Binding MainContentVisibility}">
+                    <ListView x:Name="StreamsList" ItemsSource="{Binding GridRows}" BorderThickness="0"
+                              ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              SizeChanged="StreamsList_SizeChanged"
+                              ScrollViewer.ScrollChanged="StreamsList_ScrollChanged"
+                              MouseDoubleClick="StreamsList_MouseDoubleClick">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -350,6 +595,7 @@
                         <Button Style="{StaticResource RefreshGlyphButton}" Content="{DynamicResource UpdateCatalogPlain}" Click="RefreshButton_Click" />
                     </StackPanel>
                 </StackPanel>
+                </Grid>
             </Grid>
         </Border>
 
@@ -365,7 +611,13 @@
                                  IsIndeterminate="True" Visibility="Collapsed" AutomationProperties.Name="{DynamicResource CatalogProgressName}" />
                     <TextBlock x:Name="NowPlayingText" Text="{DynamicResource NothingPlaying}" Foreground="#FFB8C8DB" FontSize="11" />
                 </StackPanel>
-                <Button x:Name="StopAudioButton" Grid.Column="1" Style="{StaticResource StopGlyphButton}" Content="{DynamicResource StopAudio}" Click="StopAudioButton_Click" IsEnabled="False" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Slider x:Name="AudioVolumeSlider" Width="110" Minimum="0" Maximum="100" Value="100" TickFrequency="10"
+                            ValueChanged="AudioVolumeSlider_ValueChanged" VerticalAlignment="Center" Margin="0,0,10,0"
+                            Visibility="Collapsed"
+                            ToolTip="{DynamicResource AudioVolumeTip}" AutomationProperties.Name="{DynamicResource AudioVolumeName}" />
+                    <Button x:Name="StopAudioButton" Style="{StaticResource StopGlyphButton}" Content="{DynamicResource StopAudio}" Click="StopAudioButton_Click" IsEnabled="False" />
+                </StackPanel>
                 <MediaElement x:Name="AudioPlayer" Visibility="Collapsed" LoadedBehavior="Manual" UnloadedBehavior="Manual"
                               MediaOpened="AudioPlayer_MediaOpened" MediaFailed="AudioPlayer_MediaFailed" />
             </Grid>

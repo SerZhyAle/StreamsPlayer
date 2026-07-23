@@ -11,12 +11,14 @@ public partial class SettingsWindow : Window
 {
     private readonly AppLanguage _language;
     private readonly StreamChannel? _selectedChannel;
+    private readonly Func<StreamListPortabilityAction, Window, Task> _runPortability;
 
-    public SettingsWindow(StreamTileSize tileSize, bool updateStreamPreviews, AppLanguage language, StreamChannel? selectedChannel)
+    public SettingsWindow(StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, MediaBackend videoBackend, AppLanguage language, StreamChannel? selectedChannel, Func<StreamListPortabilityAction, Window, Task> runPortability)
     {
         InitializeComponent();
         _language = language;
         _selectedChannel = selectedChannel;
+        _runPortability = runPortability;
         var sizes = new[]
         {
             new UiOption(nameof(StreamTileSize.Small), LocalizationService.Get("TileSmall")),
@@ -26,6 +28,15 @@ public partial class SettingsWindow : Window
         TileSizeBox.ItemsSource = sizes;
         TileSizeBox.SelectedItem = sizes.First(item => item.Value == tileSize.ToString());
         UpdatePreviewsCheckBox.IsChecked = updateStreamPreviews;
+        KeepAwakeCheckBox.IsChecked = keepAwakeDuringPlayback;
+        SystemMediaControlsCheckBox.IsChecked = systemMediaControls;
+        var backends = new[]
+        {
+            new UiOption(nameof(MediaBackend.LibVlc), LocalizationService.Get("VideoBackendLibVlc")),
+            new UiOption(nameof(MediaBackend.Flyleaf), LocalizationService.Get("VideoBackendFlyleaf"))
+        };
+        VideoBackendBox.ItemsSource = backends;
+        VideoBackendBox.SelectedItem = backends.First(item => item.Value == videoBackend.ToString());
         VersionText.Text = ProductInfo.Version;
         AuthorText.Text = ProductInfo.Author;
         SelectedStreamText.Text = selectedChannel is null
@@ -37,10 +48,25 @@ public partial class SettingsWindow : Window
 
     public StreamTileSize SelectedTileSize => Enum.Parse<StreamTileSize>(((UiOption)TileSizeBox.SelectedItem).Value);
     public bool UpdateStreamPreviews => UpdatePreviewsCheckBox.IsChecked == true;
+    public bool KeepAwakeDuringPlayback => KeepAwakeCheckBox.IsChecked == true;
+    public bool SystemMediaControls => SystemMediaControlsCheckBox.IsChecked == true;
+    public MediaBackend SelectedVideoBackend => Enum.Parse<MediaBackend>(((UiOption)VideoBackendBox.SelectedItem).Value);
 
     private void Save_Click(object sender, RoutedEventArgs e) => DialogResult = true;
 
     private void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
+
+    private async void ImportFromFile_Click(object sender, RoutedEventArgs e) =>
+        await _runPortability(StreamListPortabilityAction.ImportFromFile, this);
+
+    private async void ImportFromUrl_Click(object sender, RoutedEventArgs e) =>
+        await _runPortability(StreamListPortabilityAction.ImportFromUrl, this);
+
+    private async void ExportAll_Click(object sender, RoutedEventArgs e) =>
+        await _runPortability(StreamListPortabilityAction.ExportAll, this);
+
+    private async void ExportPinned_Click(object sender, RoutedEventArgs e) =>
+        await _runPortability(StreamListPortabilityAction.ExportPinned, this);
 
     private void CopyLaunchCommand_Click(object sender, RoutedEventArgs e)
     {

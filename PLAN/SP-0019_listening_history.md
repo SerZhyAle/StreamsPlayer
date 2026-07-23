@@ -1,6 +1,30 @@
 # SP-0019: Local listening history
 
-**Status:** Approved
+**Status:** Implemented — BlockNeedUserTest (interactive GUI run-and-observe of AC1–AC6:
+play→history, ICY row text, Clear, EN⇄RU, deleted-channel non-playable label, restart
+persistence). Exit condition: user confirms the six checks in
+[SP-0019_listening_history/PHASE-4_localization_docs_validation.md](SP-0019_listening_history/PHASE-4_localization_docs_validation.md).
+
+Tactical plan: [SP-0019_listening_history/INDEX.md](SP-0019_listening_history/INDEX.md)
+
+## Implementation summary
+
+- Core (platform-neutral): `ListeningHistoryEntry` record + `CatalogState.ListeningHistory`
+  and the pure `ListeningHistory` helper — `MaxEntries = 100`, `RecordPlay` (promote by
+  channel id, carry prior track text, cap), `UpdateTrackText` (`null` when absent/unchanged).
+  No URL is stored; playback resolves by id only. 10 unit tests (promote/dedup/evict/order/
+  round-trip/legacy-default).
+- App: history is written only at the single successful-play sink `RecordPlayOutcome(id, true)`
+  (covers audio and video; previews/probes never reach it → AC2). `OnNowPlayingTitle`
+  folds the latest ICY text into the channel's entry (`PersistNowPlayingHistoryAsync`,
+  saves only on real change → AC4). New `ListeningHistoryWindow` + `MainWindow.History.cs`
+  + toolbar `HistoryButton` (outline-clock glyph) offer Play (id-resolved, soft-fail on a
+  removed channel) and Clear-all (touches only `ListeningHistory` → AC5).
+- Persistence via existing `CatalogState`/`StreamCatalogStore` (atomic; no `SchemaVersion`
+  bump; older state deserializes to empty history). Nothing uploaded or shared.
+- en + ru localized (8 `History*` keys, parity). README "What it does" updated.
+- Solution builds 0 warnings; full suite 136/136 green; startup smoke launch clean.
+  No change to catalog refresh, the MANUAL/IMPORTED merge contract, or the hidden set.
 
 ## Goal
 

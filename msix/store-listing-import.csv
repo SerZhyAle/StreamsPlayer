@@ -1,0 +1,42 @@
+﻿Field,ID,Type,default,en-us,ru-ru
+Title,,Text,,"Streams Player","Streams Player"
+Description,,Text,,"STREAMS Player is an independent Windows desktop application for browsing and playing internet radio, live video, and RTSP stream addresses.
+
+Explore a curated catalog by category, language, country, or media type. Search and sort channels, pin the streams you use most, or add a direct stream URL manually. Audio plays in the main window, while video opens in a dedicated window with always-on-top and borderless fullscreen controls.
+
+Choose a compact list or a visual grid. Grid mode can capture current thumbnails for visible HTTP(S) video streams; tile size and automatic thumbnail updates are controlled in Settings. The complete interface switches between English and Russian.
+
+Catalog downloads happen only when you choose Update catalog. STREAMS Player has no account, advertising, analytics, or telemetry. Catalog state, manual entries, favorites, playback marks, settings, and cached thumbnails stay in your Windows profile.
+
+Playback compatibility depends on the stream provider, network availability, protocol, and media codecs supported by the included or Windows media components. STREAMS Player does not host or control third-party stream content.
+
+STREAMS Player is open source under the MIT License.","Трансляции — независимое приложение Windows для просмотра каталога и воспроизведения интернет-радио, live-видео и адресов RTSP-потоков.
+
+Просматривайте подобранный каталог по категории, языку, стране или типу медиа. Ищите и сортируйте каналы, закрепляйте нужные потоки и добавляйте прямые URL вручную. Аудио воспроизводится в главном окне, а видео открывается в отдельном проигрывателе с режимами «поверх всех окон» и безрамочным полноэкранным просмотром.
+
+Выбирайте компактный список или наглядную сетку. В режиме сетки приложение может получать текущие миниатюры видимых HTTP(S)-видеопотоков; размер плиток и автоматическое обновление миниатюр задаются в Настройках. Весь интерфейс переключается между русским и английским языками.
+
+Каталог загружается только после нажатия «Обновить каталог». В Трансляции нет аккаунта, рекламы, аналитики и телеметрии. Состояние каталога, добавленные вручную адреса, избранное, отметки воспроизведения, настройки и кэш миниатюр хранятся в профиле Windows.
+
+Совместимость воспроизведения зависит от поставщика потока, сети, протокола и медиакодеков, доступных во встроенных компонентах и Windows. Трансляции не размещает и не контролирует содержимое сторонних потоков.
+
+Исходный код Трансляции опубликован по лицензии MIT."
+ShortDescription,,Text,,"Browse internet radio and live video in a focused Windows player with a curated catalog, local favorites, live grid previews, and no account or advertising.","Каталог интернет-радио и live-видео для Windows с избранным, живыми миниатюрами, русским интерфейсом, без аккаунта и рекламы."
+Feature1,,Text,,"Curated catalog for internet radio, live video, and RTSP addresses","Каталог интернет-радио, live-видео и адресов RTSP"
+Feature2,,Text,,"Search, sort, and filter by category, language, country, and media type","Поиск, сортировка и фильтры по категории, языку, стране и типу медиа"
+Feature3,,Text,,"Pin favorite streams and add direct stream URLs","Закрепление любимых потоков и добавление прямых URL"
+Feature4,,Text,,"List and visual grid layouts with selectable tile sizes","Режимы списка и сетки с выбором размера плиток"
+Feature5,,Text,,"Optional live thumbnails for visible HTTP(S) video streams","Отключаемые живые миниатюры видимых HTTP(S)-видеопотоков"
+Feature6,,Text,,"English and Russian interface","Русский и английский интерфейс"
+Feature7,,Text,,"Independent always-on-top controls for the app and video player","Независимый режим «поверх всех окон» для приложения и видеоплеера"
+Feature8,,Text,,"Borderless video fullscreen with F11 and Escape shortcuts","Безрамочный полноэкранный режим с клавишами F11 и Escape"
+Feature9,,Text,,"Explicit catalog refresh with no surprise background catalog downloads","Обновление каталога только по команде пользователя"
+Feature10,,Text,,"No account, advertising, analytics, or telemetry","Без аккаунта, рекламы, аналитики и телеметрии"
+SearchTerm1,,Text,,"internet radio","интернет радио"
+SearchTerm2,,Text,,"live TV","онлайн телевидение"
+SearchTerm3,,Text,,"stream player","плеер потоков"
+SearchTerm4,,Text,,"RTSP","RTSP"
+SearchTerm5,,Text,,"radio catalog","каталог радио"
+SearchTerm6,,Text,,"video streams","видеопотоки"
+SearchTerm7,,Text,,"IPTV player","IPTV плеер"
+ReleaseNotes,,Text,,"",""

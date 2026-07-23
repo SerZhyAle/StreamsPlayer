@@ -1,6 +1,8 @@
 # SP-0015: Resilient live-stream recovery
 
-**Status:** Approved
+**Status:** Implemented — BlockNeedUserTest for visual GUI acceptance (exit: user runs the PHASE-5 run-and-observe steps and confirms the visible Reconnecting label, EN/RU distinction, cancellation gesture, and terminal dialog).
+
+Tactical plan: [SP-0015_resilient_live_recovery/INDEX.md](SP-0015_resilient_live_recovery/INDEX.md)
 
 ## Goal
 
@@ -41,3 +43,30 @@ Media backends report failures and progress differently across HTTP audio, HLS/D
 ## Research
 
 See [competitor improvement backlog](../docs/specifications/competitor-improvement-backlog.md) and the recovery contract in [streams specification](../docs/specifications/streams.txt).
+
+## Verification (2026-07-21)
+
+Recovery policy lives in `StreamsPlayer.Core` (`LivePlaybackRecoveryPolicy`, `PlaybackRecoveryClassifier`,
+`RecoveryTrigger`, `PlaybackFailureSignal`); backends in App feed signals and apply decisions. App-side
+signal gathering adds a failure-path-only HTTP status probe (`PlaybackStatusProbe`) because the media
+backends hide the HTTP status needed to split retryable 429/5xx from permanent non-429 4xx.
+
+Proven (automation + live session log, `expected | actual`):
+
+- Build + tests — `./scripts/check.ps1`: **89/89 pass, 0 warnings** (21 new `LivePlaybackRecoveryPolicyTests`). AC 6 (policy tests).
+- Audio transient recovery, live app (`--url http://127.0.0.1:1/dead.mp3`): expected 2/4/8/16 s backoff then hard-fail | actual `AUDIO RECOVER Reconnect attempt=1..4 delay_ms=2000/4000/8000/16000` (each reconnect fired at exactly the stated delay), then `action=HardFail attempt=5 budget=4 delay_ms=0` with no further reconnect. AC 1, AC 6 terminal.
+- Video/RTSP transient recovery, live app (`--url http://127.0.0.1:1/x.m3u8`): expected classify + reconnect | actual `PLAYBACK RECOVER trigger=Transient attempt=1 budget=4 delay_ms=2000`, reconnect 2.0 s later with `cache_ms=4000`. AC 1.
+- Happy path unaffected (`--url` real radio): `AUDIO OPEN → AUDIO LIVE`.
+- Classification split (AC 2) — unit-tested: HTTP 403/404/451 → HardFail; 429/500/503 → Transient; unsupported/malformed reason → HardFail; a HardFail signal never consumes the transient budget.
+- Grid-preview isolation — code check: no `RecordPlayOutcome`/policy/dialog reference in the preview path.
+
+Remaining (BlockNeedUserTest) — GUI observation that cannot be screen-captured here:
+
+1. Visible `Buffering… %` vs `Reconnecting… (attempt N of M)` distinction, in English and Russian (toggle language).
+2. Cancellation by gesture — close the player / stop audio / switch stream during a backoff and confirm the old stream never restarts.
+3. Terminal `PlaybackFailureDialog` (Retry / Copy report / Hide|Delete / Keep) after budget exhaustion.
+4. A representative flaky live stream recovering back to live, and the stall watchdog on a real silent freeze.
+
+Backend note: on the LibVLC backend a behind-live-window drop surfaces as EndReached; the `StreamEnded`
+recovery path re-opens and re-anchors to the live edge, covering that scenario. The explicit
+`BehindLiveWindow` policy path is implemented and unit-tested for backends that report it distinctly.

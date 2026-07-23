@@ -171,13 +171,22 @@ try {
 
     if ($Run) {
         Write-Host 'Запуск StreamsPlayer...' -ForegroundColor Green
-        Invoke-DotNet @(
+        # Interactive launch: the app's own exit code must not be treated as a build failure.
+        # LibVLC native teardown can return a non-zero code on a normal close; surface it, do not throw.
+        $runArgs = @(
             'run',
             '--project', $appProjectPath,
             '--configuration', $Configuration,
             '--no-build',
             '--no-restore'
         )
+        Write-Host "dotnet $($runArgs -join ' ')" -ForegroundColor Cyan
+        & dotnet @runArgs
+        $appExitCode = $LASTEXITCODE
+        if ($appExitCode -ne 0) {
+            Write-Host "StreamsPlayer завершился с кодом $appExitCode (обычно нативное завершение LibVLC, не ошибка сборки)." -ForegroundColor Yellow
+        }
+        exit $appExitCode
     }
 }
 finally {

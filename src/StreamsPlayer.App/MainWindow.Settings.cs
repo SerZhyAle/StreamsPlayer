@@ -16,7 +16,7 @@ public partial class MainWindow
 
     private async void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SettingsWindow(_state.TileSize, _state.UpdateStreamPreviews, _state.Language, _selectedRow?.Channel)
+        var dialog = new SettingsWindow(_state.TileSize, _state.UpdateStreamPreviews, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.VideoBackend, _state.Language, _selectedRow?.Channel, RunStreamListPortabilityAsync)
         {
             Owner = this
         };
@@ -27,11 +27,25 @@ public partial class MainWindow
 
         var tileSizeChanged = dialog.SelectedTileSize != _state.TileSize;
         var previewsChanged = dialog.UpdateStreamPreviews != _state.UpdateStreamPreviews;
+        var systemMediaControlsChanged = dialog.SystemMediaControls != _state.SystemMediaControls;
         _state = await _store.SaveAsync(_state with
         {
             TileSize = dialog.SelectedTileSize,
-            UpdateStreamPreviews = dialog.UpdateStreamPreviews
+            UpdateStreamPreviews = dialog.UpdateStreamPreviews,
+            KeepAwakeDuringPlayback = dialog.KeepAwakeDuringPlayback,
+            SystemMediaControls = dialog.SystemMediaControls,
+            // Takes effect on the next player window opened; an already-open player keeps its engine.
+            VideoBackend = dialog.SelectedVideoBackend
         });
+
+        // Toggling off releases an active wake lock immediately; toggling on re-acquires it for any
+        // session already playing (the guard recomputes from its live request counts).
+        WakeGuard.Enabled = _state.KeepAwakeDuringPlayback;
+
+        if (systemMediaControlsChanged)
+        {
+            ApplySystemMediaControlsSetting();
+        }
 
         if (tileSizeChanged)
         {
@@ -51,18 +65,13 @@ public partial class MainWindow
 
     private async Task ApplyPreviewPreferenceAsync()
     {
-        if (_previewCoordinator is null)
+        // The coordinator keeps running to show stored thumbnails; the toggle only changes whether blanks are captured.
+        if (_previewCoordinator is null || !IsGridMode || !_windowActive)
         {
             return;
         }
 
-        if (_state.UpdateStreamPreviews && IsGridMode && _windowActive)
-        {
-            await StartPreviewsAsync();
-        }
-        else
-        {
-            await _previewCoordinator.StopAsync();
-        }
+        await StartPreviewsAsync();
+        await QueueVisibleSafelyAsync(force: false);
     }
 }

@@ -25,12 +25,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly StreamLaunchRequest _launchRequest;
     private CatalogState _state = new();
     private ChannelRow? _playingAudio;
+    private LivePlaybackRecoveryPolicy? _audioRecovery;
+    private CancellationTokenSource? _audioRecoveryCts;
+    private IDisposable? _audioWake;
+    private bool _suppressAudioVolumeSave;
     private ChannelRow? _selectedRow;
     private bool _busy;
     private bool _isGridMode;
     private bool _windowActive = true;
+    private int _openPlayerWindows;
     private int _catalogColumns = 1;
     private CancellationTokenSource? _viewportDebounce;
+    private CancellationTokenSource? _hoverDwell;
     private readonly DispatcherTimer _browsingSessionSaveTimer;
     private bool _restoringBrowsingSession;
     private Guid? _lastVisibleChannelId;
@@ -48,7 +54,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _browsingSessionSaveTimer.Tick += BrowsingSessionSaveTimer_Tick;
         if (GridPreviewFeature.CaptureEnabled)
         {
-            var memoryCache = new PreviewFrameCache(64, TimeSpan.FromSeconds(60), url =>
+            var memoryCache = new PreviewFrameCache(64, url =>
             {
                 if (Dispatcher.CheckAccess())
                 {
@@ -59,7 +65,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                     Dispatcher.Invoke(() => ClearPreview(url));
                 }
             });
-            var frameStore = new PreviewFrameStore(Path.Combine(_dataDirectory, "grid-previews"), 64, 75);
+            const long previewDiskBudgetBytes = 150L * 1024 * 1024;
+            var frameStore = new PreviewFrameStore(Path.Combine(_dataDirectory, "grid-previews"), previewDiskBudgetBytes, 70);
             var captureService = new VideoFrameCaptureService();
             _previewCoordinator = new GridPreviewCoordinator(
                 Dispatcher,
@@ -67,7 +74,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 ApplyPreview,
                 memoryCache,
                 frameStore,
-                captureService);
+                captureService,
+                url => _log.Event("PREVIEW FAIL", $"url={url}"),
+                () => _state.UpdateStreamPreviews);
         }
 
         UpdateLocalizedOptions();
@@ -104,6 +113,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             _state = await _store.LoadAsync();
             LocalizationService.Apply(_state.Language);
+            WakeGuard.Enabled = _state.KeepAwakeDuringPlayback;
             Topmost = _state.MainWindowTopmost;
             MainTopmostCheckBox.IsChecked = _state.MainWindowTopmost;
             LanguageButton.IsEnabled = true;
@@ -112,6 +122,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             UpdateLocalizedOptions();
             IsGridMode = _state.ViewMode == CatalogViewMode.Grid;
             UpdateViewModeControls();
+            InitializeSectionState(_state);
             PopulateFacets();
             RestoreBrowsingSession();
             ApplyFilter();
@@ -155,6 +166,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         if (!NetworkInterface.GetIsNetworkAvailable())
         {
+            _log.Event("REFUSE", "op=catalog_refresh", "reason=offline");
             MessageBox.Show(this, LocalizationService.Get("OfflineCatalog"), LocalizationService.Get("ProductName"));
             return;
         }
@@ -207,16 +219,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         var title = string.IsNullOrWhiteSpace(dialog.StreamTitle) ? new Uri(url).Host : dialog.StreamTitle.Trim();
         var nextOrder = _state.Channels.Count == 0 ? 0 : _state.Channels.Max(channel => channel.SortIndex) + 1;
-        var channel = new StreamChannel
+        var channel = ApplyDialogMetadata(new StreamChannel
         {
             Id = Guid.NewGuid(),
             Url = url,
             Title = title,
-            MediaKind = StreamMediaKindClassifier.Classify(url),
+            MediaKind = MediaKind.Audio,
             SourceOrigin = SourceOrigin.Manual,
             SortIndex = nextOrder,
             AddedAt = DateTimeOffset.UtcNow
-        };
+        }, dialog, url, title);
         _state = await _store.SaveAsync(_state with { Channels = [.. _state.Channels, channel] });
         PopulateFacets();
         ApplyFilter();
@@ -287,35 +299,58 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var language = SelectedOptionValue(LanguageFilter);
         var country = SelectedOptionValue(CountryFilter);
         var media = SelectedOptionValue(MediaFilter) ?? AllValue;
+        var minBitrate = SelectedOptionValue(MinBitrateFilter) ?? AllValue;
+        int? minBitrateKbps = minBitrate != AllValue &&
+            int.TryParse(minBitrate, System.Globalization.NumberStyles.Integer,
+                System.Globalization.CultureInfo.InvariantCulture, out var parsedMinBitrate)
+            ? parsedMinBitrate
+            : null;
+        var hiddenIdentities = BuildHiddenIdentitySet();
 
         IEnumerable<StreamChannel> channels = _state.Channels.Where(channel =>
+            !IsHiddenBySet(hiddenIdentities, channel) &&
             (query.Length == 0 || Contains(channel.Title, query) || Contains(channel.Topic, query) || Contains(channel.Language, query)) &&
             (category is null or AllValue || string.Equals(channel.Category, category, StringComparison.OrdinalIgnoreCase)) &&
             (language is null or AllValue || LanguageContains(channel.Language, language)) &&
             (country is null or AllValue || string.Equals(channel.Country, country, StringComparison.OrdinalIgnoreCase)) &&
             (media == AllValue || media == "Audio" && channel.MediaKind == MediaKind.Audio ||
-             media == "Video" && channel.MediaKind is MediaKind.Video or MediaKind.Rtsp));
+             media == "Video" && channel.MediaKind is MediaKind.Video or MediaKind.Rtsp) &&
+            (minBitrateKbps is not int min || StreamBitrate.MeetsMinimum(channel.Bitrate, min)));
 
-        var pinned = channels.Where(channel => channel.Pinned).OrderBy(channel => channel.SortIndex);
-        var unpinned = SortUnpinned(channels.Where(channel => !channel.Pinned));
+        // SP-0025: pinned and unpinned are two distinct sections. Both honour the shared sort (the
+        // pinned set no longer keeps a separate SortIndex-only order).
+        var pinned = SortChannels(channels.Where(channel => channel.Pinned));
+        var unpinned = SortChannels(channels.Where(channel => !channel.Pinned));
         var atlasPath = _store.ResolveAtlasPath(_state);
         var maximumIndex = _state.Channels
             .Where(channel => channel.SourceOrigin == SourceOrigin.Catalog)
             .Select(channel => channel.FaviconIndex)
             .DefaultIfEmpty(null)
             .Max();
+        PinnedRows.Clear();
+        foreach (var channel in pinned)
+        {
+            PinnedRows.Add(GetOrCreateRow(channel, atlasPath, maximumIndex));
+        }
         Rows.Clear();
-        foreach (var channel in pinned.Concat(unpinned))
+        foreach (var channel in unpinned)
         {
             Rows.Add(GetOrCreateRow(channel, atlasPath, maximumIndex));
         }
         RebuildGridRows();
 
-        EmptyPanel.Visibility = Rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        var totalShown = PinnedRows.Count + Rows.Count;
+        EmptyPanel.Visibility = totalShown == 0 ? Visibility.Visible : Visibility.Collapsed;
         StreamsList.Visibility = Rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        HiddenChannelsButton.Visibility = _state.HiddenCatalogUrls.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        NotifySectionState();
+        UpdatePinnedSectionLayout();
         if (!_busy)
         {
-            SetStatus("ChannelCount", Rows.Count, _state.Channels.Count);
+            var visibleUniverse = hiddenIdentities.Count == 0
+                ? _state.Channels.Count
+                : _state.Channels.Count(channel => !IsHiddenBySet(hiddenIdentities, channel));
+            SetStatus("ChannelCount", totalShown, visibleUniverse);
         }
         ScheduleVisiblePreviewUpdate();
     }
@@ -334,7 +369,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         return row;
     }
 
-    private IEnumerable<StreamChannel> SortUnpinned(IEnumerable<StreamChannel> channels) =>
+    private IEnumerable<StreamChannel> SortChannels(IEnumerable<StreamChannel> channels) =>
         SelectedOptionValue(SortMode) switch
         {
             "Topic" => channels.OrderBy(channel => channel.Topic is null).ThenBy(channel => channel.Topic, StringComparer.OrdinalIgnoreCase),
@@ -346,10 +381,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void PopulateFacets()
     {
-        SetFacet(CategoryFilter, _state.Channels.Select(channel => channel.Category));
-        SetFacet(LanguageFilter, _state.Channels.SelectMany(channel =>
+        var hiddenIdentities = BuildHiddenIdentitySet();
+        IReadOnlyList<StreamChannel> universe = hiddenIdentities.Count == 0
+            ? _state.Channels
+            : _state.Channels.Where(channel => !IsHiddenBySet(hiddenIdentities, channel)).ToList();
+        SetFacet(CategoryFilter, universe.Select(channel => channel.Category));
+        SetFacet(LanguageFilter, universe.SelectMany(channel =>
             channel.Language?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? []));
-        SetFacet(CountryFilter, _state.Channels.Select(channel => channel.Country));
+        SetFacet(CountryFilter, universe.Select(channel => channel.Country));
     }
 
     private static void SetFacet(ComboBox comboBox, IEnumerable<string?> values)
@@ -370,14 +409,27 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
-        var channel = row.Channel with
+        await SetChannelPinnedAsync(row.Channel, !row.Channel.Pinned);
+    }
+
+    // Shared pin/unpin path for the catalog row buttons and the video player's pin button.
+    // Pinning moves the channel above every other pinned row (min SortIndex - 1); unpinning keeps its order.
+    private async Task SetChannelPinnedAsync(StreamChannel channel, bool pinned)
+    {
+        var current = _state.Channels.FirstOrDefault(item => item.Id == channel.Id) ?? channel;
+        if (current.Pinned == pinned)
         {
-            Pinned = !row.Channel.Pinned,
-            SortIndex = row.Channel.Pinned
-                ? row.Channel.SortIndex
-                : (_state.Channels.Where(item => item.Pinned).Select(item => item.SortIndex).DefaultIfEmpty(0).Min() - 1)
+            return;
+        }
+
+        var updated = current with
+        {
+            Pinned = pinned,
+            SortIndex = pinned
+                ? _state.Channels.Where(item => item.Pinned).Select(item => item.SortIndex).DefaultIfEmpty(0).Min() - 1
+                : current.SortIndex
         };
-        ReplaceChannel(channel);
+        ReplaceChannel(updated);
         _state = await _store.SaveAsync(_state);
         ApplyFilter();
     }
@@ -420,9 +472,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var editItem = new MenuItem
         {
             Header = LocalizationService.Get("MenuEdit"),
-            Tag = row,
-            IsEnabled = row.Channel.SourceOrigin == SourceOrigin.Manual,
-            ToolTip = LocalizationService.Get("MenuEditUnavailable")
+            Tag = row
         };
         editItem.Click += EditMenuItem_Click;
         var pinItem = new MenuItem
@@ -488,7 +538,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private async void EditMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as MenuItem)?.Tag is not ChannelRow row || row.Channel.SourceOrigin != SourceOrigin.Manual)
+        if ((sender as MenuItem)?.Tag is not ChannelRow row)
         {
             return;
         }
@@ -507,12 +557,26 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
 
         var title = string.IsNullOrWhiteSpace(dialog.StreamTitle) ? new Uri(url).Host : dialog.StreamTitle.Trim();
-        ReplaceChannel(row.Channel with
+        var originalOrigin = row.Channel.SourceOrigin;
+        var originalUrl = row.Channel.Url;
+
+        // Editing takes ownership: a catalog row becomes Manual so the change survives an explicit refresh
+        // (CatalogMerger only touches Catalog rows). Manual/Imported rows are already refresh-safe.
+        ReplaceChannel(ApplyDialogMetadata(
+            row.Channel with
+            {
+                SourceOrigin = originalOrigin == SourceOrigin.Catalog ? SourceOrigin.Manual : originalOrigin
+            },
+            dialog, url, title));
+
+        // If a catalog row's URL changed, hide the original so a refresh does not re-add it as a duplicate.
+        if (originalOrigin == SourceOrigin.Catalog &&
+            !originalUrl.Equals(url, StringComparison.Ordinal) &&
+            !CatalogUrlIdentity.IsHidden(_state.HiddenCatalogUrls, originalUrl))
         {
-            Url = url,
-            Title = title,
-            MediaKind = StreamMediaKindClassifier.Classify(url)
-        });
+            _state = _state with { HiddenCatalogUrls = [.. _state.HiddenCatalogUrls, originalUrl] };
+        }
+
         _state = await _store.SaveAsync(_state);
         PopulateFacets();
         ApplyFilter();
@@ -583,24 +647,49 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         if (!NetworkInterface.GetIsNetworkAvailable())
         {
+            _log.Event("REFUSE", "op=playback", "reason=offline", $"kind={channel.MediaKind}", $"url={channel.Url}");
             MessageBox.Show(this, LocalizationService.Get("OfflinePlayback"), LocalizationService.Get("ProductName"));
             return;
         }
 
         if (channel.MediaKind == MediaKind.Audio)
         {
-            StopAudio();
+            StopAudioPlayback();
+            _audioNavOrder = CaptureAudioNavOrder();
+            _currentTrackText = null;
+            _audioRecovery = new LivePlaybackRecoveryPolicy();
+            _audioRecoveryCts = new CancellationTokenSource();
             _playingAudio = GetOrCreateRow(channel, _store.ResolveAtlasPath(_state), null);
             _playingAudio.SetPlayingAudio(true);
-            AudioPlayer.Source = new Uri(channel.Url);
-            AudioPlayer.Play();
-            StopAudioButton.IsEnabled = true;
+            // System-only wake: keep the machine awake while the radio plays, but let the display
+            // turn off normally (Decision 3). Held across bounded reconnects; released in StopAudioPlayback.
+            _audioWake = WakeGuard.Acquire(keepDisplayOn: false);
+            _ = SuspendPreviewsAsync();
             SetNowPlaying("ConnectingAudio", StreamTitleFormatter.Display(channel.Title));
+            StartAudioPlayback(channel, reconnecting: false);
+            EnsureSystemMediaControls();
+            PublishAudioSession(playing: true);
         }
         else
         {
             OpenIndependentPlayerWindow(channel, startFullscreen);
         }
+    }
+
+    // Applies the audio-volume preference and starts (or, on a recovery reconnect, restarts) the MediaElement
+    // session for the channel. The caller sets the Connecting/Reconnecting now-playing label.
+    private void StartAudioPlayback(StreamChannel channel, bool reconnecting)
+    {
+        _log.Event(reconnecting ? "AUDIO RECONNECT" : "AUDIO OPEN", $"url={channel.Url}");
+        _suppressAudioVolumeSave = true;
+        AudioVolumeSlider.Value = _state.AudioVolume;
+        _suppressAudioVolumeSave = false;
+        AudioPlayer.Volume = _state.AudioVolume / 100.0;
+        AudioVolumeSlider.Visibility = Visibility.Visible;
+        AudioPlayer.Source = new Uri(channel.Url);
+        AudioPlayer.Play();
+        StopAudioButton.IsEnabled = true;
+        StartNowPlayingMetadata(channel);
     }
 
     private async void AudioPlayer_MediaOpened(object sender, RoutedEventArgs e)
@@ -611,43 +700,198 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
 
         SetNowPlaying("NowPlaying", _playingAudio.DisplayTitle);
+        _log.Event("AUDIO LIVE", $"url={_playingAudio.Channel.Url}");
+        _audioRecovery?.NotifyLive(); // sustained live — restore the full recovery budget
         await RecordPlayOutcome(_playingAudio.Channel.Id, true);
     }
 
     private async void AudioPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
     {
         var row = _playingAudio;
-        StopAudio();
-        if (row is not null)
+        var reason = e.ErrorException?.GetType().Name ?? "unknown";
+        _log.Event("AUDIO FAIL", $"reason={reason}", $"url={row?.Channel.Url ?? "n/a"}");
+        if (row is null)
         {
-            await RecordPlayOutcome(row.Channel.Id, false);
+            return;
         }
-        MessageBox.Show(this, e.ErrorException?.Message ?? LocalizationService.Get("AudioFailed"),
-            LocalizationService.Get("StreamUnavailableTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
+
+        // Stop the failed session but keep the recovery policy/CTS alive so this channel can reconnect.
+        AudioPlayer.Stop();
+        AudioPlayer.Source = null;
+        await RecoverAudioAsync(row.Channel, reason);
+    }
+
+    // Bounded audio recovery (streams.txt Part D). Classifies the failure, then reconnects after a cancellable
+    // backoff (showing a Reconnecting label) or, once the budget is spent or a hard failure is hit, shows the
+    // terminal dialog. There is no position stall-watchdog for audio: MediaElement exposes no live telemetry.
+    private async Task RecoverAudioAsync(StreamChannel channel, string reason)
+    {
+        var policy = _audioRecovery;
+        var cts = _audioRecoveryCts;
+        if (policy is null || cts is null || cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
+        {
+            return; // audio was stopped or switched to another channel
+        }
+
+        var status = await PlaybackStatusProbe.TryGetStatusAsync(channel.Url, cts.Token);
+        if (cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
+        {
+            return; // stopped or switched while probing — do not relabel or restart
+        }
+
+        var decision = policy.Decide(new PlaybackFailureSignal(reason, HttpStatusCode: status));
+        _log.Event("AUDIO RECOVER",
+            $"trigger={decision.Trigger}",
+            $"action={decision.Kind}",
+            $"attempt={decision.Attempt}",
+            $"budget={decision.Budget}",
+            $"delay_ms={decision.Delay.TotalMilliseconds:F0}",
+            $"reason={reason}",
+            $"http={status?.ToString() ?? "n/a"}",
+            $"url={channel.Url}");
+
+        if (decision.Kind == RecoveryActionKind.HardFail)
+        {
+            await FailAudioTerminallyAsync(channel, reason);
+            return;
+        }
+
+        SetNowPlaying("ReconnectingAudioAttempt", StreamTitleFormatter.Display(channel.Title), decision.Attempt, decision.Budget);
+        try
+        {
+            await Task.Delay(decision.Delay, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return; // stop / switch / close cancelled the wait — never restart the old station
+        }
+
+        if (cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
+        {
+            return;
+        }
+
+        StartAudioPlayback(channel, reconnecting: true);
+    }
+
+    // Terminal audio failure: record the real failed play (red status) and offer Retry / Copy / Hide|Delete / Keep.
+    private async Task FailAudioTerminallyAsync(StreamChannel channel, string reason)
+    {
+        StopAudio();
+        await RecordPlayOutcome(channel.Id, false);
+        var report = FailureReportFormatter.Format(new FailureReport(
+            ProductInfo.Version,
+            DateTimeOffset.UtcNow,
+            channel.Title,
+            channel.Url,
+            channel.MediaKind,
+            PlaybackErrorClassifier.Classify(reason)));
+        var dialog = new PlaybackFailureDialog(channel.Title, channel.SourceOrigin, report) { Owner = this };
+        dialog.ShowDialog();
+        switch (dialog.Choice)
+        {
+            case PlaybackFailureChoice.Retry:
+                await PlayChannelAsync(channel, rememberSelection: false);
+                break;
+            case PlaybackFailureChoice.Remove:
+                await RemoveChannelAsync(channel);
+                break;
+        }
+    }
+
+    private async void AudioVolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        // The slider's XAML Value="100" fires ValueChanged during InitializeComponent,
+        // before the AudioPlayer element below it in the tree exists. Ignore that spurious fire.
+        if (AudioPlayer is null)
+        {
+            return;
+        }
+
+        var volume = (int)Math.Round(e.NewValue);
+        AudioPlayer.Volume = volume / 100.0;
+        if (_suppressAudioVolumeSave)
+        {
+            return;
+        }
+
+        if (_state.AudioVolume == volume)
+        {
+            return;
+        }
+
+        _state = await _store.SaveAsync(_state with { AudioVolume = volume });
     }
 
     private void StopAudioButton_Click(object sender, RoutedEventArgs e) => StopAudio();
 
     private void StopAudio()
     {
+        StopAudioPlayback();
+        _ = StartPreviewsAsync();
+    }
+
+    private void StopAudioPlayback() => StopAudioPlayback(clearSystemSession: true);
+
+    // clearSystemSession is false only for the SP-0021 pause path, which stops the live session but
+    // keeps the Windows media session visible as Paused so a later system Play can resume the channel.
+    private void StopAudioPlayback(bool clearSystemSession)
+    {
+        _audioRecoveryCts?.Cancel(); // cancel any in-flight recovery backoff (stop / switch / close)
+        _audioRecoveryCts?.Dispose();
+        _audioRecoveryCts = null;
+        _audioRecovery = null;
+        StopNowPlayingMetadata();
+        _audioWake?.Dispose(); // release the idle-sleep hold on every stop/switch/toggle/terminal-fail path
+        _audioWake = null;
         AudioPlayer.Stop();
         AudioPlayer.Source = null;
         _playingAudio?.SetPlayingAudio(false);
         _playingAudio = null;
         StopAudioButton.IsEnabled = false;
+        AudioVolumeSlider.Visibility = Visibility.Collapsed;
         SetNowPlaying("NothingPlaying");
+        if (clearSystemSession)
+        {
+            _audioPausedChannel = null;
+            ClearSystemMediaSession();
+        }
     }
 
-    private void OpenIndependentPlayerWindow(StreamChannel channel, bool startFullscreen = false) =>
-        new PlayerWindow(
+    private void OpenIndependentPlayerWindow(StreamChannel channel, bool startFullscreen = false)
+    {
+        var window = new PlayerWindow(
             channel,
+            _log,
             RecordPlayOutcome,
+            RemoveChannelAsync,
+            channel.Pinned,
+            pinned => SetChannelPinnedAsync(channel, pinned),
             _state.PlayerWindowTopmost,
             SavePlayerTopmostAsync,
             _state.VideoVolume,
             _state.VideoMuted,
             SaveVideoAudioPreferencesAsync,
-            startFullscreen) { Owner = this }.Show();
+            (url, frame) => _previewCoordinator?.IngestFrame(url, frame),
+            _state.VideoBackend,
+            startFullscreen) { Owner = this };
+        _openPlayerWindows++;
+        _ = SuspendPreviewsAsync();
+        window.Closed += async (_, _) =>
+        {
+            _openPlayerWindows = Math.Max(0, _openPlayerWindows - 1);
+            await StartPreviewsAsync();
+        };
+        window.Show();
+    }
+
+    private async Task SuspendPreviewsAsync()
+    {
+        if (_previewCoordinator is not null)
+        {
+            await _previewCoordinator.StopAsync();
+        }
+    }
 
     private async Task RecordPlayOutcome(Guid id, bool succeeded)
     {
@@ -657,15 +901,47 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
+        var now = DateTimeOffset.UtcNow;
         ReplaceChannel(channel with
         {
             LastPlayOutcome = succeeded ? PlayOutcome.Ok : PlayOutcome.Fail,
-            LastPlayOutcomeAt = DateTimeOffset.UtcNow,
-            LastPlayedAt = succeeded ? DateTimeOffset.UtcNow : channel.LastPlayedAt
+            LastPlayOutcomeAt = now,
+            LastPlayedAt = succeeded ? now : channel.LastPlayedAt
         });
+
+        // SP-0019: a history entry is created only at the successful-play sink; failed attempts
+        // (and the preview/probe paths, which never reach here) never create or promote one.
+        if (succeeded)
+        {
+            _state = _state with
+            {
+                ListeningHistory = ListeningHistory.RecordPlay(
+                    _state.ListeningHistory, channel.Id, channel.Title, channel.MediaKind, now)
+            };
+        }
+
         _state = await _store.SaveAsync(_state);
         ApplyFilter();
     }
+
+    // Maps every user-editable field from the Add/Edit dialog onto a channel. MediaKind falls back
+    // to URL classification when the dialog leaves it on "Auto". Identity/provenance fields are untouched.
+    private static StreamChannel ApplyDialogMetadata(StreamChannel channel, AddStreamWindow dialog, string url, string title) =>
+        channel with
+        {
+            Url = url,
+            Title = title,
+            MediaKind = dialog.SelectedMediaKind ?? StreamMediaKindClassifier.Classify(url),
+            Category = dialog.MetaCategory,
+            Topic = dialog.MetaTopic,
+            Language = dialog.MetaLanguage,
+            Country = dialog.MetaCountry,
+            Homepage = dialog.MetaHomepage,
+            Protocol = dialog.MetaProtocol,
+            Format = dialog.MetaFormat,
+            Bitrate = dialog.MetaBitrate,
+            IsLive = dialog.MetaIsLive
+        };
 
     private void ReplaceChannel(StreamChannel replacement)
     {

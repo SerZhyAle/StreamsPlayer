@@ -1,12 +1,10 @@
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace StreamsPlayer.App;
 
 internal sealed class CurrentLog : IDisposable
 {
-    private static readonly Regex UrlPattern = new(@"(?:https?|rtsp)://\S+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
     private readonly object _gate = new();
     private StreamWriter? _writer;
 
@@ -25,6 +23,10 @@ internal sealed class CurrentLog : IDisposable
     }
 
     public void Information(string message) => Write("Information", message);
+
+    // Measurable diagnostic record: a category plus KEY=value fields joined by " | " so lines stay greppable.
+    public void Event(string category, params string[] fields) =>
+        Write("Diag", fields.Length == 0 ? category : $"{category} | {string.Join(" | ", fields)}");
 
     public void Error(string operation, Exception exception) => Write("Error", $"{operation}: {exception}");
 
@@ -53,7 +55,7 @@ internal sealed class CurrentLog : IDisposable
         {
             try
             {
-                _writer?.WriteLine($"{DateTimeOffset.UtcNow:O} [{severity}] {Sanitize(message)}");
+                _writer?.WriteLine($"{DateTimeOffset.UtcNow:O} [{severity}] {Flatten(message)}");
             }
             catch (Exception)
             {
@@ -63,6 +65,6 @@ internal sealed class CurrentLog : IDisposable
         }
     }
 
-    private static string Sanitize(string message) =>
-        UrlPattern.Replace(message.ReplaceLineEndings(" | "), "<url>");
+    // Full URLs are retained for measurement; only line breaks are flattened so each record stays on one line.
+    private static string Flatten(string message) => message.ReplaceLineEndings(" | ");
 }

@@ -1,0 +1,43 @@
+<Window x:Class="StreamsPlayer.App.ListeningHistoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{DynamicResource HistoryTitle}" Height="460" Width="580"
+        WindowStartupLocation="CenterOwner" Background="{StaticResource WindowBackground}">
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="EmptyText" Text="{DynamicResource HistoryEmpty}" Visibility="Collapsed"
+                   VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.7" />
+        <ListBox x:Name="HistoryList" BorderThickness="0" Background="Transparent"
+                 HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,6" Opacity="{Binding RowOpacity}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding PlayedAt}" Opacity="0.65" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding TrackText}" Visibility="{Binding TrackVisibility}"
+                                       Opacity="0.65" FontStyle="Italic" TextTrimming="CharacterEllipsis"
+                                       ToolTip="{Binding TrackText}" />
+                            <TextBlock Text="{DynamicResource HistoryUnavailable}" Visibility="{Binding UnavailableVisibility}"
+                                       Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="{DynamicResource Play}" IsEnabled="{Binding Playable}"
+                                Tag="{Binding}" Click="Play_Click"
+                                VerticalAlignment="Center" Margin="10,0,0,0" Padding="12,5" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Grid Grid.Row="1" Margin="0,12,0,0">
+            <Button Content="{DynamicResource HistoryClear}" Click="Clear_Click" Padding="14,6" HorizontalAlignment="Left" />
+            <Button Content="{DynamicResource Close}" IsCancel="True" Padding="14,6" HorizontalAlignment="Right" />
+        </Grid>
+    </Grid>
+</Window>

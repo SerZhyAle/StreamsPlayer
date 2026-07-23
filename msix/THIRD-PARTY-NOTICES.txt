@@ -1,0 +1,53 @@
+StreamsPlayer — Third-Party Notices
+===================================
+
+StreamsPlayer itself is licensed under the MIT License (see LICENSE.txt).
+It redistributes the following third-party components. Each remains under its
+own license; the notices below are provided to satisfy those licenses.
+
+-----------------------------------------------------------------------
+1. LibVLCSharp
+-----------------------------------------------------------------------
+Copyright (c) VideoLAN and LibVLCSharp contributors.
+License: LGPL-2.1-or-later.
+Source: https://code.videolan.org/videolan/LibVLCSharp
+
+-----------------------------------------------------------------------
+2. VLC / LibVLC (native libvlc, libvlccore and plugins)
+   Package: VideoLAN.LibVLC.Windows
+-----------------------------------------------------------------------
+Copyright (c) VideoLAN and the VLC authors.
+libvlc and libvlccore are licensed under LGPL-2.1-or-later. The VLC plugin
+set redistributed with this package additionally contains components licensed
+under GPL-2.0-or-later. The combined redistribution is therefore governed by
+the GNU General Public License, version 2 or later.
+
+Complete corresponding source code for these components is publicly available
+from VideoLAN:
+  https://code.videolan.org/videolan/vlc
+  https://www.videolan.org/vlc/download-sources.html
+
+The full texts of the GNU LGPL v2.1 and GNU GPL v2 are available at:
+  https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+  https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+
+-----------------------------------------------------------------------
+3. FFmpeg (only when the optional FlyleafLib video engine is enabled)
+   Packages: FlyleafLib, Flyleaf.FFmpeg.Bindings
+-----------------------------------------------------------------------
+FlyleafLib is licensed under LGPL-3.0-or-later.
+Source: https://github.com/SuRGeoNix/Flyleaf
+
+FFmpeg is licensed under LGPL-2.1-or-later, with some optional components under
+GPL-2.0-or-later depending on how the native libraries are built. The native
+FFmpeg libraries are NOT bundled in this package; they are supplied separately
+by the user only when the FlyleafLib engine is selected.
+FFmpeg source: https://ffmpeg.org/download.html
+FFmpeg legal: https://ffmpeg.org/legal.html
+
+-----------------------------------------------------------------------
+Written offer
+-----------------------------------------------------------------------
+For any of the above components, the corresponding source code may also be
+requested from the publisher at serzhyale@gmail.com. The publisher will provide
+it, or a link to it, for as long as this application is distributed.

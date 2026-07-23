@@ -1,6 +1,27 @@
 # SP-0014: ICY/Shoutcast now-playing metadata
 
-**Status:** Approved
+**Status:** Implemented — BlockNeedUserTest (visual GUI observation of the
+now-playing track text with a compatible/non-compatible stream). Exit condition:
+user confirms the run-and-observe steps in
+[SP-0014_icy_now_playing/06_verify.md](SP-0014_icy_now_playing/06_verify.md).
+
+Tactical plan: [SP-0014_icy_now_playing/INDEX.md](SP-0014_icy_now_playing/INDEX.md)
+
+## Implementation summary
+
+- Core (platform-neutral): `IcyMetadataParser` (pure, sanitized, ≤512 chars) and
+  `IcyMetadataReader` (dedicated `Icy-MetaData: 1` connection, injected
+  `HttpClient`, never throws, reports changed titles via `IProgress<string?>`).
+- App: `MainWindow.NowPlaying.cs` starts the reader on HTTP(S) audio playback,
+  tears it down in `StopAudioPlayback()` (covers stop / switch / terminal-failure
+  / window-hide), and a generation guard drops stale reports. Track folds into the
+  existing now-playing line via the new localized `NowPlayingWithTrack` key
+  (en + ru); station-only presentation is unchanged when no metadata arrives.
+- Tests: 12 ICY tests (parser + loopback reader protocol). Full suite 68/68 green
+  in Release; solution builds with 0 warnings. App smoke-launched against a live
+  Icecast stream with no regression.
+- No change to catalog refresh, the MANUAL/IMPORTED merge contract, `CatalogState`,
+  or persistence; nothing is logged per-title or sent externally.
 
 ## Goal
 

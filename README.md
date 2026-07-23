@@ -52,12 +52,23 @@ code or features.
   automatic thumbnail updates, view the `YY.MMDD.HHmm` version, and open project,
   privacy, instruction, and author pages.
 - Add a stream manually and keep local playback outcome marks.
-- Store catalog state, manual entries, pins, and the current-session diagnostic `Current.log` under `%LOCALAPPDATA%\StreamsPlayer`.
+- Reopen a channel from a private **Recently played** history of the last 100
+  channels you played, with the last observed now-playing text when a station
+  provides it. History is local only, never uploaded, and cleared on demand;
+  a channel you removed stays as a non-playable label.
+- Import channels from a local `.m3u`/`.m3u8` file or an HTTP(S) playlist URL as
+  `IMPORTED` rows, with an atomic preview of new, duplicate, invalid, and skipped
+  counts before applying; HLS media manifests import nothing and explain why.
+- Export your added (`MANUAL`/`IMPORTED`) channels, or just the pinned ones, to a
+  UTF-8 M3U file, with a warning before writing any credential-bearing URL.
+- Store catalog state, manual entries, pins, listening history, and the current-session diagnostic `Current.log` under `%LOCALAPPDATA%\StreamsPlayer`.
 
 Audio playback uses WPF `MediaElement`; video and RTSP use the bundled LibVLC
 runtime with a target 10-second live buffer and visible buffering progress. Grid
-preview capture also uses LibVLC. ICY metadata, adaptive recovery, playlist-import
-UI, and advanced player controls remain later milestones.
+preview capture also uses LibVLC. Live playback recovers from transient network
+failures and silent stalls with a bounded retry policy, showing a distinct
+Reconnecting state and a clear Retry/Close outcome when recovery is exhausted.
+ICY metadata and advanced player controls remain later milestones.
 
 ## Run from source
 

@@ -41,4 +41,41 @@ public sealed class StreamCatalogCsvParserTests
         var csv = $"name,url,favicon_index\nTest,https://example.test/live,{value}";
         Assert.Null(Assert.Single(StreamCatalogCsvParser.Parse(csv)).FaviconIndex);
     }
+
+    [Fact]
+    public void Parse_PopulatesOptionalTechnicalMetadata()
+    {
+        const string csv = "name,url,protocol,format,bitrate,is_live\r\n" +
+                           "Test,https://radio.test/live,HLS,AAC,128 kbps,true\r\n";
+
+        var entry = Assert.Single(StreamCatalogCsvParser.Parse(csv));
+
+        Assert.Equal("HLS", entry.Protocol);
+        Assert.Equal("AAC", entry.Format);
+        Assert.Equal("128 kbps", entry.Bitrate);
+        Assert.True(entry.IsLive);
+    }
+
+    [Fact]
+    public void Parse_MissingTechnicalColumnsLeaveFieldsNull()
+    {
+        const string csv = "name,url\r\nTest,https://radio.test/live\r\n";
+
+        var entry = Assert.Single(StreamCatalogCsvParser.Parse(csv));
+
+        Assert.Null(entry.Protocol);
+        Assert.Null(entry.Format);
+        Assert.Null(entry.Bitrate);
+        Assert.Null(entry.IsLive);
+    }
+
+    [Theory]
+    [InlineData("vod", false)]
+    [InlineData("maybe", null)]
+    [InlineData("", null)]
+    public void Parse_TolerantIsLiveClaim(string value, bool? expected)
+    {
+        var csv = $"name,url,is_live\r\nTest,https://radio.test/live,{value}\r\n";
+        Assert.Equal(expected, Assert.Single(StreamCatalogCsvParser.Parse(csv)).IsLive);
+    }
 }

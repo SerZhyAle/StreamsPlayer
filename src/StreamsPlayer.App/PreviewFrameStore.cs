@@ -5,7 +5,7 @@ using System.Windows.Media.Imaging;
 
 namespace StreamsPlayer.App;
 
-public sealed class PreviewFrameStore(string directory, int capacity, int jpegQuality)
+public sealed class PreviewFrameStore(string directory, long maxBytes, int jpegQuality)
 {
     public async Task<BitmapSource?> LoadAsync(string url, CancellationToken cancellationToken)
     {
@@ -83,11 +83,17 @@ public sealed class PreviewFrameStore(string directory, int capacity, int jpegQu
         var files = new DirectoryInfo(directory)
             .EnumerateFiles("*.jpg", SearchOption.TopDirectoryOnly)
             .OrderByDescending(file => file.LastWriteTimeUtc)
-            .Skip(capacity)
             .ToList();
+        long retained = 0;
         foreach (var file in files)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            retained += file.Length;
+            if (retained <= maxBytes)
+            {
+                continue;
+            }
+
             try
             {
                 file.Delete();

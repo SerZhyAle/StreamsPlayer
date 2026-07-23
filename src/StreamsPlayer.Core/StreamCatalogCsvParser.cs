@@ -40,7 +40,11 @@ public static class StreamCatalogCsvParser
                 Optional("language"),
                 Optional("country"),
                 Optional("homepage"),
-                faviconIndex));
+                faviconIndex,
+                Optional("protocol"),
+                Optional("format"),
+                Optional("bitrate"),
+                ParseIsLive(Cell("is_live"))));
 
             string Cell(string name) =>
                 header.TryGetValue(name, out var index) && index < row.Count ? row[index] : string.Empty;
@@ -54,4 +58,12 @@ public static class StreamCatalogCsvParser
 
         return result;
     }
+
+    // Tolerant parse of the optional, untrusted is_live claim. Unknown/blank/absent stays null.
+    private static bool? ParseIsLive(string value) => value.Trim().ToLowerInvariant() switch
+    {
+        "true" or "1" or "yes" or "live" => true,
+        "false" or "0" or "no" or "vod" => false,
+        _ => null
+    };
 }

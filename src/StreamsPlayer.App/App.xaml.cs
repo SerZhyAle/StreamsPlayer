@@ -26,6 +26,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _log?.Information("Application shutdown.");
+        WakeGuard.Reset(); // final safety net: never leave the machine unable to sleep after exit
         TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
         AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
         DispatcherUnhandledException -= App_DispatcherUnhandledException;

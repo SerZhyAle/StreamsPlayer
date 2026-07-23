@@ -33,7 +33,11 @@ public static class CatalogMerger
                     Language = entry.Language,
                     Country = entry.Country,
                     Homepage = entry.Homepage,
-                    FaviconIndex = entry.FaviconIndex
+                    FaviconIndex = entry.FaviconIndex,
+                    Protocol = entry.Protocol,
+                    Format = entry.Format,
+                    Bitrate = entry.Bitrate,
+                    IsLive = entry.IsLive
                 };
 
                 if (replacement != current)
@@ -59,7 +63,11 @@ public static class CatalogMerger
                 Language = entry.Language,
                 Country = entry.Country,
                 Homepage = entry.Homepage,
-                FaviconIndex = entry.FaviconIndex
+                FaviconIndex = entry.FaviconIndex,
+                Protocol = entry.Protocol,
+                Format = entry.Format,
+                Bitrate = entry.Bitrate,
+                IsLive = entry.IsLive
             };
             output[channel.Id] = channel;
             byUrl[channel.Url] = channel;

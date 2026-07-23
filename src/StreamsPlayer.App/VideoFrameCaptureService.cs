@@ -8,8 +8,8 @@ namespace StreamsPlayer.App;
 
 public sealed class VideoFrameCaptureService : IAsyncDisposable
 {
-    private const int Width = 640;
-    private const int Height = 360;
+    private const int Width = 480;  // ~matches the largest grid tile (400px) with DPI headroom; keeps thumbnails small
+    private const int Height = 270;
     private const int BytesPerPixel = 4;
     private const int Pitch = Width * BytesPerPixel;
     private static readonly TimeSpan FirstFrameTimeout = TimeSpan.FromSeconds(12);
@@ -18,7 +18,8 @@ public sealed class VideoFrameCaptureService : IAsyncDisposable
     public VideoFrameCaptureService()
     {
         LibVLCSharp.Shared.Core.Initialize();
-        _libVlc = new LibVLC("--no-video-title-show", "--no-osd", "--quiet");
+        // Software decode for thumbnail grabs so background capture never competes with the player for GPU decode surfaces.
+        _libVlc = new LibVLC("--no-video-title-show", "--no-osd", "--quiet", "--avcodec-hw=none");
     }
 
     public async Task<BitmapSource?> CaptureAsync(string url, CancellationToken cancellationToken)

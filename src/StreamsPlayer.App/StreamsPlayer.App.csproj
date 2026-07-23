@@ -10,9 +10,21 @@
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1" />
   </ItemGroup>
 
+  <!-- SP-0026: opt-in FlyleafLib video engine (LGPL-3.0). The managed library + FFmpeg bindings come
+       from NuGet; the native FFmpeg v8 DLLs are NOT on NuGet and must be deployed separately (x64 only)
+       into the FFmpeg folder resolved by FlyleafVideoBackend. LibVLC stays the default engine. -->
+  <ItemGroup>
+    <PackageReference Include="FlyleafLib" Version="3.10.4" />
+    <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="8.0.1" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- A Windows SDK version is required to project the WinRT System Media Transport Controls
+         (SP-0021). SupportedOSPlatformVersion is kept lower so the app still runs on older
+         Windows 10 builds; the SMTC APIs used have shipped since 10.0.10240. -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
     <AssemblyName>StreamsPlayer</AssemblyName>
     <ApplicationIcon Condition="Exists('..\..\assets\streamsplayer.ico')">..\..\assets\streamsplayer.ico</ApplicationIcon>
     <Nullable>enable</Nullable>

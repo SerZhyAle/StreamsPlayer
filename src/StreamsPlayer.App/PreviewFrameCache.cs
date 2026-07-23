@@ -3,7 +3,7 @@ using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
-public sealed class PreviewFrameCache(int capacity, TimeSpan freshness, Action<string>? evicted = null)
+public sealed class PreviewFrameCache(int capacity, Action<string>? evicted = null)
 {
     private readonly Dictionary<string, CacheEntry> _entries = new(StringComparer.Ordinal);
     private readonly LinkedList<string> _recency = [];
@@ -25,20 +25,7 @@ public sealed class PreviewFrameCache(int capacity, TimeSpan freshness, Action<s
         }
     }
 
-    public bool IsFresh(string url)
-    {
-        lock (_gate)
-        {
-            return _entries.TryGetValue(url, out var entry) &&
-                entry.IsLive && DateTimeOffset.UtcNow - entry.CapturedAt < freshness;
-        }
-    }
-
-    public void SeedRestored(string url, ImageSource image) => Put(url, image, DateTimeOffset.MinValue, false);
-
-    public void PutLive(string url, ImageSource image) => Put(url, image, DateTimeOffset.UtcNow, true);
-
-    private void Put(string url, ImageSource image, DateTimeOffset capturedAt, bool isLive)
+    public void Put(string url, ImageSource image)
     {
         string? evictedUrl = null;
         lock (_gate)
@@ -49,7 +36,7 @@ public sealed class PreviewFrameCache(int capacity, TimeSpan freshness, Action<s
             }
 
             var node = _recency.AddFirst(url);
-            _entries[url] = new CacheEntry(image, capturedAt, isLive, node);
+            _entries[url] = new CacheEntry(image, node);
             while (_entries.Count > capacity && _recency.Last is { } oldest)
             {
                 evictedUrl = oldest.Value;
@@ -70,11 +57,7 @@ public sealed class PreviewFrameCache(int capacity, TimeSpan freshness, Action<s
         _entries[url] = entry with { Node = node };
     }
 
-    private sealed record CacheEntry(
-        ImageSource Image,
-        DateTimeOffset CapturedAt,
-        bool IsLive,
-        LinkedListNode<string> Node);
+    private sealed record CacheEntry(ImageSource Image, LinkedListNode<string> Node);
 }
 
 public static class PreviewCapturePolicy

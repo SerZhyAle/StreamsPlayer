@@ -1,6 +1,6 @@
 # SP-0021: Windows system media controls
 
-**Status:** Approved
+**Status:** BlockNeedUserTest — code complete and building; awaiting a real Windows media-key/overlay observation (AC 6). Exit: user runs the app with the setting on and confirms the flyout + media keys, then status advances to Verified or Partial.
 
 ## Goal
 
@@ -45,3 +45,40 @@ SP-0014 supplies optional now-playing text. SP-0017 supplies named-collection na
 ## Research
 
 See [competitor improvement backlog](../docs/specifications/competitor-improvement-backlog.md).
+
+## Implementation (2026-07-22)
+
+Opt-in per user direction: a new **Show system media controls** checkbox in Settings → Playback,
+default **off**, so the app behaves exactly as before unless enabled (`CatalogState.SystemMediaControls`,
+default `false`).
+
+- **WinRT reachability.** App TFM bumped `net10.0-windows` → `net10.0-windows10.0.19041.0` (with
+  `SupportedOSPlatformVersion` 10.0.17763.0) to project the SMTC APIs. Core/tests/harness unchanged.
+- **SMTC wrapper.** [SystemMediaControls.cs](../src/StreamsPlayer.App/SystemMediaControls.cs) contains all
+  WinRT usage: a source-less `Windows.Media.Playback.MediaPlayer` yields a real SMTC in a Win32/WPF process
+  (its `CommandManager` is disabled; state driven manually). Button presses marshal to the UI
+  `SynchronizationContext` and surface as a plain `Command` event. `TryCreate()` returns `null` on
+  unsupported hosts, degrading to ordinary behaviour.
+- **Glue.** [MainWindow.SystemMedia.cs](../src/StreamsPlayer.App/MainWindow.SystemMedia.cs) publishes the
+  session on audio start, mirrors ICY track text (SP-0014) into the title, and clears on stop / terminal
+  fail / window close / feature-disable.
+- **Play/Pause semantics.** Pause stops the live session but keeps a Paused system session so a later Play
+  restarts the same channel at the live edge (`_audioPausedChannel`, `StopAudioPlayback(clearSystemSession:)`).
+- **Previous/Next.** A launch context is captured at play time (the filtered view's stable audio order);
+  navigation uses the pure, tested [LivePlaybackNavigation](../src/StreamsPlayer.Core/LivePlaybackNavigation.cs)
+  (skips hidden/missing rows, no wrap, stops cleanly at ends).
+
+### Scoping deviation — Mute (AC 2)
+
+**Not implemented.** The Windows SMTC button set has no Mute button, and hardware mute keys drive the OS
+master volume — which the ticket's own constraints forbid this feature from changing. There is also no
+existing in-app audio mute to mirror. Mapping "Mute" onto this control surface needs a product decision
+(e.g. add an in-app audio mute button first); flagged rather than silently faked.
+
+### Verification
+
+- `dotnet build StreamsPlayer.sln -c Debug` — expected: succeeds | actual: succeeds, 0 warnings (WinRT
+  projection resolved).
+- `dotnet test StreamsPlayer.sln` — expected: all pass | actual: 145 passed (incl. 9 new
+  `LivePlaybackNavigationTests`).
+- Manual media-key / system-overlay observation (AC 6) — **pending user run** (see Status).
