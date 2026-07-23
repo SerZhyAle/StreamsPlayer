@@ -90,7 +90,7 @@ git push -u origin main
 - StreamsPlayer versions use UTC release time in `YY.MMDD.HHmm` form, for example `26.0719.0131`.
 - Git tags use the same value with a `v` prefix: `v26.0719.0131`.
 - `Version`, `AssemblyVersion`, `FileVersion`, and `InformationalVersion` in `Directory.Build.props` are updated together before a release. The Settings window displays `InformationalVersion`.
-- MSIX package identity requires four components, so it appends only `.0`: `26.0719.0131.0`. Winget and GitHub retain the canonical three-component value.
+- MSIX package identity requires four components and its version schema forbids leading zeros, so `msix/build-msix.ps1` int-casts each component and appends `.0`: `26.0719.0131` → `26.719.131.0` (with a per-component `≤ 65535` ceiling guard). Winget and GitHub retain the canonical zero-padded three-component value.
 - A release version must be later than every published version. Do not reuse a timestamp for different package contents.
 
 ## Universal Agent Kit workflow
@@ -117,3 +117,13 @@ git push -u origin main
 - Do not introduce trivial comments, broad/empty catches, duplicated values where a constant exists, lifecycle-unsafe async work, live-path stubs, or dead artifacts. Comments explain why, not visible mechanics.
 - Store temporary evidence and backups under `tmp/`, never at the repository root. Record checks as `expected: ... | actual: ...`, and rerun the narrowest meaningful check before declaring completion. A changed GUI action needs run-and-observe evidence, not merely a build.
 - Update user-facing documentation with user-visible behaviour changes. See `docs/agent/` for the lifecycle, research, quality, validation, memory, and cost disciplines.
+
+## SZA Unified Rules (canon)
+
+StreamsPlayer follows the portfolio-wide **SZA Unified Rules** for repository layout, documentation, versioning, testing, release, localization, security, and AI usage.
+
+- **Canon home** (local working copy on the owner's machine, not committed here and not public): `P:\WEB\sites.google.comsiteszaodua\Unified_Rules`. It is the source of truth for the *universal* rules. This file deliberately keeps those rules restated in-repo so the repository stays self-contained for CI and outside contributors; the canon is authoritative when the two ever disagree.
+- **This repo's record** lives in the canon at `contrib/streams_player.md` — the verified overlay facts, channel-matrix rows, and the legitimate divergences (DIVERGE deltas) specific to StreamsPlayer.
+- **Overlay shape:** Windows-desktop, *no-installer variant* — portable-zip GitHub Release + winget-portable + Store MSIX, with no Inno/WiX installer. Frozen anchors reduce to winget `PackageIdentifier` and the MSIX Identity `Name`/`Publisher`.
+- **Coupling shape:** *consumed published release artifact* — StreamsPlayer depends at runtime on another SZA product's release output (the FastMediaSorter catalog ZIP at `StreamCatalogService.CatalogUrl`). This is neither a wire/config contract nor an edition/parity relationship; the merge protects user-owned `MANUAL`/`IMPORTED` rows and refresh is explicit-only.
+- **Editing the canon:** universal-rule fixes land in the canon first, then spread back here. Never edit the canon from a StreamsPlayer session except its own `contrib/streams_player.md` record.

@@ -46,27 +46,27 @@ function Invoke-DotNet {
     Write-Host "dotnet $($Arguments -join ' ')" -ForegroundColor Cyan
     & dotnet @Arguments
     if ($LASTEXITCODE -ne 0) {
-        throw "dotnet завершился с кодом $LASTEXITCODE."
+        throw "dotnet exited with code $LASTEXITCODE."
     }
 }
 
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
-    throw 'Не найден .NET SDK. Установите .NET 10 SDK и повторите запуск.'
+    throw '.NET SDK not found. Install the .NET 10 SDK and try again.'
 }
 
 Push-Location $PSScriptRoot
 try {
     $sdkVersion = (& dotnet --version).Trim()
     if ($LASTEXITCODE -ne 0) {
-        throw 'Не удалось определить версию .NET SDK.'
+        throw 'Could not determine the .NET SDK version.'
     }
 
     $sdkMajor = [int]($sdkVersion.Split('.')[0])
     if ($sdkMajor -lt 10) {
-        throw "Требуется .NET 10 SDK или новее. Найдена версия: $sdkVersion."
+        throw ".NET 10 SDK or newer is required. Found version: $sdkVersion."
     }
 
-    Write-Host "StreamsPlayer — .NET SDK $sdkVersion, конфигурация $Configuration" -ForegroundColor Green
+    Write-Host "StreamsPlayer — .NET SDK $sdkVersion, configuration $Configuration" -ForegroundColor Green
 
     if ($Clean) {
         Invoke-DotNet @('clean', $solutionPath, '--configuration', $Configuration)
@@ -170,7 +170,7 @@ try {
     }
 
     if ($Run) {
-        Write-Host 'Запуск StreamsPlayer...' -ForegroundColor Green
+        Write-Host 'Launching StreamsPlayer...' -ForegroundColor Green
         # Interactive launch: the app's own exit code must not be treated as a build failure.
         # LibVLC native teardown can return a non-zero code on a normal close; surface it, do not throw.
         $runArgs = @(
@@ -184,7 +184,7 @@ try {
         & dotnet @runArgs
         $appExitCode = $LASTEXITCODE
         if ($appExitCode -ne 0) {
-            Write-Host "StreamsPlayer завершился с кодом $appExitCode (обычно нативное завершение LibVLC, не ошибка сборки)." -ForegroundColor Yellow
+            Write-Host "StreamsPlayer exited with code $appExitCode (usually a native LibVLC teardown, not a build failure)." -ForegroundColor Yellow
         }
         exit $appExitCode
     }
