@@ -1,4 +1,4 @@
-# Phase 03 — Validation
+# Phase 03 - Validation
 
 1. [x] Add localized UI and status text plus user-facing command examples.
    - Check: English and Russian resources contain every new visible string. PASS.

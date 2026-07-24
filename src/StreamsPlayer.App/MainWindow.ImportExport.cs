@@ -8,27 +8,30 @@ using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
-// SP-0016: the four M3U import/export actions the Settings window exposes. The owning window is passed in so
-// every file picker, prompt, preview, and message box is owned by whichever window triggered the action.
-public enum StreamListPortabilityAction
+// SP-0016: the stream-list actions the Settings window exposes (SP-0030 added DeleteDownloaded). The owning
+// window is passed in so every file picker, prompt, preview, and message box is owned by whichever window
+// triggered the action.
+public enum StreamListAction
 {
     ImportFromFile,
     ImportFromUrl,
     ExportAll,
-    ExportPinned
+    ExportPinned,
+    DeleteDownloaded
 }
 
-// SP-0016: M3U import/export portability. Import is additive and atomic — it only ever inserts Imported rows
+// SP-0016: M3U import/export portability. Import is additive and atomic - it only ever inserts Imported rows
 // and never overwrites or prunes existing rows (so CatalogMerger, which stamps Catalog and prunes, is not
 // reused). Export is limited to user-owned (Manual/Imported) rows, optionally the pinned subset.
 public partial class MainWindow
 {
-    internal Task RunStreamListPortabilityAsync(StreamListPortabilityAction action, Window owner) => action switch
+    internal Task RunStreamListActionAsync(StreamListAction action, Window owner) => action switch
     {
-        StreamListPortabilityAction.ImportFromFile => ImportFromFileAsync(owner),
-        StreamListPortabilityAction.ImportFromUrl => ImportFromUrlAsync(owner),
-        StreamListPortabilityAction.ExportAll => ExportAsync(pinnedOnly: false, owner),
-        StreamListPortabilityAction.ExportPinned => ExportAsync(pinnedOnly: true, owner),
+        StreamListAction.ImportFromFile => ImportFromFileAsync(owner),
+        StreamListAction.ImportFromUrl => ImportFromUrlAsync(owner),
+        StreamListAction.ExportAll => ExportAsync(pinnedOnly: false, owner),
+        StreamListAction.ExportPinned => ExportAsync(pinnedOnly: true, owner),
+        StreamListAction.DeleteDownloaded => DeleteDownloadedChannelsAsync(owner),
         _ => Task.CompletedTask
     };
 

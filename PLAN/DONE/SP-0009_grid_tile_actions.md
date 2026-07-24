@@ -1,4 +1,4 @@
-# SP-0009 — Grid tile action menu
+# SP-0009 - Grid tile action menu
 
 **Status:** Verified
 
@@ -29,11 +29,11 @@ fullscreen opening, desktop shortcut creation, editing, and pinning.
 
 ## Last Audit
 
-- PASS — Grid overflow observed through UI Automation with the localized menu:
+- PASS - Grid overflow observed through UI Automation with the localized menu:
   Open, Open fullscreen, Create desktop shortcut, Edit, and Unpin.
-- PASS — fullscreen is disabled for audio; Edit is disabled for non-manual
+- PASS - fullscreen is disabled for audio; Edit is disabled for non-manual
   streams; manual edit validates URL and preserves the stored record identity.
-- PASS — shortcut creation is shared with Settings and generates the persisted
+- PASS - shortcut creation is shared with Settings and generates the persisted
   GUID argument rather than an ordering value.
-- PASS — expected: Release solution build and tests succeed | actual: build
+- PASS - expected: Release solution build and tests succeed | actual: build
   completed with 0 warnings/errors; 37/37 tests passed.

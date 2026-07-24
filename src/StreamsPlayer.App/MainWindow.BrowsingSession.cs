@@ -16,6 +16,7 @@ public partial class MainWindow
             SelectOptionValue(LanguageFilter, _state.CatalogLanguageFilter, AllValue);
             SelectOptionValue(CountryFilter, _state.CatalogCountryFilter, AllValue);
             SelectOptionValue(MinBitrateFilter, _state.CatalogMinBitrateFilter, AllValue);
+            SelectOptionValue(CollectionFilter, _state.CatalogCollectionFilter, AllValue);
             SelectOptionValue(SortMode, _state.CatalogSortMode, "Name");
             _lastVisibleChannelId = _state.CatalogScrollAnchorId;
         }
@@ -111,6 +112,7 @@ public partial class MainWindow
             CatalogLanguageFilter = SelectedOptionValue(LanguageFilter) ?? AllValue,
             CatalogCountryFilter = SelectedOptionValue(CountryFilter) ?? AllValue,
             CatalogMinBitrateFilter = SelectedOptionValue(MinBitrateFilter) ?? AllValue,
+            CatalogCollectionFilter = SelectedOptionValue(CollectionFilter) ?? AllValue,
             CatalogSortMode = SelectedOptionValue(SortMode) ?? "Name",
             CatalogScrollAnchorId = _lastVisibleChannelId
         });

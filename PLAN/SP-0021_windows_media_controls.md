@@ -1,6 +1,6 @@
 # SP-0021: Windows system media controls
 
-**Status:** BlockNeedUserTest — code complete and building; awaiting a real Windows media-key/overlay observation (AC 6). Exit: user runs the app with the setting on and confirms the flyout + media keys, then status advances to Verified or Partial.
+**Status:** Partial - system-session behaviour verified; Mute (AC 2) needs a product decision and the physical media keys still need a human. Exit: owner answers the Mute question and confirms hardware Play/Pause, Stop and Prev/Next on a real keyboard.
 
 ## Goal
 
@@ -68,17 +68,37 @@ default `false`).
   navigation uses the pure, tested [LivePlaybackNavigation](../src/StreamsPlayer.Core/LivePlaybackNavigation.cs)
   (skips hidden/missing rows, no wrap, stops cleanly at ends).
 
-### Scoping deviation — Mute (AC 2)
+### Scoping deviation - Mute (AC 2)
 
 **Not implemented.** The Windows SMTC button set has no Mute button, and hardware mute keys drive the OS
-master volume — which the ticket's own constraints forbid this feature from changing. There is also no
+master volume - which the ticket's own constraints forbid this feature from changing. There is also no
 existing in-app audio mute to mirror. Mapping "Mute" onto this control surface needs a product decision
 (e.g. add an in-app audio mute button first); flagged rather than silently faked.
 
 ### Verification
 
-- `dotnet build StreamsPlayer.sln -c Debug` — expected: succeeds | actual: succeeds, 0 warnings (WinRT
+- `dotnet build StreamsPlayer.sln -c Debug` - expected: succeeds | actual: succeeds, 0 warnings (WinRT
   projection resolved).
-- `dotnet test StreamsPlayer.sln` — expected: all pass | actual: 145 passed (incl. 9 new
+- `dotnet test StreamsPlayer.sln` - expected: all pass | actual: 145 passed (incl. 9 new
   `LivePlaybackNavigationTests`).
-- Manual media-key / system-overlay observation (AC 6) — **pending user run** (see Status).
+- Manual media-key / system-overlay observation (AC 6) - **pending user run** (see Status).
+
+## Verification - agent-driven UIA run (2026-07-24)
+
+Driven headlessly through Windows UI Automation against a sandboxed `%LOCALAPPDATA%\StreamsPlayer`
+(the real folder was renamed aside and restored afterwards); evidence PNGs under `tmp/uia/shots/`.
+Driven through the Windows `GlobalSystemMediaTransportControlsSessionManager` API - the same session the
+flyout and the hardware keys drive (`tmp/uia/smtc.ps1`, `tmp/uia/smtc-act.ps1`).
+- expected: opt-in default off, one session when enabled | actual: `SystemMediaControls` was `Off` on fresh
+  state; after enabling and starting audio exactly one session appeared:
+  `APP=StreamsPlayer.exe | status=Playing | title=<station>`.
+- expected: Play/Pause from the system session mirror the in-app controls | actual: `TryPauseAsync` -> `Paused`,
+  `TryPlayAsync` -> `Playing`, both reflected in the app.
+- expected: Next/Previous walk the captured order and stop at the ends | actual: `ABC Jazz` -> `Bossa Jazz Brasil`
+  -> back to `ABC Jazz`; with a single-row filter Next was a no-op.
+- expected: stopping and exiting clear the session and its metadata | actual: in-app Stop left the session with an
+  empty title and non-playing status; closing the app removed the session entirely.
+- expected: the track text reaches the system session | actual: session title showed `Ornella Vanoni - Magia`.
+Not covered: physical media keys and the "ordinary typing is not intercepted" check (both need a human at the
+keyboard), and **Mute (AC 2) is still unimplemented** - see the open question below.
+

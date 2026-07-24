@@ -1,4 +1,4 @@
-# SP-0007 — Button glyphs
+# SP-0007 - Button glyphs
 
 **Status:** Verified
 
@@ -40,14 +40,14 @@ automation names are retained, and ordinary controls keep their text labels.
 
 ## Last Audit
 
-- PASS — every WPF button uses a shared vector glyph style or the dynamic pin
+- PASS - every WPF button uses a shared vector glyph style or the dynamic pin
   glyph; ordinary controls retain localized text, compact controls retain
   tooltips and automation names.
-- PASS — expected: no emoji or icon-font symbols in app or documentation |
+- PASS - expected: no emoji or icon-font symbols in app or documentation |
   actual: source scan returned no matches.
-- PASS — expected: Release build and tests succeed | actual: build completed
+- PASS - expected: Release build and tests succeed | actual: build completed
   with 0 warnings/errors; `dotnet test --no-build` passed 28/28.
-- PASS — expected: changed UI renders and actions remain operable | actual:
+- PASS - expected: changed UI renders and actions remain operable | actual:
   main-window screenshot shows ordinary and compact glyph controls; existing
   UI automation observed the Russian video player, fullscreen toggle, Escape,
   and F11 paths; evidence under `tmp/`.

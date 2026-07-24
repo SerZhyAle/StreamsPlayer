@@ -66,7 +66,7 @@ try {
         throw ".NET 10 SDK or newer is required. Found version: $sdkVersion."
     }
 
-    Write-Host "StreamsPlayer — .NET SDK $sdkVersion, configuration $Configuration" -ForegroundColor Green
+    Write-Host "StreamsPlayer - .NET SDK $sdkVersion, configuration $Configuration" -ForegroundColor Green
 
     if ($Clean) {
         Invoke-DotNet @('clean', $solutionPath, '--configuration', $Configuration)

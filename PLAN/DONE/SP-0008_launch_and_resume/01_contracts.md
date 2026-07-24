@@ -1,4 +1,4 @@
-# Phase 01 — Contracts and state
+# Phase 01 - Contracts and state
 
 1. [x] Add a platform-neutral command-line request parser for `--url` and `--id`,
    including validation and a testable error result.

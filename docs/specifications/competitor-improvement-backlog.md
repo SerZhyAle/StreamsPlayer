@@ -1,4 +1,4 @@
-# StreamsPlayer — backlog улучшений по итогам анализа конкурентов
+# StreamsPlayer - backlog улучшений по итогам анализа конкурентов
 
 Дата исследования: 2026-07-19.
 
@@ -6,27 +6,27 @@
 
 StreamsPlayer уже закрывает базовый сценарий лучше, чем «каталожный» проигрыватель: явное обновление каталога, локальные данные без аккаунта, фильтры, закрепление, ручные потоки, видео/RTSP и сетка живых превью. Следующий прирост ценности дают не ещё один каталог или дизайн, а надёжность воспроизведения, контекст о текущем эфире и быстрый перенос пользователем своей подборки.
 
-Ниже — предложения для будущих отдельных тикетов. Это не утверждённый план реализации и не меняет текущий контракт банка потоков.
+Ниже - предложения для будущих отдельных тикетов. Это не утверждённый план реализации и не меняет текущий контракт банка потоков.
 
 ## Стратегические спецификации
 
 Рекомендации преобразованы в отдельные продуктовые тикеты:
 
-1. [SP-0014 — ICY/Shoutcast now-playing metadata](../../PLAN/SP-0014_icy_now_playing.md)
-2. [SP-0015 — Resilient live-stream recovery](../../PLAN/SP-0015_resilient_live_recovery.md)
-3. [SP-0016 — M3U import and export portability](../../PLAN/SP-0016_m3u_portability.md)
-4. [SP-0017 — Local named channel collections](../../PLAN/SP-0017_named_collections.md)
-5. [SP-0018 — Stream quality details and filtering](../../PLAN/SP-0018_stream_quality_details.md)
-6. [SP-0019 — Local listening history](../../PLAN/SP-0019_listening_history.md)
-7. [SP-0020 — Hidden catalog channels and copyable failure reports](../../PLAN/SP-0020_hidden_channels_and_reports.md)
-8. [SP-0021 — Windows system media controls](../../PLAN/SP-0021_windows_media_controls.md)
-9. [SP-0022 — Audio sleep timer](../../PLAN/SP-0022_audio_sleep_timer.md)
+1. [SP-0014 - ICY/Shoutcast now-playing metadata](../../PLAN/SP-0014_icy_now_playing.md)
+2. [SP-0015 - Resilient live-stream recovery](../../PLAN/SP-0015_resilient_live_recovery.md)
+3. [SP-0016 - M3U import and export portability](../../PLAN/SP-0016_m3u_portability.md)
+4. [SP-0017 - Local named channel collections](../../PLAN/SP-0017_named_collections.md)
+5. [SP-0018 - Stream quality details and filtering](../../PLAN/SP-0018_stream_quality_details.md)
+6. [SP-0019 - Local listening history](../../PLAN/SP-0019_listening_history.md)
+7. [SP-0020 - Hidden catalog channels and copyable failure reports](../../PLAN/SP-0020_hidden_channels_and_reports.md)
+8. [SP-0021 - Windows system media controls](../../PLAN/SP-0021_windows_media_controls.md)
+9. [SP-0022 - Audio sleep timer](../../PLAN/SP-0022_audio_sleep_timer.md)
 
-## Приоритет P0 — заметная польза в основном сценарии
+## Приоритет P0 - заметная польза в основном сценарии
 
 ### 1. Название трека из ICY/Shoutcast для аудиопотоков
 
-Показывать «станция — исполнитель — трек» в нижней панели и, при наличии данных, на карточке текущей станции. Хранить только текущую строку в сессии; не запрашивать внешние сервисы и не включать телеметрию. Если поток не отдаёт метаданные, интерфейс остаётся как сейчас.
+Показывать «станция - исполнитель - трек» в нижней панели и, при наличии данных, на карточке текущей станции. Хранить только текущую строку в сессии; не запрашивать внешние сервисы и не включать телеметрию. Если поток не отдаёт метаданные, интерфейс остаётся как сейчас.
 
 Почему: конкурент Audials делает текущую композицию и историю треков заметной частью опыта прослушивания; пользователь сразу понимает, что идёт в эфире. [Audials API](https://audials.com/en/company-audials-ag/audials-api)
 
@@ -44,19 +44,19 @@ StreamsPlayer уже закрывает базовый сценарий лучш
 
 Завершить предусмотренный импорт M3U/M3U8 по URL и добавить экспорт только `MANUAL`/`IMPORTED` каналов, избранного либо выбранной коллекции в переносимый M3U-файл. Перед импортом показывать количество новых, совпавших и отклонённых строк; импорт должен оставаться атомарным.
 
-Почему: пользователь может быстро перенести свою подборку между плеерами без аккаунта. VLC поддерживает сетевые потоки, а формат M3U остаётся практическим способом обмена такими списками. [VLC for Android — network streams](https://images.videolan.org/vlc/download-android.html)
+Почему: пользователь может быстро перенести свою подборку между плеерами без аккаунта. VLC поддерживает сетевые потоки, а формат M3U остаётся практическим способом обмена такими списками. [VLC for Android - network streams](https://images.videolan.org/vlc/download-android.html)
 
 Ограничение: соблюдать существующий URL-merge и приоритет `MANUAL`/`IMPORTED`; HLS-манифест нельзя ошибочно импортировать как плейлист каналов.
 
 ### 4. Несколько именованных коллекций вместо одного списка закреплённых
 
-Добавить локальные коллекции: например, «Утро», «Новости», «Камеры». Канал может входить в несколько коллекций; закрепление остаётся быстрым общим списком и не заменяется коллекциями. Перетаскивание и порядок — только внутри конкретной коллекции.
+Добавить локальные коллекции: например, «Утро», «Новости», «Камеры». Канал может входить в несколько коллекций; закрепление остаётся быстрым общим списком и не заменяется коллекциями. Перетаскивание и порядок - только внутри конкретной коллекции.
 
 Почему: Audials предлагает несколько списков избранного для разных сценариев, что полезнее одного плоского списка при большом каталоге. [Руководство Audials Radio](https://audials.com/en/one/tutorial/radio)
 
-Ограничение: не добавлять облачную синхронизацию или аккаунт. Модель должна быть в `StreamsPlayer.Core`, а UI — в App.
+Ограничение: не добавлять облачную синхронизацию или аккаунт. Модель должна быть в `StreamsPlayer.Core`, а UI - в App.
 
-## Приоритет P1 — удобство и качество выбора
+## Приоритет P1 - удобство и качество выбора
 
 ### 5. Фильтр качества потока и компактные технические сведения
 
@@ -76,7 +76,7 @@ StreamsPlayer уже закрывает базовый сценарий лучш
 
 ### 7. Скрыть/сообщить о нерабочем каталожном канале
 
-Добавить в меню канала «Не показывать» (локальный blacklist) и «Скопировать отчёт о проблеме»: URL, название, время и категория ошибки — без автоматической отправки. Опциональная будущая отправка должна быть отдельным явным действием и отдельным решением о приёмнике данных.
+Добавить в меню канала «Не показывать» (локальный blacklist) и «Скопировать отчёт о проблеме»: URL, название, время и категория ошибки - без автоматической отправки. Опциональная будущая отправка должна быть отдельным явным действием и отдельным решением о приёмнике данных.
 
 Почему: Audials поддерживает исключение нежелательных станций, а его инфраструктура мониторит недоступные источники. [Audials Radio overview](https://audials.com/en/apps/audials-play-windows), [Audials API](https://audials.com/en/company-audials-ag/audials-api)
 
@@ -114,9 +114,9 @@ StreamsPlayer уже закрывает базовый сценарий лучш
 
 ## Проверенные источники
 
-- [StreamsPlayer README](../../README.md) и [исходная спецификация потоков](streams.txt) — фактический текущий scope и уже принятые ограничения.
-- [Audials Play for Windows](https://audials.com/en/apps/audials-play-windows) — фильтр качества, история треков, радио/TV.
-- [Audials Radio tutorial](https://audials.com/en/one/tutorial/radio) — несколько списков избранного, поиск и запись по расписанию.
-- [Audials API](https://audials.com/en/company-audials-ag/audials-api) — текущая композиция и история треков как конкурентная функция.
-- [VideoLAN VLC features](https://www.videolan.org/vlc/features.html) — воспроизведение сетевых потоков и поддерживаемые протоколы.
-- [Radio Garden settings](https://radio.garden/settings) — модель избранного и принцип map-first продукта.
+- [StreamsPlayer README](../../README.md) и [исходная спецификация потоков](streams.txt) - фактический текущий scope и уже принятые ограничения.
+- [Audials Play for Windows](https://audials.com/en/apps/audials-play-windows) - фильтр качества, история треков, радио/TV.
+- [Audials Radio tutorial](https://audials.com/en/one/tutorial/radio) - несколько списков избранного, поиск и запись по расписанию.
+- [Audials API](https://audials.com/en/company-audials-ag/audials-api) - текущая композиция и история треков как конкурентная функция.
+- [VideoLAN VLC features](https://www.videolan.org/vlc/features.html) - воспроизведение сетевых потоков и поддерживаемые протоколы.
+- [Radio Garden settings](https://radio.garden/settings) - модель избранного и принцип map-first продукта.

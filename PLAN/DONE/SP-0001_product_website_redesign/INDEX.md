@@ -4,9 +4,9 @@ The phases are dependency ordered. Phase 1 establishes the shared design and
 interaction layer; phase 2 consumes it for both pages; phase 3 validates the
 complete static site.
 
-- [x] [Phase 1 — Shared design system](01_shared_design.md)
-- [x] [Phase 2 — Product and privacy pages](02_pages.md)
-- [x] [Phase 3 — Browser verification and audit](03_validation.md)
+- [x] [Phase 1 - Shared design system](01_shared_design.md)
+- [x] [Phase 2 - Product and privacy pages](02_pages.md)
+- [x] [Phase 3 - Browser verification and audit](03_validation.md)
 
 ## Coverage
 

@@ -1,4 +1,4 @@
-# Phase 03 — Validation
+# Phase 03 - Validation
 
 1. [x] Run a source scan for emoji/icon-range characters in app and documentation.
    - Check: the scan returns no matches. PASS.

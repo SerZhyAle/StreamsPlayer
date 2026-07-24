@@ -22,7 +22,7 @@ public partial class MainWindow
     }
 
     // Play a history entry by resolving its id against the current catalog. A removed channel is never
-    // reopened from a stale address (SP-0019) — it just reports unavailable and nothing is played.
+    // reopened from a stale address (SP-0019) - it just reports unavailable and nothing is played.
     private async Task PlayFromHistoryAsync(Guid channelId)
     {
         var channel = _state.Channels.FirstOrDefault(item => item.Id == channelId);
@@ -35,7 +35,7 @@ public partial class MainWindow
         await PlayChannelAsync(channel, rememberSelection: true);
     }
 
-    // Clear all history. Touches only ListeningHistory — channels, pins, collections, play marks,
+    // Clear all history. Touches only ListeningHistory - channels, pins, collections, play marks,
     // the hidden set, and catalog data are untouched (AC5).
     private async Task ClearHistoryAsync()
     {

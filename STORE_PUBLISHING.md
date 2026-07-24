@@ -4,7 +4,7 @@ Reusable, StreamsPlayer-specific playbook, adapted from the CyrFlip/FastMediaSor
 MSIX pattern. The product is already reserved in Partner Center; this document is
 the step-by-step to build, submit, and update.
 
-## Reserved identity (permanent — supply on every submission)
+## Reserved identity (permanent - supply on every submission)
 
 | Field | Value |
 | --- | --- |
@@ -15,7 +15,9 @@ the step-by-step to build, submit, and update.
 | `Package/Properties/PublisherDisplayName` | `SZA` |
 | Package Family Name | `SZA.StreamsPlayer_fdk7e19xt9z9j` |
 | Store ID | `9NBTD5SXB8TB` |
-| Store link (after live) | `https://apps.microsoft.com/detail/9NBTD5SXB8TB` |
+| Store link (live) | `https://apps.microsoft.com/detail/9NBTD5SXB8TB` |
+| IARC Global Rating ID | `7fd02683-3ef9-8606-8fb0-3f68aa55f8fc` |
+| IARC rating date / storefront | `2026-07-23` · Microsoft |
 
 `msix/build-msix.ps1` already defaults to the three identity values, so a plain build is correctly identified.
 
@@ -27,13 +29,13 @@ individual developer account is free.
 
 ---
 
-## Phase 1 — Pre-flight (code)
+## Phase 1 - Pre-flight (code)
 
 - Release-parity gate green: `./scripts/check.ps1` → Release build + `dotnet test` (expected: 0 errors, all tests pass).
 - Version set in `Directory.Build.props` (`YY.MMDD.HHmm`), later than every published version. The MSIX version is remapped to `YY.MMDD.HHmm.0` by the build script.
-- Local state already lives under `%LOCALAPPDATA%\StreamsPlayer`; catalog refresh is explicit (no background downloads). No MSIX file/registry-virtualization changes are required — the app writes only to its own per-user profile and does not rely on other processes reading those files.
+- Local state already lives under `%LOCALAPPDATA%\StreamsPlayer`; catalog refresh is explicit (no background downloads). No MSIX file/registry-virtualization changes are required - the app writes only to its own per-user profile and does not rely on other processes reading those files.
 
-## Phase 2 — Build the package
+## Phase 2 - Build the package
 
 ```powershell
 # Uses the reserved identity by default. Unsigned = Store-ready (Microsoft signs at certification).
@@ -45,33 +47,33 @@ individual developer account is free.
 
 Output: `msix/dist/StreamsPlayer-<version>-windows-x64.msix`.
 The package bundles `LICENSE.txt` (MIT) **and** `THIRD-PARTY-NOTICES.txt`
-(LibVLC/VLC LGPL+GPL, FFmpeg/Flyleaf) — required because the app redistributes
+(LibVLC/VLC LGPL+GPL, FFmpeg/Flyleaf) - required because the app redistributes
 LGPL/GPL native media libraries. Do not remove the notices file.
 
 Requires the Windows SDK (`makeappx.exe`, and `signtool.exe` for `-SelfSign`):
 `winget install Microsoft.WindowsSDK`.
 
-## Phase 3 — Verify locally
+## Phase 3 - Verify locally
 
 `./msix/build-msix.ps1 -SelfSign` prints the `Import-Certificate` (run as admin)
 and `Add-AppxPackage` commands. Install, launch from the Start menu, and confirm:
 catalog refresh, audio playback, Grid thumbnails, the video player (always-on-top,
 F11/Escape fullscreen), and EN/RU switching.
 
-## Phase 4 — Listing materials (all present in this repo)
+## Phase 4 - Listing materials (all present in this repo)
 
 | Item | Source |
 | --- | --- |
 | Copy deck (EN + RU: description, features, keywords, runFullTrust justification, certification notes) | `msix/store-listing.md` |
-| Import-ready listing CSV (EN + RU columns) | `msix/store-listing-import.csv` — see "Listing import via CSV" below |
-| Screenshots (composed, 1366×768, EN + RU) | `assets/store/screenshot-{en,ru}-1366x768.png` — regenerate with `tools/store/make-store-images.ps1` |
+| Import-ready listing CSV (EN + RU columns) | `msix/store-listing-import.csv` - see "Listing import via CSV" below |
+| Screenshots (composed, 1366×768, EN + RU) | `assets/store/screenshot-{en,ru}-1366x768.png` - regenerate with `tools/store/make-store-images.ps1` |
 | Real in-app screenshots (recommended to add before submit) | `tools/store/capture-app.ps1 -Name <shot>` |
 | Banner / social preview | `assets/store/banner-1280x360.png`, `assets/store/social-preview-1280x640.png` |
 | Privacy policy | `docs/privacy.html` → `https://serzhyale.github.io/StreamsPlayer/privacy.html` |
 | Category | Primary **Entertainment**, secondary **Music** |
 | Price | Free (Retail price dropdown) |
 
-**Screenshots — do this before submitting:** the composed cards satisfy the
+**Screenshots - do this before submitting:** the composed cards satisfy the
 minimum, but a media player is far stronger with genuine captures. Launch the app,
 refresh the catalog, and run `tools/store/capture-app.ps1` for: (1) catalog List
 mode, (2) Grid mode with thumbnails, (3) the video player with controls, (4)
@@ -89,7 +91,7 @@ generated template exactly, and the `ID` numbers are account-specific and not
 documented. Two ways to use the file:
 
 A direct upload of `store-listing-import.csv` is **rejected** ("The ID column
-contains incorrect entries") — Partner Center requires its own `ID` values. Use
+contains incorrect entries") - Partner Center requires its own `ID` values. Use
 the merge script instead:
 
 1. App overview → **Store listings → Export listing** → save the file (e.g.
@@ -115,15 +117,20 @@ Notes:
   Store *title* is "Streams Player" regardless; change the RU prose only if you
   want the Latin wordmark there too.
 
-## Phase 5 — Age rating (IARC)
+## Phase 5 - Age rating (IARC)
 
-Complete the IARC questionnaire **fresh** for this app. The SZA portable rating ID
-used by FastMediaSorter does **not** transfer here: StreamsPlayer can open arbitrary
-third-party live audio/video URLs, which changes the questionnaire answers (uncurated
-online content). Answer honestly: no accounts, no purchases, no ads, no user-to-user
-content publishing; the app can display uncontrolled third-party streams.
+**Status: complete and live.** The IARC questionnaire was answered **fresh** for
+this app, producing Global Rating ID `7fd02683-3ef9-8606-8fb0-3f68aa55f8fc`
+(rating date 2026-07-23, Microsoft storefront).
 
-## Phase 6 — Content-policy note (StreamsPlayer-specific)
+The SZA portable rating ID used by FastMediaSorter does **not** transfer here:
+StreamsPlayer can open arbitrary third-party live audio/video URLs, which changes
+the questionnaire answers (uncurated online content). It was answered honestly: no
+accounts, no purchases, no ads, no user-to-user content publishing; the app can
+display uncontrolled third-party streams. Keep this rationale for any future
+re-rating - do not reuse a rating ID from another app.
+
+## Phase 6 - Content-policy note (StreamsPlayer-specific)
 
 Apps that open third-party streams draw extra review under the Store's
 infringing-content policy. Pre-empt it:
@@ -137,7 +144,7 @@ infringing-content policy. Pre-empt it:
   explains the LibVLC media components, the explicit-refresh network model, and the
   absence of accounts/ads/telemetry, with the source link).
 
-## Phase 7 — Submit / update in Partner Center
+## Phase 7 - Submit / update in Partner Center
 
 1. Partner Center → **Apps and games → Streams Player** (Store ID `9NBTD5SXB8TB`).
 2. **Packages** → upload `msix/dist/StreamsPlayer-<version>-windows-x64.msix`.

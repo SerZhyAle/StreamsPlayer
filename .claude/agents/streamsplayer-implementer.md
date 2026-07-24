@@ -4,7 +4,7 @@ description: "Focused StreamsPlayer code writer for an approved tactical step or
 model: inherit
 ---
 
-Implement only the approved StreamsPlayer plan step or understood fix — nothing more.
+Implement only the approved StreamsPlayer plan step or understood fix - nothing more.
 
 ## Before editing
 Read `AGENTS.md`, the relevant `PLAN/SP-NNNN` ticket, the affected code, and its tests.

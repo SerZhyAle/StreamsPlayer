@@ -10,7 +10,7 @@ namespace StreamsPlayer.App;
 public partial class MainWindow
 {
     // Favourites live in their own anchored section above the main list (SP-0025). The section is a
-    // flat (non-virtualized) collection — favourites are few — presented as a wrapping tile grid in
+    // flat (non-virtualized) collection - favourites are few - presented as a wrapping tile grid in
     // grid view and a sideways-scrolling card strip in list view. The main list keeps virtualization.
     public ObservableCollection<ChannelRow> PinnedRows { get; } = [];
 

@@ -1,9 +1,9 @@
-# PHASE-5 — Validation and documentation
+# PHASE-5 - Validation and documentation
 
 **Produces:** build/test evidence, the run-and-observe acceptance matrix, tuning/README notes.
 **Consumes:** Phases 1–4.
 **Goal (AC 2, AC 3, AC 4, AC 5, AC 8):** prove the switch, per-engine playback, and persistence with
-run-and-observe evidence — not merely a green build — and record the payload-size impact.
+run-and-observe evidence - not merely a green build - and record the payload-size impact.
 
 ## Steps
 

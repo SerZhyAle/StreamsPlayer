@@ -3,7 +3,7 @@ namespace StreamsPlayer.Core;
 /// <summary>
 /// Pure recency/retention rules for the local listening history (SP-0019). Every method returns a new
 /// list and never mutates its input, so the caller folds the result into <see cref="CatalogState"/>
-/// and persists it. No platform or UI dependency — history is captured only where playback already
+/// and persists it. No platform or UI dependency - history is captured only where playback already
 /// reaches its successful-play sink; this type does not decide when a play succeeds.
 /// </summary>
 public static class ListeningHistory

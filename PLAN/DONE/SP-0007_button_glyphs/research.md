@@ -1,4 +1,4 @@
-# Research — SP-0007 Button glyphs
+# Research - SP-0007 Button glyphs
 
 ## Evidence
 

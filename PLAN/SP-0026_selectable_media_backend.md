@@ -1,6 +1,6 @@
 # SP-0026: Selectable alternative media backend (video/RTSP fallback)
 
-**Status:** BlockNeedUserTest — code-complete (Phases 1–4 + Flyleaf), build + 149 tests green;
+**Status:** Partial - VLC parity, persistence and the missing-natives fallback verified; the FlyleafLib playback path still needs its FFmpeg v8 x64 natives deployed by hand. Exit: owner drops the DLLs into an `FFmpeg` folder beside the exe and confirms one HLS-live and one RTSP stream on FlyleafLib.
 awaiting user GUI run-and-observe (LibVLC parity, engine switch, persistence) and, for FlyleafLib
 runtime playback, deployment of the FFmpeg v8 x64 natives. Exit condition in the tactical INDEX.
 
@@ -11,13 +11,13 @@ Tactical plan: [SP-0026_selectable_media_backend/INDEX.md](SP-0026_selectable_me
 Give the video/RTSP live player a second, user-selectable playback engine as a **troubleshooting
 fallback**, surfaced as an option in Settings. The current engine (LibVLC) stays the default and
 proven baseline; the alternative (FlyleafLib) is an engine the user can flip to when a specific
-stream misbehaves under the default. The alternative must cover the same stream families — HLS
-live, RTSP, poor-quality third-party live sources — while preserving today's playback resilience.
+stream misbehaves under the default. The alternative must cover the same stream families - HLS
+live, RTSP, poor-quality third-party live sources - while preserving today's playback resilience.
 
 ## Why
 
 Every live video/RTSP stream is played through one engine. When a specific stream behaves badly
-on that engine (a decode, timestamp, or protocol quirk), the user has no recourse — the app can
+on that engine (a decode, timestamp, or protocol quirk), the user has no recourse - the app can
 only fail that stream. A selectable second engine gives the user (and support) a real fallback: a
 stream that stalls or refuses on LibVLC can be retried on FlyleafLib without leaving the app.
 Research (SP-0026 dossier) identifies FlyleafLib as a viable, actively-maintained,
@@ -36,19 +36,19 @@ license-compatible alternative, making the choice practical rather than theoreti
 
 ## Decisions
 
-1. **Scope — video/RTSP player only.** The engine choice applies solely to the live video/RTSP
+1. **Scope - video/RTSP player only.** The engine choice applies solely to the live video/RTSP
    player window. Audio and thumbnail capture are unchanged. This is the smallest seam that
    captures the whole payoff, since that window is where the resilience tuning lives.
-2. **Intent — troubleshooting fallback.** LibVLC remains default and pre-selected everywhere.
+2. **Intent - troubleshooting fallback.** LibVLC remains default and pre-selected everywhere.
    FlyleafLib is presented as the engine to switch to when a stream misbehaves; Settings copy
    frames it as a fallback/experimental alternative, not a co-equal default.
-3. **Candidate — FlyleafLib (locked in).** LGPL-3.0 (license-compatible with the MSIX/winget/
+3. **Candidate - FlyleafLib (locked in).** LGPL-3.0 (license-compatible with the MSIX/winget/
    self-contained model, matching LibVLC's posture), actively maintained (v3.10.4, 2026-05-23,
    .NET 10 / FFmpeg 8 build), with HLS-live + RTSP + audio support and a first-class WPF control.
-4. **Packaging — ship both native stacks.** Because the fallback must be available at runtime
+4. **Packaging - ship both native stacks.** Because the fallback must be available at runtime
    alongside the default, both the LibVLC and the FlyleafLib/FFmpeg native stacks ship in the
    package. The installer/EXE size grows accordingly; this is accepted for the fallback value.
-5. **Parity bar — experimental first, parity is the goal.** The alternative may ship behind an
+5. **Parity bar - experimental first, parity is the goal.** The alternative may ship behind an
    explicit "experimental" label before it reaches full behaviour parity, provided it plays HLS
    live and RTSP. Full parity with the resilience baseline is the target, not a launch gate.
 
@@ -57,7 +57,7 @@ license-compatible alternative, making the choice practical rather than theoreti
 - LibVLC remains the default; a fresh install and any existing state behave exactly as today
   until the user changes the option.
 - FlyleafLib must, at minimum, play HLS-live and RTSP streams; the target is to preserve the
-  shipped resilience behaviour for bad live streams — software-decode tolerance, clock-jitter
+  shipped resilience behaviour for bad live streams - software-decode tolerance, clock-jitter
   tolerance, forced RTSP-over-TCP, a single sane live buffer with rebuffer-in-place (never
   reconnect to grow the buffer), per-stream audio/subtitle track selection where offered,
   thumbnail capture on first live frame, and freeze/stream-drop recovery. Parity is measured
@@ -90,7 +90,7 @@ license-compatible alternative, making the choice practical rather than theoreti
 
 - **Behaviour parity is the hard part.** LibVLC carries a large, hard-won option set for bad live
   streams. A naive FlyleafLib integration can regress into the multi-second freezes that tuning
-  already eliminated. The experimental label (Decision 5) contains — but does not remove — this
+  already eliminated. The experimental label (Decision 5) contains - but does not remove - this
   risk; parity work must be evidenced, not assumed.
 - **Payload growth.** Shipping both native stacks (Decision 4) enlarges the installer/EXE; watch
   the MSIX/self-contained size and confirm it stays acceptable.
@@ -103,3 +103,19 @@ license-compatible alternative, making the choice practical rather than theoreti
 
 - Research dossier: `PLAN/SP-0026_selectable_media_backend/research.md`
 - Playback tuning baseline: `docs/stream-playback-recommendations.md`
+
+## Verification - agent-driven UIA run (2026-07-24)
+
+Driven headlessly through Windows UI Automation against a sandboxed `%LOCALAPPDATA%\StreamsPlayer`
+(the real folder was renamed aside and restored afterwards); evidence PNGs under `tmp/uia/shots/`.
+- expected: fresh state defaults to VLC and the choice persists | actual: `videoBackend=LibVlc` on a fresh state;
+  switching to FlyleafLib saved (`Flyleaf`) and survived a restart.
+- expected: VLC parity after the backend refactor | actual: video playback, ~10 s buffering indicator,
+  three simultaneous player windows, fullscreen enter/exit, mute toggle persisted, save-frame thumbnail, bounded
+  reconnect and the terminal failure dialog all behaved as before.
+- expected: without the FFmpeg natives the app falls back and keeps playing | actual: log recorded
+  `FLYLEAF ENGINE | action=start` then `FLYLEAF FALLBACK | to=libvlc | reason=Exception | err=Loading FFmpeg
+  libraries … failed`, and the window continued to `Playing live` with no crash.
+- Not covered: FlyleafLib actually decoding a stream (needs the out-of-band natives) and the
+  troublesome-stream comparison (needs a genuinely misbehaving live source).
+

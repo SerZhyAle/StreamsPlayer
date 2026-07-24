@@ -1,4 +1,4 @@
-# Phase 02 — Startup and shortcuts
+# Phase 02 - Startup and shortcuts
 
 1. [x] Replace declarative startup with argument-aware application startup and pass
    the parsed request to the main window.

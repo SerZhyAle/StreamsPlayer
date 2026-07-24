@@ -1,4 +1,4 @@
-# SP-0008 — Launch a stream and resume selection
+# SP-0008 - Launch a stream and resume selection
 
 **Status:** Verified
 
@@ -43,13 +43,13 @@ gate, and never refreshes the catalog.
 
 ## Last Audit
 
-- PASS — `--url` and `--id` parse as explicit launch requests; invalid input
+- PASS - `--url` and `--id` parse as explicit launch requests; invalid input
   has a localized soft-failure status. Empty arguments only consult the saved
   selected GUID.
-- PASS — selecting a card wrote `LastSelectedChannelId` to local state; an
+- PASS - selecting a card wrote `LastSelectedChannelId` to local state; an
   observed `--id` launch rendered the matching channel in a responsive main
   window without a catalog refresh.
-- PASS — after selecting a card, Settings opened and its Copy command and
+- PASS - after selecting a card, Settings opened and its Copy command and
   Create desktop shortcut actions were both enabled in UI Automation.
-- PASS — expected: Release solution build and tests succeed | actual: build
+- PASS - expected: Release solution build and tests succeed | actual: build
   finished with 0 warnings/errors; 37/37 tests passed.

@@ -1,0 +1,88 @@
+# SP-0019: Local listening history
+
+**Status:** Verified
+play→history, ICY row text, Clear, EN⇄RU, deleted-channel non-playable label, restart
+persistence). Exit condition: user confirms the six checks in
+[SP-0019_listening_history/PHASE-4_localization_docs_validation.md](SP-0019_listening_history/PHASE-4_localization_docs_validation.md).
+
+Tactical plan: [SP-0019_listening_history/INDEX.md](SP-0019_listening_history/INDEX.md)
+
+## Implementation summary
+
+- Core (platform-neutral): `ListeningHistoryEntry` record + `CatalogState.ListeningHistory`
+  and the pure `ListeningHistory` helper - `MaxEntries = 100`, `RecordPlay` (promote by
+  channel id, carry prior track text, cap), `UpdateTrackText` (`null` when absent/unchanged).
+  No URL is stored; playback resolves by id only. 10 unit tests (promote/dedup/evict/order/
+  round-trip/legacy-default).
+- App: history is written only at the single successful-play sink `RecordPlayOutcome(id, true)`
+  (covers audio and video; previews/probes never reach it → AC2). `OnNowPlayingTitle`
+  folds the latest ICY text into the channel's entry (`PersistNowPlayingHistoryAsync`,
+  saves only on real change → AC4). New `ListeningHistoryWindow` + `MainWindow.History.cs`
+  + toolbar `HistoryButton` (outline-clock glyph) offer Play (id-resolved, soft-fail on a
+  removed channel) and Clear-all (touches only `ListeningHistory` → AC5).
+- Persistence via existing `CatalogState`/`StreamCatalogStore` (atomic; no `SchemaVersion`
+  bump; older state deserializes to empty history). Nothing uploaded or shared.
+- en + ru localized (8 `History*` keys, parity). README "What it does" updated.
+- Solution builds 0 warnings; full suite 136/136 green; startup smoke launch clean.
+  No change to catalog refresh, the MANUAL/IMPORTED merge contract, or the hidden set.
+
+## Goal
+
+Provide a private, bounded list of recently played channels and the last ICY now-playing text observed for each successful listening session.
+
+## Why
+
+History makes it easy to return after an accidental switch and gives useful context without requiring favorites, an account, or remote tracking.
+
+## Non-goals
+
+- Build a full track database or infer song identity.
+- Record grid previews, reachability probes, failed launches, or passive catalog browsing.
+- Upload, synchronize, or share history automatically.
+- Reopen a deleted channel from a stale raw URL.
+
+## Constraints
+
+- A history entry is created only after a user-initiated stream reaches the existing successful-play state.
+- Repeated plays update recency rather than creating an unbounded event log; at most 100 channel entries are retained.
+- Each entry stores the channel identity, last successful time, and optional last ICY display text; later ICY changes update that entry without adding rows.
+- Deleted or pruned channels remain as non-playable history labels until evicted or cleared and fail soft if selected.
+- The user can clear all history explicitly; history remains local application data.
+
+## Acceptance criteria
+
+1. Successful user playback places the channel at the top of Recently played with a local timestamp.
+2. Preview/probe activity and failed play attempts do not create or promote entries.
+3. Replaying a channel updates its existing entry, and retention never exceeds 100 channels.
+4. When SP-0014 metadata is available, the entry shows the latest observed display text without treating it as verified track identity.
+5. Clear history removes all entries without changing channels, pins, collections, play marks, or catalog data.
+6. Restart/persistence, retention, deleted-channel, privacy, and localized run-and-observe checks pass.
+
+## Risks
+
+History is user-sensitive local data. Its scope must remain obvious and bounded, and stale entries must not bypass the current channel list or URL safety rules.
+
+## Dependencies
+
+SP-0014 is required only for optional track text; channel history itself can be delivered independently.
+
+## Research
+
+See [competitor improvement backlog](../docs/specifications/competitor-improvement-backlog.md).
+
+## Verification - agent-driven UIA run (2026-07-24)
+
+Driven headlessly through Windows UI Automation against a sandboxed `%LOCALAPPDATA%\StreamsPlayer`
+(the real folder was renamed aside and restored afterwards); evidence PNGs under `tmp/uia/shots/`.
+- expected: a played channel appears at the top with a local timestamp | actual: 12 entries accumulated,
+  newest first, each with `Воспроизведено <local time>`.
+- expected: previews and failed streams add nothing | actual: none of the dead test streams produced an entry.
+- expected: replay moves the existing row to the top without duplicating | actual: entry count stayed 8 while
+  `#TOP 100 …` moved from position 4 to 1.
+- expected: an ICY track is folded into the row | actual: `Corona - The Rhythm Of The Night…`, `Patchwork - Panorama`.
+- expected: Clear history empties the list and changes nothing else | actual: history 12 -> 0, channels 3,246,
+  pins 1 and the hidden set unchanged, window shows `No history yet.`
+- expected: history survives restart; a deleted channel stays a non-playable label | actual: 9 entries after a
+  restart; with the channel removed from the catalog its row remained, its Play button was disabled and the
+  window explained "This channel is no longer in your list."; RU window reads `Недавно воспроизведённые`.
+

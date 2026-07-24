@@ -45,21 +45,21 @@ See `tmp/SP-0003-github-readme/research.md`.
 
 ## Last Audit
 
-- PASS — GitHub product entry. expected: concise product-first main README with
+- PASS - GitHub product entry. expected: concise product-first main README with
   icon, identity, actions, and language selector | actual: `README.md` presents
   all four and follows the reference's compact product hierarchy.
-- PASS — static language navigation. expected: complete EN/RU/UA entry points |
+- PASS - static language navigation. expected: complete EN/RU/UA entry points |
   actual: `README.md`, `README.ru.md`, and `README.uk.md` have reciprocal links
   and equivalent capability, development, privacy, and ownership content.
-- PASS — distribution truthfulness. expected: no unpublished package presented
+- PASS - distribution truthfulness. expected: no unpublished package presented
   as downloadable | actual: every README labels ZIP, Store, and winget as planned
   rather than published.
-- PASS — local Markdown references. expected: every local README link/image
+- PASS - local Markdown references. expected: every local README link/image
   resolves | actual: path scan reported `Missing local README references: 0`.
-- PASS — Pages language selection. expected: EN/RU/UA at mobile width | actual:
+- PASS - Pages language selection. expected: EN/RU/UA at mobile width | actual:
   browser automation selected each language; its active controls were RU and UA
   after the respective switches.
-- PASS — Pages responsive behaviour. expected: no 390 px horizontal overflow |
+- PASS - Pages responsive behaviour. expected: no 390 px horizontal overflow |
   actual: home page reported `clientWidth = 390` and `scrollWidth = 390`; the
   Ukrainian mobile screenshot was visually inspected.
 

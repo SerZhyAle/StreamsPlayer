@@ -1,7 +1,7 @@
 # SP-0003 Tactical Plan
 
-- [x] [Phase 1 — GitHub-native localized README set](01_readmes.md)
-- [x] [Phase 2 — Static and browser verification](02_validation.md)
+- [x] [Phase 1 - GitHub-native localized README set](01_readmes.md)
+- [x] [Phase 2 - Static and browser verification](02_validation.md)
 
 ## Coverage
 

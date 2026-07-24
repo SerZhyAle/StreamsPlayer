@@ -1,4 +1,4 @@
-# Phase 1 — Shared design system
+# Phase 1 - Shared design system
 
 **Produces:** reusable visual tokens, layout primitives, responsive rules, and
 browser behaviour consumed by both pages.

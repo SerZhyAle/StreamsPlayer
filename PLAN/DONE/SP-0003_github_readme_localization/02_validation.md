@@ -1,4 +1,4 @@
-# Phase 2 — Static and browser verification
+# Phase 2 - Static and browser verification
 
 **Consumes:** localized README files and the existing Pages language controls.
 

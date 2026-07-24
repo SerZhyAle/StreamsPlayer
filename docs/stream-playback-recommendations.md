@@ -1,4 +1,4 @@
-# Robust Playback of the FastMediaSorter Stream Bank — Recommendations
+# Robust Playback of the FastMediaSorter Stream Bank - Recommendations
 
 **Audience:** the FastMediaSorter (Android) developer.
 **Source:** StreamsPlayer (Windows desktop, .NET/WPF, libVLC). These findings come from
@@ -30,7 +30,7 @@ We only found the real cause after adding structured diagnostics. Log, per playb
 - **Stall start / resume** (buffering begins after playback was live; and when it recovers).
 - **Periodic counters** (~every 2 s): input bytes, demux bytes, **decoded / rendered / dropped
   frames**.
-- **The player's own warning/error log** — this is where the true cause shows up.
+- **The player's own warning/error log** - this is where the true cause shows up.
 
 **Decision rule:**
 
@@ -46,7 +46,7 @@ playlist read, **not** the segment downloads. For HLS, trust the **frame counter
 
 ---
 
-## 2. Video decode: hardware is not free — plan for it to fail
+## 2. Video decode: hardware is not free - plan for it to fail
 
 **What we saw:** repeated `d3d11va: not enough decoding slices in the texture`,
 `hardware acceleration picture allocation failed`, `picture is too late to be displayed` →
@@ -57,7 +57,7 @@ dropped frames and stutter. The GPU decoder ran out of surfaces.
 - libVLC: `--avcodec-hw=none` (global) **and** `:avcodec-hw=none` (per media). This alone
   removed the entire hardware fault family in our logs.
 
-**Android mapping — important nuance:** on mobile, software decode costs **CPU, battery and
+**Android mapping - important nuance:** on mobile, software decode costs **CPU, battery and
 heat**, unlike a PC where it is free. So do **not** blindly force software everywhere. Prefer:
 
 - **AndroidX Media3 / ExoPlayer:**
@@ -69,7 +69,7 @@ heat**, unlike a PC where it is free. So do **not** blindly force software every
   - Detect the problem at runtime via `AnalyticsListener.onDroppedVideoFrames(...)` and
     `onVideoDecoderInitialized(...)` (the decoder name tells you HW vs SW), then switch that
     stream to software.
-- **libVLC-Android:** identical option — `--avcodec-hw=none` — if you want the desktop behaviour.
+- **libVLC-Android:** identical option - `--avcodec-hw=none` - if you want the desktop behaviour.
 
 **Recommendation for Android:** hardware-first, **decoder fallback on**, software extension
 available, and force software only for streams you've measured as HW-problematic.
@@ -85,25 +85,25 @@ timestamps; the player's clock sync thrashes, plays silence, and drops late pict
 
 **What helped (desktop libVLC):**
 
-- `--clock-jitter=0` — ignore clock jitter and play as soon as possible instead of stalling to
+- `--clock-jitter=0` - ignore clock jitter and play as soon as possible instead of stalling to
   silence on every timestamp jump. This dropped our worst jitter from ~9 s to <250 ms.
-- `--no-drop-late-frames` — **the biggest win for the per-second micro-stutter.** On broken
+- `--no-drop-late-frames` - **the biggest win for the per-second micro-stutter.** On broken
   streams the video output was discarding ~1/3 of frames as "picture is too late to be
   displayed" (≈8 dropped frames/sec, seen as a small freeze every second). Displaying the
   slightly-late frames instead removed the drops entirely (35 → 0 in a controlled test on the
-  same stream) at the cost of a few tens of ms of latency. Decode was never the bottleneck —
+  same stream) at the cost of a few tens of ms of latency. Decode was never the bottleneck -
   it was the vout dropping late frames.
 
 **What we tried and rejected:**
 
-- `--no-ts-trust-pcr` (derive timing instead of trusting the stream PCR) — it *looked* good on a
+- `--no-ts-trust-pcr` (derive timing instead of trusting the stream PCR) - it *looked* good on a
   well-behaved stream but **deadlocked the display to 0 fps on the worst-timestamped streams**
   (decode raced ahead with no clock reference; the picture backlog grew until the vout froze).
   Do **not** ship this globally. If you need it, gate it behind a per-stream opt-in and watch
   for a growing decoded-vs-displayed gap.
 
 **Lesson:** prefer options that make the player *tolerate* bad timing (don't drop, ignore
-jitter) over options that *remove the clock reference* — the latter can turn a stutter into a
+jitter) over options that *remove the clock reference* - the latter can turn a stutter into a
 freeze.
 
 **Android mapping:** ExoPlayer is generally more tolerant here and re-derives HLS timing across
@@ -119,17 +119,17 @@ discontinuities on its own. There is no exact 1:1 for `no-ts-trust-pcr`, but:
 
 This is the counter-intuitive one, and we have hard numbers.
 
-- **Bigger buffer did not prevent the stalls** — they were clock/decode, not starvation.
+- **Bigger buffer did not prevent the stalls** - they were clock/decode, not starvation.
 - We tried *escalating* the buffer by **reconnecting** with a larger cache on each stall. That
-  was strictly worse: each reconnect meant re-buffering the whole new buffer from scratch —
-  **18 s, then 26 s of black screen** — and it still stalled.
+  was strictly worse: each reconnect meant re-buffering the whole new buffer from scratch -
+  **18 s, then 26 s of black screen** - and it still stalled.
 - Letting the player **rebuffer in place** recovered in **~5 s**.
 
 **Recommendation:** choose one reasonable live buffer and let the player rebuffer in place.
 **Do not tear down and reconnect on a stall.**
 
 - **libVLC (desktop, what we shipped):** `network-caching=15000`, `live-caching=15000`.
-- **ExoPlayer/Media3:** tune `DefaultLoadControl` —
+- **ExoPlayer/Media3:** tune `DefaultLoadControl` -
   `setBufferDurationsMs(minBufferMs, maxBufferMs, bufferForPlaybackMs,
   bufferForPlaybackAfterRebufferMs)`. For flaky live, give a healthy
   `bufferForPlaybackAfterRebufferMs` so playback doesn't restart too eagerly, and **keep the
@@ -137,7 +137,7 @@ This is the counter-intuitive one, and we have hard numbers.
 
 ---
 
-## 4a. Trade quality for smoothness — but only when the cause is bandwidth/CPU
+## 4a. Trade quality for smoothness - but only when the cause is bandwidth/CPU
 
 If a stream is **adaptive** (its master `.m3u8` lists several renditions), forcing a lower one
 reduces data and decode load and can eliminate stutter that comes from **bandwidth or a weak
@@ -152,10 +152,10 @@ CPU**:
 **Two caveats we learned the hard way:**
 
 1. It does nothing for **timestamp-driven** stutter (see §3). Our worst stream stuttered with
-   decode idle — lowering quality there would change nothing. Diagnose first (§1): is decode/net
+   decode idle - lowering quality there would change nothing. Diagnose first (§1): is decode/net
    actually the bottleneck, or is the vout dropping late frames?
 2. Many bank streams are **single-quality media playlists** (no `#EXT-X-STREAM-INF`, just
-   `#EXTINF` segments) — there is simply no lower rung to pick. Detect this and don't promise a
+   `#EXTINF` segments) - there is simply no lower rung to pick. Detect this and don't promise a
    quality drop you can't deliver.
 
 A reasonable automatic policy: on an *adaptive* stream that keeps stalling, step down one
@@ -178,7 +178,7 @@ tile again**, and we should spend as little network/CPU as possible getting ther
 
 ### 6.1 Two capture paths (the second is the important one)
 
-**A. Headless grid capture** — for tiles the user is *looking at* but hasn't opened.
+**A. Headless grid capture** - for tiles the user is *looking at* but hasn't opened.
 
 - A dedicated off-screen libVLC instance (`VideoFrameCaptureService`) opens the stream **muted,
   `:no-audio`, software decode (`--avcodec-hw=none`)**, with a raw `RV32` video callback at
@@ -189,23 +189,23 @@ tile again**, and we should spend as little network/CPU as possible getting ther
 - Software decode here is deliberate: the headless grabber must **never compete with the real
   player for GPU decode surfaces** (that starvation is the §2 freeze cause).
 
-**B. Player-ingest** — the cheapest, highest-quality thumbnail, and the one to copy.
+**B. Player-ingest** - the cheapest, highest-quality thumbnail, and the one to copy.
 
 - When the user actually **opens a channel in the player** and a real picture appears
   (`reachedLive`), ~**700 ms** later the live player takes one VLC snapshot
   (`TakeSnapshot(width 480)`) and hands that frame back to the grid via
   `GridPreviewCoordinator.IngestFrame(url, frame)`, which **adopts it as the channel's
-  thumbnail** — applies it to the grid tile *and* writes it to disk.
+  thumbnail** - applies it to the grid tile *and* writes it to disk.
 - Rationale (a direct product decision): **if you've seen the picture once, that becomes the
-  thumbnail.** The first frame at open is enough — we don't chase the "latest" frame. This
+  thumbnail.** The first frame at open is enough - we don't chase the "latest" frame. This
   populates thumbnails for channels the headless grabber can't get (or that only ever had a
   favicon) as a free side effect of normal viewing.
-- This path runs **even when auto-capture is off** (§6.4) — opening a channel is a deliberate
+- This path runs **even when auto-capture is off** (§6.4) - opening a channel is a deliberate
   act, so collecting its frame is always allowed.
 
 ### 6.2 When each path fires (triggers & rate-limiting)
 
-- **First-time blank tile, on screen:** auto-captured via path A — but only for **visible,
+- **First-time blank tile, on screen:** auto-captured via path A - but only for **visible,
   captureable** tiles, and only when the auto-capture setting is on. Stored tiles are never
   re-captured automatically.
 - **Hover:** a fresh path-A frame after a **≈1 s dwell**, throttled to **once per 15 s per
@@ -219,14 +219,14 @@ tile again**, and we should spend as little network/CPU as possible getting ther
 - **Memory:** a plain LRU cache (`PreviewFrameCache`, 64 decoded frames) for instant redraw.
 - **Disk:** `PreviewFrameStore` writes **JPEG, quality 70**, keyed by a hash of the URL, under
   `%LOCALAPPDATA%\StreamsPlayer`. Eviction is **by total-disk-size budget (150 MB), not a fixed
-  file count** — an earlier 64-*file* cap silently hid previews for a 2 300-channel catalog.
+  file count** - an earlier 64-*file* cap silently hid previews for a 2 300-channel catalog.
 - **Sizing:** 480×270 at JPEG q70 ≈ **22 KB/tile** (was 640×360 q70 ≈ 57 KB). 480 px gives DPI
   headroom over the largest grid tile (Large = 400 px wide) without paying for frames larger
   than any tile can show.
 - On next launch, stored frames are restored and shown **instead of the channel symbol/favicon**;
   nothing is re-captured just to display.
 
-### 6.4 Setting semantics — "off" does **not** mean "no thumbnails"
+### 6.4 Setting semantics - "off" does **not** mean "no thumbnails"
 
 The Settings toggle *"Update stream thumbnails automatically"* only governs **background
 auto-collection while browsing the grid**. When it is **off**:
@@ -240,13 +240,13 @@ running either way so restored thumbnails always show.
 
 ### 6.5 Concurrency & correctness caveats we hit
 
-- **Suspend headless grid capture while a player window is open or audio is playing** — don't let
+- **Suspend headless grid capture while a player window is open or audio is playing** - don't let
   background grabs fight the real player for network/CPU/decode.
 - **WPF cross-thread imaging:** a frozen `BitmapDecoder`/`FormatConvertedBitmap` is **not** safe
   to JPEG-encode on a worker thread. Copy the raw pixels into a `BitmapSource.Create(...)` +
   `Freeze()` first; only that is worker-thread-safe. Marshal the live-player snapshot back to the
   UI thread before handing it off.
-- **`--no-snapshot-preview`** on the live player — otherwise VLC paints the snapshot as a
+- **`--no-snapshot-preview`** on the live player - otherwise VLC paints the snapshot as a
   thumbnail overlay in the top-left corner of the video for a moment.
 
 ### 6.6 Android mapping
@@ -254,7 +254,7 @@ running either way so restored thumbnails always show.
 - **Headless grab (path A):** `MediaMetadataRetriever.getFrameAtTime(...)` or an ExoPlayer
   image/thumbnail output with a short timeout; cache to disk by URL hash; evict by size budget;
   only for tiles on screen.
-- **Player-ingest (path B) — do this too:** when the user opens a stream, grab the first rendered
+- **Player-ingest (path B) - do this too:** when the user opens a stream, grab the first rendered
   frame (`AnalyticsListener.onRenderedFirstFrame(...)` + a `PlayerView`/`SurfaceView` bitmap
   capture, or a parallel lightweight `MediaMetadataRetriever` pass) and store it as that channel's
   thumbnail. Deliberate opens are the cheapest, most-reliable thumbnail source and cover streams
@@ -286,12 +286,12 @@ For anyone using libVLC on Android, these map 1:1:
 :rtsp-tcp
 :avcodec-hw=none
 
-# LibVLC init (headless thumbnail grabber — §6):
+# LibVLC init (headless thumbnail grabber - §6):
 --no-video-title-show --no-osd --quiet --avcodec-hw=none
 # Per-media: :no-audio :network-caching=2000 :live-caching=2000
 ```
 
-(`--no-snapshot-preview` stops VLC drawing the grabbed frame as a corner overlay — see §6.5.
+(`--no-snapshot-preview` stops VLC drawing the grabbed frame as a corner overlay - see §6.5.
 `--no-ts-trust-pcr` is the next lever to try for streams that still micro-stutter from bad PCR.)
 
 ---
@@ -302,7 +302,7 @@ For anyone using libVLC on Android, these map 1:1:
 - **Rendered vs dropped frames:** `AnalyticsListener.onDroppedVideoFrames(...)`,
   `onRenderedFirstFrame(...)`.
 - **Decoder chosen (HW vs SW):** `onVideoDecoderInitialized(...)` (inspect the decoder name).
-- **Errors with codes:** `onPlayerError(PlaybackException)` — e.g.
+- **Errors with codes:** `onPlayerError(PlaybackException)` - e.g.
   `ERROR_CODE_IO_NETWORK_CONNECTION_FAILED`, `ERROR_CODE_DECODER_INIT_FAILED`,
   `ERROR_CODE_PARSING_CONTAINER_MALFORMED`.
 - Log the **full stream URL + host** so you can aggregate by source and find the systematically
@@ -323,7 +323,7 @@ Test stream: `http://88.212.15.19/live/test_ctsport_25p/playlist.m3u8` (HLS, 25 
 | Worst clock jitter | 8 958 ms | < 250 ms (one 1 000 ms) |
 | Multi-second display freezes | 8–16 s | none |
 
-The residual is the **stream's own defect** (invalid timestamps) — now *tolerated* (a few
+The residual is the **stream's own defect** (invalid timestamps) - now *tolerated* (a few
 percent dropped frames) rather than *fatal* (multi-second freezes).
 
 ---
@@ -332,7 +332,7 @@ percent dropped frames) rather than *fatal* (multi-second freezes).
 
 1. **Decoder fallback on** (Android) / software decode for known-bad streams (§2).
 2. **Do not reconnect to grow the buffer**; rebuffer in place; one sane buffer value (§4).
-3. **Tolerate bad clocks** — `clock-jitter=0`, and let ExoPlayer manage HLS live timing (§3).
+3. **Tolerate bad clocks** - `clock-jitter=0`, and let ExoPlayer manage HLS live timing (§3).
 4. **RTSP over TCP** (§5).
 5. **Instrument** so the above are measured, not guessed (§1, §9).
 
@@ -352,13 +352,13 @@ FlyleafLib parity against this baseline (measured / expected):
 - **Single live buffer, rebuffer-in-place** (§4): `Config.Demuxer.BufferDuration`; the app's
   shared stall watchdog + bounded recovery policy (SP-0015) drive both engines identically.
 - **HTTP auto-reconnect**: FlyleafLib default (`reconnect`/`reconnect_streamed` FormatOpt).
-- **Live statistics** (§1/§9): **not reproduced** — FlyleafLib exposes no equivalent input/demux
+- **Live statistics** (§1/§9): **not reproduced** - FlyleafLib exposes no equivalent input/demux
   counter surface, so per-sample `STATS` logging is a no-op on this engine.
 
 Deployment caveats (surface as the experimental label, never as a crash):
 
 - The **FFmpeg v8 native binaries are not delivered by NuGet**; they must be deployed (x64 only)
-  into an `FFmpeg` folder beside the executable. If absent — or on win-arm64 — the engine fails to
+  into an `FFmpeg` folder beside the executable. If absent - or on win-arm64 - the engine fails to
   start and the app **silently falls back to LibVLC** (logged as `FLYLEAF FALLBACK to=libvlc`).
 - Running LibVLC and FlyleafLib native stacks in the same process is not upstream-verified; the
   engines are used one at a time per player window.

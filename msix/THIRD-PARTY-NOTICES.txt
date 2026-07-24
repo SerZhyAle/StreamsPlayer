@@ -1,4 +1,4 @@
-StreamsPlayer — Third-Party Notices
+StreamsPlayer - Third-Party Notices
 ===================================
 
 StreamsPlayer itself is licensed under the MIT License (see LICENSE.txt).

@@ -28,7 +28,7 @@ public sealed class M3uImportServiceTests
     [Fact]
     public void DecodeUtf8_ThrowsOnInvalidEncoding()
     {
-        // 0x80 is a stray continuation byte — not valid UTF-8.
+        // 0x80 is a stray continuation byte - not valid UTF-8.
         var bytes = new byte[] { 0x23, 0x80, 0x81 };
         Assert.Throws<DecoderFallbackException>(() => M3uImportService.DecodeUtf8(bytes));
     }

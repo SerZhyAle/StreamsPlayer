@@ -32,7 +32,7 @@ public enum RecoveryActionKind
 /// <summary>
 /// The policy's decision for a single interruption: reconnect after <see cref="Delay"/> (this is
 /// attempt <see cref="Attempt"/> of <see cref="Budget"/> for its trigger), or hard-fail. Deterministic
-/// and clock-free — the caller waits <see cref="Delay"/> itself.
+/// and clock-free - the caller waits <see cref="Delay"/> itself.
 /// </summary>
 public sealed record RecoveryDecision(
     RecoveryActionKind Kind,

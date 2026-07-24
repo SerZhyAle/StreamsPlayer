@@ -3,7 +3,7 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// SP-0026 — picks the video/RTSP playback engine from the persisted <see cref="MediaBackend"/>.
+/// SP-0026 - picks the video/RTSP playback engine from the persisted <see cref="MediaBackend"/>.
 /// LibVLC is the default and the fallback for every value; FlyleafLib is the opt-in alternative.
 /// </summary>
 internal static class VideoBackendFactory

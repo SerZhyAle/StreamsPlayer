@@ -26,10 +26,13 @@ public enum CatalogViewMode
     Grid
 }
 
+// SP-0029: persisted by name via JsonStringEnumConverter, so an older state file that predates
+// Ukrainian still round-trips and new values can be appended without a migration.
 public enum AppLanguage
 {
     English,
-    Russian
+    Russian,
+    Ukrainian
 }
 
 public enum StreamLaunchTargetKind
@@ -142,7 +145,7 @@ public sealed record StreamBank(
 /// updates the existing entry rather than adding a row. No URL is stored: playback resolves the id
 /// against the current catalog only, so a deleted channel stays a non-playable label and is never
 /// reopened from a stale address. <see cref="LastTrackText"/> is the last observed ICY now-playing
-/// text (SP-0014) — a best-effort display string, not verified track identity.
+/// text (SP-0014) - a best-effort display string, not verified track identity.
 /// </summary>
 public sealed record ListeningHistoryEntry
 {
@@ -153,10 +156,26 @@ public sealed record ListeningHistoryEntry
     public string? LastTrackText { get; init; }
 }
 
+/// <summary>
+/// One local named collection (SP-0017): an ordered list of channel ids under a user-chosen name.
+/// Membership is many-to-many and each collection keeps its own order, so the same channel can sit
+/// first in one collection and last in another. An older state file without collections
+/// deserializes to the empty default.
+/// </summary>
+public sealed record ChannelCollection
+{
+    public required Guid Id { get; init; }
+    public required string Name { get; init; }
+    public List<Guid> ChannelIds { get; init; } = [];
+}
+
 public sealed record CatalogState
 {
     public int SchemaVersion { get; init; } = 1;
     public List<StreamChannel> Channels { get; init; } = [];
+
+    /// <summary>Local named collections (SP-0017). Never uploaded; deleting one never deletes channels.</summary>
+    public List<ChannelCollection> Collections { get; init; } = [];
 
     /// <summary>
     /// Local listening history (SP-0019), most-recent-first, keyed by channel id and bounded to
@@ -203,7 +222,7 @@ public sealed record CatalogState
 
     /// <summary>
     /// Playback engine for the video/RTSP player window only (SP-0026). Defaults to
-    /// <see cref="MediaBackend.LibVlc"/> — the proven baseline; <see cref="MediaBackend.Flyleaf"/>
+    /// <see cref="MediaBackend.LibVlc"/> - the proven baseline; <see cref="MediaBackend.Flyleaf"/>
     /// is an opt-in troubleshooting fallback. Audio and headless thumbnail capture ignore this.
     /// An older state file lacking this key deserializes to the LibVlc default.
     /// </summary>
@@ -221,6 +240,11 @@ public sealed record CatalogState
     /// An older state file lacking this key deserializes to the initializer default.
     /// </summary>
     public string CatalogMinBitrateFilter { get; init; } = "All";
+    /// <summary>
+    /// Active collection view (SP-0017): "All" (default) or a collection id. A stale id - the
+    /// collection was deleted while the app was closed - falls back to "All" instead of an empty list.
+    /// </summary>
+    public string CatalogCollectionFilter { get; init; } = "All";
     public string CatalogSortMode { get; init; } = "Name";
     public Guid? CatalogScrollAnchorId { get; init; }
 
@@ -237,6 +261,14 @@ public sealed record MergeResult(
     int Added,
     int Updated,
     int Removed);
+
+/// <summary>
+/// Outcome of <see cref="CatalogPurge.RemoveDownloaded"/> (SP-0030): the state without downloaded
+/// rows, and the ids that left so the UI can release their cached rows, selection, and playback.
+/// </summary>
+public sealed record CatalogPurgeResult(
+    CatalogState State,
+    IReadOnlyList<Guid> RemovedChannelIds);
 
 public sealed record CatalogRefreshResult(
     CatalogState State,

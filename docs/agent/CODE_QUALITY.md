@@ -2,7 +2,7 @@
 
 Apply these rules to new and changed code. Do not start a legacy-wide cleanup unless the task asks for it.
 
-- Comments explain non-obvious reasoning, invariants, or workarounds—not the adjacent statement.
+- Comments explain non-obvious reasoning, invariants, or workarounds-not the adjacent statement.
 - Catch the narrowest exception and recover, return a documented safe default, or rethrow. Never silently swallow exceptions.
 - Reuse existing constants and project values rather than duplicating recurring strings, URLs, colours, or magic numbers.
 - Keep asynchronous work owned by its UI or operation lifetime; do not introduce global mutable state as a shortcut.

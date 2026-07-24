@@ -1,4 +1,4 @@
-# Phase 01 — Shared glyph library
+# Phase 01 - Shared glyph library
 
 1. [x] Add local WPF vector glyph resources for language, list, grid, refresh,
    add, clear, pin, play, more, stop, confirm, cancel, fullscreen, and close.

@@ -95,6 +95,27 @@
             <Style x:Key="ExportGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M12,13V3M8,7L12,3L16,7M4,17H20V21H4Z" /></Style.Resources>
             </Style>
+            <Style x:Key="TrashGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,6H20M10,4H14M6,6L7,20H17L18,6M10,10V17M14,10V17" /></Style.Resources>
+            </Style>
+            <!-- SP-0022: outline clock with a crescent, distinct from the History clock. -->
+            <Style x:Key="SleepTimerGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="ContentTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Viewbox Width="16" Height="16" Margin="0,0,7,0" VerticalAlignment="Center">
+                                    <Path Data="M12,3.5 A8.5,8.5 0 1 1 11.99,3.5 M12,7 V12 L15.5,14"
+                                          Fill="Transparent"
+                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                          StrokeThickness="1.6" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                </Viewbox>
+                                <ContentPresenter Content="{Binding}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <Style x:Key="SettingsGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M9,3H15L16,6L19,5L22,10L20,12L22,14L19,19L16,18L15,21H9L8,18L5,19L2,14L4,12L2,10L5,5L8,6ZM12,9A3,3 0 1 0 12,15A3,3 0 1 0 12,9" /></Style.Resources>
             </Style>
@@ -123,6 +144,9 @@
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M10,14L14,10M8,16H6A4,4 0 0 1 6,8H10M16,8H18A4,4 0 0 1 18,16H14" /></Style.Resources>
             </Style>
             <Style x:Key="ClearGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M5,5L19,19M19,5L5,19" /></Style.Resources>
+            </Style>
+            <Style x:Key="ClearFiltersGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M5,5L19,19M19,5L5,19" /></Style.Resources>
             </Style>
             <Style x:Key="PlayGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">

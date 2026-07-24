@@ -7,7 +7,7 @@ using LibVLCSharp.Shared.Structures;
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// SP-0026 LibVLC implementation of <see cref="IVideoBackend"/> — the proven default engine.
+/// SP-0026 LibVLC implementation of <see cref="IVideoBackend"/> - the proven default engine.
 /// This is a behaviour-preserving extraction of the LibVLC surface that previously lived directly
 /// in <see cref="PlayerWindow"/>: the exact option set, per-media caching, snapshot pipeline, track
 /// enumeration, live statistics, and the Play/teardown race protection (<see cref="_mediaGate"/>).

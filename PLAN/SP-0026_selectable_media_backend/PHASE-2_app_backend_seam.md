@@ -1,17 +1,17 @@
-# PHASE-2 — App video-backend seam + LibVLC extraction
+# PHASE-2 - App video-backend seam + LibVLC extraction
 
 **Produces:** `IVideoBackend` + supporting types, `LibVlcVideoBackend` (verbatim move of today's
 LibVLC code), `PlayerWindow` refactored to consume the seam, a backend factory that (for this phase)
 always returns LibVLC.
 **Consumes:** Phase 1 (`MediaBackend`).
-**Goal (AC 3, AC 6, risk mitigation):** introduce the seam with **no behaviour change** — the
+**Goal (AC 3, AC 6, risk mitigation):** introduce the seam with **no behaviour change** - the
 default LibVLC path must remain byte-for-byte equivalent (fullscreen, volume/mute, tracks,
 thumbnails, recovery, watchdog, teardown threading all preserved). This is the riskiest phase; it
 is behaviour-preserving refactor only, no Flyleaf yet.
 
 ## Seam contract
 
-New file `src/StreamsPlayer.App/IVideoBackend.cs` — App-internal, no Core change:
+New file `src/StreamsPlayer.App/IVideoBackend.cs` - App-internal, no Core change:
 
 ```csharp
 internal interface IVideoBackend : IAsyncDisposable
@@ -107,7 +107,7 @@ logs the full counter set, Flyleaf logs nothing (documented experimental gap).
      `Task.Run` as today) after detaching events.
 
 4. **XAML host swap.** In [PlayerWindow.xaml](../../src/StreamsPlayer.App/PlayerWindow.xaml)
-   replace the `xmlns:vlc` `<vlc:VideoView x:Name="Player">` root with an engine-neutral host —
+   replace the `xmlns:vlc` `<vlc:VideoView x:Name="Player">` root with an engine-neutral host -
    e.g. a `<Grid x:Name="VideoHost">` whose first child the code sets to `_backend.View`, keeping
    the existing overlay `Grid` (control panel + toast) as the second child on top. The overlay
    markup and all `x:Name`s stay unchanged so no other handler moves.

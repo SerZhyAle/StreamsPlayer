@@ -1,4 +1,4 @@
-# Phase 3 — Browser verification and audit
+# Phase 3 - Browser verification and audit
 
 **Consumes:** the completed static site.  
 **Produces:** desktop/mobile evidence and final ticket audit.

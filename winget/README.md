@@ -25,11 +25,11 @@ Manual alternative (when you need full control of the manifest):
    to `microsoft/winget-pkgs`.
 
 Either way, winget can only be refreshed **after** an approved GitHub Release
-exists — there is no release yet, so this step is pending.
+exists. Release `v26.0723.1040` is published and the winget package is live, so
+use the flow above to submit each subsequent version.
 
-The planned identifier is `SerZhyAle.StreamsPlayer`. Confirm its availability
-before the first submission; choose a different permanent identifier if winget
-requires one.
+The package is published under the identifier `SerZhyAle.StreamsPlayer`. Keep this
+permanent identifier for every future submission.
 
 The templates follow manifest schema 1.12.0. Do not bump the schema merely because a newer client exists; use the version currently recommended by the `winget-pkgs` pull-request template. Test the filled installer in Windows Sandbox before submission.
 

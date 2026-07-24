@@ -41,8 +41,8 @@ See [research dossier](SP-0013_current_log/research.md).
 
 ## Last Audit
 
-- PASS — `CurrentLog` recreates `%LOCALAPPDATA%\StreamsPlayer\Current.log`, emits UTC severity-tagged lines, redacts HTTP(S)/RTSP URLs, serializes writes, and makes logging I/O best-effort.
-- PASS — `App` records startup/shutdown and WPF dispatcher, AppDomain, and unobserved-task exception surfaces without changing their handling semantics.
-- PASS — `MainWindow` records catalog state load and explicit refresh outcomes by counts only; the README and privacy-site localization disclose the local diagnostic file in English, Russian, and Ukrainian.
-- PASS — expected: Release build succeeds and Core tests pass | actual: `dotnet build StreamsPlayer.sln -c Release --no-restore` succeeded with 0 warnings/errors; `dotnet test StreamsPlayer.sln -c Release --no-build` passed 38/38 tests.
-- PASS — expected: launched WPF process creates and closes the current-session log | actual: launched Release `StreamsPlayer.exe`, then observed `C:\Users\serzh\AppData\Local\StreamsPlayer\Current.log` with `Application startup.`, `Catalog state loaded: 2691 channel(s).`, and `Application shutdown.`.
+- PASS - `CurrentLog` recreates `%LOCALAPPDATA%\StreamsPlayer\Current.log`, emits UTC severity-tagged lines, redacts HTTP(S)/RTSP URLs, serializes writes, and makes logging I/O best-effort.
+- PASS - `App` records startup/shutdown and WPF dispatcher, AppDomain, and unobserved-task exception surfaces without changing their handling semantics.
+- PASS - `MainWindow` records catalog state load and explicit refresh outcomes by counts only; the README and privacy-site localization disclose the local diagnostic file in English, Russian, and Ukrainian.
+- PASS - expected: Release build succeeds and Core tests pass | actual: `dotnet build StreamsPlayer.sln -c Release --no-restore` succeeded with 0 warnings/errors; `dotnet test StreamsPlayer.sln -c Release --no-build` passed 38/38 tests.
+- PASS - expected: launched WPF process creates and closes the current-session log | actual: launched Release `StreamsPlayer.exe`, then observed `C:\Users\serzh\AppData\Local\StreamsPlayer\Current.log` with `Application startup.`, `Catalog state loaded: 2691 channel(s).`, and `Application shutdown.`.

@@ -9,7 +9,7 @@ namespace StreamsPlayer.App;
 /// the power button are never overridden.
 ///
 /// Requests are reference-counted with separate system and display counters because audio and one
-/// or more player windows can play at once — releasing one session must not let the machine sleep
+/// or more player windows can play at once - releasing one session must not let the machine sleep
 /// while another still plays. Audio holds a system-only request (the screen may turn off); video
 /// holds system + display (the user is watching). The <see cref="Enabled"/> flag mirrors the
 /// persisted preference and gates whether counted requests translate into an actual OS call, so

@@ -5,7 +5,7 @@ namespace StreamsPlayer.Core;
 /// <summary>
 /// Tolerant numeric interpretation of the optional, untrusted <c>bitrate</c> catalog claim (SP-0018).
 /// The stored claim is a raw string; this is the single place that turns it into a comparable kbps value.
-/// A claim that cannot be interpreted is treated as unknown — never as zero-that-passes.
+/// A claim that cannot be interpreted is treated as unknown - never as zero-that-passes.
 /// </summary>
 public static class StreamBitrate
 {

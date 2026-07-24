@@ -16,7 +16,7 @@ public partial class MainWindow
 
     private async void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SettingsWindow(_state.TileSize, _state.UpdateStreamPreviews, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.VideoBackend, _state.Language, _selectedRow?.Channel, RunStreamListPortabilityAsync)
+        var dialog = new SettingsWindow(_state.TileSize, _state.UpdateStreamPreviews, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.VideoBackend, _state.Language, _selectedRow?.Channel, RunStreamListActionAsync)
         {
             Owner = this
         };

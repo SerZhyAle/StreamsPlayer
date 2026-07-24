@@ -1,4 +1,4 @@
-# Research — SP-0008 Launch and resume
+# Research - SP-0008 Launch and resume
 
 ## Evidence
 

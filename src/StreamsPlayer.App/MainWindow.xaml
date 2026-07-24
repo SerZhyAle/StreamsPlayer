@@ -26,9 +26,14 @@
                            VerticalAlignment="Center" Margin="12,0,0,0" TextTrimming="CharacterEllipsis" />
             </Grid>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button x:Name="LanguageButton" Style="{StaticResource LanguageGlyphButton}" Content="RU / EN" Click="LanguageButton_Click" IsEnabled="False"
-                        Padding="9,4" ToolTip="{DynamicResource SwitchLanguageTip}"
-                        AutomationProperties.Name="{DynamicResource SwitchLanguageName}" />
+                <!-- SP-0029: a picker rather than a two-state toggle, so further locales only add menu items. -->
+                <Button x:Name="LanguageButton" Style="{StaticResource LanguageGlyphButton}" Content="EN" Click="LanguageButton_Click" IsEnabled="False"
+                        Padding="9,4" ToolTip="{DynamicResource LanguagePickerName}"
+                        AutomationProperties.Name="{DynamicResource LanguagePickerName}">
+                    <Button.ContextMenu>
+                        <ContextMenu x:Name="LanguageMenu" />
+                    </Button.ContextMenu>
+                </Button>
                 <CheckBox x:Name="MainTopmostCheckBox" Content="{DynamicResource AlwaysOnTop}"
                           Checked="MainTopmostCheckBox_Changed" Unchecked="MainTopmostCheckBox_Changed"
                           IsEnabled="False" VerticalAlignment="Center" Margin="8,0,3,0"
@@ -56,6 +61,8 @@
             <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
@@ -96,13 +103,19 @@
                     <ComboBox x:Name="MinBitrateFilter" Width="100" SelectionChanged="FilterChanged" SelectedValuePath="Value"
                               ToolTip="{DynamicResource MinBitrateTip}" AutomationProperties.Name="{DynamicResource MinBitrateName}">
                         <ComboBox.Style>
-                            <Style TargetType="ComboBox">
+                            <!-- BasedOn keeps the app-wide ComboBox padding/margin; without it this filter
+                                 rendered shorter than its neighbours and its value sat off-centre. -->
+                            <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
                                 <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
                                 <Setter Property="BorderThickness" Value="2" />
+                                <Setter Property="VerticalContentAlignment" Value="Center" />
                                 <Style.Triggers>
                                     <Trigger Property="SelectedValue" Value="All">
                                         <Setter Property="BorderBrush" Value="#FFCBD5E1" />
                                         <Setter Property="BorderThickness" Value="1" />
+                                        <!-- +1px padding offsets the thinner border so the value keeps the
+                                             same height and baseline in both states. -->
+                                        <Setter Property="Padding" Value="6" />
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -113,6 +126,17 @@
                     <TextBlock Text="{DynamicResource SortBy}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
                     <ComboBox x:Name="SortMode" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource SortOrderTip}"
                               AutomationProperties.Name="{DynamicResource SortCatalogName}" />
+                </StackPanel>
+                <!-- SP-0017: one collection at a time, next to the other facets. -->
+                <StackPanel Grid.Column="7" Orientation="Horizontal" Margin="3">
+                    <TextBlock Text="{DynamicResource CollectionLabel}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox x:Name="CollectionFilter" Width="130" SelectionChanged="FilterChanged" SelectedValuePath="Value"
+                              ToolTip="{DynamicResource CollectionFilterTip}" AutomationProperties.Name="{DynamicResource CollectionFilterName}" />
+                </StackPanel>
+                <StackPanel Grid.Column="8" Orientation="Horizontal" Margin="3">
+                    <Button x:Name="ClearFiltersButton" Style="{StaticResource ClearFiltersGlyphButton}" Click="ClearFiltersButton_Click"
+                            VerticalAlignment="Center" ToolTip="{DynamicResource ClearFiltersTip}"
+                            AutomationProperties.Name="{DynamicResource ClearFiltersName}" />
                 </StackPanel>
             </Grid>
             </Viewbox>
@@ -616,6 +640,14 @@
                             ValueChanged="AudioVolumeSlider_ValueChanged" VerticalAlignment="Center" Margin="0,0,10,0"
                             Visibility="Collapsed"
                             ToolTip="{DynamicResource AudioVolumeTip}" AutomationProperties.Name="{DynamicResource AudioVolumeName}" />
+                    <!-- SP-0022: the sleep timer lives next to Stop, so it is one click away mid-listening. -->
+                    <Button x:Name="SleepTimerButton" Style="{StaticResource SleepTimerGlyphButton}" Content="{DynamicResource SleepTimer}"
+                            Click="SleepTimerButton_Click" Visibility="Collapsed" Foreground="White" Background="#FF2A3A52" BorderBrush="#FF3E5170"
+                            ToolTip="{DynamicResource SleepTimerTip}" AutomationProperties.Name="{DynamicResource SleepTimer}">
+                        <Button.ContextMenu>
+                            <ContextMenu x:Name="SleepTimerMenu" />
+                        </Button.ContextMenu>
+                    </Button>
                     <Button x:Name="StopAudioButton" Style="{StaticResource StopGlyphButton}" Content="{DynamicResource StopAudio}" Click="StopAudioButton_Click" IsEnabled="False" />
                 </StackPanel>
                 <MediaElement x:Name="AudioPlayer" Visibility="Collapsed" LoadedBehavior="Manual" UnloadedBehavior="Manual"

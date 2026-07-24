@@ -66,7 +66,7 @@ try {
 finally { Pop-Location }
 
 # The App targets a versioned Windows TFM (net10.0-windows10.0.19041.0), so resolve the
-# publish dir instead of hardcoding the moniker — robust to TFM changes.
+# publish dir instead of hardcoding the moniker - robust to TFM changes.
 $publish = Get-ChildItem (Join-Path $root 'src\StreamsPlayer.App\bin\Release') -Directory -ErrorAction SilentlyContinue |
     ForEach-Object { Join-Path $_.FullName 'win-x64\publish' } |
     Where-Object { Test-Path (Join-Path $_ 'StreamsPlayer.exe') } |

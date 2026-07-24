@@ -19,9 +19,11 @@
   <a href="README.uk.md">Українська</a>
 </p>
 
-> **Release status:** STREAMS Player is in active development. Portable ZIP,
-> Microsoft Store, and winget channels are planned but are not published
-> downloads yet.
+> **Release status:** STREAMS Player is released and free. Get it on the
+> [Microsoft Store](https://apps.microsoft.com/detail/9NBTD5SXB8TB), as a
+> portable ZIP from the [latest GitHub Release](https://github.com/SerZhyAle/StreamsPlayer/releases/latest),
+> or with `winget install SerZhyAle.StreamsPlayer`. No account, no ads, no
+> telemetry; the source is MIT.
 
 ## A calm player for the stream in front of you
 
@@ -61,6 +63,16 @@ code or features.
   counts before applying; HLS media manifests import nothing and explain why.
 - Export your added (`MANUAL`/`IMPORTED`) channels, or just the pinned ones, to a
   UTF-8 M3U file, with a warning before writing any credential-bearing URL.
+- Delete every downloaded catalog stream in one confirmed action from Settings and
+  keep only your own `MANUAL`/`IMPORTED` channels; **Update catalog** downloads
+  them again whenever you want them back.
+- Switch the interface between English, Russian, and Ukrainian from the toolbar
+  language picker; the choice is restored on the next launch.
+- Group channels into local named collections, browse one collection at a time
+  from the catalog filters, and manage them without touching pins or the catalog.
+- Set a sleep timer for inline radio — 15/30/45/60 minutes or a clock time — and
+  watch the remaining time count down next to Stop; it survives a station switch
+  and ends the session once when it expires.
 - Store catalog state, manual entries, pins, listening history, and the current-session diagnostic `Current.log` under `%LOCALAPPDATA%\StreamsPlayer`.
 
 Audio playback uses WPF `MediaElement`; video and RTSP use the bundled LibVLC

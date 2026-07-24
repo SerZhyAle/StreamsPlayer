@@ -61,26 +61,26 @@ screenshot.
 
 ## Last Audit
 
-- PASS — reference visual system. expected: Pine + Gold, glass header, compact
+- PASS - reference visual system. expected: Pine + Gold, glass header, compact
   hero, pill controls, cards | actual: desktop and mobile screenshots show all
   named patterns with StreamsPlayer icon and content.
-- PASS — product facts. expected: catalog controls, radio/video/RTSP, explicit
+- PASS - product facts. expected: catalog controls, radio/video/RTSP, explicit
   refresh, local data | actual: all four facts match `README.md` and the privacy
   contract.
-- PASS — distribution truthfulness. expected: no unpublished download presented
+- PASS - distribution truthfulness. expected: no unpublished download presented
   as available | actual: the page says active development and labels ZIP,
   Microsoft Store, and winget as Planned/Preparing.
-- PASS — localization. expected: RU/EN/UA selection and persistence | actual:
+- PASS - localization. expected: RU/EN/UA selection and persistence | actual:
   browser automation selected RU, reloaded with RU, and selected UA with the UA
   control active.
-- PASS — theming. expected: system-aware initial theme and persisted toggle |
+- PASS - theming. expected: system-aware initial theme and persisted toggle |
   actual: dark initialized, light persisted after reload, and the light privacy
   page rendered correctly.
-- PASS — responsive pages. expected: home and privacy at 390 px without clipping
+- PASS - responsive pages. expected: home and privacy at 390 px without clipping
   | actual: both reported `clientWidth = 390` and `scrollWidth = 390`.
-- PASS — local assets. expected: zero missing local references | actual: the
+- PASS - local assets. expected: zero missing local references | actual: the
   path-existence scan reported `Missing local references: 0`.
-- PASS — JavaScript syntax. expected: parseable shared script | actual:
+- PASS - JavaScript syntax. expected: parseable shared script | actual:
   `node --check docs/site.js` exited 0.
 
 Evidence: `tmp/SP-0001-site/desktop.png`,

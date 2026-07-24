@@ -118,6 +118,8 @@ public partial class PlayerWindow : Window
         UpdatePinButton();
         _settingsReady = true;
         TitleText.Text = StreamTitleFormatter.Display(channel.Title);
+        // Stream name first so the taskbar button identifies the broadcast even when heavily truncated.
+        Title = $"{TitleText.Text} - {LocalizationService.Get("PlayerWindowTitle")}";
         Loaded += PlayerWindow_Loaded;
         Closed += PlayerWindow_Closed;
     }
@@ -166,13 +168,13 @@ public partial class PlayerWindow : Window
     {
         if (!_reachedLive)
         {
-            return; // no frame has rendered yet — stay silent (AC 3)
+            return; // no frame has rendered yet - stay silent (AC 3)
         }
 
         _manualSnapshotPending = true;
         if (!CaptureThumbnail())
         {
-            _manualSnapshotPending = false; // snapshot rejected (e.g. surface not ready) — no toast
+            _manualSnapshotPending = false; // snapshot rejected (e.g. surface not ready) - no toast
         }
     }
 
@@ -246,7 +248,7 @@ public partial class PlayerWindow : Window
         }
 
         _buffering = false;
-        _recovering = false; // reached live — clear any Reconnecting label
+        _recovering = false; // reached live - clear any Reconnecting label
         WaitText.SetResourceReference(TextBlock.TextProperty, "PlayingLive");
         RefreshTrackControls();
         if (_isStalled)
@@ -260,7 +262,7 @@ public partial class PlayerWindow : Window
         {
             _outcomeRecorded = true;
             _reachedLive = true;
-            _recovery.NotifyLive(); // sustained live — restore the full recovery budget
+            _recovery.NotifyLive(); // sustained live - restore the full recovery budget
             _log.Event("PLAYBACK LIVE", $"ttff_ms={_playbackClock.ElapsedMilliseconds}", $"url={_channel.Url}");
             _ = _recordOutcome(_channel.Id, true);
             if (!_thumbnailCaptured && _onThumbnail is not null)
@@ -350,7 +352,7 @@ public partial class PlayerWindow : Window
 
             if (_closing)
             {
-                return; // window closed while probing — do not touch the UI or restart
+                return; // window closed while probing - do not touch the UI or restart
             }
 
             var decision = _recovery.Decide(enriched);
@@ -378,7 +380,7 @@ public partial class PlayerWindow : Window
             }
             catch (OperationCanceledException)
             {
-                return; // stop / close / switch cancelled the wait — never restart the old stream
+                return; // stop / close / switch cancelled the wait - never restart the old stream
             }
 
             if (_closing)

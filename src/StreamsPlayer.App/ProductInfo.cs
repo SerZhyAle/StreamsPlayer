@@ -15,7 +15,11 @@ public static class ProductInfo
         (Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
         ?? "Unknown").Split('+')[0];
 
-    public static string InstructionsUrl(AppLanguage language) => language == AppLanguage.Russian
-        ? $"{SourceUrl}/blob/main/README.ru.md"
-        : $"{SourceUrl}/blob/main/README.md";
+    // SP-0029: each UI language points at its own README mirror; anything else falls back to English.
+    public static string InstructionsUrl(AppLanguage language) => language switch
+    {
+        AppLanguage.Russian => $"{SourceUrl}/blob/main/README.ru.md",
+        AppLanguage.Ukrainian => $"{SourceUrl}/blob/main/README.uk.md",
+        _ => $"{SourceUrl}/blob/main/README.md"
+    };
 }

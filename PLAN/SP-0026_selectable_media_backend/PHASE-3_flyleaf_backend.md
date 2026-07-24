@@ -1,4 +1,4 @@
-# PHASE-3 — FlyleafLib backend implementation
+# PHASE-3 - FlyleafLib backend implementation
 
 **Produces:** `FlyleafLib` package reference, `FlyleafVideoBackend : IVideoBackend`, factory arm
 selecting Flyleaf when persisted.
@@ -7,14 +7,14 @@ selecting Flyleaf when persisted.
 RTSP through the exact same seam; parity gaps are surfaced by the experimental label (Phase 4), not
 by a crash or silent freeze.
 
-## Step 0 — pin and verify the API surface (stop-on-ambiguity gate)
+## Step 0 - pin and verify the API surface (stop-on-ambiguity gate)
 
 The exact FlyleafLib 3.10.x API is **not** assumed by this plan. Before wiring, verify the current
 surface against the installed package and its docs (`Player`, its host control, `Player.Open(url)`,
 volume/mute, status/buffering events, error/end events, snapshot-to-file or frame grab, audio/video
 stream lists). Sources: FlyleafLib NuGet page and `SuRGeoNix/Flyleaf` wiki (Config, Player,
 FlyleafHost). If an interface method has no Flyleaf equivalent (e.g. per-track SPU selection),
-implement it as a documented no-op / empty list — that is an allowed experimental gap, not a
+implement it as a documented no-op / empty list - that is an allowed experimental gap, not a
 blocker. Record the resolved API mapping in this phase file before step 2.
 
 ## Steps
@@ -45,7 +45,7 @@ blocker. Record the resolved API mapping in this phase file before step 2.
      (documented gap; save-frame simply no-ops as it already does before first frame);
    - `AudioTracks` / `SubtitleTracks` / selection from Flyleaf's stream lists, or empty +
      no-op where not offered (the window auto-hides the track buttons when a list has ≤1 entry);
-   - `LogStats` = no-op (documented — Flyleaf has no equivalent counter set);
+   - `LogStats` = no-op (documented - Flyleaf has no equivalent counter set);
    - `StopAndDisposeAsync` disposes the player/host off the UI thread, matching the LibVLC teardown
      contract (no UI-thread block on a flapping stream).
 

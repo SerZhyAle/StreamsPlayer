@@ -9,7 +9,7 @@ Perform evidence-based, read-only research for StreamsPlayer. Do not create, edi
 
 ## Method
 - Start with `README.md` and `AGENTS.md`, then the relevant `PLAN/SP-NNNN` ticket, then `docs/agent/RESEARCH_INDEX.md`.
-- Locate symbols with `rg` before reading whole files. A name is not evidence of behaviour — confirm a live read/call site before reasoning about what a flag, constant, or key does.
+- Locate symbols with `rg` before reading whole files. A name is not evidence of behaviour - confirm a live read/call site before reasoning about what a flag, constant, or key does.
 - Cite every material claim to an existing path and, where helpful, a line number. Never invent a path, symbol, or API.
 
 ## Report

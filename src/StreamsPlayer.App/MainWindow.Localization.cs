@@ -13,18 +13,52 @@ public partial class MainWindow
     private string _nowPlayingResourceKey = "NothingPlaying";
     private object?[] _nowPlayingArguments = [];
 
-    private async void LanguageButton_Click(object sender, RoutedEventArgs e)
+    // SP-0029: the toolbar button opens the language menu instead of flipping between two locales.
+    private void LanguageButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!_preferencesLoaded)
+        if (!_preferencesLoaded || LanguageButton.ContextMenu is not { } menu)
         {
             return;
         }
 
-        var language = _state.Language == AppLanguage.English ? AppLanguage.Russian : AppLanguage.English;
+        BuildLanguageMenu(menu);
+        menu.PlacementTarget = LanguageButton;
+        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        menu.IsOpen = true;
+    }
+
+    private void BuildLanguageMenu(ContextMenu menu)
+    {
+        menu.Items.Clear();
+        foreach (var language in LocalizationService.Available)
+        {
+            var item = new MenuItem
+            {
+                Header = LocalizationService.NativeName(language),
+                IsCheckable = true,
+                IsChecked = language == _state.Language,
+                Tag = language
+            };
+            item.Click += LanguageMenuItem_Click;
+            menu.Items.Add(item);
+        }
+    }
+
+    private async void LanguageMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { Tag: AppLanguage language } || language == _state.Language)
+        {
+            // Re-checking the active language must not rewrite state or flicker the interface.
+            UpdateLanguageButton();
+            return;
+        }
+
         LocalizationService.Apply(language);
         _state = await _store.SaveAsync(_state with { Language = language });
         RefreshLocalizedInterface();
     }
+
+    private void UpdateLanguageButton() => LanguageButton.Content = LocalizationService.ShortCode(_state.Language);
 
     private async void MainTopmostCheckBox_Changed(object sender, RoutedEventArgs e)
     {
@@ -60,7 +94,10 @@ public partial class MainWindow
 
     private void RefreshLocalizedInterface()
     {
+        UpdateLanguageButton();
         UpdateLocalizedOptions();
+        // The collection list carries a localized "All" entry, so it is rebuilt with the rest (SP-0017).
+        PopulateCollectionFilter();
         PopulateFacets();
         foreach (var row in _rowCache.Values)
         {
@@ -127,11 +164,24 @@ public partial class MainWindow
         _nowPlayingResourceKey = resourceKey;
         _nowPlayingArguments = arguments;
         NowPlayingText.Text = LocalizationService.Format(resourceKey, arguments);
+        RefreshWindowTitle();
+    }
+
+    // The title bar (and therefore the taskbar button) names the station currently playing or paused,
+    // so a minimised window still says what is on air. Every playback transition goes through
+    // SetNowPlaying, so that is the single hook; the product name alone is the idle title.
+    private void RefreshWindowTitle()
+    {
+        var product = LocalizationService.Get("ProductName");
+        var station = _playingAudio?.DisplayTitle
+            ?? (_audioPausedChannel is { } paused ? StreamTitleFormatter.Display(paused.Title) : null);
+        Title = string.IsNullOrWhiteSpace(station) ? product : $"{station} - {product}";
     }
 
     private void RefreshLocalizedStateText()
     {
         StatusText.Text = LocalizationService.Format(_statusResourceKey, _statusArguments);
         NowPlayingText.Text = LocalizationService.Format(_nowPlayingResourceKey, _nowPlayingArguments);
+        RefreshWindowTitle();
     }
 }

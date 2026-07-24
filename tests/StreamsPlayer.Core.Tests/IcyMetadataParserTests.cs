@@ -56,7 +56,7 @@ public sealed class IcyMetadataParserTests
     [Fact]
     public void ExtractStreamTitle_MalformedUnterminatedBlockIsBestEffort()
     {
-        // No closing "';" — must not throw and should still surface the value.
+        // No closing "';" - must not throw and should still surface the value.
         Assert.Equal("Artist - Song", IcyMetadataParser.ExtractStreamTitle("StreamTitle='Artist - Song"));
     }
 

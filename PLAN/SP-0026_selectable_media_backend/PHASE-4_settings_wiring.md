@@ -1,4 +1,4 @@
-# PHASE-4 — Settings UI, persistence wiring, localized strings
+# PHASE-4 - Settings UI, persistence wiring, localized strings
 
 **Produces:** engine ComboBox in the Settings window, persistence of `VideoBackend`, the value
 threaded into `PlayerWindow`, EN+RU strings.
@@ -10,7 +10,7 @@ opens on the chosen engine.
 
 ## Steps
 
-1. **Settings XAML — engine picker.** In
+1. **Settings XAML - engine picker.** In
    [SettingsWindow.xaml](../../src/StreamsPlayer.App/SettingsWindow.xaml), inside the existing
    `PlaybackSettings` `GroupBox` (Grid.Row="1"), add below the two checkboxes:
    ```xml
@@ -35,7 +35,7 @@ opens on the chosen engine.
    [MainWindow.Settings.cs](../../src/StreamsPlayer.App/MainWindow.Settings.cs):
    - pass `_state.VideoBackend` into the `new SettingsWindow(...)` call;
    - include `VideoBackend = dialog.SelectedVideoBackend` in the `_store.SaveAsync(_state with {…})`
-     block. No live re-open needed — the choice takes effect on the next player window opened
+     block. No live re-open needed - the choice takes effect on the next player window opened
      (document this: an already-open player keeps its engine).
 
 4. **Thread into the player.** In
@@ -47,7 +47,7 @@ opens on the chosen engine.
    [Localization.en.xaml](../../src/StreamsPlayer.App/Localization.en.xaml) and
    [Localization.ru.xaml](../../src/StreamsPlayer.App/Localization.ru.xaml) keys:
    `VideoBackendLabel`, `VideoBackendHint` (frames Flyleaf as a fallback to try when a stream
-   misbehaves on the default — Decision 2), `VideoBackendLibVlc`, `VideoBackendFlyleaf`. Keep both
+   misbehaves on the default - Decision 2), `VideoBackendLibVlc`, `VideoBackendFlyleaf`. Keep both
    dictionaries key-aligned.
 
 ## Static check

@@ -11,14 +11,14 @@ public partial class SettingsWindow : Window
 {
     private readonly AppLanguage _language;
     private readonly StreamChannel? _selectedChannel;
-    private readonly Func<StreamListPortabilityAction, Window, Task> _runPortability;
+    private readonly Func<StreamListAction, Window, Task> _runStreamListAction;
 
-    public SettingsWindow(StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, MediaBackend videoBackend, AppLanguage language, StreamChannel? selectedChannel, Func<StreamListPortabilityAction, Window, Task> runPortability)
+    public SettingsWindow(StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, MediaBackend videoBackend, AppLanguage language, StreamChannel? selectedChannel, Func<StreamListAction, Window, Task> runStreamListAction)
     {
         InitializeComponent();
         _language = language;
         _selectedChannel = selectedChannel;
-        _runPortability = runPortability;
+        _runStreamListAction = runStreamListAction;
         var sizes = new[]
         {
             new UiOption(nameof(StreamTileSize.Small), LocalizationService.Get("TileSmall")),
@@ -57,16 +57,21 @@ public partial class SettingsWindow : Window
     private void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
     private async void ImportFromFile_Click(object sender, RoutedEventArgs e) =>
-        await _runPortability(StreamListPortabilityAction.ImportFromFile, this);
+        await _runStreamListAction(StreamListAction.ImportFromFile, this);
 
     private async void ImportFromUrl_Click(object sender, RoutedEventArgs e) =>
-        await _runPortability(StreamListPortabilityAction.ImportFromUrl, this);
+        await _runStreamListAction(StreamListAction.ImportFromUrl, this);
 
     private async void ExportAll_Click(object sender, RoutedEventArgs e) =>
-        await _runPortability(StreamListPortabilityAction.ExportAll, this);
+        await _runStreamListAction(StreamListAction.ExportAll, this);
 
     private async void ExportPinned_Click(object sender, RoutedEventArgs e) =>
-        await _runPortability(StreamListPortabilityAction.ExportPinned, this);
+        await _runStreamListAction(StreamListAction.ExportPinned, this);
+
+    // SP-0030: destructive and immediate - the confirmation inside the action is the commit point,
+    // so closing Settings with Cancel does not bring the downloaded rows back.
+    private async void DeleteDownloaded_Click(object sender, RoutedEventArgs e) =>
+        await _runStreamListAction(StreamListAction.DeleteDownloaded, this);
 
     private void CopyLaunchCommand_Click(object sender, RoutedEventArgs e)
     {

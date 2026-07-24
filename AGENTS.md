@@ -17,32 +17,32 @@ or publication. A local build is not a release.
 
 ## Project layout
 
-- `src/StreamsPlayer.Core` — platform-neutral catalog contracts, parsing, merge
+- `src/StreamsPlayer.Core` - platform-neutral catalog contracts, parsing, merge
   and persistence.
-- `src/StreamsPlayer.App` — WPF Windows desktop application.
-- `tests/StreamsPlayer.Core.Tests` — unit and contract tests.
-- `tools/StreamsPlayer.CatalogHarness` — live-bank diagnostic harness.
-- `docs/specifications/streams.txt` — standalone product specification.
-- `docs/agent/` — agent workflow and validation guidance.
-- `docs/` and `assets/` — GitHub Pages and product documentation assets.
-- `.github/` — CI, release automation, and contribution templates.
-- `msix/` — Store-ready package template and package-build guidance.
-- `winget/` — release-manifest templates and submission notes.
+- `src/StreamsPlayer.App` - WPF Windows desktop application.
+- `tests/StreamsPlayer.Core.Tests` - unit and contract tests.
+- `tools/StreamsPlayer.CatalogHarness` - live-bank diagnostic harness.
+- `docs/specifications/streams.txt` - standalone product specification.
+- `docs/agent/` - agent workflow and validation guidance.
+- `docs/` and `assets/` - GitHub Pages and product documentation assets.
+- `.github/` - CI, release automation, and contribution templates.
+- `msix/` - Store-ready package template and package-build guidance.
+- `winget/` - release-manifest templates and submission notes.
 
 ## Development commands
 
 Run from the repository root in PowerShell.
 
-- `./build.ps1 -Test` — restore, build and run tests.
-- `./build.ps1 -Deploy` — build a self-contained Release EXE and copy it to the local SZA app folders; this is not a release.
-- `./build.ps1 -Run` or `./run.ps1` — restore, build and launch the app.
-- `./scripts/check.ps1` — Release restore, build, and test check.
-- `dotnet format StreamsPlayer.sln --verify-no-changes` — formatting diagnostic; it currently reports a pre-existing line-ending/encoding baseline and is not a passing gate until that baseline is normalized.
-- `dotnet run --project src/StreamsPlayer.App` — run the desktop application.
+- `./build.ps1 -Test` - restore, build and run tests.
+- `./build.ps1 -Deploy` - build a self-contained Release EXE and copy it to the local SZA app folders; this is not a release.
+- `./build.ps1 -Run` or `./run.ps1` - restore, build and launch the app.
+- `./scripts/check.ps1` - Release restore, build, and test check.
+- `dotnet format StreamsPlayer.sln --verify-no-changes` - formatting diagnostic; it currently reports a pre-existing line-ending/encoding baseline and is not a passing gate until that baseline is normalized.
+- `dotnet run --project src/StreamsPlayer.App` - run the desktop application.
 - `dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png`
-  — check the live catalog contract.
-- `./msix/build-msix.ps1 -SelfSign` — build and locally test an MSIX package; use only for package work.
-- `./scripts/release.ps1` — print the manual release checklist only.
+  - check the live catalog contract.
+- `./msix/build-msix.ps1 -SelfSign` - build and locally test an MSIX package; use only for package work.
+- `./scripts/release.ps1` - print the manual release checklist only.
 
 Never run `./scripts/build-local.ps1` unless the user explicitly requests a commit: it stages and commits changes.
 
@@ -123,7 +123,7 @@ git push -u origin main
 StreamsPlayer follows the portfolio-wide **SZA Unified Rules** for repository layout, documentation, versioning, testing, release, localization, security, and AI usage.
 
 - **Canon home** (local working copy on the owner's machine, not committed here and not public): `P:\WEB\sites.google.comsiteszaodua\Unified_Rules`. It is the source of truth for the *universal* rules. This file deliberately keeps those rules restated in-repo so the repository stays self-contained for CI and outside contributors; the canon is authoritative when the two ever disagree.
-- **This repo's record** lives in the canon at `contrib/streams_player.md` — the verified overlay facts, channel-matrix rows, and the legitimate divergences (DIVERGE deltas) specific to StreamsPlayer.
-- **Overlay shape:** Windows-desktop, *no-installer variant* — portable-zip GitHub Release + winget-portable + Store MSIX, with no Inno/WiX installer. Frozen anchors reduce to winget `PackageIdentifier` and the MSIX Identity `Name`/`Publisher`.
-- **Coupling shape:** *consumed published release artifact* — StreamsPlayer depends at runtime on another SZA product's release output (the FastMediaSorter catalog ZIP at `StreamCatalogService.CatalogUrl`). This is neither a wire/config contract nor an edition/parity relationship; the merge protects user-owned `MANUAL`/`IMPORTED` rows and refresh is explicit-only.
+- **This repo's record** lives in the canon at `contrib/streams_player.md` - the verified overlay facts, channel-matrix rows, and the legitimate divergences (DIVERGE deltas) specific to StreamsPlayer.
+- **Overlay shape:** Windows-desktop, *no-installer variant* - portable-zip GitHub Release + winget-portable + Store MSIX, with no Inno/WiX installer. Frozen anchors reduce to winget `PackageIdentifier` and the MSIX Identity `Name`/`Publisher`.
+- **Coupling shape:** *consumed published release artifact* - StreamsPlayer depends at runtime on another SZA product's release output (the FastMediaSorter catalog ZIP at `StreamCatalogService.CatalogUrl`). This is neither a wire/config contract nor an edition/parity relationship; the merge protects user-owned `MANUAL`/`IMPORTED` rows and refresh is explicit-only.
 - **Editing the canon:** universal-rule fixes land in the canon first, then spread back here. Never edit the canon from a StreamsPlayer session except its own `contrib/streams_player.md` record.

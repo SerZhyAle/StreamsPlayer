@@ -1,4 +1,4 @@
-# Phase 2 — Product and privacy pages
+# Phase 2 - Product and privacy pages
 
 **Consumes:** phase 1 shared CSS and JavaScript.  
 **Produces:** redesigned localized home and privacy pages.

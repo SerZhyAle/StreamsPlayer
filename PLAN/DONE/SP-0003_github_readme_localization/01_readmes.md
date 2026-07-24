@@ -1,4 +1,4 @@
-# Phase 1 — GitHub-native localized README set
+# Phase 1 - GitHub-native localized README set
 
 **Produces:** a product-oriented English README and Russian/Ukrainian variants.
 

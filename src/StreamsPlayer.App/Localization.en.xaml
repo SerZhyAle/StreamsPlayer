@@ -3,8 +3,6 @@
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
     <sys:String x:Key="ProductName">STREAMS Player</sys:String>
     <sys:String x:Key="MainSubtitle">Independent live TV, radio, and RTSP catalog</sys:String>
-    <sys:String x:Key="SwitchLanguageTip">Switch between Russian and English</sys:String>
-    <sys:String x:Key="SwitchLanguageName">Switch interface language</sys:String>
     <sys:String x:Key="AlwaysOnTop">Always on top</sys:String>
     <sys:String x:Key="MainAlwaysOnTopName">Keep the main window always on top</sys:String>
     <sys:String x:Key="List">List</sys:String>
@@ -25,6 +23,8 @@
     <sys:String x:Key="SearchName">Search catalog by title, topic, or language</sys:String>
     <sys:String x:Key="Clear">Clear</sys:String>
     <sys:String x:Key="ClearTip">Clear search</sys:String>
+    <sys:String x:Key="ClearFiltersTip">Reset all filters to All (search is kept)</sys:String>
+    <sys:String x:Key="ClearFiltersName">Reset all catalog filters</sys:String>
     <sys:String x:Key="Media">Media</sys:String>
     <sys:String x:Key="MediaKindTip">Media kind</sys:String>
     <sys:String x:Key="MediaFilterName">Media filter</sys:String>
@@ -86,7 +86,7 @@
     <sys:String x:Key="MenuFullscreenUnavailable">Fullscreen is available for video and RTSP streams.</sys:String>
     <sys:String x:Key="MenuEdit">Edit</sys:String>
     <sys:String x:Key="MainOpening">Opening saved catalog…</sys:String>
-    <sys:String x:Key="MainReadyNoRefresh">Ready — catalog downloads only when you choose Update catalog</sys:String>
+    <sys:String x:Key="MainReadyNoRefresh">Ready - catalog downloads only when you choose Update catalog</sys:String>
     <sys:String x:Key="MainLastUpdated">Catalog last updated {0:g}</sys:String>
     <sys:String x:Key="MainLoadFailed">Could not load local state.</sys:String>
     <sys:String x:Key="OfflineCatalog">You are offline. The catalog was not requested.</sys:String>
@@ -103,7 +103,7 @@
     <sys:String x:Key="OfflinePlayback">You are offline. Playback was not attempted.</sys:String>
     <sys:String x:Key="ConnectingAudio">Connecting to {0}…</sys:String>
     <sys:String x:Key="NowPlaying">Now playing: {0}</sys:String>
-    <sys:String x:Key="NowPlayingWithTrack">Now playing: {0} — {1}</sys:String>
+    <sys:String x:Key="NowPlayingWithTrack">Now playing: {0} - {1}</sys:String>
     <sys:String x:Key="PausedAudio">Paused: {0}</sys:String>
     <sys:String x:Key="AudioFailed">The audio stream could not be played.</sys:String>
     <sys:String x:Key="StreamUnavailableTitle">Stream unavailable</sys:String>
@@ -256,4 +256,43 @@
     <sys:String x:Key="ExportCredentialWarning">One or more channels contain a password or token in the address. The exported file stores it in clear text. Continue?</sys:String>
     <sys:String x:Key="ExportResult">Exported {0} channel(s).</sys:String>
     <sys:String x:Key="ExportFailed">Windows could not write the export file.</sys:String>
-</ResourceDictionary>
+    <!-- SP-0030 delete downloaded catalog streams -->
+    <sys:String x:Key="DeleteDownloaded">Delete downloaded streams</sys:String>
+    <sys:String x:Key="DeleteDownloadedTip">Remove every stream that came from the downloaded catalog and keep only your own channels</sys:String>
+    <sys:String x:Key="DeleteDownloadedHint">Keep only your own channels: this removes the streams that came from the downloaded catalog. Your added and imported channels stay. Update catalog downloads them again.</sys:String>
+    <sys:String x:Key="DeleteDownloadedTitle">Delete downloaded streams</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">Delete all {0:N0} downloaded catalog stream(s)? Your added and imported channels are kept. This cannot be undone, but Update catalog downloads them again.</sys:String>
+    <sys:String x:Key="DeleteDownloadedNone">There are no downloaded catalog streams to delete.</sys:String>
+    <sys:String x:Key="DeleteDownloadedResult">Deleted {0:N0} downloaded stream(s).</sys:String>
+    <!-- SP-0029 language picker -->
+    <sys:String x:Key="LanguageEnglish">English</sys:String>
+    <sys:String x:Key="LanguageRussian">Русский</sys:String>
+    <sys:String x:Key="LanguageUkrainian">Українська</sys:String>
+    <sys:String x:Key="LanguagePickerName">Interface language</sys:String>
+    <!-- SP-0022 audio sleep timer -->
+    <sys:String x:Key="SleepTimer">Sleep timer</sys:String>
+    <sys:String x:Key="SleepTimerTip">Stop the radio automatically after a while</sys:String>
+    <sys:String x:Key="SleepTimerActiveTip">Playback stops at {0}</sys:String>
+    <sys:String x:Key="SleepTimerMinutes">{0} minutes</sys:String>
+    <sys:String x:Key="SleepTimerAtTime">Stop at (HH:mm)</sys:String>
+    <sys:String x:Key="SleepTimerCancel">Cancel timer</sys:String>
+    <sys:String x:Key="SleepTimerSet">Sleep timer set for {0}</sys:String>
+    <sys:String x:Key="SleepTimerCancelled">Sleep timer cancelled.</sys:String>
+    <sys:String x:Key="SleepTimerEnded">The sleep timer stopped playback.</sys:String>
+    <sys:String x:Key="SleepTimerInvalidTime">Enter a time as HH:mm within the next 24 hours.</sys:String>    <!-- SP-0017 named collections -->
+    <sys:String x:Key="CollectionLabel">Collection</sys:String>
+    <sys:String x:Key="CollectionFilterTip">Show only the channels of one collection</sys:String>
+    <sys:String x:Key="CollectionFilterName">Collection filter</sys:String>
+    <sys:String x:Key="CollectionMenu">Add to collection</sys:String>
+    <sys:String x:Key="CollectionNew">New collection</sys:String>
+    <sys:String x:Key="CollectionCreate">Create</sys:String>
+    <sys:String x:Key="CollectionManage">Manage collections…</sys:String>
+    <sys:String x:Key="CollectionManageTitle">Collections</sys:String>
+    <sys:String x:Key="CollectionRename">Collection name</sys:String>
+    <sys:String x:Key="CollectionDelete">Delete</sys:String>
+    <sys:String x:Key="CollectionsEmpty">No collections yet. Type a name above to create one.</sys:String>
+    <sys:String x:Key="CollectionCount">{0:N0} channel(s)</sys:String>
+    <sys:String x:Key="CollectionCreated">Collection {0} created</sys:String>
+    <sys:String x:Key="CollectionNameInvalid">Enter a name that is not empty and not already used.</sys:String>
+    <sys:String x:Key="CollectionDeleteConfirm">Delete the collection "{0}"? Its channels stay in your list.</sys:String></ResourceDictionary>
+

@@ -1,4 +1,4 @@
-# Phase 02 — Button adoption
+# Phase 02 - Button adoption
 
 1. [x] Update all buttons in `MainWindow.xaml`, `AddStreamWindow.xaml`, and
    `PlayerWindow.xaml` to use the shared glyph presentation; use glyph-only

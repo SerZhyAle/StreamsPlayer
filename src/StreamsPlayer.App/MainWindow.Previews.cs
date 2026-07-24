@@ -139,7 +139,7 @@ public partial class MainWindow
         var visible = new List<ChannelRow>();
 
         // The pinned section is a small, non-virtualized region; when it is expanded every pinned tile
-        // is realized, so treat them all as visible (SP-0025 — previews must span both regions).
+        // is realized, so treat them all as visible (SP-0025 - previews must span both regions).
         if (HasPinned && !PinnedSectionCollapsed && IsGridMode)
         {
             visible.AddRange(PinnedRows);

@@ -47,7 +47,12 @@ public partial class MainWindow
         }
 
         // Rebuild the list without this row, matching strictly by Id so a colliding-URL row is never touched.
-        _state = await _store.SaveAsync(_state with { Channels = _state.Channels.Where(item => item.Id != channel.Id).ToList() });
+        // SP-0017: the same save drops its collection memberships; the collections themselves stay.
+        _state = await _store.SaveAsync(_state with
+        {
+            Channels = _state.Channels.Where(item => item.Id != channel.Id).ToList(),
+            Collections = [.. ChannelCollections.RemoveChannelEverywhere(_state.Collections, channel.Id)]
+        });
         ForgetRow(channel.Id);
         _log.Event("CHANNEL DELETE", $"url={channel.Url}");
         PopulateFacets();

@@ -3,8 +3,6 @@
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
     <sys:String x:Key="ProductName">Трансляции</sys:String>
     <sys:String x:Key="MainSubtitle">Каталог интернет-ТВ, радио и RTSP</sys:String>
-    <sys:String x:Key="SwitchLanguageTip">Переключить русский и английский язык</sys:String>
-    <sys:String x:Key="SwitchLanguageName">Переключить язык интерфейса</sys:String>
     <sys:String x:Key="AlwaysOnTop">Поверх всех окон</sys:String>
     <sys:String x:Key="MainAlwaysOnTopName">Показывать главное окно поверх всех</sys:String>
     <sys:String x:Key="List">Список</sys:String>
@@ -25,6 +23,8 @@
     <sys:String x:Key="SearchName">Поиск по названию, теме или языку</sys:String>
     <sys:String x:Key="Clear">Очистить</sys:String>
     <sys:String x:Key="ClearTip">Очистить поиск</sys:String>
+    <sys:String x:Key="ClearFiltersTip">Сбросить все фильтры на «Все» (поиск сохраняется)</sys:String>
+    <sys:String x:Key="ClearFiltersName">Сбросить все фильтры каталога</sys:String>
     <sys:String x:Key="Media">Медиа</sys:String>
     <sys:String x:Key="MediaKindTip">Тип медиа</sys:String>
     <sys:String x:Key="MediaFilterName">Фильтр типа медиа</sys:String>
@@ -86,7 +86,7 @@
     <sys:String x:Key="MenuFullscreenUnavailable">Полноэкранный режим доступен для видео и RTSP-потоков.</sys:String>
     <sys:String x:Key="MenuEdit">Редактировать</sys:String>
     <sys:String x:Key="MainOpening">Открывается сохранённый каталог…</sys:String>
-    <sys:String x:Key="MainReadyNoRefresh">Готово — каталог загружается только по команде «Обновить каталог»</sys:String>
+    <sys:String x:Key="MainReadyNoRefresh">Готово - каталог загружается только по команде «Обновить каталог»</sys:String>
     <sys:String x:Key="MainLastUpdated">Каталог обновлён {0:g}</sys:String>
     <sys:String x:Key="MainLoadFailed">Не удалось загрузить локальные данные.</sys:String>
     <sys:String x:Key="OfflineCatalog">Нет подключения к сети. Каталог не запрашивался.</sys:String>
@@ -103,7 +103,7 @@
     <sys:String x:Key="OfflinePlayback">Нет подключения к сети. Воспроизведение не запускалось.</sys:String>
     <sys:String x:Key="ConnectingAudio">Подключение к {0}…</sys:String>
     <sys:String x:Key="NowPlaying">Сейчас играет: {0}</sys:String>
-    <sys:String x:Key="NowPlayingWithTrack">Сейчас играет: {0} — {1}</sys:String>
+    <sys:String x:Key="NowPlayingWithTrack">Сейчас играет: {0} - {1}</sys:String>
     <sys:String x:Key="PausedAudio">Пауза: {0}</sys:String>
     <sys:String x:Key="AudioFailed">Не удалось воспроизвести аудиопоток.</sys:String>
     <sys:String x:Key="StreamUnavailableTitle">Поток недоступен</sys:String>
@@ -122,7 +122,7 @@
     <sys:String x:Key="Add">Добавить</sys:String>
     <sys:String x:Key="InvalidUrl">Введите корректный адрес http, https или rtsp.</sys:String>
     <sys:String x:Key="InvalidUrlTitle">Некорректный URL</sys:String>
-    <sys:String x:Key="PlayerWindowTitle">Видео — Трансляции</sys:String>
+    <sys:String x:Key="PlayerWindowTitle">Видео - Трансляции</sys:String>
     <sys:String x:Key="Buffering">Буферизация…</sys:String>
     <sys:String x:Key="BufferingProgress">Буферизация… {0}%</sys:String>
     <sys:String x:Key="PlayingLive">Прямой эфир</sys:String>
@@ -188,7 +188,7 @@
     <sys:String x:Key="SystemMediaControls">Показывать системные элементы управления и реагировать на мультимедийные клавиши</sys:String>
     <sys:String x:Key="SystemMediaControlsTip">Публиковать играющую станцию во всплывающем окне мультимедиа Windows, чтобы аппаратные клавиши управляли «Воспроизведение/Пауза», «Стоп» и «Предыдущий/Следующий». По умолчанию выключено</sys:String>
     <sys:String x:Key="VideoBackendLabel">Движок воспроизведения видео и RTSP</sys:String>
-    <sys:String x:Key="VideoBackendHint">VLC — движок по умолчанию, проверенный. Переключайтесь на FlyleafLib только как на запасной вариант, когда конкретный видео- или RTSP-поток ведёт себя плохо в VLC. Изменение применится к следующему открытому проигрывателю.</sys:String>
+    <sys:String x:Key="VideoBackendHint">VLC - движок по умолчанию, проверенный. Переключайтесь на FlyleafLib только как на запасной вариант, когда конкретный видео- или RTSP-поток ведёт себя плохо в VLC. Изменение применится к следующему открытому проигрывателю.</sys:String>
     <sys:String x:Key="VideoBackendLibVlc">VLC (по умолчанию)</sys:String>
     <sys:String x:Key="VideoBackendFlyleaf">FlyleafLib (экспериментально)</sys:String>
     <sys:String x:Key="About">О программе</sys:String>
@@ -256,4 +256,43 @@
     <sys:String x:Key="ExportCredentialWarning">В адресе одного или нескольких каналов есть пароль или токен. В экспортированном файле он сохраняется в открытом виде. Продолжить?</sys:String>
     <sys:String x:Key="ExportResult">Экспортировано каналов: {0}.</sys:String>
     <sys:String x:Key="ExportFailed">Windows не смог записать файл экспорта.</sys:String>
-</ResourceDictionary>
+    <!-- SP-0030 удаление загруженных трансляций каталога -->
+    <sys:String x:Key="DeleteDownloaded">Удалить загруженные трансляции</sys:String>
+    <sys:String x:Key="DeleteDownloadedTip">Удалить все потоки из загруженного каталога и оставить только ваши каналы</sys:String>
+    <sys:String x:Key="DeleteDownloadedHint">Оставить только ваши каналы: будут удалены потоки из загруженного каталога. Добавленные и импортированные каналы сохранятся. «Обновить каталог» загрузит их снова.</sys:String>
+    <sys:String x:Key="DeleteDownloadedTitle">Удаление загруженных трансляций</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">Удалить все загруженные из каталога трансляции ({0:N0})? Добавленные и импортированные каналы сохранятся. Отменить это нельзя, но «Обновить каталог» загрузит их снова.</sys:String>
+    <sys:String x:Key="DeleteDownloadedNone">Загруженных трансляций каталога нет.</sys:String>
+    <sys:String x:Key="DeleteDownloadedResult">Удалено загруженных трансляций: {0:N0}.</sys:String>
+    <!-- SP-0029 language picker -->
+    <sys:String x:Key="LanguageEnglish">English</sys:String>
+    <sys:String x:Key="LanguageRussian">Русский</sys:String>
+    <sys:String x:Key="LanguageUkrainian">Українська</sys:String>
+    <sys:String x:Key="LanguagePickerName">Язык интерфейса</sys:String>
+    <!-- SP-0022 таймер сна -->
+    <sys:String x:Key="SleepTimer">Таймер сна</sys:String>
+    <sys:String x:Key="SleepTimerTip">Автоматически остановить радио через заданное время</sys:String>
+    <sys:String x:Key="SleepTimerActiveTip">Воспроизведение остановится в {0}</sys:String>
+    <sys:String x:Key="SleepTimerMinutes">{0} минут</sys:String>
+    <sys:String x:Key="SleepTimerAtTime">Остановить в (ЧЧ:ММ)</sys:String>
+    <sys:String x:Key="SleepTimerCancel">Отменить таймер</sys:String>
+    <sys:String x:Key="SleepTimerSet">Таймер сна установлен на {0}</sys:String>
+    <sys:String x:Key="SleepTimerCancelled">Таймер сна отменён.</sys:String>
+    <sys:String x:Key="SleepTimerEnded">Таймер сна остановил воспроизведение.</sys:String>
+    <sys:String x:Key="SleepTimerInvalidTime">Введите время в формате ЧЧ:ММ в пределах ближайших 24 часов.</sys:String>    <!-- SP-0017 именованные подборки -->
+    <sys:String x:Key="CollectionLabel">Подборка</sys:String>
+    <sys:String x:Key="CollectionFilterTip">Показать только каналы одной подборки</sys:String>
+    <sys:String x:Key="CollectionFilterName">Фильтр подборки</sys:String>
+    <sys:String x:Key="CollectionMenu">Добавить в подборку</sys:String>
+    <sys:String x:Key="CollectionNew">Новая подборка</sys:String>
+    <sys:String x:Key="CollectionCreate">Создать</sys:String>
+    <sys:String x:Key="CollectionManage">Управление подборками…</sys:String>
+    <sys:String x:Key="CollectionManageTitle">Подборки</sys:String>
+    <sys:String x:Key="CollectionRename">Название подборки</sys:String>
+    <sys:String x:Key="CollectionDelete">Удалить</sys:String>
+    <sys:String x:Key="CollectionsEmpty">Подборок пока нет. Введите название выше, чтобы создать.</sys:String>
+    <sys:String x:Key="CollectionCount">каналов: {0:N0}</sys:String>
+    <sys:String x:Key="CollectionCreated">Подборка {0} создана</sys:String>
+    <sys:String x:Key="CollectionNameInvalid">Введите непустое название, которое ещё не используется.</sys:String>
+    <sys:String x:Key="CollectionDeleteConfirm">Удалить подборку «{0}»? Её каналы останутся в вашем списке.</sys:String></ResourceDictionary>
+

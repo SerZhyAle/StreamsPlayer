@@ -39,6 +39,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private CancellationTokenSource? _hoverDwell;
     private readonly DispatcherTimer _browsingSessionSaveTimer;
     private bool _restoringBrowsingSession;
+    private bool _resettingFilters;
     private Guid? _lastVisibleChannelId;
 
     internal MainWindow(CurrentLog log, StreamLaunchRequest? launchRequest = null)
@@ -119,11 +120,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             LanguageButton.IsEnabled = true;
             MainTopmostCheckBox.IsEnabled = true;
             _preferencesLoaded = true;
+            UpdateLanguageButton();
             UpdateLocalizedOptions();
             IsGridMode = _state.ViewMode == CatalogViewMode.Grid;
             UpdateViewModeControls();
             InitializeSectionState(_state);
             PopulateFacets();
+            PopulateCollectionFilter();
+            await PruneCollectionsAsync();
             RestoreBrowsingSession();
             ApplyFilter();
             UpdateCatalogColumns();
@@ -181,6 +185,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             var result = await service.RefreshAsync(_state);
             _state = result.State;
             _log.Information($"Catalog refresh completed: {result.Added} added, {result.Updated} updated, {result.Removed} removed.");
+            // Memberships survive a refresh (ids are stable for surviving URLs); only pruned rows are dropped.
+            await PruneCollectionsAsync();
             PopulateFacets();
             ApplyFilter();
             SetStatus("CatalogResult", result.Added, result.Updated, result.Removed);
@@ -237,7 +243,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void FilterChanged(object sender, EventArgs e)
     {
-        if (IsLoaded && !_updatingLocalizedOptions && !_restoringBrowsingSession)
+        if (IsLoaded && !_updatingLocalizedOptions && !_restoringBrowsingSession && !_resettingFilters)
         {
             ApplyFilter();
             ScrollToCatalogStart();
@@ -249,6 +255,27 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         SearchBox.Clear();
         SearchBox.Focus();
+    }
+
+    // Resets the facet filters only: the search text and the sort order are deliberately kept.
+    private void ClearFiltersButton_Click(object sender, RoutedEventArgs e)
+    {
+        _resettingFilters = true;
+        try
+        {
+            SelectOptionValue(MediaFilter, AllValue, AllValue);
+            SelectOptionValue(CategoryFilter, AllValue, AllValue);
+            SelectOptionValue(LanguageFilter, AllValue, AllValue);
+            SelectOptionValue(CountryFilter, AllValue, AllValue);
+            SelectOptionValue(MinBitrateFilter, AllValue, AllValue);
+            SelectOptionValue(CollectionFilter, AllValue, AllValue);
+        }
+        finally
+        {
+            _resettingFilters = false;
+        }
+
+        FilterChanged(sender, e);
     }
 
     private void StreamsList_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateCatalogColumns();
@@ -306,8 +333,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             ? parsedMinBitrate
             : null;
         var hiddenIdentities = BuildHiddenIdentitySet();
+        var collectionMembers = ActiveCollectionMembers();
 
         IEnumerable<StreamChannel> channels = _state.Channels.Where(channel =>
+            (collectionMembers is null || collectionMembers.Contains(channel.Id)) &&
             !IsHiddenBySet(hiddenIdentities, channel) &&
             (query.Length == 0 || Contains(channel.Title, query) || Contains(channel.Topic, query) || Contains(channel.Language, query)) &&
             (category is null or AllValue || string.Equals(channel.Category, category, StringComparison.OrdinalIgnoreCase)) &&
@@ -342,7 +371,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var totalShown = PinnedRows.Count + Rows.Count;
         EmptyPanel.Visibility = totalShown == 0 ? Visibility.Visible : Visibility.Collapsed;
         StreamsList.Visibility = Rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-        HiddenChannelsButton.Visibility = _state.HiddenCatalogUrls.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        // SP-0030: a hidden identity can outlive its row (deleting the downloaded catalog keeps hide
+        // choices for a later refresh), so the button follows rows actually hidden right now.
+        HiddenChannelsButton.Visibility = _state.Channels.Any(channel => IsHiddenBySet(hiddenIdentities, channel))
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         NotifySectionState();
         UpdatePinnedSectionLayout();
         if (!_busy)
@@ -490,6 +523,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         menu.Items.Add(editItem);
         menu.Items.Add(new Separator());
         menu.Items.Add(pinItem);
+        menu.Items.Add(BuildCollectionMenuItem(row));
         button.ContextMenu = menu;
         menu.IsOpen = true;
     }
@@ -689,6 +723,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         AudioPlayer.Source = new Uri(channel.Url);
         AudioPlayer.Play();
         StopAudioButton.IsEnabled = true;
+        ShowSleepTimerControl(true);
         StartNowPlayingMetadata(channel);
     }
 
@@ -701,7 +736,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         SetNowPlaying("NowPlaying", _playingAudio.DisplayTitle);
         _log.Event("AUDIO LIVE", $"url={_playingAudio.Channel.Url}");
-        _audioRecovery?.NotifyLive(); // sustained live — restore the full recovery budget
+        _audioRecovery?.NotifyLive(); // sustained live - restore the full recovery budget
         await RecordPlayOutcome(_playingAudio.Channel.Id, true);
     }
 
@@ -736,7 +771,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var status = await PlaybackStatusProbe.TryGetStatusAsync(channel.Url, cts.Token);
         if (cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
         {
-            return; // stopped or switched while probing — do not relabel or restart
+            return; // stopped or switched while probing - do not relabel or restart
         }
 
         var decision = policy.Decide(new PlaybackFailureSignal(reason, HttpStatusCode: status));
@@ -763,7 +798,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         catch (OperationCanceledException)
         {
-            return; // stop / switch / close cancelled the wait — never restart the old station
+            return; // stop / switch / close cancelled the wait - never restart the old station
         }
 
         if (cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
@@ -827,6 +862,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void StopAudio()
     {
+        // A user-initiated stop ends the sleep timer too (SP-0022); an internal stop for a station
+        // switch goes through StopAudioPlayback directly and keeps the deadline.
+        CancelSleepTimer(announce: false);
         StopAudioPlayback();
         _ = StartPreviewsAsync();
     }
@@ -850,6 +888,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _playingAudio = null;
         StopAudioButton.IsEnabled = false;
         AudioVolumeSlider.Visibility = Visibility.Collapsed;
+        ShowSleepTimerControl(false);
         SetNowPlaying("NothingPlaying");
         if (clearSystemSession)
         {

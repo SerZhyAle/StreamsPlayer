@@ -9,12 +9,12 @@ using FlyleafLib.MediaPlayer;
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// SP-0026 FlyleafLib (FFmpeg/DirectX) implementation of <see cref="IVideoBackend"/> — the opt-in,
+/// SP-0026 FlyleafLib (FFmpeg/DirectX) implementation of <see cref="IVideoBackend"/> - the opt-in,
 /// experimental alternative engine. Maps the seam onto FlyleafLib 3.10.x. LibVLC remains the default.
 /// </summary>
 /// <remarks>
 /// Experimental caveats (surfaced by the Settings "experimental" label, never as a crash):
-/// the FFmpeg v8 native binaries are NOT delivered by NuGet — they must be deployed (x64 only) into
+/// the FFmpeg v8 native binaries are NOT delivered by NuGet - they must be deployed (x64 only) into
 /// the folder resolved by <see cref="ResolveFFmpegPath"/>. If they are absent (or on win-arm64), the
 /// constructor throws during engine start and <see cref="VideoBackendFactory"/> falls back to LibVLC.
 /// FlyleafLib has no LibVLC-style live-statistics surface, so <see cref="LogStats"/> is a no-op.
