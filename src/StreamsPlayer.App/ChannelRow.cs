@@ -135,6 +135,13 @@ public sealed class ChannelRow : INotifyPropertyChanged
         _ => "KindRtsp"
     });
     public Visibility PinnedVisibility => Channel.Pinned ? Visibility.Visible : Visibility.Collapsed;
+
+    // SP-0033: deliberately not folded into Metadata/TechnicalDetails - those are neutral maintainer
+    // claims, while this is a caveat that has to read as distinct rather than as one more fragment.
+    public Visibility RegionRestrictedVisibility =>
+        Channel.Access == ChannelAccess.GeoRestricted ? Visibility.Visible : Visibility.Collapsed;
+    public string RegionRestrictedLabel => LocalizationService.Get("RegionRestrictedLabel");
+    public string RegionRestrictedTip => LocalizationService.Get("RegionRestrictedTip");
     public string Metadata => string.Join("  ·  ", new[] { KindLabel, Channel.Topic, Channel.Country, Channel.Language }
         .Where(value => !string.IsNullOrWhiteSpace(value)));
 

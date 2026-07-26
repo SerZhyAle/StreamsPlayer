@@ -5,7 +5,10 @@ namespace StreamsPlayer.Core;
 
 public static class StreamBankReader
 {
-    public const int MaximumAtlasBytes = 4 * 1024 * 1024;
+    // Matches the publisher-side ceiling in the upstream catalog packer (Invoke-PublishCatalog, S0925).
+    // A lower value here silently drops a legitimately published atlas: the 2026-07 bank is already
+    // 2.9 MB against the previous 4 MB limit, and the atlas grows with the channel count.
+    public const int MaximumAtlasBytes = 30 * 1024 * 1024;
 
     public static StreamBank Read(Stream zipStream)
     {

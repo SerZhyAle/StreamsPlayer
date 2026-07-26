@@ -14,6 +14,14 @@
     <sys:String x:Key="RefreshPreviews">Оновити прев’ю</sys:String>
     <sys:String x:Key="RefreshPreviewsTip">Захопити видимі відеопрев’ю зараз</sys:String>
     <sys:String x:Key="RefreshPreviewsName">Оновити видимі відеопрев’ю</sys:String>
+    <sys:String x:Key="ChannelPreviewsOffer">Для більшості відеоканалів є готові картинки прев’ю.</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">Один раз завантажить близько 11 МБ і заповнить сітку, не під’єднуючись до кожного каналу.</sys:String>
+    <sys:String x:Key="ChannelPreviewsDownload">Завантажити картинки</sys:String>
+    <sys:String x:Key="ChannelPreviewsNotNow">Не зараз</sys:String>
+    <sys:String x:Key="ChannelPreviewsWorking">Готуємо картинки прев’ю.. готово {0}</sys:String>
+    <sys:String x:Key="ChannelPreviewsDone">Додано картинок прев’ю: {0}</sys:String>
+    <sys:String x:Key="ChannelPreviewsUnavailable">Цей комп’ютер не може відкрити набір картинок. Прев’ю працюють як раніше.</sys:String>
+    <sys:String x:Key="ChannelPreviewsFailed">Не вдалося завантажити картинки прев’ю.</sys:String>
     <sys:String x:Key="AddStream">Додати потік</sys:String>
     <sys:String x:Key="AddStreamPlain">Додати потік</sys:String>
     <sys:String x:Key="UpdateCatalog">Оновити каталог</sys:String>
@@ -40,6 +48,8 @@
     <sys:String x:Key="BitrateValue">{0} кбіт/с</sys:String>
     <sys:String x:Key="LiveLabel">Прямий ефір</sys:String>
     <sys:String x:Key="OnDemandLabel">На вимогу</sys:String>
+    <sys:String x:Key="RegionRestrictedLabel">Лише для регіону</sys:String>
+    <sys:String x:Key="RegionRestrictedTip">Упорядник каталогу не зміг відкрити цей канал зі своєї країни. У регіоні мовлення він усе ж може працювати.</sys:String>
     <sys:String x:Key="SortBy">Сортування</sys:String>
     <sys:String x:Key="SortOrderTip">Порядок сортування</sys:String>
     <sys:String x:Key="SortCatalogName">Сортувати каталог</sys:String>
@@ -131,6 +141,7 @@
     <sys:String x:Key="PlayerUnavailable">Потік недоступний</sys:String>
     <sys:String x:Key="PlayerUnsupported">Цей формат потоку не підтримується медіабекендом Windows.</sys:String>
     <sys:String x:Key="FailureDialogMessage">Не вдалося відтворити «{0}».</sys:String>
+    <sys:String x:Key="FailureRegionRestricted">Каталог позначає цей канал як доступний лише у своєму регіоні: із країни упорядника він не відповідав. Він може працювати, якщо ви перебуваєте в регіоні мовлення.</sys:String>
     <sys:String x:Key="FailureRetry">Повторити</sys:String>
     <sys:String x:Key="FailureHide">Приховати</sys:String>
     <sys:String x:Key="FailureDelete">Видалити</sys:String>

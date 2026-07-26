@@ -37,7 +37,8 @@ public static class CatalogMerger
                     Protocol = entry.Protocol,
                     Format = entry.Format,
                     Bitrate = entry.Bitrate,
-                    IsLive = entry.IsLive
+                    IsLive = entry.IsLive,
+                    Access = entry.Access
                 };
 
                 if (replacement != current)
@@ -67,7 +68,8 @@ public static class CatalogMerger
                 Protocol = entry.Protocol,
                 Format = entry.Format,
                 Bitrate = entry.Bitrate,
-                IsLive = entry.IsLive
+                IsLive = entry.IsLive,
+                Access = entry.Access
             };
             output[channel.Id] = channel;
             byUrl[channel.Url] = channel;

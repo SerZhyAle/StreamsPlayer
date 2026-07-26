@@ -22,7 +22,7 @@ public partial class PlaybackFailureDialog : Window
 
     internal PlaybackFailureChoice Choice { get; private set; } = PlaybackFailureChoice.None;
 
-    internal PlaybackFailureDialog(string channelTitle, SourceOrigin origin, string report)
+    internal PlaybackFailureDialog(string channelTitle, SourceOrigin origin, string report, ChannelAccess access)
     {
         InitializeComponent();
         _report = report;
@@ -30,6 +30,11 @@ public partial class PlaybackFailureDialog : Window
         MessageText.Text = LocalizationService.Format("FailureDialogMessage", StreamTitleFormatter.Display(channelTitle));
         RemoveButton.SetResourceReference(ContentControl.ContentProperty,
             origin == SourceOrigin.Catalog ? "FailureHide" : "FailureDelete");
+        // SP-0033: the tag explains a failure, so it is only ever shown on this path - a region-locked
+        // channel that plays says nothing.
+        RegionRestrictedText.Visibility = access == ChannelAccess.GeoRestricted
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private void Retry_Click(object sender, RoutedEventArgs e)

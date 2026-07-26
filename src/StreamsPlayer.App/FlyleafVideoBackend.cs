@@ -41,14 +41,24 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         _config.Player.AutoPlay = true;
         // rtsp-over-tcp and HTTP auto-reconnect are FlyleafLib defaults; per-play tuning happens in Play.
         _player = new Player(_config);
-        _player.Audio.Volume = Math.Clamp(volume, 0, 100);
-        _player.Audio.Mute = muted;
-        _player.BufferingStarted += OnBufferingStarted;
-        _player.BufferingCompleted += OnBufferingCompleted;
-        _player.OpenCompleted += OnOpenCompleted;
-        _player.PlaybackStopped += OnPlaybackStopped;
-        _player.PropertyChanged += OnPlayerPropertyChanged;
-        _host = new FlyleafHost { Player = _player };
+        try
+        {
+            _player.Audio.Volume = Math.Clamp(volume, 0, 100);
+            _player.Audio.Mute = muted;
+            _player.BufferingStarted += OnBufferingStarted;
+            _player.BufferingCompleted += OnBufferingCompleted;
+            _player.OpenCompleted += OnOpenCompleted;
+            _player.PlaybackStopped += OnPlaybackStopped;
+            _player.PropertyChanged += OnPlayerPropertyChanged;
+            _host = new FlyleafHost { Player = _player };
+        }
+        catch
+        {
+            // The factory falls back to LibVLC on any construction failure; without this the half-built
+            // player (and its FFmpeg/DirectX resources) would be unreachable and never disposed.
+            _player.Dispose();
+            throw;
+        }
     }
 
     public FrameworkElement View => _host;
@@ -98,6 +108,9 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         _host.Player = null;
         // FlyleafLib disposal is internally marshaled; the caller (PlayerWindow_Closed) is on the UI thread.
         _player.Dispose();
+        // Player = null only disposes the swap chain. FlyleafHost.Dispose is what closes the Surface and
+        // Overlay windows it owns and unhooks the DpiChanged/SizeChanged handlers it put on the parent window.
+        _host.Dispose();
         return Task.CompletedTask;
     }
 

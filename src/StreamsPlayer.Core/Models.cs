@@ -20,6 +20,15 @@ public enum PlayOutcome
     Fail
 }
 
+// SP-0033: the catalog's `access` column. `Open` is first so it is the value an older state file and
+// any unrecognised future upstream token both land on - an unknown tag must render as nothing rather
+// than leak a machine value into the UI.
+public enum ChannelAccess
+{
+    Open,
+    GeoRestricted
+}
+
 public enum CatalogViewMode
 {
     List,
@@ -117,6 +126,11 @@ public sealed record StreamChannel
     public string? Format { get; init; }
     public string? Bitrate { get; init; }
     public bool? IsLive { get; init; }
+
+    // SP-0033: region-restriction heuristic observed from the catalog maintainer's network only. A
+    // GeoRestricted channel is deliberately kept and stays fully playable - never gate, reorder, or
+    // hide on this, and never turn it into a playback decision or a failure verdict.
+    public ChannelAccess Access { get; init; } = ChannelAccess.Open;
 }
 
 public sealed record CatalogEntry(
@@ -132,7 +146,8 @@ public sealed record CatalogEntry(
     string? Protocol = null,
     string? Format = null,
     string? Bitrate = null,
-    bool? IsLive = null);
+    bool? IsLive = null,
+    ChannelAccess Access = ChannelAccess.Open);
 
 public sealed record StreamBank(
     IReadOnlyList<CatalogEntry> Entries,
@@ -219,6 +234,15 @@ public sealed record CatalogState
     public bool SystemMediaControls { get; init; }
     public StreamTileSize TileSize { get; init; } = StreamTileSize.Medium;
     public bool UpdateStreamPreviews { get; init; } = true;
+
+    /// <summary>
+    /// Element revision of the published channel-preview atlas already seeded into the local preview
+    /// store (SP-0031), or null when it never has been. Equal to
+    /// <see cref="ChannelPreviewAtlasService.Revision"/> means "seeded, do not offer"; a different value
+    /// means the publisher shipped a new, tile-incompatible sheet and the offer becomes eligible again.
+    /// Written only after a successful import, so a failed or declined one always leaves the offer open.
+    /// </summary>
+    public string? ChannelPreviewAtlasRevision { get; init; }
 
     /// <summary>
     /// Playback engine for the video/RTSP player window only (SP-0026). Defaults to

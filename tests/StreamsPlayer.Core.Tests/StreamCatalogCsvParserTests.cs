@@ -78,4 +78,26 @@ public sealed class StreamCatalogCsvParserTests
         var csv = $"name,url,is_live\r\nTest,https://radio.test/live,{value}\r\n";
         Assert.Equal(expected, Assert.Single(StreamCatalogCsvParser.Parse(csv)).IsLive);
     }
+
+    // SP-0033: only the documented `geo` token is recognised. Everything else - blank, whitespace, and
+    // any value the catalog adds later - must stay Open so an unknown tag never reaches the UI.
+    [Theory]
+    [InlineData("geo", ChannelAccess.GeoRestricted)]
+    [InlineData("GEO", ChannelAccess.GeoRestricted)]
+    [InlineData("  geo  ", ChannelAccess.GeoRestricted)]
+    [InlineData("", ChannelAccess.Open)]
+    [InlineData("   ", ChannelAccess.Open)]
+    [InlineData("paywall", ChannelAccess.Open)]
+    public void Parse_RecognisesOnlyTheDocumentedAccessValue(string value, ChannelAccess expected)
+    {
+        var csv = $"name,url,access\r\nTest,https://radio.test/live,\"{value}\"\r\n";
+        Assert.Equal(expected, Assert.Single(StreamCatalogCsvParser.Parse(csv)).Access);
+    }
+
+    [Fact]
+    public void Parse_MissingAccessColumnMeansOpen()
+    {
+        const string csv = "name,url\r\nTest,https://radio.test/live\r\n";
+        Assert.Equal(ChannelAccess.Open, Assert.Single(StreamCatalogCsvParser.Parse(csv)).Access);
+    }
 }

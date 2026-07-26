@@ -100,7 +100,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         }
     }
 
-    public Task StopAndDisposeAsync()
+    public async Task StopAndDisposeAsync()
     {
         _videoView.MediaPlayer = null; // detach from the WPF VideoView on the UI thread (fast, non-blocking)
         _mediaPlayer.Buffering -= MediaPlayer_Buffering;
@@ -120,7 +120,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         // _mediaGate serializes this against any in-flight reconnect Play so they never race natively.
         var mediaPlayer = _mediaPlayer;
         var libVlc = _libVlc;
-        return Task.Run(() =>
+        await Task.Run(() =>
         {
             lock (_mediaGate)
             {
@@ -132,6 +132,13 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
                 libVlc.Dispose();
             }
         });
+
+        // Back on the UI thread (the caller is the UI thread and this await is not configured away).
+        // Detaching the player does not release what the view owns: VideoView.Dispose is the only path in
+        // LibVLCSharp that destroys the per-view child HWND (VideoHwndHost) and closes the ForegroundWindow
+        // overlay. Runs after the native stop so no vout is still rendering into that HWND; Dispose is
+        // idempotent and Window.Close on an already-closed overlay is a no-op.
+        _videoView.Dispose();
     }
 
     public bool RequestSnapshot(int width)
@@ -165,7 +172,10 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     // Input/demux counters distinguish network starvation (read_bytes frozen) from decode loss (lost_pics rising).
     public void LogStats(string tag)
     {
-        var media = _mediaPlayer.Media;
+        // The Media getter retains the native media on every call and LibVLCSharp has no finalizer, so the
+        // wrapper must be disposed here: the stats timer ticks every 2 s and an undisposed wrapper would
+        // leave each played media unfreeable for the life of the process.
+        using var media = _mediaPlayer.Media;
         if (media is null)
         {
             return;

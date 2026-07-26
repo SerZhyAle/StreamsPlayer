@@ -70,6 +70,39 @@ public sealed class CatalogMergerTests
         Assert.Equal(0, second.Removed);
     }
 
+    [Fact]
+    public void Merge_CarriesAccessOntoAddedAndUpdatedCatalogRows()
+    {
+        var entry = Entry("Geo", "https://example.test/geo", MediaKind.Video) with
+        {
+            Access = ChannelAccess.GeoRestricted
+        };
+
+        var added = Assert.Single(CatalogMerger.Merge([], [entry], Now).Channels);
+        Assert.Equal(ChannelAccess.GeoRestricted, added.Access);
+
+        // A later catalog that drops the tag must clear it again, not leave a stale warning behind.
+        var cleared = Assert.Single(CatalogMerger.Merge(
+            [added],
+            [entry with { Access = ChannelAccess.Open }],
+            Now.AddMinutes(1)).Channels);
+        Assert.Equal(ChannelAccess.Open, cleared.Access);
+    }
+
+    [Fact]
+    public void Merge_UserRowNeverTakesAccessFromTheCatalog()
+    {
+        var manual = Channel("https://example.test/same", SourceOrigin.Manual);
+
+        var result = CatalogMerger.Merge(
+            [manual],
+            [Entry("Catalog title", manual.Url, MediaKind.Video) with { Access = ChannelAccess.GeoRestricted }],
+            Now);
+
+        Assert.Equal(ChannelAccess.Open, Assert.Single(result.Channels).Access);
+        Assert.Equal(0, result.Updated);
+    }
+
     private static StreamChannel Channel(string url, SourceOrigin origin) => new()
     {
         Id = Guid.NewGuid(),

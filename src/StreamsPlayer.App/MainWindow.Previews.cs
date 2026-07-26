@@ -14,10 +14,15 @@ public partial class MainWindow
 
     private async void RefreshPreviewsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_previewCoordinator is not null)
+        if (_previewCoordinator is null)
         {
-            await QueueVisibleSafelyAsync(force: true);
+            return;
         }
+
+        // An explicit "capture now" has to make sure there is a session to capture in: the coordinator may
+        // be suspended after a playback session, and a forced queue with no session only repaints.
+        await StartPreviewsAsync();
+        await QueueVisibleSafelyAsync(force: true);
     }
 
     private async Task QueueVisibleSafelyAsync(bool force)
@@ -80,7 +85,9 @@ public partial class MainWindow
 
     private void ScheduleVisiblePreviewUpdate()
     {
-        if (!IsGridMode || _previewCoordinator?.IsRunning != true)
+        // Not gated on IsRunning: repainting rows from the disk store is what makes scrolling work while
+        // capture is suspended (window inactive, or a stream playing).
+        if (!IsGridMode || _previewCoordinator is null)
         {
             return;
         }
@@ -216,5 +223,6 @@ public partial class MainWindow
         DisposeSystemMediaControls(); // SP-0021: end the Windows media session with the window
         _httpClient.Dispose();
         _icyHttpClient.Dispose();
+        _previewAtlasHttpClient.Dispose();
     }
 }

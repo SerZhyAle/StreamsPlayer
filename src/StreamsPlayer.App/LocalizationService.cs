@@ -8,7 +8,6 @@ public static class LocalizationService
 {
     private const string DictionaryPrefix = "Localization.";
 
-    public static event EventHandler? LanguageChanged;
     public static AppLanguage CurrentLanguage { get; private set; } = AppLanguage.English;
 
     public static void Apply(AppLanguage language)
@@ -32,7 +31,6 @@ public static class LocalizationService
 
         CurrentLanguage = language;
         CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(CultureCode(language));
-        LanguageChanged?.Invoke(null, EventArgs.Empty);
     }
 
     // SP-0029: ISO codes only; any "UA"-style text belongs to display labels, never to code or state.

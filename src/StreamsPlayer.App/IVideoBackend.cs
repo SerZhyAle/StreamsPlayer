@@ -37,7 +37,10 @@ internal interface IVideoBackend
     /// </summary>
     bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode);
 
-    /// <summary>Stops and disposes the engine off the UI thread; safe to call once during teardown.</summary>
+    /// <summary>
+    /// Stops and disposes the engine, doing the blocking native teardown off the UI thread; the view-side
+    /// release that follows it is UI-thread work, so call this from the UI thread. Safe to call once during teardown.
+    /// </summary>
     Task StopAndDisposeAsync();
 
     /// <summary>Requests a snapshot of the current frame; the result arrives via <see cref="SnapshotReady"/>.</summary>

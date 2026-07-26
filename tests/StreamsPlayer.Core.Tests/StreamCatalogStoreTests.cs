@@ -31,6 +31,56 @@ public sealed class StreamCatalogStoreTests
         }
     }
 
+    // SP-0033 AC 7: the tag round-trips, and a state file written before the property existed must load
+    // as Open with no migration step.
+    [Fact]
+    public async Task Save_RoundTripsChannelAccessAndDefaultsLegacyStateToOpen()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            var store = new StreamCatalogStore(directory);
+            var channel = new StreamChannel
+            {
+                Id = Guid.NewGuid(),
+                Url = "https://example.test/geo",
+                Title = "Geo",
+                MediaKind = MediaKind.Video,
+                SourceOrigin = SourceOrigin.Catalog,
+                AddedAt = DateTimeOffset.UtcNow,
+                Access = ChannelAccess.GeoRestricted
+            };
+
+            await store.SaveAsync(new CatalogState { Channels = [channel] });
+            Assert.Equal(ChannelAccess.GeoRestricted, Assert.Single((await store.LoadAsync()).Channels).Access);
+
+            var legacy = """
+            {
+              "channels": [
+                {
+                  "id": "11111111-1111-1111-1111-111111111111",
+                  "url": "https://example.test/legacy",
+                  "title": "Legacy",
+                  "mediaKind": "Audio",
+                  "sourceOrigin": "Catalog",
+                  "addedAt": "2026-01-01T00:00:00+00:00"
+                }
+              ]
+            }
+            """;
+            await File.WriteAllTextAsync(Path.Combine(directory, "catalog-state.json"), legacy);
+
+            Assert.Equal(ChannelAccess.Open, Assert.Single((await store.LoadAsync()).Channels).Access);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
     [Fact]
     public async Task Save_PreservesGridViewPreference()
     {
@@ -76,6 +126,8 @@ public sealed class StreamCatalogStoreTests
             Assert.True(loaded.PlayerWindowTopmost);
             Assert.Equal(35, loaded.VideoVolume);
             Assert.True(loaded.VideoMuted);
+            // Never seeded is the default for a state file written before SP-0031.
+            Assert.Null(loaded.ChannelPreviewAtlasRevision);
         }
         finally
         {
@@ -167,6 +219,110 @@ public sealed class StreamCatalogStoreTests
             Assert.Equal("US", loaded.CatalogCountryFilter);
             Assert.Equal("Recently added", loaded.CatalogSortMode);
             Assert.Equal(anchorId, loaded.CatalogScrollAnchorId);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Save_PreservesChannelPreviewAtlasRevision()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            var store = new StreamCatalogStore(directory);
+            await store.SaveAsync(new CatalogState
+            {
+                ChannelPreviewAtlasRevision = ChannelPreviewAtlasService.Revision
+            });
+
+            var loaded = await store.LoadAsync();
+
+            Assert.Equal(ChannelPreviewAtlasService.Revision, loaded.ChannelPreviewAtlasRevision);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Save_FailedCommitLeavesNoTemporaryFile()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(directory);
+            // A directory where the state file belongs makes the commit move fail deterministically.
+            Directory.CreateDirectory(Path.Combine(directory, "catalog-state.json"));
+            var store = new StreamCatalogStore(directory);
+
+            await Assert.ThrowsAnyAsync<Exception>(() => store.SaveAsync(new CatalogState()));
+
+            Assert.Empty(Directory.GetFiles(directory, "catalog-state-*.tmp"));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Save_SweepsStrandedTemporaryFilesButKeepsRecentOnes()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(directory);
+            var stranded = Path.Combine(directory, $"catalog-state-{Guid.NewGuid():N}.tmp");
+            var recent = Path.Combine(directory, $"catalog-state-{Guid.NewGuid():N}.tmp");
+            await File.WriteAllTextAsync(stranded, "{}");
+            await File.WriteAllTextAsync(recent, "{}");
+            File.SetLastWriteTimeUtc(stranded, DateTime.UtcNow.AddHours(-2));
+
+            var store = new StreamCatalogStore(directory);
+            await store.SaveAsync(new CatalogState());
+
+            Assert.False(File.Exists(stranded));
+            // A temp file young enough to belong to a concurrent save (another instance) is never touched.
+            Assert.True(File.Exists(recent));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Save_ConcurrentSavesCommitWithoutStrandingTemporaryFiles()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            var store = new StreamCatalogStore(directory);
+            var saves = Enumerable.Range(0, 16)
+                .Select(index => store.SaveAsync(new CatalogState { AudioVolume = index }))
+                .ToArray();
+
+            await Task.WhenAll(saves);
+
+            Assert.Empty(Directory.GetFiles(directory, "catalog-state-*.tmp"));
+            var loaded = await store.LoadAsync();
+            Assert.Contains(loaded.AudioVolume, Enumerable.Range(0, 16));
         }
         finally
         {

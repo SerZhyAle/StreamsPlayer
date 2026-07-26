@@ -481,7 +481,7 @@ public partial class PlayerWindow : Window
             _channel.Url,
             _channel.MediaKind,
             PlaybackErrorClassifier.Classify(reason)));
-        var dialog = new PlaybackFailureDialog(_channel.Title, _channel.SourceOrigin, report) { Owner = this };
+        var dialog = new PlaybackFailureDialog(_channel.Title, _channel.SourceOrigin, report, _channel.Access) { Owner = this };
         dialog.ShowDialog();
         switch (dialog.Choice)
         {

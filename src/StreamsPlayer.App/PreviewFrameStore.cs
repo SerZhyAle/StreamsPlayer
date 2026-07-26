@@ -44,28 +44,57 @@ public sealed class PreviewFrameStore(string directory, long maxBytes, int jpegQ
 
     public async Task SaveAsync(string url, BitmapSource frame, CancellationToken cancellationToken)
     {
+        if (await WriteAsync(url, frame, cancellationToken).ConfigureAwait(false))
+        {
+            await TrimOnceAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Writes one frame and reports whether it landed, without trimming the store. The SP-0031 atlas
+    /// import seeds ~1900 frames back to back and <see cref="TrimOnce"/> enumerates the whole directory,
+    /// so trimming per frame would be quadratic; the bulk caller trims once at the end.
+    /// </summary>
+    /// <remarks>
+    /// Synchronous on purpose. WPF imaging objects are thread-affine unless every object in the chain is
+    /// frozen, and a <c>CroppedBitmap</c> over a decoded frame reaches back to its <c>BitmapDecoder</c>,
+    /// which is not. An <c>await</c> between imaging calls lets the continuation resume on another pool
+    /// thread and the next crop throws "the calling thread cannot access this object"; the bulk caller
+    /// therefore does all of its imaging on one thread, with no await in between.
+    /// </remarks>
+    public bool Write(string url, BitmapSource frame)
+    {
         try
         {
             Directory.CreateDirectory(directory);
             var path = ResolvePath(url);
-            var bytes = await Task.Run(() => Encode(frame), cancellationToken).ConfigureAwait(false);
-            await File.WriteAllBytesAsync(path, bytes, cancellationToken).ConfigureAwait(false);
+            File.WriteAllBytes(path, Encode(frame));
             File.SetLastWriteTimeUtc(path, DateTime.UtcNow);
-            await TrimAsync(cancellationToken).ConfigureAwait(false);
+            return true;
         }
         catch (IOException)
         {
             // A later sweep can retry the non-essential disk cache.
+            return false;
         }
         catch (UnauthorizedAccessException)
         {
             // Grid previews remain available in memory when local storage is unavailable.
+            return false;
         }
         catch (NotSupportedException)
         {
             // An unsupported encoder does not affect the live in-memory frame.
+            return false;
         }
     }
+
+    /// <summary>Off-thread wrapper over <see cref="Write"/> for the single-frame capture path.</summary>
+    public Task<bool> WriteAsync(string url, BitmapSource frame, CancellationToken cancellationToken) =>
+        Task.Run(() => Write(url, frame), cancellationToken);
+
+    /// <summary>True when this URL already has a stored frame, so a bulk seed can leave it alone.</summary>
+    public bool Exists(string url) => File.Exists(ResolvePath(url));
 
     public string ResolvePath(string url) => Path.Combine(directory, $"{HashUrl(url)}.jpg");
 
@@ -78,12 +107,33 @@ public sealed class PreviewFrameStore(string directory, long maxBytes, int jpegQ
         return stream.ToArray();
     }
 
-    private Task TrimAsync(CancellationToken cancellationToken) => Task.Run(() =>
+    /// <summary>Off-thread wrapper over <see cref="TrimOnce"/>.</summary>
+    public Task TrimOnceAsync(CancellationToken cancellationToken) =>
+        Task.Run(() => TrimOnce(cancellationToken), cancellationToken);
+
+    /// <summary>
+    /// Enforces the disk budget once, newest-first. Call after a batch, not per frame: this walks the
+    /// entire directory.
+    /// </summary>
+    public void TrimOnce(CancellationToken cancellationToken)
     {
-        var files = new DirectoryInfo(directory)
-            .EnumerateFiles("*.jpg", SearchOption.TopDirectoryOnly)
-            .OrderByDescending(file => file.LastWriteTimeUtc)
-            .ToList();
+        List<FileInfo> files;
+        try
+        {
+            files = new DirectoryInfo(directory)
+                .EnumerateFiles("*.jpg", SearchOption.TopDirectoryOnly)
+                .OrderByDescending(file => file.LastWriteTimeUtc)
+                .ToList();
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return; // nothing written yet; nothing to trim
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return; // the store is unreadable; the in-memory previews are unaffected
+        }
+
         long retained = 0;
         foreach (var file in files)
         {
@@ -107,7 +157,7 @@ public sealed class PreviewFrameStore(string directory, long maxBytes, int jpegQ
                 // A locked cache entry is harmless and can be retried later.
             }
         }
-    }, cancellationToken);
+    }
 
     private static string HashUrl(string url) =>
         Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(url)));

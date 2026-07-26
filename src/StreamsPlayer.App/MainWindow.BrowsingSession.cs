@@ -104,7 +104,7 @@ public partial class MainWindow
             return;
         }
 
-        _state = await _store.SaveAsync(_state with
+        var updated = _state with
         {
             CatalogSearchQuery = SearchBox.Text,
             CatalogMediaFilter = SelectedOptionValue(MediaFilter) ?? AllValue,
@@ -115,6 +115,16 @@ public partial class MainWindow
             CatalogCollectionFilter = SelectedOptionValue(CollectionFilter) ?? AllValue,
             CatalogSortMode = SelectedOptionValue(SortMode) ?? "Name",
             CatalogScrollAnchorId = _lastVisibleChannelId
-        });
+        };
+
+        // Every save serializes the whole catalog (megabytes at catalog scale), and this path is driven by
+        // scrolling and filtering. Record equality compares the session fields by value and the channel
+        // list by reference, so an unchanged session skips the write entirely.
+        if (updated == _state)
+        {
+            return;
+        }
+
+        _state = await _store.SaveAsync(updated);
     }
 }

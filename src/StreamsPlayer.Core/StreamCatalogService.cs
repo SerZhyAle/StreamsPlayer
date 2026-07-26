@@ -38,7 +38,15 @@ public sealed class StreamCatalogService
             Channels = merge.Channels.ToList(),
             LastCatalogRefreshAt = now
         };
-        state = await _store.SaveAsync(state, bank.FaviconAtlas, replaceAtlas: true, cancellationToken);
+        // Only a bank that actually carried an atlas may replace the stored one. Passing replaceAtlas
+        // unconditionally made a bank without an atlas - a mispackaged upstream zip, or one whose atlas this
+        // reader rejected - delete the installed atlas, so a single refresh silently stripped the favicon
+        // from every channel with no error and no way back short of a corrected republish.
+        state = await _store.SaveAsync(
+            state,
+            bank.FaviconAtlas,
+            replaceAtlas: bank.FaviconAtlas is { Length: > 0 },
+            cancellationToken);
         return new CatalogRefreshResult(state, merge.Added, merge.Updated, merge.Removed);
     }
 }

@@ -24,6 +24,12 @@ public partial class MainWindow
 
     private void StartNowPlayingMetadata(StreamChannel channel)
     {
+        // A recovery reconnect restarts playback without going through StopAudioPlayback, so the previous
+        // reader must be cancelled here. Its pump loop only ends on cancellation or end-of-stream, and a
+        // live station never ends: an orphan would keep draining the stream at full bitrate for the rest
+        // of the session, invisibly - the generation guard suppresses its reports but not its reads.
+        StopNowPlayingMetadata();
+
         // Metadata is requested only as part of an explicit HTTP(S) audio attempt.
         if (!Uri.TryCreate(channel.Url, UriKind.Absolute, out var uri) ||
             (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))

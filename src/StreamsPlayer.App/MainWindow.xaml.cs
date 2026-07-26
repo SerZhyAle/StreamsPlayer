@@ -22,6 +22,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly StreamCatalogStore _store;
     private readonly Dictionary<Guid, ChannelRow> _rowCache = [];
     private readonly GridPreviewCoordinator? _previewCoordinator;
+    // Kept beside the coordinator so the SP-0031 atlas import can seed the same store the grid reads.
+    private readonly PreviewFrameStore? _previewFrameStore;
+
+    // Decoded previews held in memory. Every eviction blanks that tile back to its favicon until the row
+    // scrolls back into view, so this must comfortably exceed one viewport's worth of tiles (pinned band
+    // included) or ordinary scrolling visibly strips the grid. 240x135 atlas tiles cost ~130 KB each.
+    private const int PreviewMemoryCacheCapacity = 192;
+    private int _previewEvictions;
     private readonly StreamLaunchRequest _launchRequest;
     private CatalogState _state = new();
     private ChannelRow? _playingAudio;
@@ -55,8 +63,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _browsingSessionSaveTimer.Tick += BrowsingSessionSaveTimer_Tick;
         if (GridPreviewFeature.CaptureEnabled)
         {
-            var memoryCache = new PreviewFrameCache(64, url =>
+            var memoryCache = new PreviewFrameCache(PreviewMemoryCacheCapacity, url =>
             {
+                _previewEvictions++;
                 if (Dispatcher.CheckAccess())
                 {
                     ClearPreview(url);
@@ -68,6 +77,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             });
             const long previewDiskBudgetBytes = 150L * 1024 * 1024;
             var frameStore = new PreviewFrameStore(Path.Combine(_dataDirectory, "grid-previews"), previewDiskBudgetBytes, 70);
+            _previewFrameStore = frameStore;
             var captureService = new VideoFrameCaptureService();
             _previewCoordinator = new GridPreviewCoordinator(
                 Dispatcher,
@@ -77,7 +87,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 frameStore,
                 captureService,
                 url => _log.Event("PREVIEW FAIL", $"url={url}"),
-                () => _state.UpdateStreamPreviews);
+                () => _state.UpdateStreamPreviews,
+                (category, fields) => _log.Event(category, [.. fields, $"evictions={_previewEvictions}"]));
         }
 
         UpdateLocalizedOptions();
@@ -195,6 +206,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded);
                 await QueueVisibleSafelyAsync(force: true);
             }
+
+            // SP-0031: the only path that can lead to a preview-atlas download, and only via the user's
+            // explicit acceptance of the offer this shows.
+            MaybeOfferChannelPreviews();
         }
         catch (Exception exception)
         {
@@ -356,6 +371,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             .Select(channel => channel.FaviconIndex)
             .DefaultIfEmpty(null)
             .Max();
+        PruneRowCache();
         PinnedRows.Clear();
         foreach (var channel in pinned)
         {
@@ -386,6 +402,25 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             SetStatus("ChannelCount", totalShown, visibleUniverse);
         }
         ScheduleVisiblePreviewUpdate();
+    }
+
+    // Rows are cached across filter changes on purpose - they hold the decoded favicon and preview images.
+    // A catalog refresh or purge can drop channels for good, though, and without this their rows (and the
+    // images hanging off them) would stay in the cache for the rest of the session. The row a launch URL
+    // created is kept: an externally launched channel is deliberately absent from the catalog.
+    private void PruneRowCache()
+    {
+        var live = _state.Channels.Select(channel => channel.Id).ToHashSet();
+        var stale = _rowCache
+            .Where(entry => !live.Contains(entry.Key) &&
+                !ReferenceEquals(entry.Value, _playingAudio) &&
+                !ReferenceEquals(entry.Value, _selectedRow))
+            .Select(entry => entry.Key)
+            .ToList();
+        foreach (var id in stale)
+        {
+            _rowCache.Remove(id);
+        }
     }
 
     private ChannelRow GetOrCreateRow(StreamChannel channel, string? atlasPath, int? maximumIndex)
@@ -821,7 +856,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             channel.Url,
             channel.MediaKind,
             PlaybackErrorClassifier.Classify(reason)));
-        var dialog = new PlaybackFailureDialog(channel.Title, channel.SourceOrigin, report) { Owner = this };
+        var dialog = new PlaybackFailureDialog(channel.Title, channel.SourceOrigin, report, channel.Access) { Owner = this };
         dialog.ShowDialog();
         switch (dialog.Choice)
         {

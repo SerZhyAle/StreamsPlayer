@@ -7,7 +7,9 @@ namespace StreamsPlayer.App;
 
 public static class GridPreviewFeature
 {
-    public const bool CaptureEnabled = true;
+    // Kill switch for the whole grid-preview subsystem. Deliberately not a const: as a const the compiler
+    // folds every guard into unreachable code, which both warns and stops the guards being real checks.
+    public static readonly bool CaptureEnabled = true;
 }
 
 public sealed class GridPreviewCoordinator : IAsyncDisposable
@@ -22,6 +24,9 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
     private readonly PreviewFrameStore _diskStore;
     private readonly VideoFrameCaptureService _captureService;
     private readonly Action<string>? _reportCaptureFailure;
+    // Lifecycle/visibility diagnostics. Whether a tile shows a preview or falls back to its favicon
+    // depends on coordinator state that is invisible from the UI, so it has to be greppable in the log.
+    private readonly Action<string, string[]>? _diagnostics;
     private readonly Func<bool> _autoCaptureEnabled;
     private readonly ConcurrentQueue<PreviewRequest> _queue = new();
     private readonly HashSet<string> _pending = new(StringComparer.Ordinal);
@@ -45,8 +50,10 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         PreviewFrameStore diskStore,
         VideoFrameCaptureService captureService,
         Action<string>? reportCaptureFailure = null,
-        Func<bool>? autoCaptureEnabled = null)
+        Func<bool>? autoCaptureEnabled = null,
+        Action<string, string[]>? diagnostics = null)
     {
+        _diagnostics = diagnostics;
         _dispatcher = dispatcher;
         _visibleRows = visibleRows;
         _applyPreview = applyPreview;
@@ -76,6 +83,7 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
                 _workers[i] = RunWorkerAsync(_session.Token);
             }
 
+            _diagnostics?.Invoke("PREVIEW COORD", ["state=started"]);
             await QueueVisibleAsync(force: false, _session.Token);
         }
         finally
@@ -84,16 +92,31 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Restores stored previews for the visible rows and, when a capture session is running, queues the
+    /// tiles that still need one.
+    /// </summary>
+    /// <remarks>
+    /// Showing a frame that is already on disk deliberately does NOT require a running session. Capture is
+    /// suspended whenever the window is inactive or something is playing, and gating the disk restore on
+    /// the same switch meant that watching one channel left the grid stripped back to favicons for the rest
+    /// of the session, with nothing able to repaint it.
+    /// </remarks>
     public async Task QueueVisibleAsync(bool force, CancellationToken cancellationToken = default)
     {
-        if (!GridPreviewFeature.CaptureEnabled || _session is not { } session)
+        if (!GridPreviewFeature.CaptureEnabled)
         {
             return;
         }
 
-        using var activeRequest = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, session.Token);
+        var session = _session;
+        using var activeRequest = session is null
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
+            : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, session.Token);
         var activeToken = activeRequest.Token;
         var rows = await _dispatcher.InvokeAsync(_visibleRows);
+        var restoredFromStore = 0;
+        var captureable = 0;
         lock (_pendingGate)
         {
             _visibleUrls.Clear();
@@ -107,6 +130,7 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         foreach (var row in rows.Where(row => PreviewCapturePolicy.IsCaptureable(row.Channel)))
         {
             activeToken.ThrowIfCancellationRequested();
+            captureable++;
             var url = row.Channel.Url;
             var hasStored = false;
             if (_memoryCache.TryGet(url, out var cached) && cached is not null)
@@ -119,18 +143,25 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
                 var restored = await _diskStore.LoadAsync(url, activeToken);
                 if (restored is not null)
                 {
-                    _memoryCache.Put(url, restored);
+                    // Apply before Put: Put can evict another entry and blank that row, and the eviction
+                    // callback must never race ahead of the row we are filling right now.
                     await ApplyAsync(url, restored, null);
+                    _memoryCache.Put(url, restored);
                     hasStored = true;
+                    restoredFromStore++;
                 }
             }
 
-            // Stored previews always show; auto-capture of a first-time blank only when the setting is on. Explicit refresh always captures.
-            if (force || (!hasStored && _autoCaptureEnabled()))
+            // Stored previews always show; auto-capture of a first-time blank only when the setting is on.
+            // Explicit refresh always captures - but only while a capture session exists.
+            if (session is not null && (force || (!hasStored && _autoCaptureEnabled())))
             {
                 Enqueue(url, force);
             }
         }
+
+        _diagnostics?.Invoke("PREVIEW VISIBLE",
+            [$"rows={rows.Count}", $"captureable={captureable}", $"restored={restoredFromStore}", $"force={force}"]);
     }
 
     public async Task StopAsync()
@@ -140,8 +171,11 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         {
             if (_session is null)
             {
+                _diagnostics?.Invoke("PREVIEW COORD", ["state=stop_noop"]);
                 return;
             }
+
+            _diagnostics?.Invoke("PREVIEW COORD", ["state=stopping"]);
 
             var session = _session;
             var workers = _workers ?? [];
@@ -163,6 +197,12 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
                 {
                 }
 
+                // The queue and the signal count must fall together: a dropped request that left its
+                // release behind would wake a worker of the next session with nothing to dequeue.
+                while (_signal.Wait(0))
+                {
+                }
+
                 lock (_pendingGate)
                 {
                     _pending.Clear();
@@ -172,6 +212,11 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
                 lock (_inflightGate)
                 {
                     _inflight.Clear();
+                }
+
+                lock (_hoverGate)
+                {
+                    _lastHoverCapture.Clear(); // otherwise it grows with every distinct tile hovered, for the session
                 }
             }
         }

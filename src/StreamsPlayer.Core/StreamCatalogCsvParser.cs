@@ -44,7 +44,8 @@ public static class StreamCatalogCsvParser
                 Optional("protocol"),
                 Optional("format"),
                 Optional("bitrate"),
-                ParseIsLive(Cell("is_live"))));
+                ParseIsLive(Cell("is_live")),
+                ParseAccess(Cell("access"))));
 
             string Cell(string name) =>
                 header.TryGetValue(name, out var index) && index < row.Count ? row[index] : string.Empty;
@@ -65,5 +66,13 @@ public static class StreamCatalogCsvParser
         "true" or "1" or "yes" or "live" => true,
         "false" or "0" or "no" or "vod" => false,
         _ => null
+    };
+
+    // Only the one documented value is recognised. A blank cell, an absent column, and any token the
+    // catalog adds later all mean "say nothing" rather than surface an unknown tag to the user.
+    private static ChannelAccess ParseAccess(string value) => value.Trim().ToLowerInvariant() switch
+    {
+        "geo" => ChannelAccess.GeoRestricted,
+        _ => ChannelAccess.Open
     };
 }

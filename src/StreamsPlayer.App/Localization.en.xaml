@@ -14,6 +14,14 @@
     <sys:String x:Key="RefreshPreviews">Refresh previews</sys:String>
     <sys:String x:Key="RefreshPreviewsTip">Capture visible video previews now</sys:String>
     <sys:String x:Key="RefreshPreviewsName">Refresh visible video previews</sys:String>
+    <sys:String x:Key="ChannelPreviewsOffer">Ready-made preview pictures are available for most video channels.</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">Downloads about 11 MB once and fills the grid without connecting to each channel.</sys:String>
+    <sys:String x:Key="ChannelPreviewsDownload">Download pictures</sys:String>
+    <sys:String x:Key="ChannelPreviewsNotNow">Not now</sys:String>
+    <sys:String x:Key="ChannelPreviewsWorking">Preparing preview pictures.. {0} ready</sys:String>
+    <sys:String x:Key="ChannelPreviewsDone">Preview pictures added: {0}</sys:String>
+    <sys:String x:Key="ChannelPreviewsUnavailable">This computer cannot open the picture pack. Previews keep working as before.</sys:String>
+    <sys:String x:Key="ChannelPreviewsFailed">Could not download the preview pictures.</sys:String>
     <sys:String x:Key="AddStream">Add stream</sys:String>
     <sys:String x:Key="AddStreamPlain">Add stream</sys:String>
     <sys:String x:Key="UpdateCatalog">Update catalog</sys:String>
@@ -40,6 +48,8 @@
     <sys:String x:Key="BitrateValue">{0} kbps</sys:String>
     <sys:String x:Key="LiveLabel">Live</sys:String>
     <sys:String x:Key="OnDemandLabel">On demand</sys:String>
+    <sys:String x:Key="RegionRestrictedLabel">Region-locked</sys:String>
+    <sys:String x:Key="RegionRestrictedTip">The catalog maintainer could not reach this channel from their country. It may still work in the region it is broadcast to.</sys:String>
     <sys:String x:Key="SortBy">Sort by</sys:String>
     <sys:String x:Key="SortOrderTip">Sort order</sys:String>
     <sys:String x:Key="SortCatalogName">Sort catalog</sys:String>
@@ -131,6 +141,7 @@
     <sys:String x:Key="PlayerUnavailable">Stream unavailable</sys:String>
     <sys:String x:Key="PlayerUnsupported">This stream format is not supported by the Windows media backend.</sys:String>
     <sys:String x:Key="FailureDialogMessage">"{0}" could not be played.</sys:String>
+    <sys:String x:Key="FailureRegionRestricted">The catalog marks this channel as region-locked: it did not respond from the maintainer's country. It may work if you are in the region it broadcasts to.</sys:String>
     <sys:String x:Key="FailureRetry">Retry</sys:String>
     <sys:String x:Key="FailureHide">Hide</sys:String>
     <sys:String x:Key="FailureDelete">Delete</sys:String>
