@@ -169,7 +169,7 @@ public partial class MainWindow
     /// <summary>Persists a new collection set and repaints everything that shows collections.</summary>
     private async Task SaveCollectionsAsync(IReadOnlyList<ChannelCollection> collections)
     {
-        _state = await _store.SaveAsync(_state with { Collections = [.. collections] });
+        _state = await PersistAsync(_state with { Collections = [.. collections] });
         PopulateCollectionFilter();
         ApplyFilter();
     }
@@ -191,7 +191,7 @@ public partial class MainWindow
             return;
         }
 
-        _state = await _store.SaveAsync(_state with { Collections = [.. pruned] });
+        _state = await PersistAsync(_state with { Collections = [.. pruned] });
         PopulateCollectionFilter();
     }
 }

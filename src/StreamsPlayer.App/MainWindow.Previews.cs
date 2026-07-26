@@ -44,7 +44,7 @@ public partial class MainWindow
             return;
         }
 
-        _state = await _store.SaveAsync(_state with { ViewMode = viewMode });
+        _state = await PersistAsync(_state with { ViewMode = viewMode });
         IsGridMode = viewMode == CatalogViewMode.Grid;
         UpdateViewModeControls();
         UpdatePinnedSectionLayout();

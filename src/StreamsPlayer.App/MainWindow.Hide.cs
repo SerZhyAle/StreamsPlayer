@@ -31,7 +31,7 @@ public partial class MainWindow
             return;
         }
 
-        _state = await _store.SaveAsync(_state with { HiddenCatalogUrls = [.. _state.HiddenCatalogUrls, channel.Url] });
+        _state = await PersistAsync(_state with { HiddenCatalogUrls = [.. _state.HiddenCatalogUrls, channel.Url] });
         ForgetRow(channel.Id);
         _log.Event("CHANNEL HIDE", $"url={channel.Url}");
         PopulateFacets();
@@ -48,7 +48,7 @@ public partial class MainWindow
 
         // Rebuild the list without this row, matching strictly by Id so a colliding-URL row is never touched.
         // SP-0017: the same save drops its collection memberships; the collections themselves stay.
-        _state = await _store.SaveAsync(_state with
+        _state = await PersistAsync(_state with
         {
             Channels = _state.Channels.Where(item => item.Id != channel.Id).ToList(),
             Collections = [.. ChannelCollections.RemoveChannelEverywhere(_state.Collections, channel.Id)]
@@ -77,7 +77,7 @@ public partial class MainWindow
     /// <summary>Restore a hidden catalog channel. Only the hidden set changes; the channel record is untouched.</summary>
     private async Task UnhideAsync(string url)
     {
-        _state = await _store.SaveAsync(_state with
+        _state = await PersistAsync(_state with
         {
             HiddenCatalogUrls = _state.HiddenCatalogUrls.Where(hidden => !CatalogUrlIdentity.SameIdentity(hidden, url)).ToList()
         });

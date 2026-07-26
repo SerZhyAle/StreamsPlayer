@@ -42,7 +42,7 @@ public partial class MainWindow
             return;
         }
 
-        _state = await _store.SaveAsync(_state with { LastSelectedChannelId = channelId });
+        _state = await PersistAsync(_state with { LastSelectedChannelId = channelId });
     }
 
     private static StreamChannel CreateExternalChannel(string url)

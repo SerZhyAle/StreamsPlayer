@@ -1,6 +1,6 @@
 # Phase 02 - Resilient language state
 
-**Status:** Approved
+**Status:** Implemented
 
 Closes criteria 5 and 6 and audit finding A. Today an unknown `"language"` value throws
 `JsonException` for the whole document (`StreamCatalogStore.cs:46`), the App leaves `_state` empty
@@ -47,3 +47,34 @@ would turn the crash into silent catalog loss and would not satisfy criterion 6.
    `ChannelAccess` are deserialized by the same options and fail the same way. Record a Draft stub
    under `PLAN/` for tolerant enum handling across `CatalogState`, and do not fix it here.
    Static check: the stub ticket exists and this phase touches no enum other than `AppLanguage`.
+
+## Checks
+
+- `dotnet build StreamsPlayer.sln -c Release` - expected: succeeds | actual: succeeded, 0 warnings.
+- `dotnet test --filter FullyQualifiedName~CatalogStateLanguageTests` - expected: passes | actual:
+  19 passed, 0 failed.
+- `dotnet test StreamsPlayer.sln -c Release` - expected: no regression | actual: 274 passed, 0 failed
+  (255 before this phase).
+- Saved state with `Language = null` - expected: no `language` property in the file | actual: asserted
+  by `Save_OmitsTheLanguagePropertyWhenNoPreferenceIsHeld`.
+- `rg '_store\.SaveAsync' src/StreamsPlayer.App` - expected: one hit, inside the gate | actual: one hit
+  (`MainWindow.Localization.cs`, inside `PersistAsync`).
+- `git diff --stat src/StreamsPlayer.App` after the scripted rewrite - expected: only the intended
+  save-call lines change | actual: 26 single-line replacements across 14 files, no other content moved.
+- Parked as `PLAN/SP-0035_tolerant_state_enums.md`.
+
+### Deviation from step 3, recorded
+
+The plan named eight save sites to guard individually. The live tree has **26** unguarded ones, so
+guarding them by hand would have left the next new save path unprotected by default. Instead every
+`_state = await _store.SaveAsync(..)` now routes through `MainWindow.PersistAsync`, which drops a save
+taken before a successful load. The guard is structural rather than remembered, and the only direct
+`_store.SaveAsync` call left is inside that helper.
+
+### Design note on the nullable field
+
+`Language` is omitted from the JSON when null rather than written as `null`. Writing `null` would have
+broken criterion 5 in the other direction: a build predating SP-0034 has a non-nullable `AppLanguage`
+and throws on an explicit `null`. Omission is also the correct signal, because every earlier build
+serialized the property unconditionally - so an absent property genuinely means no build ever recorded
+a preference, and a user who deliberately chose English is not mistaken for a fresh install.

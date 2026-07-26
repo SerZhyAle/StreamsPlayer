@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace StreamsPlayer.Core;
 
 public enum MediaKind
@@ -222,7 +224,25 @@ public sealed record CatalogState
     public string? AtlasFileName { get; init; }
     public DateTimeOffset? LastCatalogRefreshAt { get; init; }
     public CatalogViewMode ViewMode { get; init; }
-    public AppLanguage Language { get; init; }
+
+    /// <summary>
+    /// The interface language the user chose, or <c>null</c> when they never chose one - in which case
+    /// the app detects it from the operating system UI culture (SP-0034 decision 5).
+    /// <para>
+    /// Nullable because "unset" and "chose English" have to be distinguishable, and every build before
+    /// SP-0034 serialized this property unconditionally, so an absent property really does mean no
+    /// build ever wrote a preference. It is omitted rather than written as <c>null</c> so a state file
+    /// written here still loads in an older build, whose <c>AppLanguage</c> is not nullable.
+    /// </para>
+    /// <para>
+    /// A value this build does not recognise reads back as <c>null</c> rather than throwing - see
+    /// <see cref="TolerantAppLanguageConverter"/>. An unreadable preference is a preference we do not
+    /// have; it must never cost the user their catalog.
+    /// </para>
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AppLanguage? Language { get; init; }
+
     public bool MainWindowTopmost { get; init; }
     public bool PlayerWindowTopmost { get; init; }
     public int VideoVolume { get; init; } = 100;

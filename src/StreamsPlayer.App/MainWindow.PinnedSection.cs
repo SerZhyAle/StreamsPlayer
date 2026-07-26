@@ -66,7 +66,7 @@ public partial class MainWindow
         ScheduleVisiblePreviewUpdate();
         if (_preferencesLoaded)
         {
-            _state = await _store.SaveAsync(_state with { PinnedSectionCollapsed = PinnedSectionCollapsed });
+            _state = await PersistAsync(_state with { PinnedSectionCollapsed = PinnedSectionCollapsed });
         }
     }
 
@@ -78,7 +78,7 @@ public partial class MainWindow
         ScheduleVisiblePreviewUpdate();
         if (_preferencesLoaded)
         {
-            _state = await _store.SaveAsync(_state with { MainSectionCollapsed = MainSectionCollapsed });
+            _state = await PersistAsync(_state with { MainSectionCollapsed = MainSectionCollapsed });
         }
     }
 

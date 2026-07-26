@@ -22,7 +22,9 @@ public sealed class StreamCatalogStore
     private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
-        Converters = { new JsonStringEnumConverter() }
+        // TolerantAppLanguageConverter must come first: it is more specific than the general enum
+        // converter, and it is what keeps an unreadable language from aborting the whole document.
+        Converters = { new TolerantAppLanguageConverter(), new JsonStringEnumConverter() }
     };
 
     public StreamCatalogStore(string directory)

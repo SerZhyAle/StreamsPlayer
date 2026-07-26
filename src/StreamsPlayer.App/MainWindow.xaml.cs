@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Net.Http;
 using System.Net.NetworkInformation;
@@ -124,13 +125,27 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         try
         {
             _state = await _store.LoadAsync();
-            LocalizationService.Apply(_state.Language);
+
+            // SP-0034 decision 5: no saved preference means a fresh install, so follow the operating
+            // system and fall back to English. A preference that is present is always honoured.
+            var savedLanguage = _state.Language;
+            var language = savedLanguage ?? InterfaceLanguages.Detect(
+                CultureInfo.CurrentUICulture,
+                CultureInfo.InstalledUICulture);
+            LocalizationService.Apply(language);
             WakeGuard.Enabled = _state.KeepAwakeDuringPlayback;
             Topmost = _state.MainWindowTopmost;
             MainTopmostCheckBox.IsChecked = _state.MainWindowTopmost;
             LanguageButton.IsEnabled = true;
             MainTopmostCheckBox.IsEnabled = true;
             _preferencesLoaded = true;
+            if (savedLanguage is null)
+            {
+                // Record the detected language once, so the next launch is an ordinary
+                // saved-preference launch and a later OS change cannot silently move the interface.
+                _state = await PersistAsync(_state with { Language = language });
+            }
+
             UpdateLanguageButton();
             UpdateLocalizedOptions();
             IsGridMode = _state.ViewMode == CatalogViewMode.Grid;
@@ -250,7 +265,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             SortIndex = nextOrder,
             AddedAt = DateTimeOffset.UtcNow
         }, dialog, url, title);
-        _state = await _store.SaveAsync(_state with { Channels = [.. _state.Channels, channel] });
+        _state = await PersistAsync(_state with { Channels = [.. _state.Channels, channel] });
         PopulateFacets();
         ApplyFilter();
         SetStatus("AddedStream", title);
@@ -498,7 +513,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 : current.SortIndex
         };
         ReplaceChannel(updated);
-        _state = await _store.SaveAsync(_state);
+        _state = await PersistAsync(_state);
         ApplyFilter();
     }
 
@@ -646,7 +661,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             _state = _state with { HiddenCatalogUrls = [.. _state.HiddenCatalogUrls, originalUrl] };
         }
 
-        _state = await _store.SaveAsync(_state);
+        _state = await PersistAsync(_state);
         PopulateFacets();
         ApplyFilter();
         SetStatus("EditedStream", title);
@@ -890,7 +905,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
-        _state = await _store.SaveAsync(_state with { AudioVolume = volume });
+        _state = await PersistAsync(_state with { AudioVolume = volume });
     }
 
     private void StopAudioButton_Click(object sender, RoutedEventArgs e) => StopAudio();
@@ -994,7 +1009,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             };
         }
 
-        _state = await _store.SaveAsync(_state);
+        _state = await PersistAsync(_state);
         ApplyFilter();
     }
 

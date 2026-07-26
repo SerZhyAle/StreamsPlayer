@@ -90,6 +90,6 @@ public partial class MainWindow
             return;
         }
 
-        _state = await _store.SaveAsync(_state with { ListeningHistory = updated });
+        _state = await PersistAsync(_state with { ListeningHistory = updated });
     }
 }

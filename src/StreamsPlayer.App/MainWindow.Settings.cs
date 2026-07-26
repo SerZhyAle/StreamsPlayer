@@ -16,7 +16,7 @@ public partial class MainWindow
 
     private async void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SettingsWindow(_state.TileSize, _state.UpdateStreamPreviews, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.VideoBackend, _state.Language, _selectedRow?.Channel, RunStreamListActionAsync)
+        var dialog = new SettingsWindow(_state.TileSize, _state.UpdateStreamPreviews, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.VideoBackend, LocalizationService.CurrentLanguage, _selectedRow?.Channel, RunStreamListActionAsync)
         {
             Owner = this
         };
@@ -28,7 +28,7 @@ public partial class MainWindow
         var tileSizeChanged = dialog.SelectedTileSize != _state.TileSize;
         var previewsChanged = dialog.UpdateStreamPreviews != _state.UpdateStreamPreviews;
         var systemMediaControlsChanged = dialog.SystemMediaControls != _state.SystemMediaControls;
-        _state = await _store.SaveAsync(_state with
+        _state = await PersistAsync(_state with
         {
             TileSize = dialog.SelectedTileSize,
             UpdateStreamPreviews = dialog.UpdateStreamPreviews,

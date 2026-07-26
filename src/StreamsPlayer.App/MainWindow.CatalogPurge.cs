@@ -30,7 +30,7 @@ public partial class MainWindow
         var collections = purge.RemovedChannelIds.Aggregate(
             (IReadOnlyList<ChannelCollection>)purge.State.Collections,
             ChannelCollections.RemoveChannelEverywhere);
-        _state = await _store.SaveAsync(purge.State with { Collections = [.. collections] });
+        _state = await PersistAsync(purge.State with { Collections = [.. collections] });
         foreach (var id in purge.RemovedChannelIds)
         {
             ForgetRow(id);

@@ -125,6 +125,6 @@ public partial class MainWindow
             return;
         }
 
-        _state = await _store.SaveAsync(updated);
+        _state = await PersistAsync(updated);
     }
 }

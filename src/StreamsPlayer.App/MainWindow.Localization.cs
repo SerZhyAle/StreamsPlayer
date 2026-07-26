@@ -8,10 +8,32 @@ public partial class MainWindow
 {
     private bool _preferencesLoaded;
     private bool _updatingLocalizedOptions;
+
     private string _statusResourceKey = "Ready";
     private object?[] _statusArguments = [];
     private string _nowPlayingResourceKey = "NothingPlaying";
     private object?[] _nowPlayingArguments = [];
+
+    /// <summary>
+    /// The only way this window writes state.
+    /// <para>
+    /// SP-0034: when a load fails, <c>_state</c> is left at its empty field initialiser. Committing
+    /// that would replace the user's real catalog, collections, history and pins with nothing, and
+    /// <c>StreamCatalogStore</c> would then delete the favicon atlas the empty state does not name.
+    /// Most save paths already checked <c>_preferencesLoaded</c>; the ones that did not - volume,
+    /// add stream, catalog refresh, import, history - turned a failed load into permanent data loss.
+    /// Routing every save through here makes the guard structural instead of remembered.
+    /// </para>
+    /// </summary>
+    private async Task<CatalogState> PersistAsync(CatalogState updated)
+    {
+        if (!_preferencesLoaded)
+        {
+            return _state;
+        }
+
+        return await _store.SaveAsync(updated);
+    }
 
     // SP-0029: the toolbar button opens the language menu instead of flipping between two locales.
     private void LanguageButton_Click(object sender, RoutedEventArgs e)
@@ -37,7 +59,7 @@ public partial class MainWindow
             {
                 Header = LocalizationService.NativeName(language),
                 IsCheckable = true,
-                IsChecked = language == _state.Language,
+                IsChecked = language == LocalizationService.CurrentLanguage,
                 Tag = language
             };
             item.Click += LanguageMenuItem_Click;
@@ -47,7 +69,7 @@ public partial class MainWindow
 
     private async void LanguageMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { Tag: AppLanguage language } || language == _state.Language)
+        if (sender is not MenuItem { Tag: AppLanguage language } || language == LocalizationService.CurrentLanguage)
         {
             // Re-checking the active language must not rewrite state or flicker the interface.
             UpdateLanguageButton();
@@ -55,14 +77,17 @@ public partial class MainWindow
         }
 
         LocalizationService.Apply(language);
-        _state = await _store.SaveAsync(_state with { Language = language });
+        _state = await PersistAsync(_state with { Language = language });
         RefreshLocalizedInterface();
     }
 
     // SP-0034: the badge is derived from the registry rather than from a second per-language switch.
     // Phase 07 replaces it with a glyph, at which point no layout width depends on a language code.
+    // Reads the applied language rather than the stored one: on a fresh install the stored value is
+    // still null while the interface is already showing the detected language.
     private void UpdateLanguageButton() =>
-        LanguageButton.Content = InterfaceLanguages.For(_state.Language).DictionaryCode.ToUpperInvariant();
+        LanguageButton.Content = InterfaceLanguages.For(LocalizationService.CurrentLanguage)
+            .DictionaryCode.ToUpperInvariant();
 
     private async void MainTopmostCheckBox_Changed(object sender, RoutedEventArgs e)
     {
@@ -73,7 +98,7 @@ public partial class MainWindow
 
         var topmost = MainTopmostCheckBox.IsChecked == true;
         Topmost = topmost;
-        _state = await _store.SaveAsync(_state with { MainWindowTopmost = topmost });
+        _state = await PersistAsync(_state with { MainWindowTopmost = topmost });
     }
 
     private async Task SavePlayerTopmostAsync(bool topmost)
@@ -83,7 +108,7 @@ public partial class MainWindow
             return;
         }
 
-        _state = await _store.SaveAsync(_state with { PlayerWindowTopmost = topmost });
+        _state = await PersistAsync(_state with { PlayerWindowTopmost = topmost });
     }
 
     private async Task SaveVideoAudioPreferencesAsync(int volume, bool muted)
@@ -93,7 +118,7 @@ public partial class MainWindow
             return;
         }
 
-        _state = await _store.SaveAsync(_state with { VideoVolume = volume, VideoMuted = muted });
+        _state = await PersistAsync(_state with { VideoVolume = volume, VideoMuted = muted });
     }
 
     private void RefreshLocalizedInterface()

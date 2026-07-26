@@ -111,7 +111,7 @@ public partial class MainWindow
 
         if (!result.CodecUnavailable)
         {
-            _state = await _store.SaveAsync(_state with
+            _state = await PersistAsync(_state with
             {
                 ChannelPreviewAtlasRevision = ChannelPreviewAtlasService.Revision
             });

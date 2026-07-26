@@ -39,6 +39,6 @@ public partial class MainWindow
     // the hidden set, and catalog data are untouched (AC5).
     private async Task ClearHistoryAsync()
     {
-        _state = await _store.SaveAsync(_state with { ListeningHistory = [] });
+        _state = await PersistAsync(_state with { ListeningHistory = [] });
     }
 }

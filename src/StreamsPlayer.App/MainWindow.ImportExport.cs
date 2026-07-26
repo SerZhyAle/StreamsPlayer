@@ -144,7 +144,7 @@ public partial class MainWindow
             AddedAt = now
         }).ToList();
 
-        _state = await _store.SaveAsync(_state with { Channels = [.. _state.Channels, .. additions] });
+        _state = await PersistAsync(_state with { Channels = [.. _state.Channels, .. additions] });
         _log.Event("IMPORT APPLY", $"count={additions.Count}");
         PopulateFacets();
         ApplyFilter();

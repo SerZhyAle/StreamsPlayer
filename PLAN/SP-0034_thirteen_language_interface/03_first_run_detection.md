@@ -1,6 +1,6 @@
 # Phase 03 - First-run language detection
 
-**Status:** Approved
+**Status:** Implemented
 
 Closes criterion 4 and Decision 5. Depends on phase 02: without `AppLanguage?` there is no way to
 tell "no preference" from "chose English", so detection could not honour a saved choice.
@@ -31,3 +31,23 @@ tell "no preference" from "chose English", so detection could not honour a saved
    installed culture; both unshipped yields `English`; `null`/`null` yields `English`; and the result
    is always a member of `InterfaceLanguages.All`.
    Static check: `dotnet test --filter FullyQualifiedName~InterfaceLanguagesTests` passes.
+
+## Checks
+
+- `rg 'InterfaceLanguages.Detect' src` - expected: exactly one call site, on the null-preference
+  branch | actual: one hit, `MainWindow.xaml.cs:132`, guarded by `savedLanguage ??`.
+- `rg 'CultureInfo.CurrentCulture *=|DefaultThreadCurrentCulture *=' src` - expected: no hit | actual:
+  none. Only `CurrentUICulture` and `DefaultThreadCurrentUICulture` are assigned, in
+  `LocalizationService.Apply`.
+- `dotnet test --filter FullyQualifiedName~InterfaceLanguagesTests` - expected: the culture matrix
+  passes | actual: 35 passed, 0 failed, including all thirteen display cultures, fall-through to the
+  installed culture, both-unshipped, and `Detect_AlwaysReturnsAShippedLanguage` over every neutral
+  culture the machine knows.
+- `Detect` is pure and takes both cultures as arguments, so the matrix does not depend on the machine's
+  own locale.
+
+Interaction with phase 02 worth recording: the detected value is persisted through `PersistAsync`
+immediately after `_preferencesLoaded` is set, so a fresh install writes its language exactly once and
+every later launch is an ordinary saved-preference launch. A later change to the operating system
+language therefore cannot silently move an established user's interface - which is what criterion 4
+means by "an existing saved preference is preserved".
