@@ -95,7 +95,8 @@ git push -u origin main
 
 ## Universal Agent Kit workflow
 
-- Chat, code, documentation, logs, and commits are English. Be concise, technical, and evidence-led.
+- Chat in the owner's language (Russian); code, documentation, logs, and commits are English. Be concise, technical, and evidence-led. Keep any English the owner must read short and simple.
+- No trailing "what I did" summaries - the diff speaks. Timestamp replies with the local time supplied in the prompt.
 - Read, search, build, test, and inspect the working tree without asking. Raise genuine product, data, architecture, or destructive-action decisions early.
 - Research in this order: `README.md`; relevant `PLAN/` ticket; symbols located with `rg` and their code/tests; official version-specific documentation. Never invent paths, symbols, APIs, or behaviour.
 - The working tree is the authority for current state. Open `memory/MEMORY.md` at session start, but verify remembered repository claims before acting on them.
@@ -115,7 +116,7 @@ git push -u origin main
 - Keep changes scoped. Avoid drive-by formatting and opportunistic refactors. Aim for files below ~500 lines and keep WPF windows focused on UI coordination.
 - Do not add raw logging to App or Core until a logging facade is deliberately introduced. `Console.WriteLine` is appropriate in the CatalogHarness.
 - Do not introduce trivial comments, broad/empty catches, duplicated values where a constant exists, lifecycle-unsafe async work, live-path stubs, or dead artifacts. Comments explain why, not visible mechanics.
-- Store temporary evidence and backups under `tmp/`, never at the repository root. Record checks as `expected: ... | actual: ...`, and rerun the narrowest meaningful check before declaring completion. A changed GUI action needs run-and-observe evidence, not merely a build.
+- Store temporary evidence and backups under `temp/`, organized by ticket (`temp/<ticket>/`, or `temp/scratch/` when none), never at the repository root. The legacy `tmp/` tree is historical local evidence referenced by closed tickets; do not rename it, do not add to it. Record checks as `expected: ... | actual: ...`, and rerun the narrowest meaningful check before declaring completion. A changed GUI action needs run-and-observe evidence, not merely a build.
 - Update user-facing documentation with user-visible behaviour changes. See `docs/agent/` for the lifecycle, research, quality, validation, memory, and cost disciplines.
 
 ## SZA Unified Rules (canon)

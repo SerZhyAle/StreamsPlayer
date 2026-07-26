@@ -7,6 +7,6 @@ For StreamsPlayer, follow `AGENTS.md`, the applicable `docs/agent/` method docum
 1. Read `README.md`, relevant `PLAN/` ticket, and `docs/agent/RESEARCH_INDEX.md`.
 2. Locate symbols with `rg` before opening implementation files. Read tests and contracts alongside code.
 3. Use official documentation only for version-specific gaps.
-4. Write a concise cited dossier under the ticket directory or `tmp/`; include current flow, reusable patterns, constraints, open questions, and risks.
+4. Write a concise cited dossier under the ticket directory or `temp/<ticket>/`; include current flow, reusable patterns, constraints, open questions, and risks.
 5. Do not modify production code or present guessed paths as evidence.
 

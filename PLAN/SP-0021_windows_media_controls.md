@@ -1,6 +1,6 @@
 # SP-0021: Windows system media controls
 
-**Status:** Partial - system-session behaviour verified; Mute (AC 2) needs a product decision and the physical media keys still need a human. Exit: owner answers the Mute question and confirms hardware Play/Pause, Stop and Prev/Next on a real keyboard.
+**Status:** BlockNeedUserTest - every scriptable criterion passed and the Mute question is resolved (withdrawn from AC 2, owner 2026-07-24). Exit: owner presses the physical Play/Pause, Stop and Prev/Next keys with the setting on, confirms ordinary typing is unaffected, and the ticket becomes Verified.
 
 ## Goal
 
@@ -22,13 +22,17 @@ System-level control is expected for desktop audio and removes the need to retur
 - The system session represents only the one active inline audio stream.
 - Play/Pause toggles live playback semantics: Pause stops the active live session; Play starts the same saved channel again at the live edge.
 - Stop ends playback. Previous/Next follows the stable order of the view or named collection from which playback was started, skipping hidden or missing rows and without wrapping unless explicitly enabled later.
-- Mute uses the existing persisted audio preference and does not change system master volume.
+- ~~Mute uses the existing persisted audio preference and does not change system master volume.~~
+  **Withdrawn (owner, 2026-07-24):** the Windows media session exposes no Mute affordance and the
+  hardware mute key drives the OS mixer, which this ticket must not touch. Muting stays an operating
+  system concern; if inline radio ever gains its own mute, mirroring it is a new ticket.
 - The system title shows the station and, when available from SP-0014, current ICY text; stale text is cleared with playback.
 
 ## Acceptance criteria
 
 1. Starting inline audio publishes one Windows media session with the correct play state and station title.
-2. Hardware/system Play/Pause, Stop, and Mute produce the same state transitions as their in-app equivalents.
+2. Hardware/system Play/Pause and Stop produce the same state transitions as their in-app equivalents.
+   (Mute was withdrawn from this criterion by the owner on 2026-07-24 — see Constraints.)
 3. Previous/Next moves through the captured launch context, skips unavailable rows, stops cleanly at an end, and never starts hidden content.
 4. Stopping audio, closing the app, or terminal playback failure clears the active system session and stale metadata.
 5. Ordinary keyboard input in StreamsPlayer and other applications is not intercepted beyond standard media-key handling.

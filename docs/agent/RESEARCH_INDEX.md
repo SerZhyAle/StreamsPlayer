@@ -8,5 +8,5 @@ Start research with `README.md`, then the relevant `PLAN/` ticket, then locate s
 - `tools/StreamsPlayer.CatalogHarness`: live catalog-bank smoke/contract harness.
 - `docs/specifications/streams.txt`: standalone product specification.
 
-For a ticket-bound investigation, save a concise cited dossier in its ticket directory or `tmp/`, then link only durable findings from the ticket. Do not repeatedly grep a question already answered by a dossier.
+For a ticket-bound investigation, save a concise cited dossier in its ticket directory or `temp/<ticket>/`, then link only durable findings from the ticket. Do not repeatedly grep a question already answered by a dossier.
 

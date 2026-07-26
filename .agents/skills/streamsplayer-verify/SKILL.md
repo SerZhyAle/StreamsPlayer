@@ -6,5 +6,5 @@ For StreamsPlayer, follow `AGENTS.md`, the applicable `docs/agent/` method docum
 
 1. Select the smallest run command that exercises the changed behaviour.
 2. Build first when necessary, then run the WPF app or catalog harness and walk the scenario.
-3. Store screenshots, logs, or outputs under `tmp/` or `artifacts/`.
+3. Store screenshots, logs, or outputs under `temp/<ticket>/` or `artifacts/`.
 4. Report only PASS/FAIL, the observed result, and evidence path. Do not alter ticket status.

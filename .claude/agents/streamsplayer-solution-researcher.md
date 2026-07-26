@@ -13,4 +13,4 @@ Perform evidence-based, read-only research for StreamsPlayer. Do not create, edi
 - Cite every material claim to an existing path and, where helpful, a line number. Never invent a path, symbol, or API.
 
 ## Report
-Return: current architecture and data flow, reusable patterns, constraints (especially the App→Core dependency direction, explicit refresh, and MANUAL/IMPORTED merge protections), implementation risks, and genuinely open questions. Keep it terse. Offload bulky raw evidence to `tmp/` and reference it by path.
+Return: current architecture and data flow, reusable patterns, constraints (especially the App→Core dependency direction, explicit refresh, and MANUAL/IMPORTED merge protections), implementation risks, and genuinely open questions. Keep it terse. Offload bulky raw evidence to `temp/<ticket>/` and reference it by path.

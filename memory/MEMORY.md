@@ -34,6 +34,36 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   gated on `_reachedLive`) or buffering > 15 s with no position progress - genuine rebuffering is left
   in place. See `PLAN/SP-0015_resilient_live_recovery.md`.
 
+- **CyrFlip is the portfolio's 13-language precedent** (owner's machine:
+  `P:\WINDOWS\CyrFlip`). It already ships a 13-language UI, site, Store listing and one
+  screenshot per language, using the set `en ru uk de it es fr pt-br zh-hans hi bn ar ur`.
+  `msix/README.md` there records the Partner Center failures already paid for - the export
+  must be re-taken before every import, additional languages must be added by hand or their
+  copy is dropped *silently*, the import is all-or-nothing, relative image paths work only
+  via folder upload, the Win10 logo-override flag must never be copied between languages, a
+  listing without a screenshot stays Incomplete with no error shown, and Partner Center
+  refuses its own export's BOM. StreamsPlayer's `tools/store/merge-listing-csv.ps1` writes
+  `utf8BOM` and overwrites cells unconditionally - both known-bad there. Read that file
+  before any Store-listing or multi-language work; do not re-derive it. See
+  `PLAN/SP-0034_thirteen_language_interface.md`.
+
+- The upstream catalog contract is documented in the FastMediaSorter repo at
+  `delivery/stream-catalog/README.md` (owner's machine:
+  `P:\ANDROID\FastMediaSorter_mob_v2\delivery\stream-catalog\README.md`). It is the authority for the
+  bank we consume and it changes without an app release - re-read it before touching catalog parsing.
+  Two consumer-side couplings it drives: (1) `StreamBankReader.MaximumAtlasBytes` must track the
+  publisher-side ceiling (raised to 30 MiB on 2026-07-26; the live atlas was already 2.9 MB against
+  the old 4 MB limit), and (2) columns are added upstream silently - `access` (values: empty or `geo`,
+  region-restricted, deliberately kept in the bank) shipped before we parsed it. Confirmed 2026-07-26.
+
+- **A second agent session can be writing to this tree at the same time.** On 2026-07-26 two sessions
+  independently allocated `SP-0031` (channel preview atlas, and the region-lock hint) and edited the same
+  files; one `Edit` reported "the file had been modified on disk since you last read it". Consequences to
+  guard against: allocate an `SP-NNNN` by re-scanning `PLAN/` **immediately** before writing the file, not
+  from a scan made earlier in the session; and before reporting a diff, run `git status` and separate your
+  own changes from the other session's rather than describing the whole working tree as yours. The clash
+  was resolved by renumbering the later, still-in-progress ticket (region lock → SP-0033).
+
 ## References
 
 - Toolbar glyph icons: `App.xaml`'s shared `GlyphButton` template applies **both**

@@ -10,4 +10,4 @@ Pick the lowest level that proves the changed behaviour, then record `expected` 
 6. Harness: `dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png` for catalog-delivery behaviour.
 7. GUI observation: run the WPF app and exercise the changed visible path.
 
-A passing build is not proof that a changed user action works. Store large logs, screenshots, and temporary evidence under `tmp/` or ignored `artifacts/`; keep ticket journals short and point to evidence paths.
+A passing build is not proof that a changed user action works. Store large logs, screenshots, and temporary evidence under `temp/<ticket>/` or ignored `artifacts/`; keep ticket journals short and point to evidence paths.
