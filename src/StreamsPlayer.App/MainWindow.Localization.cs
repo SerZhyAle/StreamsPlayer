@@ -30,8 +30,9 @@ public partial class MainWindow
     private void BuildLanguageMenu(ContextMenu menu)
     {
         menu.Items.Clear();
-        foreach (var language in LocalizationService.Available)
+        foreach (var entry in InterfaceLanguages.All)
         {
+            var language = entry.Language;
             var item = new MenuItem
             {
                 Header = LocalizationService.NativeName(language),
@@ -58,7 +59,10 @@ public partial class MainWindow
         RefreshLocalizedInterface();
     }
 
-    private void UpdateLanguageButton() => LanguageButton.Content = LocalizationService.ShortCode(_state.Language);
+    // SP-0034: the badge is derived from the registry rather than from a second per-language switch.
+    // Phase 07 replaces it with a glyph, at which point no layout width depends on a language code.
+    private void UpdateLanguageButton() =>
+        LanguageButton.Content = InterfaceLanguages.For(_state.Language).DictionaryCode.ToUpperInvariant();
 
     private async void MainTopmostCheckBox_Changed(object sender, RoutedEventArgs e)
     {

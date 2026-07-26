@@ -37,11 +37,24 @@ public enum CatalogViewMode
 
 // SP-0029: persisted by name via JsonStringEnumConverter, so an older state file that predates
 // Ukrainian still round-trips and new values can be appended without a migration.
+// SP-0034: these member names are the persisted JSON tokens - never rename one, and keep English
+// first so an unset value and a defaulted value agree. Per-surface codes, layout direction and
+// culture matching live in InterfaceLanguages; this enum is only the identity.
 public enum AppLanguage
 {
     English,
     Russian,
-    Ukrainian
+    Ukrainian,
+    German,
+    Italian,
+    Spanish,
+    French,
+    Portuguese,
+    Chinese,
+    Hindi,
+    Bengali,
+    Arabic,
+    Urdu
 }
 
 public enum StreamLaunchTargetKind
