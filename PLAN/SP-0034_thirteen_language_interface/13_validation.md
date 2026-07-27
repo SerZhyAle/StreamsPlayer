@@ -51,8 +51,9 @@ translation asset (criterion 15), and the shipped-language list is asserted in e
    "The flaky test" below.
 3. `./scripts/check.ps1` - expected: release-parity gate passes | actual: `Test Run Successful.
    Total tests: 299, Passed: 299`, build 0 warnings 0 errors.
-4. `tools/site/build-site.ps1 -Check` - expected: no stale output | actual: `docs/ is up to date.`,
-   exit 0, after a full generation run that wrote all 26 pages plus `site.js`.
+4. `tools/site/build-site.ps1` then `git diff --exit-code docs/` on the committed tree - expected: no
+   diff | actual: `No file changed - output was already current.` and `git diff` exit 0, with the whole
+   working tree clean. `-Check` also reports `docs/ is up to date.`
 5. `tools/store/build-store-listing-csv.ps1 -FillNothing` - expected: byte-identical | actual:
    `Round trip is byte-identical: 44937 bytes, 453 rows, nothing filled.`, exit 0.
 6. Forbidden term - expected: non-zero, nothing written | actual: exit 1,
