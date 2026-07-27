@@ -103,3 +103,42 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   known-folder API, so setting the `LOCALAPPDATA` environment variable does **not** redirect it.
   Rename the real folder aside instead (`Enter-SpSandbox`/`Exit-SpSandbox` in `tmp/uia/driver.ps1`)
   so destructive checks never touch the owner's catalog, pins, or history. Confirmed 2026-07-24.
+
+- WPF **does** set `WS_EX_LAYOUTRTL` on the HWND when a window's `FlowDirection` is `RightToLeft`.
+  The usual claim - that WPF mirrors only in managed layout and leaves the Win32 extended style
+  clear - is wrong. Consequence: `PrintWindow` returns Arabic and Urdu windows horizontally
+  **flipped** (text reading backwards), while `CopyFromScreen` does not, because it reads composited
+  screen pixels. Any capture path that uses `PrintWindow` must test
+  `GetWindowLong(h, GWL_EXSTYLE) & 0x00400000` and apply `RotateNoneFlipX` only when set - flipping
+  unconditionally mirrors the other eleven languages. Measured on both RTL languages, SP-0034
+  phase 11 (2026-07-27).
+
+- `ar-SA` defaults to the **Umm al-Qura (Hijri) calendar**, so setting `CultureInfo.CurrentUICulture`
+  to it changes the calendar system, not just the wording: the catalog timestamp rendered
+  `1448/02/12 بعد الهجرة` while Windows, the file system and every other application showed
+  2026-07-26. Choosing an interface language must not hand the user a date they have to reconcile
+  with the rest of their desktop. `LocalizationService.CreateUiCulture` clones the culture with
+  `DateTimeFormat.Calendar` set to its Gregorian calendar; month names, digits and ordering still
+  follow the language. Any future culture-sensitive formatting must go through that helper, not
+  through `CultureInfo.GetCultureInfo` directly. SP-0034 phase 13 (2026-07-27).
+
+- The shipped interface-language list is declared **once**, in `InterfaceLanguages`
+  (`src/StreamsPlayer.Core/InterfaceLanguages.cs`): enum member, dictionary code, culture, Store
+  listing code, right-to-left flag. PowerShell tooling does not restate it - `tools/InterfaceLanguages.ps1`
+  loads the built `StreamsPlayer.Core.dll` **from a byte array** (`Assembly::Load`, never `LoadFrom`,
+  which would hold the file open against a later `dotnet build`) and reads `InterfaceLanguages.All`,
+  taking the endonyms from the `Language*` keys in `Localization.en.xaml`. So the site generator, the
+  Store listing builder and the screenshot pipeline all derive from the application's own declaration,
+  and adding a language needs no edit outside Core. Do not add a language table to a script.
+
+- Three PowerShell 7 parse traps that each cost a debugging round in SP-0034 (2026-07-27):
+  (1) `"$var: text"` in an interpolated string is a **parse error** - PowerShell reads `$var:` as a
+  scope qualifier. Write `"${var}: text"`.
+  (2) `$list.Add("{0} {1}" -f $a, $b)` passes **two arguments to `.Add()`**, not one formatted string,
+  because inside a method call the comma is an argument separator. Wrap the `-f` expression in its own
+  parentheses. Same for `Size = '{0}x{1}' -f $w, $h` inside a hashtable literal.
+  (3) Assigning an object to a `[string]`-typed **parameter** variable silently stringifies it -
+  `$export = Read-Csv -Path $Export` turned a PSCustomObject into `"@{Path=...}"` and every later
+  property access failed with "property cannot be found". Give the result its own name.
+  Also: a dot-sourced library must not call `Set-StrictMode` at file scope - it changes the *caller's*
+  rules, and here it broke the tool harness's exit-code epilogue.
