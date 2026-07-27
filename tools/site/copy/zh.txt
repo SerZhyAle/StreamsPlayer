@@ -1,0 +1,287 @@
+# STREAMS Player site copy - generated pages are built from this file by tools/site/build-site.ps1.
+# Format: a "@@key" line, then the value on the following line(s), until the next @@ or end of file.
+# Placeholders must survive translation verbatim:
+#   [[command]] - the winget install command line
+#   [[appdata]] - the %LOCALAPPDATA%\StreamsPlayer path
+#   [[email]]   - the contact address
+# machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
+# but the key is present in every file so the key sets stay comparable.
+
+@@title-home
+STREAMS Player - Windows 上的网络广播、直播视频和 RTSP 播放器
+
+@@description-home
+适用于 Windows 的 STREAMS Player：浏览并播放网络广播、直播视频和 RTSP 流。
+
+@@title-privacy
+隐私 - STREAMS Player
+
+@@description-privacy
+STREAMS Player 隐私政策。
+
+@@skip-content
+跳到正文
+
+@@nav-what
+是什么
+
+@@nav-features
+功能
+
+@@nav-use
+如何使用
+
+@@nav-privacy
+隐私
+
+@@header-github
+GitHub
+
+@@theme-label
+切换配色主题
+
+@@lang-label
+网站语言
+
+@@nav-label
+主导航
+
+@@icon-alt
+STREAMS Player 图标
+
+@@hero-eyebrow
+STREAMS Player · Windows 10 / 11
+
+@@hero-title
+广播、直播视频和 RTSP，都在一个播放器里。
+
+@@hero-kicker
+网络广播 · 直播视频 · RTSP
+
+@@hero-description
+一款专注的 Windows 桌面应用：浏览现成的精选目录，添加自己的流，然后播放 - 无需账户，没有广告，也不会有您没有要求的后台活动。
+
+@@facts-label
+关键信息
+
+@@fact-windows
+Windows 10 / 11
+
+@@fact-free
+免费 · MIT 源代码
+
+@@fact-account
+无需账户
+
+@@fact-telemetry
+无遥测
+
+@@fact-langs
+13 种界面语言
+
+@@hero-cta-use
+如何使用
+
+@@hero-source
+查看源代码
+
+@@hero-status
+发布状态
+
+@@status-label
+当前状态
+
+@@status-title
+已发布
+
+@@status-description
+STREAMS Player 已发布，并且免费。可从 Microsoft Store 获取，从 GitHub 上最新的发布页下载便携版 ZIP，或使用 winget 安装 - 无需账户，没有广告，没有遥测。
+
+@@status-source
+Microsoft Store
+
+@@status-plan
+获取方式
+
+@@what-title
+它是什么，为什么做它
+
+@@what-p1
+STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、直播视频和 RTSP 网络摄像头。它会读取一份公开的精选流目录，因此首次运行就能得到一份可用的频道列表 - 之后您可以搜索、排序、置顶，也可以添加自己的频道，全部保存在您自己的机器上。
+
+@@what-p2
+它追求的是安静：播放器只做播放器该做的事。目录只在您要求时才更新，您手动添加和导入的流绝不会被更新覆盖，也没有账户、广告、分析统计或作者运营的服务。您的电脑上运行的，只有您自己启动的东西。
+
+@@features-title
+它能做什么
+
+@@features-description
+找到、保留并播放一个流所需的一切 - 按您实际在做的事分组。
+
+@@cap-find-title
+找到频道
+
+@@cap-find-1
+首次启动即有精选目录 - 无需设置。
+
+@@cap-find-2
+按类别、语言、国家/地区和媒体类型筛选。
+
+@@cap-find-3
+搜索并排序列表。
+
+@@cap-find-4
+把常回访的频道置顶。
+
+@@cap-play-title
+用合适的方式播放
+
+@@cap-play-1
+广播在主窗口播放。
+
+@@cap-play-2
+直播视频和 RTSP 在独立的播放器窗口中打开。
+
+@@cap-play-3
+约 10 秒的直播缓冲，缓冲进度可见。
+
+@@cap-play-4
+音量和静音状态会被记住。
+
+@@cap-window-title
+按您的习惯观看
+
+@@cap-window-1
+让主窗口或播放器总在最前。
+
+@@cap-window-2
+无边框全屏，用按钮或 F11 开启（Esc 退出）。
+
+@@cap-window-3
+流图块可选小、中、大三种尺寸。
+
+@@cap-grid-title
+可视网格
+
+@@cap-grid-1
+网格会抓取可见的 HTTP(S) 视频预览。
+
+@@cap-grid-2
+在本地保留最新的 64 个预览画面。
+
+@@cap-grid-3
+预览的自动更新可以关闭。
+
+@@cap-yours-title
+按自己的方式定制
+
+@@cap-yours-1
+用 URL 添加流，无需账户。
+
+@@cap-yours-2
+您添加和导入的流不会因目录更新而丢失。
+
+@@cap-yours-3
+保留本地的播放标记：成功 / 失败。
+
+@@cap-yours-4
+整个界面可在十三种语言之间切换，选择会被保留。
+
+@@cap-local-title
+本地优先的设计
+
+@@cap-local-1
+目录状态、手动添加的条目和置顶都留在您的设备上。
+
+@@cap-local-2
+保存在 [[appdata]]。
+
+@@cap-local-3
+目录只在您选择时才更新。
+
+@@use-title
+如何使用
+
+@@use-description
+打开它，选一个频道 - 整个流程就是这样。可从 Microsoft Store、winget 或便携版 ZIP 安装，也可以从源代码运行；还可以直接从命令行启动一个流。
+
+@@use-1-title
+从源代码运行
+
+@@use-1-text
+装好 .NET 10 SDK 后，在仓库根目录还原、生成并启动。
+
+@@use-2-title
+选择并播放
+
+@@use-2-text
+浏览目录，筛选或搜索，然后选择一个频道。广播在主窗口开始播放；视频和 RTSP 在播放器窗口中打开。启动时若未选择频道，会继续播放上一次的那个。
+
+@@use-3-title
+直接打开任意 URL
+
+@@use-3-text
+不碰目录也能播放一个流。
+
+@@use-4-title
+把频道保存为快捷方式
+
+@@use-4-text
+选择一个已保存的频道，打开设置，使用“复制命令”或“创建桌面快捷方式”。两者都使用该频道保存的 id。
+
+@@distribution-title
+分发渠道
+
+@@distribution-description
+三种获取方式都已可用。可从 Microsoft Store 获取，从 GitHub 上最新的发布页下载便携版 ZIP，或使用 [[command]] 安装。
+
+@@channel-github
+便携版 ZIP
+
+@@channel-store
+Microsoft Store
+
+@@channel-winget
+winget
+
+@@status-available
+可用
+
+@@privacy-eyebrow
+STREAMS Player · 隐私
+
+@@privacy-title
+默认保护隐私。
+
+@@privacy-intro
+STREAMS Player 没有账户、广告、分析统计、遥测，也没有由作者运营的服务。
+
+@@privacy-network-title
+网络访问
+
+@@privacy-network
+只有在您明确更新公开的流目录、播放所选的流，或在网格模式保持开启、可见视频预览正在刷新时，应用才会联网。这些请求会发往相应的目录或流提供方，并受该提供方的政策约束。
+
+@@privacy-local-title
+本地数据
+
+@@privacy-local
+STREAMS Player 会把目录状态、手动添加的条目、置顶、播放标记、最多 64 个缓存的预览画面，以及当前会话的诊断日志 Current.log 保存在 [[appdata]]。除非您自己选择复制或备份，这些数据都留在您的设备上。
+
+@@privacy-contact-title
+联系方式
+
+@@privacy-contact
+问题可以提交到 GitHub 的 issue tracker，或发送到 [[email]]。
+
+@@footer-rights
+© 2026 Serhii Zhyhunenko
+
+@@footer-tools
+更多工具
+
+@@to-top
+返回顶部
+
+@@machine-note
+本页面由机器翻译，未经母语人士校对。

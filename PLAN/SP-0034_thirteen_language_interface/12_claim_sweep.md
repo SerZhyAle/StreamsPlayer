@@ -1,6 +1,6 @@
 # Phase 12 - Stale-claim sweep and winget
 
-**Status:** Approved
+**Status:** Implemented
 
 Criteria 13 and 14. The audit found roughly forty places asserting two or three interface languages,
 including three READMEs that contradict themselves - SP-0029 added a three-language bullet without
@@ -49,3 +49,54 @@ removing the older two-language one.
    `PLAN/SP-0027_keep_awake_during_playback.md`. Leave everything under `PLAN/DONE/` alone - those are
    historical records.
    Static check: the claim grep from the audit returns hits only under `PLAN/DONE/`.
+
+## Checks
+
+- Full claim grep (`English and Russian|EN / RU|RU / EN|EN ⇄ RU|EN \+ RU|EN/RU|English/Russian|русским
+  и английским|англійською та російською`, across `*.md *.ps1 *.yaml *.yml *.xaml *.cs *.txt *.html
+  *.js`) - expected: nothing outside history | actual: the only hits are `PLAN/DONE/`, `manifests/`
+  (published snapshots of already-submitted manifests), the gitignored legacy `tmp/` tree, and three
+  new comments that quote the old claim to explain why the new tooling exists.
+- READMEs - expected: the count stated once each | actual: one bullet each in `README.md`,
+  `README.ru.md`, `README.uk.md`; the stale two-language bullet removed from all three; the reciprocal
+  language link block untouched.
+- winget - expected: five templates, three release-note tokens | actual: five files including
+  `locale.uk-UA.yaml` with `PackageName: Трансляції` and `REPLACE_RELEASE_NOTES_UK`, no `ReleaseDate`;
+  `winget/README.md` says five and names all three tokens.
+- `AppxManifest.xml` - expected: unchanged | actual: not in the diff.
+- Sibling tickets - expected: amended to point at the registry | actual: SP-0026 (ticket, INDEX,
+  PHASE-4, research) and SP-0027 (two places) now require every shipped language and name the parity
+  gate as the enforcement.
+
+### Four stale claims the plan did not list
+
+Found by widening the grep past the phrase the audit had used:
+
+1. **`CLAUDE.md:55` - "Localization is English + Russian"**, in the file that instructs every agent
+   working in this repository. Left alone it would have kept re-teaching the wrong fact. Rewritten to
+   name the single declaration, the nullable `Language` field and the CI parity gate.
+2. **`.claude/agents/streamsplayer-doc-writer.md:11` - "StreamsPlayer has no published downloads yet,
+   so never imply a shipped release."** Not a language claim at all, but flatly false: the app is live
+   on the Microsoft Store and in winget. That instruction was actively pushing the doc agent to write
+   incorrect copy. Corrected, along with the same file's three-language assumption and a new rule that
+   the ten machine-translated languages must be labelled as such.
+3. **`tools/store/make-store-images.ps1:90,94`** baked `EN / RU` and `RU / EN` into the composed
+   promotional cards - a stale claim rendered into a shipped PNG, where no grep of the text would ever
+   catch it again. Changed to `13 languages` / `13 языков` and all ten Store images regenerated.
+4. **`STORE_PUBLISHING.md:69`** pointed at `screenshot-{en,ru}-1366x768.png`; the files are
+   `-2732x1536`. A wrong path in a publishing checklist costs the owner a search at the worst moment.
+
+### The winget locale set stays at three, and now says so
+
+Criterion 13 keeps winget at en/ru/uk while the app ships thirteen, which looks like an oversight to
+the next reader. `winget/README.md` now states the reason: a winget locale is prose the owner
+re-verifies on every release, and ten machine-translated package descriptions would be maintenance with
+no reader. Documented so nobody "completes" the set.
+
+### `msix/store-listing.md` reduced rather than deleted
+
+Phase 10's decks supersede its copy, but the file also held the runFullTrust justification,
+certification notes, system requirements and the submission profile - none of which belong in a
+per-language deck. It is now that material only, with a line saying copy lives in `msix/listing/`. The
+certification test path also gained a step that exercises the language picker and one right-to-left
+language, since that is now a reviewable feature.

@@ -44,8 +44,6 @@ code or features.
   favicon-atlas checks.
 - Protect your `MANUAL` and `IMPORTED` rows while updating the catalog by URL.
 - Filter, search, sort, and pin radio, video, and RTSP streams.
-- Switch the complete interface between English and Russian from the top bar;
-  the language choice is restored on the next launch.
 - Keep the main window or video player independently always on top, and expand
   video to a borderless full screen with the button or `F11` (`Esc` exits).
 - Switch to a persisted visual grid that captures visible HTTP(S) video previews
@@ -66,8 +64,9 @@ code or features.
 - Delete every downloaded catalog stream in one confirmed action from Settings and
   keep only your own `MANUAL`/`IMPORTED` channels; **Update catalog** downloads
   them again whenever you want them back.
-- Switch the interface between English, Russian, and Ukrainian from the toolbar
-  language picker; the choice is restored on the next launch.
+- Switch the complete interface between thirteen languages from the toolbar
+  language picker, including right-to-left layout for Arabic and Urdu; the choice
+  is restored on the next launch, and the first launch follows Windows.
 - Group channels into local named collections, browse one collection at a time
   from the catalog filters, and manage them without touching pins or the catalog.
 - Set a sleep timer for inline radio — 15/30/45/60 minutes or a clock time — and

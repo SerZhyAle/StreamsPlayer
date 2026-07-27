@@ -1,0 +1,287 @@
+# STREAMS Player site copy - generated pages are built from this file by tools/site/build-site.ps1.
+# Format: a "@@key" line, then the value on the following line(s), until the next @@ or end of file.
+# Placeholders must survive translation verbatim:
+#   [[command]] - the winget install command line
+#   [[appdata]] - the %LOCALAPPDATA%\StreamsPlayer path
+#   [[email]]   - the contact address
+# machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
+# but the key is present in every file so the key sets stay comparable.
+
+@@title-home
+STREAMS Player - راديو الإنترنت والفيديو المباشر و RTSP لنظام Windows
+
+@@description-home
+STREAMS Player لنظام Windows: استعرض راديو الإنترنت والفيديو المباشر وعمليات بث RTSP وشغّلها.
+
+@@title-privacy
+الخصوصية - STREAMS Player
+
+@@description-privacy
+سياسة خصوصية STREAMS Player.
+
+@@skip-content
+تخطَّ إلى المحتوى
+
+@@nav-what
+ما هو
+
+@@nav-features
+الميزات
+
+@@nav-use
+كيف تستخدمه
+
+@@nav-privacy
+الخصوصية
+
+@@header-github
+GitHub
+
+@@theme-label
+تغيير سمة الألوان
+
+@@lang-label
+لغة الموقع
+
+@@nav-label
+التنقل الرئيسي
+
+@@icon-alt
+أيقونة STREAMS Player
+
+@@hero-eyebrow
+STREAMS Player · Windows 10 / 11
+
+@@hero-title
+الراديو والفيديو المباشر و RTSP في مشغل واحد.
+
+@@hero-kicker
+راديو الإنترنت · فيديو مباشر · RTSP
+
+@@hero-description
+تطبيق سطح مكتب مركّز لنظام Windows: استعرض كتالوجًا منسَّقًا، وأضف عمليات بثك الخاصة، وشغّلها - بلا حساب، وبلا إعلانات، وبلا أي شيء يعمل في الخلفية دون أن تطلبه.
+
+@@facts-label
+حقائق أساسية
+
+@@fact-windows
+Windows 10 / 11
+
+@@fact-free
+مجاني · كود مصدري MIT
+
+@@fact-account
+بلا حساب
+
+@@fact-telemetry
+بلا قياس عن بُعد
+
+@@fact-langs
+13 لغة واجهة
+
+@@hero-cta-use
+كيف تستخدمه
+
+@@hero-source
+عرض الكود المصدري
+
+@@hero-status
+حالة الإصدار
+
+@@status-label
+الحالة الحالية
+
+@@status-title
+تم الإصدار
+
+@@status-description
+تم إصدار STREAMS Player وهو مجاني. احصل عليه من Microsoft Store، أو كملف ZIP محمول من أحدث إصدار على GitHub، أو عبر winget - بلا حساب، وبلا إعلانات، وبلا قياس عن بُعد.
+
+@@status-source
+Microsoft Store
+
+@@status-plan
+من أين تحصل عليه
+
+@@what-title
+ما هو ولماذا
+
+@@what-p1
+STREAMS Player تطبيق سطح مكتب مستقل لنظام Windows، لراديو الإنترنت والفيديو المباشر وكاميرات شبكة RTSP. يقرأ كتالوج بث عامًّا ومنسَّقًا، فتحصل على قائمة قنوات جاهزة للعمل من أول تشغيل - ثم تبحث وترتّب وتثبّت وتضيف قنواتك الخاصة، وكل ذلك محفوظ محليًا على جهازك.
+
+@@what-p2
+الهدف هو الهدوء: مشغل يبقى مشغلًا. لا يُحدَّث الكتالوج إلا عندما تطلب ذلك، ولا يستبدل أي تحديث عمليات البث التي أضفتها يدويًا أو استوردتها، ولا وجود لحساب أو إعلانات أو تحليلات أو خدمة يديرها المؤلف. ما يعمل على حاسوبك هو ما شغّلته أنت.
+
+@@features-title
+ما يستطيع فعله
+
+@@features-description
+كل ما يلزم لإيجاد بث وحفظه وتشغيله - مجموعًا حسب ما تفعله فعلًا.
+
+@@cap-find-title
+إيجاد قناة
+
+@@cap-find-1
+كتالوج منسَّق من أول تشغيل - بلا إعداد.
+
+@@cap-find-2
+تصفية حسب الفئة واللغة والبلد ونوع الوسائط.
+
+@@cap-find-3
+البحث في القائمة وفرزها.
+
+@@cap-find-4
+تثبيت القنوات التي تعود إليها.
+
+@@cap-play-title
+التشغيل بالطريقة المناسبة
+
+@@cap-play-1
+الراديو يعمل في النافذة الرئيسية.
+
+@@cap-play-2
+الفيديو المباشر و RTSP يفتحان في نافذة مشغل مخصصة.
+
+@@cap-play-3
+تخزين مؤقت مباشر نحو 10 ثوانٍ مع إظهار تقدُّم التخزين.
+
+@@cap-play-4
+يتذكّر مستوى الصوت وكتمه.
+
+@@cap-window-title
+شاهد كما تريد
+
+@@cap-window-1
+أبقِ النافذة الرئيسية أو المشغل دائمًا في المقدمة.
+
+@@cap-window-2
+ملء شاشة بلا إطار بزر أو بمفتاح F11 (Esc للخروج).
+
+@@cap-window-3
+مربعات بث صغيرة أو متوسطة أو كبيرة.
+
+@@cap-grid-title
+شبكة مرئية
+
+@@cap-grid-1
+شبكة تلتقط معاينات فيديو HTTP(S) الظاهرة.
+
+@@cap-grid-2
+تحفظ آخر 64 إطارًا محليًا.
+
+@@cap-grid-3
+يمكن إيقاف تحديث المعاينات تلقائيًا.
+
+@@cap-yours-title
+اجعله لك
+
+@@cap-yours-1
+أضف بثًا بعنوان URL، بلا حساب.
+
+@@cap-yours-2
+عمليات البث التي أضفتها واستوردتها تبقى بعد تحديثات الكتالوج.
+
+@@cap-yours-3
+احفظ علامات التشغيل محليًا: نجح أو فشل.
+
+@@cap-yours-4
+بدّل الواجهة كلها بين ثلاث عشرة لغة؛ ويُستعاد اختيارك.
+
+@@cap-local-title
+محلي بحكم التصميم
+
+@@cap-local-1
+حالة الكتالوج والمدخلات اليدوية والقنوات المثبَّتة تبقى على جهازك.
+
+@@cap-local-2
+تُحفظ في [[appdata]].
+
+@@cap-local-3
+لا يُحدَّث الكتالوج إلا وقت تختار أنت.
+
+@@use-title
+كيف تستخدمه
+
+@@use-description
+افتحه واختر قناة - هذا هو المسار كله. ثبّته من Microsoft Store أو winget أو من ملف ZIP المحمول - أو شغّله من الكود المصدري؛ ويمكنك أيضًا تشغيل بث مباشرة من سطر الأوامر.
+
+@@use-1-title
+التشغيل من الكود المصدري
+
+@@use-1-text
+مع تثبيت .NET 10 SDK، استعِد الحزم وابنِ المشروع وشغّل التطبيق من جذر المستودع.
+
+@@use-2-title
+اختر وشغّل
+
+@@use-2-text
+استعرض الكتالوج، وصفِّ أو ابحث، ثم اختر قناة. الراديو يبدأ في النافذة الرئيسية؛ والفيديو و RTSP يفتحان في نافذة المشغل. التشغيل دون قناة محددة يستأنف آخر قناة شغّلتها.
+
+@@use-3-title
+افتح أي عنوان URL مباشرة
+
+@@use-3-text
+شغّل بثًا دون المرور بالكتالوج.
+
+@@use-4-title
+احفظ قناة في اختصار
+
+@@use-4-text
+اختر قناة محفوظة، وافتح الإعدادات، واستخدم «نسخ الأمر» أو «إنشاء اختصار على سطح المكتب». يستخدم كلاهما مُعرِّف القناة المحفوظ.
+
+@@distribution-title
+التوزيع
+
+@@distribution-description
+طرق التوزيع الثلاث كلها متاحة. احصل عليه من Microsoft Store، أو نزّل ملف ZIP المحمول من أحدث إصدار على GitHub، أو ثبّته بالأمر [[command]].
+
+@@channel-github
+ملف ZIP محمول
+
+@@channel-store
+Microsoft Store
+
+@@channel-winget
+winget
+
+@@status-available
+متاح
+
+@@privacy-eyebrow
+STREAMS Player · الخصوصية
+
+@@privacy-title
+خاص افتراضيًا.
+
+@@privacy-intro
+لا يوجد في STREAMS Player حساب ولا إعلانات ولا تحليلات ولا قياس عن بُعد ولا خدمة يديرها المؤلف.
+
+@@privacy-network-title
+الوصول إلى الشبكة
+
+@@privacy-network
+يتصل التطبيق بالشبكة عندما تحدّث كتالوج البث العام صراحةً، أو تشغّل بثًا محددًا، أو تُبقي عرض الشبكة نشطًا أثناء تحديث معاينات الفيديو الظاهرة. تذهب هذه الطلبات إلى مزوّد الكتالوج أو البث المعني وتخضع لسياساته.
+
+@@privacy-local-title
+البيانات المحلية
+
+@@privacy-local
+يحفظ STREAMS Player حالة الكتالوج، والمدخلات اليدوية، والقنوات المثبَّتة، وعلامات التشغيل، وحتى 64 إطار معاينة مخزَّنًا، وسجل التشخيص للجلسة الحالية Current.log في [[appdata]]. تبقى هذه البيانات على جهازك إلا إذا اخترت نسخها أو أخذ نسخة احتياطية منها.
+
+@@privacy-contact-title
+الاتصال
+
+@@privacy-contact
+يمكن طرح الأسئلة في متتبِّع المشكلات على GitHub أو إرسالها إلى [[email]].
+
+@@footer-rights
+© 2026 Serhii Zhyhunenko
+
+@@footer-tools
+أدوات أخرى
+
+@@to-top
+عودة إلى الأعلى
+
+@@machine-note
+تُرجمت هذه الصفحة آليًا ولم يراجعها متحدث أصلي.

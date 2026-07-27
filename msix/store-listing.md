@@ -1,6 +1,10 @@
-# Microsoft Store submission copy
+# Microsoft Store submission profile
 
-Use this file as the offline copy deck for Partner Center. It describes the current application; remove any item that is not present in the package being submitted.
+Everything Partner Center asks for that is **not** per-language listing copy. The copy itself lives in
+`msix/listing/` - one plain-text deck per listing language, plus the shared rows, the search terms and
+the forbidden-term list. See `msix/listing/README.md`, and `STORE_PUBLISHING.md` for the build and
+import flow. Do not restate listing copy here: two sources of truth is how a corrected claim survives
+in the live listing.
 
 ## Submission profile
 
@@ -19,117 +23,22 @@ Use this file as the offline copy deck for Partner Center. It describes the curr
 - Privacy policy: `https://serzhyale.github.io/StreamsPlayer/privacy.html`
 - Source: `https://github.com/SerZhyAle/StreamsPlayer`
 
-## English (en-US)
+## Listing languages
 
-### Short description
+Thirteen, matching the interface: `en-us`, `ru`, `uk`, `de`, `it`, `es`, `fr`, `pt-br`, `zh-hans`,
+`hi`, `bn`, `ar`, `ur`. The list is not maintained here either - it comes from the
+`InterfaceLanguages` registry in `StreamsPlayer.Core`, which every tool reads.
 
-```text
-Browse internet radio and live video in a focused Windows player with a curated catalog, local favorites, live grid previews, and no account or advertising.
-```
-
-### Description
-
-```text
-STREAMS Player is an independent Windows desktop application for browsing and playing internet radio, live video, and RTSP stream addresses.
-
-Explore a curated catalog by category, language, country, or media type. Search and sort channels, pin the streams you use most, or add a direct stream URL manually. Audio plays in the main window, while video opens in a dedicated window with always-on-top and borderless fullscreen controls.
-
-Choose a compact list or a visual grid. Grid mode can capture current thumbnails for visible HTTP(S) video streams; tile size and automatic thumbnail updates are controlled in Settings. The complete interface switches between English and Russian.
-
-Catalog downloads happen only when you choose Update catalog. STREAMS Player has no account, advertising, analytics, or telemetry. Catalog state, manual entries, favorites, playback marks, settings, and cached thumbnails stay in your Windows profile.
-
-Playback compatibility depends on the stream provider, network availability, protocol, and media codecs supported by the included or Windows media components. STREAMS Player does not host or control third-party stream content.
-
-STREAMS Player is open source under the MIT License.
-```
-
-### Product features
-
-Enter each line as a separate feature; Partner Center adds the bullets.
-
-```text
-Curated catalog for internet radio, live video, and RTSP addresses
-Search, sort, and filter by category, language, country, and media type
-Pin favorite streams and add direct stream URLs
-List and visual grid layouts with selectable tile sizes
-Optional live thumbnails for visible HTTP(S) video streams
-English and Russian interface
-Independent always-on-top controls for the app and video player
-Borderless video fullscreen with F11 and Escape shortcuts
-Explicit catalog refresh with no surprise background catalog downloads
-No account, advertising, analytics, or telemetry
-```
-
-### Keywords
-
-Use no more than these seven entries:
-
-```text
-internet radio
-live TV
-stream player
-RTSP
-radio catalog
-video streams
-IPTV player
-```
-
-## Russian (ru-RU)
-
-### Short description
-
-```text
-Каталог интернет-радио и live-видео для Windows с избранным, живыми миниатюрами, русским интерфейсом, без аккаунта и рекламы.
-```
-
-### Description
-
-```text
-Трансляции - независимое приложение Windows для просмотра каталога и воспроизведения интернет-радио, live-видео и адресов RTSP-потоков.
-
-Просматривайте подобранный каталог по категории, языку, стране или типу медиа. Ищите и сортируйте каналы, закрепляйте нужные потоки и добавляйте прямые URL вручную. Аудио воспроизводится в главном окне, а видео открывается в отдельном проигрывателе с режимами «поверх всех окон» и безрамочным полноэкранным просмотром.
-
-Выбирайте компактный список или наглядную сетку. В режиме сетки приложение может получать текущие миниатюры видимых HTTP(S)-видеопотоков; размер плиток и автоматическое обновление миниатюр задаются в Настройках. Весь интерфейс переключается между русским и английским языками.
-
-Каталог загружается только после нажатия «Обновить каталог». В Трансляции нет аккаунта, рекламы, аналитики и телеметрии. Состояние каталога, добавленные вручную адреса, избранное, отметки воспроизведения, настройки и кэш миниатюр хранятся в профиле Windows.
-
-Совместимость воспроизведения зависит от поставщика потока, сети, протокола и медиакодеков, доступных во встроенных компонентах и Windows. Трансляции не размещает и не контролирует содержимое сторонних потоков.
-
-Исходный код Трансляции опубликован по лицензии MIT.
-```
-
-### Product features
-
-```text
-Каталог интернет-радио, live-видео и адресов RTSP
-Поиск, сортировка и фильтры по категории, языку, стране и типу медиа
-Закрепление любимых потоков и добавление прямых URL
-Режимы списка и сетки с выбором размера плиток
-Отключаемые живые миниатюры видимых HTTP(S)-видеопотоков
-Русский и английский интерфейс
-Независимый режим «поверх всех окон» для приложения и видеоплеера
-Безрамочный полноэкранный режим с клавишами F11 и Escape
-Обновление каталога только по команде пользователя
-Без аккаунта, рекламы, аналитики и телеметрии
-```
-
-### Keywords
-
-```text
-интернет радио
-онлайн телевидение
-плеер потоков
-RTSP
-каталог радио
-видеопотоки
-IPTV плеер
-```
+Each language needs a description **and** at least one screenshot to leave Incomplete.
+`assets/store/app-<listing-code>.png` holds one real capture per language, produced by
+`tools/store/capture-store-screenshots.ps1`.
 
 ## What's new
 
-Leave this field blank for the first submission. For updates, replace the version and keep the text within 1,500 characters.
-
-### English template
+Leave blank for a first submission. For an update, replace the version and keep the text within 1,500
+characters. Written per submission, in the same three languages the release notes use elsewhere
+(English, Russian, Ukrainian) - the ten machine-translated languages get the English text, because a
+release note is dated prose nobody proofreads twice.
 
 ```text
 Version REPLACE_VERSION
@@ -138,10 +47,15 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
-### Russian template
-
 ```text
 Версия REPLACE_VERSION
+
+- REPLACE_USER_VISIBLE_CHANGE
+- REPLACE_USER_VISIBLE_CHANGE
+```
+
+```text
+Версія REPLACE_VERSION
 
 - REPLACE_USER_VISIBLE_CHANGE
 - REPLACE_USER_VISIBLE_CHANGE
@@ -168,7 +82,8 @@ Suggested test path:
 3. Switch to Grid mode to observe cached/live thumbnails for visible HTTP(S) video entries.
 4. Open Settings to change tile size and disable or re-enable automatic thumbnails.
 5. Open a video entry and exercise always-on-top, Fullscreen, F11, and Escape.
-6. Use RU / EN to verify both interface languages.
+6. Open the language picker in the toolbar and switch the interface; pick Arabic or Urdu to see the
+   whole layout mirror right-to-left, then switch back.
 
 Individual third-party streams can be offline or use formats unsupported by the current media backend. This is reported in the player and does not prevent catalog browsing or another stream from being selected.
 ```
@@ -187,15 +102,19 @@ StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. run
 
 ## Screenshot set
 
-At least one desktop screenshot is required; prepare four or more, without unrelated windows or unsupported claims:
+At least one desktop screenshot is required per listing language, and a language without one stays
+Incomplete with nothing said about it. `tools/store/capture-store-screenshots.ps1` produces exactly
+that set. Beyond it, prepare a few composed cards or extra captures without unrelated windows or
+unsupported claims:
 
-1. English catalog in List mode.
-2. Russian catalog in Grid mode with representative thumbnails.
+1. Catalog in List mode.
+2. Grid mode with representative thumbnails.
 3. Compact Settings window showing tile size, thumbnail preference, version, and links.
 4. Video player showing always-on-top and fullscreen controls.
 5. Optional Add stream dialog and filtering example.
 
-Before submission, verify every screenshot matches the uploaded version and that any visible third-party channel artwork is appropriate for the selected markets.
+Before submission, verify every screenshot matches the uploaded version and that any visible
+third-party channel artwork is appropriate for the selected markets.
 
 ## Maintainer references
 

@@ -58,15 +58,18 @@ Requires the Windows SDK (`makeappx.exe`, and `signtool.exe` for `-SelfSign`):
 `./msix/build-msix.ps1 -SelfSign` prints the `Import-Certificate` (run as admin)
 and `Add-AppxPackage` commands. Install, launch from the Start menu, and confirm:
 catalog refresh, audio playback, Grid thumbnails, the video player (always-on-top,
-F11/Escape fullscreen), and EN/RU switching.
+F11/Escape fullscreen), and language switching - including one right-to-left
+language, where the whole layout mirrors.
 
 ## Phase 4 - Listing materials (all present in this repo)
 
 | Item | Source |
 | --- | --- |
-| Copy deck (EN + RU: description, features, keywords, runFullTrust justification, certification notes) | `msix/store-listing.md` |
-| Import-ready listing CSV (EN + RU columns) | `msix/store-listing-import.csv` - see "Listing import via CSV" below |
-| Screenshots (composed, 1366×768, EN + RU) | `assets/store/screenshot-{en,ru}-1366x768.png` - regenerate with `tools/store/make-store-images.ps1` |
+| Copy deck, one file per listing language | `msix/listing/<listing-code>.txt` - see `msix/listing/README.md` |
+| Shared rows, search terms, forbidden terms | `msix/listing/shared.txt`, `search-terms.txt`, `forbidden-terms.txt` |
+| Import-ready listing CSV (all thirteen columns) | built by `tools/store/build-store-listing-csv.ps1` - see "Listing import via CSV" below |
+| Real in-app screenshots, one per language | `assets/store/app-<listing-code>.png` - regenerate with `tools/store/capture-store-screenshots.ps1` |
+| Screenshots (composed, 2732×1536) | `assets/store/screenshot-{en,ru}-2732x1536.png` - regenerate with `tools/store/make-store-images.ps1` |
 | Real in-app screenshots (recommended to add before submit) | `tools/store/capture-app.ps1 -Name <shot>` |
 | Banner / social preview | `assets/store/banner-1280x360.png`, `assets/store/social-preview-1280x640.png` |
 | Privacy policy | `docs/privacy.html` → `https://serzhyale.github.io/StreamsPlayer/privacy.html` |
@@ -82,40 +85,63 @@ lead image.
 
 ### Listing import via CSV
 
-`msix/store-listing-import.csv` holds both listings (columns `Field, ID, Type,
-default, en-us, ru-ru`) so you can populate EN and RU in one go via **Import
-listings → Upload .csv** instead of typing into Partner Center.
+The copy lives in `msix/listing/` as one plain-text deck per listing language. The CSV is **built**,
+never hand-edited: Partner Center requires the `Field`, `ID` and `Type` columns to match the file it
+generated for the current submission, and the `ID` numbers are account-specific and undocumented, so
+the export is the column contract.
 
-Partner Center requires the `Field`, `ID`, and `Type` columns to match its own
-generated template exactly, and the `ID` numbers are account-specific and not
-documented. Two ways to use the file:
-
-A direct upload of `store-listing-import.csv` is **rejected** ("The ID column
-contains incorrect entries") - Partner Center requires its own `ID` values. Use
-the merge script instead:
-
-1. App overview → **Store listings → Export listing** → save the file (e.g.
-   `tmp/exported-listing.csv`). Its language columns are `en-us` and `ru`.
-2. Run:
+1. **Add every language to the submission first.** Store listings → *Manage additional languages*.
+   An import cannot create a column. A language that is not already there has its copy dropped
+   **silently** - no error, no warning, nothing in the report.
+2. **Re-take the export every time.** App overview → **Store listings → Export listing**. The export
+   carries the current submission's asset URLs and defines which columns the next import will accept;
+   yesterday's export is not safe to reuse.
+3. Build the import file:
    ```powershell
-   pwsh -NoProfile -File tools/store/merge-listing-csv.ps1 `
-     -Template tmp/exported-listing.csv `
-     -Out msix/store-listing-import.filled.csv
+   pwsh -NoProfile -File tools/store/build-store-listing-csv.ps1 `
+     -Export tmp/exported-listing.csv
    ```
-   This keeps the template's `Field`/`ID`/`Type` untouched and fills `en-us` + `ru`
-   from `store-listing-import.csv` (the content source of truth).
-3. **Import listings → Upload .csv** → `msix/store-listing-import.filled.csv`.
+   Add `-ReplaceCopy` when a claim has changed - by default the builder fills only empty cells, so a
+   listing that already reads "English and Russian interface" would keep saying it. Add
+   `-ImportFolder msix/dist/store-listing-import` to stage the CSV beside the screenshots instead.
+4. **Import listings → Upload .csv** (or **Upload folder** for the staged variant).
 
-Notes:
-- The file is UTF-8 with BOM (keeps Cyrillic intact in Excel). Keep that encoding.
-- `ReleaseNotes` is intentionally blank (first submission).
-- **Screenshots are not in the CSV.** Either upload them in the Partner Center UI,
-  or use folder import: put the CSV + `assets/store/*.png` in one folder, add
-  `DesktopScreenshot1…` rows whose value is `<folder>/screenshot-en-1366x768.png`,
-  and choose **Upload folder**.
-- Review the RU body: it refers to the app as "Трансляции" (a translation). The
-  Store *title* is "Streams Player" regardless; change the RU prose only if you
-  want the Latin wordmark there too.
+Recorded Partner Center behaviour - all of it learned the hard way, and all of it now enforced by the
+builder rather than remembered:
+
+- **The import file must be UTF-8 without BOM.** A BOM is rejected. A Partner Center *export*
+  arrives with one; the builder strips it and says so. (An earlier version of this document told you
+  to keep the BOM. That was wrong.)
+- Every field is quoted, records are separated by CRLF, and there is **no** trailing newline.
+- The import is **all-or-nothing**: one bad cell rejects the whole file.
+- A relative image path is accepted **only** by *Upload folder*. In a flat CSV upload it fails per
+  cell, which is why the flat output carries no image path at all.
+- A listing is Incomplete until it has **both** a description and at least one screenshot. A
+  text-only language just sits there; Partner Center reports nothing. The builder prints a
+  per-language completeness table for exactly this reason.
+- **Never copy `OverrideLogosForWin10 = True` into a language with no `StoreLogo` rows of its own.**
+  It holds the listing Incomplete with nothing shown on the page - it stranded ten listings once. The
+  builder forces it to `False` for any language without its own logos.
+- `Title` and `CopyrightTrademarkInformation` are identifiers, not prose: they come from
+  `msix/listing/shared.txt` and are written identically into every column.
+- Search terms stay **English in all thirteen columns** (owner decision, SP-0034), so there is one
+  set to review. At most seven, no duplicates, and nothing matching
+  `msix/listing/forbidden-terms.txt` - the builder exits non-zero rather than warning.
+- `ReleaseNotes` is left alone by the builder; fill it per submission.
+- The Russian and Ukrainian bodies call the app "Трансляции" / "Трансляції". The Store *title* is
+  "Streams Player" in every language regardless.
+
+`msix/store-listing-export.sample.csv` is a committed fixture: a real 453-row export with the copy
+cells emptied and all thirteen language columns present. It exists so the round trip is checkable
+without a Partner Center session:
+
+```powershell
+pwsh -NoProfile -File tools/store/build-store-listing-csv.ps1 -FillNothing
+```
+
+Given nothing to fill, the output must be **byte-identical** to the input. That is the guarantee that
+the builder cannot corrupt an export it does not understand. `.gitattributes` marks the fixture
+`-text` so git never normalizes its line endings.
 
 ## Phase 5 - Age rating (IARC)
 
@@ -137,9 +163,9 @@ infringing-content policy. Pre-empt it:
 
 - Frame the app as an **internet-radio / live-stream catalog player** (it is), not a
   piracy tool. The listing already leads with the curated catalog.
-- The keyword `IPTV player` in `msix/store-listing.md` is the most likely trigger.
-  Consider dropping it or replacing it with `internet radio` / `stream player` if a
-  reviewer pushes back.
+- The search term `IPTV player` was the most likely trigger. It is **gone**: it now sits in
+  `msix/listing/forbidden-terms.txt`, and the builder fails the run rather than warning if anyone
+  puts it back. Do not re-add it to please a keyword tool.
 - Paste the runFullTrust justification from `msix/store-listing.md` verbatim (it
   explains the LibVLC media components, the explicit-refresh network model, and the
   absence of accounts/ads/telemetry, with the source link).
@@ -148,8 +174,8 @@ infringing-content policy. Pre-empt it:
 
 1. Partner Center → **Apps and games → Streams Player** (Store ID `9NBTD5SXB8TB`).
 2. **Packages** → upload `msix/dist/StreamsPlayer-<version>-windows-x64.msix`.
-3. **Store listings** → English (paste from `msix/store-listing.md`); add Russian via
-   *Manage additional languages* and paste the RU copy. Upload screenshots.
+3. **Store listings** → add every language in *Manage additional languages* **first**, then export,
+   build and import as described in "Listing import via CSV". Upload screenshots.
 4. **Properties** → category Entertainment; **Age ratings** → complete IARC.
 5. **Pricing and availability** → Free, markets.
 6. Submit for certification (a few business days). For an update, *Create new

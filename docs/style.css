@@ -109,10 +109,14 @@ code {
   outline-offset: 3px;
 }
 
+/* SP-0034: layout that a mirrored page depends on uses logical properties, so the Arabic and Urdu
+   pages need no direction-specific rules. The two .glow blobs below are deliberately left physical -
+   they are aria-hidden background decoration and carry no layout. */
+
 .skip-link {
   position: fixed;
   top: 8px;
-  left: 8px;
+  inset-inline-start: 8px;
   z-index: 100;
   transform: translateY(-150%);
   border-radius: var(--radius-small);
@@ -192,7 +196,7 @@ code {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  margin-right: auto;
+  margin-inline-end: auto;
   color: var(--text);
   font-family: var(--font-heading);
   font-size: 0.95rem;
@@ -230,31 +234,58 @@ code {
   color: var(--text);
 }
 
+/* Thirteen languages do not fit in a row of pills, so the switcher is one compact select whose
+   options carry their own target URL. Each page is a real URL, so the list is also a set of links
+   for anyone without JavaScript. */
 .language-switcher {
   display: flex;
-  gap: 2px;
+  align-items: center;
+}
+
+.language-switcher select {
+  max-width: 11rem;
   border: 1px solid var(--border);
   border-radius: 20px;
   background: rgb(255 255 255 / 4%);
-  padding: 3px;
-}
-
-.language-switcher button {
-  border: 0;
-  border-radius: 14px;
-  background: transparent;
   color: var(--muted);
   cursor: pointer;
   font-family: var(--font-heading);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 5px 9px;
+  padding: 6px 10px;
 }
 
-.language-switcher button[aria-pressed="true"] {
-  background: var(--accent);
-  color: var(--accent-ink);
+.language-switcher select:hover {
+  border-color: var(--border-hover);
+  color: var(--text);
+}
+
+.language-switcher option {
+  /* The native dropdown ignores the page palette on some platforms; set both so the endonyms stay
+     legible in either theme. */
+  background: var(--bg);
+  color: var(--text);
+}
+
+.language-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.7rem;
+  margin: 0;
+  list-style: none;
+  padding: 0;
+  font-size: 0.72rem;
+}
+
+.language-list a {
+  color: var(--muted);
+}
+
+.machine-note {
+  margin-top: 1.2rem;
+  color: var(--muted);
+  font-size: 0.74rem;
+  opacity: 0.85;
 }
 
 .theme-button {
@@ -658,7 +689,7 @@ code {
 
 .cap li {
   position: relative;
-  padding-left: 1rem;
+  padding-inline-start: 1rem;
   color: var(--muted);
   font-size: 0.86rem;
   line-height: 1.5;
@@ -666,10 +697,15 @@ code {
 
 .cap li::before {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   color: var(--accent);
   content: "▸";
   font-size: 0.72rem;
+}
+
+/* A directional glyph is not mirrored by the layout engine - it has to be swapped. */
+[dir="rtl"] .cap li::before {
+  content: "◂";
 }
 
 .cap li b {
@@ -816,7 +852,7 @@ code {
 
 .to-top {
   position: fixed;
-  right: 18px;
+  inset-inline-end: 18px;
   bottom: 18px;
   z-index: 40;
   display: none;
@@ -916,7 +952,7 @@ code {
 
 @media (pointer: coarse) {
   .button,
-  .language-switcher button,
+  .language-switcher select,
   .theme-button {
     min-height: 44px;
   }

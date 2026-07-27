@@ -1,6 +1,6 @@
 # Phase 10 - Store listing pipeline
 
-**Status:** Approved
+**Status:** Implemented
 
 Decision 1 and criteria 9, 11, 12. The existing step is replaced, not extended. Audited defects in
 `tools/store/merge-listing-csv.ps1`: it writes a BOM (`:57`), overwrites cells unconditionally
@@ -56,3 +56,73 @@ quoting and appends a trailing CRLF, so a byte-identical round-trip is structura
    `msix/store-listing-import.filled.csv`. Leaving a tool that writes a BOM next to one that does not
    invites the wrong one being run.
    Static check: `rg 'merge-listing-csv' .` returns only historical `PLAN/DONE` references.
+
+## Checks
+
+- Deck inventory - expected: 13 language files with one field set | actual: 13 x 12 fields
+  (`ShortDescription`, `Description`, `Feature1..10`), plus `shared.txt`, `search-terms.txt`,
+  `forbidden-terms.txt` and a `README.md`.
+- **Byte-identical round trip** - expected: `-FillNothing` reproduces the fixture exactly | actual:
+  `Round trip is byte-identical: 44937 bytes, 453 rows, nothing filled.`, exit 0.
+- Fixture form - expected: no BOM, every field quoted, CRLF, no trailing newline | actual: first bytes
+  `34 70 69` (`"Fi`), last byte `34` (`"`), 17 columns x 454 lines.
+- **Against a real export** (453 rows, BOM, only `en-us` and `ru` columns) - expected: parses, reports
+  the eleven missing columns, fills only empty cells | actual: exactly that; `Filled 2 cell(s)`, eleven
+  cells reported as `already has content, left alone`, and the BOM reported and dropped.
+- `-ReplaceCopy` against the same export - expected: the stale claims are replaced | actual:
+  `Filled 13 cell(s)`, including `Feature6 / en-us: replaced 29 character(s)` (the live listing's
+  "English and Russian interface") and `SearchTerm7 / en-us: replaced 11 character(s)` (`IPTV player`).
+- Forbidden term - expected: non-zero exit, no file written | actual: exit 1,
+  `search term 'IPTV player' contains the forbidden term 'iptv' - piracy signal ..`, no output file.
+- Eighth term - expected: non-zero exit | actual: exit 1,
+  `search-terms.txt holds 8 terms; Partner Center accepts at most 7. Extra: one term too many`.
+- Superseded files - expected: gone | actual: `merge-listing-csv.ps1`, `store-listing-import.csv` and
+  `store-listing-import.filled.csv` deleted; no reference outside `PLAN/DONE/`.
+
+### The plan's "fill only empty cells" rule would have preserved the stale claim forever
+
+Running the builder against the live export made this obvious: `Feature6 / en-us` already said
+"English and Russian interface", so a fill-only-empty pass left it alone - correct by the rule, and
+exactly wrong for a ticket whose criterion 14 is *no stale claims*. Filling only empty cells protects
+asset URLs; it also freezes every claim already published.
+
+So `-ReplaceCopy` was added. It is safe by construction rather than by care: the decks name only prose
+fields (`ShortDescription`, `Description`, `Feature*`, plus the shared identifiers and the search
+terms), so no image, logo or trailer row is reachable from it at all. Every replacement is printed with
+the length of what it displaced, and the default run now ends by telling you the switch exists when it
+finds copy it refused to touch.
+
+### Three things moved out of the per-language decks
+
+Not per language, because they must not differ between languages:
+
+- `shared.txt` - `Title` and `CopyrightTrademarkInformation`. The Store title is the reserved app name
+  in every market.
+- `search-terms.txt` - seven English terms written into all thirteen columns (owner decision), so
+  criterion 12 checks one set instead of thirteen.
+- `forbidden-terms.txt` - 23 entries, each with its reason, matched case-insensitively as a substring.
+  Two reasons appear: policy 10.1.3 (another product's name) and the recorded infringing-content
+  review risk (`iptv`, `m3u playlist`).
+
+That also keeps the thirteen language files at an identical field set, so the parity check is a plain
+set comparison.
+
+### Deviations from the plan, and why
+
+- **The fixture is stored in canonical import form, not as a raw export.** A real export carries a BOM;
+  an import must not have one. A byte-identical round trip against a BOM-carrying file is therefore
+  impossible by definition. The fixture is the *import* form (no BOM, all quoted, CRLF, no trailing
+  newline), the round trip is byte-exact against it, and normalizing a real export is a separate
+  documented step the script reports out loud. The reader/writer path is still proven lossless over all
+  453 rows, embedded newlines and empty cells included - which is the failure mode that matters.
+- **Output goes to `msix/dist/` by default**, which is gitignored, instead of beside the source. A
+  generated import file and a staging folder full of copied PNGs are build output, not source.
+- `.gitattributes` marks the fixture `-text`. Without it git would normalize its line endings on
+  checkout and the byte comparison would fail on a fresh clone - a check that only passes on the
+  machine that wrote it is not a check.
+- **A shipped language with no column in the export is a hard error**, not a warning
+  (`-AllowMissingLanguages` opts out). Silently shipping 2 of 13 languages is the precise failure this
+  phase exists to prevent, and Partner Center says nothing when it happens.
+- `msix/store-listing.md` was **not** deleted but reduced to the submission profile, requirements,
+  certification notes and the runFullTrust justification, with the per-language copy removed and a line
+  saying where copy lives. Two sources of listing prose is how a corrected claim survives.

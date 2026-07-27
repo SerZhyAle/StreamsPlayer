@@ -1,0 +1,18 @@
+# The seven Store search terms, written into every language column unchanged.
+# Owner decision for SP-0034: search terms stay English across all thirteen listing languages, so
+# there is one set to review instead of thirteen.
+#
+# Rules the builder enforces:
+#   - at most seven terms (Partner Center accepts no more)
+#   - no duplicates
+#   - no term containing anything listed in forbidden-terms.txt
+#
+# Lines starting with # and blank lines are ignored. One term per line.
+
+internet radio
+live TV
+stream player
+RTSP
+radio catalog
+video streams
+live audio

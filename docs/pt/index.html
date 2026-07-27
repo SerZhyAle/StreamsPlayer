@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="pt" dir="ltr" data-theme="dark" data-lang="pt" data-entry="false">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="STREAMS Player para Windows: explore e reproduza rádio online, vídeo ao vivo e transmissões RTSP.">
+    <meta name="theme-color" content="#0a0f0a">
+    <title>STREAMS Player - rádio online, vídeo ao vivo e RTSP para Windows</title>
+    <link rel="canonical" href="https://serzhyale.github.io/StreamsPlayer/pt/">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/">
+    <link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/">
+    <link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/">
+    <link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/">
+    <link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/">
+    <link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/">
+    <link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/">
+    <link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/">
+    <link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/">
+    <link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/">
+    <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/">
+    <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
+    <script>
+      (function () {
+        var root = document.documentElement;
+        var systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        var theme = systemTheme;
+        var stored = null;
+        try {
+          theme = localStorage.getItem("streamsplayer-theme") || systemTheme;
+          stored = localStorage.getItem("streamsplayer-lang");
+        } catch (error) {
+          theme = systemTheme;
+        }
+        root.dataset.theme = theme;
+
+        // Language redirect. Only the canonical English root redirects: a visitor who asked for
+        // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
+        // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
+        if (root.dataset.entry !== "true") {
+          return;
+        }
+        var urls = {};
+        try {
+          urls = JSON.parse(document.getElementById("language-urls").textContent);
+        } catch (error) {
+          return;
+        }
+        var target = null;
+        if (stored && urls[stored]) {
+          target = stored;
+        } else if (!stored) {
+          // Walk the visitor's preference list in order and match on the base subtag, so de-AT
+          // reaches the German page. The table comes from the generated page, never from a list
+          // written here.
+          var preferred = navigator.languages && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language || "en"];
+          for (var i = 0; i < preferred.length && !target; i += 1) {
+            var base = String(preferred[i]).toLowerCase().split("-")[0];
+            if (urls[base]) {
+              target = base;
+            }
+          }
+        }
+        if (target && target !== root.dataset.lang) {
+          window.location.replace(urls[target]);
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../site.js" defer></script>
+  </head>
+  <body data-page="home">
+    <a class="skip-link" href="#content">Ir para o conteúdo</a>
+    <div class="background-glow" aria-hidden="true">
+      <div class="glow glow-one"></div>
+      <div class="glow glow-two"></div>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="../pt/">
+        <img src="../assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="Navegação principal">
+        <a class="header-link" href="#what">O que é</a>
+        <a class="header-link" href="#features">Recursos</a>
+        <a class="header-link" href="#use">Como usar</a>
+        <a class="header-link" href="privacy.html">Privacidade</a>
+      </nav>
+      <div class="language-switcher">
+        <select id="languageSelect" aria-label="Idioma do site">
+          <option value="../" data-code="en" lang="en">English</option>
+          <option value="../ru/" data-code="ru" lang="ru">Русский</option>
+          <option value="../uk/" data-code="uk" lang="uk">Українська</option>
+          <option value="../de/" data-code="de" lang="de">Deutsch</option>
+          <option value="../it/" data-code="it" lang="it">Italiano</option>
+          <option value="../es/" data-code="es" lang="es">Español</option>
+          <option value="../fr/" data-code="fr" lang="fr">Français</option>
+          <option value="../pt/" data-code="pt" lang="pt" selected>Português (Brasil)</option>
+          <option value="../zh/" data-code="zh" lang="zh-Hans">简体中文</option>
+          <option value="../hi/" data-code="hi" lang="hi">हिन्दी</option>
+          <option value="../bn/" data-code="bn" lang="bn">বাংলা</option>
+          <option value="../ar/" data-code="ar" lang="ar">العربية</option>
+          <option value="../ur/" data-code="ur" lang="ur">اردو</option>
+        </select>
+        <noscript>
+          <ul class="language-list">
+            <li><a href="../" lang="en">English</a></li>
+            <li><a href="../ru/" lang="ru">Русский</a></li>
+            <li><a href="../uk/" lang="uk">Українська</a></li>
+            <li><a href="../de/" lang="de">Deutsch</a></li>
+            <li><a href="../it/" lang="it">Italiano</a></li>
+            <li><a href="../es/" lang="es">Español</a></li>
+            <li><a href="../fr/" lang="fr">Français</a></li>
+            <li><a href="../pt/" lang="pt">Português (Brasil)</a></li>
+            <li><a href="../zh/" lang="zh-Hans">简体中文</a></li>
+            <li><a href="../hi/" lang="hi">हिन्दी</a></li>
+            <li><a href="../bn/" lang="bn">বাংলা</a></li>
+            <li><a href="../ar/" lang="ar">العربية</a></li>
+            <li><a href="../ur/" lang="ur">اردو</a></li>
+          </ul>
+        </noscript>
+      </div>
+      <button class="theme-button" id="themeButton" type="button" aria-label="Alternar o tema de cores">◐</button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">GitHub</a>
+    </header>
+
+    <main class="container" id="content">
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <div class="product-id">
+            <img class="product-icon" src="../assets/streamsplayer-icon-256.png" alt="Ícone do STREAMS Player" width="68" height="68">
+            <div>
+              <span class="eyebrow">STREAMS Player · Windows 10 / 11</span>
+              <h1 id="hero-title">Rádio, vídeo ao vivo e RTSP em um só player.</h1>
+              <span class="kicker">Rádio online · Vídeo ao vivo · RTSP</span>
+            </div>
+          </div>
+          <p class="lead">Um aplicativo de desktop enxuto para Windows: explore um catálogo pronto, adicione suas próprias transmissões e reproduza - sem conta, sem anúncios e sem nada rodando em segundo plano que você não tenha pedido.</p>
+          <div class="facts" aria-label="Fatos principais">
+            <span class="fact">Windows 10 / 11</span>
+            <span class="fact">Gratuito · Código-fonte MIT</span>
+            <span class="fact">Sem conta</span>
+            <span class="fact">Sem telemetria</span>
+            <span class="fact">13 idiomas de interface</span>
+          </div>
+          <div class="button-group">
+            <a class="button button-primary" href="#use">Como usar</a>
+            <a class="button button-gold" href="https://github.com/SerZhyAle/StreamsPlayer">Ver o código-fonte</a>
+            <a class="button button-ghost" href="#distribution">Status do lançamento</a>
+          </div>
+        </div>
+
+        <aside class="status-card" aria-labelledby="status-title">
+          <span class="status-label">Status atual</span>
+          <h2 id="status-title">Lançado</h2>
+          <p>O STREAMS Player está lançado e é gratuito. Instale pela Microsoft Store, baixe o ZIP portátil do último lançamento no GitHub ou instale com winget - sem conta, sem anúncios, sem telemetria.</p>
+          <div class="status-links">
+            <a class="button button-primary button-small" href="https://apps.microsoft.com/detail/9NBTD5SXB8TB">Microsoft Store</a>
+            <a class="button button-ghost button-small" href="#distribution">Onde baixar</a>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section" id="what" aria-labelledby="what-title">
+        <h2 class="section-heading" id="what-title"><span class="hash">#</span><span>O que é e por quê</span></h2>
+        <p class="section-description">O STREAMS Player é um aplicativo de desktop independente para Windows, feito para rádio online, vídeo ao vivo e câmeras de rede RTSP. Ele lê um catálogo público e selecionado de transmissões, então você já tem uma lista de canais funcionando na primeira execução - depois é só pesquisar, ordenar, fixar e adicionar os seus, tudo guardado localmente na sua máquina.</p>
+        <p class="section-description">A ideia é a calma: um player que continua sendo um player. O catálogo só é atualizado quando você pede, suas transmissões adicionadas manualmente e importadas nunca são sobrescritas por uma atualização, e não existe conta, publicidade, análise de uso nem serviço operado pelo autor. No seu PC roda só o que você iniciou.</p>
+      </section>
+
+      <section class="section" id="features" aria-labelledby="features-title">
+        <h2 class="section-heading" id="features-title"><span class="hash">#</span><span>O que ele faz</span></h2>
+        <p class="section-description">Tudo o que é preciso para encontrar, guardar e reproduzir uma transmissão - agrupado pelo que você está fazendo de fato.</p>
+        <div class="cap-grid">
+          <article class="card cap">
+            <h3><span class="tag">01</span><span>Encontrar um canal</span></h3>
+            <ul>
+              <li>Catálogo pronto na primeira execução - sem configuração.</li>
+              <li>Filtro por categoria, idioma, país e tipo de mídia.</li>
+              <li>Pesquisa e ordenação da lista.</li>
+              <li>Fixe os canais aos quais você sempre volta.</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">02</span><span>Reproduzir do jeito certo</span></h3>
+            <ul>
+              <li>O rádio toca na janela principal.</li>
+              <li>Vídeo ao vivo e RTSP abrem em uma janela de player dedicada.</li>
+              <li>Buffer ao vivo de cerca de 10 segundos, com progresso visível.</li>
+              <li>O volume e o silenciamento são lembrados.</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">03</span><span>Assista do seu jeito</span></h3>
+            <ul>
+              <li>Mantenha a janela principal ou o player sempre visível.</li>
+              <li>Tela cheia sem bordas por botão ou com F11 (Esc sai).</li>
+              <li>Blocos de transmissão pequenos, médios ou grandes.</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">04</span><span>Grade visual</span></h3>
+            <ul>
+              <li>Uma grade que captura as pré-visualizações de vídeo HTTP(S) visíveis.</li>
+              <li>Guarda localmente os 64 quadros mais recentes.</li>
+              <li>A atualização automática das pré-visualizações pode ser desligada.</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">05</span><span>Deixe do seu jeito</span></h3>
+            <ul>
+              <li>Adicione uma transmissão por URL, sem conta.</li>
+              <li>Suas transmissões adicionadas e importadas sobrevivem às atualizações do catálogo.</li>
+              <li>Mantenha marcas locais de reprodução: OK / falha.</li>
+              <li>Troque toda a interface entre treze idiomas; a escolha é restaurada.</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">06</span><span>Local por design</span></h3>
+            <ul>
+              <li>O estado do catálogo, as entradas manuais e os canais fixados ficam no seu dispositivo.</li>
+              <li>Guardado em <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>.</li>
+              <li>O catálogo é atualizado só quando você escolhe.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="use" aria-labelledby="use-title">
+        <h2 class="section-heading" id="use-title"><span class="hash">#</span><span>Como usar</span></h2>
+        <p class="section-description">Abra e escolha um canal - o fluxo é esse. Instale pela Microsoft Store, pelo winget ou pelo ZIP portátil - ou rode a partir do código-fonte; você também pode abrir uma transmissão direto pela linha de comando.</p>
+        <ol class="steps">
+          <li class="step">
+            <div>
+              <h3>Rodar a partir do código-fonte</h3>
+              <p>Com o .NET 10 SDK instalado, restaure, compile e inicie a partir da raiz do repositório.</p>
+              <pre dir="ltr"><code>./build.ps1 -Run</code></pre>
+            </div>
+          </li>
+          <li class="step">
+            <div>
+              <h3>Escolher e reproduzir</h3>
+              <p>Percorra o catálogo, filtre ou pesquise e então selecione um canal. O rádio começa na janela principal; vídeo e RTSP abrem na janela do player. Iniciar sem nenhum canal selecionado retoma o último que você reproduziu.</p>
+            </div>
+          </li>
+          <li class="step">
+            <div>
+              <h3>Abrir qualquer URL diretamente</h3>
+              <p>Reproduza uma transmissão sem mexer no catálogo.</p>
+              <pre dir="ltr"><code>StreamsPlayer.exe <span class="tok">--url</span> "https://example.test/live"</code></pre>
+            </div>
+          </li>
+          <li class="step">
+            <div>
+              <h3>Salvar um canal em um atalho</h3>
+              <p>Selecione um canal salvo, abra Configurações e use Copiar comando ou Criar atalho na área de trabalho. Os dois usam o id guardado do canal.</p>
+              <pre dir="ltr"><code>StreamsPlayer.exe <span class="tok">--id</span> "channel-guid"</code></pre>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section" id="distribution" aria-labelledby="distribution-title">
+        <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>Distribuição</span></h2>
+        <p class="section-description">As três formas de instalação estão disponíveis. Instale pela Microsoft Store, baixe o ZIP portátil do último lançamento no GitHub ou instale com <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
+        <div class="distribution-grid">
+          <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+            <span class="channel-mark">ZIP</span>
+            <div><strong>ZIP portátil</strong><span class="pill">Disponível</span></div>
+          </a>
+          <a class="channel" href="https://apps.microsoft.com/detail/9NBTD5SXB8TB">
+            <span class="channel-mark">MS</span>
+            <div><strong>Microsoft Store</strong><span class="pill">Disponível</span></div>
+          </a>
+          <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+            <span class="channel-mark">WG</span>
+            <div><strong>winget</strong><span class="pill">Disponível</span></div>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-row">
+        <span>© 2026 Serhii Zhyhunenko</span>
+        <span class="footer-links">
+          <a href="privacy.html">Privacidade</a>
+          <a href="https://sza.od.ua/">Mais ferramentas</a>
+          <a href="https://github.com/SerZhyAle">GitHub</a>
+          <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+        </span>
+      </div>
+      <div class="container machine-note">
+        <p>Esta página foi traduzida por máquina e não foi revisada por um falante nativo.</p>
+      </div>
+    </footer>
+    <button class="to-top" id="toTop" type="button" aria-label="Voltar ao topo">↑</button>
+  </body>
+</html>

@@ -1,0 +1,45 @@
+@@ShortDescription
+Browse internet radio and live video in a focused Windows player with a curated catalog, local favorites, live grid previews, and no account or advertising.
+
+@@Description
+STREAMS Player is an independent Windows desktop application for browsing and playing internet radio, live video, and RTSP stream addresses.
+
+Explore a curated catalog by category, language, country, or media type. Search and sort channels, pin the streams you use most, or add a direct stream URL manually. Audio plays in the main window, while video opens in a dedicated window with always-on-top and borderless fullscreen controls.
+
+Choose a compact list or a visual grid. Grid mode can capture current thumbnails for visible HTTP(S) video streams; tile size and automatic thumbnail updates are controlled in Settings. The complete interface is available in thirteen languages, with mirrored right-to-left layout for Arabic and Urdu.
+
+Catalog downloads happen only when you choose Update catalog. STREAMS Player has no account, advertising, analytics, or telemetry. Catalog state, manual entries, favorites, playback marks, settings, and cached thumbnails stay in your Windows profile.
+
+Playback compatibility depends on the stream provider, network availability, protocol, and media codecs supported by the included or Windows media components. STREAMS Player does not host or control third-party stream content.
+
+STREAMS Player is open source under the MIT License.
+
+@@Feature1
+Curated catalog for internet radio, live video, and RTSP addresses
+
+@@Feature2
+Search, sort, and filter by category, language, country, and media type
+
+@@Feature3
+Pin favorite streams and add direct stream URLs
+
+@@Feature4
+List and visual grid layouts with selectable tile sizes
+
+@@Feature5
+Optional live thumbnails for visible HTTP(S) video streams
+
+@@Feature6
+Thirteen interface languages, with right-to-left layout where it belongs
+
+@@Feature7
+Independent always-on-top controls for the app and video player
+
+@@Feature8
+Borderless video fullscreen with F11 and Escape shortcuts
+
+@@Feature9
+Explicit catalog refresh with no surprise background catalog downloads
+
+@@Feature10
+No account, advertising, analytics, or telemetry

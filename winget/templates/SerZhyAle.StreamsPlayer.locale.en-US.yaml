@@ -13,7 +13,7 @@ LicenseUrl: https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE
 Copyright: Copyright (c) 2026 Serhii Zhyhunenko
 Moniker: streamsplayer
 ShortDescription: Browse internet radio and live video in a focused Windows stream catalog.
-Description: STREAMS Player is an English and Russian Windows desktop app for browsing a curated internet radio, live video, and RTSP address catalog. Search, filter, pin, and add streams; choose List or Grid mode with optional live thumbnails; and open video with always-on-top and fullscreen controls. Catalog refresh is explicit, local state stays on the device, and the app has no account, advertising, analytics, or telemetry. Playback compatibility varies by provider, protocol, and codec.
+Description: STREAMS Player is a Windows desktop app for browsing a curated internet radio, live video, and RTSP address catalog, with its interface available in thirteen languages. Search, filter, pin, and add streams; choose List or Grid mode with optional live thumbnails; and open video with always-on-top and fullscreen controls. Catalog refresh is explicit, local state stays on the device, and the app has no account, advertising, analytics, or telemetry. Playback compatibility varies by provider, protocol, and codec.
 Tags:
 - radio
 - streaming

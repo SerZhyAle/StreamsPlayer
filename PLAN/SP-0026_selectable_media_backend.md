@@ -64,7 +64,9 @@ license-compatible alternative, making the choice practical rather than theoreti
   against `docs/stream-playback-recommendations.md`; gaps are surfaced as the "experimental"
   label (Decision 5), not silently accepted.
 - The setting persists across restart alongside existing preferences and defaults to LibVLC.
-- Any new user-facing text is localized in English and Russian; no emoji.
+- Any new user-facing text is localized in every shipped language - the set declared by
+  `InterfaceLanguages` in `StreamsPlayer.Core`, thirteen since SP-0034 - and the parity gate in
+  `LocalizationParityTests` will fail the build until it is; no emoji.
 - The engine seam lives in `StreamsPlayer.App`; Core stays untouched and media-free. The
   dependency direction (App → Core) is unchanged.
 

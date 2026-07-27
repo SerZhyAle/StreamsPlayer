@@ -1,0 +1,45 @@
+@@ShortDescription
+Explora radio por internet y vídeo en directo en un reproductor de Windows sin distracciones, con catálogo ya preparado, favoritos locales, miniaturas en directo en la cuadrícula, interfaz en español y sin cuenta ni publicidad.
+
+@@Description
+STREAMS Player es una aplicación independiente de escritorio para Windows con la que puedes explorar y reproducir radio por internet, vídeo en directo y direcciones de transmisiones RTSP.
+
+Explora un catálogo ya preparado por categoría, idioma, país o tipo de medio. Busca y ordena canales, fija las transmisiones que más usas o añade a mano la URL directa de una transmisión. El audio se reproduce en la ventana principal, mientras el vídeo se abre en una ventana propia con controles de «siempre visible» y pantalla completa sin bordes.
+
+Elige una lista compacta o una cuadrícula visual. En la vista de cuadrícula la aplicación puede capturar las miniaturas actuales de las transmisiones de vídeo HTTP(S) visibles; el tamaño del mosaico y la actualización automática de las miniaturas se controlan en Ajustes. La interfaz completa está disponible en trece idiomas, con diseño reflejado de derecha a izquierda para el árabe y el urdu.
+
+El catálogo se descarga solo cuando eliges «Actualizar catálogo». STREAMS Player no tiene cuenta, publicidad, analítica ni telemetría. El estado del catálogo, las entradas añadidas a mano, los favoritos, las marcas de reproducción, los ajustes y las miniaturas en caché se quedan en tu perfil de Windows.
+
+La compatibilidad de reproducción depende del proveedor de la transmisión, de la disponibilidad de la red, del protocolo y de los códecs de medios que admitan los componentes multimedia incluidos o los de Windows. STREAMS Player no aloja ni controla el contenido de transmisiones de terceros.
+
+STREAMS Player es de código abierto bajo la licencia MIT.
+
+@@Feature1
+Catálogo ya preparado de radio por internet, vídeo en directo y direcciones RTSP
+
+@@Feature2
+Búsqueda, ordenación y filtros por categoría, idioma, país y tipo de medio
+
+@@Feature3
+Fija tus transmisiones favoritas y añade URL directas de transmisión
+
+@@Feature4
+Vistas de lista y de cuadrícula visual con tamaños de mosaico a elegir
+
+@@Feature5
+Miniaturas en directo opcionales de las transmisiones de vídeo HTTP(S) visibles
+
+@@Feature6
+Trece idiomas de interfaz, con diseño de derecha a izquierda donde corresponde
+
+@@Feature7
+«Siempre visible» independiente para la aplicación y para el reproductor de vídeo
+
+@@Feature8
+Pantalla completa de vídeo sin bordes con las teclas F11 y Escape
+
+@@Feature9
+Actualización del catálogo solo cuando la pides, sin descargas inesperadas en segundo plano
+
+@@Feature10
+Sin cuenta, publicidad, analítica ni telemetría

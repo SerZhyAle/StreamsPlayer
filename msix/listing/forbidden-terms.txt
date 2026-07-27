@@ -1,0 +1,34 @@
+# Substrings a Store search term may never contain. Matched case-insensitively against every term
+# in search-terms.txt; a hit fails the build rather than warning.
+#
+# Format: term # why it is forbidden
+#
+# Two reasons appear here. Store policy 10.1.3 forbids naming another product in metadata, so no
+# competitor or platform name may be used to attract its searches. Separately, StreamsPlayer opens
+# third-party stream addresses, which draws extra review under the infringing-content policy
+# (STORE_PUBLISHING.md, "Content-policy note"), so terms that read as a piracy signal are excluded
+# even when they name no product.
+
+iptv        # piracy signal on an app that opens third-party stream URLs; the recorded review risk
+m3u playlist # same signal - a playlist-sideloading claim, not what this app is
+vlc         # policy 10.1.3 - another product's name
+kodi        # policy 10.1.3 - another product's name
+winamp      # policy 10.1.3 - another product's name
+foobar2000  # policy 10.1.3 - another product's name
+potplayer   # policy 10.1.3 - another product's name
+mpv         # policy 10.1.3 - another product's name
+plex        # policy 10.1.3 - another product's name
+emby        # policy 10.1.3 - another product's name
+jellyfin    # policy 10.1.3 - another product's name
+youtube     # policy 10.1.3 - another product's name
+spotify     # policy 10.1.3 - another product's name
+netflix     # policy 10.1.3 - another product's name
+tunein      # policy 10.1.3 - another product's name
+shoutcast   # policy 10.1.3 - another product's name
+icecast     # policy 10.1.3 - another product's name
+tivimate    # policy 10.1.3 - another product's name
+xtream      # policy 10.1.3 - another product's name
+smarters    # policy 10.1.3 - another product's name
+ott navigator # policy 10.1.3 - another product's name
+perfect player # policy 10.1.3 - another product's name
+windows media player # policy 10.1.3 - a Microsoft product's name is still another product's name

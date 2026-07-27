@@ -1,0 +1,287 @@
+# STREAMS Player site copy - generated pages are built from this file by tools/site/build-site.ps1.
+# Format: a "@@key" line, then the value on the following line(s), until the next @@ or end of file.
+# Placeholders must survive translation verbatim:
+#   [[command]] - the winget install command line
+#   [[appdata]] - the %LOCALAPPDATA%\StreamsPlayer path
+#   [[email]]   - the contact address
+# machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
+# but the key is present in every file so the key sets stay comparable.
+
+@@title-home
+STREAMS Player - Windows के लिए इंटरनेट रेडियो, लाइव वीडियो और RTSP
+
+@@description-home
+Windows के लिए STREAMS Player: इंटरनेट रेडियो, लाइव वीडियो और RTSP स्ट्रीम देखें और चलाएँ।
+
+@@title-privacy
+निजता - STREAMS Player
+
+@@description-privacy
+STREAMS Player की निजता नीति।
+
+@@skip-content
+सामग्री पर जाएँ
+
+@@nav-what
+यह क्या है
+
+@@nav-features
+विशेषताएँ
+
+@@nav-use
+कैसे उपयोग करें
+
+@@nav-privacy
+निजता
+
+@@header-github
+GitHub
+
+@@theme-label
+रंग थीम बदलें
+
+@@lang-label
+साइट की भाषा
+
+@@nav-label
+मुख्य नेविगेशन
+
+@@icon-alt
+STREAMS Player का आइकॉन
+
+@@hero-eyebrow
+STREAMS Player · Windows 10 / 11
+
+@@hero-title
+रेडियो, लाइव वीडियो और RTSP - एक ही प्लेयर में।
+
+@@hero-kicker
+इंटरनेट रेडियो · लाइव वीडियो · RTSP
+
+@@hero-description
+Windows के लिए एक सादा डेस्कटॉप ऐप: तैयार सूची देखें, अपनी स्ट्रीम जोड़ें और चलाएँ - कोई खाता नहीं, कोई विज्ञापन नहीं, पृष्ठभूमि में ऐसा कुछ नहीं जो आपने शुरू न किया हो।
+
+@@facts-label
+मुख्य बातें
+
+@@fact-windows
+Windows 10 / 11
+
+@@fact-free
+मुफ़्त · MIT स्रोत
+
+@@fact-account
+खाता नहीं चाहिए
+
+@@fact-telemetry
+टेलीमेट्री नहीं
+
+@@fact-langs
+13 इंटरफ़ेस भाषाएँ
+
+@@hero-cta-use
+कैसे उपयोग करें
+
+@@hero-source
+स्रोत कोड देखें
+
+@@hero-status
+रिलीज़ की स्थिति
+
+@@status-label
+मौजूदा स्थिति
+
+@@status-title
+रिलीज़ हो गया
+
+@@status-description
+STREAMS Player रिलीज़ हो चुका है और मुफ़्त है। इसे Microsoft Store से लें, नवीनतम GitHub Release से पोर्टेबल ZIP के रूप में लें, या winget से इंस्टॉल करें - कोई खाता नहीं, कोई विज्ञापन नहीं, कोई टेलीमेट्री नहीं।
+
+@@status-source
+Microsoft Store
+
+@@status-plan
+कहाँ से लें
+
+@@what-title
+यह क्या है और क्यों
+
+@@what-p1
+STREAMS Player इंटरनेट रेडियो, लाइव वीडियो और RTSP नेटवर्क कैमरों के लिए Windows का एक स्वतंत्र डेस्कटॉप ऐप है। यह एक चुनी हुई, सार्वजनिक स्ट्रीम सूची पढ़ता है, इसलिए पहली बार खोलने पर ही चैनलों की काम करती सूची मिल जाती है - इसके बाद आप खोज सकते हैं, क्रमबद्ध कर सकते हैं, पिन कर सकते हैं और अपने चैनल जोड़ सकते हैं; सब कुछ आपकी मशीन पर स्थानीय रूप से सहेजा जाता है।
+
+@@what-p2
+मक़सद शांति है: प्लेयर प्लेयर ही बना रहे। सूची तभी अद्यतन होती है जब आप कहें, आपके हाथ से जोड़े और आयात किए स्ट्रीम किसी अद्यतन से कभी नहीं मिटते, और खाता, विज्ञापन, विश्लेषण या लेखक द्वारा चलाई जाने वाली कोई सेवा है ही नहीं। आपके पीसी पर वही चलता है जो आपने शुरू किया।
+
+@@features-title
+यह क्या कर सकता है
+
+@@features-description
+स्ट्रीम ढूँढ़ने, सहेजने और चलाने के लिए जो चाहिए, वह सब - इस आधार पर बाँटा गया कि आप असल में क्या कर रहे हैं।
+
+@@cap-find-title
+चैनल ढूँढ़ें
+
+@@cap-find-1
+पहली बार खोलने पर तैयार सूची - कोई सेटअप नहीं।
+
+@@cap-find-2
+श्रेणी, भाषा, देश और मीडिया के प्रकार से फ़िल्टर करें।
+
+@@cap-find-3
+सूची में खोजें और क्रमबद्ध करें।
+
+@@cap-find-4
+जिन चैनलों पर आप लौटते हैं, उन्हें पिन करें।
+
+@@cap-play-title
+सही तरीक़े से चलाएँ
+
+@@cap-play-1
+रेडियो मुख्य विंडो में चलता है।
+
+@@cap-play-2
+लाइव वीडियो और RTSP अलग प्लेयर विंडो में खुलते हैं।
+
+@@cap-play-3
+लगभग 10 सेकंड का लाइव बफ़र, बफ़रिंग की प्रगति दिखती है।
+
+@@cap-play-4
+आवाज़ और मौन याद रखे जाते हैं।
+
+@@cap-window-title
+अपने तरीक़े से देखें
+
+@@cap-window-1
+मुख्य विंडो या प्लेयर को हमेशा सबसे ऊपर रखें।
+
+@@cap-window-2
+बिना किनारे वाली पूरी स्क्रीन - बटन से या F11 से (Esc से बाहर)।
+
+@@cap-window-3
+स्ट्रीम टाइल छोटी, मध्यम या बड़ी।
+
+@@cap-grid-title
+दृश्य ग्रिड
+
+@@cap-grid-1
+ग्रिड दिखाई दे रहे HTTP(S) वीडियो पूर्वावलोकन लेता है।
+
+@@cap-grid-2
+पिछले 64 फ़्रेम स्थानीय रूप से रखता है।
+
+@@cap-grid-3
+पूर्वावलोकन का स्वतः अद्यतन बंद किया जा सकता है।
+
+@@cap-yours-title
+अपने हिसाब से
+
+@@cap-yours-1
+URL से स्ट्रीम जोड़ें, कोई खाता नहीं।
+
+@@cap-yours-2
+आपके जोड़े और आयात किए स्ट्रीम सूची के अद्यतन के बाद भी बने रहते हैं।
+
+@@cap-yours-3
+प्लेबैक के स्थानीय निशान रखें: चला / नहीं चला।
+
+@@cap-yours-4
+पूरे इंटरफ़ेस को तेरह भाषाओं में बदलें; चुनाव याद रहता है।
+
+@@cap-local-title
+बनावट से ही स्थानीय
+
+@@cap-local-1
+सूची की स्थिति, हाथ से जोड़ी प्रविष्टियाँ और पिन आपके डिवाइस पर रहते हैं।
+
+@@cap-local-2
+[[appdata]] में सहेजा जाता है।
+
+@@cap-local-3
+सूची तभी अद्यतन होती है जब आप चाहें।
+
+@@use-title
+कैसे उपयोग करें
+
+@@use-description
+खोलें और चैनल चुनें - बस इतना ही। इसे Microsoft Store, winget या पोर्टेबल ZIP से इंस्टॉल करें - या स्रोत से चलाएँ; स्ट्रीम को सीधे कमांड लाइन से भी खोला जा सकता है।
+
+@@use-1-title
+स्रोत से चलाएँ
+
+@@use-1-text
+.NET 10 SDK इंस्टॉल होने पर रिपॉज़िटरी के मूल फ़ोल्डर से पैकेज बहाल करें, बिल्ड करें और ऐप चलाएँ।
+
+@@use-2-title
+चुनें और चलाएँ
+
+@@use-2-text
+सूची देखें, फ़िल्टर करें या खोजें, फिर कोई चैनल चुनें। रेडियो मुख्य विंडो में शुरू होता है; वीडियो और RTSP प्लेयर विंडो में खुलते हैं। बिना चैनल चुने शुरू करने पर पिछला चलाया चैनल फिर से चलने लगता है।
+
+@@use-3-title
+कोई भी URL सीधे खोलें
+
+@@use-3-text
+सूची को छुए बिना स्ट्रीम चलाएँ।
+
+@@use-4-title
+चैनल को शॉर्टकट में सहेजें
+
+@@use-4-text
+सहेजा हुआ चैनल चुनें, सेटिंग खोलें और "कमांड कॉपी करें" या "डेस्कटॉप शॉर्टकट बनाएँ" का उपयोग करें। दोनों चैनल की सहेजी हुई id का उपयोग करते हैं।
+
+@@distribution-title
+वितरण
+
+@@distribution-description
+तीनों तरीक़े उपलब्ध हैं। Microsoft Store से लें, नवीनतम GitHub Release से पोर्टेबल ZIP डाउनलोड करें, या [[command]] से इंस्टॉल करें।
+
+@@channel-github
+पोर्टेबल ZIP
+
+@@channel-store
+Microsoft Store
+
+@@channel-winget
+winget
+
+@@status-available
+उपलब्ध
+
+@@privacy-eyebrow
+STREAMS Player · निजता
+
+@@privacy-title
+डिफ़ॉल्ट रूप से निजी।
+
+@@privacy-intro
+STREAMS Player में कोई खाता, विज्ञापन, विश्लेषण, टेलीमेट्री या लेखक द्वारा चलाई जाने वाली सेवा नहीं है।
+
+@@privacy-network-title
+नेटवर्क पहुँच
+
+@@privacy-network
+ऐप नेटवर्क से तब जुड़ता है जब आप स्वयं सार्वजनिक स्ट्रीम सूची अद्यतन करते हैं, चुनी हुई स्ट्रीम चलाते हैं, या ग्रिड मोड चालू रखते हैं और दिखाई दे रहे वीडियो पूर्वावलोकन नए सिरे से लिए जाते हैं। ये अनुरोध संबंधित सूची या स्ट्रीम प्रदाता तक जाते हैं और उसी प्रदाता की नीतियों के अधीन हैं।
+
+@@privacy-local-title
+स्थानीय डेटा
+
+@@privacy-local
+STREAMS Player सूची की स्थिति, हाथ से जोड़ी प्रविष्टियाँ, पिन, प्लेबैक के निशान, 64 तक सहेजे गए पूर्वावलोकन फ़्रेम और मौजूदा सत्र का डायग्नोस्टिक Current.log [[appdata]] में रखता है। यह डेटा आपके डिवाइस पर ही रहता है, जब तक आप स्वयं उसे कॉपी या बैकअप न करें।
+
+@@privacy-contact-title
+संपर्क
+
+@@privacy-contact
+सवाल GitHub issue tracker में दर्ज किए जा सकते हैं या [[email]] पर भेजे जा सकते हैं।
+
+@@footer-rights
+© 2026 Serhii Zhyhunenko
+
+@@footer-tools
+और उपकरण
+
+@@to-top
+ऊपर जाएँ
+
+@@machine-note
+यह पृष्ठ मशीन से अनुवादित है और किसी मूल भाषी ने इसकी जाँच नहीं की है।

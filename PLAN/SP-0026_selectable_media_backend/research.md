@@ -35,7 +35,8 @@ StreamsPlayer already runs **two** media backends, split by media kind - there i
   ([SettingsWindow.xaml.cs:15-39](../../src/StreamsPlayer.App/SettingsWindow.xaml.cs#L15-L39)),
   persisted through `_store.SaveAsync(_state with { ... })`
   ([MainWindow.Settings.cs:30-34](../../src/StreamsPlayer.App/MainWindow.Settings.cs#L30-L34)).
-- New user-facing strings are localized EN + RU (`Localization.en/ru.xaml`); no emoji.
+- New user-facing strings are localized in every `Localization.<code>.xaml` the registry declares
+  (thirteen since SP-0034); no emoji.
 - So "selectable backend option" is a well-trodden mechanical pattern **once** the player is
   abstracted behind a backend seam. The hard part is the seam, not the checkbox.
 

@@ -43,7 +43,7 @@ opens on the chosen engine.
    `OpenIndependentPlayerWindow`, pass `_state.VideoBackend` as the new `PlayerWindow` backend
    argument (replacing the Phase-2 literal `MediaBackend.LibVlc`).
 
-5. **Localized strings (EN + RU, no emoji).** Add to
+5. **Localized strings (every shipped language, no emoji).** Add to
    [Localization.en.xaml](../../src/StreamsPlayer.App/Localization.en.xaml) and
    [Localization.ru.xaml](../../src/StreamsPlayer.App/Localization.ru.xaml) keys:
    `VideoBackendLabel`, `VideoBackendHint` (frames Flyleaf as a fallback to try when a stream

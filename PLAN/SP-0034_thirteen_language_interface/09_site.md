@@ -1,6 +1,6 @@
 # Phase 09 - Thirteen site languages
 
-**Status:** Approved
+**Status:** Implemented
 
 Decision 10 and criterion 8. The site today is two HTML pages on two URLs with all copy in a
 `translations` object (`docs/site.js:1-272`), three languages, a hardcoded two-branch locale guess
@@ -47,3 +47,67 @@ English at the root.
    ones to logical properties.
    Static check: `rg 'margin-left|padding-left|left:' docs/style.css` shows no layout rule that a
    mirrored page depends on.
+
+## Checks
+
+- Copy decks - expected: 13 files, one key set | actual: 13 files x 93 keys, generator's parity check
+  passes (key set, placeholder set and empty-value check against English).
+- Generated pages - expected: 26 pages plus `site.js` | actual: 26 written, plus `docs/site.js`.
+- Idempotency - expected: no change on a second run | actual: `build-site.ps1 -Check` reports
+  `docs/ is up to date.` and exits 0.
+- Per-page structure - expected: 1 selector, 13 options, 13 `hreflang` + `x-default`, 1 canonical |
+  actual: all 26 pages, and 13 `<noscript>` links each.
+- Locale-guess leftovers - expected: none | actual: 0 matches for `indexOf('ru')`, `startsWith("ru")`
+  or `translations[` across `docs/`.
+- Layout direction - expected: `rtl` only for ar and ur | actual: `<html lang="ar" dir="rtl">` and
+  `dir="ur" rtl`; en and de carry `dir="ltr"`.
+- Left-to-right islands - expected: every command and address | actual: 6 per right-to-left home page
+  (three `<pre>` blocks, the winget command, the `%LOCALAPPDATA%` path, the footer address).
+- Machine-translation notice - expected: on the ten machine-translated languages only | actual: on 20
+  pages; absent from `index.html`, `privacy.html`, `ru/`, `uk/` - the six the owner wrote himself.
+
+### hreflang is derived, with one rule and no per-language literal
+
+`hreflang` is the URL code plus a *script* subtag when the culture carries one, and never a region:
+`de`, `pt`, `zh-Hans`, `ar`. `hreflang="de-DE"` would signal "German, Germany" and exclude Austria and
+Switzerland from the match, which is the opposite of what a single German page wants. The rule is one
+sentence in `Get-HrefLang` and adding a language needs no edit.
+
+### The language list is read from the Core registry, not restated
+
+`tools/InterfaceLanguages.ps1` loads the built `StreamsPlayer.Core.dll` and reads
+`InterfaceLanguages.All` by reflection; the endonyms come from the shipped `Localization.en.xaml`
+`Language*` keys. So the site generator, the Store builder and the capture script all derive from the
+same declaration the application uses (criterion 14), and a fourteenth language means editing the
+registry and nothing else. The assembly is loaded from a byte array rather than `LoadFrom`, so it does
+not hold the file open against a later `dotnet build`.
+
+### Only the canonical root redirects
+
+The `navigator.languages` walk runs on `docs/index.html` and `docs/privacy.html` only, marked
+`data-entry="true"`. Redirecting from a language folder would fight a visitor who typed or followed
+that URL, and on an English-preferring browser sitting at `/de/` it would bounce them straight out of
+the page they asked for. Restricting it to the entry point is also what makes a redirect loop
+impossible.
+
+### Three things deliberately left physical in the CSS
+
+The two `.glow` blobs keep `left`/`right`: they are `aria-hidden` background decoration and no layout
+depends on them. The `.cap li::before` bullet needed more than a logical property - `content: "▸"` is a
+*directional glyph*, which the layout engine does not mirror, so `[dir="rtl"]` swaps it for `◂`. That
+is the one case where mirroring the box was not enough.
+
+### Deviation: the switcher is a select *and* a link list
+
+The plan asked for a `<select>`. A select does nothing without JavaScript, so each page also carries a
+`<noscript>` list of the same thirteen links. The URLs come from the same generated table, so the two
+cannot disagree.
+
+### One open question for the owner: the Ukrainian brand
+
+`tools/site/copy/uk.txt` keeps the Latin `STREAMS Player`, because the published Ukrainian site copy
+did. But `Localization.uk.xaml` sets `ProductName` to `Трансляції`, `docs/localization/glossary.md`
+records Ukrainian as one of the two languages that localize the brand, and the Russian site copy uses
+`Трансляции`. So Ukrainian is the one language where the site and the application name the product
+differently. Not changed here: it is the owner's own language and his own published prose, and picking
+for him would be the wrong kind of tidy.

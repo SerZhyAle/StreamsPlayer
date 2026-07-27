@@ -1,6 +1,6 @@
 # Phase 11 - Screenshot pipeline
 
-**Status:** Approved
+**Status:** Implemented
 
 Decision 9, Decision 11, criterion 10. `tools/store/auto-capture.ps1` is replaced. Its defect is
 confirmed and already live: the regex at `:54` matches `(English|Russian)` - the *old* value, not the
@@ -58,3 +58,55 @@ written under English and Russian names. Treat the existing assets as compromise
 Note for phase 13: this script needs a real desktop, a stable screen size and a populated catalog, so
 it cannot run in continuous integration. It is the part of the ticket most likely to rot between
 releases.
+
+## Checks
+
+- Full run - expected: 13 PNGs, one size, each verified in its own language | actual: 13 files at
+  1366x768, one distinct size, each line of the log naming the control it matched
+  (`Interface language`, `Язык интерфейса`, `Sprache der Benutzeroberfläche`, `界面语言`,
+  `इंटरफ़ेस की भाषा`, `ইন্টারফেসের ভাষা`, `لغة الواجهة`, `انٹرفیس کی زبان`, ..).
+- Owner's state - expected: unchanged | actual: `Real profile restored, catalog-state.json unchanged.`
+  SHA256 `85F46432FCBE9B51..` before and after, on every one of the four runs made this session.
+- Unknown language - expected: non-zero exit, no PNG, no sandbox | actual: exit 1,
+  `'klingon' is not a shipped language. Known listing codes: en-us, ru, uk, ..`, and the aside folder
+  was never created - the check runs before anything is moved.
+- Right-to-left flip - expected: conditional | actual: fired for `ar` and `ur` only
+  (`WS_EX_LAYOUTRTL is set - flipping the capture back.`), silent for the other eleven.
+- Canvas reuse - expected: one composition | actual: `tools/store/StoreCanvas.ps1`, dot-sourced by both
+  `capture-app.ps1` and the new script; `capture-app.ps1`'s inline copy deleted.
+- Superseded files - expected: gone | actual: `auto-capture.ps1`, `app-en-1463x974.png` and
+  `app-ru-1463x974.png` deleted; no reference outside `PLAN/DONE/`.
+
+### WS_EX_LAYOUTRTL is set by WPF - the flip is not dead code
+
+I expected this branch never to fire. WPF mirrors in managed layout, and the usual claim is that it
+leaves the Win32 extended style alone. Measured: it does **not**. Both the Arabic and the Urdu window
+came back with `WS_EX_LAYOUTRTL` set and `PrintWindow` returned them horizontally flipped - Arabic text
+reading backwards, the whole image a mirror. Without the conditional flip, two of the thirteen Store
+screenshots would have been unusable in a way that no automatic check would notice.
+
+This also confirms the plan's warning that the hazard arrives *with* `PrintWindow`: `CopyFromScreen`
+reads composited screen pixels and is unaffected.
+
+### The language verification caught a real failure on its first run
+
+The first attempt refused to write anything: *"The window is not in English: no control is named
+'Interface language'."* The cause was the exe selection - the script preferred a
+`*win-x64*publish*` folder, and that folder held a build from three days earlier, before the thirteen
+languages existed. The old script would have captured that stale window and named the file `app-en.png`
+without a word.
+
+Fixed by picking the newest `StreamsPlayer.dll` and **failing when any source file is newer than it**:
+
+```
+The newest build (2026-07-27 02:27) is older than Localization.de.xaml (2026-07-27 02:28).
+Build first: dotnet build StreamsPlayer.sln -c Release
+```
+
+A stale build is worse than no build, and a screenshot pipeline is exactly where that goes unnoticed.
+
+### The verification key is checked for uniqueness first
+
+`LanguagePickerName` is read from each dictionary and the thirteen values are compared before anything
+launches. Two languages sharing a value would let a wrong-language window pass verification, so the
+script fails and names the collision instead. Currently all thirteen differ.

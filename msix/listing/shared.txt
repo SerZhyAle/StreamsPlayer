@@ -1,0 +1,8 @@
+# Rows written identically into every listing language column: identifiers, not prose.
+# The Store title is the reserved app name and never changes, in any language.
+
+@@Title
+Streams Player
+
+@@CopyrightTrademarkInformation
+© 2026 Serhii Zhyhunenko. Released under the MIT License.

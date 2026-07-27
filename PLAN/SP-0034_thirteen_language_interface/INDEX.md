@@ -70,3 +70,20 @@ Accessibility names stay localized and are covered by the gate's key parity plus
 Owner decisions taken on 2026-07-27: search terms stay English across all thirteen listing columns,
 so criterion 12 checks one set; the concurrent SP-0031/0032/0033 work was committed first
 (`f3c2022`, `f792c08`) and this ticket runs on branch `sp-0034-thirteen-languages`.
+
+All thirteen phases are `Implemented`. Phase 13 records the observed evidence and the one item that
+stayed unobserved (a second window under a right-to-left language), which is why the strategic ticket
+is `BlockNeedUserTest` rather than ready for `Verified`.
+
+Two structural decisions taken during execution, neither in the plan:
+
+- **The PowerShell tooling reads the language registry out of the built assembly.**
+  `tools/InterfaceLanguages.ps1` loads `StreamsPlayer.Core.dll` by reflection (from a byte array, so it
+  does not lock the file) and reads `InterfaceLanguages.All`, taking the endonyms from
+  `Localization.en.xaml`. The site generator, the Store listing builder and the capture script therefore
+  derive from the same single declaration the application uses - criterion 14 holds across languages
+  *and* across tools, and a fourteenth language needs no edit outside `StreamsPlayer.Core`.
+- **The Store copy deck splits per-language prose from shared rows.** `msix/listing/<code>.txt` holds
+  only `ShortDescription`, `Description` and `Feature1..10`, so all thirteen files have an identical
+  field set and parity is a plain set comparison. `shared.txt` (Title, copyright), `search-terms.txt`
+  (one English set of seven) and `forbidden-terms.txt` sit beside them.

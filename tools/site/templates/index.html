@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="{{page.lang}}" dir="{{page.dir}}" data-theme="dark" data-lang="{{page.code}}" data-entry="{{page.entry}}">
+  <head>
+{{include:head}}
+  </head>
+  <body data-page="home">
+    <a class="skip-link" href="#content">{{t.skip-content}}</a>
+    <div class="background-glow" aria-hidden="true">
+      <div class="glow glow-one"></div>
+      <div class="glow glow-two"></div>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="{{page.home}}">
+        <img src="{{page.base}}assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="{{t.nav-label}}">
+        <a class="header-link" href="#what">{{t.nav-what}}</a>
+        <a class="header-link" href="#features">{{t.nav-features}}</a>
+        <a class="header-link" href="#use">{{t.nav-use}}</a>
+        <a class="header-link" href="{{page.privacy}}">{{t.nav-privacy}}</a>
+      </nav>
+{{include:switcher}}
+      <button class="theme-button" id="themeButton" type="button" aria-label="{{t.theme-label}}">◐</button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">{{t.header-github}}</a>
+    </header>
+
+    <main class="container" id="content">
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <div class="product-id">
+            <img class="product-icon" src="{{page.base}}assets/streamsplayer-icon-256.png" alt="{{t.icon-alt}}" width="68" height="68">
+            <div>
+              <span class="eyebrow">{{t.hero-eyebrow}}</span>
+              <h1 id="hero-title">{{t.hero-title}}</h1>
+              <span class="kicker">{{t.hero-kicker}}</span>
+            </div>
+          </div>
+          <p class="lead">{{t.hero-description}}</p>
+          <div class="facts" aria-label="{{t.facts-label}}">
+            <span class="fact">{{t.fact-windows}}</span>
+            <span class="fact">{{t.fact-free}}</span>
+            <span class="fact">{{t.fact-account}}</span>
+            <span class="fact">{{t.fact-telemetry}}</span>
+            <span class="fact">{{t.fact-langs}}</span>
+          </div>
+          <div class="button-group">
+            <a class="button button-primary" href="#use">{{t.hero-cta-use}}</a>
+            <a class="button button-gold" href="https://github.com/SerZhyAle/StreamsPlayer">{{t.hero-source}}</a>
+            <a class="button button-ghost" href="#distribution">{{t.hero-status}}</a>
+          </div>
+        </div>
+
+        <aside class="status-card" aria-labelledby="status-title">
+          <span class="status-label">{{t.status-label}}</span>
+          <h2 id="status-title">{{t.status-title}}</h2>
+          <p>{{t.status-description}}</p>
+          <div class="status-links">
+            <a class="button button-primary button-small" href="https://apps.microsoft.com/detail/9NBTD5SXB8TB">{{t.status-source}}</a>
+            <a class="button button-ghost button-small" href="#distribution">{{t.status-plan}}</a>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section" id="what" aria-labelledby="what-title">
+        <h2 class="section-heading" id="what-title"><span class="hash">#</span><span>{{t.what-title}}</span></h2>
+        <p class="section-description">{{t.what-p1}}</p>
+        <p class="section-description">{{t.what-p2}}</p>
+      </section>
+
+      <section class="section" id="features" aria-labelledby="features-title">
+        <h2 class="section-heading" id="features-title"><span class="hash">#</span><span>{{t.features-title}}</span></h2>
+        <p class="section-description">{{t.features-description}}</p>
+        <div class="cap-grid">
+          <article class="card cap">
+            <h3><span class="tag">01</span><span>{{t.cap-find-title}}</span></h3>
+            <ul>
+              <li>{{t.cap-find-1}}</li>
+              <li>{{t.cap-find-2}}</li>
+              <li>{{t.cap-find-3}}</li>
+              <li>{{t.cap-find-4}}</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">02</span><span>{{t.cap-play-title}}</span></h3>
+            <ul>
+              <li>{{t.cap-play-1}}</li>
+              <li>{{t.cap-play-2}}</li>
+              <li>{{t.cap-play-3}}</li>
+              <li>{{t.cap-play-4}}</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">03</span><span>{{t.cap-window-title}}</span></h3>
+            <ul>
+              <li>{{t.cap-window-1}}</li>
+              <li>{{t.cap-window-2}}</li>
+              <li>{{t.cap-window-3}}</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">04</span><span>{{t.cap-grid-title}}</span></h3>
+            <ul>
+              <li>{{t.cap-grid-1}}</li>
+              <li>{{t.cap-grid-2}}</li>
+              <li>{{t.cap-grid-3}}</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">05</span><span>{{t.cap-yours-title}}</span></h3>
+            <ul>
+              <li>{{t.cap-yours-1}}</li>
+              <li>{{t.cap-yours-2}}</li>
+              <li>{{t.cap-yours-3}}</li>
+              <li>{{t.cap-yours-4}}</li>
+            </ul>
+          </article>
+          <article class="card cap">
+            <h3><span class="tag">06</span><span>{{t.cap-local-title}}</span></h3>
+            <ul>
+              <li>{{t.cap-local-1}}</li>
+              <li>{{t.cap-local-2}}</li>
+              <li>{{t.cap-local-3}}</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="use" aria-labelledby="use-title">
+        <h2 class="section-heading" id="use-title"><span class="hash">#</span><span>{{t.use-title}}</span></h2>
+        <p class="section-description">{{t.use-description}}</p>
+        <ol class="steps">
+          <li class="step">
+            <div>
+              <h3>{{t.use-1-title}}</h3>
+              <p>{{t.use-1-text}}</p>
+              <pre dir="ltr"><code>./build.ps1 -Run</code></pre>
+            </div>
+          </li>
+          <li class="step">
+            <div>
+              <h3>{{t.use-2-title}}</h3>
+              <p>{{t.use-2-text}}</p>
+            </div>
+          </li>
+          <li class="step">
+            <div>
+              <h3>{{t.use-3-title}}</h3>
+              <p>{{t.use-3-text}}</p>
+              <pre dir="ltr"><code>StreamsPlayer.exe <span class="tok">--url</span> "https://example.test/live"</code></pre>
+            </div>
+          </li>
+          <li class="step">
+            <div>
+              <h3>{{t.use-4-title}}</h3>
+              <p>{{t.use-4-text}}</p>
+              <pre dir="ltr"><code>StreamsPlayer.exe <span class="tok">--id</span> "channel-guid"</code></pre>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section" id="distribution" aria-labelledby="distribution-title">
+        <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>{{t.distribution-title}}</span></h2>
+        <p class="section-description">{{t.distribution-description}}</p>
+        <div class="distribution-grid">
+          <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+            <span class="channel-mark">ZIP</span>
+            <div><strong>{{t.channel-github}}</strong><span class="pill">{{t.status-available}}</span></div>
+          </a>
+          <a class="channel" href="https://apps.microsoft.com/detail/9NBTD5SXB8TB">
+            <span class="channel-mark">MS</span>
+            <div><strong>{{t.channel-store}}</strong><span class="pill">{{t.status-available}}</span></div>
+          </a>
+          <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+            <span class="channel-mark">WG</span>
+            <div><strong>{{t.channel-winget}}</strong><span class="pill">{{t.status-available}}</span></div>
+          </a>
+        </div>
+      </section>
+    </main>
+
+{{include:footer}}
+  </body>
+</html>

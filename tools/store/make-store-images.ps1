@@ -9,8 +9,9 @@
       banner-1280x360.png          promo banner
       social-preview-1280x640.png  GitHub social / hero card
 
-    Composed promotional cards (the house pattern), not raw app captures. For real
-    in-app screenshots use tools/store/capture-app.ps1.
+    Composed promotional cards (the house pattern), not raw app captures. For one real in-app
+    screenshot per shipped interface language use tools/store/capture-store-screenshots.ps1; for a
+    single arbitrary window use tools/store/capture-app.ps1.
 #>
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -87,11 +88,11 @@ function Make-Screenshot($file, $caption, $features) {
 
 Make-Screenshot (Join-Path $OutDir 'screenshot-en-2732x1536.png') `
     'Internet radio, live video and RTSP for Windows' `
-    'Curated catalog  -  Search & filter  -  Pin favorites  -  List & Grid  -  Live thumbnails  -  EN / RU'
+    'Curated catalog  -  Search & filter  -  Pin favorites  -  List & Grid  -  Live thumbnails  -  13 languages'
 
 Make-Screenshot (Join-Path $OutDir 'screenshot-ru-2732x1536.png') `
     "Интернет-радио, live-видео и RTSP для Windows" `
-    "Каталог  -  Поиск и фильтры  -  Избранное  -  Список и сетка  -  Живые превью  -  RU / EN"
+    "Каталог  -  Поиск и фильтры  -  Избранное  -  Список и сетка  -  Живые превью  -  13 языков"
 
 # ---- Store logo: 9:16 Poster art (base 720x1080, rendered 2x -> 1440x2160) ---
 $c = New-Canvas 720 1080 2

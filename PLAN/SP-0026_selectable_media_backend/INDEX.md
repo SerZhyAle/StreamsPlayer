@@ -86,7 +86,7 @@ field and keeps zero media dependency; catalog refresh and MANUAL/IMPORTED merge
 | AC 4 Flyleaf plays ≥1 HLS-live + ≥1 RTSP; resilience gaps evidenced, no crash/silent freeze; experimental label | 3, 4, 5 |
 | AC 5 Choice persists across restart | 1, 4, 5 |
 | AC 6 Core has no media dependency; App→Core unchanged; audio + thumbnail paths unchanged | 1, 2, 3 |
-| AC 7 New Settings strings in EN + RU | 4 |
+| AC 7 New Settings strings in every shipped language | 4 |
 | AC 8 Build + tests pass; run-and-observe `expected/actual` for switch, each engine, persistence | 5 |
 | Constraint: LibVLC default; identical until user changes option | 1, 2, 4 |
 | Constraint: Flyleaf min HLS-live + RTSP; parity target measured vs tuning doc; gaps → experimental label not silent | 3, 5 |

@@ -1,0 +1,287 @@
+# STREAMS Player site copy - generated pages are built from this file by tools/site/build-site.ps1.
+# Format: a "@@key" line, then the value on the following line(s), until the next @@ or end of file.
+# Placeholders must survive translation verbatim:
+#   [[command]] - the winget install command line
+#   [[appdata]] - the %LOCALAPPDATA%\StreamsPlayer path
+#   [[email]]   - the contact address
+# machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
+# but the key is present in every file so the key sets stay comparable.
+
+@@title-home
+STREAMS Player - internet radio, live video and RTSP for Windows
+
+@@description-home
+STREAMS Player for Windows: browse and play internet radio, live video and RTSP streams.
+
+@@title-privacy
+Privacy - STREAMS Player
+
+@@description-privacy
+STREAMS Player privacy policy.
+
+@@skip-content
+Skip to content
+
+@@nav-what
+What
+
+@@nav-features
+Features
+
+@@nav-use
+How to use
+
+@@nav-privacy
+Privacy
+
+@@header-github
+GitHub
+
+@@theme-label
+Switch color theme
+
+@@lang-label
+Site language
+
+@@nav-label
+Primary navigation
+
+@@icon-alt
+STREAMS Player icon
+
+@@hero-eyebrow
+STREAMS Player · Windows 10 / 11
+
+@@hero-title
+Radio, live video and RTSP, in one player.
+
+@@hero-kicker
+Internet radio · Live video · RTSP
+
+@@hero-description
+A focused Windows desktop app: browse a curated catalog, add your own streams, and play them - no account, no ads, nothing running in the background you did not ask for.
+
+@@facts-label
+Key facts
+
+@@fact-windows
+Windows 10 / 11
+
+@@fact-free
+Free · MIT source
+
+@@fact-account
+No account
+
+@@fact-telemetry
+No telemetry
+
+@@fact-langs
+13 interface languages
+
+@@hero-cta-use
+How to use
+
+@@hero-source
+View source
+
+@@hero-status
+Release status
+
+@@status-label
+Current status
+
+@@status-title
+Released
+
+@@status-description
+STREAMS Player is released and free. Get it on the Microsoft Store, as a portable ZIP from the latest GitHub Release, or with winget - no account, no ads, no telemetry.
+
+@@status-source
+Microsoft Store
+
+@@status-plan
+Where to get it
+
+@@what-title
+What it is & why
+
+@@what-p1
+STREAMS Player is an independent Windows desktop app for internet radio, live video, and RTSP network cameras. It reads a curated, public stream catalog so you get a working list of channels on first run - then lets you search, sort, pin, and add your own, all stored locally on your machine.
+
+@@what-p2
+The point is calm: a player that stays a player. The catalog refreshes only when you ask, your manually added and imported streams are never overwritten by an update, and there is no account, advertising, analytics, or author-run service. What runs on your PC is what you started.
+
+@@features-title
+What it can do
+
+@@features-description
+Everything needed to find, keep, and play a stream - grouped by what you are actually doing.
+
+@@cap-find-title
+Find a channel
+
+@@cap-find-1
+Curated catalog on first launch - no setup.
+
+@@cap-find-2
+Filter by category, language, country, media type.
+
+@@cap-find-3
+Search and sort the list.
+
+@@cap-find-4
+Pin the channels you return to.
+
+@@cap-play-title
+Play the right way
+
+@@cap-play-1
+Radio plays in the main window.
+
+@@cap-play-2
+Live video & RTSP open in a focused player window.
+
+@@cap-play-3
+~10-second live buffer with visible buffering progress.
+
+@@cap-play-4
+Volume and mute are remembered.
+
+@@cap-window-title
+Watch your way
+
+@@cap-window-1
+Keep the main window or player always on top.
+
+@@cap-window-2
+Borderless full screen with a button or F11 (Esc exits).
+
+@@cap-window-3
+Small, Medium, or Large stream tiles.
+
+@@cap-grid-title
+Visual grid
+
+@@cap-grid-1
+A grid that captures visible HTTP(S) video previews.
+
+@@cap-grid-2
+Keeps the latest 64 frames locally.
+
+@@cap-grid-3
+Automatic preview updates can be turned off.
+
+@@cap-yours-title
+Make it yours
+
+@@cap-yours-1
+Add a stream by URL, no account.
+
+@@cap-yours-2
+Your added and imported streams survive catalog updates.
+
+@@cap-yours-3
+Keep local OK / fail playback marks.
+
+@@cap-yours-4
+Switch the whole interface between thirteen languages; the choice is restored.
+
+@@cap-local-title
+Local by design
+
+@@cap-local-1
+Catalog state, manual entries, and pins stay on your device.
+
+@@cap-local-2
+Stored under [[appdata]].
+
+@@cap-local-3
+Refresh the catalog only when you choose.
+
+@@use-title
+How to use it
+
+@@use-description
+Open it and pick a channel - that is the whole flow. Install it from the Microsoft Store, winget, or the portable ZIP - or run it from source; you can also launch a stream directly from the command line.
+
+@@use-1-title
+Run it from source
+
+@@use-1-text
+With the .NET 10 SDK installed, restore, build, and launch from the repository root.
+
+@@use-2-title
+Pick and play
+
+@@use-2-text
+Browse the catalog, filter or search, then select a channel. Radio starts in the main window; video and RTSP open in the player window. Launching with no channel selected resumes the last one you played.
+
+@@use-3-title
+Open any URL directly
+
+@@use-3-text
+Play a stream without touching the catalog.
+
+@@use-4-title
+Save a channel to a shortcut
+
+@@use-4-text
+Select a saved channel, open Settings, and use Copy command or Create desktop shortcut. Both use the channel's stored id.
+
+@@distribution-title
+Distribution
+
+@@distribution-description
+All three channels are available. Get it from the Microsoft Store, download the portable ZIP from the latest GitHub Release, or install with [[command]].
+
+@@channel-github
+Portable ZIP
+
+@@channel-store
+Microsoft Store
+
+@@channel-winget
+winget
+
+@@status-available
+Available
+
+@@privacy-eyebrow
+STREAMS Player · Privacy
+
+@@privacy-title
+Private by default.
+
+@@privacy-intro
+STREAMS Player has no account, advertising, analytics, telemetry, or service operated by the author.
+
+@@privacy-network-title
+Network access
+
+@@privacy-network
+The application connects when you explicitly refresh the public stream catalog, play a selected stream, or keep Grid mode active while visible video previews refresh. Those requests go to the relevant catalog or stream provider and are subject to that provider's policies.
+
+@@privacy-local-title
+Local data
+
+@@privacy-local
+STREAMS Player stores its catalog state, manual entries, pins, playback marks, up to 64 cached preview frames, and the current-session diagnostic Current.log under [[appdata]]. This data stays on your device unless you choose to copy or back it up.
+
+@@privacy-contact-title
+Contact
+
+@@privacy-contact
+Questions can be filed in the GitHub issue tracker or sent to [[email]].
+
+@@footer-rights
+© 2026 Serhii Zhyhunenko
+
+@@footer-tools
+More tools
+
+@@to-top
+Back to top
+
+@@machine-note
+This page was machine-translated and has not been proofread by a native speaker.

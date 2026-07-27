@@ -1,0 +1,45 @@
+@@ShortDescription
+Sfoglia radio via internet e video live in un lettore essenziale per Windows: catalogo curato, preferiti locali, anteprime live nella griglia, interfaccia in italiano, senza account né pubblicità.
+
+@@Description
+STREAMS Player è un'applicazione desktop indipendente per Windows che permette di sfogliare e riprodurre radio via internet, video live e indirizzi di flussi RTSP.
+
+Esplora un catalogo curato per categoria, lingua, paese o tipo di media. Cerca e ordina i canali, fissa i flussi che usi più spesso oppure aggiungi a mano l'URL diretto di un flusso. L'audio si ascolta nella finestra principale, mentre il video si apre in una finestra dedicata con i comandi «Sempre in primo piano» e schermo intero senza bordi.
+
+Scegli un elenco compatto o una griglia visiva. Nella vista griglia l'app può catturare le miniature attuali dei flussi video HTTP(S) visibili; la dimensione dei riquadri e l'aggiornamento automatico delle miniature si regolano nelle Impostazioni. L'interfaccia completa è disponibile in tredici lingue, con layout speculare da destra a sinistra per arabo e urdu.
+
+Il catalogo viene scaricato solo quando scegli «Aggiorna catalogo». STREAMS Player non ha account, pubblicità, analisi o telemetria. Stato del catalogo, voci aggiunte a mano, preferiti, contrassegni di riproduzione, impostazioni e miniature nella cache restano nel tuo profilo Windows.
+
+La compatibilità di riproduzione dipende dal fornitore del flusso, dalla disponibilità della rete, dal protocollo e dai codec multimediali supportati dai componenti multimediali inclusi nell'app o da quelli di Windows. STREAMS Player non ospita né controlla i contenuti dei flussi di terze parti.
+
+STREAMS Player è open source con licenza MIT.
+
+@@Feature1
+Catalogo curato di radio via internet, video live e indirizzi RTSP
+
+@@Feature2
+Ricerca, ordinamento e filtri per categoria, lingua, paese e tipo di media
+
+@@Feature3
+Fissa i flussi preferiti e aggiungi gli URL diretti dei flussi
+
+@@Feature4
+Viste a elenco e a griglia con dimensione dei riquadri selezionabile
+
+@@Feature5
+Miniature live opzionali per i flussi video HTTP(S) visibili
+
+@@Feature6
+Tredici lingue dell'interfaccia, con layout da destra a sinistra dove serve
+
+@@Feature7
+«Sempre in primo piano» indipendente per l'app e per il lettore video
+
+@@Feature8
+Schermo intero senza bordi del video con i tasti F11 ed Escape
+
+@@Feature9
+Aggiornamento del catalogo solo su tua richiesta, senza download a sorpresa in background
+
+@@Feature10
+Nessun account, pubblicità, analisi o telemetria

@@ -1,0 +1,287 @@
+# STREAMS Player site copy - generated pages are built from this file by tools/site/build-site.ps1.
+# Format: a "@@key" line, then the value on the following line(s), until the next @@ or end of file.
+# Placeholders must survive translation verbatim:
+#   [[command]] - the winget install command line
+#   [[appdata]] - the %LOCALAPPDATA%\StreamsPlayer path
+#   [[email]]   - the contact address
+# machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
+# but the key is present in every file so the key sets stay comparable.
+
+@@title-home
+STREAMS Player - radio via internet, video live e RTSP per Windows
+
+@@description-home
+STREAMS Player per Windows: sfoglia e riproduci radio via internet, video live e flussi RTSP.
+
+@@title-privacy
+Privacy - STREAMS Player
+
+@@description-privacy
+Informativa sulla privacy di STREAMS Player.
+
+@@skip-content
+Vai al contenuto
+
+@@nav-what
+Cos'è
+
+@@nav-features
+Funzioni
+
+@@nav-use
+Come si usa
+
+@@nav-privacy
+Privacy
+
+@@header-github
+GitHub
+
+@@theme-label
+Cambia tema di colore
+
+@@lang-label
+Lingua del sito
+
+@@nav-label
+Navigazione principale
+
+@@icon-alt
+Icona di STREAMS Player
+
+@@hero-eyebrow
+STREAMS Player · Windows 10 / 11
+
+@@hero-title
+Radio, video live e RTSP in un solo lettore.
+
+@@hero-kicker
+Radio via internet · Video live · RTSP
+
+@@hero-description
+Un'app desktop essenziale per Windows: sfoglia un catalogo già pronto, aggiungi i tuoi flussi e riproducili - senza account, senza pubblicità e senza niente che lavori in background a tua insaputa.
+
+@@facts-label
+In breve
+
+@@fact-windows
+Windows 10 / 11
+
+@@fact-free
+Gratuito · Sorgenti MIT
+
+@@fact-account
+Nessun account
+
+@@fact-telemetry
+Nessuna telemetria
+
+@@fact-langs
+13 lingue dell'interfaccia
+
+@@hero-cta-use
+Come si usa
+
+@@hero-source
+Vedi il codice sorgente
+
+@@hero-status
+Stato del rilascio
+
+@@status-label
+Stato attuale
+
+@@status-title
+Rilasciato
+
+@@status-description
+STREAMS Player è rilasciato e gratuito. Scaricalo dal Microsoft Store, come ZIP portatile dall'ultima release su GitHub, oppure installalo con winget - senza account, senza pubblicità, senza telemetria.
+
+@@status-source
+Microsoft Store
+
+@@status-plan
+Dove ottenerlo
+
+@@what-title
+Cos'è e perché
+
+@@what-p1
+STREAMS Player è un'app desktop indipendente per Windows dedicata alla radio via internet, al video live e alle telecamere di rete RTSP. Legge un catalogo pubblico curato, così al primo avvio hai già un elenco di canali funzionante - poi cerchi, ordini, fissi e aggiungi i tuoi canali, con tutto salvato in locale sul tuo computer.
+
+@@what-p2
+L'idea è la calma: un lettore che resta un lettore. Il catalogo si aggiorna solo quando lo chiedi, i flussi aggiunti a mano e importati non vengono mai sovrascritti da un aggiornamento, e non esistono account, pubblicità, analisi o servizi gestiti dall'autore. Sul tuo PC gira solo quello che hai avviato.
+
+@@features-title
+Cosa sa fare
+
+@@features-description
+Tutto il necessario per trovare, conservare e riprodurre un flusso - raggruppato per quello che stai facendo.
+
+@@cap-find-title
+Trovare un canale
+
+@@cap-find-1
+Catalogo già pronto al primo avvio - senza configurazione.
+
+@@cap-find-2
+Filtri per categoria, lingua, paese e tipo di media.
+
+@@cap-find-3
+Ricerca e ordinamento dell'elenco.
+
+@@cap-find-4
+Fissa i canali a cui torni più spesso.
+
+@@cap-play-title
+Riprodurre nel modo giusto
+
+@@cap-play-1
+La radio si ascolta nella finestra principale.
+
+@@cap-play-2
+Video live e RTSP si aprono in una finestra del lettore dedicata.
+
+@@cap-play-3
+Buffer live di circa 10 secondi con avanzamento del buffering visibile.
+
+@@cap-play-4
+Volume e disattivazione dell'audio vengono ricordati.
+
+@@cap-window-title
+Guardare come vuoi
+
+@@cap-window-1
+Mantieni la finestra principale o il lettore sempre in primo piano.
+
+@@cap-window-2
+Schermo intero senza bordi con un pulsante o con F11 (Esc esce).
+
+@@cap-window-3
+Riquadri dei flussi piccoli, medi o grandi.
+
+@@cap-grid-title
+Griglia visiva
+
+@@cap-grid-1
+Una griglia che cattura le anteprime video HTTP(S) visibili.
+
+@@cap-grid-2
+Conserva in locale gli ultimi 64 fotogrammi.
+
+@@cap-grid-3
+L'aggiornamento automatico delle anteprime si può disattivare.
+
+@@cap-yours-title
+Personalizzalo
+
+@@cap-yours-1
+Aggiungi un flusso tramite URL, senza account.
+
+@@cap-yours-2
+I flussi che aggiungi e importi sopravvivono agli aggiornamenti del catalogo.
+
+@@cap-yours-3
+Contrassegni di riproduzione locali: OK o errore.
+
+@@cap-yours-4
+Cambia l'intera interfaccia tra tredici lingue; la scelta viene ripristinata.
+
+@@cap-local-title
+Locale per scelta
+
+@@cap-local-1
+Stato del catalogo, voci aggiunte a mano e canali fissati restano sul tuo dispositivo.
+
+@@cap-local-2
+Salvati in [[appdata]].
+
+@@cap-local-3
+Il catalogo si aggiorna solo quando lo decidi tu.
+
+@@use-title
+Come si usa
+
+@@use-description
+Aprilo e scegli un canale - è tutta la procedura. Installalo dal Microsoft Store, con winget o come ZIP portatile - oppure eseguilo dai sorgenti; puoi anche avviare un flusso direttamente dalla riga di comando.
+
+@@use-1-title
+Eseguirlo dai sorgenti
+
+@@use-1-text
+Con .NET 10 SDK installato, esegui ripristino, build e avvio dalla radice del repository.
+
+@@use-2-title
+Scegli e riproduci
+
+@@use-2-text
+Sfoglia il catalogo, filtra o cerca, poi seleziona un canale. La radio parte nella finestra principale; video e RTSP si aprono nella finestra del lettore. Se avvii senza un canale selezionato, riprende l'ultimo che hai riprodotto.
+
+@@use-3-title
+Aprire un URL qualsiasi
+
+@@use-3-text
+Riproduci un flusso senza toccare il catalogo.
+
+@@use-4-title
+Salvare un canale in un collegamento
+
+@@use-4-text
+Seleziona un canale salvato, apri le Impostazioni e usa «Copia il comando» o «Crea collegamento sul desktop». Entrambi usano l'id del canale salvato.
+
+@@distribution-title
+Distribuzione
+
+@@distribution-description
+Tutti e tre i canali di distribuzione sono disponibili. Scaricalo dal Microsoft Store, prendi lo ZIP portatile dall'ultima release su GitHub oppure installalo con [[command]].
+
+@@channel-github
+ZIP portatile
+
+@@channel-store
+Microsoft Store
+
+@@channel-winget
+winget
+
+@@status-available
+Disponibile
+
+@@privacy-eyebrow
+STREAMS Player · Privacy
+
+@@privacy-title
+Privato per impostazione predefinita.
+
+@@privacy-intro
+STREAMS Player non ha account, pubblicità, analisi, telemetria né servizi gestiti dall'autore.
+
+@@privacy-network-title
+Accesso alla rete
+
+@@privacy-network
+L'applicazione si collega quando aggiorni esplicitamente il catalogo pubblico dei flussi, quando riproduci un flusso selezionato o quando tieni attiva la griglia mentre le anteprime video visibili vengono aggiornate. Queste richieste vanno al fornitore del catalogo o del flusso interessato e sono soggette alle sue politiche.
+
+@@privacy-local-title
+Dati locali
+
+@@privacy-local
+STREAMS Player salva lo stato del catalogo, le voci aggiunte a mano, i canali fissati, i contrassegni di riproduzione, fino a 64 fotogrammi di anteprima nella cache e il registro diagnostico della sessione corrente Current.log in [[appdata]]. Questi dati restano sul tuo dispositivo, a meno che tu non scelga di copiarli o di farne una copia di backup.
+
+@@privacy-contact-title
+Contatti
+
+@@privacy-contact
+Le domande si possono aprire nell'issue tracker su GitHub o inviare a [[email]].
+
+@@footer-rights
+© 2026 Serhii Zhyhunenko
+
+@@footer-tools
+Altri strumenti
+
+@@to-top
+Torna su
+
+@@machine-note
+Questa pagina è stata tradotta automaticamente e non è stata riletta da un madrelingua.

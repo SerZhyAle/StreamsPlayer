@@ -15,6 +15,11 @@
 *.css      text eol=crlf
 *.txt      text eol=crlf
 
+# SP-0034: the Partner Center listing fixture is compared byte for byte by
+# tools/store/build-store-listing-csv.ps1 -FillNothing. Line-ending normalization would break that
+# round trip, so git must leave the bytes alone.
+msix/store-listing-export.sample.csv -text
+
 *.ico binary
 *.png binary
 *.jpg binary

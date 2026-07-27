@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.locale.1.12.0.schema.json
+PackageIdentifier: SerZhyAle.StreamsPlayer
+PackageVersion: REPLACE_VERSION
+PackageLocale: uk-UA
+Publisher: SerZhyAle
+PublisherUrl: https://github.com/SerZhyAle
+PublisherSupportUrl: https://github.com/SerZhyAle/StreamsPlayer/issues
+PrivacyUrl: https://serzhyale.github.io/StreamsPlayer/privacy.html
+PackageName: Трансляції
+PackageUrl: https://serzhyale.github.io/StreamsPlayer/
+License: MIT
+LicenseUrl: https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE
+Copyright: Copyright (c) 2026 Serhii Zhyhunenko
+ShortDescription: Каталог інтернет-радіо та live-відео для Windows з українським інтерфейсом.
+Description: Трансляції - застосунок Windows для перегляду каталогу інтернет-радіо, live-відео й адрес RTSP; інтерфейс доступний тринадцятьма мовами. Шукайте, фільтруйте, закріплюйте та додавайте потоки; вибирайте список або сітку з відключними живими мініатюрами; відкривайте відео поверх вікон або на весь екран. Каталог оновлюється лише за командою, локальні дані залишаються на пристрої, у застосунку немає облікового запису, реклами, аналітики й телеметрії. Сумісність відтворення залежить від постачальника, протоколу та кодека.
+Tags:
+- радіо
+- потоки
+- відео
+- rtsp
+- телебачення
+- iptv
+ReleaseNotes: REPLACE_RELEASE_NOTES_UK
+ReleaseNotesUrl: https://github.com/SerZhyAle/StreamsPlayer/releases/tag/vREPLACE_VERSION
+ManifestType: locale
+ManifestVersion: 1.12.0

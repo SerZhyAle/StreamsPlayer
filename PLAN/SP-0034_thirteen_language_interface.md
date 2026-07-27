@@ -1,6 +1,6 @@
 # SP-0034: Thirteen-language product surface
 
-**Status:** Tactical
+**Status:** BlockNeedUserTest - all sixteen criteria implemented, every automatic check green (299 tests, release-parity gate, byte-identical listing round trip, 13 verified captures), and criteria 3, 4, 6, 7 and 12 observed. Exit: the owner opens the language picker, chooses `العربية`, then opens Settings and Add stream, and confirms neither dialog clips or overlaps under the mirrored layout - the one thing the thirteen main-window captures do not show.
 
 ## Goal
 
@@ -380,3 +380,48 @@ serialize the field, so *absent key* is a sound "never chosen" signal and criter
 the 52 uncommitted SP-0031/SP-0032 files touch `Models.cs` and `StreamCatalogStore.cs`, which
 phases 01-02 must also edit; and criterion 12 needs an owner-supplied list of forbidden
 third-party product names, including transliterations, since no such list exists in the portfolio.
+
+## Implementation record - 2026-07-27
+
+Thirteen phases, all `Implemented`; the per-phase `## Checks` blocks hold the evidence and the
+deviations. Criterion verdicts against the live tree, replacing the audit table above:
+
+| Criterion | Verdict | Evidence |
+|---|---|---|
+| 1 interface in 13 languages | PASS (partly observed) | 13 dictionaries x 313 keys; `assets/store/app-*.png` shows the main window in each. Other windows are covered by the gate, not observed - see phase 13 "What is still unobserved" |
+| 2 parity gate | PASS | `LocalizationParityTests` (9 facts) + `LocalizationGateSelfTests` (12); proven to fail on three defects injected into the shipped `Localization.de.xaml` |
+| 3 mirrored ar/ur | PASS observed | `app-ar.png`, `app-ur.png`; transport glyphs did not mirror |
+| 4 first launch follows the OS | PASS | Observed for the absent-property path; the culture mapping itself by `InterfaceLanguagesTests` (35 cases) |
+| 5 persists; an older file still loads | PASS | `AppLanguage?` with `JsonIgnoreCondition.WhenWritingNull`; `CatalogStateLanguageTests` |
+| 6 unknown language keeps state | PASS observed | 3688 channels, 1 MANUAL, 7 pins, 1 hidden URL, all window preferences and the byte count unchanged through a `"Klingon"` launch |
+| 7 picker | PASS | `LanguageWindow`; localized automation name verified through UI Automation |
+| 8 site | PASS | 26 static pages, 13 `hreflang` + `x-default` each, generator idempotent |
+| 9 listing builder | PASS | `tools/store/build-store-listing-csv.ps1`; columns from the export, fill-only-empty by default |
+| 10 thirteen screenshots | PASS | 13 PNGs at 1366x768, each verified in its own language before it was written |
+| 11 Partner Center constraints | PASS | Byte-identical round trip over 453 rows; no BOM, all quoted, CRLF, no trailing newline |
+| 12 search terms | PASS | One English set of 7; forbidden-term and count checks exit non-zero |
+| 13 winget uk-UA, README set stays 3 | PASS | Five templates; three READMEs state the count once |
+| 14 one declaration, no stale claims | PASS | `InterfaceLanguages` read by reflection from the built assembly by all PowerShell tooling; claim grep clean outside history |
+| 15 no runtime fetch | PASS | Asserted mechanically; the site now ships no translation table at all |
+| 16 build, tests, gate, observed | PASS | `scripts/check.ps1` green; observed items recorded in phase 13 |
+
+Three things the plan did not anticipate, all recorded where they were found:
+
+- **WPF does set `WS_EX_LAYOUTRTL`.** The conditional flip-back is not dead code - without it two of
+  the thirteen Store screenshots would have shipped mirrored, and nothing automatic would have said so
+  (phase 11).
+- **Choosing Arabic changed the calendar, not just the wording.** `ar-SA` defaults to Umm al-Qura, so
+  the catalog timestamp read `1448/02/12` while the rest of the desktop said 2026-07-26. Fixed in
+  `LocalizationService`; found only because criterion 10 forces a look at a real Arabic window
+  (phase 13).
+- **"Fill only empty cells" would have frozen every published claim.** The live listing still said
+  "English and Russian interface", and a fill-only-empty pass left it there. `-ReplaceCopy` added, safe
+  by construction because the decks name only prose fields (phase 10).
+
+Parked, not fixed: **SP-0035** (the same tolerant-enum defect for the four remaining persisted enums)
+and **SP-0036** (a pre-existing flaky ICY metadata test, observed once during this validation).
+
+One decision left for the owner beyond the exit condition: `tools/site/copy/uk.txt` keeps the Latin
+`STREAMS Player`, while `Localization.uk.xaml`, the glossary and the new Ukrainian Store deck all use
+`Трансляції`. Ukrainian is the one language where the site and the application name the product
+differently. Not changed unilaterally - it is the owner's own language and his own published prose.

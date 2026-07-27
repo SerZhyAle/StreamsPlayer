@@ -4,6 +4,11 @@ This folder holds source-controlled templates, not submitted manifests. Do not
 submit a template: every release needs its own immutable version, GitHub Release
 URL and SHA256 hash.
 
+The locale set is deliberately **three** - `en-US`, `ru-RU`, `uk-UA` - even though the application
+ships thirteen interface languages. A winget locale is prose the owner has to maintain and re-check
+on every release; machine-translated package metadata in ten more languages would be a maintenance
+cost with no reader. Do not "complete" this set to match the application.
+
 After an explicit release, the preferred path (matches the sibling SZA apps) is
 `wingetcreate`, which recomputes the SHA256 and opens the PR for you:
 
@@ -18,9 +23,9 @@ Manual alternative (when you need full control of the manifest):
 
 1. Download the `StreamsPlayer-<version>-windows-x64.zip` and `.sha256` from the
    GitHub Release created by `release.yml`.
-2. Confirm the release/tag uses `YY.MMDD.HHmm`, then copy the four files from `templates/` into a matching `winget-pkgs` manifest
+2. Confirm the release/tag uses `YY.MMDD.HHmm`, then copy the five files from `templates/` into a matching `winget-pkgs` manifest
    folder: `manifests/s/SerZhyAle/StreamsPlayer/<version>/`.
-3. Replace all `REPLACE_...` values, including both locale release notes, the ZIP SHA256 and ISO `YYYY-MM-DD` release date. All `PackageVersion` values must exactly match the three-part release version.
+3. Replace all `REPLACE_...` values, including all three locale release notes (`REPLACE_RELEASE_NOTES`, `REPLACE_RELEASE_NOTES_RU`, `REPLACE_RELEASE_NOTES_UK`), the ZIP SHA256 and ISO `YYYY-MM-DD` release date. All `PackageVersion` values must exactly match the three-part release version.
 4. Validate with `winget validate --manifest <folder>` and submit a pull request
    to `microsoft/winget-pkgs`.
 

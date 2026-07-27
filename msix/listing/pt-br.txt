@@ -1,0 +1,45 @@
+@@ShortDescription
+Explore rádio online e vídeo ao vivo em um player enxuto para Windows, com catálogo selecionado, canais fixados salvos localmente, pré-visualizações ao vivo na grade, interface em português e sem conta nem publicidade.
+
+@@Description
+O STREAMS Player é um aplicativo de desktop independente para Windows, feito para explorar e reproduzir rádio online, vídeo ao vivo e endereços de transmissão RTSP.
+
+Explore um catálogo selecionado por categoria, idioma, país ou tipo de mídia. Pesquise e ordene canais, fixe as transmissões que você mais usa ou adicione uma URL de transmissão direta manualmente. O áudio toca na janela principal, enquanto o vídeo abre em uma janela dedicada, com os controles Sempre visível e tela cheia sem bordas.
+
+Escolha uma lista compacta ou uma grade visual. No modo de grade, o aplicativo pode capturar as miniaturas atuais das transmissões de vídeo HTTP(S) visíveis; o tamanho dos blocos e a atualização automática das miniaturas ficam em Configurações. A interface completa está disponível em treze idiomas, com layout espelhado da direita para a esquerda para árabe e urdu.
+
+O catálogo só é baixado quando você escolhe Atualizar catálogo. O STREAMS Player não tem conta, publicidade, análise de uso nem telemetria. O estado do catálogo, as entradas manuais, os canais fixados, as marcas de reprodução, as configurações e as miniaturas em cache ficam no seu perfil do Windows.
+
+A compatibilidade de reprodução depende do provedor da transmissão, da disponibilidade da rede, do protocolo e dos codecs de mídia suportados pelos componentes de mídia incluídos ou pelos do Windows. O STREAMS Player não hospeda nem controla o conteúdo de transmissões de terceiros.
+
+O STREAMS Player é de código aberto sob a Licença MIT.
+
+@@Feature1
+Catálogo selecionado de rádio online, vídeo ao vivo e endereços RTSP
+
+@@Feature2
+Pesquisa, ordenação e filtros por categoria, idioma, país e tipo de mídia
+
+@@Feature3
+Fixe as transmissões favoritas e adicione URLs de transmissão diretas
+
+@@Feature4
+Modos de lista e de grade visual com tamanhos de bloco selecionáveis
+
+@@Feature5
+Miniaturas ao vivo opcionais para as transmissões de vídeo HTTP(S) visíveis
+
+@@Feature6
+Treze idiomas de interface, com layout da direita para a esquerda onde é devido
+
+@@Feature7
+Controles Sempre visível independentes para o aplicativo e para o player de vídeo
+
+@@Feature8
+Tela cheia de vídeo sem bordas com os atalhos F11 e Escape
+
+@@Feature9
+Catálogo atualizado só por sua ordem, sem downloads inesperados em segundo plano
+
+@@Feature10
+Sem conta, publicidade, análise de uso nem telemetria

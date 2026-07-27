@@ -1,0 +1,45 @@
+@@ShortDescription
+Internetradio und Live-Video in einem schlanken Windows-Player durchsuchen: gepflegter Katalog, lokale Favoriten, Live-Vorschauen im Raster, deutsche Benutzeroberfläche, kein Konto und keine Werbung.
+
+@@Description
+STREAMS Player ist eine unabhängige Windows-Desktop-Anwendung, um Internetradio, Live-Video und RTSP-Stream-Adressen zu durchsuchen und abzuspielen.
+
+Durchsuchen Sie einen gepflegten Katalog nach Kategorie, Sprache, Land oder Medienart. Suchen und sortieren Sie Kanäle, heften Sie die Streams an, die Sie am häufigsten nutzen, oder fügen Sie eine direkte Stream-URL manuell hinzu. Audio läuft im Hauptfenster, Video öffnet sich in einem eigenen Fenster mit Bedienelementen für „Immer im Vordergrund“ und randloses Vollbild.
+
+Wählen Sie eine kompakte Liste oder ein visuelles Raster. Im Raster kann die App aktuelle Miniaturbilder sichtbarer HTTP(S)-Video-Streams aufnehmen; Kachelgröße und automatische Aktualisierung der Miniaturbilder werden in den Einstellungen gesteuert. Die vollständige Benutzeroberfläche gibt es in dreizehn Sprachen, mit gespiegeltem Layout von rechts nach links für Arabisch und Urdu.
+
+Der Katalog wird nur geladen, wenn Sie „Katalog aktualisieren“ wählen. STREAMS Player hat kein Konto, keine Werbung, keine Analyse und keine Telemetrie. Katalogzustand, manuelle Einträge, Favoriten, Wiedergabemarken, Einstellungen und zwischengespeicherte Miniaturbilder bleiben in Ihrem Windows-Profil.
+
+Die Wiedergabefähigkeit hängt vom Stream-Anbieter, der Netzwerkverfügbarkeit, dem Protokoll und den Mediencodecs ab, die von den mitgelieferten oder von den Windows-Medienkomponenten unterstützt werden. STREAMS Player hostet oder kontrolliert keine Stream-Inhalte Dritter.
+
+STREAMS Player ist Open Source unter der MIT-Lizenz.
+
+@@Feature1
+Gepflegter Katalog für Internetradio, Live-Video und RTSP-Adressen
+
+@@Feature2
+Suchen, Sortieren und Filtern nach Kategorie, Sprache, Land und Medienart
+
+@@Feature3
+Lieblings-Streams anheften und direkte Stream-URLs hinzufügen
+
+@@Feature4
+Listen- und Rasteransicht mit wählbaren Kachelgrößen
+
+@@Feature5
+Abschaltbare Live-Miniaturbilder für sichtbare HTTP(S)-Video-Streams
+
+@@Feature6
+Dreizehn Oberflächensprachen, mit Layout von rechts nach links, wo es hingehört
+
+@@Feature7
+Unabhängige Bedienelemente „Immer im Vordergrund“ für App und Videoplayer
+
+@@Feature8
+Randloses Video-Vollbild mit den Tasten F11 und Escape
+
+@@Feature9
+Katalogaktualisierung nur auf Ihren Befehl, ohne überraschende Downloads im Hintergrund
+
+@@Feature10
+Kein Konto, keine Werbung, keine Analyse, keine Telemetrie

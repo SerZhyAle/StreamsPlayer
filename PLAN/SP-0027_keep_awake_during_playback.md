@@ -67,7 +67,8 @@ a switch for users who prefer the system's normal sleep behaviour.
    display awake (the user is watching). An audio-only session keeps the system awake but lets
    the display turn off normally (radio listening does not need the screen lit).
 4. **Single localized switch.** The option is one on/off control in Settings, localized in
-   English and Russian, no emoji, persisted across restart alongside existing preferences.
+   every shipped language (`InterfaceLanguages`, thirteen since SP-0034), no emoji, persisted across
+   restart alongside existing preferences.
 
 ## Constraints
 
@@ -92,7 +93,7 @@ a switch for users who prefer the system's normal sleep behaviour.
 4. The wake lock is released on stop, pause, session end, window close, and app exit; no
    orphaned wake state remains after the app closes.
 5. The option persists across restart and defaults to on for pre-existing state.
-6. Settings shows the option with English and Russian strings.
+6. Settings shows the option with a string in every shipped language, and the parity gate passes.
 7. Build and tests pass; a run-and-observe check records `expected: ... | actual: ...` for the
    on state, the off state, and release-on-stop.
 

@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="dark" data-lang="ar" data-entry="false">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="سياسة خصوصية STREAMS Player.">
+    <meta name="theme-color" content="#0a0f0a">
+    <title>الخصوصية - STREAMS Player</title>
+    <link rel="canonical" href="https://serzhyale.github.io/StreamsPlayer/ar/privacy.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/privacy.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/privacy.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/privacy.html">
+    <link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/privacy.html">
+    <link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/privacy.html">
+    <link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/privacy.html">
+    <link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/privacy.html">
+    <link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/privacy.html">
+    <link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/privacy.html">
+    <link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/privacy.html">
+    <link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/privacy.html">
+    <link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/privacy.html">
+    <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/privacy.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/privacy.html">
+    <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <script type="application/json" id="language-urls">{"en":"../privacy.html","ru":"../ru/privacy.html","uk":"../uk/privacy.html","de":"../de/privacy.html","it":"../it/privacy.html","es":"../es/privacy.html","fr":"../fr/privacy.html","pt":"../pt/privacy.html","zh":"../zh/privacy.html","hi":"../hi/privacy.html","bn":"../bn/privacy.html","ar":"../ar/privacy.html","ur":"../ur/privacy.html"}</script>
+    <script>
+      (function () {
+        var root = document.documentElement;
+        var systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        var theme = systemTheme;
+        var stored = null;
+        try {
+          theme = localStorage.getItem("streamsplayer-theme") || systemTheme;
+          stored = localStorage.getItem("streamsplayer-lang");
+        } catch (error) {
+          theme = systemTheme;
+        }
+        root.dataset.theme = theme;
+
+        // Language redirect. Only the canonical English root redirects: a visitor who asked for
+        // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
+        // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
+        if (root.dataset.entry !== "true") {
+          return;
+        }
+        var urls = {};
+        try {
+          urls = JSON.parse(document.getElementById("language-urls").textContent);
+        } catch (error) {
+          return;
+        }
+        var target = null;
+        if (stored && urls[stored]) {
+          target = stored;
+        } else if (!stored) {
+          // Walk the visitor's preference list in order and match on the base subtag, so de-AT
+          // reaches the German page. The table comes from the generated page, never from a list
+          // written here.
+          var preferred = navigator.languages && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language || "en"];
+          for (var i = 0; i < preferred.length && !target; i += 1) {
+            var base = String(preferred[i]).toLowerCase().split("-")[0];
+            if (urls[base]) {
+              target = base;
+            }
+          }
+        }
+        if (target && target !== root.dataset.lang) {
+          window.location.replace(urls[target]);
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../site.js" defer></script>
+  </head>
+  <body data-page="privacy">
+    <a class="skip-link" href="#content">تخطَّ إلى المحتوى</a>
+    <div class="background-glow" aria-hidden="true">
+      <div class="glow glow-one"></div>
+      <div class="glow glow-two"></div>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="../ar/">
+        <img src="../assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="التنقل الرئيسي">
+        <a class="header-link" href="../ar/#features">الميزات</a>
+        <a class="header-link" href="privacy.html" aria-current="page">الخصوصية</a>
+      </nav>
+      <div class="language-switcher">
+        <select id="languageSelect" aria-label="لغة الموقع">
+          <option value="../privacy.html" data-code="en" lang="en">English</option>
+          <option value="../ru/privacy.html" data-code="ru" lang="ru">Русский</option>
+          <option value="../uk/privacy.html" data-code="uk" lang="uk">Українська</option>
+          <option value="../de/privacy.html" data-code="de" lang="de">Deutsch</option>
+          <option value="../it/privacy.html" data-code="it" lang="it">Italiano</option>
+          <option value="../es/privacy.html" data-code="es" lang="es">Español</option>
+          <option value="../fr/privacy.html" data-code="fr" lang="fr">Français</option>
+          <option value="../pt/privacy.html" data-code="pt" lang="pt">Português (Brasil)</option>
+          <option value="../zh/privacy.html" data-code="zh" lang="zh-Hans">简体中文</option>
+          <option value="../hi/privacy.html" data-code="hi" lang="hi">हिन्दी</option>
+          <option value="../bn/privacy.html" data-code="bn" lang="bn">বাংলা</option>
+          <option value="../ar/privacy.html" data-code="ar" lang="ar" selected>العربية</option>
+          <option value="../ur/privacy.html" data-code="ur" lang="ur">اردو</option>
+        </select>
+        <noscript>
+          <ul class="language-list">
+            <li><a href="../privacy.html" lang="en">English</a></li>
+            <li><a href="../ru/privacy.html" lang="ru">Русский</a></li>
+            <li><a href="../uk/privacy.html" lang="uk">Українська</a></li>
+            <li><a href="../de/privacy.html" lang="de">Deutsch</a></li>
+            <li><a href="../it/privacy.html" lang="it">Italiano</a></li>
+            <li><a href="../es/privacy.html" lang="es">Español</a></li>
+            <li><a href="../fr/privacy.html" lang="fr">Français</a></li>
+            <li><a href="../pt/privacy.html" lang="pt">Português (Brasil)</a></li>
+            <li><a href="../zh/privacy.html" lang="zh-Hans">简体中文</a></li>
+            <li><a href="../hi/privacy.html" lang="hi">हिन्दी</a></li>
+            <li><a href="../bn/privacy.html" lang="bn">বাংলা</a></li>
+            <li><a href="../ar/privacy.html" lang="ar">العربية</a></li>
+            <li><a href="../ur/privacy.html" lang="ur">اردو</a></li>
+          </ul>
+        </noscript>
+      </div>
+      <button class="theme-button" id="themeButton" type="button" aria-label="تغيير سمة الألوان">◐</button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">GitHub</a>
+    </header>
+
+    <main class="container privacy-main" id="content">
+      <span class="eyebrow">STREAMS Player · الخصوصية</span>
+      <h1>خاص افتراضيًا.</h1>
+      <p class="privacy-intro">لا يوجد في STREAMS Player حساب ولا إعلانات ولا تحليلات ولا قياس عن بُعد ولا خدمة يديرها المؤلف.</p>
+
+      <div class="privacy-card">
+        <section class="privacy-section">
+          <h2>الوصول إلى الشبكة</h2>
+          <p>يتصل التطبيق بالشبكة عندما تحدّث كتالوج البث العام صراحةً، أو تشغّل بثًا محددًا، أو تُبقي عرض الشبكة نشطًا أثناء تحديث معاينات الفيديو الظاهرة. تذهب هذه الطلبات إلى مزوّد الكتالوج أو البث المعني وتخضع لسياساته.</p>
+        </section>
+        <section class="privacy-section">
+          <h2>البيانات المحلية</h2>
+          <p>يحفظ STREAMS Player حالة الكتالوج، والمدخلات اليدوية، والقنوات المثبَّتة، وعلامات التشغيل، وحتى 64 إطار معاينة مخزَّنًا، وسجل التشخيص للجلسة الحالية Current.log في <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>. تبقى هذه البيانات على جهازك إلا إذا اخترت نسخها أو أخذ نسخة احتياطية منها.</p>
+        </section>
+        <section class="privacy-section">
+          <h2>الاتصال</h2>
+          <p>يمكن طرح الأسئلة في متتبِّع المشكلات على GitHub أو إرسالها إلى <span dir="ltr">serzhyale@gmail.com</span>.</p>
+          <div class="button-group">
+            <a class="button button-ghost button-small" href="https://github.com/SerZhyAle/StreamsPlayer/issues">GitHub issues</a>
+            <a class="button button-primary button-small" href="mailto:serzhyale@gmail.com">Email</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-row">
+        <span>© 2026 Serhii Zhyhunenko</span>
+        <span class="footer-links">
+          <a href="privacy.html">الخصوصية</a>
+          <a href="https://sza.od.ua/">أدوات أخرى</a>
+          <a href="https://github.com/SerZhyAle">GitHub</a>
+          <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+        </span>
+      </div>
+      <div class="container machine-note">
+        <p>تُرجمت هذه الصفحة آليًا ولم يراجعها متحدث أصلي.</p>
+      </div>
+    </footer>
+    <button class="to-top" id="toTop" type="button" aria-label="عودة إلى الأعلى">↑</button>
+  </body>
+</html>

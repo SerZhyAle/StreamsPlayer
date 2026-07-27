@@ -1,0 +1,287 @@
+# STREAMS Player site copy - generated pages are built from this file by tools/site/build-site.ps1.
+# Format: a "@@key" line, then the value on the following line(s), until the next @@ or end of file.
+# Placeholders must survive translation verbatim:
+#   [[command]] - the winget install command line
+#   [[appdata]] - the %LOCALAPPDATA%\StreamsPlayer path
+#   [[email]]   - the contact address
+# machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
+# but the key is present in every file so the key sets stay comparable.
+
+@@title-home
+STREAMS Player - Internetradio, Live-Video und RTSP für Windows
+
+@@description-home
+STREAMS Player für Windows: Internetradio, Live-Video und RTSP-Streams durchsuchen und abspielen.
+
+@@title-privacy
+Datenschutz - STREAMS Player
+
+@@description-privacy
+Datenschutzerklärung von STREAMS Player.
+
+@@skip-content
+Zum Inhalt springen
+
+@@nav-what
+Was es ist
+
+@@nav-features
+Funktionen
+
+@@nav-use
+Bedienung
+
+@@nav-privacy
+Datenschutz
+
+@@header-github
+GitHub
+
+@@theme-label
+Farbthema wechseln
+
+@@lang-label
+Sprache der Website
+
+@@nav-label
+Hauptnavigation
+
+@@icon-alt
+Symbol von STREAMS Player
+
+@@hero-eyebrow
+STREAMS Player · Windows 10 / 11
+
+@@hero-title
+Radio, Live-Video und RTSP in einem Player.
+
+@@hero-kicker
+Internetradio · Live-Video · RTSP
+
+@@hero-description
+Eine schlanke Windows-Desktop-App: einen fertigen Katalog durchsuchen, eigene Streams hinzufügen und abspielen - ohne Konto, ohne Werbung, ohne Hintergrundaktivität, die Sie nicht gestartet haben.
+
+@@facts-label
+Auf einen Blick
+
+@@fact-windows
+Windows 10 / 11
+
+@@fact-free
+Kostenlos · Quellcode unter MIT
+
+@@fact-account
+Kein Konto
+
+@@fact-telemetry
+Keine Telemetrie
+
+@@fact-langs
+13 Oberflächensprachen
+
+@@hero-cta-use
+Bedienung
+
+@@hero-source
+Quellcode ansehen
+
+@@hero-status
+Veröffentlichungsstatus
+
+@@status-label
+Aktueller Status
+
+@@status-title
+Veröffentlicht
+
+@@status-description
+STREAMS Player ist veröffentlicht und kostenlos. Holen Sie ihn im Microsoft Store, als portables ZIP aus dem neuesten Release auf GitHub oder über winget - ohne Konto, ohne Werbung, ohne Telemetrie.
+
+@@status-source
+Microsoft Store
+
+@@status-plan
+Wo Sie ihn bekommen
+
+@@what-title
+Was es ist und warum
+
+@@what-p1
+STREAMS Player ist eine unabhängige Windows-Desktop-App für Internetradio, Live-Video und RTSP-Netzwerkkameras. Sie liest einen gepflegten öffentlichen Stream-Katalog, sodass schon beim ersten Start eine funktionierende Kanalliste bereitsteht - danach suchen, sortieren und heften Sie Kanäle an oder fügen eigene hinzu, alles lokal auf Ihrem Rechner gespeichert.
+
+@@what-p2
+Der Sinn ist Ruhe: ein Player, der ein Player bleibt. Der Katalog wird nur aktualisiert, wenn Sie es verlangen, Ihre manuell hinzugefügten und importierten Streams werden von einer Aktualisierung nie überschrieben, und es gibt kein Konto, keine Werbung, keine Analyse und keinen vom Autor betriebenen Dienst. Auf Ihrem PC läuft nur, was Sie gestartet haben.
+
+@@features-title
+Was es kann
+
+@@features-description
+Alles, was man braucht, um einen Stream zu finden, zu behalten und abzuspielen - gruppiert nach dem, was Sie gerade tun.
+
+@@cap-find-title
+Einen Kanal finden
+
+@@cap-find-1
+Fertiger Katalog beim ersten Start - ohne Einrichtung.
+
+@@cap-find-2
+Filter nach Kategorie, Sprache, Land und Medienart.
+
+@@cap-find-3
+Liste durchsuchen und sortieren.
+
+@@cap-find-4
+Kanäle anheften, zu denen Sie zurückkehren.
+
+@@cap-play-title
+Richtig abspielen
+
+@@cap-play-1
+Radio läuft im Hauptfenster.
+
+@@cap-play-2
+Live-Video und RTSP öffnen sich in einem eigenen Playerfenster.
+
+@@cap-play-3
+Live-Puffer von etwa 10 Sekunden mit sichtbarem Pufferfortschritt.
+
+@@cap-play-4
+Lautstärke und Stummschaltung werden gemerkt.
+
+@@cap-window-title
+Ansicht nach Ihrem Wunsch
+
+@@cap-window-1
+Hauptfenster oder Player immer im Vordergrund halten.
+
+@@cap-window-2
+Randloses Vollbild per Schaltfläche oder F11 (Esc beendet es).
+
+@@cap-window-3
+Kacheln der Streams: klein, mittel oder groß.
+
+@@cap-grid-title
+Visuelles Raster
+
+@@cap-grid-1
+Ein Raster, das sichtbare HTTP(S)-Videovorschauen aufnimmt.
+
+@@cap-grid-2
+Behält die letzten 64 Bilder lokal.
+
+@@cap-grid-3
+Die automatische Aktualisierung der Vorschau lässt sich abschalten.
+
+@@cap-yours-title
+Machen Sie es zu Ihrem
+
+@@cap-yours-1
+Stream per URL hinzufügen, ohne Konto.
+
+@@cap-yours-2
+Ihre hinzugefügten und importierten Streams überleben Katalogaktualisierungen.
+
+@@cap-yours-3
+Lokale Wiedergabemarken: OK oder Fehler.
+
+@@cap-yours-4
+Die gesamte Benutzeroberfläche zwischen dreizehn Sprachen umschalten; die Wahl wird wiederhergestellt.
+
+@@cap-local-title
+Lokal von Haus aus
+
+@@cap-local-1
+Katalogzustand, manuelle Einträge und Anheftungen bleiben auf Ihrem Gerät.
+
+@@cap-local-2
+Gespeichert unter [[appdata]].
+
+@@cap-local-3
+Der Katalog wird nur aktualisiert, wenn Sie es wählen.
+
+@@use-title
+So verwenden Sie es
+
+@@use-description
+Öffnen und einen Kanal wählen - das ist der ganze Ablauf. Installieren Sie ihn aus dem Microsoft Store, über winget oder als portables ZIP - oder starten Sie ihn aus dem Quellcode; einen Stream können Sie auch direkt über die Befehlszeile öffnen.
+
+@@use-1-title
+Aus dem Quellcode starten
+
+@@use-1-text
+Mit installiertem .NET 10 SDK aus dem Wurzelverzeichnis des Repositorys wiederherstellen, bauen und starten.
+
+@@use-2-title
+Wählen und abspielen
+
+@@use-2-text
+Katalog durchsuchen, filtern oder suchen und dann einen Kanal auswählen. Radio startet im Hauptfenster; Video und RTSP öffnen sich im Playerfenster. Ein Start ohne ausgewählten Kanal setzt den zuletzt abgespielten fort.
+
+@@use-3-title
+Eine beliebige URL direkt öffnen
+
+@@use-3-text
+Einen Stream abspielen, ohne den Katalog anzufassen.
+
+@@use-4-title
+Einen Kanal als Verknüpfung speichern
+
+@@use-4-text
+Wählen Sie einen gespeicherten Kanal, öffnen Sie die Einstellungen und verwenden Sie „Befehl kopieren“ oder „Desktop-Verknüpfung erstellen“. Beide nutzen die gespeicherte id des Kanals.
+
+@@distribution-title
+Bezugswege
+
+@@distribution-description
+Alle drei Wege sind verfügbar. Holen Sie ihn im Microsoft Store, laden Sie das portable ZIP aus dem neuesten Release auf GitHub herunter oder installieren Sie ihn mit [[command]].
+
+@@channel-github
+Portables ZIP
+
+@@channel-store
+Microsoft Store
+
+@@channel-winget
+winget
+
+@@status-available
+Verfügbar
+
+@@privacy-eyebrow
+STREAMS Player · Datenschutz
+
+@@privacy-title
+Privat als Standard.
+
+@@privacy-intro
+STREAMS Player hat kein Konto, keine Werbung, keine Analyse, keine Telemetrie und keinen vom Autor betriebenen Dienst.
+
+@@privacy-network-title
+Netzwerkzugriff
+
+@@privacy-network
+Die Anwendung verbindet sich, wenn Sie den öffentlichen Stream-Katalog ausdrücklich aktualisieren, einen ausgewählten Stream abspielen oder das Raster aktiv lassen, während sichtbare Videovorschauen aufgenommen werden. Diese Anfragen gehen an den jeweiligen Katalog- oder Stream-Anbieter und unterliegen dessen Richtlinien.
+
+@@privacy-local-title
+Lokale Daten
+
+@@privacy-local
+STREAMS Player speichert seinen Katalogzustand, manuelle Einträge, Anheftungen, Wiedergabemarken, bis zu 64 zwischengespeicherte Vorschaubilder und das Diagnoseprotokoll der aktuellen Sitzung Current.log unter [[appdata]]. Diese Daten bleiben auf Ihrem Gerät, solange Sie sie nicht selbst kopieren oder sichern.
+
+@@privacy-contact-title
+Kontakt
+
+@@privacy-contact
+Fragen können im Issue-Tracker auf GitHub gestellt oder an [[email]] gesendet werden.
+
+@@footer-rights
+© 2026 Serhii Zhyhunenko
+
+@@footer-tools
+Weitere Werkzeuge
+
+@@to-top
+Nach oben
+
+@@machine-note
+Diese Seite wurde maschinell übersetzt und nicht von einem Muttersprachler geprüft.

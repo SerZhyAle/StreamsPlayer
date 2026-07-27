@@ -1,0 +1,45 @@
+@@ShortDescription
+Parcourez des radios sur Internet et des vidéos en direct dans un lecteur Windows épuré, avec catalogue prêt à l'emploi, favoris locaux, vignettes en direct dans la grille, interface en français et sans compte ni publicité.
+
+@@Description
+STREAMS Player est une application de bureau Windows indépendante pour parcourir et lire des radios sur Internet, des vidéos en direct et des adresses de flux RTSP.
+
+Explorez un catalogue prêt à l'emploi par catégorie, langue, pays ou type de média. Cherchez et triez les chaînes, épinglez les flux que vous utilisez le plus, ou ajoutez à la main l'URL directe d'un flux. L'audio est lu dans la fenêtre principale, tandis que la vidéo s'ouvre dans une fenêtre dédiée avec les commandes « toujours au premier plan » et le plein écran sans bordure.
+
+Choisissez une liste compacte ou une grille visuelle. En vue en grille, l'application peut capturer les vignettes actuelles des flux vidéo HTTP(S) visibles ; la taille des vignettes et leur actualisation automatique se règlent dans les Paramètres. L'interface complète est disponible en treize langues, avec une mise en page miroir de droite à gauche pour l'arabe et l'ourdou.
+
+Le catalogue ne se télécharge que lorsque vous choisissez « Actualiser le catalogue ». STREAMS Player n'a ni compte, ni publicité, ni analyse d'usage, ni télémétrie. L'état du catalogue, les entrées ajoutées à la main, les favoris, les marques de lecture, les paramètres et les vignettes en cache restent dans votre profil Windows.
+
+La compatibilité de lecture dépend du fournisseur du flux, de la disponibilité du réseau, du protocole et des codecs pris en charge par les composants multimédias inclus ou par ceux de Windows. STREAMS Player n'héberge pas et ne contrôle pas le contenu des flux tiers.
+
+STREAMS Player est un logiciel open source sous licence MIT.
+
+@@Feature1
+Catalogue prêt à l'emploi de radios sur Internet, de vidéos en direct et d'adresses RTSP
+
+@@Feature2
+Recherche, tri et filtres par catégorie, langue, pays et type de média
+
+@@Feature3
+Épinglez vos flux favoris et ajoutez des URL de flux directes
+
+@@Feature4
+Vues en liste et en grille visuelle, avec tailles de vignettes au choix
+
+@@Feature5
+Vignettes en direct facultatives pour les flux vidéo HTTP(S) visibles
+
+@@Feature6
+Treize langues d'interface, avec mise en page de droite à gauche là où il le faut
+
+@@Feature7
+Mode « toujours au premier plan » indépendant pour l'application et le lecteur vidéo
+
+@@Feature8
+Plein écran vidéo sans bordure avec les touches F11 et Escape
+
+@@Feature9
+Actualisation du catalogue à votre demande uniquement, sans téléchargement surprise en arrière-plan
+
+@@Feature10
+Ni compte, ni publicité, ni analyse d'usage, ni télémétrie

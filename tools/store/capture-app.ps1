@@ -22,6 +22,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
+. "$PSScriptRoot/StoreCanvas.ps1"
 
 Add-Type @'
 using System;
@@ -55,17 +56,8 @@ $gg = [System.Drawing.Graphics]::FromImage($grab)
 $gg.CopyFromScreen($r.Left, $r.Top, 0, 0, (New-Object System.Drawing.Size($w, $ht)))
 $gg.Dispose()
 
-# Compose onto a 1366x768 dark canvas, preserving aspect ratio.
-$W = 1366; $H = 768
-$canvas = New-Object System.Drawing.Bitmap($W, $H)
-$g = [System.Drawing.Graphics]::FromImage($canvas)
-$g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-$g.Clear([System.Drawing.Color]::FromArgb(13, 16, 23))
-$scale = [Math]::Min($W / $w, $H / $ht)
-$dw = [int]($w * $scale); $dh = [int]($ht * $scale)
-$g.DrawImage($grab, [int](($W - $dw) / 2), [int](($H - $dh) / 2), $dw, $dh)
-$g.Dispose(); $grab.Dispose()
-
-$canvas.Save($OutFile, [System.Drawing.Imaging.ImageFormat]::Png)
-$canvas.Dispose()
-Write-Host "Wrote $OutFile ($W x $H)" -ForegroundColor Green
+# Compose onto the shared Store canvas (tools/store/StoreCanvas.ps1) so both capture scripts produce
+# the same size and the same letterboxing.
+$saved = Save-StoreCanvasImage -Image $grab -Path $OutFile
+$grab.Dispose()
+Write-Host ("Wrote {0} ({1} x {2})" -f $saved.Path, $saved.Width, $saved.Height) -ForegroundColor Green

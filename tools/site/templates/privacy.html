@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="{{page.lang}}" dir="{{page.dir}}" data-theme="dark" data-lang="{{page.code}}" data-entry="{{page.entry}}">
+  <head>
+{{include:head}}
+  </head>
+  <body data-page="privacy">
+    <a class="skip-link" href="#content">{{t.skip-content}}</a>
+    <div class="background-glow" aria-hidden="true">
+      <div class="glow glow-one"></div>
+      <div class="glow glow-two"></div>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="{{page.home}}">
+        <img src="{{page.base}}assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="{{t.nav-label}}">
+        <a class="header-link" href="{{page.home}}#features">{{t.nav-features}}</a>
+        <a class="header-link" href="{{page.privacy}}" aria-current="page">{{t.nav-privacy}}</a>
+      </nav>
+{{include:switcher}}
+      <button class="theme-button" id="themeButton" type="button" aria-label="{{t.theme-label}}">◐</button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">{{t.header-github}}</a>
+    </header>
+
+    <main class="container privacy-main" id="content">
+      <span class="eyebrow">{{t.privacy-eyebrow}}</span>
+      <h1>{{t.privacy-title}}</h1>
+      <p class="privacy-intro">{{t.privacy-intro}}</p>
+
+      <div class="privacy-card">
+        <section class="privacy-section">
+          <h2>{{t.privacy-network-title}}</h2>
+          <p>{{t.privacy-network}}</p>
+        </section>
+        <section class="privacy-section">
+          <h2>{{t.privacy-local-title}}</h2>
+          <p>{{t.privacy-local}}</p>
+        </section>
+        <section class="privacy-section">
+          <h2>{{t.privacy-contact-title}}</h2>
+          <p>{{t.privacy-contact}}</p>
+          <div class="button-group">
+            <a class="button button-ghost button-small" href="https://github.com/SerZhyAle/StreamsPlayer/issues">GitHub issues</a>
+            <a class="button button-primary button-small" href="mailto:serzhyale@gmail.com">Email</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+{{include:footer}}
+  </body>
+</html>

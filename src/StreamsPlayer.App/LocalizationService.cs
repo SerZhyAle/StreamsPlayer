@@ -35,9 +35,38 @@ public static class LocalizationService
         // SP-0034: worker threads must format text in the selected language too, so set the thread
         // default alongside the current thread's. CurrentCulture is deliberately left alone - catalog
         // parsing and the persisted state depend on its existing behaviour.
-        var culture = CultureInfo.GetCultureInfo(entry.CultureCode);
+        var culture = CreateUiCulture(entry.CultureCode);
         CultureInfo.CurrentUICulture = culture;
         CultureInfo.DefaultThreadCurrentUICulture = culture;
+    }
+
+    /// <summary>
+    /// The interface culture, with dates pinned to the Gregorian calendar.
+    /// </summary>
+    /// <remarks>
+    /// SP-0034, found in the Arabic capture: <c>ar-SA</c> defaults to the Umm al-Qura calendar, so the
+    /// catalog timestamp read <c>1448/02/12 بعد الهجرة</c> while Windows, the file system and every
+    /// other application showed 2026-07-26. Choosing an interface language must change the words, not
+    /// the calendar the user has to reconcile with the rest of their desktop. Month and day names,
+    /// digits and ordering still follow the chosen language.
+    /// </remarks>
+    private static CultureInfo CreateUiCulture(string cultureCode)
+    {
+        var culture = CultureInfo.GetCultureInfo(cultureCode);
+        if (culture.DateTimeFormat.Calendar is GregorianCalendar)
+        {
+            return culture;
+        }
+
+        var gregorian = culture.OptionalCalendars.OfType<GregorianCalendar>().FirstOrDefault();
+        if (gregorian is null)
+        {
+            return culture;
+        }
+
+        var adjusted = (CultureInfo)culture.Clone();
+        adjusted.DateTimeFormat.Calendar = gregorian;
+        return adjusted;
     }
 
     /// <summary>

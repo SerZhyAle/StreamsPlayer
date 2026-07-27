@@ -52,7 +52,7 @@ Audio uses WPF `MediaElement`. Video/RTSP and grid preview capture use bundled L
 
 - Nullable reference types and implicit usings are on. PascalCase types/members, camelCase locals. Keep files under ~500 lines; WPF windows coordinate UI only.
 - No raw logging facade in App/Core beyond the existing `CurrentLog` (`App.xaml.cs` wires it to unhandled-exception handlers). Don't add ad-hoc `Console.WriteLine` to App or Core.
-- Localization is English + Russian via `Localization.en.xaml` / `Localization.ru.xaml` resource dictionaries; the choice persists in `CatalogState.Language`.
+- Localization is thirteen languages via `Localization.<code>.xaml` resource dictionaries, and **the shipped list is declared once** - `InterfaceLanguages` in `StreamsPlayer.Core` (per-surface codes, culture, right-to-left flag). Never restate it; the PowerShell tooling reads it from the built assembly via `tools/InterfaceLanguages.ps1`. `CatalogState.Language` is nullable: absent means "never chosen", and an unreadable value degrades to English without touching the rest of the state. `tests/StreamsPlayer.Core.Tests/LocalizationParityTests.cs` gates key, placeholder and layout-direction parity in CI.
 - Versioning: `YY.MMDD.HHmm` (UTC), set in [Directory.Build.props](Directory.Build.props). A release version must exceed every published version; never reuse a timestamp.
 
 ## Workflow tooling
