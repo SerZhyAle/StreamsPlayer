@@ -1,0 +1,66 @@
+# SP-0034: keys whose correct translation in a given language IS the English word.
+#
+# Format: <dictionary code>:<resource key> # reason
+#
+# Read by LocalizationParityTests.NoTranslationIsLeftInEnglish. An entry here says "this string is
+# deliberately identical to English in this language", which is a normal outcome for a loanword.
+#
+# Do NOT use this file to wave through a string nobody translated. And never pick a worse synonym just
+# to avoid adding an entry - that is the failure this file exists to prevent. Every line needs a reason
+# a reviewer can check.
+#
+# EveryLoanwordExceptionIsStillNeeded deletes the slack automatically: if the translation later stops
+# matching English, or the key or language goes away, that test fails until the stale line is removed.
+
+# --- German ---
+de:LiveLabel        # "Live" is the standard German broadcast term.
+de:AudioOption      # "Audio" is German.
+de:KindAudio        # Same word, upper-cased badge.
+de:AudioTracks      # "Audio" heads the German label too.
+de:VideoOption      # "Video" is German.
+de:KindVideo        # Same word, upper-cased badge.
+de:SortName         # "Name" is German.
+de:FieldFormat      # "Format" is German.
+de:FieldBitrate     # "Bitrate" is the established German term.
+de:MediaKindAuto    # "Auto" is the usual German abbreviation for automatic.
+de:VersionLabel     # "Version" is German.
+de:Website          # "Website" is the common German usage.
+
+# --- Italian ---
+it:LiveLabel        # "Live" is standard Italian broadcast usage.
+it:AudioOption      # "Audio" is Italian.
+it:KindAudio        # Same word, upper-cased badge.
+it:AudioTracks      # "Audio" heads the Italian label too.
+it:VideoOption      # "Video" is Italian.
+it:KindVideo        # Same word, upper-cased badge.
+it:Media            # "Media" is Italian - it is a Latin plural to begin with.
+it:FieldBitrate     # "Bitrate" is the established Italian term.
+it:MediaKindAuto    # "Auto" is the usual Italian abbreviation for automatic.
+it:Buffering        # "Buffering" is what Italian media software says.
+it:BufferingProgress # Same term with the percentage placeholder.
+it:Privacy          # "Privacy" is the ordinary Italian word for this.
+
+# --- Portuguese ---
+pt:FieldBitrate     # "Bitrate" is what Brazilian media software labels this field; "taxa de bits" reads as a spec sheet.
+
+# --- Chinese ---
+# No entries. The only zh values identical to English are the brand and the "kbps" unit, both already
+# covered by SameAsEnglishAllowed; everything else has a native rendering (码率, 音频, 视频, 自动).
+
+# --- Spanish ---
+es:AudioOption      # "Audio" is Spanish; the filter option keeps it.
+es:KindAudio        # Same word, upper-cased badge.
+es:AudioTracks      # "Audio" heads the Spanish label too, matching "pista de audio" in its tooltip.
+es:MediaKindAuto    # "Auto" is the usual Spanish abbreviation for automatic.
+
+# --- French ---
+fr:AudioOption      # "Audio" is French; the filter option keeps it.
+fr:KindAudio        # Same word, upper-cased badge.
+fr:AudioTracks      # "Audio" heads the French label too, matching "piste audio" in its tooltip.
+fr:MediaKindAuto    # "Auto" is the usual French abbreviation for automatique.
+fr:VersionLabel     # "Version" is French.
+fr:FieldType        # "Type" is French.
+fr:FieldFormat      # "Format" is French.
+fr:SleepTimerMinutes # "minutes" is the same word in French; only the placeholder precedes it.
+fr:CollectionLabel  # "Collection" is French and is the glossary term for fr.
+fr:CollectionManageTitle # Plural of the same French word.

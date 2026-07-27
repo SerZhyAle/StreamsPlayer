@@ -35,44 +35,19 @@ public partial class MainWindow
         return await _store.SaveAsync(updated);
     }
 
-    // SP-0029: the toolbar button opens the language menu instead of flipping between two locales.
-    private void LanguageButton_Click(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// SP-0034 decision 6: opens the language picker.
+    /// <para>
+    /// Deliberately not gated on <c>_preferencesLoaded</c>. If a load ever fails, the user must still be
+    /// able to choose a language rather than face a disabled control with no way out - the old menu was
+    /// disabled until the catalog loaded, which made a failed load unrecoverable from the interface.
+    /// </para>
+    /// </summary>
+    private async void LanguageButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!_preferencesLoaded || LanguageButton.ContextMenu is not { } menu)
+        var dialog = new LanguageWindow(LocalizationService.CurrentLanguage) { Owner = this };
+        if (dialog.ShowDialog() != true || dialog.SelectedLanguage is not { } language)
         {
-            return;
-        }
-
-        BuildLanguageMenu(menu);
-        menu.PlacementTarget = LanguageButton;
-        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
-        menu.IsOpen = true;
-    }
-
-    private void BuildLanguageMenu(ContextMenu menu)
-    {
-        menu.Items.Clear();
-        foreach (var entry in InterfaceLanguages.All)
-        {
-            var language = entry.Language;
-            var item = new MenuItem
-            {
-                Header = LocalizationService.NativeName(language),
-                IsCheckable = true,
-                IsChecked = language == LocalizationService.CurrentLanguage,
-                Tag = language
-            };
-            item.Click += LanguageMenuItem_Click;
-            menu.Items.Add(item);
-        }
-    }
-
-    private async void LanguageMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not MenuItem { Tag: AppLanguage language } || language == LocalizationService.CurrentLanguage)
-        {
-            // Re-checking the active language must not rewrite state or flicker the interface.
-            UpdateLanguageButton();
             return;
         }
 
@@ -80,14 +55,6 @@ public partial class MainWindow
         _state = await PersistAsync(_state with { Language = language });
         RefreshLocalizedInterface();
     }
-
-    // SP-0034: the badge is derived from the registry rather than from a second per-language switch.
-    // Phase 07 replaces it with a glyph, at which point no layout width depends on a language code.
-    // Reads the applied language rather than the stored one: on a fresh install the stored value is
-    // still null while the interface is already showing the detected language.
-    private void UpdateLanguageButton() =>
-        LanguageButton.Content = InterfaceLanguages.For(LocalizationService.CurrentLanguage)
-            .DictionaryCode.ToUpperInvariant();
 
     private async void MainTopmostCheckBox_Changed(object sender, RoutedEventArgs e)
     {
@@ -123,7 +90,8 @@ public partial class MainWindow
 
     private void RefreshLocalizedInterface()
     {
-        UpdateLanguageButton();
+        // The language button needs no update here: its content, tooltip and automation name are all
+        // DynamicResource bindings and follow the dictionary swap on their own (SP-0034).
         UpdateLocalizedOptions();
         // The collection list carries a localized "All" entry, so it is rebuilt with the rest (SP-0017).
         PopulateCollectionFilter();

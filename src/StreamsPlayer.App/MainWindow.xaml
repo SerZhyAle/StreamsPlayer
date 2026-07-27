@@ -1,7 +1,7 @@
 <Window x:Class="StreamsPlayer.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{DynamicResource ProductName}" Height="780" Width="1180" MinHeight="560" MinWidth="820"
+        FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource ProductName}" Height="780" Width="1180" MinHeight="560" MinWidth="820"
         Background="{StaticResource WindowBackground}">
     <Grid Margin="16">
         <Grid.RowDefinitions>
@@ -22,21 +22,22 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{DynamicResource ProductName}" FontSize="30" FontWeight="SemiBold" Foreground="#FF172236" />
+                <!-- SP-0034: a symmetric margin, because WPF does not mirror Margin with FlowDirection -
+                     a left-only gap would sit on the wrong side of the subtitle in Arabic and Urdu. -->
                 <TextBlock Grid.Column="1" Text="{DynamicResource MainSubtitle}" Foreground="{StaticResource MutedBrush}"
-                           VerticalAlignment="Center" Margin="12,0,0,0" TextTrimming="CharacterEllipsis" />
+                           VerticalAlignment="Center" Margin="12,0" TextTrimming="CharacterEllipsis" />
             </Grid>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <!-- SP-0029: a picker rather than a two-state toggle, so further locales only add menu items. -->
-                <Button x:Name="LanguageButton" Style="{StaticResource LanguageGlyphButton}" Content="EN" Click="LanguageButton_Click" IsEnabled="False"
-                        Padding="9,4" ToolTip="{DynamicResource LanguagePickerName}"
-                        AutomationProperties.Name="{DynamicResource LanguagePickerName}">
-                    <Button.ContextMenu>
-                        <ContextMenu x:Name="LanguageMenu" />
-                    </Button.ContextMenu>
-                </Button>
+                <!-- SP-0034: opens a dedicated selection window rather than a flat checkable menu. A
+                     glyph rather than a two-letter badge, so no layout width depends on a language code
+                     and nothing has to render "UK" for Ukrainian. -->
+                <Button x:Name="LanguageButton" Style="{StaticResource LanguageGlyphButton}"
+                        Click="LanguageButton_Click" Padding="9,4"
+                        ToolTip="{DynamicResource LanguagePickerName}"
+                        AutomationProperties.Name="{DynamicResource LanguagePickerName}" />
                 <CheckBox x:Name="MainTopmostCheckBox" Content="{DynamicResource AlwaysOnTop}"
                           Checked="MainTopmostCheckBox_Changed" Unchecked="MainTopmostCheckBox_Changed"
-                          IsEnabled="False" VerticalAlignment="Center" Margin="8,0,3,0"
+                          IsEnabled="False" VerticalAlignment="Center" Margin="6,0"
                           AutomationProperties.Name="{DynamicResource MainAlwaysOnTopName}" />
                 <Button x:Name="ListModeButton" Style="{StaticResource ListGlyphButton}" Content="{DynamicResource List}" Click="ListModeButton_Click"
                         ToolTip="{DynamicResource ListTip}" AutomationProperties.Name="{DynamicResource ListName}" />

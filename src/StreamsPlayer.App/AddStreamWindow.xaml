@@ -1,7 +1,7 @@
 <Window x:Class="StreamsPlayer.App.AddStreamWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{DynamicResource AddWindowTitle}" Width="560" SizeToContent="Height" ResizeMode="NoResize"
+        FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource AddWindowTitle}" Width="560" SizeToContent="Height" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" Background="{StaticResource WindowBackground}">
     <Grid Margin="18">
         <Grid.ColumnDefinitions>

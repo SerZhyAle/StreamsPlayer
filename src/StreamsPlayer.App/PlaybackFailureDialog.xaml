@@ -1,7 +1,7 @@
 <Window x:Class="StreamsPlayer.App.PlaybackFailureDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{DynamicResource StreamUnavailableTitle}" SizeToContent="Height" MinHeight="180" Width="520" ResizeMode="NoResize"
+        FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource StreamUnavailableTitle}" SizeToContent="Height" MinHeight="180" Width="520" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" Background="{StaticResource WindowBackground}">
     <Grid Margin="18">
         <Grid.RowDefinitions>

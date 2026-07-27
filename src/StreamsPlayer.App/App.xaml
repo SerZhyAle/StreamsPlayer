@@ -74,7 +74,10 @@
             <Style x:Key="PlayerOverlayPinGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M8,4H16V10L19,13V15H5V13L8,10ZM12,15V21" /></Style.Resources>
             </Style>
-            <Style x:Key="LanguageGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+            <!-- SP-0034: glyph only. It used to show a two-letter badge, which does not survive thirteen
+                 languages: the label width changed per language and Ukrainian rendered as "UK". Meaning
+                 now comes from the tooltip and the automation name, both localized. -->
+            <Style x:Key="LanguageGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M3,5H15M3,12H15M3,19H15M5,3V21M13,3V21" /></Style.Resources>
             </Style>
             <Style x:Key="ListGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
@@ -149,13 +152,19 @@
             <Style x:Key="ClearFiltersGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M5,5L19,19M19,5L5,19" /></Style.Resources>
             </Style>
+            <!-- SP-0034 decision 2: media transport glyphs are direction-independent by convention and
+                 must not mirror with the layout. Left to inherit, WPF would flip this triangle to point
+                 left under Arabic and Urdu, which reads as "rewind". Stop is a square and is pinned for
+                 the same reason only so the pair cannot drift apart later. -->
             <Style x:Key="PlayGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M7,4L20,12L7,20Z" /></Style.Resources>
             </Style>
             <Style x:Key="MoreGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M5,12H6M11,12H12M17,12H18" /></Style.Resources>
             </Style>
             <Style x:Key="StopGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M6,6H18V18H6Z" /></Style.Resources>
             </Style>
             <Style x:Key="ConfirmGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">

@@ -280,10 +280,30 @@
     <sys:String x:Key="DeleteDownloadedNone">There are no downloaded catalog streams to delete.</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">Deleted downloaded streams: {0:N0}.</sys:String>
     <!-- SP-0029 language picker -->
+    <!-- SP-0034: endonyms, each language named in its own language and script. Identical in every
+         dictionary on purpose - a picker that renamed a language when you switched locale would be
+         unusable for the person trying to get back. Keyed by the AppLanguage member name. -->
     <sys:String x:Key="LanguageEnglish">English</sys:String>
     <sys:String x:Key="LanguageRussian">Русский</sys:String>
     <sys:String x:Key="LanguageUkrainian">Українська</sys:String>
+    <sys:String x:Key="LanguageGerman">Deutsch</sys:String>
+    <sys:String x:Key="LanguageItalian">Italiano</sys:String>
+    <sys:String x:Key="LanguageSpanish">Español</sys:String>
+    <sys:String x:Key="LanguageFrench">Français</sys:String>
+    <sys:String x:Key="LanguagePortuguese">Português (Brasil)</sys:String>
+    <sys:String x:Key="LanguageChinese">简体中文</sys:String>
+    <sys:String x:Key="LanguageHindi">हिन्दी</sys:String>
+    <sys:String x:Key="LanguageBengali">বাংলা</sys:String>
+    <sys:String x:Key="LanguageArabic">العربية</sys:String>
+    <sys:String x:Key="LanguageUrdu">اردو</sys:String>
     <sys:String x:Key="LanguagePickerName">Interface language</sys:String>
+    <!-- SP-0034: layout direction for this language, bound by every window's root element so it follows
+         the runtime dictionary swap. InterfaceLanguages stays authoritative - the parity gate fails if
+         this value and the registry's RightToLeft flag ever disagree. -->
+    <FlowDirection x:Key="UiFlowDirection">LeftToRight</FlowDirection>
+    <!-- SP-0034 decision 4: translations are agent-produced without native proofreading, and the
+         product says so where a user can see it. Do not soften this into a claim of proofread quality. -->
+    <sys:String x:Key="MachineTranslationNotice">Interface translations are machine-produced and have not been proofread by native speakers.</sys:String>
     <!-- SP-0022 audio sleep timer -->
     <sys:String x:Key="SleepTimer">Sleep timer</sys:String>
     <sys:String x:Key="SleepTimerTip">Stop the radio automatically after a while</sys:String>

@@ -1,7 +1,7 @@
 <Window x:Class="StreamsPlayer.App.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{DynamicResource SettingsWindowTitle}" Width="620" Height="480"
+        FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource SettingsWindowTitle}" Width="620" Height="480"
         ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="{StaticResource WindowBackground}">
     <Window.Resources>

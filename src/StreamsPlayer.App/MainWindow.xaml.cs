@@ -136,7 +136,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             WakeGuard.Enabled = _state.KeepAwakeDuringPlayback;
             Topmost = _state.MainWindowTopmost;
             MainTopmostCheckBox.IsChecked = _state.MainWindowTopmost;
-            LanguageButton.IsEnabled = true;
             MainTopmostCheckBox.IsEnabled = true;
             _preferencesLoaded = true;
             if (savedLanguage is null)
@@ -146,7 +145,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 _state = await PersistAsync(_state with { Language = language });
             }
 
-            UpdateLanguageButton();
             UpdateLocalizedOptions();
             IsGridMode = _state.ViewMode == CatalogViewMode.Grid;
             UpdateViewModeControls();

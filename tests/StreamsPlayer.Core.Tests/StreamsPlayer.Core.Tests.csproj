@@ -22,4 +22,17 @@
     <ProjectReference Include="..\..\src\StreamsPlayer.Core\StreamsPlayer.Core.csproj" />
   </ItemGroup>
 
+  <!--
+    SP-0034 criterion 2: the language parity gate has to run in CI, and CI runs dotnet test. The App's
+    resource dictionaries are therefore copied in as test DATA and parsed as XML. This is deliberately
+    a file dependency, not a ProjectReference - tests depend on Core only, and a WPF ResourceDictionary
+    could not be loaded here anyway. Do not turn this into a project reference.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\src\StreamsPlayer.App\Localization.*.xaml"
+             Link="localization\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="localization-loanwords.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
