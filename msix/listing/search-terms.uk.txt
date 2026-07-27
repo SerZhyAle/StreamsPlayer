@@ -1,0 +1,14 @@
+# Ukrainian Store search terms. See search-terms.txt for the model and the rules.
+#
+# Parallel to the Russian set, and absent for the same reason: no "ТБ онлайн" and no "безкоштовне ТБ".
+# "потік" rather than "трансляція" throughout, matching the shipped dictionary - "Трансляції" is the
+# localized product name, so "плеєр трансляцій" reads as "the player of this app", which is exactly
+# what that one slot is meant to catch.
+
+інтернет радіо
+онлайн радіо
+радіостанції
+прямий ефір
+відеопотоки
+плеєр трансляцій
+RTSP камера

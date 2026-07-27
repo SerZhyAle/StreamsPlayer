@@ -1,0 +1,13 @@
+# Italian Store search terms. See search-terms.txt for the model and the rules.
+#
+# The listing copy says "radio via internet"; the query people actually type is "radio online". That
+# divergence from the description is deliberate. RaiPlay, Mediaset Infinity, TIMvision and DAZN were
+# deliberately not used - policy 10.1.3.
+
+radio online
+web radio
+tv in diretta
+video in streaming
+lettore streaming
+elenco canali
+telecamere RTSP

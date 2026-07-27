@@ -134,9 +134,19 @@ builder rather than remembered:
   builder forces it to `False` for any language without its own logos.
 - `Title` and `CopyrightTrademarkInformation` are identifiers, not prose: they come from
   `msix/listing/shared.txt` and are written identically into every column.
-- Search terms stay **English in all thirteen columns** (owner decision, SP-0034), so there is one
-  set to review. At most seven, no duplicates, and nothing matching
-  `msix/listing/forbidden-terms.txt` - the builder exits non-zero rather than warning.
+- Search terms are **written per listing language** in `msix/listing/search-terms.<code>.txt`, falling
+  back to the English `search-terms.txt` for any language without one. At most seven per language, no
+  duplicates within a set, and nothing matching `msix/listing/forbidden-terms.txt` - the builder exits
+  non-zero rather than warning, and checks every set, not just one.
+  This reverses the original SP-0034 decision to keep one English set in all thirteen columns. That
+  decision bought reviewability and cost discoverability: Store search matches terms literally, and
+  nobody types "internet radio" into a Hindi or Arabic query box. The reversal reinstates the risk it
+  was avoiding - thirteen sets, of which the owner reads two - so the forbidden list now carries the
+  non-Latin transliterations of `iptv` and the per-market competitor names, and the guard is the build
+  rather than a reader.
+- `-TermsOnly` writes the SearchTerm rows and nothing else. Use it when the submission's copy is
+  already right and only the terms are wrong: the import is all-or-nothing per language, so every
+  field you re-send is another chance to have a language rejected.
 - `ReleaseNotes` is left alone by the builder; fill it per submission.
 - The Russian and Ukrainian bodies call the app "Трансляции" / "Трансляції". The Store *title* is
   "Streams Player" in every language regardless.

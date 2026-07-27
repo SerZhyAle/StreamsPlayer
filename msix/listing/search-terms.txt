@@ -1,10 +1,23 @@
-# The seven Store search terms, written into every language column unchanged.
-# Owner decision for SP-0034: search terms stay English across all thirteen listing languages, so
-# there is one set to review instead of thirteen.
+# The English Store search terms, and the fallback for any language without a file of its own.
 #
-# Rules the builder enforces:
+# Owner decision, revised 2026-07-27: search terms are now written per listing language. The earlier
+# SP-0034 decision - one English set in all thirteen columns, so there is one set to review instead of
+# thirteen - was reversed deliberately. What it bought was reviewability; what it cost was every
+# non-English reader, because Store search matches terms literally and nobody types "internet radio"
+# into a Hindi or Arabic query box. Title and description are localized and still match, so the loss
+# was partial, but it was real.
+#
+# The cost of the reversal is the thing the original decision was avoiding: thirteen sets, of which
+# the owner reads two. That is paid for mechanically rather than by trust - every set is checked
+# against forbidden-terms.txt, which now carries the non-Latin transliterations and the regional
+# competitor names that a Latin-only list could never catch.
+#
+# A language uses msix/listing/search-terms.<listing-code>.txt when that file exists, and this file
+# when it does not. A new language therefore ships English terms rather than none.
+#
+# Rules the builder enforces, per language:
 #   - at most seven terms (Partner Center accepts no more)
-#   - no duplicates
+#   - no duplicates within a language's set
 #   - no term containing anything listed in forbidden-terms.txt
 #
 # Lines starting with # and blank lines are ignored. One term per line.

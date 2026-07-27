@@ -1,0 +1,14 @@
+# French Store search terms. See search-terms.txt for the model and the rules.
+#
+# "lecteur de flux" uses the listing's own word for stream ("flux"). "lecteur streaming" is probably
+# typed more often; consistency with the description won that call, and it is the least confident
+# choice in this file. Molotov, myCanal, france.tv and Radio France were deliberately not used -
+# policy 10.1.3.
+
+radio en ligne
+webradio
+TV en direct
+écouter la radio
+lecteur de flux
+liste de chaînes
+caméra RTSP

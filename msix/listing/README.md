@@ -19,9 +19,15 @@ Three things are deliberately **not** per language:
 
 - `shared.txt` - `Title` and `CopyrightTrademarkInformation`. They are identifiers, not prose, and
   must read the same in every column.
-- `search-terms.txt` - the seven search terms. The owner's decision for SP-0034 is that they stay
-  English in all thirteen columns, so there is one set to check rather than thirteen.
-- `forbidden-terms.txt` - terms a search term may never contain. The builder fails on a hit.
+- `search-terms.<listing-code>.txt` - that language's search terms. A language without such a file
+  falls back to `search-terms.txt`, which holds the English set, so a new language ships English terms
+  rather than none. Per language: at most seven, no duplicates, nothing forbidden.
+  (SP-0034 originally kept one English set in all thirteen columns for reviewability; the owner
+  reversed that on 2026-07-27 because Store search matches terms literally and no Hindi or Arabic user
+  types "internet radio". The header of `search-terms.txt` records the trade.)
+- `forbidden-terms.txt` - terms a search term may never contain. The builder fails on a hit, and now
+  checks every language's set rather than one. It carries the non-Latin transliterations of `iptv` and
+  the per-market competitor names, because a Latin-only list cannot guard twelve non-English sets.
 
 Anything else in the export (screenshots, logos, trailers, release notes) is left alone. Fill only
 what this deck declares; the builder never overwrites a cell that already has content.

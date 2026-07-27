@@ -1,0 +1,24 @@
+# Urdu Store search terms. See search-terms.txt for the model and the rules.
+#
+# Six, weighted toward Latin script. An Urdu keyboard is rare on Windows in Pakistan, so people search
+# in English or Roman Urdu; three Latin terms and three Urdu ones is the honest split.
+#
+# The listing writes "براہِ راست" with the izafat diacritic. The term here drops it - nobody types a
+# diacritic into a search box.
+#
+# Rejected on the piracy-signal rule: "آئی پی ٹی وی" (Urdu transliteration of IPTV, now in
+# forbidden-terms.txt); "لائیو ٹی وی", which is frequently typed but is de facto a request for free
+# cricket streams in this market; "live cricket", "لائیو کرکٹ" and "PSL live" for the same reason;
+# "مفت چینلز" (free channels).
+#
+# "urdu radio" was rejected on a different ground: harmless in itself, but it promises Urdu-language
+# stations, and the catalog is an external bank this product does not control.
+#
+# Tamasha, Tapmad, ARY Zap, Geo TV, PTV, Jazz TV and Nayatel were deliberately not used - 10.1.3.
+
+internet radio
+انٹرنیٹ ریڈیو
+ریڈیو اسٹیشن
+live stream player
+براہ راست ویڈیو
+RTSP

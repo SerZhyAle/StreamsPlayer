@@ -1,0 +1,22 @@
+# Bengali Store search terms. See search-terms.txt for the model and the rules.
+#
+# Six, and mixed script, for the same reason as Hindi: Bengali speakers in both Bangladesh and West
+# Bengal search in Latin script more often than in Bengali script. The Bengali three match the words
+# the shipped listing already uses.
+#
+# "বাংলা রেডিও" is the single most frequent real query and is deliberately absent. It promises
+# Bengali-language stations, and the catalog is an external bank whose contents change - that is a
+# claim about content this product does not control. If the owner decides it reads as search intent
+# rather than a promise, it is the obvious seventh term.
+#
+# Toffee, Bioscope, Hoichoi, Bongo BD, Rabbithole, Deepto Play, Jagobd, T Sports and the broadcasters
+# ATN Bangla, Channel i, Somoy TV, Jamuna TV, Ekushey TV, NTV, Radio Foorti and Radio Today were
+# deliberately not used. Broadcaster names are doubly dangerous: policy 10.1.3, plus an implied
+# guarantee that those channels are in the catalog.
+
+ইন্টারনেট রেডিও
+লাইভ টিভি
+রেডিও চ্যানেল
+online radio
+live stream player
+RTSP camera viewer

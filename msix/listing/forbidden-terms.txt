@@ -32,3 +32,100 @@ smarters    # policy 10.1.3 - another product's name
 ott navigator # policy 10.1.3 - another product's name
 perfect player # policy 10.1.3 - another product's name
 windows media player # policy 10.1.3 - a Microsoft product's name is still another product's name
+
+# --- Added 2026-07-27, when search terms became per language ---
+#
+# Thirteen sets replaced one, so this list stopped being a formality. Two gaps had to be closed.
+#
+# 1. The substring match is case-insensitive but script-blind: a transliteration of "iptv" into
+#    Devanagari, Bengali, Arabic, Urdu or Chinese sailed straight past the Latin entry above. Each
+#    script now has its own entry, so the build catches it instead of a reviewer.
+# 2. The product names above are the ones an English-speaking author would think of. Every listing
+#    language has its own market leaders, and naming one is the same 10.1.3 violation. The names
+#    below were surfaced while authoring the per-language sets and deliberately not used.
+
+आईपीटीवी    # Devanagari transliteration of iptv - the Latin entry cannot see it
+আইপিটিভি    # Bengali transliteration of iptv
+آئی پی ٹی وی # Urdu transliteration of iptv
+آي بي تي في  # Arabic transliteration of iptv
+أي بي تي في  # Arabic transliteration of iptv, alternative hamza spelling
+एम3यू       # Devanagari transliteration of m3u
+网络电视     # the established Chinese term for IPTV - same piracy signal, different script
+直播盒子     # "live streaming box" - reads as a piracy ecosystem, not a catalog player
+电视盒子     # "TV box" - same signal
+
+# Policy 10.1.3, Chinese market
+爱奇艺       # iQIYI
+腾讯视频     # Tencent Video
+优酷         # Youku
+芒果TV       # Mango TV
+哔哩哔哩     # Bilibili
+斗鱼         # Douyu
+虎牙         # Huya
+电视家       # Dianshijia
+龙卷风       # Tornado Radio - a Windows desktop radio player, the closest competitor by intent
+蜻蜓FM       # Qingting FM
+喜马拉雅     # Ximalaya
+荔枝FM       # Lizhi FM
+网易云音乐   # NetEase Cloud Music
+酷狗         # Kugou
+酷我         # Kuwo
+暴风影音     # Baofeng
+迅雷         # Xunlei
+
+# Policy 10.1.3, Indian market
+jiotv       # another product's name
+jiocinema   # another product's name
+jiosaavn    # another product's name
+hotstar     # another product's name
+sonyliv     # another product's name
+zee5        # another product's name
+voot        # another product's name
+airtel xstream # another product's name
+tata play   # another product's name
+gaana       # another product's name
+hungama     # another product's name
+radio mirchi # another product's name
+doordarshan # a state broadcaster's name is still another product's name
+thoptv      # another product's name, and a piracy-associated one
+
+# Policy 10.1.3, Bangladeshi market
+bioscope    # another product's name
+hoichoi     # another product's name
+bongo bd    # another product's name
+rabbithole  # another product's name
+deepto play # another product's name
+jagobd      # another product's name
+atn bangla  # a broadcaster's name
+somoy tv    # a broadcaster's name
+jamuna tv   # a broadcaster's name
+ekushey tv  # a broadcaster's name
+radio foorti # a broadcaster's name
+radio today # a broadcaster's name
+
+# Policy 10.1.3, Arabic market
+shahid      # another product's name
+شاهد        # the same product in Arabic script
+starzplay   # another product's name
+jawwy       # another product's name
+rotana      # another product's name
+بي إن       # beIN in Arabic script
+
+# Policy 10.1.3, Pakistani market
+tamasha     # another product's name
+tapmad      # another product's name
+ary zap     # another product's name
+nayatel     # another product's name
+
+# Policy 10.1.3, European markets
+zattoo      # another product's name
+waipu       # another product's name
+joyn        # another product's name
+raiplay     # another product's name
+mediaset    # another product's name
+timvision   # another product's name
+movistar    # another product's name
+atresplayer # another product's name
+molotov     # another product's name
+mycanal     # another product's name
+globoplay   # another product's name

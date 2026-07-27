@@ -1,0 +1,23 @@
+# Hindi Store search terms. See search-terms.txt for the model and the rules.
+#
+# Six, not seven, and a deliberate script mix. Indian Windows users type Latin script or plain English
+# into the Store constantly even with a Devanagari interface, so three of each is the honest answer
+# rather than seven Devanagari phrases nobody types. The Devanagari three are the loanword forms that
+# are genuinely typed - "टीवी", not "दूरदर्शन".
+#
+# The seventh slot is left empty on purpose. "टीवी चैनल" was the candidate and belongs almost entirely
+# to the IPTV niche; "FM रेडियो" would promise an FM tuner this app is not. Two further candidates were
+# invented rather than observed, and six confident terms beat seven with two guesses.
+#
+# The catalog intent is the weak spot here: "सूची" is the glossary rendering but nobody searches it, so
+# the idea is carried by "रेडियो चैनल" instead.
+#
+# JioTV, Hotstar, SonyLIV, ZEE5, MX Player, Voot, Airtel Xstream, Tata Play, Gaana, Wynk, Hungama,
+# Radio Mirchi, Doordarshan and ThopTV were deliberately not used - policy 10.1.3.
+
+इंटरनेट रेडियो
+लाइव टीवी
+रेडियो चैनल
+online radio
+live stream player
+RTSP camera viewer

@@ -1,0 +1,13 @@
+# Brazilian Portuguese Store search terms. See search-terms.txt for the model and the rules.
+#
+# "player" rather than "reprodutor": the loanword is what Brazil types. No term pairs "grátis" with
+# television - that combination is the piracy signal this app is reviewed for. Globoplay, Vivo Play
+# and Rádios.com.br were deliberately not used - policy 10.1.3.
+
+rádio online
+emissoras de rádio
+tv ao vivo
+vídeo ao vivo
+player de streaming
+lista de canais
+câmeras RTSP

@@ -53,7 +53,12 @@ param(
     [string] $ScreenshotDirectory,
     # Continue when a shipped language has no column in the export. Off by default: a missing column
     # is how a language's copy gets dropped without a word of warning.
-    [switch] $AllowMissingLanguages
+    [switch] $AllowMissingLanguages,
+    # Write only the SearchTerm rows and leave every other field exactly as the export has it. For a
+    # submission whose copy is already correct and whose terms are not - re-importing the whole deck
+    # to change seven cells per language is a needless risk, because the import is all-or-nothing per
+    # language and every untouched field is another chance to reject one.
+    [switch] $TermsOnly
 )
 
 Set-StrictMode -Version Latest
@@ -293,20 +298,36 @@ if ($missing.Count) {
 $sharedPath = Join-Path $DeckDirectory 'shared.txt'
 $shared = if (Test-Path -LiteralPath $sharedPath) { Read-Deck -Path $sharedPath } else { [ordered]@{} }
 
-$searchTerms = @((Read-TermList -Path $SearchTermsFile).Term)
 $forbidden = Read-TermList -Path (Join-Path $DeckDirectory 'forbidden-terms.txt')
 
-if ($searchTerms.Count -gt 7) {
-    $failures.Add("search-terms.txt holds $($searchTerms.Count) terms; Partner Center accepts at most 7. Extra: $((@($searchTerms) | Select-Object -Skip 7) -join ', ')")
-}
-$duplicates = @($searchTerms | Group-Object { $_.ToLowerInvariant() } | Where-Object Count -gt 1 | ForEach-Object { $_.Name })
-if ($duplicates.Count) {
-    $failures.Add("search-terms.txt repeats: $($duplicates -join ', ')")
-}
-foreach ($term in $searchTerms) {
-    foreach ($entry in $forbidden) {
-        if ($term.ToLowerInvariant().Contains($entry.Term.ToLowerInvariant())) {
-            $failures.Add("search term '$term' contains the forbidden term '$($entry.Term)' - $($entry.Reason)")
+# Search terms are per language. A language with no file of its own falls back to the shared English
+# set, so adding a language never silently ships it with no terms at all - it ships the English seven,
+# which is what every language used before this became per-language.
+#
+# The checks below run per language rather than once, because that is where the risk moved: thirteen
+# sets mean thirteen chances to trip policy 10.1.3 or the piracy-signal rule, and only two of the
+# thirteen have a reader who can spot it by eye. The forbidden-substring match is the guard, so it has
+# to see every set.
+$searchTermsByLanguage = @{}
+foreach ($target in $targets) {
+    $perLanguage = Join-Path $DeckDirectory "search-terms.$($target.Language.ListingCode).txt"
+    $path = if (Test-Path -LiteralPath $perLanguage) { $perLanguage } else { $SearchTermsFile }
+    $terms = @((Read-TermList -Path $path).Term)
+    $searchTermsByLanguage[$target.Language.ListingCode] = $terms
+    $name = Split-Path $path -Leaf
+
+    if ($terms.Count -gt 7) {
+        $failures.Add("$name holds $($terms.Count) terms; Partner Center accepts at most 7. Extra: $((@($terms) | Select-Object -Skip 7) -join ', ')")
+    }
+    $duplicates = @($terms | Group-Object { $_.ToLowerInvariant() } | Where-Object Count -gt 1 | ForEach-Object { $_.Name })
+    if ($duplicates.Count) {
+        $failures.Add("$name repeats: $($duplicates -join ', ')")
+    }
+    foreach ($term in $terms) {
+        foreach ($entry in $forbidden) {
+            if ($term.ToLowerInvariant().Contains($entry.Term.ToLowerInvariant())) {
+                $failures.Add("$name search term '$term' contains the forbidden term '$($entry.Term)' - $($entry.Reason)")
+            }
         }
     }
 }
@@ -368,9 +389,15 @@ function Set-ListingCell {
 
 foreach ($target in $targets) {
     $values = [ordered]@{}
-    foreach ($key in $target.Deck.Keys) { $values[$key] = $target.Deck[$key] }
-    foreach ($key in $shared.Keys) { $values[$key] = $shared[$key] }
+    if (-not $TermsOnly) {
+        foreach ($key in $target.Deck.Keys) { $values[$key] = $target.Deck[$key] }
+        foreach ($key in $shared.Keys) { $values[$key] = $shared[$key] }
+    }
+    $searchTerms = $searchTermsByLanguage[$target.Language.ListingCode]
     for ($n = 1; $n -le $searchTerms.Count; $n += 1) { $values["SearchTerm$n"] = $searchTerms[$n - 1] }
+    # A shorter set than the export already holds would otherwise leave the tail behind: seven English
+    # terms replaced by five local ones must clear slots six and seven, not keep two English strays.
+    for ($n = $searchTerms.Count + 1; $n -le 7; $n += 1) { $values["SearchTerm$n"] = '' }
 
     foreach ($key in $values.Keys) {
         if (-not $fieldIndex.ContainsKey($key)) {

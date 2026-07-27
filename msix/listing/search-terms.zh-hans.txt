@@ -1,0 +1,20 @@
+# Simplified Chinese Store search terms. See search-terms.txt for the model and the rules.
+#
+# No Latin script except RTSP - English queries are close to unused in the Chinese Store.
+#
+# 网络电视 is the obvious high-frequency term for "internet TV" and is deliberately absent: it is the
+# established Chinese equivalent of IPTV, which is precisely the signal this app must not send. It is
+# in forbidden-terms.txt now, along with 直播盒子 and 电视盒子, so the build enforces this rather than
+# relying on whoever edits the file next.
+#
+# iQIYI, Tencent Video, Youku, Mango TV, Bilibili, Douyu, Huya, 电视家, 龙卷风 and the music apps were
+# all deliberately not used - policy 10.1.3. 龙卷风 is the sharpest of them: a Windows desktop radio
+# player, the closest competitor by intent this product has in any market.
+
+网络电台
+在线收音机
+电视直播
+流媒体播放器
+电台目录
+直播视频
+RTSP 摄像头

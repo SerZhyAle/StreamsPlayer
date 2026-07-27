@@ -1,0 +1,14 @@
+# Russian Store search terms. See search-terms.txt for the model and the rules.
+#
+# "ТВ онлайн" and "бесплатное ТВ" are deliberately absent: both are dominant real queries, and both
+# skew hard toward free-satellite-channel piracy in the Russian Store. This app already draws extra
+# review for opening third-party stream URLs (STORE_PUBLISHING.md, Phase 6), so live broadcast is
+# covered by the neutral "прямой эфир" instead.
+
+интернет радио
+онлайн радио
+радиостанции
+прямой эфир
+видео потоки
+плеер трансляций
+RTSP камера

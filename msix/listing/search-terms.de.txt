@@ -1,0 +1,12 @@
+# German Store search terms. See search-terms.txt for the model and the rules.
+#
+# "Internetradio" and "Webradio" are two distinct real queries in German, not synonyms padding the
+# set. Zattoo, waipu.tv, RTL+, Joyn and radio.de were all deliberately not used - policy 10.1.3.
+
+Internetradio
+Webradio
+Live TV
+Livestream
+Streaming Player
+Senderliste
+RTSP Kamera

@@ -1,0 +1,26 @@
+# Arabic Store search terms. See search-terms.txt for the model and the rules.
+#
+# Six, five of them in Arabic script plus RTSP in Latin. "محطات راديو" carries the catalog intent
+# rather than the glossary's "كتالوج" - the glossary governs UI strings, not what a person types.
+#
+# This is the language where the piracy-signal rule bit hardest. Rejected on that ground:
+# "آي بي تي في" and "أي بي تي في" (Arabic transliterations of IPTV, invisible to a Latin substring
+# check - both are in forbidden-terms.txt now); "قنوات مجانية" and "بث مباشر مجاني" (free channels);
+# "مباريات بث مباشر" and "بث المباريات" (match streaming, the strongest piracy query in this market);
+# "سيرفرات" and "اشتراك" (reseller vocabulary).
+#
+# "تلفزيون مباشر" - the direct equivalent of the approved English "live TV" - was also rejected: in the
+# Arabic Store the word pulls free-satellite context with it. The price is that this set does not catch
+# TV queries at all. That is a deliberate trade and can be revisited.
+#
+# Shahid, MBC, beIN, OSN, StarzPlay, Watch iT, Jawwy TV and Rotana were deliberately not used - 10.1.3.
+#
+# Two candidates for a seventh slot, most confident first: "كاميرا RTSP", and "إذاعات" (the classical
+# word for broadcasting, which catches MSA queries that "راديو" misses).
+
+راديو الإنترنت
+محطات راديو
+مشغل راديو
+بث مباشر
+فيديو مباشر
+RTSP

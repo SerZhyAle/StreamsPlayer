@@ -1,0 +1,14 @@
+# Spanish Store search terms. See search-terms.txt for the model and the rules.
+#
+# One file serves every Spanish-speaking market, so the regional split is spent on purpose:
+# "tv en directo" is what Spain types, "streaming en vivo" is what Latin America types. They are two
+# queries, not a duplicate. Movistar Plus+, RTVE Play and Atresplayer were deliberately not used -
+# policy 10.1.3.
+
+radio online
+emisoras de radio
+tv en directo
+streaming en vivo
+reproductor de streaming
+lista de canales
+cámaras RTSP
