@@ -9,6 +9,22 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
 - When a task statement is meaningfully ambiguous, ask the user to clarify it
   before choosing an interpretation that could change the expected result.
 
+- **A pull request into someone else's repository uses that repository's PR template verbatim.**
+  Fetch `.github/PULL_REQUEST_TEMPLATE.md`, keep its headings, its wording and its checklist exactly
+  as written, put an `x` in the boxes that are genuinely true, and add prose only in the section the
+  template designates for it. Do **not** write a body of your own structure, and do not paraphrase a
+  checklist from memory - the maintainer bots parse the template, so a rewritten one reads as an
+  unfilled one. The same applies to the **title**: the template states the required format, and
+  inventing a variant gets the PR misclassified.
+  The owner has corrected this repeatedly - it is a recurring failure, not a one-off. Concrete cost
+  on 2026-07-27: PR microsoft/winget-pkgs#408215 was opened with a hand-written body and the title
+  "New version: SerZhyAle.StreamsPlayer version 26.0727.0253" when the template requires
+  "Update: Publisher.Name to X.Y.Z". Result: labels `Policy-Test-2.7`, `Validation-Guide` and
+  `New-Manifest` - an already-published package classified as a brand-new one - and a validation
+  complaint, despite the manifest itself being correct and the Azure pipeline passing.
+  This overrides the house rule about the Claude Code footer in PR bodies: that rule is for this
+  project's own PRs, and a third-party template wins over it.
+
 ## Project
 
 - Catalog text search (`ApplyFilter`, `MainWindow.xaml.cs`) intentionally matches
