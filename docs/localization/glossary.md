@@ -33,7 +33,7 @@ reconciling a window that calls the same thing by two names.
 |---|---|---|---|---|---|---|---|
 | English (`en`) | stream | catalog | channel | update | pinned | collection | preview |
 | Russian (`ru`) | трансляция | каталог | канал | обновить | закреплённый | подборка | превью |
-| Ukrainian (`uk`) | трансляція | каталог | канал | оновити | закріплений | підбірка | превʼю |
+| Ukrainian (`uk`) | потік | каталог | канал | оновити | закріплений | добірка | прев’ю |
 | German (`de`) | Stream | Katalog | Kanal | aktualisieren | angeheftet | Sammlung | Vorschau |
 | Italian (`it`) | flusso | catalogo | canale | aggiorna | fissato | raccolta | anteprima |
 | Spanish (`es`) | transmisión | catálogo | canal | actualizar | fijado | colección | vista previa |
@@ -61,3 +61,6 @@ reconciling a window that calls the same thing by two names.
   for both, the stream term takes the broadcast sense and the channel term the list-row sense.
 - **refresh** is a verb in the UI ("Update catalog"), never a noun, so the imperative form is listed.
 - **preview** in Arabic and Urdu uses the "viewing/inspection" sense rather than a transliteration.
+- **stream** in Ukrainian is "потік", not "трансляція", because `Трансляції` is the localized product
+  name. Rendering the unit of playback the same way would collide with the product name in the same
+  window - "Видалити завантажені трансляції" reads as deleting the application, not its streams.

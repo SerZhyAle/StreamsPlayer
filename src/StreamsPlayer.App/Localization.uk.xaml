@@ -18,7 +18,7 @@
     <sys:String x:Key="ChannelPreviewsOfferTip">Один раз завантажить близько 11 МБ і заповнить сітку, не під’єднуючись до кожного каналу.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">Завантажити картинки</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">Не зараз</sys:String>
-    <sys:String x:Key="ChannelPreviewsWorking">Готуємо картинки прев’ю.. готово {0}</sys:String>
+    <sys:String x:Key="ChannelPreviewsWorking">Готуємо картинки прев’ю.. готово: {0}</sys:String>
     <sys:String x:Key="ChannelPreviewsDone">Додано картинок прев’ю: {0}</sys:String>
     <sys:String x:Key="ChannelPreviewsUnavailable">Цей комп’ютер не може відкрити набір картинок. Прев’ю працюють як раніше.</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">Не вдалося завантажити картинки прев’ю.</sys:String>
@@ -48,7 +48,7 @@
     <sys:String x:Key="BitrateValue">{0} кбіт/с</sys:String>
     <sys:String x:Key="LiveLabel">Прямий ефір</sys:String>
     <sys:String x:Key="OnDemandLabel">На вимогу</sys:String>
-    <sys:String x:Key="RegionRestrictedLabel">Лише для регіону</sys:String>
+    <sys:String x:Key="RegionRestrictedLabel">Обмежено регіоном</sys:String>
     <sys:String x:Key="RegionRestrictedTip">Упорядник каталогу не зміг відкрити цей канал зі своєї країни. У регіоні мовлення він усе ж може працювати.</sys:String>
     <sys:String x:Key="SortBy">Сортування</sys:String>
     <sys:String x:Key="SortOrderTip">Порядок сортування</sys:String>
@@ -66,7 +66,7 @@
     <sys:String x:Key="ExpandSectionTip">Розгорнути розділ</sys:String>
     <sys:String x:Key="MoreActionsTip">Інші дії</sys:String>
     <sys:String x:Key="MoreActionsName">Інші дії з потоком</sys:String>
-    <sys:String x:Key="EmptyCatalog">Потоків поки немає. Додайте URL або оновіть каталог.</sys:String>
+    <sys:String x:Key="EmptyCatalog">Потоків ще немає. Додайте URL або оновіть каталог.</sys:String>
     <sys:String x:Key="CatalogProgressName">Виконується операція з каталогом</sys:String>
     <sys:String x:Key="Ready">Готово</sys:String>
     <sys:String x:Key="NothingPlaying">Нічого не відтворюється</sys:String>
@@ -133,14 +133,17 @@
     <sys:String x:Key="InvalidUrl">Введіть коректну адресу http, https або rtsp.</sys:String>
     <sys:String x:Key="InvalidUrlTitle">Некоректний URL</sys:String>
     <sys:String x:Key="PlayerWindowTitle">Відео - Трансляції</sys:String>
+    <!-- SP-0034: a window title composed from a subject and the window's own name. Keyed rather than
+         interpolated so the order and the separator can differ per language, which right-to-left
+         layouts need. {0} is the subject (a station, a stream), {1} names the window. -->
     <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">Буферизація…</sys:String>
     <sys:String x:Key="BufferingProgress">Буферизація… {0}%</sys:String>
     <sys:String x:Key="PlayingLive">Прямий ефір</sys:String>
-    <sys:String x:Key="ReconnectingAttempt">Перепідключення… (спроба {0} з {1})</sys:String>
-    <sys:String x:Key="ReconnectingAudioAttempt">Перепідключення до {0}… (спроба {1} з {2})</sys:String>
+    <sys:String x:Key="ReconnectingAttempt">Повторне підключення… (спроба {0} з {1})</sys:String>
+    <sys:String x:Key="ReconnectingAudioAttempt">Повторне підключення до {0}… (спроба {1} з {2})</sys:String>
     <sys:String x:Key="PlayerUnavailable">Потік недоступний</sys:String>
-    <sys:String x:Key="PlayerUnsupported">Цей формат потоку не підтримується медіабекендом Windows.</sys:String>
+    <sys:String x:Key="PlayerUnsupported">Цей формат потоку не підтримується медіарушієм Windows.</sys:String>
     <sys:String x:Key="FailureDialogMessage">Не вдалося відтворити «{0}».</sys:String>
     <sys:String x:Key="FailureRegionRestricted">Каталог позначає цей канал як доступний лише у своєму регіоні: із країни упорядника він не відповідав. Він може працювати, якщо ви перебуваєте в регіоні мовлення.</sys:String>
     <sys:String x:Key="FailureRetry">Повторити</sys:String>
@@ -156,7 +159,7 @@
     <sys:String x:Key="HiddenChannelsEmpty">Прихованих каналів немає.</sys:String>
     <sys:String x:Key="Unhide">Показати</sys:String>
     <sys:String x:Key="Close">Закрити</sys:String>
-    <!-- SP-0019 історія прослуховування -->
+    <!-- SP-0019 listening history -->
     <sys:String x:Key="HistoryTitle">Нещодавно відтворені</sys:String>
     <sys:String x:Key="HistoryOpen">Історія</sys:String>
     <sys:String x:Key="HistoryTip">Канали, які ви нещодавно відтворювали</sys:String>
@@ -169,7 +172,7 @@
     <sys:String x:Key="Fullscreen">На весь екран</sys:String>
     <sys:String x:Key="ExitFullscreen">Вийти з повноекранного режиму</sys:String>
     <sys:String x:Key="FullscreenTip">Перемкнути повноекранний режим (F11)</sys:String>
-    <sys:String x:Key="Mute">Без звуку</sys:String>
+    <sys:String x:Key="Mute">Вимкнути звук</sys:String>
     <sys:String x:Key="Unmute">Увімкнути звук</sys:String>
     <sys:String x:Key="MuteTip">Увімкнути або вимкнути звук відео</sys:String>
     <sys:String x:Key="SaveFrameAsIcon">Зберегти значок</sys:String>
@@ -186,7 +189,7 @@
     <sys:String x:Key="Settings">Налаштування</sys:String>
     <sys:String x:Key="SettingsTip">Відкрити рідко змінювані параметри та відомості про застосунок</sys:String>
     <sys:String x:Key="SettingsName">Відкрити налаштування</sys:String>
-    <sys:String x:Key="SettingsWindowTitle">Налаштування Трансляції</sys:String>
+    <sys:String x:Key="SettingsWindowTitle">Налаштування «Трансляцій»</sys:String>
     <sys:String x:Key="GridSettings">Сітка</sys:String>
     <sys:String x:Key="StreamTileSizeLabel">Розмір плитки потоку</sys:String>
     <sys:String x:Key="TileSmall">Малий</sys:String>
@@ -198,9 +201,9 @@
     <sys:String x:Key="KeepAwakeDuringPlayback">Не давати комп’ютеру засинати під час відтворення</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">Не давати системі засинати за таймером бездіяльності, доки грає потік; для відео екран також залишається увімкненим</sys:String>
     <sys:String x:Key="SystemMediaControls">Показувати системні елементи керування медіа та реагувати на мультимедійні клавіші</sys:String>
-    <sys:String x:Key="SystemMediaControlsTip">Публікувати станцію, що грає, у медіапанелі Windows, щоб апаратні мультимедійні клавіші керували «Відтворення/Пауза», «Стоп» і «Попередній/Наступний». Типово вимкнено</sys:String>
+    <sys:String x:Key="SystemMediaControlsTip">Публікувати станцію, що грає, у медіапанелі Windows, щоб апаратні мультимедійні клавіші виконували дії «Відтворення/Пауза», «Стоп» і «Попередній/Наступний». Типово вимкнено</sys:String>
     <sys:String x:Key="VideoBackendLabel">Рушій відтворення відео та RTSP</sys:String>
-    <sys:String x:Key="VideoBackendHint">VLC - типовий, перевірений рушій. Перемикайтеся на FlyleafLib лише як на запасний варіант, коли конкретний відео- або RTSP-потік поводиться погано у VLC. Зміна застосується до наступного відкритого програвача.</sys:String>
+    <sys:String x:Key="VideoBackendHint">VLC - типовий, перевірений рушій. Перемикайтеся на FlyleafLib лише як на запасний варіант, коли конкретний відео- або RTSP-потік працює некоректно у VLC. Зміна застосується до наступного відкритого програвача.</sys:String>
     <sys:String x:Key="VideoBackendLibVlc">VLC (типово)</sys:String>
     <sys:String x:Key="VideoBackendFlyleaf">FlyleafLib (експериментально)</sys:String>
     <sys:String x:Key="About">Про програму</sys:String>
@@ -209,11 +212,11 @@
     <sys:String x:Key="Documentation">Інструкція</sys:String>
     <sys:String x:Key="DocumentationTip">Відкрити українську інструкцію на GitHub</sys:String>
     <sys:String x:Key="SourceCode">Вихідний код</sys:String>
-    <sys:String x:Key="SourceCodeTip">Відкрити репозиторій Трансляції на GitHub</sys:String>
+    <sys:String x:Key="SourceCodeTip">Відкрити репозиторій «Трансляцій» на GitHub</sys:String>
     <sys:String x:Key="Website">Сайт</sys:String>
-    <sys:String x:Key="WebsiteTip">Відкрити сайт Трансляції</sys:String>
+    <sys:String x:Key="WebsiteTip">Відкрити сайт «Трансляцій»</sys:String>
     <sys:String x:Key="Privacy">Конфіденційність</sys:String>
-    <sys:String x:Key="PrivacyTip">Відкрити політику конфіденційності Трансляції</sys:String>
+    <sys:String x:Key="PrivacyTip">Відкрити політику конфіденційності «Трансляцій»</sys:String>
     <sys:String x:Key="AuthorPage">Сторінка автора</sys:String>
     <sys:String x:Key="AuthorPageTip">Відкрити профіль SerZhyAle на GitHub</sys:String>
     <sys:String x:Key="Save">Зберегти</sys:String>
@@ -221,7 +224,7 @@
     <sys:String x:Key="SettingsOpenLinkFailed">Windows не вдалося відкрити це посилання.</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">Не вдалося відкрити посилання</sys:String>
     <sys:String x:Key="LaunchShortcuts">Ярлики запуску</sys:String>
-    <sys:String x:Key="NoStreamSelected">Виберіть потік у каталозі, щоб створити запис запуску для нього.</sys:String>
+    <sys:String x:Key="NoStreamSelected">Виберіть потік у каталозі, щоб створити для нього ярлик запуску.</sys:String>
     <sys:String x:Key="CopyLaunchCommand">Копіювати команду</sys:String>
     <sys:String x:Key="CopyLaunchCommandTip">Скопіювати команду запуску вибраного потоку</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">Створити ярлик на робочому столі</sys:String>
@@ -232,7 +235,7 @@
     <sys:String x:Key="DesktopShortcutFailed">Windows не вдалося створити ярлик на робочому столі.</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">Використовуйте --url &lt;адреса&gt; або --id &lt;GUID каналу&gt;.</sys:String>
     <sys:String x:Key="LaunchChannelNotFound">Запитаного потоку більше немає у вашому каталозі.</sys:String>
-    <!-- SP-0016 імпорт/експорт M3U -->
+    <!-- SP-0016 M3U import/export -->
     <sys:String x:Key="PlaylistPortability">Плейлисти (M3U)</sys:String>
     <sys:String x:Key="PlaylistPortabilityHint">Імпортуйте канали з файлу M3U чи за посиланням на плейлист або експортуйте додані вами канали у файл M3U.</sys:String>
     <sys:String x:Key="ImportListPlain">Імпорт списку</sys:String>
@@ -243,7 +246,7 @@
     <sys:String x:Key="ImportFromUrl">За посиланням…</sys:String>
     <sys:String x:Key="ImportFileFilter">Плейлисти (*.m3u;*.m3u8)|*.m3u;*.m3u8|Усі файли (*.*)|*.*</sys:String>
     <sys:String x:Key="ImportFromUrlTitle">Імпорт за посиланням</sys:String>
-    <sys:String x:Key="ImportFromUrlPrompt">Введіть адресу http або https плейлиста M3U.</sys:String>
+    <sys:String x:Key="ImportFromUrlPrompt">Введіть http- або https-адресу плейлиста M3U.</sys:String>
     <sys:String x:Key="ImportUrlInvalid">Введіть коректну адресу плейлиста http або https.</sys:String>
     <sys:String x:Key="ImportPreviewTitle">Попередній перегляд імпорту</sys:String>
     <sys:String x:Key="ImportCountNew">Нових каналів буде додано</sys:String>
@@ -268,15 +271,18 @@
     <sys:String x:Key="ExportCredentialWarning">В адресі одного або кількох каналів є пароль чи токен. В експортованому файлі він зберігається у відкритому вигляді. Продовжити?</sys:String>
     <sys:String x:Key="ExportResult">Експортовано каналів: {0}.</sys:String>
     <sys:String x:Key="ExportFailed">Windows не вдалося записати файл експорту.</sys:String>
-    <!-- SP-0030 видалення завантажених трансляцій каталогу -->
-    <sys:String x:Key="DeleteDownloaded">Видалити завантажені трансляції</sys:String>
+    <!-- SP-0030 delete downloaded catalog streams -->
+    <sys:String x:Key="DeleteDownloaded">Видалити завантажені потоки</sys:String>
     <sys:String x:Key="DeleteDownloadedTip">Видалити всі потоки із завантаженого каталогу й залишити лише ваші канали</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">Залишити лише ваші канали: буде видалено потоки із завантаженого каталогу. Додані та імпортовані канали залишаться. «Оновити каталог» завантажить їх знову.</sys:String>
-    <sys:String x:Key="DeleteDownloadedTitle">Видалення завантажених трансляцій</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">Видалити всі завантажені з каталогу трансляції ({0:N0})? Додані та імпортовані канали залишаться. Скасувати це неможливо, але «Оновити каталог» завантажить їх знову.</sys:String>
-    <sys:String x:Key="DeleteDownloadedNone">Завантажених трансляцій каталогу немає.</sys:String>
-    <sys:String x:Key="DeleteDownloadedResult">Видалено завантажених трансляцій: {0:N0}.</sys:String>
-    <!-- SP-0029 засіб вибору мови -->
+    <sys:String x:Key="DeleteDownloadedTitle">Видалення завантажених потоків</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">Видалити всі завантажені з каталогу потоки ({0:N0})? Додані та імпортовані канали залишаться. Цю дію не можна скасувати, але «Оновити каталог» завантажить їх знову.</sys:String>
+    <sys:String x:Key="DeleteDownloadedNone">Завантажених потоків каталогу немає.</sys:String>
+    <sys:String x:Key="DeleteDownloadedResult">Видалено завантажених потоків: {0:N0}.</sys:String>
+    <!-- SP-0029 language picker -->
+    <!-- SP-0034: endonyms, each language named in its own language and script. Identical in every
+         dictionary on purpose - a picker that renamed a language when you switched locale would be
+         unusable for the person trying to get back. Keyed by the AppLanguage member name. -->
     <sys:String x:Key="LanguageEnglish">English</sys:String>
     <sys:String x:Key="LanguageRussian">Русский</sys:String>
     <sys:String x:Key="LanguageUkrainian">Українська</sys:String>
@@ -291,9 +297,14 @@
     <sys:String x:Key="LanguageArabic">العربية</sys:String>
     <sys:String x:Key="LanguageUrdu">اردو</sys:String>
     <sys:String x:Key="LanguagePickerName">Мова інтерфейсу</sys:String>
+    <!-- SP-0034: layout direction for this language, bound by every window's root element so it follows
+         the runtime dictionary swap. InterfaceLanguages stays authoritative - the parity gate fails if
+         this value and the registry's RightToLeft flag ever disagree. -->
     <FlowDirection x:Key="UiFlowDirection">LeftToRight</FlowDirection>
+    <!-- SP-0034 decision 4: translations are agent-produced without native proofreading, and the
+         product says so where a user can see it. Do not soften this into a claim of proofread quality. -->
     <sys:String x:Key="MachineTranslationNotice">Переклади інтерфейсу виконано машинно й не перевірено носіями мови.</sys:String>
-    <!-- SP-0022 таймер сну -->
+    <!-- SP-0022 audio sleep timer -->
     <sys:String x:Key="SleepTimer">Таймер сну</sys:String>
     <sys:String x:Key="SleepTimerTip">Автоматично зупинити радіо через заданий час</sys:String>
     <sys:String x:Key="SleepTimerActiveTip">Відтворення зупиниться о {0}</sys:String>
@@ -303,7 +314,7 @@
     <sys:String x:Key="SleepTimerSet">Таймер сну встановлено на {0}</sys:String>
     <sys:String x:Key="SleepTimerCancelled">Таймер сну скасовано.</sys:String>
     <sys:String x:Key="SleepTimerEnded">Таймер сну зупинив відтворення.</sys:String>
-    <sys:String x:Key="SleepTimerInvalidTime">Введіть час у форматі ГГ:ХХ у межах найближчих 24 годин.</sys:String>    <!-- SP-0017 іменовані добірки -->
+    <sys:String x:Key="SleepTimerInvalidTime">Введіть час у форматі ГГ:ХХ у межах найближчих 24 годин.</sys:String>    <!-- SP-0017 named collections -->
     <sys:String x:Key="CollectionLabel">Добірка</sys:String>
     <sys:String x:Key="CollectionFilterTip">Показати лише канали однієї добірки</sys:String>
     <sys:String x:Key="CollectionFilterName">Фільтр добірки</sys:String>
@@ -314,7 +325,7 @@
     <sys:String x:Key="CollectionManageTitle">Добірки</sys:String>
     <sys:String x:Key="CollectionRename">Назва добірки</sys:String>
     <sys:String x:Key="CollectionDelete">Видалити</sys:String>
-    <sys:String x:Key="CollectionsEmpty">Добірок ще немає. Введіть назву вище, щоб створити.</sys:String>
+    <sys:String x:Key="CollectionsEmpty">Добірок ще немає. Введіть назву вище, щоб створити нову.</sys:String>
     <sys:String x:Key="CollectionCount">каналів: {0:N0}</sys:String>
     <sys:String x:Key="CollectionCreated">Добірку {0} створено</sys:String>
     <sys:String x:Key="CollectionNameInvalid">Введіть непорожню назву, яка ще не використовується.</sys:String>
