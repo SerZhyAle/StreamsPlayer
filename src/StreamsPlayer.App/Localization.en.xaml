@@ -109,7 +109,7 @@
     <sys:String x:Key="EditedStream">Saved {0}</sys:String>
     <sys:String x:Key="HiddenStream">Hidden {0}</sys:String>
     <sys:String x:Key="DeletedStream">Removed {0}</sys:String>
-    <sys:String x:Key="ChannelCount">{0:N0} of {1:N0} channels</sys:String>
+    <sys:String x:Key="ChannelCount">Channels: {0:N0} / {1:N0}</sys:String>
     <sys:String x:Key="OfflinePlayback">You are offline. Playback was not attempted.</sys:String>
     <sys:String x:Key="ConnectingAudio">Connecting to {0}…</sys:String>
     <sys:String x:Key="NowPlaying">Now playing: {0}</sys:String>
@@ -133,6 +133,10 @@
     <sys:String x:Key="InvalidUrl">Enter a valid http, https, or rtsp address.</sys:String>
     <sys:String x:Key="InvalidUrlTitle">Invalid URL</sys:String>
     <sys:String x:Key="PlayerWindowTitle">STREAMS Player video</sys:String>
+    <!-- SP-0034: a window title composed from a subject and the window's own name. Keyed rather than
+         interpolated so the order and the separator can differ per language, which right-to-left
+         layouts need. {0} is the subject (a station, a stream), {1} names the window. -->
+    <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">Buffering…</sys:String>
     <sys:String x:Key="BufferingProgress">Buffering… {0}%</sys:String>
     <sys:String x:Key="PlayingLive">Playing live</sys:String>
@@ -250,10 +254,10 @@
     <sys:String x:Key="ImportCountInvalid">Invalid entries</sys:String>
     <sys:String x:Key="ImportCountSkipped">Repeated in the file</sys:String>
     <sys:String x:Key="ImportApply">Apply</sys:String>
-    <sys:String x:Key="ImportPreviewSummary">{0} new channel(s) will be added as imported.</sys:String>
+    <sys:String x:Key="ImportPreviewSummary">New channels to be added as imported: {0}.</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">Nothing new to import from this source.</sys:String>
     <sys:String x:Key="ImportDownloading">Downloading playlist…</sys:String>
-    <sys:String x:Key="ImportResult">Imported {0} channel(s).</sys:String>
+    <sys:String x:Key="ImportResult">Imported channels: {0}.</sys:String>
     <sys:String x:Key="ImportFailedStatus">Import failed.</sys:String>
     <sys:String x:Key="ImportInvalidEncoding">This file is not valid UTF-8 text. Your list was not changed.</sys:String>
     <sys:String x:Key="ImportFileReadFailed">Windows could not read the selected file. Your list was not changed.</sys:String>
@@ -265,16 +269,16 @@
     <sys:String x:Key="ExportNoUserRows">You have no added channels to export. Catalog channels are not exported.</sys:String>
     <sys:String x:Key="ExportNoPinned">You have no pinned added channels to export.</sys:String>
     <sys:String x:Key="ExportCredentialWarning">One or more channels contain a password or token in the address. The exported file stores it in clear text. Continue?</sys:String>
-    <sys:String x:Key="ExportResult">Exported {0} channel(s).</sys:String>
+    <sys:String x:Key="ExportResult">Exported channels: {0}.</sys:String>
     <sys:String x:Key="ExportFailed">Windows could not write the export file.</sys:String>
     <!-- SP-0030 delete downloaded catalog streams -->
     <sys:String x:Key="DeleteDownloaded">Delete downloaded streams</sys:String>
     <sys:String x:Key="DeleteDownloadedTip">Remove every stream that came from the downloaded catalog and keep only your own channels</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">Keep only your own channels: this removes the streams that came from the downloaded catalog. Your added and imported channels stay. Update catalog downloads them again.</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">Delete downloaded streams</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">Delete all {0:N0} downloaded catalog stream(s)? Your added and imported channels are kept. This cannot be undone, but Update catalog downloads them again.</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">Delete all downloaded catalog streams ({0:N0})? Your added and imported channels are kept. This cannot be undone, but Update catalog downloads them again.</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">There are no downloaded catalog streams to delete.</sys:String>
-    <sys:String x:Key="DeleteDownloadedResult">Deleted {0:N0} downloaded stream(s).</sys:String>
+    <sys:String x:Key="DeleteDownloadedResult">Deleted downloaded streams: {0:N0}.</sys:String>
     <!-- SP-0029 language picker -->
     <sys:String x:Key="LanguageEnglish">English</sys:String>
     <sys:String x:Key="LanguageRussian">Русский</sys:String>
@@ -302,7 +306,7 @@
     <sys:String x:Key="CollectionRename">Collection name</sys:String>
     <sys:String x:Key="CollectionDelete">Delete</sys:String>
     <sys:String x:Key="CollectionsEmpty">No collections yet. Type a name above to create one.</sys:String>
-    <sys:String x:Key="CollectionCount">{0:N0} channel(s)</sys:String>
+    <sys:String x:Key="CollectionCount">channels: {0:N0}</sys:String>
     <sys:String x:Key="CollectionCreated">Collection {0} created</sys:String>
     <sys:String x:Key="CollectionNameInvalid">Enter a name that is not empty and not already used.</sys:String>
     <sys:String x:Key="CollectionDeleteConfirm">Delete the collection "{0}"? Its channels stay in your list.</sys:String></ResourceDictionary>

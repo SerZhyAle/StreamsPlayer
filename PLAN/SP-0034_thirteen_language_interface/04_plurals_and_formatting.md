@@ -1,6 +1,6 @@
 # Phase 04 - Pseudo-plurals and formatting
 
-**Status:** Approved
+**Status:** Implemented
 
 Decision 8. Runs before phase 06 so no string is translated thirteen times and then rewritten. The
 target form already exists in the repository: the Russian and Ukrainian dictionaries solved these
@@ -32,3 +32,45 @@ same keys with a "label: count" phrasing, which needs no grammatical agreement.
 4. Replace the hardcoded `" - "` title separators (`PlayerWindow.xaml.cs:122`,
    `MainWindow.Localization.cs:178`) with a keyed format string so the order can differ per language.
    Static check: `rg '" - "' src/StreamsPlayer.App` returns no title composition.
+
+## Checks
+
+- `rg -c '\(s\)' src/StreamsPlayer.App/Localization.*.xaml` - expected: 0 per file | actual: 0, 0, 0.
+- `rg 'string\.Format\(LocalizationService' src/StreamsPlayer.App` - expected: no hit | actual: none.
+  Both `BitrateValue` sites now go through `LocalizationService.Format`, which formats under
+  `CurrentUICulture` and therefore follows the selected language's digit shaping.
+- `rg '\$"\{.*\} - \{' src/StreamsPlayer.App/*.cs` - expected: no title interpolation | actual: none.
+- `dotnet build StreamsPlayer.sln -c Release` - expected: succeeds | actual: succeeded, 0 warnings.
+- `dotnet test StreamsPlayer.sln -c Release --no-build` - expected: no regression | actual: 274 passed.
+
+### Rephrasings applied
+
+All seven moved to the agreement-free "label: count" shape the Russian and Ukrainian values already
+used, so the target form was precedent rather than invention:
+
+| Key | Was | Now |
+|---|---|---|
+| `ImportPreviewSummary` | `{0} new channel(s) will be added as imported.` | `New channels to be added as imported: {0}.` |
+| `ImportResult` | `Imported {0} channel(s).` | `Imported channels: {0}.` |
+| `ExportResult` | `Exported {0} channel(s).` | `Exported channels: {0}.` |
+| `DeleteDownloadedConfirm` | `Delete all {0:N0} downloaded catalog stream(s)? ..` | `Delete all downloaded catalog streams ({0:N0})? ..` |
+| `DeleteDownloadedResult` | `Deleted {0:N0} downloaded stream(s).` | `Deleted downloaded streams: {0:N0}.` |
+| `CollectionCount` | `{0:N0} channel(s)` | `channels: {0:N0}` |
+| `ChannelCount` | `{0:N0} of {1:N0} channels` | `Channels: {0:N0} / {1:N0}` |
+
+`ChannelCount` is the one whose Russian and Ukrainian values also changed: the old shape put the count
+before a noun that has to agree with it, which survives Slavic genitive but not Arabic's five number
+categories. Argument order is unchanged, so no call site moved.
+
+### Scope note on step 3
+
+Fixing `PlayerWindow` needed slightly more than the plan implied. Two of its four `WaitText`
+assignments are `SetResourceReference` calls that already follow a swap, and two are formatted strings
+that cannot. Overwriting `.Text` breaks the resource reference, so the two mechanisms have to be told
+apart: `SetWaitText` records the key and arguments for replay, `SetWaitTextResource` clears that record
+and re-establishes the binding, and `RefreshLocalization` replays only when a recorded key exists.
+Reached from `MainWindow.RefreshLocalizedInterface` over `Application.Current.Windows`, since
+`_openPlayerWindows` is only a count and holds no references.
+
+New key `WindowTitleWithSubject` (`{0} - {1}`) replaces both hardcoded `" - "` compositions, so a
+right-to-left language can reorder the title rather than inheriting Latin order.

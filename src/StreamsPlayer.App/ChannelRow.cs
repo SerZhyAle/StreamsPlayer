@@ -166,7 +166,7 @@ public sealed class ChannelRow : INotifyPropertyChanged
         }
 
         return StreamBitrate.TryParseKbps(Channel.Bitrate, out var kbps)
-            ? string.Format(LocalizationService.Get("BitrateValue"), kbps)
+            ? LocalizationService.Format("BitrateValue", kbps)
             : Channel.Bitrate.Trim();
     }
 

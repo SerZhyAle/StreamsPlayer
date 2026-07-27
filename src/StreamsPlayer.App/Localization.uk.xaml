@@ -109,7 +109,7 @@
     <sys:String x:Key="EditedStream">Збережено: {0}</sys:String>
     <sys:String x:Key="HiddenStream">Приховано: {0}</sys:String>
     <sys:String x:Key="DeletedStream">Видалено: {0}</sys:String>
-    <sys:String x:Key="ChannelCount">{0:N0} з {1:N0} каналів</sys:String>
+    <sys:String x:Key="ChannelCount">Канали: {0:N0} / {1:N0}</sys:String>
     <sys:String x:Key="OfflinePlayback">Немає підключення до мережі. Відтворення не запускалося.</sys:String>
     <sys:String x:Key="ConnectingAudio">Підключення до {0}…</sys:String>
     <sys:String x:Key="NowPlaying">Зараз грає: {0}</sys:String>
@@ -133,6 +133,7 @@
     <sys:String x:Key="InvalidUrl">Введіть коректну адресу http, https або rtsp.</sys:String>
     <sys:String x:Key="InvalidUrlTitle">Некоректний URL</sys:String>
     <sys:String x:Key="PlayerWindowTitle">Відео - Трансляції</sys:String>
+    <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">Буферизація…</sys:String>
     <sys:String x:Key="BufferingProgress">Буферизація… {0}%</sys:String>
     <sys:String x:Key="PlayingLive">Прямий ефір</sys:String>

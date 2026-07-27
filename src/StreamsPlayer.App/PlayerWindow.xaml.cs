@@ -31,6 +31,14 @@ public partial class PlayerWindow : Window
     // Tags the next snapshot as a user-initiated "save icon" so only that one raises the confirmation toast.
     private bool _manualSnapshotPending;
     private volatile bool _closing;
+
+    // SP-0034: this window is shown non-modally, so the language can change while it is open. Text
+    // assigned from a formatted string has no DynamicResource to follow, so the key and its arguments
+    // are kept and replayed by RefreshLocalization. A null key means the label is currently bound to a
+    // resource and follows the swap on its own.
+    private string? _waitResourceKey;
+    private object?[] _waitArguments = [];
+
     private readonly Func<Guid, bool, Task> _recordOutcome;
     private readonly Func<StreamChannel, Task> _requestRemove;
     private readonly Func<bool, Task> _saveTopmost;
@@ -118,10 +126,39 @@ public partial class PlayerWindow : Window
         UpdatePinButton();
         _settingsReady = true;
         TitleText.Text = StreamTitleFormatter.Display(channel.Title);
-        // Stream name first so the taskbar button identifies the broadcast even when heavily truncated.
-        Title = $"{TitleText.Text} - {LocalizationService.Get("PlayerWindowTitle")}";
+        RefreshWindowTitle();
         Loaded += PlayerWindow_Loaded;
         Closed += PlayerWindow_Closed;
+    }
+
+    /// <summary>Re-renders the text this window cannot express as a <c>DynamicResource</c>.</summary>
+    internal void RefreshLocalization()
+    {
+        RefreshWindowTitle();
+        if (_waitResourceKey is { } key)
+        {
+            WaitText.Text = LocalizationService.Format(key, _waitArguments);
+        }
+    }
+
+    // Stream name first so the taskbar button identifies the broadcast even when heavily truncated.
+    private void RefreshWindowTitle() => Title = LocalizationService.Format(
+        "WindowTitleWithSubject",
+        TitleText.Text,
+        LocalizationService.Get("PlayerWindowTitle"));
+
+    private void SetWaitText(string resourceKey, params object?[] arguments)
+    {
+        _waitResourceKey = resourceKey;
+        _waitArguments = arguments;
+        WaitText.Text = LocalizationService.Format(resourceKey, arguments);
+    }
+
+    private void SetWaitTextResource(string resourceKey)
+    {
+        _waitResourceKey = null;
+        _waitArguments = [];
+        WaitText.SetResourceReference(TextBlock.TextProperty, resourceKey);
     }
 
     private void PlayerWindow_Loaded(object sender, RoutedEventArgs e)
@@ -233,7 +270,7 @@ public partial class PlayerWindow : Window
             // A plain buffer fill shows "Buffering… %"; an active recovery keeps its "Reconnecting…" label.
             if (!_recovering)
             {
-                WaitText.Text = LocalizationService.Format("BufferingProgress", percentage);
+                SetWaitText("BufferingProgress", percentage);
             }
 
             if (_reachedLive && !_isStalled)
@@ -249,7 +286,7 @@ public partial class PlayerWindow : Window
 
         _buffering = false;
         _recovering = false; // reached live - clear any Reconnecting label
-        WaitText.SetResourceReference(TextBlock.TextProperty, "PlayingLive");
+        SetWaitTextResource("PlayingLive");
         RefreshTrackControls();
         if (_isStalled)
         {
@@ -373,7 +410,7 @@ public partial class PlayerWindow : Window
                 return;
             }
 
-            WaitText.Text = LocalizationService.Format("ReconnectingAttempt", decision.Attempt, decision.Budget);
+            SetWaitText("ReconnectingAttempt", decision.Attempt, decision.Budget);
             try
             {
                 await Task.Delay(decision.Delay, _sessionCts.Token);
@@ -458,7 +495,7 @@ public partial class PlayerWindow : Window
             return;
         }
 
-        WaitText.SetResourceReference(TextBlock.TextProperty, "PlayerUnavailable");
+        SetWaitTextResource("PlayerUnavailable");
         _log.Event("PLAYBACK FAIL", $"reason={reason}", $"at_ms={_playbackClock.ElapsedMilliseconds}", $"kind={_channel.MediaKind}", $"url={_channel.Url}");
         if (!_outcomeRecorded)
         {

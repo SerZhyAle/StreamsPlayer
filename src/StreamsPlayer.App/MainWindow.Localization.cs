@@ -132,6 +132,14 @@ public partial class MainWindow
         {
             row.RefreshLocalization();
         }
+
+        // Player windows are non-modal, so one can be open while the language changes. Its title and
+        // its formatted wait label have no DynamicResource to follow and must be re-rendered here.
+        foreach (var player in Application.Current.Windows.OfType<PlayerWindow>())
+        {
+            player.RefreshLocalization();
+        }
+
         ApplyFilter();
         RefreshLocalizedStateText();
     }
@@ -154,7 +162,7 @@ public partial class MainWindow
                 .Concat(new[] { 64, 128, 192, 256, 320 }
                     .Select(kbps => new UiOption(
                         kbps.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                        string.Format(LocalizationService.Get("BitrateValue"), kbps))))
+                        LocalizationService.Format("BitrateValue", kbps))))
                 .ToArray();
             var sortItems = new[]
             {
@@ -204,7 +212,9 @@ public partial class MainWindow
         var product = LocalizationService.Get("ProductName");
         var station = _playingAudio?.DisplayTitle
             ?? (_audioPausedChannel is { } paused ? StreamTitleFormatter.Display(paused.Title) : null);
-        Title = string.IsNullOrWhiteSpace(station) ? product : $"{station} - {product}";
+        Title = string.IsNullOrWhiteSpace(station)
+            ? product
+            : LocalizationService.Format("WindowTitleWithSubject", station, product);
     }
 
     private void RefreshLocalizedStateText()
