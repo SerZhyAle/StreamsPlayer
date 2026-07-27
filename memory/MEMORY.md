@@ -142,3 +142,18 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   property access failed with "property cannot be found". Give the result its own name.
   Also: a dot-sourced library must not call `Set-StrictMode` at file scope - it changes the *caller's*
   rules, and here it broke the tool harness's exit-code epilogue.
+- The localization **glossary is not gated by anything**. `LocalizationParityTests` checks key sets,
+  placeholders, duplicate keys, layout direction against the Core registry, and the loanword
+  exception list - it never compares a dictionary against `docs/localization/glossary.md`. So the
+  glossary can contradict the shipped strings indefinitely and no build fails. It did: for Ukrainian
+  it prescribed `трансляція`/`підбірка`/`превʼю` while the dictionary shipped `потік`/`добірка`/`прев’ю`
+  in 28, 8 and 15 places. When the two disagree, check which one the strings actually use before
+  "fixing" the dictionary - the glossary is the likelier defect. The Russian row still carries the
+  same `stream` defect (2026-07-27).
+
+- Ukrainian renders `stream` as **`потік`, never `трансляція`**, because `Трансляції` is the localized
+  product name and the two collide in one window: "Видалити завантажені трансляції" reads as deleting
+  the application. Same reasoning applies to Russian (`поток`, not `трансляция`). The product name is
+  grammatically plural, so its genitive is `Трансляцій`, and a bare "У Трансляції" reads as a locative
+  singular - in prose surfaces use a generic noun plus guillemets, "у застосунку «Трансляції»"
+  (2026-07-27).

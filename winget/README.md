@@ -29,8 +29,15 @@ Manual alternative (when you need full control of the manifest):
 4. Validate with `winget validate --manifest <folder>` and submit a pull request
    to `microsoft/winget-pkgs`.
 
+**Release notes must not contain `": "`.** Every `REPLACE_...` token sits in a plain YAML scalar, so
+a colon-plus-space anywhere in the substituted text makes the YAML scanner read it as a nested
+mapping and `winget validate` fails with "mapping values are not allowed in this context". Use a
+spaced hyphen instead - the `Description` fields already do, which is why they survive the same
+substitution. This is the failure mode to check first when validation rejects a manifest that looks
+fine (2026-07-27).
+
 Either way, winget can only be refreshed **after** an approved GitHub Release
-exists. Release `v26.0723.1040` is published and the winget package is live, so
+exists. Release `v26.0727.0253` is published and the winget package is live, so
 use the flow above to submit each subsequent version.
 
 The package is published under the identifier `SerZhyAle.StreamsPlayer`. Keep this
