@@ -113,9 +113,19 @@ builder rather than remembered:
   arrives with one; the builder strips it and says so. (An earlier version of this document told you
   to keep the BOM. That was wrong.)
 - Every field is quoted, records are separated by CRLF, and there is **no** trailing newline.
-- The import is **all-or-nothing**: one bad cell rejects the whole file.
-- A relative image path is accepted **only** by *Upload folder*. In a flat CSV upload it fails per
-  cell, which is why the flat output carries no image path at all.
+- The import is all-or-nothing **per language, not per file**. One bad cell discards that language's
+  whole column and leaves the others alone - it does not reject the upload. Measured 2026-07-27: a
+  single invalid `DesktopScreenshot1` value dropped ten languages while `en-us`, `ru` and `ar`
+  imported cleanly. (An earlier version of this document said one bad cell rejects the whole file.
+  That was wrong, and it matters: a partial import **changes the submission**, so the export you were
+  holding is stale and must be re-taken before the next attempt.)
+- A relative image path is rejected in a flat CSV upload - confirmed 2026-07-27, `The value you
+  provided is not valid (app-uk.png)`, which is why the flat output carries no image path at all.
+  The only value the field accepts is the asset URL of an image **already uploaded to the current
+  submission**, so the import can reference screenshots but never create them: upload a new
+  language's screenshot in the UI first, then re-export to pick up its asset URL. Whether *Upload
+  folder* would accept a relative path is **untested** - the one attempt used the flat upload. Do not
+  restate it as fact until someone has actually run it.
 - A listing is Incomplete until it has **both** a description and at least one screenshot. A
   text-only language just sits there; Partner Center reports nothing. The builder prints a
   per-language completeness table for exactly this reason.

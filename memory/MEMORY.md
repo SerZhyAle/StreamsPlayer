@@ -157,3 +157,17 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   grammatically plural, so its genitive is `Трансляцій`, and a bare "У Трансляції" reads as a locative
   singular - in prose surfaces use a generic noun plus guillemets, "у застосунку «Трансляції»"
   (2026-07-27).
+
+- **A Partner Center listing import is all-or-nothing per language, not per file.** One invalid cell
+  discards that language's column and imports every other language normally - it does not reject the
+  upload, and the summary page reports the failures in a list that is easy to read as a whole-file
+  rejection. Consequence that costs a cycle if missed: a partial import **mutates the submission**,
+  so the export the file was built from is immediately stale and a fresh one must be taken before
+  retrying. Measured 2026-07-27 - ten languages dropped on a bad `DesktopScreenshot1`, three imported.
+
+- **The listing import can reference screenshots but never create them.** `DesktopScreenshot*` accepts
+  only the asset URL of an image already uploaded to the current submission; a relative filename is
+  rejected in a flat CSV upload. So a new language's screenshot goes up through the UI first, and only
+  a re-export carries its asset URL back into an importable file. `STORE_PUBLISHING.md` claims *Upload
+  folder* accepts a relative path - that remains **unverified**, so build the flat, image-free CSV
+  unless someone has actually tested the folder mode (2026-07-27).
