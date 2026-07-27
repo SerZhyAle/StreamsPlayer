@@ -318,10 +318,10 @@ Test stream: `http://88.212.15.19/live/test_ctsport_25p/playlist.m3u8` (HLS, 25 
 | Signal | Before (defaults) | After (§2 + §3 + §4) |
 |---|---|---|
 | Stalls | 8 | 1 |
-| Reconnect black-screens (20–30 s each) | 2 | 0 |
+| Reconnect black-screens (20-30 s each) | 2 | 0 |
 | Hardware-decode errors | many | 0 (software decode) |
 | Worst clock jitter | 8 958 ms | < 250 ms (one 1 000 ms) |
-| Multi-second display freezes | 8–16 s | none |
+| Multi-second display freezes | 8-16 s | none |
 
 The residual is the **stream's own defect** (invalid timestamps) - now *tolerated* (a few
 percent dropped frames) rather than *fatal* (multi-second freezes).

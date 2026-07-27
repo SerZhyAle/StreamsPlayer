@@ -27,3 +27,11 @@ tmp/
 *.log
 appsettings.Development.json
 secrets/
+
+# Secrets and signing material - pre-empt the leak, never catch it afterwards.
+*.snk
+*.jks
+*.keystore
+.env
+*token*
+*secret*

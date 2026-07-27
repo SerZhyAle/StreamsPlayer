@@ -69,7 +69,7 @@ code or features.
   is restored on the next launch, and the first launch follows Windows.
 - Group channels into local named collections, browse one collection at a time
   from the catalog filters, and manage them without touching pins or the catalog.
-- Set a sleep timer for inline radio — 15/30/45/60 minutes or a clock time — and
+- Set a sleep timer for inline radio - 15/30/45/60 minutes or a clock time - and
   watch the remaining time count down next to Stop; it survives a station switch
   and ends the session once when it expires.
 - Store catalog state, manual entries, pins, listening history, and the current-session diagnostic `Current.log` under `%LOCALAPPDATA%\StreamsPlayer`.

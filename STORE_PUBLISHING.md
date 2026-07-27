@@ -80,7 +80,7 @@ language, where the whole layout mirrors.
 minimum, but a media player is far stronger with genuine captures. Launch the app,
 refresh the catalog, and run `tools/store/capture-app.ps1` for: (1) catalog List
 mode, (2) Grid mode with thumbnails, (3) the video player with controls, (4)
-Settings. Upload the real shots; keep 1–2 composed cards only if you want a titled
+Settings. Upload the real shots; keep 1-2 composed cards only if you want a titled
 lead image.
 
 ### Listing import via CSV

@@ -21,7 +21,7 @@ Run from the repository root in PowerShell.
 
 - `./build.ps1 -Deploy` (default `-Deploy:$true`) forces Release + win-x64, publishes a **self-contained single-file EXE**, and copies it into hardcoded local machine folders (`C:\GD\i`, `C:\GD\tc\SZA\_APP`). Pass `-Deploy:$false` for an ordinary solution build. This is a local install, **not** a release.
 - Never run `./scripts/build-local.ps1` unless the user explicitly requests a commit - it stages and commits.
-- A local build is never a release. Do not push tags, cut GitHub releases, submit winget/MSIX manifests, or publish Pages unless the user explicitly asks.
+- `./build.ps1` never releases. This repo's autonomy verdict is **ask first** for every publishing action; the rule it applies has one home in the canon (`RELEASE_AND_DISTRIBUTION.md` §1).
 
 ## Architecture
 
@@ -59,11 +59,11 @@ Audio uses WPF `MediaElement`. Video/RTSP and grid preview capture use bundled L
 
 This repo runs the Universal Agent Kit method. **`AGENTS.md` is the authoritative rules file** - read it and the applicable `docs/agent/` document before non-trivial work. The method in one line: research before acting, split *what/why* (`/streamsplayer-spec`) from *how* (`/streamsplayer-spec-tech`), plan in verifiable phases, stay cheap when the task is small, and prove "done" with evidence, not a green build. A changed GUI action needs run-and-observe evidence.
 
-**Communication** (SZA Unified Rules canon - `AUTHOR.md` §Language, `AI_USAGE.md` §7): chat in the owner's language (**Russian**); code, docs, logs, and commits in English. No trailing "what I did" summaries - the diff speaks. Timestamp replies with the local time supplied in the prompt.
+**Communication**: one home in the canon - `AUTHOR.md` "Language" and `AI_USAGE.md` §7. The only repo-local addition is that replies carry the local time supplied in the prompt.
 
 - **Skills.** The same procedures are available three ways: native Claude Code slash commands in [.claude/commands/](.claude/commands/) (`/streamsplayer-quick`, `-fix`, `-research`, `-spec`, `-spec-tech`, `-spec-dev`, `-spec-check`, `-spec-fix`, `-spec-all`, `-backlog`, `-park`, `-ui-clarify`, `-verify`, `-review`, `-git`, `-caveman[-commit|-review]`), Codex/`$`-invoked skills in [.agents/skills/](.agents/skills/), and the shared `SKILL.md` bodies both point to. The `.claude/commands/*` files are thin wrappers - the procedure lives in `.agents/skills/streamsplayer-*/SKILL.md`.
 - **Agents.** Role subagents in [.claude/agents/](.claude/agents/) (`streamsplayer-rd-lead` is the default orchestrator, plus `-solution-researcher`, `-implementer`, `-doc-writer`), mirrored from [.codex/agents/](.codex/agents/).
 - **Method docs.** [docs/agent/](docs/agent/): `SPEC_LIFECYCLE`, `CODE_QUALITY`, `VALIDATION`, `RESEARCH_INDEX`, `AGENT_MEMORY`, `COST`.
 - **Tickets.** Spec-driven planning under [PLAN/](PLAN/): `SP-NNNN` ids, states `Draft → Approved → Tactical → In Progress → Implemented → Verified` (+ `Partial`/`Broken`/`Block*`). Status comes from the working tree, never the filename. Verified strategic tickets and their tactical folders move to `PLAN/DONE/`.
 - **Memory.** File-based, committed, shared across tools: [memory/MEMORY.md](memory/MEMORY.md) is the always-loaded index (types: `user`, `feedback`, `project`, `reference`); discipline in `docs/agent/AGENT_MEMORY.md`.
-- **Canon.** The portfolio-wide SZA Unified Rules are the source of truth for universal conventions; this repo restates them in-repo to stay self-contained (see `AGENTS.md` → "SZA Unified Rules (canon)"). Repo overlay facts and legitimate divergences are recorded in the canon's `contrib/streams_player.md`. Universal-rule fixes land in the canon first, then spread back here.
+- **Canon.** The portfolio-wide SZA Unified Rules ship as the `sza` Claude Code plugin and are the source of truth for universal conventions. Consumption model is **reference** - they are not re-authored here (see `AGENTS.md` -> "SZA Unified Rules (canon)"). Load a skill rather than the whole canon: `sza:release`, `sza:store-publish`, `sza:feature-to-site`, `sza:spec-to-audit`. Repo overlay facts and legitimate divergences are recorded in the canon's `contrib/streams_player.md`; adoption is stamped in `.sza-canon.json`. Universal-rule fixes land in the canon first.

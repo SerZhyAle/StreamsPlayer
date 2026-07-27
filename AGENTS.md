@@ -11,9 +11,10 @@ It consumes the published FastMediaSorter stream bank as an external data
 contract. Do not copy FastMediaSorter application code, change that repository,
 or turn a StreamsPlayer feature into a FastMediaSorter feature.
 
-Never push a tag, create a GitHub release, submit winget manifests, upload to
-Partner Center, or publish Pages unless the user explicitly asks for a release
-or publication. A local build is not a release.
+Publishing boundary: this repo's autonomy verdict is **ask first** - never push a tag, create a GitHub
+release, submit winget manifests, upload to Partner Center, or publish Pages unless the user explicitly
+asks. The build-versus-release rule itself has one home in the canon
+(`RELEASE_AND_DISTRIBUTION.md` §1); only this repo's verdict is local.
 
 ## Project layout
 
@@ -95,11 +96,10 @@ git push -u origin main
 
 ## Universal Agent Kit workflow
 
-- Chat in the owner's language (Russian); code, documentation, logs, and commits are English. Be concise, technical, and evidence-led. Keep any English the owner must read short and simple.
-- No trailing "what I did" summaries - the diff speaks. Timestamp replies with the local time supplied in the prompt.
-- Read, search, build, test, and inspect the working tree without asking. Raise genuine product, data, architecture, or destructive-action decisions early.
+- Communication, autonomy and the evidence rule live in the canon: `AUTHOR.md` "Language" and "Working
+  style", `AI_USAGE.md`, `TESTING_AND_QA.md`. They are not restated here.
 - Research in this order: `README.md`; relevant `PLAN/` ticket; symbols located with `rg` and their code/tests; official version-specific documentation. Never invent paths, symbols, APIs, or behaviour.
-- The working tree is the authority for current state. Open `memory/MEMORY.md` at session start, but verify remembered repository claims before acting on them.
+- Open `memory/MEMORY.md` at session start, but verify remembered repository claims against the working tree before acting on them.
 - Dependency direction is App UI -> Core; CatalogHarness -> Core; Tests -> Core. Core must remain independent of WPF, App, tools, and tests.
 
 ### Skill routing
@@ -123,7 +123,12 @@ git push -u origin main
 
 StreamsPlayer follows the portfolio-wide **SZA Unified Rules** for repository layout, documentation, versioning, testing, release, localization, security, and AI usage.
 
-- **Canon home** (local working copy on the owner's machine, not committed here and not public): `P:\WEB\sites.google.comsiteszaodua\Unified_Rules`. It is the source of truth for the *universal* rules. This file deliberately keeps those rules restated in-repo so the repository stays self-contained for CI and outside contributors; the canon is authoritative when the two ever disagree.
+- **Canon home:** the `sza` Claude Code plugin, from `github.com/SerZhyAle/sza-unified-rules`. Consumption
+  model is **reference**: the universal rules have one home there and are not restated here. Until
+  2026-07-27 this file kept them restated in-repo so the repository stayed self-contained for CI and
+  outside contributors - that argument is void now the canon installs as a plugin and travels with the
+  session, and the restatement had already drifted (see the 2026-07-26 drift correction in the contrib
+  record). Adoption is stamped in `.sza-canon.json`.
 - **This repo's record** lives in the canon at `contrib/streams_player.md` - the verified overlay facts, channel-matrix rows, and the legitimate divergences (DIVERGE deltas) specific to StreamsPlayer.
 - **Overlay shape:** Windows-desktop, *no-installer variant* - portable-zip GitHub Release + winget-portable + Store MSIX, with no Inno/WiX installer. Frozen anchors reduce to winget `PackageIdentifier` and the MSIX Identity `Name`/`Publisher`.
 - **Coupling shape:** *consumed published release artifact* - StreamsPlayer depends at runtime on another SZA product's release output (the FastMediaSorter catalog ZIP at `StreamCatalogService.CatalogUrl`). This is neither a wire/config contract nor an edition/parity relationship; the merge protects user-owned `MANUAL`/`IMPORTED` rows and refresh is explicit-only.
