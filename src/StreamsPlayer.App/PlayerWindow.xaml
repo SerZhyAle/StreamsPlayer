@@ -25,8 +25,9 @@
                             Visibility="Collapsed" ToolTip="{DynamicResource AudioTracksTip}" Style="{StaticResource PlayerOverlayButton}" />
                     <Button x:Name="SubtitleTracksButton" Content="{DynamicResource SubtitleTracks}" Click="SubtitleTracksButton_Click"
                             Visibility="Collapsed" ToolTip="{DynamicResource SubtitleTracksTip}" Style="{StaticResource PlayerOverlayButton}" />
-                    <Button x:Name="SaveFrameButton" Style="{StaticResource PlayerOverlaySaveIconGlyphButton}" Content="{DynamicResource SaveFrameAsIcon}"
-                            Click="SaveFrameButton_Click" ToolTip="{DynamicResource SaveFrameAsIconTip}" />
+                    <Button x:Name="SaveFrameButton" Style="{StaticResource PlayerOverlayCameraGlyphButton}"
+                            Click="SaveFrameButton_Click" ToolTip="{DynamicResource SaveFrameTip}"
+                            AutomationProperties.Name="{DynamicResource SaveFrame}" />
                     <Button x:Name="MuteButton" Style="{StaticResource PlayerOverlayVolumeGlyphButton}" Content="{DynamicResource Mute}" Click="MuteButton_Click"
                             ToolTip="{DynamicResource MuteTip}" />
                     <Slider x:Name="VolumeSlider" Width="100" Minimum="0" Maximum="100" Value="100" TickFrequency="10"
@@ -46,7 +47,10 @@
         </Border>
         <Border x:Name="FrameSavedToast" VerticalAlignment="Center" HorizontalAlignment="Center"
                 Background="#C8000000" CornerRadius="6" Padding="20,13" Opacity="0" IsHitTestVisible="False">
-            <TextBlock Text="{DynamicResource FrameSavedAsIcon}" Foreground="White" FontSize="18" FontWeight="SemiBold" />
+            <!-- SP-0038: the text now names the file written (or the failure), so it is assigned in code
+                 instead of following a DynamicResource. -->
+            <TextBlock x:Name="FrameToastText" Foreground="White" FontSize="18" FontWeight="SemiBold"
+                       MaxWidth="720" TextWrapping="Wrap" TextAlignment="Center" />
         </Border>
         </Grid>
     </Grid>

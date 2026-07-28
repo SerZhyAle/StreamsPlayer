@@ -175,9 +175,14 @@
     <sys:String x:Key="Mute">নিঃশব্দ</sys:String>
     <sys:String x:Key="Unmute">শব্দ চালু</sys:String>
     <sys:String x:Key="MuteTip">ভিডিওর শব্দ বন্ধ বা চালু করুন</sys:String>
-    <sys:String x:Key="SaveFrameAsIcon">আইকন সংরক্ষণ</sys:String>
-    <sys:String x:Key="SaveFrameAsIconTip">বর্তমান ফ্রেমটি এই চ্যানেলের আইকন হিসেবে সংরক্ষণ করুন</sys:String>
-    <sys:String x:Key="FrameSavedAsIcon">ফ্রেম চ্যানেলের আইকন হিসেবে সংরক্ষিত হয়েছে</sys:String>
+    <sys:String x:Key="SaveFrame">ফ্রেম সংরক্ষণ</sys:String>
+    <sys:String x:Key="SaveFrameTip">বর্তমান ফ্রেমটি ছবির ফাইল হিসেবে এবং এই চ্যানেলের আইকন হিসেবে সংরক্ষণ করুন</sys:String>
+    <sys:String x:Key="FrameSaved">ফ্রেম সংরক্ষিত হয়েছে: {0}</sys:String>
+    <sys:String x:Key="FrameSaveFailed">ফ্রেম সংরক্ষণ করা যায়নি</sys:String>
+    <sys:String x:Key="FrameFolderLabel">ফ্রেম ফোল্ডার</sys:String>
+    <sys:String x:Key="FrameFolderHint">সংরক্ষিত ফ্রেম এখানে লেখা হয়। ডাউনলোড ফোল্ডার ব্যবহার করতে এটি খালি রাখুন।</sys:String>
+    <sys:String x:Key="FrameFolderBrowse">ফোল্ডার বাছাই করুন..</sys:String>
+    <sys:String x:Key="FrameFolderReset">ডাউনলোড ব্যবহার করুন</sys:String>
     <sys:String x:Key="VolumeTip">ভিডিওর শব্দমাত্রা</sys:String>
     <sys:String x:Key="VolumeName">ভিডিওর শব্দমাত্রা</sys:String>
     <sys:String x:Key="AudioVolumeTip">অডিওর শব্দমাত্রা</sys:String>

@@ -62,7 +62,14 @@
             <Style x:Key="PlayerOverlayVolumeGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,10H8L13,6V18L8,14H4ZM16,9A4,4 0 0 1 16,15M18,7A7,7 0 0 1 18,17" /></Style.Resources>
             </Style>
-            <Style x:Key="PlayerOverlaySaveIconGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
+            <!-- SP-0038: the camera carries the whole meaning, so this one overlay button drops its
+                 caption; its tooltip still names the action, as every player button does. -->
+            <Style x:Key="PlayerOverlayGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="Background" Value="#99000000" />
+                <Setter Property="BorderBrush" Value="#80FFFFFF" />
+                <Setter Property="Foreground" Value="White" />
+            </Style>
+            <Style x:Key="PlayerOverlayCameraGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphOnlyButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M3,7H7L9,5H15L17,7H21V19H3ZM12,10A3,3 0 1 0 12,16A3,3 0 1 0 12,10" /></Style.Resources>
             </Style>
             <Style x:Key="PlayerOverlayFullscreenGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
@@ -74,11 +81,24 @@
             <Style x:Key="PlayerOverlayPinGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M8,4H16V10L19,13V15H5V13L8,10ZM12,15V21" /></Style.Resources>
             </Style>
-            <!-- SP-0034: glyph only. It used to show a two-letter badge, which does not survive thirteen
-                 languages: the label width changed per language and Ukrainian rendered as "UK". Meaning
-                 now comes from the tooltip and the automation name, both localized. -->
-            <Style x:Key="LanguageGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
-                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M3,5H15M3,12H15M3,19H15M5,3V21M13,3V21" /></Style.Resources>
+            <!-- SP-0034/2026-07-28: language is a property of the interface, not a country, so use an
+                 outlined globe and the localized label rather than a flag or an ambiguous code. -->
+            <Style x:Key="LanguageGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="ContentTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Viewbox Width="16" Height="16" Margin="0,0,7,0" VerticalAlignment="Center">
+                                    <Path Data="M12,3A9,9 0 1 0 12,21A9,9 0 1 0 12,3M3,12H21M12,3C9,6 9,18 12,21M12,3C15,6 15,18 12,21"
+                                          Fill="Transparent"
+                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                          StrokeThickness="1.6" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                </Viewbox>
+                                <ContentPresenter Content="{Binding}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
             <Style x:Key="ListGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,5H20M4,12H20M4,19H20" /></Style.Resources>

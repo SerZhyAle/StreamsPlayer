@@ -28,17 +28,18 @@
                            VerticalAlignment="Center" Margin="12,0" TextTrimming="CharacterEllipsis" />
             </Grid>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <!-- SP-0034: opens a dedicated selection window rather than a flat checkable menu. A
-                     glyph rather than a two-letter badge, so no layout width depends on a language code
-                     and nothing has to render "UK" for Ukrainian. -->
+                <!-- SP-0034: opens a dedicated selection window rather than a flat checkable menu. The
+                     localized label avoids an ambiguous language-code badge. -->
                 <Button x:Name="LanguageButton" Style="{StaticResource LanguageGlyphButton}"
-                        Click="LanguageButton_Click" Padding="9,4"
+                        Content="{DynamicResource Language}" Click="LanguageButton_Click"
                         ToolTip="{DynamicResource LanguagePickerName}"
                         AutomationProperties.Name="{DynamicResource LanguagePickerName}" />
                 <CheckBox x:Name="MainTopmostCheckBox" Content="{DynamicResource AlwaysOnTop}"
                           Checked="MainTopmostCheckBox_Changed" Unchecked="MainTopmostCheckBox_Changed"
                           IsEnabled="False" VerticalAlignment="Center" Margin="6,0"
                           AutomationProperties.Name="{DynamicResource MainAlwaysOnTopName}" />
+                <!-- One switch, not a pair: only the mode you are not in is offered, so the header carries
+                     one button instead of two of which one is always dead. -->
                 <Button x:Name="ListModeButton" Style="{StaticResource ListGlyphButton}" Content="{DynamicResource List}" Click="ListModeButton_Click"
                         ToolTip="{DynamicResource ListTip}" AutomationProperties.Name="{DynamicResource ListName}" />
                 <Button x:Name="GridModeButton" Style="{StaticResource GridGlyphButton}" Content="{DynamicResource Grid}" Click="GridModeButton_Click"
@@ -50,8 +51,6 @@
                         ToolTip="{DynamicResource HistoryTip}" AutomationProperties.Name="{DynamicResource HistoryTip}" />
                 <Button x:Name="SettingsButton" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource Settings}" Click="SettingsButton_Click"
                         ToolTip="{DynamicResource SettingsTip}" AutomationProperties.Name="{DynamicResource SettingsName}" />
-                <Button x:Name="HiddenChannelsButton" Style="{StaticResource HiddenGlyphButton}" Content="{DynamicResource ManageHiddenOpen}" Click="HiddenChannelsButton_Click"
-                        Visibility="Collapsed" ToolTip="{DynamicResource ManageHiddenTip}" AutomationProperties.Name="{DynamicResource ManageHiddenTip}" />
                 <Button x:Name="AddButton" Style="{StaticResource AddGlyphButton}" Content="{DynamicResource AddStreamPlain}" Click="AddButton_Click" />
                 <Button x:Name="RefreshButton" Style="{StaticResource RefreshGlyphButton}" Content="{DynamicResource UpdateCatalogPlain}" Click="RefreshButton_Click"
                         Background="{StaticResource AccentBrush}" Foreground="White" />

@@ -175,9 +175,14 @@
     <sys:String x:Key="Mute">Stumm</sys:String>
     <sys:String x:Key="Unmute">Ton ein</sys:String>
     <sys:String x:Key="MuteTip">Videoton stummschalten oder einschalten</sys:String>
-    <sys:String x:Key="SaveFrameAsIcon">Symbol speichern</sys:String>
-    <sys:String x:Key="SaveFrameAsIconTip">Das aktuelle Bild als Symbol dieses Kanals speichern</sys:String>
-    <sys:String x:Key="FrameSavedAsIcon">Bild als Kanalsymbol gespeichert</sys:String>
+    <sys:String x:Key="SaveFrame">Bild speichern</sys:String>
+    <sys:String x:Key="SaveFrameTip">Das aktuelle Bild als Bilddatei und als Symbol dieses Kanals speichern</sys:String>
+    <sys:String x:Key="FrameSaved">Bild gespeichert: {0}</sys:String>
+    <sys:String x:Key="FrameSaveFailed">Das Bild konnte nicht gespeichert werden</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Ordner für Bilder</sys:String>
+    <sys:String x:Key="FrameFolderHint">Hierhin werden gespeicherte Bilder geschrieben. Leer lassen, um den Ordner „Downloads“ zu verwenden.</sys:String>
+    <sys:String x:Key="FrameFolderBrowse">Ordner wählen..</sys:String>
+    <sys:String x:Key="FrameFolderReset">„Downloads“ verwenden</sys:String>
     <sys:String x:Key="VolumeTip">Videolautstärke</sys:String>
     <sys:String x:Key="VolumeName">Videolautstärke</sys:String>
     <sys:String x:Key="AudioVolumeTip">Audiolautstärke</sys:String>

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Win32;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -12,8 +13,11 @@ public partial class SettingsWindow : Window
     private readonly AppLanguage _language;
     private readonly StreamChannel? _selectedChannel;
     private readonly Func<StreamListAction, Window, Task> _runStreamListAction;
+    // SP-0038: null means "unset", which resolves to Downloads at save time. The text box always shows a
+    // real path so the user can see where frames land either way, hence the separate field.
+    private string? _frameFolder;
 
-    public SettingsWindow(StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, MediaBackend videoBackend, AppLanguage language, StreamChannel? selectedChannel, Func<StreamListAction, Window, Task> runStreamListAction)
+    public SettingsWindow(StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, MediaBackend videoBackend, string? frameFolder, AppLanguage language, StreamChannel? selectedChannel, Func<StreamListAction, Window, Task> runStreamListAction)
     {
         InitializeComponent();
         _language = language;
@@ -37,6 +41,8 @@ public partial class SettingsWindow : Window
         };
         VideoBackendBox.ItemsSource = backends;
         VideoBackendBox.SelectedItem = backends.First(item => item.Value == videoBackend.ToString());
+        _frameFolder = frameFolder;
+        ShowFrameFolder();
         VersionText.Text = ProductInfo.Version;
         AuthorText.Text = ProductInfo.Author;
         SelectedStreamText.Text = selectedChannel is null
@@ -51,6 +57,32 @@ public partial class SettingsWindow : Window
     public bool KeepAwakeDuringPlayback => KeepAwakeCheckBox.IsChecked == true;
     public bool SystemMediaControls => SystemMediaControlsCheckBox.IsChecked == true;
     public MediaBackend SelectedVideoBackend => Enum.Parse<MediaBackend>(((UiOption)VideoBackendBox.SelectedItem).Value);
+
+    /// <summary>The chosen frames folder, or <c>null</c> for "wherever Downloads is at save time".</summary>
+    public string? FrameFolder => _frameFolder;
+
+    private void ShowFrameFolder() => FrameFolderBox.Text = CapturedFrameWriter.ResolveFolder(_frameFolder);
+
+    private void FrameFolderBrowse_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFolderDialog
+        {
+            Title = LocalizationService.Get("FrameFolderLabel"),
+            InitialDirectory = CapturedFrameWriter.ResolveFolder(_frameFolder),
+            Multiselect = false
+        };
+        if (dialog.ShowDialog(this) == true)
+        {
+            _frameFolder = dialog.FolderName;
+            ShowFrameFolder();
+        }
+    }
+
+    private void FrameFolderReset_Click(object sender, RoutedEventArgs e)
+    {
+        _frameFolder = null;
+        ShowFrameFolder();
+    }
 
     private void Save_Click(object sender, RoutedEventArgs e) => DialogResult = true;
 
@@ -67,6 +99,11 @@ public partial class SettingsWindow : Window
 
     private async void ExportPinned_Click(object sender, RoutedEventArgs e) =>
         await _runStreamListAction(StreamListAction.ExportPinned, this);
+
+    // Immediate like the delete below: unhiding a channel commits on its own, so Cancel here does not
+    // undo it.
+    private async void ManageHidden_Click(object sender, RoutedEventArgs e) =>
+        await _runStreamListAction(StreamListAction.ManageHidden, this);
 
     // SP-0030: destructive and immediate - the confirmation inside the action is the commit point,
     // so closing Settings with Cancel does not bring the downloaded rows back.

@@ -284,6 +284,14 @@ public sealed record CatalogState
     /// An older state file lacking this key deserializes to the LibVlc default.
     /// </summary>
     public MediaBackend VideoBackend { get; init; } = MediaBackend.LibVlc;
+
+    /// <summary>
+    /// Folder the player writes captured frames into (SP-0038), or <c>null</c> when the user never
+    /// chose one - which means the Windows Downloads folder, resolved at save time. Deliberately not
+    /// filled in on first run: writing a resolved path here would freeze a "Downloads" the user may
+    /// later move, and would turn a default into a preference the user never expressed.
+    /// </summary>
+    public string? FrameFolder { get; init; }
     public Guid? LastSelectedChannelId { get; init; }
     public string CatalogSearchQuery { get; init; } = string.Empty;
     public string CatalogMediaFilter { get; init; } = "All";

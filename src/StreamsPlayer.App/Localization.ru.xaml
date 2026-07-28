@@ -172,9 +172,14 @@
     <sys:String x:Key="Mute">Без звука</sys:String>
     <sys:String x:Key="Unmute">Включить звук</sys:String>
     <sys:String x:Key="MuteTip">Включить или отключить звук видео</sys:String>
-    <sys:String x:Key="SaveFrameAsIcon">Сохранить значок</sys:String>
-    <sys:String x:Key="SaveFrameAsIconTip">Сохранить текущий кадр как значок канала</sys:String>
-    <sys:String x:Key="FrameSavedAsIcon">Кадр сохранён как значок канала</sys:String>
+    <sys:String x:Key="SaveFrame">Сохранить кадр</sys:String>
+    <sys:String x:Key="SaveFrameTip">Сохранить текущий кадр в файл и как значок канала</sys:String>
+    <sys:String x:Key="FrameSaved">Кадр сохранён: {0}</sys:String>
+    <sys:String x:Key="FrameSaveFailed">Не удалось сохранить кадр</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Папка кадров</sys:String>
+    <sys:String x:Key="FrameFolderHint">Куда сохраняются кадры. Оставьте пустым, чтобы использовать папку «Загрузки».</sys:String>
+    <sys:String x:Key="FrameFolderBrowse">Выбрать папку..</sys:String>
+    <sys:String x:Key="FrameFolderReset">Использовать «Загрузки»</sys:String>
     <sys:String x:Key="VolumeTip">Громкость видео</sys:String>
     <sys:String x:Key="VolumeName">Громкость видео</sys:String>
     <sys:String x:Key="AudioVolumeTip">Громкость аудио</sys:String>

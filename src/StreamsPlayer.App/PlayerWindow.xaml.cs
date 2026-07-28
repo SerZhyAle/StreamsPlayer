@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -27,8 +29,11 @@ public partial class PlayerWindow : Window
     private readonly StreamChannel _channel;
     private readonly CurrentLog _log;
     private readonly Action<string, BitmapSource>? _onThumbnail;
+    // SP-0038: read per save, not captured at open, so a folder changed in Settings applies to the next
+    // capture of a player window that is already on screen.
+    private readonly Func<string?> _frameFolder;
     private bool _thumbnailCaptured;
-    // Tags the next snapshot as a user-initiated "save icon" so only that one raises the confirmation toast.
+    // Tags the next snapshot as the user-initiated capture, so only that one writes a file and reports.
     private bool _manualSnapshotPending;
     private volatile bool _closing;
 
@@ -86,6 +91,7 @@ public partial class PlayerWindow : Window
         bool muted,
         Func<int, bool, Task> saveAudioPreferences,
         Action<string, BitmapSource>? onThumbnail,
+        Func<string?> frameFolder,
         MediaBackend backend,
         bool startFullscreen = false)
     {
@@ -93,6 +99,7 @@ public partial class PlayerWindow : Window
         _channel = channel;
         _log = log;
         _onThumbnail = onThumbnail;
+        _frameFolder = frameFolder;
         _recordOutcome = recordOutcome;
         _requestRemove = requestRemove;
         _pinned = pinned;
@@ -198,9 +205,13 @@ public partial class PlayerWindow : Window
         }
     }
 
-    private bool CaptureThumbnail() => _backend.RequestSnapshot(480); // 480 wide, aspect preserved; result via SnapshotReady
+    private const int IconWidth = 480;
 
-    // SP-0024: adopt the frame on screen right now as this channel's grid icon (reuses the snapshot path).
+    private bool CaptureThumbnail() => _backend.RequestSnapshot(IconWidth); // aspect preserved; result via SnapshotReady
+
+    // SP-0038: one press, two effects - the frame on screen is written to a picture file the user owns
+    // and adopted as this channel's grid icon (SP-0024). Zero asks both backends for the stream's own
+    // resolution: the file is the point of the feature, and the icon is downscaled from the same frame.
     private void SaveFrameButton_Click(object sender, RoutedEventArgs e)
     {
         if (!_reachedLive)
@@ -209,7 +220,7 @@ public partial class PlayerWindow : Window
         }
 
         _manualSnapshotPending = true;
-        if (!CaptureThumbnail())
+        if (!_backend.RequestSnapshot(0))
         {
             _manualSnapshotPending = false; // snapshot rejected (e.g. surface not ready) - no toast
         }
@@ -217,22 +228,86 @@ public partial class PlayerWindow : Window
 
     private void Backend_SnapshotReady(BitmapSource frame)
     {
-        // Hand off on the UI thread; the frozen image is safe to encode from a worker later.
+        // Hand off on the UI thread; freezing here is what makes the image safe to encode from a worker.
         Dispatcher.BeginInvoke(() =>
         {
-            _onThumbnail?.Invoke(_channel.Url, frame);
-            if (_manualSnapshotPending)
+            frame = Frozen(frame);
+            if (!_manualSnapshotPending)
             {
-                _manualSnapshotPending = false;
-                ShowFrameSavedToast();
+                _onThumbnail?.Invoke(_channel.Url, frame);
+                return;
             }
+
+            _manualSnapshotPending = false;
+            _onThumbnail?.Invoke(_channel.Url, ToIconSize(frame));
+            _ = SaveFrameFileAsync(frame);
         });
+    }
+
+    /// <summary>
+    /// A frame the file writer can encode from a worker thread. Everything downstream - the icon store
+    /// and the JPG encoder - touches the image off the UI thread, and an unfrozen WPF image belongs to
+    /// the thread that made it; a source that refuses to freeze is copied into one that will.
+    /// </summary>
+    private static BitmapSource Frozen(BitmapSource frame)
+    {
+        if (frame.IsFrozen)
+        {
+            return frame;
+        }
+
+        if (frame.CanFreeze)
+        {
+            frame.Freeze();
+            return frame;
+        }
+
+        var copy = new WriteableBitmap(frame);
+        copy.Freeze();
+        return copy;
+    }
+
+    /// <summary>
+    /// The icon store expects a tile-sized picture, so a stream-resolution capture is scaled down here
+    /// rather than being captured twice - a second snapshot would be a different moment.
+    /// </summary>
+    private static BitmapSource ToIconSize(BitmapSource frame)
+    {
+        if (frame.PixelWidth <= IconWidth)
+        {
+            return frame;
+        }
+
+        var scale = (double)IconWidth / frame.PixelWidth;
+        var scaled = new TransformedBitmap(frame, new ScaleTransform(scale, scale));
+        scaled.Freeze();
+        return scaled;
+    }
+
+    private async Task SaveFrameFileAsync(BitmapSource frame)
+    {
+        try
+        {
+            var path = await CapturedFrameWriter.SaveAsync(
+                frame, _frameFolder(), StreamTitleFormatter.Display(_channel.Title), DateTimeOffset.Now);
+            _log.Event("FRAME SAVE", "ok=true", $"size={frame.PixelWidth}x{frame.PixelHeight}", $"path={path}");
+            ShowFrameToast(LocalizationService.Format("FrameSaved", Path.GetFileName(path)));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
+            or ArgumentException or NotSupportedException or System.Security.SecurityException)
+        {
+            // A folder that vanished, went read-only, or filled up is the user's to fix; the window must
+            // keep playing and say so rather than take down the session.
+            _log.Event("FRAME SAVE", "ok=false", $"err={exception.Message}");
+            ShowFrameToast(LocalizationService.Get("FrameSaveFailed"));
+        }
     }
 
     // ~2s over-video confirmation: fade in, hold, fade out. Independent of the auto-hiding control panel
     // and IsHitTestVisible=false, so it stays legible (and unobtrusive) in fullscreen (AC 4).
-    private void ShowFrameSavedToast()
+    private void ShowFrameToast(string message)
     {
+        FrameToastText.Text = message;
         var fade = new DoubleAnimationUsingKeyFrames();
         fade.KeyFrames.Add(new LinearDoubleKeyFrame(0.0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
         fade.KeyFrames.Add(new LinearDoubleKeyFrame(1.0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(250))));

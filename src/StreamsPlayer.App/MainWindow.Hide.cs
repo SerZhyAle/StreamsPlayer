@@ -1,3 +1,4 @@
+using System.Windows;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -60,7 +61,13 @@ public partial class MainWindow
         SetStatus("DeletedStream", StreamTitleFormatter.Display(channel.Title));
     }
 
-    private void HiddenChannelsButton_Click(object sender, System.Windows.RoutedEventArgs e)
+    /// <summary>
+    /// Opens the hidden-channel manager. Reached from Settings rather than the main header: a hidden
+    /// channel is managed rarely, and its button only ever appeared once something was hidden - a
+    /// control that comes and goes in the header is harder to find than one that always sits in the
+    /// same place. Unhiding commits immediately, so cancelling Settings does not re-hide anything.
+    /// </summary>
+    private Task ShowHiddenChannelsAsync(Window owner)
     {
         var hiddenIdentities = BuildHiddenIdentitySet();
         var rows = _state.Channels
@@ -70,8 +77,9 @@ public partial class MainWindow
                 CatalogUrlIdentity.Redact(channel.Url),
                 channel.Url))
             .ToList();
-        var window = new HiddenChannelsWindow(rows, UnhideAsync) { Owner = this };
+        var window = new HiddenChannelsWindow(rows, UnhideAsync) { Owner = owner };
         window.ShowDialog();
+        return Task.CompletedTask;
     }
 
     /// <summary>Restore a hidden catalog channel. Only the hidden set changes; the channel record is untouched.</summary>

@@ -62,8 +62,10 @@ public partial class MainWindow
 
     private void UpdateViewModeControls()
     {
-        ListModeButton.IsEnabled = IsGridMode;
-        GridModeButton.IsEnabled = !IsGridMode;
+        // The two mode buttons share one slot: the header offers the mode you can switch to, never the
+        // one already active.
+        ListModeButton.Visibility = IsGridMode ? Visibility.Visible : Visibility.Collapsed;
+        GridModeButton.Visibility = IsGridMode ? Visibility.Collapsed : Visibility.Visible;
         RefreshPreviewsButton.Visibility = IsGridMode && GridPreviewFeature.CaptureEnabled && _state.UpdateStreamPreviews
             ? Visibility.Visible
             : Visibility.Collapsed;

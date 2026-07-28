@@ -400,11 +400,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var totalShown = PinnedRows.Count + Rows.Count;
         EmptyPanel.Visibility = totalShown == 0 ? Visibility.Visible : Visibility.Collapsed;
         StreamsList.Visibility = Rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-        // SP-0030: a hidden identity can outlive its row (deleting the downloaded catalog keeps hide
-        // choices for a later refresh), so the button follows rows actually hidden right now.
-        HiddenChannelsButton.Visibility = _state.Channels.Any(channel => IsHiddenBySet(hiddenIdentities, channel))
-            ? Visibility.Visible
-            : Visibility.Collapsed;
         NotifySectionState();
         UpdatePinnedSectionLayout();
         if (!_busy)
@@ -467,18 +462,23 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             ? _state.Channels
             : _state.Channels.Where(channel => !IsHiddenBySet(hiddenIdentities, channel)).ToList();
         SetFacet(CategoryFilter, universe.Select(channel => channel.Category));
+        // The catalog ships well over a hundred broadcast languages, so the one the user reads the
+        // interface in leads the list (with its regional flavours) instead of being hunted for in an
+        // alphabetical run. The selected value is deliberately untouched: this orders, it does not filter.
         SetFacet(LanguageFilter, universe.SelectMany(channel =>
-            channel.Language?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? []));
+            channel.Language?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? []),
+            LocalizationService.CurrentLanguage);
         SetFacet(CountryFilter, universe.Select(channel => channel.Country));
     }
 
-    private static void SetFacet(ComboBox comboBox, IEnumerable<string?> values)
+    private static void SetFacet(ComboBox comboBox, IEnumerable<string?> values, AppLanguage? preferred = null)
     {
         var selected = SelectedOptionValue(comboBox) ?? AllValue;
         var items = new[] { new UiOption(AllValue, LocalizationService.Get("AllOption")) }.Concat(values.Where(value => !string.IsNullOrWhiteSpace(value))
             .Select(value => new UiOption(value!, value!))
             .DistinctBy(value => value.Value, StringComparer.OrdinalIgnoreCase)
-            .OrderBy(value => value.Value == AllValue ? string.Empty : value.Label, StringComparer.OrdinalIgnoreCase)).ToList();
+            .OrderBy(value => preferred is { } language ? (int)CatalogLanguages.Match(value.Value, language) : 0)
+            .ThenBy(value => value.Value == AllValue ? string.Empty : value.Label, StringComparer.OrdinalIgnoreCase)).ToList();
         comboBox.ItemsSource = items;
         comboBox.SelectedItem = items.FirstOrDefault(item => item.Value.Equals(selected, StringComparison.OrdinalIgnoreCase)) ?? items[0];
     }
@@ -960,6 +960,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             _state.VideoMuted,
             SaveVideoAudioPreferencesAsync,
             (url, frame) => _previewCoordinator?.IngestFrame(url, frame),
+            () => _state.FrameFolder,
             _state.VideoBackend,
             startFullscreen) { Owner = this };
         _openPlayerWindows++;

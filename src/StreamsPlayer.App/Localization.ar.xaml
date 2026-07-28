@@ -175,9 +175,14 @@
     <sys:String x:Key="Mute">كتم الصوت</sys:String>
     <sys:String x:Key="Unmute">إلغاء كتم الصوت</sys:String>
     <sys:String x:Key="MuteTip">كتم صوت الفيديو أو إلغاء كتمه</sys:String>
-    <sys:String x:Key="SaveFrameAsIcon">حفظ الأيقونة</sys:String>
-    <sys:String x:Key="SaveFrameAsIconTip">حفظ الإطار الحالي كأيقونة لهذه القناة</sys:String>
-    <sys:String x:Key="FrameSavedAsIcon">حُفظ الإطار كأيقونة للقناة</sys:String>
+    <sys:String x:Key="SaveFrame">حفظ الإطار</sys:String>
+    <sys:String x:Key="SaveFrameTip">حفظ الإطار الحالي كملف صورة وكأيقونة لهذه القناة</sys:String>
+    <sys:String x:Key="FrameSaved">تم حفظ الإطار: {0}</sys:String>
+    <sys:String x:Key="FrameSaveFailed">تعذر حفظ الإطار</sys:String>
+    <sys:String x:Key="FrameFolderLabel">مجلد الإطارات</sys:String>
+    <sys:String x:Key="FrameFolderHint">المكان الذي تُكتب فيه الإطارات المحفوظة. اتركه فارغًا لاستخدام مجلد التنزيلات.</sys:String>
+    <sys:String x:Key="FrameFolderBrowse">اختيار مجلد..</sys:String>
+    <sys:String x:Key="FrameFolderReset">استخدام التنزيلات</sys:String>
     <sys:String x:Key="VolumeTip">مستوى صوت الفيديو</sys:String>
     <sys:String x:Key="VolumeName">مستوى صوت الفيديو</sys:String>
     <sys:String x:Key="AudioVolumeTip">مستوى الصوت</sys:String>

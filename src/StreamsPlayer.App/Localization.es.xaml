@@ -175,9 +175,14 @@
     <sys:String x:Key="Mute">Silenciar</sys:String>
     <sys:String x:Key="Unmute">Activar el sonido</sys:String>
     <sys:String x:Key="MuteTip">Silenciar o activar el sonido del vídeo</sys:String>
-    <sys:String x:Key="SaveFrameAsIcon">Guardar icono</sys:String>
-    <sys:String x:Key="SaveFrameAsIconTip">Guardar el fotograma actual como icono de este canal</sys:String>
-    <sys:String x:Key="FrameSavedAsIcon">Fotograma guardado como icono del canal</sys:String>
+    <sys:String x:Key="SaveFrame">Guardar fotograma</sys:String>
+    <sys:String x:Key="SaveFrameTip">Guardar el fotograma actual como archivo de imagen y como icono de este canal</sys:String>
+    <sys:String x:Key="FrameSaved">Fotograma guardado: {0}</sys:String>
+    <sys:String x:Key="FrameSaveFailed">No se ha podido guardar el fotograma</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Carpeta de fotogramas</sys:String>
+    <sys:String x:Key="FrameFolderHint">Donde se escriben los fotogramas guardados. Déjalo vacío para usar la carpeta Descargas.</sys:String>
+    <sys:String x:Key="FrameFolderBrowse">Elegir carpeta..</sys:String>
+    <sys:String x:Key="FrameFolderReset">Usar Descargas</sys:String>
     <sys:String x:Key="VolumeTip">Volumen del vídeo</sys:String>
     <sys:String x:Key="VolumeName">Volumen del vídeo</sys:String>
     <sys:String x:Key="AudioVolumeTip">Volumen del audio</sys:String>

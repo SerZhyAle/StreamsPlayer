@@ -17,6 +17,7 @@ public enum StreamListAction
     ImportFromUrl,
     ExportAll,
     ExportPinned,
+    ManageHidden,
     DeleteDownloaded
 }
 
@@ -31,6 +32,7 @@ public partial class MainWindow
         StreamListAction.ImportFromUrl => ImportFromUrlAsync(owner),
         StreamListAction.ExportAll => ExportAsync(pinnedOnly: false, owner),
         StreamListAction.ExportPinned => ExportAsync(pinnedOnly: true, owner),
+        StreamListAction.ManageHidden => ShowHiddenChannelsAsync(owner),
         StreamListAction.DeleteDownloaded => DeleteDownloadedChannelsAsync(owner),
         _ => Task.CompletedTask
     };

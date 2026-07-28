@@ -175,9 +175,14 @@
     <sys:String x:Key="Mute">Mute</sys:String>
     <sys:String x:Key="Unmute">Unmute</sys:String>
     <sys:String x:Key="MuteTip">Mute or unmute video audio</sys:String>
-    <sys:String x:Key="SaveFrameAsIcon">Save icon</sys:String>
-    <sys:String x:Key="SaveFrameAsIconTip">Save the current frame as this channel's icon</sys:String>
-    <sys:String x:Key="FrameSavedAsIcon">Frame saved as channel icon</sys:String>
+    <sys:String x:Key="SaveFrame">Save frame</sys:String>
+    <sys:String x:Key="SaveFrameTip">Save the current frame as a picture file and as this channel's icon</sys:String>
+    <sys:String x:Key="FrameSaved">Frame saved: {0}</sys:String>
+    <sys:String x:Key="FrameSaveFailed">Could not save the frame</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Frames folder</sys:String>
+    <sys:String x:Key="FrameFolderHint">Where saved frames are written. Leave it empty to use the Downloads folder.</sys:String>
+    <sys:String x:Key="FrameFolderBrowse">Choose folder..</sys:String>
+    <sys:String x:Key="FrameFolderReset">Use Downloads</sys:String>
     <sys:String x:Key="VolumeTip">Video volume</sys:String>
     <sys:String x:Key="VolumeName">Video volume</sys:String>
     <sys:String x:Key="AudioVolumeTip">Audio volume</sys:String>

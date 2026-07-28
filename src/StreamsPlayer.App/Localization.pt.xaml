@@ -175,9 +175,14 @@
     <sys:String x:Key="Mute">Silenciar</sys:String>
     <sys:String x:Key="Unmute">Ativar o som</sys:String>
     <sys:String x:Key="MuteTip">Silenciar ou ativar o som do vídeo</sys:String>
-    <sys:String x:Key="SaveFrameAsIcon">Salvar ícone</sys:String>
-    <sys:String x:Key="SaveFrameAsIconTip">Salvar o quadro atual como ícone deste canal</sys:String>
-    <sys:String x:Key="FrameSavedAsIcon">Quadro salvo como ícone do canal</sys:String>
+    <sys:String x:Key="SaveFrame">Salvar quadro</sys:String>
+    <sys:String x:Key="SaveFrameTip">Salvar o quadro atual como arquivo de imagem e como ícone deste canal</sys:String>
+    <sys:String x:Key="FrameSaved">Quadro salvo: {0}</sys:String>
+    <sys:String x:Key="FrameSaveFailed">Não foi possível salvar o quadro</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Pasta dos quadros</sys:String>
+    <sys:String x:Key="FrameFolderHint">Onde os quadros salvos são gravados. Deixe vazio para usar a pasta Downloads.</sys:String>
+    <sys:String x:Key="FrameFolderBrowse">Escolher pasta..</sys:String>
+    <sys:String x:Key="FrameFolderReset">Usar Downloads</sys:String>
     <sys:String x:Key="VolumeTip">Volume do vídeo</sys:String>
     <sys:String x:Key="VolumeName">Volume do vídeo</sys:String>
     <sys:String x:Key="AudioVolumeTip">Volume do áudio</sys:String>

@@ -89,6 +89,19 @@
                               AutomationProperties.Name="{DynamicResource VideoBackendLabel}" />
                     <TextBlock Text="{DynamicResource VideoBackendHint}" Foreground="{StaticResource MutedBrush}"
                                TextWrapping="Wrap" Margin="0,5,0,0" />
+                    <!-- SP-0038: where the player's camera button writes its frames. Read-only text plus a
+                         picker, so the stored path is always one Windows itself produced. -->
+                    <TextBlock Text="{DynamicResource FrameFolderLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
+                    <TextBox x:Name="FrameFolderBox" IsReadOnly="True" Margin="0,5,0,0" Padding="7,4"
+                             TextWrapping="NoWrap" AutomationProperties.Name="{DynamicResource FrameFolderLabel}" />
+                    <TextBlock Text="{DynamicResource FrameFolderHint}" Foreground="{StaticResource MutedBrush}"
+                               TextWrapping="Wrap" Margin="0,5,0,0" />
+                    <WrapPanel Margin="0,6,0,0">
+                        <Button x:Name="FrameFolderBrowseButton" Style="{StaticResource ImportGlyphButton}"
+                                Content="{DynamicResource FrameFolderBrowse}" Click="FrameFolderBrowse_Click" />
+                        <Button x:Name="FrameFolderResetButton" Style="{StaticResource ClearGlyphButton}"
+                                Content="{DynamicResource FrameFolderReset}" Click="FrameFolderReset_Click" />
+                    </WrapPanel>
                 </StackPanel>
             </TabItem>
 
@@ -117,6 +130,13 @@
                                 Content="{DynamicResource ExportPinned}" Click="ExportPinned_Click"
                                 ToolTip="{DynamicResource ExportListTip}" />
                     </WrapPanel>
+                    <!-- Moved out of the main header: it belongs with the other catalog-content actions and
+                         is always offered, since the manager itself reports an empty hidden set. -->
+                    <Button x:Name="ManageHiddenButton" Style="{StaticResource HiddenGlyphButton}"
+                            HorizontalAlignment="Left" Margin="0,10,0,0"
+                            Content="{DynamicResource ManageHiddenOpen}" Click="ManageHidden_Click"
+                            ToolTip="{DynamicResource ManageHiddenTip}"
+                            AutomationProperties.Name="{DynamicResource ManageHiddenOpen}" />
                     <!-- SP-0030: destructive catalog cleanup, separated from the reversible import/export row. -->
                     <Separator Margin="0,16,0,12" Background="#FFD5DCE6" />
                     <TextBlock Text="{DynamicResource DeleteDownloadedHint}" Foreground="{StaticResource MutedBrush}"

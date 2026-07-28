@@ -175,9 +175,14 @@
     <sys:String x:Key="Mute">خاموش</sys:String>
     <sys:String x:Key="Unmute">آواز بحال</sys:String>
     <sys:String x:Key="MuteTip">ویڈیو کی آواز خاموش کریں یا بحال کریں</sys:String>
-    <sys:String x:Key="SaveFrameAsIcon">آئیکن محفوظ کریں</sys:String>
-    <sys:String x:Key="SaveFrameAsIconTip">موجودہ فریم کو اس چینل کے آئیکن کے طور پر محفوظ کریں</sys:String>
-    <sys:String x:Key="FrameSavedAsIcon">فریم چینل کے آئیکن کے طور پر محفوظ ہو گیا</sys:String>
+    <sys:String x:Key="SaveFrame">فریم محفوظ کریں</sys:String>
+    <sys:String x:Key="SaveFrameTip">موجودہ فریم کو تصویری فائل کے طور پر اور اس چینل کے آئیکن کے طور پر محفوظ کریں</sys:String>
+    <sys:String x:Key="FrameSaved">فریم محفوظ ہو گیا: {0}</sys:String>
+    <sys:String x:Key="FrameSaveFailed">فریم محفوظ نہیں ہو سکا</sys:String>
+    <sys:String x:Key="FrameFolderLabel">فریم فولڈر</sys:String>
+    <sys:String x:Key="FrameFolderHint">محفوظ کردہ فریم یہاں لکھے جاتے ہیں۔ ڈاؤن لوڈز فولڈر استعمال کرنے کے لیے اسے خالی چھوڑ دیں۔</sys:String>
+    <sys:String x:Key="FrameFolderBrowse">فولڈر منتخب کریں..</sys:String>
+    <sys:String x:Key="FrameFolderReset">ڈاؤن لوڈز استعمال کریں</sys:String>
     <sys:String x:Key="VolumeTip">ویڈیو کی آواز</sys:String>
     <sys:String x:Key="VolumeName">ویڈیو کی آواز</sys:String>
     <sys:String x:Key="AudioVolumeTip">آڈیو کی آواز</sys:String>

@@ -175,9 +175,14 @@
     <sys:String x:Key="Mute">Вимкнути звук</sys:String>
     <sys:String x:Key="Unmute">Увімкнути звук</sys:String>
     <sys:String x:Key="MuteTip">Увімкнути або вимкнути звук відео</sys:String>
-    <sys:String x:Key="SaveFrameAsIcon">Зберегти значок</sys:String>
-    <sys:String x:Key="SaveFrameAsIconTip">Зберегти поточний кадр як значок цього каналу</sys:String>
-    <sys:String x:Key="FrameSavedAsIcon">Кадр збережено як значок каналу</sys:String>
+    <sys:String x:Key="SaveFrame">Зберегти кадр</sys:String>
+    <sys:String x:Key="SaveFrameTip">Зберегти поточний кадр у файл і як значок каналу</sys:String>
+    <sys:String x:Key="FrameSaved">Кадр збережено: {0}</sys:String>
+    <sys:String x:Key="FrameSaveFailed">Не вдалося зберегти кадр</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Тека кадрів</sys:String>
+    <sys:String x:Key="FrameFolderHint">Куди зберігаються кадри. Залиште порожнім, щоб використовувати теку «Завантаження».</sys:String>
+    <sys:String x:Key="FrameFolderBrowse">Вибрати теку..</sys:String>
+    <sys:String x:Key="FrameFolderReset">Використовувати «Завантаження»</sys:String>
     <sys:String x:Key="VolumeTip">Гучність відео</sys:String>
     <sys:String x:Key="VolumeName">Гучність відео</sys:String>
     <sys:String x:Key="AudioVolumeTip">Гучність аудіо</sys:String>

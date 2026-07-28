@@ -16,7 +16,7 @@ public partial class MainWindow
 
     private async void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SettingsWindow(_state.TileSize, _state.UpdateStreamPreviews, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.VideoBackend, LocalizationService.CurrentLanguage, _selectedRow?.Channel, RunStreamListActionAsync)
+        var dialog = new SettingsWindow(_state.TileSize, _state.UpdateStreamPreviews, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.VideoBackend, _state.FrameFolder, LocalizationService.CurrentLanguage, _selectedRow?.Channel, RunStreamListActionAsync)
         {
             Owner = this
         };
@@ -35,7 +35,9 @@ public partial class MainWindow
             KeepAwakeDuringPlayback = dialog.KeepAwakeDuringPlayback,
             SystemMediaControls = dialog.SystemMediaControls,
             // Takes effect on the next player window opened; an already-open player keeps its engine.
-            VideoBackend = dialog.SelectedVideoBackend
+            VideoBackend = dialog.SelectedVideoBackend,
+            // Read per capture, so an open player window picks this up without being reopened (SP-0038).
+            FrameFolder = dialog.FrameFolder
         });
 
         // Toggling off releases an active wake lock immediately; toggling on re-acquires it for any

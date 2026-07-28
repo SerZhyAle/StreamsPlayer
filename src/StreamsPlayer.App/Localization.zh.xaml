@@ -175,9 +175,14 @@
     <sys:String x:Key="Mute">静音</sys:String>
     <sys:String x:Key="Unmute">取消静音</sys:String>
     <sys:String x:Key="MuteTip">开启或关闭视频声音</sys:String>
-    <sys:String x:Key="SaveFrameAsIcon">保存图标</sys:String>
-    <sys:String x:Key="SaveFrameAsIconTip">将当前画面保存为此频道的图标</sys:String>
-    <sys:String x:Key="FrameSavedAsIcon">画面已保存为频道图标</sys:String>
+    <sys:String x:Key="SaveFrame">保存画面</sys:String>
+    <sys:String x:Key="SaveFrameTip">将当前画面保存为图片文件，并作为此频道的图标</sys:String>
+    <sys:String x:Key="FrameSaved">画面已保存：{0}</sys:String>
+    <sys:String x:Key="FrameSaveFailed">无法保存画面</sys:String>
+    <sys:String x:Key="FrameFolderLabel">画面文件夹</sys:String>
+    <sys:String x:Key="FrameFolderHint">保存的画面写入到这里。留空则使用“下载”文件夹。</sys:String>
+    <sys:String x:Key="FrameFolderBrowse">选择文件夹..</sys:String>
+    <sys:String x:Key="FrameFolderReset">使用“下载”</sys:String>
     <sys:String x:Key="VolumeTip">视频音量</sys:String>
     <sys:String x:Key="VolumeName">视频音量</sys:String>
     <sys:String x:Key="AudioVolumeTip">音频音量</sys:String>
