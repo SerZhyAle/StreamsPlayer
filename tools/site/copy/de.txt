@@ -143,7 +143,7 @@ Radio läuft im Hauptfenster.
 Live-Video und RTSP öffnen sich in einem eigenen Playerfenster.
 
 @@cap-play-3
-Live-Puffer von etwa 10 Sekunden mit sichtbarem Pufferfortschritt.
+Live-Puffer von etwa 15 Sekunden mit sichtbarem Pufferfortschritt.
 
 @@cap-play-4
 Lautstärke und Stummschaltung werden gemerkt.
@@ -160,6 +160,9 @@ Randloses Vollbild per Schaltfläche oder F11 (Esc beendet es).
 @@cap-window-3
 Kacheln der Streams: klein, mittel oder groß.
 
+@@cap-window-4
+Aktuelles Bild als JPEG speichern.
+
 @@cap-grid-title
 Visuelles Raster
 
@@ -167,7 +170,7 @@ Visuelles Raster
 Ein Raster, das sichtbare HTTP(S)-Videovorschauen aufnimmt.
 
 @@cap-grid-2
-Behält die letzten 64 Bilder lokal.
+Speichert Vorschaubilder auf der Festplatte, bis zu 150 MB.
 
 @@cap-grid-3
 Die automatische Aktualisierung der Vorschau lässt sich abschalten.
@@ -260,13 +263,13 @@ STREAMS Player hat kein Konto, keine Werbung, keine Analyse, keine Telemetrie un
 Netzwerkzugriff
 
 @@privacy-network
-Die Anwendung verbindet sich, wenn Sie den öffentlichen Stream-Katalog ausdrücklich aktualisieren, einen ausgewählten Stream abspielen oder das Raster aktiv lassen, während sichtbare Videovorschauen aufgenommen werden. Diese Anfragen gehen an den jeweiligen Katalog- oder Stream-Anbieter und unterliegen dessen Richtlinien.
+Die Anwendung verbindet sich, wenn Sie den öffentlichen Stream-Katalog ausdrücklich aktualisieren, einen ausgewählten Stream abspielen oder das Raster aktiv lassen, während sichtbare Videovorschauen aufgenommen werden. Diese Anfragen gehen an den jeweiligen Katalog- oder Stream-Anbieter und unterliegen dessen Richtlinien. Das optionale Vorschaupaket, das nach einer Katalogaktualisierung angeboten wird, wird nur nach Ihrer Zustimmung heruntergeladen.
 
 @@privacy-local-title
 Lokale Daten
 
 @@privacy-local
-STREAMS Player speichert seinen Katalogzustand, manuelle Einträge, Anheftungen, Wiedergabemarken, bis zu 64 zwischengespeicherte Vorschaubilder und das Diagnoseprotokoll der aktuellen Sitzung Current.log unter [[appdata]]. Diese Daten bleiben auf Ihrem Gerät, solange Sie sie nicht selbst kopieren oder sichern.
+STREAMS Player speichert seinen Katalogzustand, manuelle Einträge, Anheftungen, Wiedergabemarken, zwischengespeicherte Vorschaubilder im Rahmen von 150 MB und das Diagnoseprotokoll der aktuellen Sitzung Current.log unter [[appdata]]. Diese Daten bleiben auf Ihrem Gerät, solange Sie sie nicht selbst kopieren oder sichern.
 
 @@privacy-contact-title
 Kontakt

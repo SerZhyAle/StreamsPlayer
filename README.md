@@ -43,14 +43,27 @@ code or features.
 - Read the published stream bank with RFC-4180 CSV, ZIP entry-order, and optional
   favicon-atlas checks.
 - Protect your `MANUAL` and `IMPORTED` rows while updating the catalog by URL.
-- Filter, search, sort, and pin radio, video, and RTSP streams.
+- Filter, search, sort, and pin radio, video, and RTSP streams. The
+  broadcast-language filter leads with your interface language and its regional
+  variants, and still starts on **All**.
 - Keep the main window or video player independently always on top, and expand
   video to a borderless full screen with the button or `F11` (`Esc` exits).
-- Switch to a persisted visual grid that captures visible HTTP(S) video previews
-  sequentially and keeps the latest 64 frames locally.
-- Open compact Settings to choose Small, Medium, or Large stream tiles, disable
-  automatic thumbnail updates, view the `YY.MMDD.HHmm` version, and open project,
-  privacy, instruction, and author pages.
+- Switch between the list and a persisted visual grid with one header button that
+  names the mode you are switching to. The grid captures visible HTTP(S) video
+  previews, up to four at a time, and caches the frames on disk within a 150 MB
+  budget.
+- Open Settings to choose Small, Medium, or Large stream tiles and disable
+  automatic thumbnail updates (**Grid**); keep the computer awake, show system
+  media controls, pick the video backend, and choose the folder for saved frames
+  (**Playback**); and read the `YY.MMDD.HHmm` version and open the instruction,
+  project, website, privacy, and author pages (**About**).
+- Save the frame you are watching from the player's camera button: a JPEG named
+  `Channel_YYYYMMDD-HHmmss` lands in the folder set on the **Playback** tab, or in
+  Downloads when that is empty, and the same frame becomes the channel icon.
+- Answer a failed stream from the failure dialog - **Retry**, **Copy report**,
+  **Keep**, or remove it: a catalog channel is hidden and a channel of your own is
+  deleted after a confirmation. Hidden catalog channels survive a refresh and come
+  back from **Hidden** in Settings, on the **Playlists (M3U)** tab.
 - Add a stream manually and keep local playback outcome marks.
 - Reopen a channel from a private **Recently played** history of the last 100
   channels you played, with the last observed now-playing text when a station
@@ -61,25 +74,31 @@ code or features.
   counts before applying; HLS media manifests import nothing and explain why.
 - Export your added (`MANUAL`/`IMPORTED`) channels, or just the pinned ones, to a
   UTF-8 M3U file, with a warning before writing any credential-bearing URL.
-- Delete every downloaded catalog stream in one confirmed action from Settings and
-  keep only your own `MANUAL`/`IMPORTED` channels; **Update catalog** downloads
-  them again whenever you want them back.
-- Switch the complete interface between thirteen languages from the toolbar
-  language picker, including right-to-left layout for Arabic and Urdu; the choice
-  is restored on the next launch, and the first launch follows Windows.
+- Delete every downloaded catalog stream in one confirmed action from the
+  **Playlists (M3U)** tab in Settings and keep only your own `MANUAL`/`IMPORTED`
+  channels; **Update catalog** downloads them again whenever you want them back.
+- Switch the complete interface between thirteen languages from the language
+  button in the header, including right-to-left layout for Arabic and Urdu; the
+  choice is restored on the next launch, and the first launch follows Windows.
 - Group channels into local named collections, browse one collection at a time
   from the catalog filters, and manage them without touching pins or the catalog.
 - Set a sleep timer for inline radio - 15/30/45/60 minutes or a clock time - and
-  watch the remaining time count down next to Stop; it survives a station switch
-  and ends the session once when it expires.
-- Store catalog state, manual entries, pins, listening history, and the current-session diagnostic `Current.log` under `%LOCALAPPDATA%\StreamsPlayer`.
+  watch the remaining time count down next to **Stop audio**; it survives a
+  station switch and ends the session once when it expires.
+- Store catalog state, manual entries, pins, collections, hidden catalog
+  channels, listening history, cached preview frames, and the current-session
+  diagnostic `Current.log` under `%LOCALAPPDATA%\StreamsPlayer`.
 
 Audio playback uses WPF `MediaElement`; video and RTSP use the bundled LibVLC
-runtime with a target 10-second live buffer and visible buffering progress. Grid
-preview capture also uses LibVLC. Live playback recovers from transient network
-failures and silent stalls with a bounded retry policy, showing a distinct
-Reconnecting state and a clear Retry/Close outcome when recovery is exhausted.
-ICY metadata and advanced player controls remain later milestones.
+runtime with a 15-second live buffer - 4 seconds when a stalled stream is
+re-opened - and visible buffering progress. Grid preview capture also uses
+LibVLC. Live playback recovers from transient network failures and silent stalls
+with a bounded retry policy, showing a distinct Reconnecting state and the
+failure dialog above when recovery is exhausted. A station that publishes ICY
+metadata shows its current track beside the station name and in **Recently
+played**, and in the Windows media session when system media controls are on. The
+video player offers audio-track and subtitle selection whenever a stream carries
+more than one.
 
 ## Run from source
 
@@ -142,8 +161,9 @@ a release. Use `-Deploy:$false` when only the ordinary solution build is needed.
 
 STREAMS Player does not require an account and includes no advertising, analytics,
 telemetry, or author-operated service. Network access happens when you explicitly
-refresh the public catalog, play a selected stream, or keep Grid mode active while
-STREAMS Player refreshes visible video previews. See the
+refresh the public catalog, play a selected stream, keep Grid mode active while
+STREAMS Player refreshes visible video previews, or accept the optional preview
+pack it offers after a catalog update. See the
 [privacy page](https://serzhyale.github.io/StreamsPlayer/privacy.html) for details.
 
 ## Ownership and license

@@ -143,7 +143,7 @@ O rádio toca na janela principal.
 Vídeo ao vivo e RTSP abrem em uma janela de player dedicada.
 
 @@cap-play-3
-Buffer ao vivo de cerca de 10 segundos, com progresso visível.
+Buffer ao vivo de cerca de 15 segundos, com progresso visível.
 
 @@cap-play-4
 O volume e o silenciamento são lembrados.
@@ -160,6 +160,9 @@ Tela cheia sem bordas por botão ou com F11 (Esc sai).
 @@cap-window-3
 Blocos de transmissão pequenos, médios ou grandes.
 
+@@cap-window-4
+Guarde o quadro atual como JPEG.
+
 @@cap-grid-title
 Grade visual
 
@@ -167,7 +170,7 @@ Grade visual
 Uma grade que captura as pré-visualizações de vídeo HTTP(S) visíveis.
 
 @@cap-grid-2
-Guarda localmente os 64 quadros mais recentes.
+Guarda no disco os quadros de pré-visualização, até 150 MB.
 
 @@cap-grid-3
 A atualização automática das pré-visualizações pode ser desligada.
@@ -260,13 +263,13 @@ O STREAMS Player não tem conta, publicidade, análise de uso, telemetria nem se
 Acesso à rede
 
 @@privacy-network
-O aplicativo se conecta quando você atualiza explicitamente o catálogo público de transmissões, reproduz uma transmissão selecionada ou mantém o modo de grade ativo enquanto as pré-visualizações de vídeo visíveis são atualizadas. Essas solicitações vão para o provedor do catálogo ou da transmissão em questão e estão sujeitas às políticas desse provedor.
+O aplicativo se conecta quando você atualiza explicitamente o catálogo público de transmissões, reproduz uma transmissão selecionada ou mantém o modo de grade ativo enquanto as pré-visualizações de vídeo visíveis são atualizadas. Essas solicitações vão para o provedor do catálogo ou da transmissão em questão e estão sujeitas às políticas desse provedor. O pacote de pré-visualizações oferecido após uma atualização do catálogo só é transferido se você aceitar.
 
 @@privacy-local-title
 Dados locais
 
 @@privacy-local
-O STREAMS Player guarda o estado do catálogo, as entradas manuais, os canais fixados, as marcas de reprodução, até 64 quadros de pré-visualização em cache e o Current.log de diagnóstico da sessão atual em [[appdata]]. Esses dados ficam no seu dispositivo, a menos que você escolha copiá-los ou fazer backup deles.
+O STREAMS Player guarda o estado do catálogo, as entradas manuais, os canais fixados, as marcas de reprodução, os quadros de pré-visualização em cache dentro de um limite de 150 MB e o Current.log de diagnóstico da sessão atual em [[appdata]]. Esses dados ficam no seu dispositivo, a menos que você escolha copiá-los ou fazer backup deles.
 
 @@privacy-contact-title
 Contato

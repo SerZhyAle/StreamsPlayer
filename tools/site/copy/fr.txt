@@ -143,7 +143,7 @@ La radio est lue dans la fenêtre principale.
 La vidéo en direct et le RTSP s'ouvrent dans une fenêtre de lecteur dédiée.
 
 @@cap-play-3
-Mémoire tampon de direct d'environ 10 secondes, avec la progression de la mise en mémoire tampon visible.
+Mémoire tampon de direct d'environ 15 secondes, avec la progression de la mise en mémoire tampon visible.
 
 @@cap-play-4
 Le volume et le mode muet sont mémorisés.
@@ -160,6 +160,9 @@ Plein écran sans bordure, par un bouton ou avec F11 (Esc pour quitter).
 @@cap-window-3
 Vignettes de flux petites, moyennes ou grandes.
 
+@@cap-window-4
+Enregistrez l'image en cours au format JPEG.
+
 @@cap-grid-title
 Grille visuelle
 
@@ -167,7 +170,7 @@ Grille visuelle
 Une grille qui capture les aperçus des vidéos HTTP(S) visibles.
 
 @@cap-grid-2
-Conserve localement les 64 dernières images.
+Conserve les images d'aperçu sur le disque, jusqu'à 150 Mo.
 
 @@cap-grid-3
 L'actualisation automatique des aperçus peut être désactivée.
@@ -260,13 +263,13 @@ STREAMS Player n'a ni compte, ni publicité, ni analyse d'usage, ni télémétri
 Accès au réseau
 
 @@privacy-network
-L'application se connecte quand vous actualisez explicitement le catalogue public de flux, quand vous lisez un flux sélectionné, ou quand vous laissez la vue en grille active pendant que les aperçus vidéo visibles s'actualisent. Ces requêtes vont au fournisseur du catalogue ou du flux concerné et relèvent des politiques de ce fournisseur.
+L'application se connecte quand vous actualisez explicitement le catalogue public de flux, quand vous lisez un flux sélectionné, ou quand vous laissez la vue en grille active pendant que les aperçus vidéo visibles s'actualisent. Ces requêtes vont au fournisseur du catalogue ou du flux concerné et relèvent des politiques de ce fournisseur. Le pack d'aperçus proposé après une mise à jour du catalogue n'est téléchargé que si vous l'acceptez.
 
 @@privacy-local-title
 Données locales
 
 @@privacy-local
-STREAMS Player enregistre dans [[appdata]] l'état de son catalogue, les entrées ajoutées à la main, les épinglages, les marques de lecture, jusqu'à 64 images d'aperçu en cache et le journal de diagnostic de la session en cours Current.log. Ces données restent sur votre appareil, sauf si vous choisissez de les copier ou de les sauvegarder.
+STREAMS Player enregistre dans [[appdata]] l'état de son catalogue, les entrées ajoutées à la main, les épinglages, les marques de lecture, les images d'aperçu en cache dans une limite de 150 Mo et le journal de diagnostic de la session en cours Current.log. Ces données restent sur votre appareil, sauf si vous choisissez de les copier ou de les sauvegarder.
 
 @@privacy-contact-title
 Contact

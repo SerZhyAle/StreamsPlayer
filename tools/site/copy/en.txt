@@ -143,7 +143,7 @@ Radio plays in the main window.
 Live video & RTSP open in a focused player window.
 
 @@cap-play-3
-~10-second live buffer with visible buffering progress.
+~15-second live buffer with visible buffering progress.
 
 @@cap-play-4
 Volume and mute are remembered.
@@ -160,6 +160,9 @@ Borderless full screen with a button or F11 (Esc exits).
 @@cap-window-3
 Small, Medium, or Large stream tiles.
 
+@@cap-window-4
+Save the frame you are watching as a JPEG.
+
 @@cap-grid-title
 Visual grid
 
@@ -167,7 +170,7 @@ Visual grid
 A grid that captures visible HTTP(S) video previews.
 
 @@cap-grid-2
-Keeps the latest 64 frames locally.
+Caches preview frames on disk, up to 150 MB.
 
 @@cap-grid-3
 Automatic preview updates can be turned off.
@@ -260,13 +263,13 @@ STREAMS Player has no account, advertising, analytics, telemetry, or service ope
 Network access
 
 @@privacy-network
-The application connects when you explicitly refresh the public stream catalog, play a selected stream, or keep Grid mode active while visible video previews refresh. Those requests go to the relevant catalog or stream provider and are subject to that provider's policies.
+The application connects when you explicitly refresh the public stream catalog, play a selected stream, or keep Grid mode active while visible video previews refresh. Those requests go to the relevant catalog or stream provider and are subject to that provider's policies. The optional preview pack offered after a catalog update is downloaded only if you accept it.
 
 @@privacy-local-title
 Local data
 
 @@privacy-local
-STREAMS Player stores its catalog state, manual entries, pins, playback marks, up to 64 cached preview frames, and the current-session diagnostic Current.log under [[appdata]]. This data stays on your device unless you choose to copy or back it up.
+STREAMS Player stores its catalog state, manual entries, pins, playback marks, cached preview frames within a 150 MB budget, and the current-session diagnostic Current.log under [[appdata]]. This data stays on your device unless you choose to copy or back it up.
 
 @@privacy-contact-title
 Contact

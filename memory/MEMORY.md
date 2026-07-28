@@ -27,6 +27,21 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
 
 ## Project
 
+- **The README trio is the product's manual, not repo prose.** Settings -> Instructions opens
+  `README.md`, `README.ru.md` or `README.uk.md` by interface language
+  (`ProductInfo.InstructionsUrl`), so a UI change is not finished until all three describe it.
+  Nothing gates the mirrors: the Russian file had silently lost listening history and the whole
+  M3U import/export section, and the English text still called ICY metadata a "later milestone"
+  long after it shipped (2026-07-28).
+- **Figures quoted in prose had never matched the code.** "10-second live buffer" (really 15 s,
+  4 s when a stalled stream is re-opened - `PlayerWindow`) and "the latest 64 frames" (really a
+  150 MB disk budget - `PreviewFrameStore`) had propagated into the README trio, all thirteen
+  `tools/site/copy/*.txt` decks and the privacy pages. A number in prose has no test behind it:
+  when auditing docs, re-read the constant instead of trusting the sentence (2026-07-28).
+- **`tools/site/build-site.ps1 -Check` false-fails on a fresh Windows checkout.** `.gitattributes`
+  declares `*.html eol=crlf` while the generator writes LF, so its byte comparison reports all 27
+  generated files stale when the content is identical - `git diff` after a regeneration is what
+  actually tells you whether the site changed (2026-07-28).
 - Catalog text search (`ApplyFilter`, `MainWindow.xaml.cs`) intentionally matches
   Title **OR** Topic **OR** Language. Channels whose *category/topic* matches (e.g.
   "Sports") appear even without the term in their name - this looks "unfiltered"

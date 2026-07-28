@@ -143,7 +143,7 @@ La radio si ascolta nella finestra principale.
 Video live e RTSP si aprono in una finestra del lettore dedicata.
 
 @@cap-play-3
-Buffer live di circa 10 secondi con avanzamento del buffering visibile.
+Buffer live di circa 15 secondi con avanzamento del buffering visibile.
 
 @@cap-play-4
 Volume e disattivazione dell'audio vengono ricordati.
@@ -160,6 +160,9 @@ Schermo intero senza bordi con un pulsante o con F11 (Esc esce).
 @@cap-window-3
 Riquadri dei flussi piccoli, medi o grandi.
 
+@@cap-window-4
+Salva il fotogramma corrente come JPEG.
+
 @@cap-grid-title
 Griglia visiva
 
@@ -167,7 +170,7 @@ Griglia visiva
 Una griglia che cattura le anteprime video HTTP(S) visibili.
 
 @@cap-grid-2
-Conserva in locale gli ultimi 64 fotogrammi.
+Conserva sul disco i fotogrammi di anteprima, fino a 150 MB.
 
 @@cap-grid-3
 L'aggiornamento automatico delle anteprime si può disattivare.
@@ -260,13 +263,13 @@ STREAMS Player non ha account, pubblicità, analisi, telemetria né servizi gest
 Accesso alla rete
 
 @@privacy-network
-L'applicazione si collega quando aggiorni esplicitamente il catalogo pubblico dei flussi, quando riproduci un flusso selezionato o quando tieni attiva la griglia mentre le anteprime video visibili vengono aggiornate. Queste richieste vanno al fornitore del catalogo o del flusso interessato e sono soggette alle sue politiche.
+L'applicazione si collega quando aggiorni esplicitamente il catalogo pubblico dei flussi, quando riproduci un flusso selezionato o quando tieni attiva la griglia mentre le anteprime video visibili vengono aggiornate. Queste richieste vanno al fornitore del catalogo o del flusso interessato e sono soggette alle sue politiche. Il pacchetto di anteprime proposto dopo un aggiornamento del catalogo viene scaricato solo se lo accetti.
 
 @@privacy-local-title
 Dati locali
 
 @@privacy-local
-STREAMS Player salva lo stato del catalogo, le voci aggiunte a mano, i canali fissati, i contrassegni di riproduzione, fino a 64 fotogrammi di anteprima nella cache e il registro diagnostico della sessione corrente Current.log in [[appdata]]. Questi dati restano sul tuo dispositivo, a meno che tu non scelga di copiarli o di farne una copia di backup.
+STREAMS Player salva lo stato del catalogo, le voci aggiunte a mano, i canali fissati, i contrassegni di riproduzione, i fotogrammi di anteprima nella cache entro un limite di 150 MB e il registro diagnostico della sessione corrente Current.log in [[appdata]]. Questi dati restano sul tuo dispositivo, a meno che tu non scelga di copiarli o di farne una copia di backup.
 
 @@privacy-contact-title
 Contatti

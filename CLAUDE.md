@@ -46,7 +46,7 @@ StreamsPlayer.Core.Tests ────┘
 
 ### Media playback
 
-Audio uses WPF `MediaElement`. Video/RTSP and grid preview capture use bundled LibVLC (`LibVLCSharp`, `VideoLAN.LibVLC.Windows`) with a ~10s live buffer. The Core library has no media dependency.
+Audio uses WPF `MediaElement`. Video/RTSP and grid preview capture use bundled LibVLC (`LibVLCSharp`, `VideoLAN.LibVLC.Windows`) with a 15s live buffer (4s when a stalled stream is re-opened). The Core library has no media dependency.
 
 ## Conventions
 
