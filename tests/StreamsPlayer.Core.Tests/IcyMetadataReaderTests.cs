@@ -9,7 +9,7 @@ namespace StreamsPlayer.Core.Tests;
 public sealed class IcyMetadataReaderTests
 {
     [Fact]
-    public async Task ReadAsync_ReportsChangedStreamTitlesFromIcyStream()
+    public async Task ReadAsync_ReportsChangedStreamTitlesFromIcyStreamInOrder()
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         var listener = new TcpListener(IPAddress.Loopback, 0);
@@ -17,26 +17,12 @@ public sealed class IcyMetadataReaderTests
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
         _ = Task.Run(() => RunIcyServerAsync(listener, cts.Token), cts.Token);
 
-        var sync = new object();
-        var reported = new List<string?>();
-        var gotBoth = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var progress = new Progress<string?>(title =>
-        {
-            lock (sync)
-            {
-                reported.Add(title);
-                if (reported.Count >= 2)
-                {
-                    gotBoth.TrySetResult();
-                }
-            }
-        });
-
+        var recorder = new TitleRecorder(expected: 2);
         using var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
         var reader = new IcyMetadataReader(client);
-        var readTask = reader.ReadAsync($"http://127.0.0.1:{port}/", progress, cts.Token);
+        var readTask = reader.ReadAsync($"http://127.0.0.1:{port}/", recorder, cts.Token);
 
-        await Task.WhenAny(gotBoth.Task, Task.Delay(TimeSpan.FromSeconds(12), cts.Token));
+        await recorder.Expected.WaitAsync(TimeSpan.FromSeconds(12), cts.Token);
         cts.Cancel();
         try
         {
@@ -49,12 +35,7 @@ public sealed class IcyMetadataReaderTests
 
         listener.Stop();
 
-        lock (sync)
-        {
-            Assert.Equal(2, reported.Count);
-            Assert.Equal("Test Artist - Test Song", reported[0]);
-            Assert.Equal("Second Track", reported[1]);
-        }
+        Assert.Equal(["Test Artist - Test Song", "Second Track"], recorder.Titles);
     }
 
     [Fact]
@@ -66,17 +47,63 @@ public sealed class IcyMetadataReaderTests
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
         _ = Task.Run(() => RunPlainServerAsync(listener, cts.Token), cts.Token);
 
-        var reportedAny = false;
-        var progress = new Progress<string?>(_ => reportedAny = true);
-
+        var recorder = new TitleRecorder(expected: 1);
         using var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
         var reader = new IcyMetadataReader(client);
 
         // No icy-metaint header: the reader must return cleanly without reporting.
-        await reader.ReadAsync($"http://127.0.0.1:{port}/", progress, cts.Token);
+        await reader.ReadAsync($"http://127.0.0.1:{port}/", recorder, cts.Token);
         listener.Stop();
 
-        Assert.False(reportedAny);
+        Assert.Empty(recorder.Titles);
+    }
+
+    /// <summary>
+    /// SP-0036: records reported titles in the order the reader produced them.
+    /// <para>
+    /// These tests used <see cref="Progress{T}"/>, whose contract is to <em>post</em> each callback - with
+    /// no ambient <see cref="SynchronizationContext"/> that means one thread-pool work item per report,
+    /// and two work items can run in either order. The reader itself reports strictly in sequence inside
+    /// one loop, so the sequence was only ever lost in the observer: the assertion on the first title
+    /// occasionally saw the second one. The application is unaffected - it builds its
+    /// <see cref="Progress{T}"/> on the UI thread, where posts run in dispatcher order.
+    /// </para>
+    /// <para>
+    /// Implementing <see cref="IProgress{T}"/> directly makes <c>Report</c> run inline on the reader's
+    /// thread, so the recorded list is the reader's own order by construction rather than by timing.
+    /// </para>
+    /// </summary>
+    private sealed class TitleRecorder(int expected) : IProgress<string?>
+    {
+        private readonly object _sync = new();
+        private readonly List<string?> _titles = [];
+        private readonly TaskCompletionSource _expected = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        /// <summary>Completes once the expected number of titles has been reported.</summary>
+        internal Task Expected => _expected.Task;
+
+        internal IReadOnlyList<string?> Titles
+        {
+            get
+            {
+                lock (_sync)
+                {
+                    return [.. _titles];
+                }
+            }
+        }
+
+        public void Report(string? value)
+        {
+            lock (_sync)
+            {
+                _titles.Add(value);
+                if (_titles.Count >= expected)
+                {
+                    _expected.TrySetResult();
+                }
+            }
+        }
     }
 
     private static async Task RunIcyServerAsync(TcpListener listener, CancellationToken token)
