@@ -46,9 +46,11 @@ individual developer account is free.
 ```
 
 Output: `msix/dist/StreamsPlayer-<version>-windows-x64.msix`.
-The package bundles `LICENSE.txt` (MIT) **and** `THIRD-PARTY-NOTICES.txt`
+The package bundles `LICENSE.txt` (MIT) **and** the repo-root `THIRD-PARTY-NOTICES.txt`
 (LibVLC/VLC LGPL+GPL, FFmpeg/Flyleaf) - required because the app redistributes
-LGPL/GPL native media libraries. Do not remove the notices file.
+LGPL/GPL native media libraries. Do not remove the notices file. The same file
+ships inside the portable release zip, for the same reason - the obligation
+belongs to the redistribution, not to one packaging format.
 
 Requires the Windows SDK (`makeappx.exe`, and `signtool.exe` for `-SelfSign`):
 `winget install Microsoft.WindowsSDK`.
