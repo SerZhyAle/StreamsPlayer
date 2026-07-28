@@ -37,8 +37,14 @@ substitution. This is the failure mode to check first when validation rejects a 
 fine (2026-07-27).
 
 Either way, winget can only be refreshed **after** an approved GitHub Release
-exists. Release `v26.0727.0253` is published and the winget package is live, so
-use the flow above to submit each subsequent version.
+exists. The package is live; use the flow above to submit each subsequent version.
+
+Submission state as of 2026-07-28. `winget-pkgs` serves **26.0723.1040**. Two
+pull requests are open and unmerged - [#408215](https://github.com/microsoft/winget-pkgs/pull/408215)
+for 26.0727.0253 (opened 2026-07-27, still only bot activity) and
+[#408825](https://github.com/microsoft/winget-pkgs/pull/408825) for 26.0728.1352.
+Review latency there is days, not hours: do not treat an unmerged PR as a failure,
+and do not re-submit the same version because it has not landed yet.
 
 The package is published under the identifier `SerZhyAle.StreamsPlayer`. Keep this
 permanent identifier for every future submission.

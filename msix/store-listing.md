@@ -61,6 +61,43 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.0728.1352
+
+Paste these as-is at the next Partner Center submission; the ten other languages get the English
+block. Kept here rather than substituted into the template above, because the template outlives the
+release. The same five bullets ship in the GitHub Release body and in the three winget locale
+manifests, so any edit here has to be made there too or the surfaces disagree.
+
+```text
+Version 26.0728.1352
+
+- The broadcast-language filter lists your interface language first, together with its regional variants.
+- The header shows only the view mode you can switch to.
+- Hidden channels moved into Settings, on the Playlists (M3U) tab.
+- The player's camera button saves the current frame as a JPEG into a folder you choose, or Downloads.
+- Local settings survive a value written by a newer build instead of resetting the catalog.
+```
+
+```text
+Версия 26.0728.1352
+
+- Фильтр языков вещания ставит язык интерфейса первым, вместе с региональными вариантами.
+- В шапке показана только та кнопка режима, в который можно переключиться.
+- Спрятанные каналы переехали в настройки, на вкладку «Плейлисты (M3U)».
+- Кнопка с фотоаппаратом в плеере сохраняет текущий кадр в JPEG в выбранную папку или в «Загрузки».
+- Локальные настройки переживают значение, записанное более новой сборкой, без сброса каталога.
+```
+
+```text
+Версія 26.0728.1352
+
+- Фільтр мов мовлення ставить мову інтерфейсу першою, разом з регіональними варіантами.
+- У шапці показана лише та кнопка режиму, у який можна перемкнутися.
+- Приховані канали переїхали в налаштування, на вкладку «Плейлисти (M3U)».
+- Кнопка з фотоапаратом у програвачі зберігає поточний кадр у JPEG у вибрану теку або в «Завантаження».
+- Локальні налаштування переживають значення, записане новішою збіркою, без скидання каталогу.
+```
+
 ## Additional system requirements
 
 Enter these as separate items without manual bullets:
