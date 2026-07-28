@@ -968,6 +968,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         window.Closed += async (_, _) =>
         {
             _openPlayerWindows = Math.Max(0, _openPlayerWindows - 1);
+
+            // Closing the player leaves activation with whatever application sits next in the z-order
+            // instead of returning it to this owner, so the catalog dropped behind unrelated windows and
+            // had to be fished out of the taskbar. Only the last player window does this, so closing one
+            // of several never pulls focus off the ones still playing, and a minimized or hidden catalog
+            // is left where the user put it.
+            if (_openPlayerWindows == 0 && IsVisible && WindowState != WindowState.Minimized)
+            {
+                Activate();
+            }
+
             await StartPreviewsAsync();
         };
         window.Show();
