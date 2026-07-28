@@ -1,6 +1,8 @@
 # SP-0037: Russian surface audit
 
-**Status:** Draft
+**Status:** Archived - cancelled by the owner on 2026-07-28 without being started. The three findings
+below are preserved as the record; nothing in the working tree was changed for this ticket. Reopen by
+copying them into a fresh ticket rather than reviving this one.
 
 ## Problem
 

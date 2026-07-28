@@ -122,6 +122,10 @@ set, closing a gap that exists today.
    language by its own endonym, keyboard-navigable, with the active language clearly
    marked, and reachable without knowing any of the other twelve languages.
 
+   **2026-07-28 UI adjustment:** the main-window entry point uses an outlined globe and
+   the localized `Language` label (for example, «Язык» in Russian). A flag is deliberately
+   not used: it represents a country rather than an interface language.
+
 7. **An unknown saved language must never cost the user their state.** Local state is a
    single file holding the language alongside catalog, collection and window data. A
    preference written by a newer build and read by an older one must degrade to English
