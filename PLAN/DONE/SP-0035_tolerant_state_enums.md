@@ -1,6 +1,6 @@
 # SP-0035: Tolerant enum handling across the whole persisted state
 
-**Status:** Draft
+**Status:** Verified
 
 ## Problem
 
@@ -44,3 +44,33 @@ their catalog. SP-0034 removed the language trigger but not the class of failure
 
 Parked out of SP-0034, whose scope was the language field only (its Decision 7). Discovered while
 auditing that ticket on 2026-07-27; see its `## Last Audit` finding A for the data-loss mechanism.
+
+## Resolution (2026-07-28)
+
+`TolerantEnumConverter<TEnum>` and its optional sibling `TolerantNullableEnumConverter<TEnum>` are
+registered once in `StreamCatalogStore`'s serializer options, ahead of `JsonStringEnumConverter`, and
+cover every enum the state persists: `ViewMode`, `TileSize`, `VideoBackend`, `MediaKind`,
+`SourceOrigin`, `Access` and the optional `LastPlayOutcome`. An unknown name, an out-of-range number,
+an explicit null, or structural garbage costs that one field and nothing else; the reader is left
+positioned so the rest of the document deserializes normally.
+
+Two fallbacks are chosen to protect data rather than to restore a default:
+
+- an unreadable `SourceOrigin` reads as `Manual`, the origin a catalog refresh never rewrites or prunes,
+  so a row whose origin was lost cannot be deleted by the next refresh;
+- an unreadable `MediaKind` reads as `Video`, whose player also handles audio and RTSP.
+
+`LastPlayOutcome` is optional, so an unreadable value reads as absent instead of inventing a recorded
+failure. Writing is unchanged - every enum still persists by member name - and a value outside the enum
+is normalized on write, so this build never plants a token it cannot read back.
+
+Not done here, and still open: quarantining an unreadable `catalog-state.json` (the "consider
+separately" paragraph above). This ticket removed the enum triggers, not the class of failure.
+
+## Verification (2026-07-28)
+
+- `./scripts/check.ps1` (Release restore + build + test) - expected: green, including the new
+  `CatalogStateEnumToleranceTests` (7 unreadable shapes x 7 enums, plus mixed, missing-property and
+  round-trip facts) | actual: `Total tests: 381, Passed: 381`, 0 warnings, 0 errors.
+- expected: one unreadable enum leaves every other enum, the channel list, collections, history, hidden
+  URLs and window preferences intact | actual: asserted by `AssertUserDataSurvived` in every case.

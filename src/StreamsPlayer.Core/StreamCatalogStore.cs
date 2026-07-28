@@ -22,9 +22,27 @@ public sealed class StreamCatalogStore
     private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
-        // TolerantAppLanguageConverter must come first: it is more specific than the general enum
-        // converter, and it is what keeps an unreadable language from aborting the whole document.
-        Converters = { new TolerantAppLanguageConverter(), new JsonStringEnumConverter() }
+        // SP-0035: every enum the state persists reads through a tolerant converter, so a value written
+        // by a newer build costs that one field instead of the entire document (and with it the user's
+        // catalog, collections and history). Order matters - the specific converters must precede the
+        // general JsonStringEnumConverter, which is what still throws for anything not listed here.
+        // Each fallback is the value a fresh install would hold, except the two that protect data:
+        // an unknown SourceOrigin reads as Manual, the origin a catalog refresh never rewrites or
+        // prunes, and an unknown MediaKind reads as Video, whose player also handles audio and RTSP.
+        // LastPlayOutcome is optional, so "unreadable" has an honest representation there - absent -
+        // and inventing a recorded failure would be a claim the state does not support.
+        Converters =
+        {
+            new TolerantAppLanguageConverter(),
+            new TolerantEnumConverter<CatalogViewMode>(CatalogViewMode.List),
+            new TolerantEnumConverter<StreamTileSize>(StreamTileSize.Medium),
+            new TolerantEnumConverter<MediaBackend>(MediaBackend.LibVlc),
+            new TolerantEnumConverter<ChannelAccess>(ChannelAccess.Open),
+            new TolerantEnumConverter<MediaKind>(MediaKind.Video),
+            new TolerantEnumConverter<SourceOrigin>(SourceOrigin.Manual),
+            new TolerantNullableEnumConverter<PlayOutcome>(),
+            new JsonStringEnumConverter()
+        }
     };
 
     public StreamCatalogStore(string directory)
