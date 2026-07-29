@@ -86,8 +86,14 @@ code or features.
   watch the remaining time count down next to **Stop audio**; it survives a
   station switch and ends the session once when it expires.
 - Store catalog state, manual entries, pins, collections, hidden catalog
-  channels, listening history, cached preview frames, and the current-session
-  diagnostic `Current.log` under `%LOCALAPPDATA%\StreamsPlayer`.
+  channels, listening history, cached preview frames, and the diagnostic
+  `Current.log` and `Previous.log` under `%LOCALAPPDATA%\StreamsPlayer`.
+- Report a problem with **Send logs to the author** in the **About** tab of
+  Settings: it packs both diagnostic logs plus a short summary of your app
+  version, Windows version and settings into one archive, selects that archive in
+  Explorer, and opens your mail program with the message prepared. Nothing is sent
+  automatically - you attach the archive and press Send. The logs name the streams
+  that were played, so send them only if you are comfortable sharing that.
 
 Audio playback uses WPF `MediaElement`; video and RTSP use the bundled LibVLC
 runtime with a 15-second live buffer - 4 seconds when a stalled stream is
@@ -163,7 +169,9 @@ STREAMS Player does not require an account and includes no advertising, analytic
 telemetry, or author-operated service. Network access happens when you explicitly
 refresh the public catalog, play a selected stream, keep Grid mode active while
 STREAMS Player refreshes visible video previews, or accept the optional preview
-pack it offers after a catalog update. See the
+pack it offers after a catalog update. Local data leaves your device only if you
+send it yourself - **Send logs to the author** prepares an archive and a message in
+your own mail program, and never sends anything on its own. See the
 [privacy page](https://serzhyale.github.io/StreamsPlayer/privacy.html) for details.
 
 ## Ownership and license

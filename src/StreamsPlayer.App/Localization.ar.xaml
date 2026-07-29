@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">فتح سياسة خصوصية STREAMS Player</sys:String>
     <sys:String x:Key="AuthorPage">صفحة المؤلف</sys:String>
     <sys:String x:Key="AuthorPageTip">فتح SerZhyAle على GitHub</sys:String>
+    <sys:String x:Key="SendLogs">إرسال السجلات إلى المؤلف</sys:String>
+    <sys:String x:Key="SendLogsTip">حزم سجلات التشخيص لهذه الجلسة وللجلسة السابقة وفتح برنامج البريد لديك</sys:String>
+    <sys:String x:Key="SendLogsHint">يحتوي الأرشيف على سجل التشخيص لهذه الجلسة وللجلسة السابقة، إضافة إلى ملخص قصير لإصدار التطبيق وإصدار Windows والإعدادات. تذكر السجلات أسماء عمليات البث التي شُغِّلت. لا يُرسل أي شيء تلقائيًا: يُفتح برنامج البريد لديك والرسالة جاهزة، وأنت من يرفق الأرشيف ويضغط على إرسال.</sys:String>
+    <sys:String x:Key="SendLogsSubject">سجلات STREAMS Player - الإصدار {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">مرحبًا،&#x0D;&#x0A;&#x0D;&#x0A;أرسل سجلات التشخيص الخاصة بـ STREAMS Player. يُرجى إرفاق الأرشيف {0} من المجلد {1} قبل إرسال هذه الرسالة.&#x0D;&#x0A;&#x0D;&#x0A;ما الذي حدث:&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">الأرشيف {0} جاهز ومحدَّد في مستكشف الملفات. أرفقه بالرسالة الجاهزة واضغط على إرسال.</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">لا يوجد في Windows برنامج بريد يمكن فتحه. الأرشيف جاهز في {0} - أرسله إلى المؤلف بنفسك.</sys:String>
+    <sys:String x:Key="SendLogsFailed">تعذّر إنشاء أرشيف السجلات.</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">لا يوجد بعد أي سجل تشخيص لإرساله.</sys:String>
     <sys:String x:Key="Save">حفظ</sys:String>
     <sys:String x:Key="SettingsApplied">تم حفظ الإعدادات</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">تعذر على Windows فتح هذا الرابط.</sys:String>

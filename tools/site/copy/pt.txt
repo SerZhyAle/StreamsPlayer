@@ -232,6 +232,12 @@ Salvar um canal em um atalho
 @@use-4-text
 Selecione um canal salvo, abra Configurações e use Copiar comando ou Criar atalho na área de trabalho. Os dois usam o id guardado do canal.
 
+@@use-5-title
+Relatar um problema com os registros
+
+@@use-5-text
+Abra Configurações, vá para Sobre e pressione Enviar os registros ao autor. O aplicativo empacota os registros de diagnóstico desta sessão e da anterior com um breve resumo da sua versão, do Windows e das configurações, e depois abre o seu programa de e-mail com a mensagem já preparada - o arquivo compactado, que fica selecionado no Explorador de Arquivos, você mesmo anexa e pressiona Enviar.
+
 @@distribution-title
 Distribuição
 
@@ -269,7 +275,7 @@ O aplicativo se conecta quando você atualiza explicitamente o catálogo públic
 Dados locais
 
 @@privacy-local
-O STREAMS Player guarda o estado do catálogo, as entradas manuais, os canais fixados, as marcas de reprodução, os quadros de pré-visualização em cache dentro de um limite de 150 MB e o Current.log de diagnóstico da sessão atual em [[appdata]]. Esses dados ficam no seu dispositivo, a menos que você escolha copiá-los ou fazer backup deles.
+O STREAMS Player guarda o estado do catálogo, as entradas manuais, os canais fixados, as marcas de reprodução, os quadros de pré-visualização em cache dentro de um limite de 150 MB e os registros de diagnóstico da sessão atual e da anterior em [[appdata]]. Esses dados ficam no seu dispositivo, a menos que você escolha copiá-los ou fazer backup deles - ou a menos que use Enviar os registros ao autor nas Configurações, que empacota os dois registros de diagnóstico junto com a versão do aplicativo, a versão do Windows e as configurações em um arquivo compactado e abre o seu programa de e-mail para que você o anexe e envie para [[email]]. Esse arquivo compactado só é preparado quando você pressiona esse botão, os registros nele citam as transmissões que foram reproduzidas e nada é enviado sem que você pressione Enviar no seu próprio programa de e-mail.
 
 @@privacy-contact-title
 Contato

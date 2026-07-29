@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">Apri l'informativa sulla privacy di STREAMS Player</sys:String>
     <sys:String x:Key="AuthorPage">Pagina dell'autore</sys:String>
     <sys:String x:Key="AuthorPageTip">Apri SerZhyAle su GitHub</sys:String>
+    <sys:String x:Key="SendLogs">Invia i registri all'autore</sys:String>
+    <sys:String x:Key="SendLogsTip">Comprimi i registri diagnostici di questa sessione e di quella precedente e apri il tuo programma di posta</sys:String>
+    <sys:String x:Key="SendLogsHint">L'archivio contiene il registro diagnostico di questa sessione e di quella precedente, più un breve riepilogo della versione dell'app, della versione di Windows e delle impostazioni. I registri indicano i flussi che sono stati riprodotti. Nulla viene inviato automaticamente: il tuo programma di posta si apre con il messaggio già pronto, e sei tu ad allegare l'archivio e a premere Invia.</sys:String>
+    <sys:String x:Key="SendLogsSubject">Registri di STREAMS Player - versione {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">Salve,&#x0D;&#x0A;&#x0D;&#x0A;invio i registri diagnostici di STREAMS Player. Allega l'archivio {0} dalla cartella {1} prima di inviare questo messaggio.&#x0D;&#x0A;&#x0D;&#x0A;Cosa è accaduto:&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">L'archivio {0} è pronto e selezionato in Esplora file. Allegalo al messaggio già preparato e premi Invia.</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">Windows non ha alcun programma di posta da aprire. L'archivio è pronto in {0} - invialo all'autore a mano.</sys:String>
+    <sys:String x:Key="SendLogsFailed">Non è stato possibile creare l'archivio dei registri.</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">Non c'è ancora alcun registro diagnostico da inviare.</sys:String>
     <sys:String x:Key="Save">Salva</sys:String>
     <sys:String x:Key="SettingsApplied">Impostazioni salvate</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows non ha potuto aprire questo collegamento.</sys:String>

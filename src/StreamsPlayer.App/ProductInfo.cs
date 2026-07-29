@@ -6,6 +6,9 @@ namespace StreamsPlayer.App;
 public static class ProductInfo
 {
     public const string Author = "Serhii Zhyhunenko / SerZhyAle";
+    // SP-0040: the log-report recipient. Until now the address lived only in the README and the site copy,
+    // so the application had no way to name the person it tells users to contact.
+    public const string AuthorEmail = "serzhyale@gmail.com";
     public const string AuthorUrl = "https://github.com/SerZhyAle";
     public const string SourceUrl = "https://github.com/SerZhyAle/StreamsPlayer";
     public const string WebsiteUrl = "https://serzhyale.github.io/StreamsPlayer/";

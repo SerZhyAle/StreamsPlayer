@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">Ouvrir la politique de confidentialité de STREAMS Player</sys:String>
     <sys:String x:Key="AuthorPage">Page de l'auteur</sys:String>
     <sys:String x:Key="AuthorPageTip">Ouvrir SerZhyAle sur GitHub</sys:String>
+    <sys:String x:Key="SendLogs">Envoyer les journaux à l'auteur</sys:String>
+    <sys:String x:Key="SendLogsTip">Compresser les journaux de diagnostic de cette session et de la précédente et ouvrir votre logiciel de messagerie</sys:String>
+    <sys:String x:Key="SendLogsHint">L'archive contient le journal de diagnostic de cette session et de la précédente, ainsi qu'un bref résumé de la version de l'application, de la version de Windows et de vos réglages. Les journaux nomment les flux qui ont été lus. Rien n'est envoyé automatiquement : votre logiciel de messagerie s'ouvre avec le message déjà préparé, et c'est vous qui joignez l'archive et appuyez sur Envoyer.</sys:String>
+    <sys:String x:Key="SendLogsSubject">Journaux de STREAMS Player - version {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">Bonjour,&#x0D;&#x0A;&#x0D;&#x0A;je vous envoie les journaux de diagnostic de STREAMS Player. Veuillez joindre l'archive {0} du dossier {1} avant d'envoyer ce message.&#x0D;&#x0A;&#x0D;&#x0A;Ce qui s'est passé :&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">L'archive {0} est prête et sélectionnée dans l'Explorateur. Joignez-la au message préparé et appuyez sur Envoyer.</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">Windows n'a aucun logiciel de messagerie à ouvrir. L'archive est prête dans {0} - envoyez-la vous-même à l'auteur.</sys:String>
+    <sys:String x:Key="SendLogsFailed">L'archive des journaux n'a pas pu être créée.</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">Il n'y a pas encore de journal de diagnostic à envoyer.</sys:String>
     <sys:String x:Key="Save">Enregistrer</sys:String>
     <sys:String x:Key="SettingsApplied">Paramètres enregistrés</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows n'a pas pu ouvrir ce lien.</sys:String>

@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">STREAMS Player کی رازداری کی پالیسی کھولیں</sys:String>
     <sys:String x:Key="AuthorPage">مصنف کا صفحہ</sys:String>
     <sys:String x:Key="AuthorPageTip">GitHub پر SerZhyAle کھولیں</sys:String>
+    <sys:String x:Key="SendLogs">لاگ مصنف کو بھیجیں</sys:String>
+    <sys:String x:Key="SendLogsTip">اس سیشن اور پچھلے سیشن کے تشخیصی لاگ کو زپ فائل میں پیک کریں اور اپنا میل پروگرام کھولیں</sys:String>
+    <sys:String x:Key="SendLogsHint">زپ فائل میں اس سیشن اور پچھلے سیشن کا تشخیصی لاگ ہوتا ہے، اس کے علاوہ آپ کے ایپ ورژن، Windows ورژن اور ترتیبات کا مختصر خلاصہ۔ لاگ میں ان نشریات کے نام ہوتے ہیں جو چلائی گئی تھیں۔ کچھ بھی خودکار طور پر نہیں بھیجا جاتا: آپ کا میل پروگرام پہلے سے تیار پیغام کے ساتھ کھلتا ہے، اور زپ فائل آپ خود منسلک کر کے بھیجیں دباتے ہیں۔</sys:String>
+    <sys:String x:Key="SendLogsSubject">STREAMS Player لاگ - ورژن {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">سلام،&#x0D;&#x0A;&#x0D;&#x0A;میں STREAMS Player کے تشخیصی لاگ بھیج رہا ہوں۔ یہ پیغام بھیجنے سے پہلے زپ فائل {0} منسلک کریں، جو فولڈر {1} میں ہے۔&#x0D;&#x0A;&#x0D;&#x0A;کیا ہوا:&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">زپ فائل {0} تیار ہے اور فائل ایکسپلورر میں منتخب ہے۔ اسے تیار پیغام کے ساتھ منسلک کریں اور بھیجیں دبائیں۔</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">Windows میں کھولنے کے لیے کوئی میل پروگرام نہیں ہے۔ زپ فائل {0} پر تیار ہے - اسے خود مصنف کو بھیجیں۔</sys:String>
+    <sys:String x:Key="SendLogsFailed">لاگ کی زپ فائل نہیں بنائی جا سکی۔</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">بھیجنے کے لیے ابھی کوئی تشخیصی لاگ نہیں ہے۔</sys:String>
     <sys:String x:Key="Save">محفوظ کریں</sys:String>
     <sys:String x:Key="SettingsApplied">ترتیبات محفوظ ہو گئیں</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows یہ لنک نہیں کھول سکا۔</sys:String>

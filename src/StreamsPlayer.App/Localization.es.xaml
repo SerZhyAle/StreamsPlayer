@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">Abrir la política de privacidad de STREAMS Player</sys:String>
     <sys:String x:Key="AuthorPage">Página del autor</sys:String>
     <sys:String x:Key="AuthorPageTip">Abrir SerZhyAle en GitHub</sys:String>
+    <sys:String x:Key="SendLogs">Enviar los registros al autor</sys:String>
+    <sys:String x:Key="SendLogsTip">Empaquetar los registros de diagnóstico de esta sesión y de la anterior y abrir tu programa de correo</sys:String>
+    <sys:String x:Key="SendLogsHint">El archivo comprimido contiene el registro de diagnóstico de esta sesión y de la anterior, además de un breve resumen de la versión de la aplicación, la versión de Windows y tus ajustes. Los registros indican las transmisiones que se reprodujeron. No se envía nada automáticamente: tu programa de correo se abre con el mensaje ya preparado, y tú adjuntas el archivo comprimido y pulsas Enviar.</sys:String>
+    <sys:String x:Key="SendLogsSubject">Registros de STREAMS Player - versión {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">Hola:&#x0D;&#x0A;&#x0D;&#x0A;envío los registros de diagnóstico de STREAMS Player. Adjunta el archivo comprimido {0} de la carpeta {1} antes de enviar este mensaje.&#x0D;&#x0A;&#x0D;&#x0A;Qué ocurrió:&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">El archivo comprimido {0} está listo y seleccionado en el Explorador. Adjúntalo al mensaje ya preparado y pulsa Enviar.</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">Windows no tiene ningún programa de correo que abrir. El archivo comprimido está listo en {0} - envíalo al autor a mano.</sys:String>
+    <sys:String x:Key="SendLogsFailed">No se ha podido crear el archivo comprimido de los registros.</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">Todavía no hay ningún registro de diagnóstico que enviar.</sys:String>
     <sys:String x:Key="Save">Guardar</sys:String>
     <sys:String x:Key="SettingsApplied">Ajustes guardados</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows no ha podido abrir este enlace.</sys:String>

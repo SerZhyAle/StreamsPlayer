@@ -232,6 +232,12 @@ Guardar un canal en un acceso directo
 @@use-4-text
 Selecciona un canal guardado, abre Ajustes y usa «Copiar comando» o «Crear acceso directo en el escritorio». Ambos usan el id guardado del canal.
 
+@@use-5-title
+Informar de un problema con los registros
+
+@@use-5-text
+Abre Ajustes, ve a «Acerca de» y pulsa «Enviar los registros al autor». La aplicación empaqueta los registros de diagnóstico de esta sesión y de la anterior junto con un breve resumen de tu versión, de Windows y de tus ajustes, y luego abre tu programa de correo con el mensaje ya preparado - el archivo comprimido, que queda seleccionado en el Explorador, lo adjuntas tú y pulsas Enviar.
+
 @@distribution-title
 Distribución
 
@@ -269,7 +275,7 @@ La aplicación se conecta cuando actualizas explícitamente el catálogo públic
 Datos locales
 
 @@privacy-local
-STREAMS Player guarda en [[appdata]] el estado de su catálogo, las entradas añadidas a mano, las fijaciones, las marcas de reproducción, los fotogramas de vista previa en caché dentro de un límite de 150 MB y el registro de diagnóstico de la sesión actual Current.log. Estos datos se quedan en tu dispositivo salvo que decidas copiarlos o hacer una copia de seguridad.
+STREAMS Player guarda en [[appdata]] el estado de su catálogo, las entradas añadidas a mano, las fijaciones, las marcas de reproducción, los fotogramas de vista previa en caché dentro de un límite de 150 MB y los registros de diagnóstico de la sesión actual y de la anterior. Estos datos se quedan en tu dispositivo salvo que decidas copiarlos o hacer una copia de seguridad - o salvo que uses «Enviar los registros al autor» en Ajustes, que empaqueta los dos registros de diagnóstico junto con la versión de la aplicación, la versión de Windows y tus ajustes en un archivo comprimido y abre tu programa de correo para que lo adjuntes y lo envíes a [[email]]. Ese archivo comprimido se prepara solo cuando pulsas ese botón, los registros que contiene indican las transmisiones que se reprodujeron y nunca se envía nada sin que pulses Enviar en tu propio programa de correo.
 
 @@privacy-contact-title
 Contacto

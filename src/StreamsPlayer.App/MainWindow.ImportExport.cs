@@ -8,17 +8,19 @@ using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
-// SP-0016: the stream-list actions the Settings window exposes (SP-0030 added DeleteDownloaded). The owning
-// window is passed in so every file picker, prompt, preview, and message box is owned by whichever window
-// triggered the action.
-public enum StreamListAction
+// SP-0016: the actions the Settings window delegates to the owning window, which is the one that holds the
+// catalog state (SP-0030 added DeleteDownloaded, SP-0040 SendLogsToAuthor - at which point "stream list" had
+// stopped describing the set, hence the rename). The owning window is passed in so every file picker, prompt,
+// preview, and message box is owned by whichever window triggered the action.
+public enum SettingsAction
 {
     ImportFromFile,
     ImportFromUrl,
     ExportAll,
     ExportPinned,
     ManageHidden,
-    DeleteDownloaded
+    DeleteDownloaded,
+    SendLogsToAuthor
 }
 
 // SP-0016: M3U import/export portability. Import is additive and atomic - it only ever inserts Imported rows
@@ -26,14 +28,15 @@ public enum StreamListAction
 // reused). Export is limited to user-owned (Manual/Imported) rows, optionally the pinned subset.
 public partial class MainWindow
 {
-    internal Task RunStreamListActionAsync(StreamListAction action, Window owner) => action switch
+    internal Task RunSettingsActionAsync(SettingsAction action, Window owner) => action switch
     {
-        StreamListAction.ImportFromFile => ImportFromFileAsync(owner),
-        StreamListAction.ImportFromUrl => ImportFromUrlAsync(owner),
-        StreamListAction.ExportAll => ExportAsync(pinnedOnly: false, owner),
-        StreamListAction.ExportPinned => ExportAsync(pinnedOnly: true, owner),
-        StreamListAction.ManageHidden => ShowHiddenChannelsAsync(owner),
-        StreamListAction.DeleteDownloaded => DeleteDownloadedChannelsAsync(owner),
+        SettingsAction.ImportFromFile => ImportFromFileAsync(owner),
+        SettingsAction.ImportFromUrl => ImportFromUrlAsync(owner),
+        SettingsAction.ExportAll => ExportAsync(pinnedOnly: false, owner),
+        SettingsAction.ExportPinned => ExportAsync(pinnedOnly: true, owner),
+        SettingsAction.ManageHidden => ShowHiddenChannelsAsync(owner),
+        SettingsAction.DeleteDownloaded => DeleteDownloadedChannelsAsync(owner),
+        SettingsAction.SendLogsToAuthor => SendLogsToAuthorAsync(owner),
         _ => Task.CompletedTask
     };
 

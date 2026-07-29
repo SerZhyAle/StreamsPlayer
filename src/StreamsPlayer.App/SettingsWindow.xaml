@@ -209,6 +209,14 @@
                             </Hyperlink>
                         </TextBlock>
                     </WrapPanel>
+
+                    <!-- SP-0040: user-initiated diagnostic report. Nothing is sent by the app itself. -->
+                    <Separator Margin="0,6,0,10" />
+                    <Button x:Name="SendLogsButton" HorizontalAlignment="Left" Margin="0,0,0,6"
+                            Content="{DynamicResource SendLogs}" Click="SendLogs_Click"
+                            ToolTip="{DynamicResource SendLogsTip}"
+                            AutomationProperties.Name="{DynamicResource SendLogs}" />
+                    <TextBlock Text="{DynamicResource SendLogsHint}" TextWrapping="Wrap" Foreground="#FF5A6472" />
                 </StackPanel>
             </TabItem>
         </TabControl>

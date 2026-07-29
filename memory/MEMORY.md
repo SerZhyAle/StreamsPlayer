@@ -202,3 +202,25 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   a re-export carries its asset URL back into an importable file. `STORE_PUBLISHING.md` claims *Upload
   folder* accepts a relative path - that remains **unverified**, so build the flat, image-free CSV
   unless someone has actually tested the folder mode (2026-07-27).
+
+- **A `<sys:String>` value in a localization dictionary cannot hold real newlines.** XAML normalizes
+  whitespace in element content, so a multi-line UI or mail string collapses into one paragraph with no
+  error anywhere. Use literal `&#x0D;&#x0A;` entities and keep the value on one physical line - that also
+  keeps the parity gate and the encoding checks simple. Hit while writing SP-0040's mail body, in all
+  thirteen files (2026-07-30).
+
+- **`mailto:` cannot carry an attachment on Windows**, so any "send us the file" feature is a prepared
+  message plus the archive revealed in Explorer, and attaching stays the user's gesture. Simple MAPI
+  would attach automatically but has no client on a webmail-only desktop. Related environment gotcha on
+  the owner's machine: the default handler is the *new Outlook*, never configured, so pressing such a
+  button opens its account-setup screen instead of a compose window - a `mailto:` flow cannot be observed
+  end to end here, which is why SP-0040 proved the link with unit tests instead (2026-07-30).
+
+- **GUI evidence via UI Automation: address controls by `AutomationId`, which WPF fills from `x:Name`** -
+  language-independent, unlike `AutomationProperties.Name`. Two traps measured on SP-0040: a modal dialog
+  is not in the UIA tree the instant `Invoke` returns (poll for one of its children instead of sleeping),
+  and `TabControl` content for unselected tabs does not exist at all, so the tab must be selected before
+  its controls can be found. `LanguageWindow`'s list was not reachable this way at all; capturing a
+  right-to-left window is cheaper by swapping the single root `"language"` token in `catalog-state.json`
+  and restoring it afterwards - never by a JSON round trip, which would rewrite 2.9 MB of the owner's
+  real catalog (2026-07-30).

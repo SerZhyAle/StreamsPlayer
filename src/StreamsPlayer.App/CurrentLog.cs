@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
@@ -13,7 +14,12 @@ internal sealed class CurrentLog : IDisposable
         try
         {
             Directory.CreateDirectory(directory);
-            var stream = new FileStream(Path.Combine(directory, "Current.log"), FileMode.Create, FileAccess.Write, FileShare.Read);
+            // SP-0040: keep one generation. The session worth mailing to the author is usually the one
+            // that already ended, so replacing the log on launch destroyed the evidence on the way to
+            // the send button. Rotation is best-effort inside the helper: losing the previous log is
+            // acceptable, failing to open the current one is not.
+            DiagnosticLogFiles.RotateCurrentToPrevious(directory);
+            var stream = new FileStream(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), FileMode.Create, FileAccess.Write, FileShare.Read);
             _writer = new StreamWriter(stream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)) { AutoFlush = true };
         }
         catch (Exception)

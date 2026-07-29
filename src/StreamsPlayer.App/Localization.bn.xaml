@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">STREAMS Player-এর গোপনীয়তা নীতি খুলুন</sys:String>
     <sys:String x:Key="AuthorPage">লেখকের পাতা</sys:String>
     <sys:String x:Key="AuthorPageTip">GitHub-এ SerZhyAle খুলুন</sys:String>
+    <sys:String x:Key="SendLogs">লেখককে লগ পাঠান</sys:String>
+    <sys:String x:Key="SendLogsTip">এই সেশন ও আগের সেশনের ডায়াগনস্টিক লগ জিপ ফাইলে প্যাক করুন এবং আপনার মেল প্রোগ্রাম খুলুন</sys:String>
+    <sys:String x:Key="SendLogsHint">জিপ ফাইলে এই সেশন ও আগের সেশনের ডায়াগনস্টিক লগ থাকে, সঙ্গে আপনার অ্যাপ সংস্করণ, Windows সংস্করণ ও সেটিংসের একটি সংক্ষিপ্ত বিবরণ। লগে যে স্ট্রিমগুলো চালানো হয়েছিল তাদের নাম থাকে। কিছুই স্বয়ংক্রিয়ভাবে পাঠানো হয় না: আপনার মেল প্রোগ্রাম আগে থেকে তৈরি বার্তা নিয়ে খোলে, আর জিপ ফাইল আপনি নিজে সংযুক্ত করে পাঠান চাপেন।</sys:String>
+    <sys:String x:Key="SendLogsSubject">STREAMS Player লগ - সংস্করণ {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">নমস্কার,&#x0D;&#x0A;&#x0D;&#x0A;আমি STREAMS Player-এর ডায়াগনস্টিক লগ পাঠাচ্ছি। এই বার্তা পাঠানোর আগে জিপ ফাইল {0} সংযুক্ত করুন, যা {1} ফোল্ডারে আছে।&#x0D;&#x0A;&#x0D;&#x0A;যা ঘটেছে:&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">জিপ ফাইল {0} তৈরি এবং Explorer-এ নির্বাচিত। এটি তৈরি বার্তার সঙ্গে সংযুক্ত করুন এবং পাঠান চাপুন।</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">Windows-এ খোলার মতো কোনো মেল প্রোগ্রাম নেই। জিপ ফাইলটি {0}-এ তৈরি আছে - সেটি নিজেই লেখকের কাছে পাঠান।</sys:String>
+    <sys:String x:Key="SendLogsFailed">লগের জিপ ফাইল তৈরি করা যায়নি।</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">পাঠানোর মতো কোনো ডায়াগনস্টিক লগ এখনও নেই।</sys:String>
     <sys:String x:Key="Save">সংরক্ষণ</sys:String>
     <sys:String x:Key="SettingsApplied">সেটিংস সংরক্ষিত হয়েছে</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows এই লিংকটি খুলতে পারেনি।</sys:String>

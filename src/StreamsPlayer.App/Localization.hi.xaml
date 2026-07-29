@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">STREAMS Player की निजता नीति खोलें</sys:String>
     <sys:String x:Key="AuthorPage">लेखक का पृष्ठ</sys:String>
     <sys:String x:Key="AuthorPageTip">GitHub पर SerZhyAle खोलें</sys:String>
+    <sys:String x:Key="SendLogs">लेखक को लॉग भेजें</sys:String>
+    <sys:String x:Key="SendLogsTip">इस सत्र और पिछले सत्र के डायग्नोस्टिक लॉग को ज़िप फ़ाइल में पैक करें और आपका मेल प्रोग्राम खोलें</sys:String>
+    <sys:String x:Key="SendLogsHint">ज़िप फ़ाइल में इस सत्र और पिछले सत्र का डायग्नोस्टिक लॉग होता है, साथ ही आपके ऐप संस्करण, Windows संस्करण और सेटिंग्स का संक्षिप्त सारांश। लॉग में उन स्ट्रीम के नाम होते हैं जो चलाई गई थीं। कुछ भी स्वतः नहीं भेजा जाता: आपका मेल प्रोग्राम पहले से तैयार संदेश के साथ खुलता है, और ज़िप फ़ाइल आप स्वयं जोड़ते हैं और भेजें दबाते हैं।</sys:String>
+    <sys:String x:Key="SendLogsSubject">STREAMS Player लॉग - संस्करण {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">नमस्ते,&#x0D;&#x0A;&#x0D;&#x0A;मैं STREAMS Player के डायग्नोस्टिक लॉग भेज रहा हूँ। यह संदेश भेजने से पहले ज़िप फ़ाइल {0} जोड़ें, जो फ़ोल्डर {1} में है।&#x0D;&#x0A;&#x0D;&#x0A;क्या हुआ:&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">ज़िप फ़ाइल {0} तैयार है और Explorer में चुनी हुई है। इसे तैयार संदेश के साथ जोड़ें और भेजें दबाएँ।</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">Windows में खोलने के लिए कोई मेल प्रोग्राम नहीं है। ज़िप फ़ाइल {0} पर तैयार है - इसे लेखक को स्वयं भेजें।</sys:String>
+    <sys:String x:Key="SendLogsFailed">लॉग की ज़िप फ़ाइल नहीं बनाई जा सकी।</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">अभी भेजने के लिए कोई डायग्नोस्टिक लॉग नहीं है।</sys:String>
     <sys:String x:Key="Save">सहेजें</sys:String>
     <sys:String x:Key="SettingsApplied">सेटिंग सहेजी गई</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows यह लिंक नहीं खोल सका।</sys:String>

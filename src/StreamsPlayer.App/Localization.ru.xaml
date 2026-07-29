@@ -221,6 +221,15 @@
     <sys:String x:Key="PrivacyTip">Открыть политику конфиденциальности Трансляции</sys:String>
     <sys:String x:Key="AuthorPage">Страница автора</sys:String>
     <sys:String x:Key="AuthorPageTip">Открыть профиль SerZhyAle на GitHub</sys:String>
+    <sys:String x:Key="SendLogs">Отправить журналы автору</sys:String>
+    <sys:String x:Key="SendLogsTip">Упаковать журналы диагностики этого и предыдущего сеанса и открыть вашу почтовую программу</sys:String>
+    <sys:String x:Key="SendLogsHint">В архив входят журналы диагностики этого и предыдущего сеанса, а также краткая сводка о версии приложения, версии Windows и настройках. В журналах указаны трансляции, которые воспроизводились. Ничего не отправляется автоматически: откроется ваша почтовая программа с уже готовым письмом, а архив вы прикрепите и нажмёте «Отправить» сами.</sys:String>
+    <sys:String x:Key="SendLogsSubject">Журналы STREAMS Player - версия {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">Здравствуйте,&#x0D;&#x0A;&#x0D;&#x0A;отправляю журналы диагностики Трансляций. Пожалуйста, прикрепите архив {0} из папки {1} перед отправкой этого письма.&#x0D;&#x0A;&#x0D;&#x0A;Что произошло:&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">Архив {0} готов и выделен в Проводнике. Прикрепите его к подготовленному письму и нажмите «Отправить».</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">В Windows нет почтовой программы, которую можно открыть. Архив готов: {0} - отправьте его автору вручную.</sys:String>
+    <sys:String x:Key="SendLogsFailed">Не удалось создать архив журналов.</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">Пока нет журнала диагностики для отправки.</sys:String>
     <sys:String x:Key="Save">Сохранить</sys:String>
     <sys:String x:Key="SettingsApplied">Настройки сохранены</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows не удалось открыть эту ссылку.</sys:String>

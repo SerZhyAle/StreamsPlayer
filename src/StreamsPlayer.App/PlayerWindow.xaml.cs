@@ -59,6 +59,14 @@ public partial class PlayerWindow : Window
     private bool _reachedLive;
     private bool _isStalled;
     private int _stallCount;
+    // SP-0040: session-level quality accounting. _playbackClock restarts on every reconnect, so it
+    // measures the current leg only; the archived log has to answer "how did this session as a whole
+    // cope with a bad stream", which needs a clock and counters that survive the re-opens.
+    private readonly Stopwatch _sessionClock = Stopwatch.StartNew();
+    private int _legCount;
+    private int _reconnectCount;
+    private long _firstLiveMs = -1;
+    private string _sessionOutcome = "closed";
     // SP-0015 bounded live recovery (policy lives in Core; this window feeds signals and applies decisions).
     private readonly LivePlaybackRecoveryPolicy _recovery = new();
     private readonly CancellationTokenSource _sessionCts = new();
@@ -197,6 +205,7 @@ public partial class PlayerWindow : Window
         _lastWatchdogTime = 0;
         _buffering = false;
         _playbackClock.Restart();
+        _legCount++;
         var cacheMs = reason == "initial" ? LiveCacheMilliseconds : ReconnectCacheMilliseconds;
         _log.Event("PLAYBACK OPEN", $"reason={reason}", $"kind={_channel.MediaKind}", $"cache_ms={cacheMs}", $"url={_channel.Url}");
         if (!_backend.Play(new Uri(_channel.Url), cacheMs, rtspOverTcp: true, softwareDecode: true))
@@ -376,6 +385,12 @@ public partial class PlayerWindow : Window
             _reachedLive = true;
             _recovery.NotifyLive(); // sustained live - restore the full recovery budget
             _log.Event("PLAYBACK LIVE", $"ttff_ms={_playbackClock.ElapsedMilliseconds}", $"url={_channel.Url}");
+            if (_firstLiveMs < 0)
+            {
+                _firstLiveMs = _sessionClock.ElapsedMilliseconds;
+            }
+
+            _sessionOutcome = "live";
             _ = _recordOutcome(_channel.Id, true);
             if (!_thumbnailCaptured && _onThumbnail is not null)
             {
@@ -500,6 +515,7 @@ public partial class PlayerWindow : Window
                 return;
             }
 
+            _reconnectCount++;
             // Play off the UI thread (the backend serializes play against teardown) so a flapping stream never freezes WPF.
             await Task.Run(() => { if (!_closing) { StartMedia("recover"); } });
         }
@@ -571,6 +587,7 @@ public partial class PlayerWindow : Window
         }
 
         SetWaitTextResource("PlayerUnavailable");
+        _sessionOutcome = "failed";
         _log.Event("PLAYBACK FAIL", $"reason={reason}", $"at_ms={_playbackClock.ElapsedMilliseconds}", $"kind={_channel.MediaKind}", $"url={_channel.Url}");
         if (!_outcomeRecorded)
         {
@@ -748,6 +765,18 @@ public partial class PlayerWindow : Window
         _wake?.Dispose(); // release the idle-sleep + display hold for this video session
         _wake = null;
         _log.Event("PLAYBACK CLOSE", $"watch_ms={_playbackClock.ElapsedMilliseconds}", $"live={_reachedLive}", $"stalls={_stallCount}", $"url={_channel.Url}");
+        // SP-0040 criterion 12: one record that answers "did the player cope with this stream" without
+        // reconstructing it from the interleaved per-event lines above.
+        _sessionClock.Stop();
+        _log.Event("PLAYBACK SESSION",
+            $"session_ms={_sessionClock.ElapsedMilliseconds}",
+            $"outcome={(_sessionOutcome == "closed" && _firstLiveMs < 0 ? "never_live" : _sessionOutcome)}",
+            $"ttff_ms={_firstLiveMs}",
+            $"legs={_legCount}",
+            $"reconnects={_reconnectCount}",
+            $"stalls={_stallCount}",
+            $"kind={_channel.MediaKind}",
+            $"url={_channel.Url}");
         _controlsHideTimer.Stop();
         _controlsHideTimer.Tick -= ControlsHideTimer_Tick;
         _statsTimer.Stop();

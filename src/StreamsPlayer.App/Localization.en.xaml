@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">Open the STREAMS Player privacy policy</sys:String>
     <sys:String x:Key="AuthorPage">Author page</sys:String>
     <sys:String x:Key="AuthorPageTip">Open SerZhyAle on GitHub</sys:String>
+    <sys:String x:Key="SendLogs">Send logs to the author</sys:String>
+    <sys:String x:Key="SendLogsTip">Pack this session's and the previous session's diagnostic logs and open your mail program</sys:String>
+    <sys:String x:Key="SendLogsHint">The archive holds the diagnostic log of this session and of the previous one, plus a short summary of your app version, Windows version and settings. The logs name the streams that were played. Nothing is sent automatically: your mail program opens with the message prepared, and you attach the archive and press Send.</sys:String>
+    <sys:String x:Key="SendLogsSubject">STREAMS Player logs - version {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">Hello,&#x0D;&#x0A;&#x0D;&#x0A;I am sending the STREAMS Player diagnostic logs. Please attach the archive {0} from the folder {1} before sending this message.&#x0D;&#x0A;&#x0D;&#x0A;What happened:&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">The archive {0} is ready and selected in Explorer. Attach it to the prepared message and press Send.</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">Windows has no mail program to open. The archive is ready at {0} - send it to the author by hand.</sys:String>
+    <sys:String x:Key="SendLogsFailed">The log archive could not be created.</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">There is no diagnostic log to send yet.</sys:String>
     <sys:String x:Key="Save">Save</sys:String>
     <sys:String x:Key="SettingsApplied">Settings saved</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows could not open this link.</sys:String>

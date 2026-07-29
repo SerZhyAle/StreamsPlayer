@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">打开 STREAMS Player 隐私政策</sys:String>
     <sys:String x:Key="AuthorPage">作者主页</sys:String>
     <sys:String x:Key="AuthorPageTip">在 GitHub 上打开 SerZhyAle 的主页</sys:String>
+    <sys:String x:Key="SendLogs">向作者发送日志</sys:String>
+    <sys:String x:Key="SendLogsTip">打包本次会话和上一次会话的诊断日志，并打开您的邮件程序</sys:String>
+    <sys:String x:Key="SendLogsHint">压缩包中包含本次会话和上一次会话的诊断日志，以及一份关于应用版本、Windows 版本和设置的简要说明。日志会记下播放过的流的名称。不会自动发送任何内容：您的邮件程序会打开一封已写好的邮件，由您自己附加压缩包并点击“发送”。</sys:String>
+    <sys:String x:Key="SendLogsSubject">STREAMS Player 日志 - 版本 {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">您好：&#x0D;&#x0A;&#x0D;&#x0A;我发送 STREAMS Player 的诊断日志。发送本邮件前，请附加压缩包 {0}（位于文件夹 {1}）。&#x0D;&#x0A;&#x0D;&#x0A;发生了什么：&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">压缩包 {0} 已准备好，并已在资源管理器中选中。请把它附加到已写好的邮件中，然后点击“发送”。</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">Windows 没有可打开的邮件程序。压缩包已准备好，位于 {0} - 请手动把它发送给作者。</sys:String>
+    <sys:String x:Key="SendLogsFailed">无法创建日志压缩包。</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">目前还没有可发送的诊断日志。</sys:String>
     <sys:String x:Key="Save">保存</sys:String>
     <sys:String x:Key="SettingsApplied">设置已保存</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows 无法打开此链接。</sys:String>

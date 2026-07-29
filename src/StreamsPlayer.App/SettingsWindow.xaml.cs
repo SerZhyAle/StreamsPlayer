@@ -12,17 +12,17 @@ public partial class SettingsWindow : Window
 {
     private readonly AppLanguage _language;
     private readonly StreamChannel? _selectedChannel;
-    private readonly Func<StreamListAction, Window, Task> _runStreamListAction;
+    private readonly Func<SettingsAction, Window, Task> _runSettingsAction;
     // SP-0038: null means "unset", which resolves to Downloads at save time. The text box always shows a
     // real path so the user can see where frames land either way, hence the separate field.
     private string? _frameFolder;
 
-    public SettingsWindow(StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, MediaBackend videoBackend, string? frameFolder, AppLanguage language, StreamChannel? selectedChannel, Func<StreamListAction, Window, Task> runStreamListAction)
+    public SettingsWindow(StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, MediaBackend videoBackend, string? frameFolder, AppLanguage language, StreamChannel? selectedChannel, Func<SettingsAction, Window, Task> runSettingsAction)
     {
         InitializeComponent();
         _language = language;
         _selectedChannel = selectedChannel;
-        _runStreamListAction = runStreamListAction;
+        _runSettingsAction = runSettingsAction;
         var sizes = new[]
         {
             new UiOption(nameof(StreamTileSize.Small), LocalizationService.Get("TileSmall")),
@@ -89,26 +89,26 @@ public partial class SettingsWindow : Window
     private void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
     private async void ImportFromFile_Click(object sender, RoutedEventArgs e) =>
-        await _runStreamListAction(StreamListAction.ImportFromFile, this);
+        await _runSettingsAction(SettingsAction.ImportFromFile, this);
 
     private async void ImportFromUrl_Click(object sender, RoutedEventArgs e) =>
-        await _runStreamListAction(StreamListAction.ImportFromUrl, this);
+        await _runSettingsAction(SettingsAction.ImportFromUrl, this);
 
     private async void ExportAll_Click(object sender, RoutedEventArgs e) =>
-        await _runStreamListAction(StreamListAction.ExportAll, this);
+        await _runSettingsAction(SettingsAction.ExportAll, this);
 
     private async void ExportPinned_Click(object sender, RoutedEventArgs e) =>
-        await _runStreamListAction(StreamListAction.ExportPinned, this);
+        await _runSettingsAction(SettingsAction.ExportPinned, this);
 
     // Immediate like the delete below: unhiding a channel commits on its own, so Cancel here does not
     // undo it.
     private async void ManageHidden_Click(object sender, RoutedEventArgs e) =>
-        await _runStreamListAction(StreamListAction.ManageHidden, this);
+        await _runSettingsAction(SettingsAction.ManageHidden, this);
 
     // SP-0030: destructive and immediate - the confirmation inside the action is the commit point,
     // so closing Settings with Cancel does not bring the downloaded rows back.
     private async void DeleteDownloaded_Click(object sender, RoutedEventArgs e) =>
-        await _runStreamListAction(StreamListAction.DeleteDownloaded, this);
+        await _runSettingsAction(SettingsAction.DeleteDownloaded, this);
 
     private void CopyLaunchCommand_Click(object sender, RoutedEventArgs e)
     {
@@ -149,6 +149,10 @@ public partial class SettingsWindow : Window
                 MessageBoxImage.Warning);
         }
     }
+
+    // SP-0040: the owning window holds the catalog state and the log, so it builds and sends the report.
+    private async void SendLogs_Click(object sender, RoutedEventArgs e) =>
+        await _runSettingsAction(SettingsAction.SendLogsToAuthor, this);
 
     private void OpenLink_Click(object sender, RoutedEventArgs e)
     {

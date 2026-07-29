@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">Die Datenschutzerklärung von STREAMS Player öffnen</sys:String>
     <sys:String x:Key="AuthorPage">Autorenseite</sys:String>
     <sys:String x:Key="AuthorPageTip">SerZhyAle auf GitHub öffnen</sys:String>
+    <sys:String x:Key="SendLogs">Protokolle an den Autor senden</sys:String>
+    <sys:String x:Key="SendLogsTip">Die Diagnoseprotokolle dieser und der vorherigen Sitzung packen und Ihr E-Mail-Programm öffnen</sys:String>
+    <sys:String x:Key="SendLogsHint">Das Archiv enthält das Diagnoseprotokoll dieser und der vorherigen Sitzung sowie eine kurze Übersicht über Ihre App-Version, Ihre Windows-Version und Ihre Einstellungen. Die Protokolle nennen die Streams, die abgespielt wurden. Es wird nichts automatisch gesendet: Ihr E-Mail-Programm öffnet sich mit der bereits vorbereiteten Nachricht, und Sie hängen das Archiv selbst an und drücken auf Senden.</sys:String>
+    <sys:String x:Key="SendLogsSubject">STREAMS Player Protokolle - Version {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">Hallo,&#x0D;&#x0A;&#x0D;&#x0A;ich sende die Diagnoseprotokolle von STREAMS Player. Bitte hängen Sie das Archiv {0} aus dem Ordner {1} an, bevor Sie diese Nachricht senden.&#x0D;&#x0A;&#x0D;&#x0A;Was passiert ist:&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">Das Archiv {0} ist fertig und im Explorer ausgewählt. Hängen Sie es an die vorbereitete Nachricht an und drücken Sie auf Senden.</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">Windows hat kein E-Mail-Programm, das geöffnet werden kann. Das Archiv liegt fertig unter {0} - senden Sie es dem Autor selbst.</sys:String>
+    <sys:String x:Key="SendLogsFailed">Das Protokollarchiv konnte nicht erstellt werden.</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">Es gibt noch kein Diagnoseprotokoll zum Senden.</sys:String>
     <sys:String x:Key="Save">Speichern</sys:String>
     <sys:String x:Key="SettingsApplied">Einstellungen gespeichert</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows konnte diesen Link nicht öffnen.</sys:String>

@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">Abrir a política de privacidade do STREAMS Player</sys:String>
     <sys:String x:Key="AuthorPage">Página do autor</sys:String>
     <sys:String x:Key="AuthorPageTip">Abrir o perfil SerZhyAle no GitHub</sys:String>
+    <sys:String x:Key="SendLogs">Enviar os registros ao autor</sys:String>
+    <sys:String x:Key="SendLogsTip">Empacotar os registros de diagnóstico desta sessão e da anterior e abrir o seu programa de e-mail</sys:String>
+    <sys:String x:Key="SendLogsHint">O arquivo compactado contém o registro de diagnóstico desta sessão e da anterior, além de um breve resumo da versão do aplicativo, da versão do Windows e das suas configurações. Os registros citam as transmissões que foram reproduzidas. Nada é enviado automaticamente: o seu programa de e-mail abre com a mensagem já preparada, e você mesmo anexa o arquivo compactado e pressiona Enviar.</sys:String>
+    <sys:String x:Key="SendLogsSubject">Registros do STREAMS Player - versão {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">Olá,&#x0D;&#x0A;&#x0D;&#x0A;estou enviando os registros de diagnóstico do STREAMS Player. Anexe o arquivo compactado {0} da pasta {1} antes de enviar esta mensagem.&#x0D;&#x0A;&#x0D;&#x0A;O que aconteceu:&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">O arquivo compactado {0} está pronto e selecionado no Explorador de Arquivos. Anexe-o à mensagem já preparada e pressione Enviar.</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">O Windows não tem nenhum programa de e-mail para abrir. O arquivo compactado está pronto em {0} - envie-o ao autor manualmente.</sys:String>
+    <sys:String x:Key="SendLogsFailed">Não foi possível criar o arquivo compactado dos registros.</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">Ainda não há nenhum registro de diagnóstico para enviar.</sys:String>
     <sys:String x:Key="Save">Salvar</sys:String>
     <sys:String x:Key="SettingsApplied">Configurações salvas</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">O Windows não conseguiu abrir este link.</sys:String>

@@ -224,6 +224,15 @@
     <sys:String x:Key="PrivacyTip">Відкрити політику конфіденційності «Трансляцій»</sys:String>
     <sys:String x:Key="AuthorPage">Сторінка автора</sys:String>
     <sys:String x:Key="AuthorPageTip">Відкрити профіль SerZhyAle на GitHub</sys:String>
+    <sys:String x:Key="SendLogs">Надіслати журнали авторові</sys:String>
+    <sys:String x:Key="SendLogsTip">Запакувати журнали діагностики цього та попереднього сеансу й відкрити вашу поштову програму</sys:String>
+    <sys:String x:Key="SendLogsHint">До архіву входять журнали діагностики цього та попереднього сеансу, а також короткий підсумок про версію застосунку, версію Windows і налаштування. У журналах названо потоки, які відтворювалися. Нічого не надсилається автоматично: відкриється ваша поштова програма з уже готовим листом, а архів ви прикріпите й натиснете «Надіслати» самостійно.</sys:String>
+    <sys:String x:Key="SendLogsSubject">Журнали STREAMS Player - версія {0}</sys:String>
+    <sys:String x:Key="SendLogsBody">Вітаю,&#x0D;&#x0A;&#x0D;&#x0A;надсилаю журнали діагностики Трансляцій. Будь ласка, прикріпіть архів {0} з папки {1} перед надсиланням цього листа.&#x0D;&#x0A;&#x0D;&#x0A;Що сталося:&#x0D;&#x0A;</sys:String>
+    <sys:String x:Key="SendLogsReady">Архів {0} готовий і виділений у Проводнику. Прикріпіть його до підготовленого листа й натисніть «Надіслати».</sys:String>
+    <sys:String x:Key="SendLogsNoMailClient">У Windows немає поштової програми, яку можна відкрити. Архів готовий: {0} - надішліть його авторові вручну.</sys:String>
+    <sys:String x:Key="SendLogsFailed">Не вдалося створити архів журналів.</sys:String>
+    <sys:String x:Key="SendLogsNoLogs">Поки немає журналу діагностики для надсилання.</sys:String>
     <sys:String x:Key="Save">Зберегти</sys:String>
     <sys:String x:Key="SettingsApplied">Налаштування збережено</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows не вдалося відкрити це посилання.</sys:String>

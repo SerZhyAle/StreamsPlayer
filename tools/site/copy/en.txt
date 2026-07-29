@@ -232,6 +232,12 @@ Save a channel to a shortcut
 @@use-4-text
 Select a saved channel, open Settings, and use Copy command or Create desktop shortcut. Both use the channel's stored id.
 
+@@use-5-title
+Report a problem with the logs
+
+@@use-5-text
+Open Settings, go to About, and press Send logs to the author. The app packs the current and previous session's diagnostic logs with a short summary of your version, Windows and settings, then opens your mail program with the message ready - you attach the archive it selected for you in Explorer and press Send.
+
 @@distribution-title
 Distribution
 
@@ -269,7 +275,7 @@ The application connects when you explicitly refresh the public stream catalog, 
 Local data
 
 @@privacy-local
-STREAMS Player stores its catalog state, manual entries, pins, playback marks, cached preview frames within a 150 MB budget, and the current-session diagnostic Current.log under [[appdata]]. This data stays on your device unless you choose to copy or back it up.
+STREAMS Player stores its catalog state, manual entries, pins, playback marks, cached preview frames within a 150 MB budget, and the diagnostic logs of the current and previous session under [[appdata]]. This data stays on your device unless you copy or back it up - or unless you use Send logs to the author in Settings, which packs the two diagnostic logs plus your app version, Windows version and settings into an archive and opens your mail program so you can attach and send it to [[email]]. That archive is prepared only when you press that button, the logs in it name the streams that were played, and nothing is ever sent without you pressing Send in your own mail program.
 
 @@privacy-contact-title
 Contact

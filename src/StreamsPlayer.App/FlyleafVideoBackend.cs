@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -17,7 +18,8 @@ namespace StreamsPlayer.App;
 /// the FFmpeg v8 native binaries are NOT delivered by NuGet - they must be deployed (x64 only) into
 /// the folder resolved by <see cref="ResolveFFmpegPath"/>. If they are absent (or on win-arm64), the
 /// constructor throws during engine start and <see cref="VideoBackendFactory"/> falls back to LibVLC.
-/// FlyleafLib has no LibVLC-style live-statistics surface, so <see cref="LogStats"/> is a no-op.
+/// FlyleafLib has no LibVLC-style live-statistics surface, so <see cref="LogStats"/> reports that gap
+/// once per session (SP-0040) instead of reporting numbers it cannot obtain.
 /// </remarks>
 internal sealed class FlyleafVideoBackend : IVideoBackend
 {
@@ -30,6 +32,8 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     private readonly CurrentLog _log;
     private string _lastUrl = string.Empty;
     private bool _reachedPlaying;
+    private bool _statsGapReported;
+    private readonly Stopwatch _bufferClock = new();
     private int _selectedAudioPos = -1;
     private int _selectedSubtitlePos = -1;
 
@@ -163,23 +167,41 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     }
 
     // FlyleafLib exposes no LibVLC-style input/demux counter surface; documented experimental gap.
+    // SP-0040: say so once per session instead of staying silent - in an archived log, "this engine
+    // reports no statistics" and "this session had no trouble" are otherwise indistinguishable.
     public void LogStats(string tag)
     {
+        if (_statsGapReported)
+        {
+            return;
+        }
+
+        _statsGapReported = true;
+        _log.Event("FLYLEAF STATS", "stats=unavailable", $"url={_lastUrl}");
     }
 
     private static VideoTrack[] Map<T>(IEnumerable<T> streams) =>
         streams.Select((stream, index) => new VideoTrack(index, stream?.ToString())).ToArray();
 
-    private void OnBufferingStarted(object? sender, EventArgs e) => BufferingChanged?.Invoke(0f);
+    private void OnBufferingStarted(object? sender, EventArgs e)
+    {
+        _bufferClock.Restart();
+        _log.Event("FLYLEAF BUFFER", "state=started", $"url={_lastUrl}");
+        BufferingChanged?.Invoke(0f);
+    }
 
     private void OnBufferingCompleted(object? sender, BufferingCompletedArgs e)
     {
+        // SP-0040: on this backend a stall has no statistics behind it, so the fill time and the success
+        // flag are the only evidence of how badly the stream is behaving. Record them.
+        _log.Event("FLYLEAF BUFFER", "state=completed", $"ok={e.Success}", $"fill_ms={_bufferClock.ElapsedMilliseconds}", $"url={_lastUrl}");
         if (e.Success)
         {
             BufferingChanged?.Invoke(100f);
         }
         else
         {
+            _log.Event("FLYLEAF ERROR", "source=buffering", $"url={_lastUrl}");
             EncounteredError?.Invoke();
         }
     }
@@ -192,6 +214,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         }
         else
         {
+            _log.Event("FLYLEAF ERROR", "source=open", $"url={_lastUrl}");
             EncounteredError?.Invoke();
         }
     }
@@ -204,6 +227,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         }
         else
         {
+            _log.Event("FLYLEAF ERROR", "source=playback_stopped", $"url={_lastUrl}");
             EncounteredError?.Invoke();
         }
     }

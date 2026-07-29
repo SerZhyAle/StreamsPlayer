@@ -232,6 +232,12 @@ Einen Kanal als Verknüpfung speichern
 @@use-4-text
 Wählen Sie einen gespeicherten Kanal, öffnen Sie die Einstellungen und verwenden Sie „Befehl kopieren“ oder „Desktop-Verknüpfung erstellen“. Beide nutzen die gespeicherte id des Kanals.
 
+@@use-5-title
+Ein Problem mithilfe der Protokolle melden
+
+@@use-5-text
+Öffnen Sie die Einstellungen, gehen Sie zu „Über“ und drücken Sie auf „Protokolle an den Autor senden“. Die App packt die Diagnoseprotokolle dieser und der vorherigen Sitzung zusammen mit einer kurzen Übersicht über Ihre Version, Ihr Windows und Ihre Einstellungen und öffnet dann Ihr E-Mail-Programm mit der bereits vorbereiteten Nachricht - das Archiv, das für Sie im Explorer ausgewählt wurde, hängen Sie selbst an und drücken auf Senden.
+
 @@distribution-title
 Bezugswege
 
@@ -269,7 +275,7 @@ Die Anwendung verbindet sich, wenn Sie den öffentlichen Stream-Katalog ausdrüc
 Lokale Daten
 
 @@privacy-local
-STREAMS Player speichert seinen Katalogzustand, manuelle Einträge, Anheftungen, Wiedergabemarken, zwischengespeicherte Vorschaubilder im Rahmen von 150 MB und das Diagnoseprotokoll der aktuellen Sitzung Current.log unter [[appdata]]. Diese Daten bleiben auf Ihrem Gerät, solange Sie sie nicht selbst kopieren oder sichern.
+STREAMS Player speichert seinen Katalogzustand, manuelle Einträge, Anheftungen, Wiedergabemarken, zwischengespeicherte Vorschaubilder im Rahmen von 150 MB und die Diagnoseprotokolle der aktuellen und der vorherigen Sitzung unter [[appdata]]. Diese Daten bleiben auf Ihrem Gerät, solange Sie sie nicht selbst kopieren oder sichern - oder solange Sie nicht „Protokolle an den Autor senden“ in den Einstellungen verwenden, wodurch die beiden Diagnoseprotokolle samt Ihrer App-Version, Ihrer Windows-Version und Ihren Einstellungen in ein Archiv gepackt werden und Ihr E-Mail-Programm geöffnet wird, damit Sie es anhängen und an [[email]] senden können. Dieses Archiv wird nur erstellt, wenn Sie diese Schaltfläche drücken, die Protokolle darin nennen die Streams, die abgespielt wurden, und es wird nie etwas gesendet, ohne dass Sie in Ihrem eigenen E-Mail-Programm auf Senden drücken.
 
 @@privacy-contact-title
 Kontakt

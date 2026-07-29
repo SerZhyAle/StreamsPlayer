@@ -763,6 +763,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void StartAudioPlayback(StreamChannel channel, bool reconnecting)
     {
         _log.Event(reconnecting ? "AUDIO RECONNECT" : "AUDIO OPEN", $"url={channel.Url}");
+        if (reconnecting)
+        {
+            NoteAudioReconnectLeg();
+        }
+        else
+        {
+            BeginAudioSession(channel);
+        }
+
         _suppressAudioVolumeSave = true;
         AudioVolumeSlider.Value = _state.AudioVolume;
         _suppressAudioVolumeSave = false;
@@ -784,6 +793,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         SetNowPlaying("NowPlaying", _playingAudio.DisplayTitle);
         _log.Event("AUDIO LIVE", $"url={_playingAudio.Channel.Url}");
+        NoteAudioLive();
         _audioRecovery?.NotifyLive(); // sustained live - restore the full recovery budget
         await RecordPlayOutcome(_playingAudio.Channel.Id, true);
     }
@@ -860,6 +870,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // Terminal audio failure: record the real failed play (red status) and offer Retry / Copy / Hide|Delete / Keep.
     private async Task FailAudioTerminallyAsync(StreamChannel channel, string reason)
     {
+        NoteAudioTerminalFailure(); // before the stop, which is what closes and records the session
         StopAudio();
         await RecordPlayOutcome(channel.Id, false);
         var report = FailureReportFormatter.Format(new FailureReport(
@@ -923,6 +934,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // keeps the Windows media session visible as Paused so a later system Play can resume the channel.
     private void StopAudioPlayback(bool clearSystemSession)
     {
+        EndAudioSession(); // SP-0040: this is the one funnel every stop, switch, pause and failure passes through
         _audioRecoveryCts?.Cancel(); // cancel any in-flight recovery backoff (stop / switch / close)
         _audioRecoveryCts?.Dispose();
         _audioRecoveryCts = null;

@@ -232,6 +232,12 @@ Salvare un canale in un collegamento
 @@use-4-text
 Seleziona un canale salvato, apri le Impostazioni e usa «Copia il comando» o «Crea collegamento sul desktop». Entrambi usano l'id del canale salvato.
 
+@@use-5-title
+Segnalare un problema con i registri
+
+@@use-5-text
+Apri le Impostazioni, vai su «Informazioni» e premi «Invia i registri all'autore». L'app comprime i registri diagnostici di questa sessione e di quella precedente insieme a un breve riepilogo della tua versione, di Windows e delle impostazioni, poi apre il tuo programma di posta con il messaggio già pronto - l'archivio, che viene selezionato per te in Esplora file, lo alleghi tu e premi Invia.
+
 @@distribution-title
 Distribuzione
 
@@ -269,7 +275,7 @@ L'applicazione si collega quando aggiorni esplicitamente il catalogo pubblico de
 Dati locali
 
 @@privacy-local
-STREAMS Player salva lo stato del catalogo, le voci aggiunte a mano, i canali fissati, i contrassegni di riproduzione, i fotogrammi di anteprima nella cache entro un limite di 150 MB e il registro diagnostico della sessione corrente Current.log in [[appdata]]. Questi dati restano sul tuo dispositivo, a meno che tu non scelga di copiarli o di farne una copia di backup.
+STREAMS Player salva lo stato del catalogo, le voci aggiunte a mano, i canali fissati, i contrassegni di riproduzione, i fotogrammi di anteprima nella cache entro un limite di 150 MB e i registri diagnostici della sessione corrente e di quella precedente in [[appdata]]. Questi dati restano sul tuo dispositivo, a meno che tu non scelga di copiarli o di farne una copia di backup - oppure a meno che tu non usi «Invia i registri all'autore» nelle Impostazioni, che comprime i due registri diagnostici insieme alla versione dell'app, alla versione di Windows e alle impostazioni in un archivio e apre il tuo programma di posta perché tu lo alleghi e lo invii a [[email]]. Quell'archivio viene preparato solo quando premi quel pulsante, i registri al suo interno indicano i flussi che sono stati riprodotti e non viene mai inviato nulla senza che tu prema Invia nel tuo programma di posta.
 
 @@privacy-contact-title
 Contatti

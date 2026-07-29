@@ -232,6 +232,12 @@ Enregistrer une chaîne dans un raccourci
 @@use-4-text
 Sélectionnez une chaîne enregistrée, ouvrez les Paramètres et utilisez « Copier la commande » ou « Créer un raccourci sur le bureau ». Les deux utilisent l'id enregistré de la chaîne.
 
+@@use-5-title
+Signaler un problème avec les journaux
+
+@@use-5-text
+Ouvrez les Paramètres, allez dans « À propos » et appuyez sur « Envoyer les journaux à l'auteur ». L'application compresse les journaux de diagnostic de cette session et de la précédente avec un bref résumé de votre version, de votre Windows et de vos réglages, puis ouvre votre logiciel de messagerie avec le message déjà préparé - l'archive, sélectionnée pour vous dans l'Explorateur, c'est vous qui la joignez et qui appuyez sur Envoyer.
+
 @@distribution-title
 Distribution
 
@@ -269,7 +275,7 @@ L'application se connecte quand vous actualisez explicitement le catalogue publi
 Données locales
 
 @@privacy-local
-STREAMS Player enregistre dans [[appdata]] l'état de son catalogue, les entrées ajoutées à la main, les épinglages, les marques de lecture, les images d'aperçu en cache dans une limite de 150 Mo et le journal de diagnostic de la session en cours Current.log. Ces données restent sur votre appareil, sauf si vous choisissez de les copier ou de les sauvegarder.
+STREAMS Player enregistre dans [[appdata]] l'état de son catalogue, les entrées ajoutées à la main, les épinglages, les marques de lecture, les images d'aperçu en cache dans une limite de 150 Mo et les journaux de diagnostic de la session en cours et de la précédente. Ces données restent sur votre appareil, sauf si vous choisissez de les copier ou de les sauvegarder - ou sauf si vous utilisez « Envoyer les journaux à l'auteur » dans les Paramètres, qui compresse les deux journaux de diagnostic ainsi que la version de l'application, la version de Windows et vos réglages dans une archive et ouvre votre logiciel de messagerie pour que vous puissiez la joindre et l'envoyer à [[email]]. Cette archive n'est préparée que lorsque vous appuyez sur ce bouton, les journaux qu'elle contient nomment les flux qui ont été lus, et rien n'est jamais envoyé sans que vous appuyiez sur Envoyer dans votre propre logiciel de messagerie.
 
 @@privacy-contact-title
 Contact

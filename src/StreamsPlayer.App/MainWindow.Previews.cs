@@ -210,6 +210,10 @@ public partial class MainWindow
 
     private async void MainWindow_Closed(object? sender, EventArgs e)
     {
+        // SP-0040: quitting while a station plays is a normal way to end a listening session, and the
+        // stop funnel is not on this path - without this the session the user was listening to when they
+        // gave up on it would be the one session missing its summary in the archived log.
+        EndAudioSession();
         _browsingSessionSaveTimer.Stop();
         await SaveBrowsingSessionAsync();
         _viewportDebounce?.Cancel();
