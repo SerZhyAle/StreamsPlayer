@@ -1,7 +1,9 @@
 # SP-0039: Free promotion - make a finished product findable without spending money
 
-**Status:** Draft - the baseline is measured and the channel list is written; nothing has been
-executed. Exit: the owner answers the open questions below, and the status becomes Approved.
+**Status:** Approved - the baseline is measured, the channel list is written and all eight open
+questions were answered by the owner on 2026-07-29 (recorded below); nothing has been executed yet.
+Exit: phase A gets its tactical folder and its criteria are met; the outreach half closes through
+`BlockNeedUserTest` because no run can check a third party's decision.
 
 ## Goal
 
@@ -183,8 +185,9 @@ Decision 5 applies to this whole group: a site that repackages the download is r
 2. Every generated page carries Open Graph title/description/image/url/type, a Twitter card, and one
    JSON-LD `SoftwareApplication` block with a zero price and the shipped version; the thirteen-language
    generation is otherwise unchanged and `build-site.ps1 -Check` reports "docs/ is up to date".
-3. `docs/sitemap.xml` lists all twenty-six pages, `docs/robots.txt` allows crawling and names the
-   sitemap, and both are produced by `build-site.ps1` rather than maintained by hand.
+3. `docs/sitemap.xml` lists every generated page - twenty-six today, fifty-two once criterion 11 lands -
+   with the count read from the generator's own page list rather than typed here; `docs/robots.txt`
+   allows crawling and names the sitemap; both are produced by `build-site.ps1`, not maintained by hand.
 4. A social preview image is set on the repository and the same image resolves at a stable URL for the
    Open Graph tags.
 5. One demo capture exists in the repository, is under a minute, has no audio track, and is referenced
@@ -204,6 +207,26 @@ Decision 5 applies to this whole group: a site that repackages the download is r
 10. Every outreach text names the author as the author, no text exists for a community whose rules
     forbid self-promotion, and no text reuses a term from the forbidden list. Store metadata still
     passes that gate unchanged.
+11. A "What's new" page and a support page are generated for all thirteen languages from the same copy
+    decks as the existing pages, are linked from the site navigation, appear in `sitemap.xml`, and
+    `build-site.ps1 -Check` reports "docs/ is up to date". The "What's new" text comes from the recorded
+    release notes, never hand-written twice.
+12. The winget locale manifest no longer carries the `iptv` tag, the change ships with the next
+    submission rather than as a standalone pull request, and no other channel gained the term.
+
+## Channel outcomes
+
+Criterion 7 lives here. One line per attempted channel: channel, date, resulting URL or pull-request
+number, current state - including refusals and their reason. A third party's decision is recorded, never
+claimed as a criterion.
+
+- Nothing attempted yet (2026-07-29).
+
+## Metrics
+
+Criterion 8 lives here. Baseline 2026-07-29: 53 release-ZIP downloads across four releases (27/18/7/1),
+0 stars, no repository description, homepage or topics, no Open Graph tags, no sitemap, winget serving
+26.0723.1040, Store package for 26.0728.1352 built and not submitted.
 
 ## Risks
 
@@ -224,8 +247,8 @@ Decision 5 applies to this whole group: a site that repackages the download is r
   traffic to them surfaces translation defects faster than the author can proofread them.
 - **The channels already disagree about one word.** `iptv` is a live tag in the winget locale manifest
   while the Store treats the same substring as a build-failing forbidden term and the publishing runbook
-  says never to re-add it. Any attempt to unify keywords across channels hits this first, and unifying
-  in the wrong direction reintroduces the exact review risk that was deliberately removed.
+  says never to re-add it. Resolved question 5 unifies downward - the tag leaves winget - so the
+  remaining risk is only that someone re-adds it for search reach later.
 - **The tagline argues with the product compass.** The canon's compass says the audience is ordinary
   non-technical people and names RTSP as jargon to avoid; RTSP sits in the README tagline and the site
   hero because it is also a genuine differentiator for a smaller, sharper audience. Promotion copy has
@@ -234,24 +257,32 @@ Decision 5 applies to this whole group: a site that repackages the download is r
   `social-preview-1280x640.png` is 2560x1280. A directory that demands an exact pixel size will reject
   them until they are resized, and the file name will not warn anyone.
 
-## Open questions
+## Resolved questions
 
-1. Should the product have its own social account, or do posts stay under the author's existing
-   identity?
-2. Demo capture: a repository-hosted GIF/MP4 only, or also a video-platform upload?
-3. Is Chocolatey worth its packaging and moderation cost once winget and Scoop are in place?
-4. Which release does the one-shot moment (Show HN / Product Hunt) attach to - the next one, or a later
-   one chosen for being a good story?
-5. `iptv` in the winget tags: remove it so every channel says the same thing, or keep it because Store
-   policy 10.1.3 does not reach winget and the term is how people there search? This is a positioning
-   call, not a cleanup.
-6. Does the product get its own domain, or does it stay on `github.io`? A domain would change every
-   canonical URL, the sitemap and the Open Graph URLs, so it is cheaper to decide before the SEO work
-   than after.
-7. The canon's documentation concept expects a "What's new" page and a support page beside the landing
-   and privacy pages; this site publishes two of the four, and the repository keeps no changelog. Add
-   them, or record the divergence deliberately?
-8. Does this ticket get a tactical folder? Phase A is ordinary repository work with static predicates
-   and would take one; the outreach half has no predicate a run can check, so it can only close through
-   a `BlockNeedUserTest` state. Splitting phase A into `PLAN/SP-0039_free_promotion_campaign/` and
-   leaving the rest strategic is the alternative.
+Answered by the owner on 2026-07-29. Each answer that changes the work is reflected in the criteria
+above; the rest is recorded here so it is not re-litigated.
+
+1. **No product account.** Every post goes out under the author's own identity, which is what decision 4
+   demands anyway. A product account is standing activity one author cannot sustain, and an abandoned
+   one reads worse than none.
+2. **The demo lives in the repository only.** A GIF/MP4 under `assets/`, linked from `README.md` and the
+   generated site. No embedded player, so criterion 9 stays literally true. A video-platform upload is
+   not refused forever - it is simply not part of this ticket.
+3. **Chocolatey is deferred, not refused.** winget is already published and Scoop `extras` is a manifest
+   pull request; Chocolatey costs a nuspec plus install scripts maintained per release. Revisit once
+   both cheaper managers are current.
+4. **The one-shot moment waits for a release that carries the demo and a finished phase A.** Show HN and
+   Product Hunt fire once per product; they attach to the first release where the capture exists, the
+   discovery tags are live and winget and the Store serve the current version.
+5. **`iptv` is removed from the winget tags.** Every channel says the same thing and there is no path
+   left for the term to leak back into Store metadata. The lost winget search hit is the accepted price;
+   this reverses nothing in the Store gate, which already forbade it.
+6. **The site stays on `github.io`.** No domain purchase, so canonical URLs, hreflang alternates, the
+   sitemap and the Open Graph URLs are all written against the current base and nothing has to be
+   rewritten later.
+7. **Both missing pages get built** - a "What's new" page generated from the release notes and a support
+   page. They close the divergence from the canon's documentation concept and add thirteen indexable
+   URLs each by the same edit.
+8. **Phase A gets a tactical folder**, `PLAN/SP-0039_free_promotion_campaign/`: repository metadata, the
+   discovery tags, the sitemap and robots pair, the social card and the demo capture all have static
+   predicates. The outreach half stays strategic in this file.
