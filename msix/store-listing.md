@@ -61,7 +61,48 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
-### Prepared for 26.0728.1352
+### Prepared for the next release (unreleased)
+
+Written for the changes on `main` after 26.0728.1352, so the text exists before the tag rather than
+being improvised during it. The version line carries `REPLACE_VERSION` on purpose: the value is the
+UTC minute of the release and is stamped into these three blocks, `Directory.Build.props`, the GitHub
+Release body and the three winget locale manifests in the same pass. **Re-read the log before
+stamping** - anything merged after this note was written needs its own bullet.
+
+Covered here: `944f40b` (catalog window returns to the front) and `53a89ca` (SP-0040, send logs to
+the author, which also keeps the previous session's log). Deliberately not bulleted: the richer
+per-session playback records, which exist for the author reading a report and change nothing the user
+sees, and the packaging and documentation commits.
+
+Before this text ships, two tickets still hold owner observations that a release note must not claim
+prematurely: SP-0040 criterion 4 (the prepared mail seen on a configured client) and the SP-0034 exit
+condition.
+
+```text
+Version REPLACE_VERSION
+
+- Report a problem without hunting for files: Settings, About, Send logs to the author packs the diagnostic logs and opens your mail program with the message ready. Nothing is sent automatically - you attach the archive and press Send.
+- The player keeps the previous session's log too, so a problem can still be reported after a restart.
+- The catalog window comes back to the front when you close the last player window.
+```
+
+```text
+Версия REPLACE_VERSION
+
+- Сообщить о проблеме без поиска файлов: «Настройки», «О программе», «Отправить журналы автору» - приложение упакует журналы диагностики и откроет вашу почтовую программу с готовым письмом. Автоматически ничего не отправляется: архив вы прикрепите и нажмёте «Отправить» сами.
+- Журнал предыдущего сеанса теперь сохраняется, поэтому о проблеме можно сообщить и после перезапуска.
+- Окно каталога возвращается на передний план, когда вы закрываете последнее окно плеера.
+```
+
+```text
+Версія REPLACE_VERSION
+
+- Повідомити про проблему без пошуку файлів: «Налаштування», «Про програму», «Надіслати журнали авторові» - програма запакує журнали діагностики й відкриє вашу поштову програму з готовим листом. Автоматично нічого не надсилається: архів ви прикріпите й натиснете «Надіслати» самі.
+- Журнал попереднього сеансу тепер зберігається, тому про проблему можна повідомити й після перезапуску.
+- Вікно каталогу повертається на передній план, коли ви закриваєте останнє вікно програвача.
+```
+
+### Prepared for 26.0728.1352 (shipped)
 
 Paste these as-is at the next Partner Center submission; the ten other languages get the English
 block. Kept here rather than substituted into the template above, because the template outlives the
