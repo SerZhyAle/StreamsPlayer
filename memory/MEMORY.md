@@ -224,3 +224,11 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   right-to-left window is cheaper by swapping the single root `"language"` token in `catalog-state.json`
   and restoring it afterwards - never by a JSON round trip, which would rewrite 2.9 MB of the owner's
   real catalog (2026-07-30).
+
+- **The live Store listing is byte-identical to the repo deck again.** A fresh Partner Center export
+  taken 2026-07-30 filled **0 cells across all thirteen languages** under both the default run and
+  `-ReplaceCopy`, with every language reporting `complete` and the per-language search-term counts
+  matching `msix/listing/` exactly. So the ten-language drop measured on 2026-07-27 has been fully
+  repaired, and a routine version update needs **no listing import at all** - only the per-submission
+  "What's new", which the builder never writes. Re-run the builder before assuming an import is
+  needed; an import that changes nothing is pure all-or-nothing-per-language risk (2026-07-30).

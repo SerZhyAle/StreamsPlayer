@@ -75,11 +75,17 @@ the author, which also keeps the previous session's log). Deliberately not bulle
 per-session playback records, which exist for the author reading a report and change nothing the user
 sees, and the packaging and documentation commits.
 
-**This text must not be submitted yet.** Two tickets still hold owner observations that a release note
-cannot claim prematurely: SP-0040 criterion 4 (the prepared mail seen on a configured client), which
-is what the first two bullets below describe, and the SP-0034 exit condition. Both sit at
-`BlockNeedUserTest`. Confirm them, or drop the send-logs bullets, before the copy goes to Partner
-Center.
+**Shipped ahead of two owner observations - the owner's explicit call on 2026-07-30.** The first two
+bullets describe SP-0040, whose criterion 4 is *the prepared mail seen on a configured client*. That
+criterion is not merely un-run, it is **unobservable on the development machine**: the default
+`mailto:` handler there is the new Outlook, never configured, so the button opens an account-setup
+screen instead of a compose window. SP-0040 proved the link with unit tests for exactly that reason.
+SP-0034's exit condition is likewise unobserved.
+
+Both tickets stay at `BlockNeedUserTest` and neither was marked Verified - the copy shipping is not
+the observation happening. Proven: implemented, and the release-parity gate green over it (402/402).
+Not proven: a configured client actually rendering the message. The first user with a working mail
+client settles it; until then this note is where the gap is recorded.
 
 ```text
 Version 26.0730.1512
