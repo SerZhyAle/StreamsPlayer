@@ -24,6 +24,7 @@ msix/dist/
 # Local diagnostics and secrets
 temp/
 tmp/
+PLAN/
 *.log
 appsettings.Development.json
 secrets/
