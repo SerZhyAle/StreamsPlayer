@@ -15,6 +15,23 @@ Every language file holds exactly the same field set:
 | `Description` | the body, at most 10,000 characters, blank line between paragraphs |
 | `Feature1` .. `Feature10` | Partner Center adds the bullets - do not type them |
 
+`release-notes/` is the fourth thing, and the only one that is **per submission** rather than durable:
+`<version>.en-us.txt`, `<version>.ru.txt`, `<version>.uk.txt` hold the "What's new" for one release,
+in the same three languages the notes use on every other surface. The builder above never touches the
+`ReleaseNotes` row - the decks it fills outlive a release, and dated prose does not belong in them.
+`tools/store/write-release-notes.ps1` writes that one row and nothing else, into
+`msix/dist/store-listing-import.csv`:
+
+```powershell
+# Partner Center -> Store listings -> Export listing, then:
+pwsh -NoProfile -File tools/store/write-release-notes.ps1 `
+  -Export ~/Downloads/listingData-9NBTD5SXB8TB-<id>.csv -Version 26.0806.2225
+```
+
+Everything a submission needs is assembled in `msix/dist`: the MSIX, this CSV, and the screenshot
+payload. Never hand Partner Center a file from the download folder - the export sitting there carries a
+BOM the import rejects, and nothing tells you that is why.
+
 Three things are deliberately **not** per language:
 
 - `shared.txt` - `Title` and `CopyrightTrademarkInformation`. They are identifiers, not prose, and
