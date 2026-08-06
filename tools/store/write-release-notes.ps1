@@ -64,7 +64,25 @@ if (-not (Test-Path $directory)) { New-Item -ItemType Directory -Path $directory
 $text = [IO.File]::ReadAllText($Export)
 $header = ($text -split "`r?`n")[0]
 $columns = $header -split ','
-$notes = @{ 'en-us' = $NotesEn; 'ru' = $NotesRu; 'uk' = $NotesUk }
+
+# Every newline written into this file must be CRLF, inside a quoted cell as much as between records.
+# The export is CRLF throughout, and Partner Center's reader treats a bare LF as ordinary text rather
+# than as the end of a record: a lone LF closing the ReleaseNotes row leaves the last column's quoted
+# cell open, so it swallows the next record and the import fails with "<language> ReleaseNotes is too
+# long" - naming only the last language, and never the real cause. Cost one rejected submission on
+# 2026-08-07.
+function ConvertTo-Crlf([string] $value) { ($value -replace "`r`n", "`n") -replace "`n", "`r`n" }
+
+$notes = @{
+    'en-us' = ConvertTo-Crlf $NotesEn
+    'ru'    = ConvertTo-Crlf $NotesRu
+    'uk'    = ConvertTo-Crlf $NotesUk
+}
+
+# Measured after the conversion, because that is the text Partner Center counts.
+foreach ($code in 'en-us', 'ru', 'uk') {
+    if ($notes[$code].Length -gt 1500) { throw "The $code note is $($notes[$code].Length) characters once CRLF-normalised; the limit is 1500." }
+}
 
 $row = [System.Collections.Generic.List[string]]::new()
 foreach ($column in $columns) {
@@ -73,7 +91,7 @@ foreach ($column in $columns) {
         'ID' { '3' }
         'Type (Type)' { 'Text' }
         'default' { '' }
-        default { if ($notes.ContainsKey($column)) { $notes[$column] } else { $NotesEn } }
+        default { if ($notes.ContainsKey($column)) { $notes[$column] } else { $notes['en-us'] } }
     }
     # Quote whenever the value could be misread; double every embedded quote. Empty stays bare, as the
     # export writes it.
@@ -81,14 +99,20 @@ foreach ($column in $columns) {
     else { $row.Add('"' + $value.Replace('"', '""') + '"') }
 }
 
-$replacement = $row -join ','
-$pattern = '(?m)^ReleaseNotes,3,Text,[^"\r\n]*\r?$'
+# The pattern consumes the row's terminator too, so the replacement supplies its own CRLF rather than
+# inheriting whatever the match left behind.
+$replacement = ($row -join ',') + "`r`n"
+$pattern = '(?m)^ReleaseNotes,3,Text,[^"\r\n]*\r?\n'
 if ($text -notmatch $pattern) { throw 'The ReleaseNotes row was not found in its expected empty form. Refusing to guess.' }
 $text = [regex]::Replace($text, $pattern, { $replacement })
 
+$strayLineFeeds = [regex]::Matches($text, "(?<!\r)\n").Count
+if ($strayLineFeeds -gt 0) { throw "$strayLineFeeds bare line feed(s) in the output. Partner Center needs CRLF everywhere; refusing to write a file that will be rejected." }
+
 [IO.File]::WriteAllText($Out, $text, (New-Object Text.UTF8Encoding($false)))
 
-$lengths = foreach ($key in 'en-us', 'ru', 'uk') { "{0}: {1} chars" -f $key, $notes[$key].Length }
+$lengths = foreach ($code in 'en-us', 'ru', 'uk') { "{0}: {1}" -f $code, $notes[$code].Length }
 Write-Host "Wrote $Out"
 Write-Host ("Languages: {0} column(s); ReleaseNotes filled in every one." -f ($columns.Count - 4))
-Write-Host ("Note lengths - {0} (Partner Center limit 1500)" -f ($lengths -join ', '))
+Write-Host ("Note lengths, CRLF-normalised - {0} (Partner Center limit 1500)" -f ($lengths -join ', '))
+Write-Host "Line endings: CRLF throughout, no bare line feed."

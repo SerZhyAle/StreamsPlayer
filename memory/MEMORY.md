@@ -316,3 +316,14 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   offers `-Runtime win-arm64`. Verify a packaging change like this by CRC-comparing the surviving tree
   against the previous package rather than by re-testing playback: all 425 `libvlc/win-x64` entries
   matched on size and CRC32, which is what makes the change provably inert (2026-08-06).
+
+- **A Partner Center listing import must be CRLF everywhere, and it reports a bare LF as the wrong
+  error entirely.** The export is CRLF throughout, inside quoted multi-line cells as much as between
+  records. Write one record terminated by a lone `\n` and Partner Center's reader does not close that
+  record: the **last** column's quoted cell stays open and swallows the following row, so the rejection
+  reads "Italian / ReleaseNotes / ReleaseNotes is too long (must be 1500 characters or fewer)" - naming
+  the last language in the header order, a field that measured 1232 characters, and never the line
+  ending. `.NET`'s `(?m)$` matches *before* the `\n`, so `'...\r?$'` strips the CR and leaves the LF -
+  which is exactly how a CRLF file grows bare line feeds. Match the terminator explicitly (`\r?\n`),
+  emit `\r\n`, normalise newlines inside every cell you write, and assert zero `(?<!\r)\n` before
+  writing. Cost one rejected submission (2026-08-07).
