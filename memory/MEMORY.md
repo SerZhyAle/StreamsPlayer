@@ -305,3 +305,14 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   five-file, additions-only PR (#413363 proves it). Also: `wingetcreate update` silently drops the
   `ReleaseNotes` fields, so the three locale manifests need them written back by hand or the release
   ships with the previous version's notes (2026-08-06).
+
+- **`VideoLAN.LibVLC.Windows` ships all three native trees into every WPF build, and `-r win-x64` does
+  not stop it.** Its `.targets` gates `win-x64`/`win-x86`/`win-arm64` on `$(Platform)`, which is
+  `AnyCPU` for a WPF project, so all three are added as `Content` at evaluation time - long before the
+  runtime identifier is consulted. Measured on 26.0806.2131: 129.4 MB packed of libvlc, of which
+  **84.1 MB (x86 + arm64) can never be loaded** by an x64 package - about 40% of the MSIX and of the
+  portable zip. The fix is three properties in `StreamsPlayer.App.csproj` keyed off
+  `$(RuntimeIdentifier)`, not off `$(Platform)`, and it must keep an arm64 branch because `build.ps1`
+  offers `-Runtime win-arm64`. Verify a packaging change like this by CRC-comparing the surviving tree
+  against the previous package rather than by re-testing playback: all 425 `libvlc/win-x64` entries
+  matched on size and CRC32, which is what makes the change provably inert (2026-08-06).

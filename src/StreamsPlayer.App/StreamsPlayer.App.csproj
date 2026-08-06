@@ -18,6 +18,20 @@
     <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="8.0.1" />
   </ItemGroup>
 
+  <!-- Ship one LibVLC native tree, not three. VideoLAN.LibVLC.Windows.targets keys its three
+       copy switches off $(Platform), which is AnyCPU for a WPF project, so all of win-x64, win-x86 and
+       win-arm64 land in the output regardless of the runtime being published. Only the tree matching
+       the process architecture is ever loaded, so the other two were 84 MB of packed dead weight -
+       about 40% of the MSIX. Key them off the runtime identifier instead. An empty RuntimeIdentifier
+       (a plain `dotnet build`, and every test run) means the x64 development machine, so x64 stays on;
+       build.ps1 still offers -Runtime win-arm64, which is why that branch is preserved rather than
+       flattened away. -->
+  <PropertyGroup>
+    <VlcWindowsX86Enabled>false</VlcWindowsX86Enabled>
+    <VlcWindowsX64Enabled Condition="'$(RuntimeIdentifier)' == 'win-arm64'">false</VlcWindowsX64Enabled>
+    <VlcWindowsArm64Enabled Condition="'$(RuntimeIdentifier)' != 'win-arm64'">false</VlcWindowsArm64Enabled>
+  </PropertyGroup>
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <!-- A Windows SDK version is required to project the WinRT System Media Transport Controls
