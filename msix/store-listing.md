@@ -61,7 +61,70 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
-### Prepared for 26.0730.1512 (stamped, not yet submitted)
+### Prepared for 26.0806.2131 (stamped)
+
+Written for everything on `main` after 26.0730.1512, which is the largest payload the product has
+shipped in one release: SP-0045 (the player's signal stripe gains colour), SP-0046 (a dark interface
+that follows Windows), SP-0047 (the player's controls auto-hide in a window too), SP-0048 (a fourth,
+smallest grid tile), SP-0049 (the diagnostic archive lands in the user's own save folder), SP-0050 (the
+consolidated header, the on-demand filter row and the language tab in Settings) and SP-0053 (About the
+channel). The version was stamped from the UTC minute of this release pass into these three blocks and
+`Directory.Build.props` together; the GitHub Release body and the three winget locale manifests take
+the same value.
+
+Deliberately not bulleted: the localization, documentation and site work that carries those features,
+the dark-theme fix to the language list, and the packaging commits - none of them is a change a user
+would recognise as its own line.
+
+**Shipped ahead of a complete observation sheet - the owner's explicit call on 2026-08-06.** Observed
+on the development machine and captured under `temp/release-26.0806/`: the consolidated header, the
+operations menu in grid mode, the on-demand filter row, the dark interface across the catalog, the
+player's controls hiding and returning, and the green signal state on a playing channel. Not observed:
+the About-the-channel measurement end to end, the archive path from "Send logs to the author", the
+smallest grid tile, the restart-persistence of the filter row, and the language tab in the dark theme
+after its fix. Those five sit in `PLAN` at `BlockNeedUserTest`; the copy shipping is not the
+observation happening, and this note is where the gap is recorded.
+
+```text
+Version 26.0806.2131
+
+- A dark interface that follows Windows and switches with it while the app runs. Settings has the final word: follow the system, always light, or always dark.
+- About the channel - a new item in a channel's menu that lists its properties and reports what the stream actually sends: video and audio formats, picture size, frame rate, sound channels and sample rate, and the observed data rate.
+- A calmer main window: search now sits beside the product name, the filter and sorting row appears only when you press "Filters and sorting", and the remaining header actions moved into one "Operations" menu.
+- The interface language is now the first tab in Settings, marked with a globe, so it can be found without reading a word.
+- The player's signal stripe is colour-coded: green while the stream is fine, yellow while it stalls or rebuffers, red when the signal is gone.
+- The player's controls now hide after a short idle in a window too, not only in fullscreen, and come back on a click on the picture.
+- A fourth, smallest grid tile: the picture alone, with the name and the buttons appearing under the pointer.
+- "Send logs to the author" writes the archive to your own save folder and tells you its full path.
+```
+
+```text
+Версия 26.0806.2131
+
+- Тёмное оформление, которое следует за Windows и переключается вместе с системой прямо во время работы. Последнее слово за настройками: как в системе, всегда светлое или всегда тёмное.
+- «О канале» - новый пункт в меню канала: перечисляет свойства канала и показывает, что поток передаёт на самом деле - форматы видео и звука, размер картинки, частоту кадров, число звуковых каналов и частоту дискретизации, а также измеренную скорость потока.
+- Спокойнее главное окно: поиск перебрался к названию программы, строка фильтров и сортировки появляется только по кнопке «Фильтры и сортировка», а остальные действия шапки собраны в одно меню «Операции».
+- Язык интерфейса стал первой вкладкой настроек и отмечен глобусом - его можно найти, не читая ни слова.
+- Полоса сигнала в плеере теперь цветная: зелёная, пока поток в порядке, жёлтая при задержках и перебуферизации, красная, когда сигнала нет.
+- Панель управления плеера прячется после паузы и в оконном режиме, а не только в полноэкранном, и возвращается по щелчку на картинке.
+- Четвёртый, самый мелкий размер плитки: только картинка, а название и кнопки появляются под указателем.
+- «Отправить журналы автору» кладёт архив в вашу же папку сохранения и сообщает его полный путь.
+```
+
+```text
+Версія 26.0806.2131
+
+- Темне оформлення, яке слідує за Windows і перемикається разом із системою просто під час роботи. Останнє слово за налаштуваннями: як у системі, завжди світле або завжди темне.
+- «Про канал» - новий пункт у меню каналу: перелічує властивості каналу й показує, що потік передає насправді - формати відео та звуку, розмір картинки, частоту кадрів, кількість звукових каналів і частоту дискретизації, а також виміряну швидкість потоку.
+- Спокійніше головне вікно: пошук перемістився до назви програми, рядок фільтрів і сортування з'являється лише за кнопкою «Фільтри та сортування», а решта дій шапки зібрані в одне меню «Операції».
+- Мова інтерфейсу стала першою вкладкою налаштувань і позначена глобусом - її можна знайти, не читаючи жодного слова.
+- Смуга сигналу у програвачі тепер кольорова: зелена, поки потік у порядку, жовта під час затримок і перебуферизації, червона, коли сигналу немає.
+- Панель керування програвача ховається після паузи й у віконному режимі, а не лише в повноекранному, і повертається за клацанням на картинці.
+- Четвертий, найдрібніший розмір плитки: лише картинка, а назва та кнопки з'являються під вказівником.
+- «Надіслати журнали авторові» кладе архів у вашу ж папку збереження й повідомляє його повний шлях.
+```
+
+### Prepared for 26.0730.1512 (stamped, shipped)
 
 Written for the changes on `main` after 26.0728.1352, so the text exists before the tag rather than
 being improvised during it. The version was stamped from the UTC minute of the release pass into these
