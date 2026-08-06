@@ -125,10 +125,10 @@ Find a channel
 Curated catalog on first launch - no setup.
 
 @@cap-find-2
-Filter by category, language, country, media type.
+Filter by category, language, country, media type - open the row when you need it.
 
 @@cap-find-3
-Search and sort the list.
+Search always sits on the title line.
 
 @@cap-find-4
 Pin the channels you return to.
@@ -158,10 +158,13 @@ Keep the main window or player always on top.
 Borderless full screen with a button or F11 (Esc exits).
 
 @@cap-window-3
-Small, Medium, or Large stream tiles.
+Very Small, Small, Medium, or Large stream tiles.
 
 @@cap-window-4
 Save the frame you are watching as a JPEG.
+
+@@cap-window-5
+Follow the Windows colour theme, or stay light or dark.
 
 @@cap-grid-title
 Visual grid
@@ -236,7 +239,7 @@ Select a saved channel, open Settings, and use Copy command or Create desktop sh
 Report a problem with the logs
 
 @@use-5-text
-Open Settings, go to About, and press Send logs to the author. The app packs the current and previous session's diagnostic logs with a short summary of your version, Windows and settings, then opens your mail program with the message ready - you attach the archive it selected for you in Explorer and press Send.
+Open Settings, go to About, and press Send logs to the author. The app packs the current and previous session's diagnostic logs with a short summary of your version, Windows and settings into the Saved files folder (Downloads by default), then opens your mail program with the message ready. The confirmation shows the complete path and can open that folder when you ask; you attach the archive and press Send.
 
 @@distribution-title
 Distribution

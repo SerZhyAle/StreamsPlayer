@@ -4,6 +4,18 @@
 > self-contained: the fixed data/format contracts are embedded inline, and the deeper reference is the
 > source-spec set in `dev/handoff/streams-source-spec/` (files 00-08).
 
+> **Status note - read this first.** This is the original handoff brief, kept because Part A is still the
+> live data contract. It is **not** a description of the shipped application, and it is no longer the
+> authority on anything else.
+>
+> - The `dev/handoff/streams-source-spec/` set (files `00`-`08`) referenced throughout **was never carried
+>   into this repository**. Every `see 0N` pointer below is dead.
+> - **On any conflict, the shipped code and `tests/StreamsPlayer.Core.Tests` win**, not this document.
+> - Known places where this brief no longer matches the product: the Part B.4 settings inventory (the
+>   shipped Settings window has different tabs and controls, and there is deliberately **no** automatic
+>   refresh policy), "favorites" in B.2/B.3 (pin-to-top shipped instead), and the Part D buffering
+>   numbers (the Windows build uses a fixed LibVLC buffer - see the note in Part D).
+
 ---
 
 ## 0. Role and goal
@@ -30,7 +42,8 @@ contracts in Part A are fixed** and must match exactly, or you break compatibili
 - `07_entrypoints_and_gating.md` - entry points + gating
 - `08_build_publish_pipeline.md` - the offline producer (only if you regenerate the bank)
 
-Everything below summarizes those files; on any conflict, the files win.
+Everything below summarizes those files. They are absent from this repository, so the conflict rule is the
+one in the status note above: the shipped Core code and its tests win.
 
 ---
 
@@ -59,11 +72,15 @@ Everything below summarizes those files; on any conflict, the files win.
   license_note, notes, confidence, favicon_index
   ```
 - **A row is valid only if both `name` and `url` are non-blank** (after trim); drop any other row silently.
+- The producer adds columns over time without notice. `access` (empty, or `geo` for a geo-restricted
+  channel) arrived after this list was written and **is** read by StreamsPlayer; treat the 18 above as a
+  floor, not a fixed set, which is exactly why matching is by header name.
 - Columns you must use: `name` (title), `url` (the direct playable stream URL, playlists already resolved),
   `media_kind` (`AUDIO`/`VIDEO`/`RTSP`), `favicon_index` (int), plus metadata `category`, `topic`,
   `language` (lowercase, comma-separated inside one cell), `country` (ISO 3166-1 alpha-2), `homepage`.
-- Columns you may ignore for playback (maintainer/tooling metadata): `protocol`, `format`, `bitrate`,
-  `is_live`, `https`, `source_kind`, `license_note`, `notes`, `confidence`.
+- Columns you may ignore for playback (maintainer/tooling metadata): `protocol`, `format`, `https`,
+  `source_kind`, `license_note`, `notes`, `confidence`. StreamsPlayer additionally surfaces `bitrate` (it
+  drives the catalog's minimum-bitrate filter), `is_live`, and `access`.
 - **`favicon_index`** decode: a non-negative integer -> that index; blank / non-numeric / negative /
   column-absent -> no favicon.
 
@@ -118,6 +135,12 @@ entry must render as "no favicons", no error. Never assume a fixed atlas height.
 Re-fetch the bank only on an **explicit user action** (a "Refresh / Update catalog" command, an "Import
 list" flow, or first-run onboarding). Never auto-download on app launch/update.
 
+Today a failed fetch has no fallback: the refresh throws, the UI reports it, and a first launch without a
+network leaves the catalog empty. `SP-0052` proposes shipping a bundled snapshot of the bank (CSV + atlas,
+as one inseparable pair) that the user may apply on explicit consent - at first run, after a failed update,
+or from Settings - merged as ordinary `CATALOG` rows but **without** the prune step, so applying it can
+never roll a fresher catalog backwards. It is **not implemented**; do not read it as shipped behaviour.
+
 ---
 
 ## PART B - Functional scope (Android parity), in tiers
@@ -143,8 +166,9 @@ list" flow, or first-run onboarding). Never auto-download on app launch/update.
   current frame** (see `04` §9); AUDIO/RTSP tiles show the favicon.
 - **Per-row play-status bullet**: three states by **icon shape + label** (not colour only) - never tried
   (amber hollow ring), verified OK (green filled + check), last play failed (red filled + exclamation).
-- **Card overflow menu**: pin/unpin (grid), move up/down/to-top (when pinned), add/remove favorite, add to
-  home screen/shortcut, edit (manual channels only), send link, remove.
+- **Card overflow menu**: pin/unpin (grid), move up/down/to-top (when pinned), add to
+  home screen/shortcut, edit (manual channels only), send link, remove. (No separate "favorite" concept
+  shipped - pin-to-top is the one shipped equivalent.)
 - **Empty state**: icon + inline "Add stream" / "Import list" actions.
 
 ### B.3 Manage
@@ -154,12 +178,17 @@ list" flow, or first-run onboarding). Never auto-download on app launch/update.
   it as an HLS manifest and import **zero** channels; otherwise scan lines (`#EXTINF:<dur>,<title>` sets the
   next URL's title; other `#` lines ignored; a bare URL line is a channel; title falls back to the host).
   Stored as `IMPORTED`, de-duplicated by url.
-- **Edit** (manual channels only), **remove** (with confirm), **favorites**, **home-screen shortcut**.
+- **Edit** (manual channels only), **remove** (with confirm), **pin-to-top**, **home-screen shortcut**.
 
-### B.4 Settings + defaults (see `07`)
-- Default sort, default media-kind filter, catalog-refresh policy (manual / suggest-on-open /
-  auto-on-Wi-Fi), and a "clear play marks" action (nulls every OK/FAIL bullet, keeps the channels).
-- Optional main-window pinned-channels panel.
+### B.4 Settings + defaults - **superseded, see the status note**
+This inventory was never built as written and is kept only as history. The shipped Settings window has its
+own tabs (Grid / Launch shortcuts / Playback / Playlists / About), the pinned channels shipped as an
+always-present collapsible catalog section rather than an optional panel, and the refresh-policy dropdown
+below is **forbidden**: catalog refresh is explicit-only, so "suggest-on-open" and "auto-on-Wi-Fi" must not
+be implemented (A.7 and `AGENTS.md` say the same).
+- ~~Default sort, default media-kind filter, catalog-refresh policy (manual / suggest-on-open /
+  auto-on-Wi-Fi), and a "clear play marks" action.~~
+- ~~Optional main-window pinned-channels panel.~~
 
 ### B.5 Full player parity (see `06`)
 - **ICY / Shoutcast now-playing metadata** for radio (request header `Icy-MetaData: 1`; show
@@ -199,6 +228,11 @@ list" flow, or first-run onboarding). Never auto-download on app launch/update.
 Your media backend must handle **progressive HTTP(S)** audio and video, **HLS** (`.m3u8`), **DASH**
 (`.mpd`), and **RTSP** (prefer RTP-over-RTSP/TCP). The Android numbers to mirror where they apply:
 
+> **What the Windows build actually does.** The adaptive-buffer and live-window numbers below were *not*
+> mirrored: LibVLC gets a fixed 15 s live buffer, dropping to 4 s when a stalled stream is re-opened, and
+> growing it was tried and did not help. The **recovery budgets and backoff** below *were* mirrored
+> (`LivePlaybackRecoveryPolicy`). Read this part as the Android reference it is, not as shipped behaviour.
+
 - **HTTP data source**: connect/read timeout **15,000 ms**; **allow cross-protocol redirects** (Icecast/
   Shoutcast relays hop http<->https); send `Icy-MetaData: 1`; support **Basic Auth from a
   `http://user:pass@host` userinfo** (lift into an `Authorization: Basic` header, strip from the URL).
@@ -237,7 +271,9 @@ explicit "Update catalog" / "Import list" action and/or first-run onboarding.
 - **Tech stack, UI framework, media library, storage engine** - your choice within the Windows app. Do not
   port Android classes; match the **contracts (Part A)** and **behaviors (Parts B-D)** instead.
 - You **may regenerate or extend** the bank yourself with the offline pipeline (`08`) - same constraints
-  (CSV entry 0, atlas <= 3 MiB, never ship `favicon_index` values without a matching atlas). The atlas
+  (CSV entry 0, atlas within `StreamBankReader.MaximumAtlasBytes` - 30 MB since 2026-07, raised because the
+  live atlas had already passed the old 4 MB limit - never ship `favicon_index` values without a matching
+  atlas). The atlas
   packer uses .NET `System.Drawing`/GDI+, which is native on Windows.
 - Chromecast casting and Android-specific surfaces (home-screen pinned shortcuts, launcher gadget) are
   optional / may not apply on desktop.

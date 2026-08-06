@@ -125,10 +125,10 @@ Trovare un canale
 Catalogo già pronto al primo avvio - senza configurazione.
 
 @@cap-find-2
-Filtri per categoria, lingua, paese e tipo di media.
+Filtri per categoria, lingua, paese e tipo di media - la riga si apre quando serve.
 
 @@cap-find-3
-Ricerca e ordinamento dell'elenco.
+La ricerca è sempre nella riga del titolo.
 
 @@cap-find-4
 Fissa i canali a cui torni più spesso.
@@ -158,10 +158,13 @@ Mantieni la finestra principale o il lettore sempre in primo piano.
 Schermo intero senza bordi con un pulsante o con F11 (Esc esce).
 
 @@cap-window-3
-Riquadri dei flussi piccoli, medi o grandi.
+Riquadri dei flussi molto piccoli, piccoli, medi o grandi.
 
 @@cap-window-4
 Salva il fotogramma corrente come JPEG.
+
+@@cap-window-5
+Segui il tema colore di Windows oppure resta su chiaro o scuro.
 
 @@cap-grid-title
 Griglia visiva
@@ -236,7 +239,7 @@ Seleziona un canale salvato, apri le Impostazioni e usa «Copia il comando» o �
 Segnalare un problema con i registri
 
 @@use-5-text
-Apri le Impostazioni, vai su «Informazioni» e premi «Invia i registri all'autore». L'app comprime i registri diagnostici di questa sessione e di quella precedente insieme a un breve riepilogo della tua versione, di Windows e delle impostazioni, poi apre il tuo programma di posta con il messaggio già pronto - l'archivio, che viene selezionato per te in Esplora file, lo alleghi tu e premi Invia.
+Apri le Impostazioni, vai su «Informazioni» e premi «Invia i registri all'autore». L'app comprime i registri diagnostici di questa sessione e di quella precedente con un breve riepilogo della versione, di Windows e delle impostazioni nella cartella dei file salvati (Download per impostazione predefinita), poi apre il programma di posta con il messaggio già pronto. La conferma mostra il percorso completo e può aprire la cartella su richiesta; alleghi l'archivio e premi Invia.
 
 @@distribution-title
 Distribuzione

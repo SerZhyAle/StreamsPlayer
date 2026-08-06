@@ -125,10 +125,10 @@ Encontrar un canal
 Catálogo ya preparado en el primer arranque - sin configuración.
 
 @@cap-find-2
-Filtra por categoría, idioma, país y tipo de medio.
+Filtra por categoría, idioma, país y tipo de medio: la fila se abre cuando la necesitas.
 
 @@cap-find-3
-Busca y ordena la lista.
+La búsqueda está siempre en la línea del título.
 
 @@cap-find-4
 Fija los canales a los que vuelves.
@@ -158,10 +158,13 @@ Mantén la ventana principal o el reproductor siempre visible.
 Pantalla completa sin bordes, con un botón o con F11 (Esc para salir).
 
 @@cap-window-3
-Mosaicos de transmisión pequeños, medianos o grandes.
+Mosaicos de transmisión muy pequeños, pequeños, medianos o grandes.
 
 @@cap-window-4
 Guarda el fotograma actual como JPEG.
+
+@@cap-window-5
+Sigue el tema de color de Windows o mantén la app en claro u oscuro.
 
 @@cap-grid-title
 Cuadrícula visual
@@ -236,7 +239,7 @@ Selecciona un canal guardado, abre Ajustes y usa «Copiar comando» o «Crear ac
 Informar de un problema con los registros
 
 @@use-5-text
-Abre Ajustes, ve a «Acerca de» y pulsa «Enviar los registros al autor». La aplicación empaqueta los registros de diagnóstico de esta sesión y de la anterior junto con un breve resumen de tu versión, de Windows y de tus ajustes, y luego abre tu programa de correo con el mensaje ya preparado - el archivo comprimido, que queda seleccionado en el Explorador, lo adjuntas tú y pulsas Enviar.
+Abre Ajustes, ve a «Acerca de» y pulsa «Enviar los registros al autor». La aplicación empaqueta los registros de diagnóstico de esta sesión y de la anterior con un breve resumen de tu versión, Windows y ajustes en la carpeta de archivos guardados (Descargas de forma predeterminada), y luego abre tu programa de correo con el mensaje ya preparado. La confirmación muestra la ruta completa y puede abrir la carpeta si lo pides; tú adjuntas el archivo comprimido y pulsas Enviar.
 
 @@distribution-title
 Distribución

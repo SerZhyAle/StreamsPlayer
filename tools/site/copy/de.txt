@@ -125,10 +125,10 @@ Einen Kanal finden
 Fertiger Katalog beim ersten Start - ohne Einrichtung.
 
 @@cap-find-2
-Filter nach Kategorie, Sprache, Land und Medienart.
+Filter nach Kategorie, Sprache, Land und Medienart - Zeile bei Bedarf einblenden.
 
 @@cap-find-3
-Liste durchsuchen und sortieren.
+Die Suche liegt immer in der Titelzeile.
 
 @@cap-find-4
 Kanäle anheften, zu denen Sie zurückkehren.
@@ -158,10 +158,13 @@ Hauptfenster oder Player immer im Vordergrund halten.
 Randloses Vollbild per Schaltfläche oder F11 (Esc beendet es).
 
 @@cap-window-3
-Kacheln der Streams: klein, mittel oder groß.
+Kacheln der Streams: sehr klein, klein, mittel oder groß.
 
 @@cap-window-4
 Aktuelles Bild als JPEG speichern.
+
+@@cap-window-5
+Dem Farbschema von Windows folgen oder dauerhaft hell bzw. dunkel bleiben.
 
 @@cap-grid-title
 Visuelles Raster
@@ -236,7 +239,7 @@ Wählen Sie einen gespeicherten Kanal, öffnen Sie die Einstellungen und verwend
 Ein Problem mithilfe der Protokolle melden
 
 @@use-5-text
-Öffnen Sie die Einstellungen, gehen Sie zu „Über“ und drücken Sie auf „Protokolle an den Autor senden“. Die App packt die Diagnoseprotokolle dieser und der vorherigen Sitzung zusammen mit einer kurzen Übersicht über Ihre Version, Ihr Windows und Ihre Einstellungen und öffnet dann Ihr E-Mail-Programm mit der bereits vorbereiteten Nachricht - das Archiv, das für Sie im Explorer ausgewählt wurde, hängen Sie selbst an und drücken auf Senden.
+Öffnen Sie die Einstellungen, gehen Sie zu „Über“ und drücken Sie auf „Protokolle an den Autor senden“. Die App packt die Diagnoseprotokolle dieser und der vorherigen Sitzung mit einer kurzen Übersicht über Version, Windows und Einstellungen in den Ordner für gespeicherte Dateien (standardmäßig Downloads) und öffnet dann Ihr E-Mail-Programm mit der vorbereiteten Nachricht. Die Bestätigung zeigt den vollständigen Pfad und kann den Ordner auf Wunsch öffnen; Sie hängen das Archiv selbst an und drücken auf Senden.
 
 @@distribution-title
 Bezugswege

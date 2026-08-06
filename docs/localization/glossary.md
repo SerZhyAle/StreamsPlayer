@@ -26,24 +26,28 @@ reconciling a window that calls the same thing by two names.
 | **pinned** | A channel the user raised to the band above the main list. |
 | **collection** | A user-named group of channels. |
 | **preview** | The still frame shown on a grid tile. |
+| **colour theme** | The light/dark palette of the interface itself. Never the stream, the tile or the site. |
 
 ## Renderings
 
-| Language | stream | catalog | channel | refresh | pinned | collection | preview |
-|---|---|---|---|---|---|---|---|
-| English (`en`) | stream | catalog | channel | update | pinned | collection | preview |
-| Russian (`ru`) | трансляция | каталог | канал | обновить | закреплённый | подборка | превью |
-| Ukrainian (`uk`) | потік | каталог | канал | оновити | закріплений | добірка | прев’ю |
-| German (`de`) | Stream | Katalog | Kanal | aktualisieren | angeheftet | Sammlung | Vorschau |
-| Italian (`it`) | flusso | catalogo | canale | aggiorna | fissato | raccolta | anteprima |
-| Spanish (`es`) | transmisión | catálogo | canal | actualizar | fijado | colección | vista previa |
-| French (`fr`) | flux | catalogue | chaîne | actualiser | épinglé | collection | aperçu |
-| Portuguese (`pt`) | transmissão | catálogo | canal | atualizar | fixado | coleção | pré-visualização |
-| Chinese (`zh`) | 流 | 目录 | 频道 | 更新 | 已置顶 | 收藏集 | 预览 |
-| Hindi (`hi`) | स्ट्रीम | सूची | चैनल | अद्यतन करें | पिन किया गया | संग्रह | पूर्वावलोकन |
-| Bengali (`bn`) | স্ট্রিম | তালিকা | চ্যানেল | হালনাগাদ | পিন করা | সংগ্রহ | প্রিভিউ |
-| Arabic (`ar`) | بث | كتالوج | قناة | تحديث | مثبَّت | مجموعة | معاينة |
-| Urdu (`ur`) | نشریات | فہرست | چینل | تازہ کاری | پن شدہ | مجموعہ | پیش منظر |
+The `colour theme` column is the shipped `ThemeLabel` string; keep it in step with the resource
+dictionaries rather than retranslating it here.
+
+| Language | stream | catalog | channel | refresh | pinned | collection | preview | colour theme |
+|---|---|---|---|---|---|---|---|---|
+| English (`en`) | stream | catalog | channel | update | pinned | collection | preview | Colour theme |
+| Russian (`ru`) | трансляция | каталог | канал | обновить | закреплённый | подборка | превью | Цветовая тема |
+| Ukrainian (`uk`) | потік | каталог | канал | оновити | закріплений | добірка | прев’ю | Колірна тема |
+| German (`de`) | Stream | Katalog | Kanal | aktualisieren | angeheftet | Sammlung | Vorschau | Farbdesign |
+| Italian (`it`) | flusso | catalogo | canale | aggiorna | fissato | raccolta | anteprima | Tema colore |
+| Spanish (`es`) | transmisión | catálogo | canal | actualizar | fijado | colección | vista previa | Tema de color |
+| French (`fr`) | flux | catalogue | chaîne | actualiser | épinglé | collection | aperçu | Thème de couleur |
+| Portuguese (`pt`) | transmissão | catálogo | canal | atualizar | fixado | coleção | pré-visualização | Tema de cor |
+| Chinese (`zh`) | 流 | 目录 | 频道 | 更新 | 已置顶 | 收藏集 | 预览 | 颜色主题 |
+| Hindi (`hi`) | स्ट्रीम | सूची | चैनल | अद्यतन करें | पिन किया गया | संग्रह | पूर्वावलोकन | रंग थीम |
+| Bengali (`bn`) | স্ট্রিম | তালিকা | চ্যানেল | হালনাগাদ | পিন করা | সংগ্রহ | প্রিভিউ | রঙের থিম |
+| Arabic (`ar`) | بث | كتالوج | قناة | تحديث | مثبَّت | مجموعة | معاينة | سمة الألوان |
+| Urdu (`ur`) | نشریات | فہرست | چینل | تازہ کاری | پن شدہ | مجموعہ | پیش منظر | رنگ تھیم |
 
 ## Terms left untranslated on purpose
 

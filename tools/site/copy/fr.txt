@@ -125,10 +125,10 @@ Trouver une chaîne
 Catalogue prêt à l'emploi au premier lancement - sans configuration.
 
 @@cap-find-2
-Filtrez par catégorie, langue, pays et type de média.
+Filtrez par catégorie, langue, pays et type de média - la ligne souvre au besoin.
 
 @@cap-find-3
-Recherchez et triez la liste.
+La recherche est toujours dans la ligne de titre.
 
 @@cap-find-4
 Épinglez les chaînes sur lesquelles vous revenez.
@@ -158,10 +158,13 @@ Gardez la fenêtre principale ou le lecteur au premier plan.
 Plein écran sans bordure, par un bouton ou avec F11 (Esc pour quitter).
 
 @@cap-window-3
-Vignettes de flux petites, moyennes ou grandes.
+Vignettes de flux très petites, petites, moyennes ou grandes.
 
 @@cap-window-4
 Enregistrez l'image en cours au format JPEG.
+
+@@cap-window-5
+Suivez le thème de couleur de Windows, ou restez en clair ou en sombre.
 
 @@cap-grid-title
 Grille visuelle
@@ -236,7 +239,7 @@ Sélectionnez une chaîne enregistrée, ouvrez les Paramètres et utilisez « Co
 Signaler un problème avec les journaux
 
 @@use-5-text
-Ouvrez les Paramètres, allez dans « À propos » et appuyez sur « Envoyer les journaux à l'auteur ». L'application compresse les journaux de diagnostic de cette session et de la précédente avec un bref résumé de votre version, de votre Windows et de vos réglages, puis ouvre votre logiciel de messagerie avec le message déjà préparé - l'archive, sélectionnée pour vous dans l'Explorateur, c'est vous qui la joignez et qui appuyez sur Envoyer.
+Ouvrez les Paramètres, allez dans « À propos » et appuyez sur « Envoyer les journaux à l'auteur ». L'application compresse les journaux de diagnostic de cette session et de la précédente avec un bref résumé de votre version, de Windows et des réglages dans le dossier des fichiers enregistrés (Téléchargements par défaut), puis ouvre votre logiciel de messagerie avec le message préparé. La confirmation montre le chemin complet et peut ouvrir ce dossier sur demande ; vous joignez l'archive et appuyez sur Envoyer.
 
 @@distribution-title
 Distribution

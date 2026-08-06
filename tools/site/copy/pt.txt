@@ -125,10 +125,10 @@ Encontrar um canal
 Catálogo pronto na primeira execução - sem configuração.
 
 @@cap-find-2
-Filtro por categoria, idioma, país e tipo de mídia.
+Filtro por categoria, idioma, país e tipo de mídia - a linha abre quando você precisa.
 
 @@cap-find-3
-Pesquisa e ordenação da lista.
+A pesquisa fica sempre na linha do título.
 
 @@cap-find-4
 Fixe os canais aos quais você sempre volta.
@@ -158,10 +158,13 @@ Mantenha a janela principal ou o player sempre visível.
 Tela cheia sem bordas por botão ou com F11 (Esc sai).
 
 @@cap-window-3
-Blocos de transmissão pequenos, médios ou grandes.
+Blocos de transmissão muito pequenos, pequenos, médios ou grandes.
 
 @@cap-window-4
 Guarde o quadro atual como JPEG.
+
+@@cap-window-5
+Siga o tema de cor do Windows ou mantenha a aplicação clara ou escura.
 
 @@cap-grid-title
 Grade visual
@@ -236,7 +239,7 @@ Selecione um canal salvo, abra Configurações e use Copiar comando ou Criar ata
 Relatar um problema com os registros
 
 @@use-5-text
-Abra Configurações, vá para Sobre e pressione Enviar os registros ao autor. O aplicativo empacota os registros de diagnóstico desta sessão e da anterior com um breve resumo da sua versão, do Windows e das configurações, e depois abre o seu programa de e-mail com a mensagem já preparada - o arquivo compactado, que fica selecionado no Explorador de Arquivos, você mesmo anexa e pressiona Enviar.
+Abra Configurações, vá para Sobre e pressione Enviar os registros ao autor. O aplicativo empacota os registros de diagnóstico desta sessão e da anterior com um breve resumo da sua versão, do Windows e das configurações na pasta dos arquivos salvos (Downloads por padrão), e depois abre o seu programa de e-mail com a mensagem preparada. A confirmação mostra o caminho completo e pode abrir essa pasta quando você pedir; você anexa o arquivo compactado e pressiona Enviar.
 
 @@distribution-title
 Distribuição

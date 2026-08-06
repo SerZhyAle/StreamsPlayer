@@ -43,17 +43,31 @@ code or features.
 - Read the published stream bank with RFC-4180 CSV, ZIP entry-order, and optional
   favicon-atlas checks.
 - Protect your `MANUAL` and `IMPORTED` rows while updating the catalog by URL.
-- Filter, search, sort, and pin radio, video, and RTSP streams. The
-  broadcast-language filter leads with your interface language and its regional
-  variants, and still starts on **All**.
+- Search from the title line at any time, and open the filter and sorting row
+  only when you need it with **Filters and sorting**. The row starts hidden,
+  remembers whether you left it open, and closes from its own button without
+  touching your filters; **Clear** resets the filters and keeps the row open and
+  your search text intact. While the row is hidden, the button is marked and its
+  tooltip counts the filters still narrowing the catalog. The broadcast-language
+  filter leads with your interface language and its regional variants, and still
+  starts on **All**.
+- Reach the actions you use rarely from one **Operations** menu in the header:
+  always on top, refresh previews (in grid mode), history, add stream, and
+  **Update catalog**.
 - Keep the main window or video player independently always on top, and expand
-  video to a borderless full screen with the button or `F11` (`Esc` exits).
+  video to a borderless full screen with the button or `F11` (`Esc` exits). The
+  player's three-dot actions menu keeps its own always-on-top switch alongside
+  pinning and adding the stream to an existing or new collection. In either
+  windowed or full screen mode, the player's control panel disappears after ten
+  seconds without input; click the video to bring it back without interrupting
+  playback.
 - Switch between the list and a persisted visual grid with one header button that
   names the mode you are switching to. The grid captures visible HTTP(S) video
   previews, up to four at a time, and caches the frames on disk within a 150 MB
   budget.
-- Open Settings to choose Small, Medium, or Large stream tiles and disable
-  automatic thumbnail updates (**Grid**); keep the computer awake, show system
+- Open Settings to pick the interface language (**Language**, the first tab,
+  marked with a globe); choose Very Small, Small, Medium, or Large stream tiles and
+  disable automatic thumbnail updates (**Grid**); keep the computer awake, show system
   media controls, pick the video backend, and choose the folder for saved frames
   (**Playback**); and read the `YY.MMDD.HHmm` version and open the instruction,
   project, website, privacy, and author pages (**About**).
@@ -65,6 +79,14 @@ code or features.
   deleted after a confirmation. Hidden catalog channels survive a refresh and come
   back from **Hidden** in Settings, on the **Playlists (M3U)** tab.
 - Add a stream manually and keep local playback outcome marks.
+- Ask **About channel**, from a channel's three-dot menu or from the player's
+  actions menu, to see one page of everything known about it: what the channel is
+  and where it came from, what the catalog claims about it, and what its stream is
+  actually sending - video and audio format, picture size, frame rate, sound
+  channels, sample rate and the measured data rate. Opening the window connects to
+  the stream once to measure it, unless that channel is already playing, in which
+  case the player already knows and nothing is opened. **Copy all** puts the whole
+  list on the clipboard.
 - Reopen a channel from a private **Recently played** history of the last 100
   channels you played, with the last observed now-playing text when a station
   provides it. History is local only, never uploaded, and cleared on demand;
@@ -77,9 +99,14 @@ code or features.
 - Delete every downloaded catalog stream in one confirmed action from the
   **Playlists (M3U)** tab in Settings and keep only your own `MANUAL`/`IMPORTED`
   channels; **Update catalog** downloads them again whenever you want them back.
-- Switch the complete interface between thirteen languages from the language
-  button in the header, including right-to-left layout for Arabic and Urdu; the
-  choice is restored on the next launch, and the first launch follows Windows.
+- Switch the complete interface between thirteen languages from the **Language**
+  tab in Settings - the first one, marked with a globe - including right-to-left
+  layout for Arabic and Urdu; the choice is restored on the next launch, and the
+  first launch follows Windows.
+- Choose whether the interface follows the Windows colour theme, stays light,
+  or stays dark from the **Grid** tab in Settings; following Windows is the
+  default, an explicit choice is restored on the next launch, and the system
+  choice updates in the same session when Windows changes.
 - Group channels into local named collections, browse one collection at a time
   from the catalog filters, and manage them without touching pins or the catalog.
 - Set a sleep timer for inline radio - 15/30/45/60 minutes or a clock time - and
@@ -90,10 +117,12 @@ code or features.
   `Current.log` and `Previous.log` under `%LOCALAPPDATA%\StreamsPlayer`.
 - Report a problem with **Send logs to the author** in the **About** tab of
   Settings: it packs both diagnostic logs plus a short summary of your app
-  version, Windows version and settings into one archive, selects that archive in
-  Explorer, and opens your mail program with the message prepared. Nothing is sent
-  automatically - you attach the archive and press Send. The logs name the streams
-  that were played, so send them only if you are comfortable sharing that.
+  version, Windows version and settings into one archive in the **Saved files
+  folder** (Downloads by default, configurable in Playback settings), then opens
+  your mail program with the message prepared. Its confirmation shows the complete
+  path and can open that folder when you ask. Nothing is sent automatically - you
+  attach the archive and press Send. The logs name the streams that were played, so
+  send them only if you are comfortable sharing that.
 
 Audio playback uses WPF `MediaElement`; video and RTSP use the bundled LibVLC
 runtime with a 15-second live buffer - 4 seconds when a stalled stream is
@@ -109,9 +138,12 @@ more than one.
 ## Run from source
 
 ```powershell
-./build.ps1 -Test
-./build.ps1 -Run
+./build.ps1 -Test -Deploy:$false
+./run.ps1
 ```
+
+`build.ps1` deploys by default: without `-Deploy:$false` it forces a Release build and copies a published
+executable into the author's local folders. `run.ps1` never does that.
 
 Or start the desktop app directly:
 
