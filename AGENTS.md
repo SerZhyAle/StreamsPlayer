@@ -23,20 +23,26 @@ asks. The build-versus-release rule itself has one home in the canon
 - `src/StreamsPlayer.App` - WPF Windows desktop application.
 - `tests/StreamsPlayer.Core.Tests` - unit and contract tests.
 - `tools/StreamsPlayer.CatalogHarness` - live-bank diagnostic harness.
+- `tools/InterfaceLanguages.ps1` - the single shipped-language list, read from the built assembly and dot-sourced by the site and Store tooling.
+- `tools/site/` and `tools/store/` - generators for the GitHub Pages site and the Store listing/screenshot pipeline.
+- `scripts/` - the release-parity check, the release checklist, and the commit-and-build helper.
 - `docs/specifications/streams.txt` - standalone product specification.
 - `docs/agent/` - agent workflow and validation guidance.
 - `docs/` and `assets/` - GitHub Pages and product documentation assets.
+- `memory/` - the committed agent memory index.
 - `.github/` - CI, release automation, and contribution templates.
 - `msix/` - Store-ready package template and package-build guidance.
-- `winget/` - release-manifest templates and submission notes.
+- `winget/` - release-manifest templates and submission notes; `manifests/` holds a version-pinned copy of a submitted manifest set and is not the template source.
+- `PLAN/` - spec tickets. **Untracked** (`.gitignore`): a fresh clone, CI, or an outside contributor will not have it, so nothing outside this working tree may depend on a ticket's contents.
 
 ## Development commands
 
 Run from the repository root in PowerShell.
 
-- `./build.ps1 -Test` - restore, build and run tests.
+- `build.ps1` deploys by default: `-Deploy` is `$true` unless you pass `-Deploy:$false`, and it forces Release + win-x64 for every invocation. Every `build.ps1` line below inherits that.
+- `./build.ps1 -Test -Deploy:$false` - restore, build and run tests without touching the local app folders.
 - `./build.ps1 -Deploy` - build a self-contained Release EXE and copy it to the local SZA app folders; this is not a release.
-- `./build.ps1 -Run` or `./run.ps1` - restore, build and launch the app.
+- `./run.ps1` - restore, build and launch the app in Debug, never deploying. `./build.ps1 -Run` deploys first and runs Release.
 - `./scripts/check.ps1` - Release restore, build, and test check.
 - `dotnet format StreamsPlayer.sln --verify-no-changes` - formatting diagnostic; it currently reports a pre-existing line-ending/encoding baseline and is not a passing gate until that baseline is normalized.
 - `dotnet run --project src/StreamsPlayer.App` - run the desktop application.

@@ -8,8 +8,8 @@ StreamsPlayer is a Windows desktop application (.NET 10, WPF) for internet radio
 
 Run from the repository root in PowerShell.
 
-- `./build.ps1 -Test` - restore, build, run tests (Debug by default; add `-Configuration Release` to match CI).
-- `./build.ps1 -Run` or `./run.ps1` - restore, build, launch the app.
+- `./build.ps1 -Test -Deploy:$false` - restore, build, run tests (Debug by default; add `-Configuration Release` to match CI). **`-Deploy` defaults to `$true`**, so a bare `./build.ps1 -Test` forces Release *and* deploys to the local machine folders; `-Configuration Debug` then throws.
+- `./run.ps1` - restore, build (Debug), launch the app; it always passes `-Deploy:$false`. `./build.ps1 -Run` is *not* the same thing: it deploys first and runs Release.
 - `./scripts/check.ps1` - the release-parity gate: Release restore + build + `dotnet test`. Run this before proposing a release.
 - `dotnet test StreamsPlayer.sln -c Release --no-build` - run all tests.
 - Run one test: `dotnet test tests/StreamsPlayer.Core.Tests -c Release --filter "FullyQualifiedName~CatalogMergerTests"` (all tests live in `StreamsPlayer.Core.Tests`; the App and tools have no tests).
@@ -25,7 +25,7 @@ Run from the repository root in PowerShell.
 
 ## Architecture
 
-Three projects with a strict one-way dependency graph - **Core must never reference WPF, App, tools, or tests**:
+Four projects with a strict one-way dependency graph - **Core must never reference WPF, App, tools, or tests**:
 
 ```
 StreamsPlayer.App (WPF UI) ─┐
@@ -34,19 +34,22 @@ StreamsPlayer.Core.Tests ────┘
 ```
 
 - **`src/StreamsPlayer.Core`** - all catalog contracts, parsing, merge, and persistence. Pure .NET, no UI. Key pieces: [Models.cs](src/StreamsPlayer.Core/Models.cs) (records + enums, including CLI arg parsing in `StreamLaunchRequest.Parse`), [StreamBankReader.cs](src/StreamsPlayer.Core/StreamBankReader.cs) → [StreamCatalogCsvParser.cs](src/StreamsPlayer.Core/StreamCatalogCsvParser.cs) (RFC-4180 CSV), [CatalogMerger.cs](src/StreamsPlayer.Core/CatalogMerger.cs), [StreamCatalogStore.cs](src/StreamsPlayer.Core/StreamCatalogStore.cs), and [StreamCatalogService.cs](src/StreamsPlayer.Core/StreamCatalogService.cs) (network refresh orchestration).
-- **`src/StreamsPlayer.App`** - WPF app (`AssemblyName` = `StreamsPlayer`). Windows are `MainWindow`, `PlayerWindow`, `SettingsWindow`, `AddStreamWindow`. `MainWindow` is split into partial-class files by concern (`MainWindow.Launch.cs`, `.Settings.cs`, `.Previews.cs`, `.BrowsingSession.cs`, `.Localization.cs`). Grid preview capture and player video use LibVLC.
+- **`src/StreamsPlayer.App`** - WPF app (`AssemblyName` = `StreamsPlayer`). `MainWindow` and `PlayerWindow` are the primary surfaces; everything else (`SettingsWindow`, `AddStreamWindow`, `CollectionsWindow`, `HiddenChannelsWindow`, `ImportPreviewWindow`, `ImportUrlWindow`, `LanguageWindow`, `ListeningHistoryWindow`, `PlaybackFailureDialog`) is a modal dialog - enumerate from `*.xaml` rather than trusting a list here. `MainWindow` is split into `MainWindow.<Concern>.cs` partials (sixteen of them; glob, do not memorize).
 - **`tools/StreamsPlayer.CatalogHarness`** - console diagnostic that exercises the live catalog contract. `Console.WriteLine` logging is acceptable here only.
 
 ### Key data-flow contracts (do not break without a product decision + updated tests)
 
-- **Catalog source is a published external contract**: a ZIP at `StreamCatalogService.CatalogUrl` (FastMediaSorter release). `streams.csv` **must be the first ZIP entry**; the reader rejects the bank otherwise. Optional `favicon-atlas.png` (≤4 MB).
+- **Catalog source is a published external contract**: a ZIP at `StreamCatalogService.CatalogUrl` (FastMediaSorter release). `streams.csv` **must be the first ZIP entry**; the reader rejects the bank otherwise. Optional `favicon-atlas.png`, capped by `StreamBankReader.MaximumAtlasBytes` (30 MB - the live atlas passed 3.9 MB in 2026-07 and grows with the channel count; read the constant, never a number from prose). An atlas over the cap is silently dropped, not an error.
+- **The atlas and the CSV are one pair**: `favicon_index` is an offset into the atlas that shipped in the *same* ZIP. Never combine a CSV from one bank build with an atlas from another - the result is wrong icons, not missing ones.
+- **A second, optional network artifact**: the channel-preview atlas + coords pair (`ChannelPreviewAtlasService`, revision-gated `v1`), from the same FastMediaSorter release. It downloads only after the user accepts the offer, which is what keeps the explicit-refresh rule intact.
 - **Merge protects user data**: `CatalogMerger.Merge` keys channels by URL. It only updates/removes rows whose `SourceOrigin == Catalog`. `MANUAL` and `IMPORTED` (`SourceOrigin.Manual`/`Imported`) rows are never touched by a refresh.
 - **Refresh is explicit only**: there are no automatic background catalog downloads. Do not add any.
-- **Local state** lives at `%LOCALAPPDATA%\StreamsPlayer` - `catalog-state.json` (written atomically via temp file + move), favicon atlas PNGs, and the session `Current.log`. Persisted via `CatalogState` (a record; JSON with `JsonStringEnumConverter`).
+- **There is no fallback if the download fails**: `RefreshAsync` throws and the UI reports it; a first launch without network leaves the catalog empty. Changing that is the subject of `SP-0052` (a bundled snapshot applied only on explicit user consent) - **not implemented; do not describe it as shipped**.
+- **Local state** lives at `%LOCALAPPDATA%\StreamsPlayer` - `catalog-state.json` (written atomically via temp file + move), `favicon-atlas-<guid>.png` (unreferenced ones are pruned on every save), the `grid-previews/` cache, and two log generations (`Current.log`, `Previous.log`, rotated on launch). Persisted via `CatalogState` (a record; JSON with per-enum *tolerant* converters wired in `StreamCatalogStore`, so one unreadable enum value costs that field and not the whole state).
 
 ### Media playback
 
-Audio uses WPF `MediaElement`. Video/RTSP and grid preview capture use bundled LibVLC (`LibVLCSharp`, `VideoLAN.LibVLC.Windows`) with a 15s live buffer (4s when a stalled stream is re-opened). The Core library has no media dependency.
+Audio uses WPF `MediaElement`. Player video/RTSP goes through the backend selected in Settings - LibVLC by default, FlyleafLib as an opt-in (`VideoBackendFactory`, `CatalogState.VideoBackend`); grid preview capture is always LibVLC. The LibVLC path uses a fixed 15s live buffer (4s when a stalled stream is re-opened). The Core library has no media dependency.
 
 ## Conventions
 

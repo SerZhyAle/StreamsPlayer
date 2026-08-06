@@ -27,6 +27,31 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
 
 ## Project
 
+- **The colour theme only works because every palette reference is a `DynamicResource`.** `ThemeService`
+  (App layer; Core only stores the `AppTheme` enum) recolours named brushes in
+  `Application.Current.Resources` at runtime, so a single `StaticResource` on a palette key silently opts
+  that element out of live switching - it will look right at startup and stop following the theme
+  afterwards. The System mode reads `HKCU\...\Themes\Personalize\AppsUseLightTheme` and subscribes to
+  `SystemEvents.UserPreferenceChanged` **only while System is selected**, unsubscribing in `App.OnExit`;
+  a permanent subscription is a process-wide leak. Two known rough edges left in place: `Initialize()`
+  applies the system theme before the saved choice is read (a brief flash when an explicit Light sits on a
+  dark system), and the main window's status bar is a hardcoded dark colour that predates the ticket
+  (SP-0046, 2026-08-06).
+- **`build.ps1` deploys by default.** `-Deploy` is `$true` unless you pass `-Deploy:$false`, and when it is
+  set the script *forces* Release + win-x64 and throws on `-Configuration Debug`. So a bare
+  `./build.ps1 -Test` is not a Debug test run: it builds Release, tests, then publishes a self-contained
+  single-file EXE into `C:\GD\i` and `C:\GD\tc\SZA\_APP`. `./run.ps1` is the safe launcher - it always
+  passes `-Deploy:$false`. Both `CLAUDE.md` and `AGENTS.md` had documented the opposite for months
+  (corrected 2026-08-06).
+- **A failed state save used to kill the whole app.** Every save path is an `async void` handler and
+  `App_DispatcherUnhandledException` logs without setting `e.Handled`, so one `IOException` from
+  `StreamCatalogStore` ended the process - the window simply vanished, and on a Store install the log
+  was out of reach. The volume slider exposed it because it fired one whole-catalog write (2.9 MB) per
+  pixel of travel, so a scanner or the MSIX redirector holding `catalog-state.json` for a moment was
+  near certain. Reproduced by locking the state file with `FileShare.None` while dragging the slider:
+  `Unhandled WPF dispatcher exception: UnauthorizedAccessException at File.Move`, no
+  "Application shutdown." line. `MainWindow.PersistAsync` now absorbs and logs I/O failures - keep new
+  saves funnelled through it, and debounce any control that can fire it continuously (2026-07-31).
 - **The README trio is the product's manual, not repo prose.** Settings -> Instructions opens
   `README.md`, `README.ru.md` or `README.uk.md` by interface language
   (`ProductInfo.InstructionsUrl`), so a UI change is not finished until all three describe it.
@@ -114,6 +139,18 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   app windows, so a topmost `PlayerWindow` left over from launch resume cannot be closed and will
   sit on top of every screenshot - close it *before* opening Settings, and `SetForegroundWindow`
   is unreliable against foreground lock.
+  Three more traps, each one debugging round, found 2026-08-06 (SP-0045): (1) call
+  `user32!SetProcessDPIAware()` **first** - without it `GetWindowRect` returns virtualized
+  coordinates while `CopyFromScreen` uses physical ones, and the capture is a correctly sized
+  crop of the wrong part of the screen, which looks like a wrong window rather than a DPI bug;
+  (2) a `DllImport` of `GetWindowText` needs `CharSet=CharSet.Unicode` or the StringBuilder
+  marshals ANSI against the W entry point and every title comes back as its first byte
+  (`'Трансляции'` reads as `'"@0=A;OF88'`), so a title filter silently matches nothing;
+  (3) `PlayerWindow`'s control panel is woken by `VideoSurface_MouseDown`, **not** by a mouse
+  move - a synthetic `SetCursorPos`/`mouse_event` move leaves it auto-hidden and every capture
+  is bare video. Send a single left click (only a *double* click toggles fullscreen), then
+  capture within the 10 s `ControlsHideTimeout`. Shell state does not survive between tool
+  calls, so the whole `Add-Type` + find + click + capture sequence must be one invocation.
 
 - `StreamCatalogStore.SaveAsync` calls `RemoveUnreferencedAtlases` on **every** save, deleting any
   `favicon-atlas-*.png` that the just-saved state does not name. Consequence when testing against
@@ -232,3 +269,19 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   repaired, and a routine version update needs **no listing import at all** - only the per-submission
   "What's new", which the builder never writes. Re-run the builder before assuming an import is
   needed; an import that changes nothing is pure all-or-nothing-per-language risk (2026-07-30).
+
+- **`SetThreadExecutionState` is per-thread, so `powercfg /requests` lists one entry per *thread* that
+  holds a request - never per acquire.** `WakeGuard`'s ref-counted acquires all run on the one WPF UI
+  thread and can therefore only ever produce a single `StreamsPlayer.exe` line. Two lines during audio
+  is normal: the second is the WPF `MediaElement` stack's own request (appears ~8 s after playback
+  starts, gone at stop, unaffected by the setting - see SP-0051). A `DISPLAY x1 + SYSTEM x1` residue
+  lingering ~14 s after a player window closes is LibVLC's native teardown settling, not a leak. Reading
+  a count as a leak is the easy mistake; the discriminator is to toggle the setting and see which entry
+  moves (2026-08-06).
+
+- **Power-state evidence is reachable without a human sitting through an idle timeout.** `powercfg
+  /requests` needs elevation, but `Start-Process pwsh -Verb RunAs` gets it with a single UAC click, and
+  one elevated *sampler* that polls every 2 s into a log beats one snapshot per UAC prompt - the whole
+  acquire/toggle/stop/close/exit matrix then costs one click and a few plain-language instructions to
+  the owner. Preferred over shortening `standby-timeout`: the owner's machine has `Sleep after = 0`
+  (Never) on AC and DC, and an induced real sleep kills the agent session mid-run (2026-08-06).
