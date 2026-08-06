@@ -20,9 +20,9 @@ namespace StreamsPlayer.Core;
 /// </remarks>
 public static class DiagnosticArchiveBuilder
 {
-    public const string ArchiveFolderName = "reports";
     public const string SummaryEntryName = "environment.txt";
     public const string ArchivePrefix = "StreamsPlayer-logs-";
+    private const int MaxNameAttempts = 100;
 
     /// <summary>Per-log ceiling. The end of a log holds the failure, so an oversized log keeps its tail.</summary>
     public const long MaxLogBytes = 2L * 1024 * 1024;
@@ -31,42 +31,64 @@ public static class DiagnosticArchiveBuilder
     /// Writes the archive and returns its full path. Failures propagate: the caller owns the
     /// user-visible message, and a silently empty archive is worse than an error (SP-0040 decision 5).
     /// </summary>
-    public static string Build(string stateDirectory, string summaryText, DateTimeOffset utcNow)
+    public static string Build(string stateDirectory, string outputDirectory, string summaryText, DateTimeOffset utcNow)
     {
-        var folder = Path.Combine(stateDirectory, ArchiveFolderName);
-        Directory.CreateDirectory(folder);
-        RemovePreviousArchives(folder);
-
-        var path = Path.Combine(
-            folder,
-            $"{ArchivePrefix}{utcNow.ToUniversalTime().ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)}.zip");
-        var notes = new StringBuilder();
-        using (var archive = ZipFile.Open(path, ZipArchiveMode.Create))
+        Directory.CreateDirectory(outputDirectory);
+        var temporaryPath = Path.Combine(outputDirectory, $".{ArchivePrefix}{Guid.NewGuid():N}.tmp");
+        try
         {
-            foreach (var log in DiagnosticLogFiles.ExistingLogs(stateDirectory))
+            var notes = new StringBuilder();
+            using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+            using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: false))
             {
-                AddLog(archive, log, notes);
+                foreach (var log in DiagnosticLogFiles.ExistingLogs(stateDirectory))
+                {
+                    AddLog(archive, log, notes);
+                }
+
+                AddText(archive, SummaryEntryName, summaryText + notes);
             }
 
-            AddText(archive, SummaryEntryName, summaryText + notes);
+            return MoveToUniqueArchivePath(temporaryPath, outputDirectory, utcNow);
         }
-
-        return path;
+        catch
+        {
+            TryDeleteTemporaryFile(temporaryPath);
+            throw;
+        }
     }
 
-    private static void RemovePreviousArchives(string folder)
+    private static string MoveToUniqueArchivePath(string temporaryPath, string outputDirectory, DateTimeOffset utcNow)
     {
-        foreach (var stale in Directory.GetFiles(folder, $"{ArchivePrefix}*.zip"))
+        var stem = $"{ArchivePrefix}{utcNow.ToUniversalTime().ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)}";
+        for (var attempt = 1; attempt <= MaxNameAttempts; attempt++)
         {
+            var suffix = attempt == 1 ? string.Empty : $"-{attempt}";
+            var destination = Path.Combine(outputDirectory, $"{stem}{suffix}.zip");
             try
             {
-                File.Delete(stale);
+                File.Move(temporaryPath, destination);
+                return destination;
             }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            catch (IOException) when (File.Exists(destination))
             {
-                // An archive still open in the user's mail client cannot be deleted; a leftover file is
-                // not worth failing the report the user asked for.
+                // A second request can race this one between choosing a name and moving the completed ZIP.
             }
+        }
+
+        throw new IOException($"No free archive name in '{outputDirectory}'.");
+    }
+
+    private static void TryDeleteTemporaryFile(string temporaryPath)
+    {
+        try
+        {
+            File.Delete(temporaryPath);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // The write failure remains the useful exception. The temporary file has a private random name
+            // and was never presented as an archive to the user.
         }
     }
 

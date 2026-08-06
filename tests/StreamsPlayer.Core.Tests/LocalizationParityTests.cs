@@ -41,6 +41,10 @@ public sealed class LocalizationParityTests
             "ProductName",
             // A unit abbreviation used internationally.
             "BitrateValue",
+            // Same shape: a number and an internationally written unit. Languages that do localize the
+            // unit (Russian "кадр/с", Arabic "هرتز") simply do so; this only stops the gate demanding a
+            // translation of "Hz" where "Hz" is what the language writes.
+            "SampleRateValue",
             // Names a third-party library.
             "VideoBackendFlyleaf",
             "VideoBackendLibVlc"

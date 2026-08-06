@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource ImportPreviewTitle}" Height="300" Width="460"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
-        Background="{StaticResource WindowBackground}">
+        Background="{DynamicResource WindowBackground}">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -37,7 +37,7 @@
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button x:Name="ApplyButton" Content="{DynamicResource ImportApply}" Click="Apply_Click"
                     IsDefault="True" Padding="16,6" Margin="0,0,8,0"
-                    Background="{StaticResource AccentBrush}" Foreground="White" />
+                    Background="{DynamicResource AccentBrush}" Foreground="White" />
             <Button Content="{DynamicResource Cancel}" IsCancel="True" Padding="14,6" />
         </StackPanel>
     </Grid>

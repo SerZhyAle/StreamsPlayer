@@ -59,6 +59,15 @@ public enum AppLanguage
     Urdu
 }
 
+// Persisted preference token. Keep System first: it is both the new-install default and the safe
+// fallback for a state file written by a newer build.
+public enum AppTheme
+{
+    System,
+    Light,
+    Dark
+}
+
 public enum StreamLaunchTargetKind
 {
     None,
@@ -105,7 +114,8 @@ public enum StreamTileSize
 {
     Small,
     Medium,
-    Large
+    Large,
+    VerySmall
 }
 
 public enum MediaBackend
@@ -243,6 +253,12 @@ public sealed record CatalogState
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AppLanguage? Language { get; init; }
 
+    /// <summary>
+    /// The app colour-theme preference. System means Windows chooses the active palette for this
+    /// session; an older state file without this field therefore follows Windows by default.
+    /// </summary>
+    public AppTheme Theme { get; init; } = AppTheme.System;
+
     public bool MainWindowTopmost { get; init; }
     public bool PlayerWindowTopmost { get; init; }
     public int VideoVolume { get; init; } = 100;
@@ -312,6 +328,15 @@ public sealed record CatalogState
     public string CatalogCollectionFilter { get; init; } = "All";
     public string CatalogSortMode { get; init; } = "Name";
     public Guid? CatalogScrollAnchorId { get; init; }
+
+    /// <summary>
+    /// Whether the filter and sorting row is mounted in the main window (SP-0050). The default is
+    /// hidden: a state file written before this change simply lacks the key and deserializes to the
+    /// initializer default, so the fallback is structural rather than a special case in the reader.
+    /// Deliberately independent of the facet values it reveals - hiding the row never resets a facet,
+    /// and a hidden row keeps narrowing the catalog exactly as a visible one does.
+    /// </summary>
+    public bool CatalogFiltersVisible { get; init; }
 
     /// <summary>
     /// Collapsed/expanded state of the two catalog sections (SP-0025). Both default to expanded;

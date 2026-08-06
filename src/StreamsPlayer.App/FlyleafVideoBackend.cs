@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using FlyleafLib;
 using FlyleafLib.Controls.WPF;
 using FlyleafLib.MediaPlayer;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
@@ -179,6 +180,17 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         _statsGapReported = true;
         _log.Event("FLYLEAF STATS", "stats=unavailable", $"url={_lastUrl}");
     }
+
+    // SP-0045: the same documented gap as LogStats - there are no LibVLC-style loss counters to read.
+    // Null, not zeroes: zeroes would be a claim that nothing is being lost, which this engine cannot make.
+    // The health rule treats null as no evidence of trouble, so this backend's stripe stays green rather
+    // than stuck yellow (SP-0045 acceptance 8).
+    public DecoderLossCounters? ReadLossCounters() => null;
+
+    // SP-0053: the same documented gap as LogStats. This backend's stream description is not exposed in
+    // the shape the About window needs, and a partly-filled reading would be indistinguishable from a
+    // stream that carries no audio - so this engine reports nothing rather than something wrong.
+    public StreamTransmission? DescribeTransmission() => null;
 
     private static VideoTrack[] Map<T>(IEnumerable<T> streams) =>
         streams.Select((stream, index) => new VideoTrack(index, stream?.ToString())).ToArray();

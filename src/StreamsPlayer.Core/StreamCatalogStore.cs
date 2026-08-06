@@ -34,6 +34,7 @@ public sealed class StreamCatalogStore
         Converters =
         {
             new TolerantAppLanguageConverter(),
+            new TolerantEnumConverter<AppTheme>(AppTheme.System),
             new TolerantEnumConverter<CatalogViewMode>(CatalogViewMode.List),
             new TolerantEnumConverter<StreamTileSize>(StreamTileSize.Medium),
             new TolerantEnumConverter<MediaBackend>(MediaBackend.LibVlc),

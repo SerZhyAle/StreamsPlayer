@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using LibVLCSharp.Shared;
 using LibVLCSharp.Shared.Structures;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
@@ -22,7 +23,8 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     private readonly object _mediaGate = new();
     private Media? _media;
     private string _lastUrl = string.Empty;
-    private bool _disposed;
+    // Written under _mediaGate on the teardown thread, read without it by the audio setters below.
+    private volatile bool _disposed;
 
     public LibVlcVideoBackend(int volume, bool muted, CurrentLog log)
     {
@@ -59,9 +61,33 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
     public bool IsPlaying => _mediaPlayer.State == VLCState.Playing;
 
-    public int Volume { set => _mediaPlayer.Volume = value; }
+    public int Volume { set => ApplyAudio(player => player.Volume = Math.Clamp(value, 0, 100), "volume"); }
 
-    public bool Mute { set => _mediaPlayer.Mute = value; }
+    public bool Mute { set => ApplyAudio(player => player.Mute = value, "mute"); }
+
+    // Both setters are driven from the UI thread while teardown may already be running on a worker
+    // thread, and a native call on a stopped or disposed MediaPlayer ends the process without a managed
+    // exception for the log to carry. An unwritten audio setting is worth far less than the session.
+    private void ApplyAudio(Action<MediaPlayer> change, string what)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        try
+        {
+            change(_mediaPlayer);
+        }
+        catch (VLCException ex)
+        {
+            _log.Event("AUDIO SET", "ok=false", $"what={what}", $"err={ex.Message}", $"url={_lastUrl}");
+        }
+        catch (ObjectDisposedException)
+        {
+            // Raced the teardown that runs off the UI thread; the player is gone and so is the setting.
+        }
+    }
 
     public event Action<float>? BufferingChanged;
     public event Action? EndReached;
@@ -193,6 +219,38 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             $"corrupted={s.DemuxCorrupted}",
             $"discont={s.DemuxDiscontinuity}",
             $"url={_lastUrl}");
+    }
+
+    // SP-0045: the same three counters LogStats prints, as numbers the health rule can difference.
+    // Same Media-wrapper discipline as LogStats - the getter retains the native media on every call,
+    // and this runs on the same 2 s tick, so an undisposed wrapper would leak a media per sample.
+    public DecoderLossCounters? ReadLossCounters()
+    {
+        if (_disposed)
+        {
+            return null;
+        }
+
+        using var media = _mediaPlayer.Media;
+        if (media is null)
+        {
+            return null;
+        }
+
+        var s = media.Statistics;
+        return new DecoderLossCounters(s.LostPictures, s.DemuxCorrupted, s.DemuxDiscontinuity);
+    }
+
+    // Same Media-wrapper discipline as LogStats: the getter retains the native media on every call.
+    public StreamTransmission? DescribeTransmission()
+    {
+        if (_disposed)
+        {
+            return null;
+        }
+
+        using var media = _mediaPlayer.Media;
+        return media is null ? null : StreamTransmissionProbe.Read(media);
     }
 
     private static VideoTrack[] Describe(TrackDescription[]? tracks) =>

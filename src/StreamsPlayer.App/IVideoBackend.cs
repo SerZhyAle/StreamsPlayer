@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media.Imaging;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
@@ -55,6 +56,22 @@ internal interface IVideoBackend
 
     /// <summary>Logs engine-specific playback statistics under the given tag (no-op where unsupported).</summary>
     void LogStats(string tag);
+
+    /// <summary>
+    /// SP-0045: the decoder/demux loss counters for the signal-health stripe, as monotonic totals for
+    /// the media currently open. Read at the player's existing stats cadence; it must not open, wait
+    /// for, or poll anything of its own.
+    /// <para>Null means this engine reports no counters, which the health rule reads as "no evidence
+    /// of trouble" - never as trouble, so the less-instrumented engine cannot sit permanently yellow.</para>
+    /// </summary>
+    DecoderLossCounters? ReadLossCounters();
+
+    /// <summary>
+    /// SP-0053: what this engine already knows about the stream it is playing, for the About window.
+    /// Reads state that exists; never opens, re-opens, or waits for anything. Null where the engine
+    /// does not describe its stream, or before it has one.
+    /// </summary>
+    StreamTransmission? DescribeTransmission();
 
     /// <summary>Buffer fill percentage 0..100.</summary>
     event Action<float> BufferingChanged;

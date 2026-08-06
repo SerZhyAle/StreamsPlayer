@@ -25,6 +25,8 @@ de:FieldBitrate     # "Bitrate" is the established German term.
 de:MediaKindAuto    # "Auto" is the usual German abbreviation for automatic.
 de:VersionLabel     # "Version" is German.
 de:Website          # "Website" is the common German usage.
+de:FieldTitle       # "Name" is German.
+de:FrameRateValue   # "fps" is what German media software prints for frames per second.
 
 # --- Italian ---
 it:LiveLabel        # "Live" is standard Italian broadcast usage.
@@ -39,19 +41,23 @@ it:MediaKindAuto    # "Auto" is the usual Italian abbreviation for automatic.
 it:Buffering        # "Buffering" is what Italian media software says.
 it:BufferingProgress # Same term with the percentage placeholder.
 it:Privacy          # "Privacy" is the ordinary Italian word for this.
+it:AboutValueNo     # "No" is the Italian word for no.
+it:FrameRateValue   # "fps" is what Italian media software prints for frames per second.
 
 # --- Portuguese ---
 pt:FieldBitrate     # "Bitrate" is what Brazilian media software labels this field; "taxa de bits" reads as a spec sheet.
+pt:FrameRateValue   # "fps" is what Portuguese media software prints for frames per second.
 
 # --- Chinese ---
-# No entries. The only zh values identical to English are the brand and the "kbps" unit, both already
-# covered by SameAsEnglishAllowed; everything else has a native rendering (码率, 音频, 视频, 自动).
+zh:FrameRateValue   # "fps" is written in Latin script in Chinese media software, like "kbps".
 
 # --- Spanish ---
 es:AudioOption      # "Audio" is Spanish; the filter option keeps it.
 es:KindAudio        # Same word, upper-cased badge.
 es:AudioTracks      # "Audio" heads the Spanish label too, matching "pista de audio" in its tooltip.
 es:MediaKindAuto    # "Auto" is the usual Spanish abbreviation for automatic.
+es:AboutValueNo     # "No" is the Spanish word for no.
+es:FrameRateValue   # "fps" is what Spanish media software prints for frames per second.
 
 # --- French ---
 fr:AudioOption      # "Audio" is French; the filter option keeps it.
@@ -64,3 +70,14 @@ fr:FieldFormat      # "Format" is French.
 fr:SleepTimerMinutes # "minutes" is the same word in French; only the placeholder precedes it.
 fr:CollectionLabel  # "Collection" is French and is the glossary term for fr.
 fr:CollectionManageTitle # Plural of the same French word.
+fr:FieldOrigin      # "Source" is French.
+fr:FieldCollections # Plural of the French glossary term for collection.
+
+# --- Hindi ---
+hi:FrameRateValue   # "fps" is written in Latin script in Hindi media software, like "kbps".
+
+# --- Bengali ---
+bn:FrameRateValue   # "fps" is written in Latin script in Bengali media software, like "kbps".
+
+# --- Urdu ---
+ur:FrameRateValue   # "fps" is written in Latin script in Urdu media software, like "kbps".

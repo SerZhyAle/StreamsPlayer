@@ -14,6 +14,7 @@ public sealed class ChannelRow : INotifyPropertyChanged
     private bool _faviconLoaded;
     private bool? _previewReachable;
     private bool _isSelected;
+    private bool _isTileHovered;
     private bool _isPlayingAudio;
 
     public ChannelRow(StreamChannel channel, string? atlasPath, int? maximumFaviconIndex)
@@ -56,6 +57,23 @@ public sealed class ChannelRow : INotifyPropertyChanged
     }
 
     public void SetSelected(bool selected) => IsSelected = selected;
+
+    public bool IsTileHovered
+    {
+        get => _isTileHovered;
+        private set
+        {
+            if (_isTileHovered == value)
+            {
+                return;
+            }
+
+            _isTileHovered = value;
+            OnPropertyChanged(nameof(IsTileHovered));
+        }
+    }
+
+    public void SetTileHovered(bool hovered) => IsTileHovered = hovered;
 
     public bool IsPlayingAudio
     {

@@ -112,11 +112,39 @@ public sealed class CatalogStateEnumToleranceTests
 
     [Theory]
     [MemberData(nameof(UnreadableValues))]
+    public async Task Load_UnreadableThemeFallsBackToSystem(string value)
+    {
+        var state = await LoadWithAsync($"\"theme\": {value},");
+
+        Assert.Equal(AppTheme.System, state.Theme);
+        AssertUserDataSurvived(state);
+    }
+
+    [Fact]
+    public async Task Load_DarkThemePreservesTheChoice()
+    {
+        var state = await LoadWithAsync("\"theme\": \"Dark\",");
+
+        Assert.Equal(AppTheme.Dark, state.Theme);
+        AssertUserDataSurvived(state);
+    }
+
+    [Theory]
+    [MemberData(nameof(UnreadableValues))]
     public async Task Load_UnreadableTileSizeFallsBackToMedium(string value)
     {
         var state = await LoadWithAsync($"\"tileSize\": {value},");
 
         Assert.Equal(StreamTileSize.Medium, state.TileSize);
+        AssertUserDataSurvived(state);
+    }
+
+    [Fact]
+    public async Task Load_VerySmallTileSizePreservesTheChoice()
+    {
+        var state = await LoadWithAsync("\"tileSize\": \"VerySmall\",");
+
+        Assert.Equal(StreamTileSize.VerySmall, state.TileSize);
         AssertUserDataSurvived(state);
     }
 
@@ -208,6 +236,7 @@ public sealed class CatalogStateEnumToleranceTests
         var state = await LoadWithAsync(string.Empty, "\"mediaKind\": \"Audio\", \"sourceOrigin\": \"Manual\",");
 
         Assert.Equal(CatalogViewMode.List, state.ViewMode);
+        Assert.Equal(AppTheme.System, state.Theme);
         Assert.Equal(StreamTileSize.Medium, state.TileSize);
         Assert.Equal(MediaBackend.LibVlc, state.VideoBackend);
         Assert.Equal(ChannelAccess.Open, Assert.Single(state.Channels).Access);
@@ -226,6 +255,7 @@ public sealed class CatalogStateEnumToleranceTests
             await store.SaveAsync(new CatalogState
             {
                 ViewMode = CatalogViewMode.Grid,
+                Theme = AppTheme.Dark,
                 TileSize = StreamTileSize.Large,
                 VideoBackend = MediaBackend.Flyleaf,
                 Channels =
@@ -247,6 +277,7 @@ public sealed class CatalogStateEnumToleranceTests
             var json = await File.ReadAllTextAsync(path);
 
             Assert.Contains("\"viewMode\": \"Grid\"", json, StringComparison.Ordinal);
+            Assert.Contains("\"theme\": \"Dark\"", json, StringComparison.Ordinal);
             Assert.Contains("\"tileSize\": \"Large\"", json, StringComparison.Ordinal);
             Assert.Contains("\"videoBackend\": \"Flyleaf\"", json, StringComparison.Ordinal);
             Assert.Contains("\"mediaKind\": \"Rtsp\"", json, StringComparison.Ordinal);

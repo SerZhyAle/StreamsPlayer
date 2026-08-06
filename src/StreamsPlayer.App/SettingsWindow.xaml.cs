@@ -17,14 +17,23 @@ public partial class SettingsWindow : Window
     // real path so the user can see where frames land either way, hence the separate field.
     private string? _frameFolder;
 
-    public SettingsWindow(StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, MediaBackend videoBackend, string? frameFolder, AppLanguage language, StreamChannel? selectedChannel, Func<SettingsAction, Window, Task> runSettingsAction)
+    public SettingsWindow(AppTheme theme, StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, MediaBackend videoBackend, string? frameFolder, AppLanguage language, StreamChannel? selectedChannel, Func<SettingsAction, Window, Task> runSettingsAction)
     {
         InitializeComponent();
         _language = language;
         _selectedChannel = selectedChannel;
         _runSettingsAction = runSettingsAction;
+        var themes = new[]
+        {
+            new UiOption(nameof(AppTheme.System), LocalizationService.Get("ThemeSystem")),
+            new UiOption(nameof(AppTheme.Light), LocalizationService.Get("ThemeLight")),
+            new UiOption(nameof(AppTheme.Dark), LocalizationService.Get("ThemeDark"))
+        };
+        ThemeBox.ItemsSource = themes;
+        ThemeBox.SelectedItem = themes.First(item => item.Value == theme.ToString());
         var sizes = new[]
         {
+            new UiOption(nameof(StreamTileSize.VerySmall), LocalizationService.Get("TileVerySmall")),
             new UiOption(nameof(StreamTileSize.Small), LocalizationService.Get("TileSmall")),
             new UiOption(nameof(StreamTileSize.Medium), LocalizationService.Get("TileMedium")),
             new UiOption(nameof(StreamTileSize.Large), LocalizationService.Get("TileLarge"))
@@ -50,8 +59,28 @@ public partial class SettingsWindow : Window
             : StreamTitleFormatter.Display(selectedChannel.Title);
         CopyLaunchCommandButton.IsEnabled = selectedChannel is not null;
         CreateDesktopShortcutButton.IsEnabled = selectedChannel is not null;
+
+        var choices = InterfaceLanguages.All
+            .Select(entry => new LanguageChoice(
+                entry.Language,
+                LocalizationService.NativeName(entry.Language),
+                entry.Language == language))
+            .ToArray();
+        LanguageList.ItemsSource = choices;
+        LanguageList.SelectedItem = choices.FirstOrDefault(choice => choice.IsActive) ?? choices[0];
+        Loaded += (_, _) => LanguageList.ScrollIntoView(LanguageList.SelectedItem);
     }
 
+    /// <summary>
+    /// The language the user picked, or <c>null</c> when it is the one already in use. Returning
+    /// <c>null</c> for the active language keeps the standalone picker's semantic: confirming the
+    /// language you are already reading is not a change and must not rewrite state or re-render the
+    /// interface.
+    /// </summary>
+    internal AppLanguage? SelectedLanguage =>
+        LanguageList.SelectedItem is LanguageChoice { IsActive: false } choice ? choice.Language : null;
+
+    public AppTheme SelectedTheme => Enum.Parse<AppTheme>(((UiOption)ThemeBox.SelectedItem).Value);
     public StreamTileSize SelectedTileSize => Enum.Parse<StreamTileSize>(((UiOption)TileSizeBox.SelectedItem).Value);
     public bool UpdateStreamPreviews => UpdatePreviewsCheckBox.IsChecked == true;
     public bool KeepAwakeDuringPlayback => KeepAwakeCheckBox.IsChecked == true;

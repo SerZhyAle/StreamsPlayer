@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource ImportFromUrlTitle}" Height="180" Width="480"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
-        Background="{StaticResource WindowBackground}">
+        Background="{DynamicResource WindowBackground}">
     <Grid Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

@@ -22,6 +22,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly CurrentLog _log;
     private readonly StreamCatalogStore _store;
     private readonly Dictionary<Guid, ChannelRow> _rowCache = [];
+    private readonly HashSet<PlayerWindow> _playerWindows = [];
     private readonly GridPreviewCoordinator? _previewCoordinator;
     // Kept beside the coordinator so the SP-0031 atlas import can seed the same store the grid reads.
     private readonly PreviewFrameStore? _previewFrameStore;
@@ -125,6 +126,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         try
         {
             _state = await _store.LoadAsync();
+            ThemeService.Apply(_state.Theme);
 
             // SP-0034 decision 5: no saved preference means a fresh install, so follow the operating
             // system and fall back to English. A preference that is present is always honoured.
@@ -135,8 +137,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             LocalizationService.Apply(language);
             WakeGuard.Enabled = _state.KeepAwakeDuringPlayback;
             Topmost = _state.MainWindowTopmost;
-            MainTopmostCheckBox.IsChecked = _state.MainWindowTopmost;
-            MainTopmostCheckBox.IsEnabled = true;
             _preferencesLoaded = true;
             if (savedLanguage is null)
             {
@@ -153,6 +153,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             PopulateCollectionFilter();
             await PruneCollectionsAsync();
             RestoreBrowsingSession();
+            // After the restore, so the active-facet count is taken against the facets the user actually
+            // left selected rather than against an empty row.
+            UpdateFilterPanelChrome();
             ApplyFilter();
             UpdateCatalogColumns();
             await RestoreScrollAnchorAsync();
@@ -274,6 +277,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (IsLoaded && !_updatingLocalizedOptions && !_restoringBrowsingSession && !_resettingFilters)
         {
             ApplyFilter();
+            UpdateFilterPanelChrome();
             ScrollToCatalogStart();
             ScheduleBrowsingSessionSave();
         }
@@ -556,6 +560,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             Tag = row
         };
         editItem.Click += EditMenuItem_Click;
+        var aboutItem = new MenuItem
+        {
+            Header = LocalizationService.Get("MenuAboutChannel"),
+            Tag = row
+        };
+        aboutItem.Click += AboutChannelMenuItem_Click;
         var pinItem = new MenuItem
         {
             Header = LocalizationService.Get(row.Channel.Pinned ? "MenuUnpin" : "MenuPin"),
@@ -569,6 +579,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         menu.Items.Add(new Separator());
         menu.Items.Add(shortcutItem);
         menu.Items.Add(editItem);
+        menu.Items.Add(aboutItem);
         menu.Items.Add(new Separator());
         menu.Items.Add(pinItem);
         menu.Items.Add(BuildCollectionMenuItem(row));
@@ -616,6 +627,26 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             SetStatus("DesktopShortcutFailed");
         }
+    }
+
+    // SP-0053: a channel already on screen is described by the engine playing it, so the window is free;
+    // for any other channel it opens the stream once, itself.
+    private void AboutChannelMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as MenuItem)?.Tag is not ChannelRow row)
+        {
+            return;
+        }
+
+        var playing = _playerWindows.FirstOrDefault(window => window.Channel.Id == row.Channel.Id);
+        var collections = _state.Collections
+            .Where(collection => collection.ChannelIds.Contains(row.Channel.Id))
+            .Select(collection => collection.Name)
+            .ToArray();
+        new ChannelInfoWindow(row.Channel, collections, playing is null ? null : playing.DescribeTransmission)
+        {
+            Owner = this
+        }.ShowDialog();
     }
 
     private async void EditMenuItem_Click(object sender, RoutedEventArgs e)
@@ -683,7 +714,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void StreamCard_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is not FrameworkElement { DataContext: ChannelRow row } || ReferenceEquals(_selectedRow, row))
+        if (sender is FrameworkElement { DataContext: ChannelRow row })
+        {
+            SelectRow(row);
+        }
+    }
+
+    private void SelectRow(ChannelRow row)
+    {
+        if (ReferenceEquals(_selectedRow, row))
         {
             return;
         }
@@ -692,6 +731,40 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _selectedRow = row;
         _selectedRow.SetSelected(true);
         _ = RememberSelectedChannelAsync(row.Channel.Id);
+    }
+
+    private void StreamsList_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (!IsGridMode || Rows.Count == 0 || e.Key is not (Key.Left or Key.Right or Key.Up or Key.Down))
+        {
+            return;
+        }
+
+        var currentIndex = _selectedRow is null ? -1 : Rows.IndexOf(_selectedRow);
+        if (currentIndex < 0)
+        {
+            SelectRow(Rows[0]);
+            StreamsList.ScrollIntoView(GridRows[0]);
+            e.Handled = true;
+            return;
+        }
+
+        var nextIndex = e.Key switch
+        {
+            Key.Left => currentIndex - 1,
+            Key.Right => currentIndex + 1,
+            Key.Up => currentIndex - _catalogColumns,
+            Key.Down => currentIndex + _catalogColumns,
+            _ => currentIndex
+        };
+        if (nextIndex < 0 || nextIndex >= Rows.Count)
+        {
+            return;
+        }
+
+        SelectRow(Rows[nextIndex]);
+        StreamsList.ScrollIntoView(GridRows[nextIndex / _catalogColumns]);
+        e.Handled = true;
     }
 
     private static ChannelRow? FindChannelRow(DependencyObject? source)
@@ -780,6 +853,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         AudioPlayer.Source = new Uri(channel.Url);
         AudioPlayer.Play();
         StopAudioButton.IsEnabled = true;
+        StopAudioButton.Visibility = Visibility.Visible;
         ShowSleepTimerControl(true);
         StartNowPlayingMetadata(channel);
     }
@@ -947,6 +1021,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _playingAudio?.SetPlayingAudio(false);
         _playingAudio = null;
         StopAudioButton.IsEnabled = false;
+        StopAudioButton.Visibility = Visibility.Collapsed;
         AudioVolumeSlider.Visibility = Visibility.Collapsed;
         ShowSleepTimerControl(false);
         SetNowPlaying("NothingPlaying");
@@ -964,10 +1039,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             _log,
             RecordPlayOutcome,
             RemoveChannelAsync,
-            channel.Pinned,
+            () => _state.Channels.FirstOrDefault(item => item.Id == channel.Id)?.Pinned ?? channel.Pinned,
             pinned => SetChannelPinnedAsync(channel, pinned),
             _state.PlayerWindowTopmost,
-            SavePlayerTopmostAsync,
+            SetPlayerTopmostAsync,
+            () => _state.Collections,
+            (collectionId, member) => SetCollectionMembershipAsync(collectionId, channel.Id, member),
+            name => CreateCollectionWithChannelAsync(name, channel.Id),
             _state.VideoVolume,
             _state.VideoMuted,
             SaveVideoAudioPreferencesAsync,
@@ -976,10 +1054,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             _state.VideoBackend,
             startFullscreen) { Owner = this };
         _openPlayerWindows++;
+        _playerWindows.Add(window);
         _ = SuspendPreviewsAsync();
         window.Closed += async (_, _) =>
         {
             _openPlayerWindows = Math.Max(0, _openPlayerWindows - 1);
+            _playerWindows.Remove(window);
 
             // Closing the player leaves activation with whatever application sits next in the z-order
             // instead of returning it to this owner, so the catalog dropped behind unrelated windows and
@@ -1066,8 +1146,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void SetBusy(bool busy)
     {
         _busy = busy;
-        RefreshButton.IsEnabled = !busy;
-        AddButton.IsEnabled = !busy;
+        // SP-0050: the catalog refresh and add-stream buttons this used to disable are entries in the
+        // operations menu now, so the guard moves up to the button that opens it - a second refresh
+        // during a refresh stays unreachable.
+        OperationsButton.IsEnabled = !busy;
         SettingsButton.IsEnabled = !busy;
         CatalogProgress.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
         Mouse.OverrideCursor = busy ? Cursors.Wait : null;

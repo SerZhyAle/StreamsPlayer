@@ -113,6 +113,7 @@ public sealed class StreamCatalogStoreTests
             await store.SaveAsync(new CatalogState
             {
                 Language = AppLanguage.Russian,
+                Theme = AppTheme.Dark,
                 MainWindowTopmost = true,
                 PlayerWindowTopmost = true,
                 VideoVolume = 35,
@@ -122,6 +123,7 @@ public sealed class StreamCatalogStoreTests
             var loaded = await store.LoadAsync();
 
             Assert.Equal(AppLanguage.Russian, loaded.Language);
+            Assert.Equal(AppTheme.Dark, loaded.Theme);
             Assert.True(loaded.MainWindowTopmost);
             Assert.True(loaded.PlayerWindowTopmost);
             Assert.Equal(35, loaded.VideoVolume);
@@ -150,13 +152,13 @@ public sealed class StreamCatalogStoreTests
 
             await store.SaveAsync(new CatalogState
             {
-                TileSize = StreamTileSize.Large,
+                TileSize = StreamTileSize.VerySmall,
                 UpdateStreamPreviews = false
             });
 
             var loaded = await store.LoadAsync();
 
-            Assert.Equal(StreamTileSize.Large, loaded.TileSize);
+            Assert.Equal(StreamTileSize.VerySmall, loaded.TileSize);
             Assert.False(loaded.UpdateStreamPreviews);
         }
         finally

@@ -19,7 +19,8 @@ public sealed class DiagnosticArchiveBuilderTests
             File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), "current session");
             File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.PreviousLogName), "previous session");
 
-            var path = DiagnosticArchiveBuilder.Build(directory, "app_version=26.0730.0012\r\n", Stamp);
+            var outputDirectory = Path.Combine(directory, "saved-files");
+            var path = DiagnosticArchiveBuilder.Build(directory, outputDirectory, "app_version=26.0730.0012\r\n", Stamp);
 
             using var archive = ZipFile.OpenRead(path);
             Assert.Equal(
@@ -28,6 +29,7 @@ public sealed class DiagnosticArchiveBuilderTests
             Assert.Equal("previous session", ReadEntry(archive, DiagnosticLogFiles.PreviousLogName));
             Assert.Equal("app_version=26.0730.0012\r\n", ReadEntry(archive, DiagnosticArchiveBuilder.SummaryEntryName));
             Assert.EndsWith("StreamsPlayer-logs-20260730-010203.zip", path, StringComparison.Ordinal);
+            Assert.StartsWith(outputDirectory, path, StringComparison.Ordinal);
         });
     }
 
@@ -38,7 +40,7 @@ public sealed class DiagnosticArchiveBuilderTests
         {
             File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), "only session");
 
-            using var archive = ZipFile.OpenRead(DiagnosticArchiveBuilder.Build(directory, "summary", Stamp));
+            using var archive = ZipFile.OpenRead(Build(directory, "summary", Stamp));
 
             Assert.Equal(2, archive.Entries.Count);
             Assert.Contains(archive.Entries, entry => entry.FullName == DiagnosticLogFiles.CurrentLogName);
@@ -57,7 +59,7 @@ public sealed class DiagnosticArchiveBuilderTests
             File.WriteAllBytes(Path.Combine(directory, "favicon-atlas-abc.png"), [1, 2, 3]);
             Directory.CreateDirectory(Path.Combine(directory, "grid-previews"));
 
-            using var archive = ZipFile.OpenRead(DiagnosticArchiveBuilder.Build(directory, "summary", Stamp));
+            using var archive = ZipFile.OpenRead(Build(directory, "summary", Stamp));
 
             Assert.DoesNotContain(archive.Entries, entry => entry.FullName.Contains("catalog-state"));
             Assert.DoesNotContain(archive.Entries, entry => entry.FullName.Contains("favicon-atlas"));
@@ -78,26 +80,53 @@ public sealed class DiagnosticArchiveBuilderTests
                 new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)) { AutoFlush = true };
             writer.WriteLine("PLAYBACK STALL | count=1");
 
-            using var archive = ZipFile.OpenRead(DiagnosticArchiveBuilder.Build(directory, "summary", Stamp));
+            using var archive = ZipFile.OpenRead(Build(directory, "summary", Stamp));
 
             Assert.Contains("PLAYBACK STALL", ReadEntry(archive, DiagnosticLogFiles.CurrentLogName));
         });
     }
 
     [Fact]
-    public void Build_Twice_LeavesExactlyOneArchive()
+    public void Build_Twice_PreservesExistingFilesAndCreatesUniqueArchives()
     {
         RunInTempDirectory(directory =>
         {
             File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), "log");
 
-            DiagnosticArchiveBuilder.Build(directory, "summary", Stamp);
-            var second = DiagnosticArchiveBuilder.Build(directory, "summary", Stamp.AddMinutes(1));
+            var outputDirectory = Path.Combine(directory, "saved-files");
+            Directory.CreateDirectory(outputDirectory);
+            var existingArchive = Path.Combine(outputDirectory, $"{DiagnosticArchiveBuilder.ArchivePrefix}old.zip");
+            var unrelatedFile = Path.Combine(outputDirectory, "keep-me.txt");
+            File.WriteAllText(existingArchive, "existing archive");
+            File.WriteAllText(unrelatedFile, "user file");
+
+            var first = DiagnosticArchiveBuilder.Build(directory, outputDirectory, "summary", Stamp);
+            var second = DiagnosticArchiveBuilder.Build(directory, outputDirectory, "summary", Stamp);
 
             var archives = Directory.GetFiles(
-                Path.Combine(directory, DiagnosticArchiveBuilder.ArchiveFolderName),
+                outputDirectory,
                 $"{DiagnosticArchiveBuilder.ArchivePrefix}*.zip");
-            Assert.Equal([second], archives);
+            Assert.Equal(3, archives.Length);
+            Assert.Contains(first, archives);
+            Assert.Contains(second, archives);
+            Assert.Equal("existing archive", File.ReadAllText(existingArchive));
+            Assert.Equal("user file", File.ReadAllText(unrelatedFile));
+        });
+    }
+
+    [Fact]
+    public void Build_WhenPackingFails_LeavesNoTemporaryOrPartialArchive()
+    {
+        RunInTempDirectory(directory =>
+        {
+            var outputDirectory = Path.Combine(directory, "saved-files");
+            var logPath = Path.Combine(directory, DiagnosticLogFiles.CurrentLogName);
+            File.WriteAllText(logPath, "log");
+
+            using var lockedLog = new FileStream(logPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            Assert.Throws<IOException>(() => DiagnosticArchiveBuilder.Build(directory, outputDirectory, "summary", Stamp));
+
+            Assert.Empty(Directory.GetFiles(outputDirectory));
         });
     }
 
@@ -116,7 +145,7 @@ public sealed class DiagnosticArchiveBuilderTests
             text.Append("FINAL LINE\r\n");
             File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), text.ToString());
 
-            using var archive = ZipFile.OpenRead(DiagnosticArchiveBuilder.Build(directory, "summary\r\n", Stamp));
+            using var archive = ZipFile.OpenRead(Build(directory, "summary\r\n", Stamp));
 
             var packed = ReadEntry(archive, DiagnosticLogFiles.CurrentLogName);
             Assert.Equal(DiagnosticArchiveBuilder.MaxLogBytes, packed.Length);
@@ -131,6 +160,9 @@ public sealed class DiagnosticArchiveBuilderTests
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }
+
+    private static string Build(string stateDirectory, string summary, DateTimeOffset stamp) =>
+        DiagnosticArchiveBuilder.Build(stateDirectory, Path.Combine(stateDirectory, "saved-files"), summary, stamp);
 
     private static void RunInTempDirectory(Action<string> test)
     {

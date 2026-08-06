@@ -147,6 +147,29 @@ public partial class MainWindow
         return true;
     }
 
+    private async Task SetCollectionMembershipAsync(Guid collectionId, Guid channelId, bool member)
+    {
+        var collections = member
+            ? ChannelCollections.AddChannel(_state.Collections, collectionId, channelId)
+            : ChannelCollections.RemoveChannel(_state.Collections, collectionId, channelId);
+        await SaveCollectionsAsync(collections);
+        _log.Event(member ? "COLLECTION ADD" : "COLLECTION REMOVE", $"collection={collectionId}");
+    }
+
+    private async Task<bool> CreateCollectionWithChannelAsync(string name, Guid channelId)
+    {
+        var created = Guid.NewGuid();
+        var collections = ChannelCollections.Create(_state.Collections, name, created);
+        if (collections is null)
+        {
+            return false;
+        }
+
+        await SaveCollectionsAsync(ChannelCollections.AddChannel(collections, created, channelId));
+        _log.Event("COLLECTION CREATE", $"collection={created}");
+        return true;
+    }
+
     private async Task<bool> RenameCollectionAsync(Guid id, string name)
     {
         var collections = ChannelCollections.Rename(_state.Collections, id, name);

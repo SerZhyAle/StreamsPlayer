@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -19,12 +20,17 @@ public partial class PlayerWindow : Window
     // (short/looping playlists that hit EndReached every ~20s) would otherwise show the 15s buffering
     // spinner on every reconnect. A smaller reconnect buffer keeps re-opens quick.
     private const uint ReconnectCacheMilliseconds = 4_000;
-    private static readonly TimeSpan FullscreenControlsTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan ControlsHideTimeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan StatsSampleInterval = TimeSpan.FromSeconds(2);
+    // Volume is applied to the engine on every slider move but persisted only once the slider settles:
+    // a drag raises ValueChanged per pixel and each save rewrites the entire catalog state.
+    private static readonly TimeSpan VolumeSaveDelay = TimeSpan.FromMilliseconds(600);
     // Part D stall watchdog: poll every 3 s; a freeze is 3 consecutive polls (~9 s) with no position progress.
     private static readonly TimeSpan WatchdogInterval = TimeSpan.FromSeconds(3);
     private readonly DispatcherTimer _controlsHideTimer;
     private readonly DispatcherTimer _statsTimer;
+    private readonly DispatcherTimer _volumeSaveTimer;
+    private readonly HashSet<ContextMenu> _openControlPanelMenus = [];
     private readonly Stopwatch _playbackClock = new();
     private readonly StreamChannel _channel;
     private readonly CurrentLog _log;
@@ -47,9 +53,12 @@ public partial class PlayerWindow : Window
     private readonly Func<Guid, bool, Task> _recordOutcome;
     private readonly Func<StreamChannel, Task> _requestRemove;
     private readonly Func<bool, Task> _saveTopmost;
+    private readonly Func<bool> _isPinned;
     // Pins/unpins this channel in the catalog; the owner (MainWindow) persists and re-filters.
     private readonly Func<bool, Task> _savePinned;
-    private bool _pinned;
+    private readonly Func<IReadOnlyList<ChannelCollection>> _getCollections;
+    private readonly Func<Guid, bool, Task> _saveCollectionMembership;
+    private readonly Func<string, Task<bool>> _createCollection;
     private readonly Func<int, bool, Task> _saveAudioPreferences;
     private readonly bool _startFullscreen;
     // SP-0026: the selected video engine (LibVLC by default, FlyleafLib opt-in). The Play/teardown
@@ -91,10 +100,13 @@ public partial class PlayerWindow : Window
         CurrentLog log,
         Func<Guid, bool, Task> recordOutcome,
         Func<StreamChannel, Task> requestRemove,
-        bool pinned,
+        Func<bool> isPinned,
         Func<bool, Task> savePinned,
         bool topmost,
         Func<bool, Task> saveTopmost,
+        Func<IReadOnlyList<ChannelCollection>> getCollections,
+        Func<Guid, bool, Task> saveCollectionMembership,
+        Func<string, Task<bool>> createCollection,
         int volume,
         bool muted,
         Func<int, bool, Task> saveAudioPreferences,
@@ -110,9 +122,12 @@ public partial class PlayerWindow : Window
         _frameFolder = frameFolder;
         _recordOutcome = recordOutcome;
         _requestRemove = requestRemove;
-        _pinned = pinned;
+        _isPinned = isPinned;
         _savePinned = savePinned;
         _saveTopmost = saveTopmost;
+        _getCollections = getCollections;
+        _saveCollectionMembership = saveCollectionMembership;
+        _createCollection = createCollection;
         _saveAudioPreferences = saveAudioPreferences;
         _startFullscreen = startFullscreen;
         _backend = VideoBackendFactory.Create(backend, volume, muted, log);
@@ -125,10 +140,12 @@ public partial class PlayerWindow : Window
         VolumeSlider.Value = Math.Clamp(volume, 0, 100);
         _isMuted = muted;
         UpdateMuteButton();
-        _controlsHideTimer = new DispatcherTimer { Interval = FullscreenControlsTimeout };
+        _controlsHideTimer = new DispatcherTimer { Interval = ControlsHideTimeout };
         _controlsHideTimer.Tick += ControlsHideTimer_Tick;
         _statsTimer = new DispatcherTimer { Interval = StatsSampleInterval };
         _statsTimer.Tick += StatsTimer_Tick;
+        _volumeSaveTimer = new DispatcherTimer { Interval = VolumeSaveDelay };
+        _volumeSaveTimer.Tick += VolumeSaveTimer_Tick;
         _watchdogTimer = new DispatcherTimer { Interval = WatchdogInterval };
         _watchdogTimer.Tick += WatchdogTimer_Tick;
         _backend.BufferingChanged += Backend_BufferingChanged;
@@ -137,8 +154,6 @@ public partial class PlayerWindow : Window
         _backend.TracksChanged += Backend_TracksChanged;
         _backend.SnapshotReady += Backend_SnapshotReady;
         Topmost = topmost;
-        PlayerTopmostCheckBox.IsChecked = topmost;
-        UpdatePinButton();
         _settingsReady = true;
         TitleText.Text = StreamTitleFormatter.Display(channel.Title);
         RefreshWindowTitle();
@@ -154,6 +169,8 @@ public partial class PlayerWindow : Window
         {
             WaitText.Text = LocalizationService.Format(key, _waitArguments);
         }
+
+        RefreshSignalHealthText(); // SP-0045: the stripe's tooltip is assigned, not bound, so it replays here
     }
 
     // Stream name first so the taskbar button identifies the broadcast even when heavily truncated.
@@ -182,9 +199,11 @@ public partial class PlayerWindow : Window
         // Tied to the window rather than LibVLC's thread-affine, flapping play/pause events, so the
         // hold survives bounded reconnects and is released reliably in PlayerWindow_Closed.
         _wake = WakeGuard.Acquire(keepDisplayOn: true);
+        ApplySignalHealth(); // SP-0045: the colourless opening state, before any claim can be made
         StartMedia("initial");
         _statsTimer.Start();
         _watchdogTimer.Start();
+        ShowControls();
         if (_startFullscreen)
         {
             ToggleFullscreen();
@@ -206,6 +225,10 @@ public partial class PlayerWindow : Window
         _buffering = false;
         _playbackClock.Restart();
         _legCount++;
+        // SP-0045: the new media restarts the engine's loss counters; drop the baseline so the reset is
+        // not differenced into a fabricated disturbance. The health state itself is left alone - a
+        // reconnect must stay red while it is in progress.
+        NotifySignalHealthOpening();
         var cacheMs = reason == "initial" ? LiveCacheMilliseconds : ReconnectCacheMilliseconds;
         _log.Event("PLAYBACK OPEN", $"reason={reason}", $"kind={_channel.MediaKind}", $"cache_ms={cacheMs}", $"url={_channel.Url}");
         if (!_backend.Play(new Uri(_channel.Url), cacheMs, rtspOverTcp: true, softwareDecode: true))
@@ -215,6 +238,12 @@ public partial class PlayerWindow : Window
     }
 
     private const int IconWidth = 480;
+
+    /// <summary>SP-0053: the channel this window is playing, so the About window can be offered for it.</summary>
+    internal StreamChannel Channel => _channel;
+
+    /// <summary>SP-0053: this window's engine already has the description; nothing is opened for it.</summary>
+    internal StreamTransmission? DescribeTransmission() => _backend.DescribeTransmission();
 
     private bool CaptureThumbnail() => _backend.RequestSnapshot(IconWidth); // aspect preserved; result via SnapshotReady
 
@@ -325,7 +354,12 @@ public partial class PlayerWindow : Window
         FrameSavedToast.BeginAnimation(UIElement.OpacityProperty, fade);
     }
 
-    private void StatsTimer_Tick(object? sender, EventArgs e) => _backend.LogStats("STATS");
+    // SP-0045 rides this existing tick rather than adding one: the observation cadence is the budget.
+    private void StatsTimer_Tick(object? sender, EventArgs e)
+    {
+        _backend.LogStats("STATS");
+        SampleSignalHealth();
+    }
 
     // Backend raises EndReached on its own thread; hop to the UI thread before driving recovery.
     private void Backend_EndReached()
@@ -357,6 +391,14 @@ public partial class PlayerWindow : Window
                 SetWaitText("BufferingProgress", percentage);
             }
 
+            if (_reachedLive)
+            {
+                // SP-0045: reported per sample, not once per stall, so a long rebuffer keeps restarting
+                // the clean interval instead of turning green in the middle of itself.
+                _health.NotifyDisturbance(HealthNow);
+                ApplySignalHealth();
+            }
+
             if (_reachedLive && !_isStalled)
             {
                 _isStalled = true;
@@ -384,6 +426,10 @@ public partial class PlayerWindow : Window
             _outcomeRecorded = true;
             _reachedLive = true;
             _recovery.NotifyLive(); // sustained live - restore the full recovery budget
+            // SP-0045: leaves red; an undisturbed first connect is green here, a stream returning from a
+            // reconnect passes through yellow and earns green on the clean interval (decision 8).
+            _health.NotifyLive();
+            ApplySignalHealth();
             _log.Event("PLAYBACK LIVE", $"ttff_ms={_playbackClock.ElapsedMilliseconds}", $"url={_channel.Url}");
             if (_firstLiveMs < 0)
             {
@@ -427,13 +473,13 @@ public partial class PlayerWindow : Window
     private void SubtitleTracksButton_Click(object sender, RoutedEventArgs e) =>
         OpenTrackMenu(SubtitleTracksButton, _backend.SubtitleTracks, _backend.SelectedSubtitleTrackId, _backend.SelectSubtitleTrack);
 
-    private static void OpenTrackMenu(
+    private void OpenTrackMenu(
         Button button,
         IReadOnlyList<VideoTrack> tracks,
         int selectedTrackId,
         Action<int> selectTrack)
     {
-        var menu = new ContextMenu { PlacementTarget = button };
+        var menu = new ContextMenu();
         foreach (var track in tracks)
         {
             var item = new MenuItem
@@ -447,7 +493,23 @@ public partial class PlayerWindow : Window
             menu.Items.Add(item);
         }
 
+        ShowControlPanelMenu(button, menu);
+    }
+
+    private void ShowControlPanelMenu(Button button, ContextMenu menu)
+    {
+        menu.PlacementTarget = button;
         button.ContextMenu = menu;
+        menu.Opened += (_, _) =>
+        {
+            _openControlPanelMenus.Add(menu);
+            ShowControls();
+        };
+        menu.Closed += (_, _) =>
+        {
+            _openControlPanelMenus.Remove(menu);
+            ShowControls();
+        };
         menu.IsOpen = true;
     }
 
@@ -468,6 +530,10 @@ public partial class PlayerWindow : Window
 
         _recoveryInFlight = true;
         _recovering = true;
+        // SP-0045: red once the stream has played at least once; before that it is still connecting and
+        // the monitor keeps it colourless, so an ordinary open that retries never flashes red.
+        _health.NotifyRecovering(HealthNow);
+        ApplySignalHealth();
         try
         {
             // Only a fresh http/https open failure needs the status probe; stall/end/live-window already carry their signal.
@@ -553,6 +619,7 @@ public partial class PlayerWindow : Window
             {
                 _frozenPolls = 0;
                 _log.Event("PLAYBACK WATCHDOG", "kind=frozen", $"pos_ms={position}", $"url={_channel.Url}");
+                _health.NotifyDisturbance(HealthNow); // SP-0045: a caught freeze is a disturbance in its own right
                 _ = RecoverAsync(new PlaybackFailureSignal("stall_frozen", Stall: true));
                 return;
             }
@@ -573,6 +640,7 @@ public partial class PlayerWindow : Window
             if (bufferingMs > 15_000 && (position < 0 || position - _bufferingStartPosition < 500))
             {
                 _log.Event("PLAYBACK WATCHDOG", "kind=stuck_buffer", $"buffering_ms={bufferingMs}", $"url={_channel.Url}");
+                _health.NotifyDisturbance(HealthNow); // SP-0045: a caught freeze is a disturbance in its own right
                 _ = RecoverAsync(new PlaybackFailureSignal("stall_buffer", Stall: true));
             }
         }
@@ -587,6 +655,9 @@ public partial class PlayerWindow : Window
         }
 
         SetWaitTextResource("PlayerUnavailable");
+        // SP-0045 acceptance 5: red behind the failure dialog, including for a channel that never played.
+        _health.NotifyFailed(HealthNow);
+        ApplySignalHealth();
         _sessionOutcome = "failed";
         _log.Event("PLAYBACK FAIL", $"reason={reason}", $"at_ms={_playbackClock.ElapsedMilliseconds}", $"kind={_channel.MediaKind}", $"url={_channel.Url}");
         if (!_outcomeRecorded)
@@ -631,19 +702,7 @@ public partial class PlayerWindow : Window
         Close();
     }
 
-    private async void PlayerTopmostCheckBox_Changed(object sender, RoutedEventArgs e)
-    {
-        if (!_settingsReady)
-        {
-            return;
-        }
-
-        var topmost = PlayerTopmostCheckBox.IsChecked == true;
-        Topmost = topmost;
-        await _saveTopmost(topmost);
-    }
-
-    private async void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         if (_backend is null)
         {
@@ -660,54 +719,204 @@ public partial class PlayerWindow : Window
 
         if (_settingsReady)
         {
-            await _saveAudioPreferences((int)Math.Round(e.NewValue), _isMuted);
+            // The engine already heard the new level; only the persisted preference waits for the
+            // slider to settle. Dragging it back and forth used to queue one whole-catalog save per
+            // pixel of travel - hundreds of multi-megabyte writes, each a chance for the state folder
+            // to be locked, and the failure took the process down.
+            RestartVolumeSaveDelay();
         }
     }
 
-    private async void MuteButton_Click(object sender, RoutedEventArgs e)
+    private void MuteButton_Click(object sender, RoutedEventArgs e)
     {
         _isMuted = !_isMuted;
         _backend.Mute = _isMuted;
         UpdateMuteButton();
-        await _saveAudioPreferences((int)Math.Round(VolumeSlider.Value), _isMuted);
+        PersistAudioPreferences();
+    }
+
+    private void RestartVolumeSaveDelay()
+    {
+        _volumeSaveTimer.Stop();
+        _volumeSaveTimer.Start();
+    }
+
+    private void VolumeSaveTimer_Tick(object? sender, EventArgs e) => PersistAudioPreferences();
+
+    // Writes the level the slider now holds and drops any pending debounce, so the mute button and the
+    // closing window both persist immediately instead of racing a timer. Fire-and-forget on purpose:
+    // the owner already reports a failed write, and an `async void` here would kill the process.
+    private void PersistAudioPreferences()
+    {
+        _volumeSaveTimer.Stop();
+        _ = _saveAudioPreferences((int)Math.Round(VolumeSlider.Value), _isMuted);
     }
 
     private void UpdateMuteButton() =>
         MuteButton.SetResourceReference(ContentControl.ContentProperty, _isMuted ? "Unmute" : "Mute");
 
-    private async void PinButton_Click(object sender, RoutedEventArgs e)
+    private void ActionsButton_Click(object sender, RoutedEventArgs e)
     {
-        _pinned = !_pinned;
-        UpdatePinButton();
-        await _savePinned(_pinned);
+        // The glyph sits near the window edge. Opening upward aligns the menu to its left edge and
+        // leaves it above the native video surface instead of clipping the rightmost labels.
+        var menu = new ContextMenu { Placement = PlacementMode.Top };
+        var topmost = new MenuItem
+        {
+            Header = LocalizationService.Get(Topmost ? "PlayerAlwaysOnTopOff" : "PlayerAlwaysOnTopOn")
+        };
+        topmost.Click += async (_, _) => await _saveTopmost(!Topmost);
+
+        var pin = new MenuItem
+        {
+            Header = LocalizationService.Get(_isPinned() ? "MenuUnpin" : "MenuPin")
+        };
+        pin.Click += async (_, _) => await _savePinned(!_isPinned());
+
+        var about = new MenuItem { Header = LocalizationService.Get("MenuAboutChannel") };
+        about.Click += AboutChannel_Click;
+
+        menu.Items.Add(topmost);
+        menu.Items.Add(pin);
+        menu.Items.Add(about);
+        menu.Items.Add(BuildCollectionMenu());
+        menu.Items.Add(BuildNewCollectionMenuItem());
+        ShowControlPanelMenu(ActionsButton, menu);
     }
 
-    // Label reflects the action the click will perform: "Pin" when unpinned, "Unpin" when pinned.
-    private void UpdatePinButton() =>
-        PinButton.SetResourceReference(ContentControl.ContentProperty, _pinned ? "MenuUnpin" : "MenuPin");
+    // SP-0053: the engine in this window already holds the stream's description, so nothing is opened.
+    private void AboutChannel_Click(object sender, RoutedEventArgs e)
+    {
+        var collections = _getCollections()
+            .Where(collection => collection.ChannelIds.Contains(_channel.Id))
+            .Select(collection => collection.Name)
+            .ToArray();
+        new ChannelInfoWindow(_channel, collections, DescribeTransmission) { Owner = this }.ShowDialog();
+    }
+
+    private MenuItem BuildCollectionMenu()
+    {
+        var parent = new MenuItem { Header = LocalizationService.Get("CollectionMenu") };
+        var collections = _getCollections();
+        if (collections.Count == 0)
+        {
+            parent.Items.Add(new MenuItem
+            {
+                Header = LocalizationService.Get("PlayerCollectionsEmpty"),
+                IsEnabled = false
+            });
+            return parent;
+        }
+
+        foreach (var collection in collections)
+        {
+            var item = new MenuItem
+            {
+                Header = collection.Name,
+                IsCheckable = true,
+                IsChecked = collection.ChannelIds.Contains(_channel.Id),
+                Tag = collection.Id
+            };
+            item.Click += async (_, _) =>
+            {
+                if (item.Tag is Guid collectionId)
+                {
+                    await _saveCollectionMembership(collectionId, item.IsChecked);
+                }
+            };
+            parent.Items.Add(item);
+        }
+
+        return parent;
+    }
+
+    private MenuItem BuildNewCollectionMenuItem()
+    {
+        var nameBox = new TextBox
+        {
+            Width = 130,
+            Margin = new Thickness(6, 0, 0, 0),
+            MaxLength = ChannelCollections.MaximumNameLength
+        };
+        nameBox.KeyDown += NewCollectionNameBox_KeyDown;
+        var panel = new StackPanel { Orientation = Orientation.Horizontal };
+        panel.Children.Add(new TextBlock
+        {
+            Text = LocalizationService.Get("PlayerAddNewCollection"),
+            VerticalAlignment = VerticalAlignment.Center
+        });
+        panel.Children.Add(nameBox);
+        return new MenuItem { Header = panel, StaysOpenOnClick = true };
+    }
+
+    private async void NewCollectionNameBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || sender is not TextBox box)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        if (!await _createCollection(box.Text))
+        {
+            MessageBox.Show(
+                this,
+                LocalizationService.Get("CollectionNameInvalid"),
+                LocalizationService.Get("PlayerActions"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
+    }
+
+    // Called by MainWindow after a shared player preference changes in another player window.
+    internal void ApplyPlayerTopmost(bool topmost) => Topmost = topmost;
 
     private void FullscreenButton_Click(object sender, RoutedEventArgs e) => ToggleFullscreen();
 
-    // Any click on the video re-shows the controls and restarts the fullscreen hide countdown.
-    private void VideoSurface_MouseDown(object sender, MouseButtonEventArgs e) => ShowControls();
+    // Any click on the video re-shows the controls and restarts the shared hide countdown.
+    // A double click on the video itself toggles fullscreen, the gesture every desktop video
+    // player trains; F11 and the overlay button remain the other two ways in and out.
+    private void VideoSurface_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        ShowControls();
+        if (IsOnControlPanel(e.OriginalSource))
+        {
+            return;
+        }
+
+        e.Handled = true;
+        if (e.ChangedButton == MouseButton.Left && e.ClickCount == 2)
+        {
+            ToggleFullscreen();
+        }
+    }
+
+    // The overlay's preview handler also sees clicks aimed at the control panel, so a double
+    // click on a button or on the volume slider must not resize the window.
+    private bool IsOnControlPanel(object source) =>
+        source is Visual visual && (ReferenceEquals(visual, ControlPanel) || ControlPanel.IsAncestorOf(visual));
 
     private void ShowControls()
     {
+        if (_closing)
+        {
+            return;
+        }
+
         ControlPanel.Visibility = Visibility.Visible;
         _controlsHideTimer.Stop();
-        if (_fullscreen)
-        {
-            _controlsHideTimer.Start();
-        }
+        _controlsHideTimer.Start();
     }
 
     private void ControlsHideTimer_Tick(object? sender, EventArgs e)
     {
         _controlsHideTimer.Stop();
-        if (_fullscreen)
+        if (_openControlPanelMenus.Count > 0)
         {
-            ControlPanel.Visibility = Visibility.Collapsed;
+            _controlsHideTimer.Start();
+            return;
         }
+
+        ControlPanel.Visibility = Visibility.Collapsed;
     }
 
     private void Window_KeyDown(object sender, KeyEventArgs e)
@@ -752,8 +961,7 @@ public partial class PlayerWindow : Window
         WindowState = _restoredWindowState;
         _fullscreen = false;
         FullscreenButton.SetResourceReference(ContentControl.ContentProperty, "Fullscreen");
-        _controlsHideTimer.Stop();
-        ControlPanel.Visibility = Visibility.Visible;
+        ShowControls();
     }
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
@@ -777,6 +985,13 @@ public partial class PlayerWindow : Window
             $"stalls={_stallCount}",
             $"kind={_channel.MediaKind}",
             $"url={_channel.Url}");
+        // A drag that ended with the window being closed still has its level pending; write it now.
+        if (_volumeSaveTimer.IsEnabled)
+        {
+            PersistAudioPreferences();
+        }
+
+        _volumeSaveTimer.Tick -= VolumeSaveTimer_Tick;
         _controlsHideTimer.Stop();
         _controlsHideTimer.Tick -= ControlsHideTimer_Tick;
         _statsTimer.Stop();

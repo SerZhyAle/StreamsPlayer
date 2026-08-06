@@ -66,10 +66,15 @@ public partial class MainWindow
         // one already active.
         ListModeButton.Visibility = IsGridMode ? Visibility.Visible : Visibility.Collapsed;
         GridModeButton.Visibility = IsGridMode ? Visibility.Collapsed : Visibility.Visible;
-        RefreshPreviewsButton.Visibility = IsGridMode && GridPreviewFeature.CaptureEnabled && _state.UpdateStreamPreviews
-            ? Visibility.Visible
-            : Visibility.Collapsed;
     }
+
+    /// <summary>
+    /// Whether refreshing the grid previews means anything right now (SP-0050). It used to be the
+    /// header button's visibility expression; the button is gone and the operations menu adds its entry
+    /// only when this holds, so the condition survives the move instead of leaving an entry that
+    /// silently does nothing in list mode.
+    /// </summary>
+    private bool CanRefreshPreviews => IsGridMode && GridPreviewFeature.CaptureEnabled && _state.UpdateStreamPreviews;
 
     private async Task StartPreviewsAsync()
     {
@@ -115,9 +120,13 @@ public partial class MainWindow
 
     private void StreamTile_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
     {
-        if (_previewCoordinator?.IsRunning != true || !IsGridMode ||
-            sender is not FrameworkElement { DataContext: ChannelRow row } ||
-            !PreviewCapturePolicy.IsCaptureable(row.Channel))
+        if (sender is not FrameworkElement { DataContext: ChannelRow row })
+        {
+            return;
+        }
+
+        row.SetTileHovered(true);
+        if (_previewCoordinator?.IsRunning != true || !IsGridMode || !PreviewCapturePolicy.IsCaptureable(row.Channel))
         {
             return;
         }
@@ -128,7 +137,15 @@ public partial class MainWindow
         _ = HoverCaptureAfterDwellAsync(row.Channel.Url, _hoverDwell.Token);
     }
 
-    private void StreamTile_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e) => _hoverDwell?.Cancel();
+    private void StreamTile_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: ChannelRow row })
+        {
+            row.SetTileHovered(false);
+        }
+
+        _hoverDwell?.Cancel();
+    }
 
     private async Task HoverCaptureAfterDwellAsync(string url, CancellationToken cancellationToken)
     {

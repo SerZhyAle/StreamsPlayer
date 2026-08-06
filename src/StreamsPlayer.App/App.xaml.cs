@@ -17,6 +17,7 @@ public partial class App : Application
         DispatcherUnhandledException += App_DispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+        ThemeService.Initialize();
         _log.Information("Application startup.");
         var window = new MainWindow(_log, StreamLaunchRequest.Parse(e.Args));
         MainWindow = window;
@@ -26,6 +27,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _log?.Information("Application shutdown.");
+        ThemeService.Shutdown();
         WakeGuard.Reset(); // final safety net: never leave the machine unable to sleep after exit
         TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
         AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;

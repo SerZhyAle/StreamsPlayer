@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource SettingsWindowTitle}" Width="620" Height="480"
         ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
-        Background="{StaticResource WindowBackground}">
+        Background="{DynamicResource WindowBackground}">
     <Window.Resources>
         <!-- Monochrome tab-strip icon, matching the app's glyph vocabulary. -->
         <Style x:Key="TabIcon" TargetType="Path">
@@ -12,8 +12,8 @@
             <Setter Property="Stretch" Value="Uniform" />
             <Setter Property="Margin" Value="0,0,9,0" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Fill" Value="#FF172236" />
-            <Setter Property="Stroke" Value="#FF172236" />
+            <Setter Property="Fill" Value="{DynamicResource TextBrush}" />
+            <Setter Property="Stroke" Value="{DynamicResource TextBrush}" />
             <Setter Property="StrokeThickness" Value="1.4" />
             <Setter Property="StrokeLineJoin" Value="Round" />
             <Setter Property="StrokeStartLineCap" Value="Round" />
@@ -26,8 +26,61 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TabControl TabStripPlacement="Left" Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="#FFD5DCE6" Padding="14">
+        <TabControl TabStripPlacement="Left" Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" Padding="14">
+
+            <!-- SP-0050 decision 4: first in the strip and marked with a globe. A user who cannot read the
+                 interface reaches the gear in the header and then this tab without reading a word; folding
+                 the chooser into an existing tab would have hidden it behind one. The double-click and
+                 Enter handlers the standalone picker had are deliberately not carried over: inside a
+                 tabbed dialog the window's own Save button is the commit, and a double-click that closed
+                 the whole settings window would be a surprise. -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Style="{StaticResource TabIcon}" Data="M12,3A9,9 0 1 0 12,21A9,9 0 1 0 12,3M3,12H21M12,3C9,6 9,18 12,21M12,3C15,6 15,18 12,21" Fill="Transparent" />
+                        <TextBlock Text="{DynamicResource Language}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </TabItem.Header>
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Bottom" Text="{DynamicResource MachineTranslationNotice}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="2,10,2,0" />
+                    <!--
+                        A ListBox rather than thirteen checkable entries: arrow keys, Home/End,
+                        PageUp/PageDown and type-to-select all come for free. Each row is named in its own
+                        language, so the list is usable by someone who cannot read the other twelve.
+                    -->
+                    <!-- Transparent over the tab's own themed background, as every other list in the app
+                         does: App.xaml carries an implicit style for ListView but none for ListBox, so a
+                         ListBox that states no background keeps WPF's white default while its items take
+                         the theme's light TextBrush - unreadable in the dark theme. -->
+                    <ListBox x:Name="LanguageList" SelectionMode="Single"
+                             AutomationProperties.Name="{DynamicResource LanguagePickerName}"
+                             Background="Transparent" BorderThickness="0"
+                             HorizontalContentAlignment="Stretch" Padding="2">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="4,7">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Endonym}" FontSize="15" VerticalAlignment="Center" />
+                                    <!-- A check mark rather than a localized word: it needs no translation, so the
+                                         picker adds no key to thirteen dictionaries, and it survives a screenshot
+                                         and a high-contrast theme. Screen readers learn which entry is active from
+                                         the selection pattern - the active language is selected when the tab
+                                         opens - so nothing is lost by the marker being a symbol. -->
+                                    <TextBlock Grid.Column="1" Text="&#x2713;"
+                                               Visibility="{Binding ActiveMarkerVisibility}"
+                                               Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"
+                                               Margin="8,0" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </TabItem>
 
             <!-- Grid / Layout -->
             <TabItem>
@@ -38,6 +91,9 @@
                     </StackPanel>
                 </TabItem.Header>
                 <StackPanel>
+                    <TextBlock Text="{DynamicResource ThemeLabel}" FontWeight="SemiBold" />
+                    <ComboBox x:Name="ThemeBox" Margin="0,5,0,12" HorizontalAlignment="Stretch"
+                              AutomationProperties.Name="{DynamicResource ThemeLabel}" />
                     <TextBlock Text="{DynamicResource StreamTileSizeLabel}" FontWeight="SemiBold" />
                     <ComboBox x:Name="TileSizeBox" Margin="0,5,0,12" HorizontalAlignment="Stretch"
                               AutomationProperties.Name="{DynamicResource StreamTileSizeLabel}" />
@@ -56,7 +112,7 @@
                     </StackPanel>
                 </TabItem.Header>
                 <StackPanel>
-                    <TextBlock x:Name="SelectedStreamText" Margin="0,0,0,10" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" />
+                    <TextBlock x:Name="SelectedStreamText" Margin="0,0,0,10" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" />
                     <WrapPanel>
                         <Button x:Name="CopyLaunchCommandButton" Style="{StaticResource LinkGlyphButton}" Content="{DynamicResource CopyLaunchCommand}"
                                 Click="CopyLaunchCommand_Click" ToolTip="{DynamicResource CopyLaunchCommandTip}" />
@@ -87,14 +143,14 @@
                     <TextBlock Text="{DynamicResource VideoBackendLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
                     <ComboBox x:Name="VideoBackendBox" Margin="0,5,0,0" HorizontalAlignment="Stretch"
                               AutomationProperties.Name="{DynamicResource VideoBackendLabel}" />
-                    <TextBlock Text="{DynamicResource VideoBackendHint}" Foreground="{StaticResource MutedBrush}"
+                    <TextBlock Text="{DynamicResource VideoBackendHint}" Foreground="{DynamicResource MutedBrush}"
                                TextWrapping="Wrap" Margin="0,5,0,0" />
                     <!-- SP-0038: where the player's camera button writes its frames. Read-only text plus a
                          picker, so the stored path is always one Windows itself produced. -->
                     <TextBlock Text="{DynamicResource FrameFolderLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
                     <TextBox x:Name="FrameFolderBox" IsReadOnly="True" Margin="0,5,0,0" Padding="7,4"
                              TextWrapping="NoWrap" AutomationProperties.Name="{DynamicResource FrameFolderLabel}" />
-                    <TextBlock Text="{DynamicResource FrameFolderHint}" Foreground="{StaticResource MutedBrush}"
+                    <TextBlock Text="{DynamicResource FrameFolderHint}" Foreground="{DynamicResource MutedBrush}"
                                TextWrapping="Wrap" Margin="0,5,0,0" />
                     <WrapPanel Margin="0,6,0,0">
                         <Button x:Name="FrameFolderBrowseButton" Style="{StaticResource ImportGlyphButton}"
@@ -114,7 +170,7 @@
                     </StackPanel>
                 </TabItem.Header>
                 <StackPanel>
-                    <TextBlock Text="{DynamicResource PlaylistPortabilityHint}" Foreground="{StaticResource MutedBrush}"
+                    <TextBlock Text="{DynamicResource PlaylistPortabilityHint}" Foreground="{DynamicResource MutedBrush}"
                                TextWrapping="Wrap" Margin="0,0,0,10" />
                     <WrapPanel>
                         <Button x:Name="ImportFromFileButton" Style="{StaticResource ImportGlyphButton}"
@@ -138,8 +194,8 @@
                             ToolTip="{DynamicResource ManageHiddenTip}"
                             AutomationProperties.Name="{DynamicResource ManageHiddenOpen}" />
                     <!-- SP-0030: destructive catalog cleanup, separated from the reversible import/export row. -->
-                    <Separator Margin="0,16,0,12" Background="#FFD5DCE6" />
-                    <TextBlock Text="{DynamicResource DeleteDownloadedHint}" Foreground="{StaticResource MutedBrush}"
+                    <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
+                    <TextBlock Text="{DynamicResource DeleteDownloadedHint}" Foreground="{DynamicResource MutedBrush}"
                                TextWrapping="Wrap" Margin="0,0,0,8" />
                     <Button x:Name="DeleteDownloadedButton" Style="{StaticResource TrashGlyphButton}"
                             HorizontalAlignment="Left" Content="{DynamicResource DeleteDownloaded}"
@@ -157,7 +213,11 @@
                     </StackPanel>
                 </TabItem.Header>
                 <StackPanel>
-                    <TextBlock Text="{DynamicResource ProductName}" FontSize="24" FontWeight="SemiBold" Foreground="#FF172236" />
+                    <TextBlock Text="{DynamicResource ProductName}" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" />
+                    <!-- SP-0050 decision 5: the tagline is a sentence read once. This is where a product
+                         describes itself; it does not need a permanent line in a working window. -->
+                    <TextBlock Text="{DynamicResource MainSubtitle}" Foreground="{DynamicResource MutedBrush}"
+                               TextWrapping="Wrap" Margin="0,4,0,0" />
                     <Grid Margin="0,8,0,10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -174,35 +234,35 @@
                     </Grid>
                     <WrapPanel>
                         <TextBlock Margin="0,0,18,8">
-                            <Hyperlink Foreground="#FF0067C0" TextDecorations="Underline" Tag="Instructions"
+                            <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Instructions"
                                        Click="OpenLink_Click" ToolTip="{DynamicResource DocumentationTip}"
                                        AutomationProperties.Name="{DynamicResource Documentation}">
                                 <Run Text="{DynamicResource Documentation}" />
                             </Hyperlink>
                         </TextBlock>
                         <TextBlock Margin="0,0,18,8">
-                            <Hyperlink Foreground="#FF0067C0" TextDecorations="Underline" Tag="Source"
+                            <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Source"
                                        Click="OpenLink_Click" ToolTip="{DynamicResource SourceCodeTip}"
                                        AutomationProperties.Name="{DynamicResource SourceCode}">
                                 <Run Text="{DynamicResource SourceCode}" />
                             </Hyperlink>
                         </TextBlock>
                         <TextBlock Margin="0,0,18,8">
-                            <Hyperlink Foreground="#FF0067C0" TextDecorations="Underline" Tag="Website"
+                            <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Website"
                                        Click="OpenLink_Click" ToolTip="{DynamicResource WebsiteTip}"
                                        AutomationProperties.Name="{DynamicResource Website}">
                                 <Run Text="{DynamicResource Website}" />
                             </Hyperlink>
                         </TextBlock>
                         <TextBlock Margin="0,0,18,8">
-                            <Hyperlink Foreground="#FF0067C0" TextDecorations="Underline" Tag="Privacy"
+                            <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Privacy"
                                        Click="OpenLink_Click" ToolTip="{DynamicResource PrivacyTip}"
                                        AutomationProperties.Name="{DynamicResource Privacy}">
                                 <Run Text="{DynamicResource Privacy}" />
                             </Hyperlink>
                         </TextBlock>
                         <TextBlock Margin="0,0,18,8">
-                            <Hyperlink Foreground="#FF0067C0" TextDecorations="Underline" Tag="Author"
+                            <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Author"
                                        Click="OpenLink_Click" ToolTip="{DynamicResource AuthorPageTip}"
                                        AutomationProperties.Name="{DynamicResource AuthorPage}">
                                 <Run Text="{DynamicResource AuthorPage}" />
@@ -216,7 +276,7 @@
                             Content="{DynamicResource SendLogs}" Click="SendLogs_Click"
                             ToolTip="{DynamicResource SendLogsTip}"
                             AutomationProperties.Name="{DynamicResource SendLogs}" />
-                    <TextBlock Text="{DynamicResource SendLogsHint}" TextWrapping="Wrap" Foreground="#FF5A6472" />
+                    <TextBlock Text="{DynamicResource SendLogsHint}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" />
                 </StackPanel>
             </TabItem>
         </TabControl>
@@ -224,7 +284,7 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
             <Button Style="{StaticResource CancelGlyphButton}" Content="{DynamicResource Cancel}" Click="Cancel_Click" />
             <Button Style="{StaticResource ConfirmGlyphButton}" Content="{DynamicResource Save}" Click="Save_Click"
-                    IsDefault="True" Background="{StaticResource AccentBrush}" Foreground="White" />
+                    IsDefault="True" Background="{DynamicResource AccentBrush}" Foreground="White" />
         </StackPanel>
     </Grid>
 </Window>

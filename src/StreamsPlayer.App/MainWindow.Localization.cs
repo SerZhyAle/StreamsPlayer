@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using StreamsPlayer.Core;
@@ -32,50 +33,34 @@ public partial class MainWindow
             return _state;
         }
 
-        return await _store.SaveAsync(updated);
+        try
+        {
+            return await _store.SaveAsync(updated);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // A locked, full, or redirected state folder is an environment failure, not a defect: an
+            // on-access scanner or the MSIX write redirector can hold the temp file the atomic save
+            // moves into place. Every caller is an `async void` event handler, so letting it escape
+            // reaches DispatcherUnhandledException, which logs but does not handle - the process dies
+            // and the window vanishes. Losing one preference write is the honest cost; keep the
+            // previous state so the next save still starts from what the user actually has.
+            _log.Error("Catalog state save failed", exception);
+            return _state;
+        }
     }
 
-    /// <summary>
-    /// SP-0034 decision 6: opens the language picker.
-    /// <para>
-    /// Deliberately not gated on <c>_preferencesLoaded</c>. If a load ever fails, the user must still be
-    /// able to choose a language rather than face a disabled control with no way out - the old menu was
-    /// disabled until the catalog loaded, which made a failed load unrecoverable from the interface.
-    /// </para>
-    /// </summary>
-    private async void LanguageButton_Click(object sender, RoutedEventArgs e)
+    private async Task SetPlayerTopmostAsync(bool topmost)
     {
-        var dialog = new LanguageWindow(LocalizationService.CurrentLanguage) { Owner = this };
-        if (dialog.ShowDialog() != true || dialog.SelectedLanguage is not { } language)
+        foreach (var window in _playerWindows)
         {
-            return;
+            window.ApplyPlayerTopmost(topmost);
         }
 
-        LocalizationService.Apply(language);
-        _state = await PersistAsync(_state with { Language = language });
-        RefreshLocalizedInterface();
-    }
-
-    private async void MainTopmostCheckBox_Changed(object sender, RoutedEventArgs e)
-    {
-        if (!_preferencesLoaded)
+        if (_state.PlayerWindowTopmost != topmost)
         {
-            return;
+            _state = await PersistAsync(_state with { PlayerWindowTopmost = topmost });
         }
-
-        var topmost = MainTopmostCheckBox.IsChecked == true;
-        Topmost = topmost;
-        _state = await PersistAsync(_state with { MainWindowTopmost = topmost });
-    }
-
-    private async Task SavePlayerTopmostAsync(bool topmost)
-    {
-        if (_state.PlayerWindowTopmost == topmost)
-        {
-            return;
-        }
-
-        _state = await PersistAsync(_state with { PlayerWindowTopmost = topmost });
     }
 
     private async Task SaveVideoAudioPreferencesAsync(int volume, bool muted)
@@ -90,8 +75,9 @@ public partial class MainWindow
 
     private void RefreshLocalizedInterface()
     {
-        // The language button needs no update here: its content, tooltip and automation name are all
-        // DynamicResource bindings and follow the dictionary swap on their own (SP-0034).
+        // Most of the header needs no update here: content, tooltips and automation names are all
+        // DynamicResource bindings and follow the dictionary swap on their own (SP-0034). The operations
+        // menu is rebuilt on every open, so it picks the new language up for free.
         UpdateLocalizedOptions();
         // The collection list carries a localized "All" entry, so it is rebuilt with the rest (SP-0017).
         PopulateCollectionFilter();
@@ -109,6 +95,8 @@ public partial class MainWindow
         }
 
         ApplyFilter();
+        // The reveal button's tooltip is set in code, not bound, so it has to be re-rendered by hand.
+        UpdateFilterPanelChrome();
         RefreshLocalizedStateText();
     }
 

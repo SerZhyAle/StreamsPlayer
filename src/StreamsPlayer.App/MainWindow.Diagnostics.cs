@@ -39,30 +39,30 @@ public partial class MainWindow
             RuntimeInformation.OSArchitecture.ToString(),
             DateTimeOffset.UtcNow));
 
+        var outputFolder = CapturedFrameWriter.ResolveFolder(_state.FrameFolder);
         string archivePath;
         try
         {
             // Copies and compresses files - off the UI thread even though the logs are small, because the
             // ceiling is 2 MB per log and this runs while the Settings window is open.
             archivePath = await Task.Run(() =>
-                DiagnosticArchiveBuilder.Build(_dataDirectory, summary, DateTimeOffset.UtcNow));
+                DiagnosticArchiveBuilder.Build(_dataDirectory, outputFolder, summary, DateTimeOffset.UtcNow));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or NotSupportedException)
         {
             _log.Event("LOG REPORT", "ok=false", $"err={exception.GetType().Name}");
-            MessageBox.Show(owner, LocalizationService.Get("SendLogsFailed"), LocalizationService.Get("SendLogs"),
+            MessageBox.Show(owner, LocalizationService.Format("SendLogsFailed", outputFolder, exception.Message),
+                LocalizationService.Get("SendLogs"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
-        var folder = Path.GetDirectoryName(archivePath) ?? _dataDirectory;
         var fileName = Path.GetFileName(archivePath);
         _log.Event("LOG REPORT", "ok=true", $"bytes={new FileInfo(archivePath).Length}", $"file={fileName}");
-        LogReportMailer.Reveal(archivePath); // best-effort: the mail body names the path either way
         var composed = LogReportMailer.Compose(
             ProductInfo.AuthorEmail,
             LocalizationService.Format("SendLogsSubject", ProductInfo.Version),
-            LocalizationService.Format("SendLogsBody", fileName, folder));
+            LocalizationService.Format("SendLogsBody", archivePath));
         if (!composed)
         {
             MessageBox.Show(owner, LocalizationService.Format("SendLogsNoMailClient", archivePath),
@@ -70,8 +70,7 @@ public partial class MainWindow
             return;
         }
 
-        MessageBox.Show(owner, LocalizationService.Format("SendLogsReady", fileName),
-            LocalizationService.Get("SendLogs"), MessageBoxButton.OK, MessageBoxImage.Information);
+        new LogArchiveReadyWindow(archivePath) { Owner = owner }.ShowDialog();
     }
 
     private readonly Stopwatch _audioSessionClock = new();
