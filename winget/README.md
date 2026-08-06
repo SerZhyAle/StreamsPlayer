@@ -39,22 +39,30 @@ fine (2026-07-27).
 Either way, winget can only be refreshed **after** an approved GitHub Release
 exists. The package is live; use the flow above to submit each subsequent version.
 
-Submission state re-checked against the API on 2026-07-30. `winget-pkgs` still
-publishes only **26.0719.0310** and **26.0723.1040**, and both submissions are
-still open with no human activity since the day they were opened -
-[#408215](https://github.com/microsoft/winget-pkgs/pull/408215) for 26.0727.0253
-(last touched 2026-07-27) and
-[#408825](https://github.com/microsoft/winget-pkgs/pull/408825) for 26.0728.1352
-(last touched 2026-07-28). Review latency there is days, not hours: do not treat
-an unmerged PR as a failure, and do not re-submit the same version because it has
-not landed yet.
+Submission state re-checked against the API on 2026-08-06. Both of the submissions
+that were open on 2026-07-30 have merged - [#408215](https://github.com/microsoft/winget-pkgs/pull/408215)
+for 26.0727.0253 on 2026-07-30, [#408825](https://github.com/microsoft/winget-pkgs/pull/408825)
+for 26.0728.1352 on 2026-08-06 - so `winget-pkgs` now publishes four versions up
+to **26.0728.1352** and no submission for this package is open. Review latency
+there is days, not hours: do not treat an unmerged PR as a failure, and do not
+re-submit the same version because it has not landed yet.
 
-Consequence for the next release, decided by the owner and not by a script: a
-third submission would leave three unreviewed pull requests for one package,
-which invites a maintainer to close the older ones as superseded. The options are
-to submit anyway, to close the two stale ones in favour of the newest version, or
-to hold the winget channel until one merges. The GitHub Release and the Store
-submission do not depend on this choice.
+The pile-up the previous note worried about resolved itself, and the queue was
+empty when 26.0806.2131 was submitted as
+[#413363](https://github.com/microsoft/winget-pkgs/pull/413363), so that release
+needed none of the three options it listed. 26.0730.1512 was never submitted here;
+the package therefore steps from 26.0728.1352 straight to 26.0806.2131, which is
+legal - winget carries versions, not a chain.
+
+`wingetcreate ... --submit` could not open that pull request: it refuses to run
+until the fork's `master` is synced with upstream, and the sync fails because the
+`gh` OAuth token carries `repo` but not `workflow`, while upstream has changed
+files under `.github/workflows/`. The path that works without widening the token
+is to branch the fork at **its own** `master`, add the five manifest files through
+the contents API, and open the pull request from that branch: GitHub diffs against
+the merge base, so a fork thousands of commits behind still produces a
+five-file, additions-only pull request. Do not "fix" this by granting `workflow`
+scope to a token that only needs to add manifests.
 
 The package is published under the identifier `SerZhyAle.StreamsPlayer`. Keep this
 permanent identifier for every future submission.

@@ -285,3 +285,23 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   acquire/toggle/stop/close/exit matrix then costs one click and a few plain-language instructions to
   the owner. Preferred over shortening `standby-timeout`: the owner's machine has `Sleep after = 0`
   (Never) on AC and DC, and an induced real sleep kills the agent session mid-run (2026-08-06).
+
+- **A push to `origin/main` and even a `v*` tag push can land without starting any workflow.** On
+  2026-08-06 the release pass pushed four commits and the tag `v26.0806.2131`; `origin/main` and the
+  tag were both visible through the API, Actions reported `enabled: true`, all three workflows read
+  `active`, the repository was public and not archived - and neither CI, nor Deploy Pages, nor Release
+  produced a run, four minutes after the fact. `gh workflow run release.yml -f tag=v26.0806.2131` and
+  `gh workflow run pages.yml` both fired immediately and both went green, so the cause is GitHub's push
+  event delivery, not the repo's configuration. Check `gh run list` after every tag push instead of
+  assuming latency: `release.yml` carries a `workflow_dispatch` input for exactly this, and a tag that
+  silently no-ops looks identical to a slow one until someone looks (2026-08-06).
+
+- **`wingetcreate ... --submit` needs a synced fork, and syncing the fork needs a token scope the work
+  itself does not.** The sync fails with "refusing to allow an OAuth App to create or update workflow
+  ... without `workflow` scope" whenever upstream `winget-pkgs` has touched `.github/workflows/`, which
+  it does constantly. The working path adds no scope at all: branch `SerZhyAle/winget-pkgs` at **its
+  own** `master`, PUT the five manifest files through the contents API on that branch, and open the pull
+  request from it - GitHub diffs against the merge base, so a fork ~2,900 commits behind still yields a
+  five-file, additions-only PR (#413363 proves it). Also: `wingetcreate update` silently drops the
+  `ReleaseNotes` fields, so the three locale manifests need them written back by hand or the release
+  ships with the previous version's notes (2026-08-06).
