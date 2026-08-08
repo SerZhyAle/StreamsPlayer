@@ -61,6 +61,77 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.0809.0022
+
+Everything on `main` after 26.0806.2225, which is the Store's own previous stamp, and after
+26.0806.2131 on GitHub and winget. The two channels converge again here - this one text goes to the
+GitHub Release body, the three winget locale manifests and Partner Center, because it was written
+with no colon-plus-space anywhere and therefore survives the winget YAML scalar unchanged.
+
+Ships SP-0052/SP-0066 (the bundled channel list), SP-0059, SP-0061 (the topic filter), SP-0058
+(sharing a channel as text), SP-0062 (playback resumes), SP-0056, then SP-0070 (silent-freeze
+detection), SP-0079 (the shorter reconnect budget), SP-0071/SP-0076/SP-0077 (the adaptive quality
+ceiling, remembered per channel and re-opened there), SP-0072 (the caption over the video),
+SP-0073/SP-0074 (what is on air), SP-0081 (stop keeps the station), SP-0065, SP-0085, SP-0069's
+memory fixes and the accessibility, resize and chrome work.
+
+Deliberately not bulleted: SP-0054, SP-0055, SP-0057, SP-0060, SP-0064 and SP-0067 - a clock-jitter
+budget, log retention, a formatter that cannot throw, a build guard, an automation name and list
+virtualization are none of them a line a user would recognise as their own. SP-0078 is not bulleted
+either, because the live-edge corridor only runs on the opt-in FlyleafLib engine.
+
+Measured against the 1,500-character limit: 1466 en, 1499 ru, 1492 uk. The same three blocks live as
+`msix/listing/release-notes/26.0809.0022.{en-us,ru,uk}.txt`, which is what
+`tools/store/write-release-notes.ps1` reads - these fences are a copy of those files, not a second
+source.
+
+```text
+Version 26.0809.0022
+
+- A built-in channel list. A copy of the stream bank now ships inside the app, so the catalog fills on a first launch with no network - offered at the start, after a failed update, and always from Settings. It adds and updates, never removes, and says how old it is.
+- A topic filter over the catalog's own topics, translated for reading while each channel keeps its original name.
+- Share a channel as one short line of text, and paste one back in.
+- Playback resumes where the last session left off.
+- What is on air - the track the station is playing right now, under the channel name.
+- Stopping the sound now keeps the station. The button becomes Resume audio, and the volume slider and the sleep timer stay where they were.
+- The player says why the picture stopped - connecting, signal lost, reconnecting, switching quality - over the video, so the explanation is there after the controls hide.
+- A stream that stops sending while pretending to play is caught and re-opened, and the Retry dialog now arrives in about half a minute instead of two.
+- Video quality follows what the connection actually delivers, is remembered per channel, and the next play opens there.
+- Minimizing the catalog no longer minimizes the player, and Settings can be resized.
+- Fixed - closing the catalog with the pointer over a tile could crash it, a radio stream that ended kept the machine awake, and the player controls did not mirror in Arabic and Urdu.
+```
+
+```text
+Версия 26.0809.0022
+
+- Встроенный список каналов. Копия банка потоков лежит внутри программы, поэтому каталог заполняется при первом запуске без сети - на старте, после неудачного обновления и всегда из настроек. Он добавляет и обновляет, ничего не удаляет и называет свой возраст.
+- Фильтр по темам каталога - названия тем переведены для чтения, а канал сохраняет исходное имя.
+- Поделиться каналом одной короткой строкой текста и вставить такую строку обратно.
+- Воспроизведение продолжается с того места, где закончился прошлый сеанс.
+- Что сейчас в эфире - трек, который станция играет прямо сейчас, под названием канала.
+- Остановка звука больше не сбрасывает станцию. Кнопка становится «Продолжить», а громкость и таймер сна остаются на месте.
+- Плеер объясняет, почему картинка остановилась - подключение, сигнал потерян, переподключение, смена качества - надписью поверх видео, видной и после того, как панель спряталась.
+- Поток, который перестал передавать, но делает вид, что играет, распознаётся и переоткрывается, а окно с кнопкой «Повторить» приходит примерно за полминуты вместо двух.
+- Качество видео следует за тем, что реально выдаёт соединение, запоминается для канала, и следующее включение начинается с него.
+- Свёртывание каталога больше не свёртывает плеер, а окно настроек можно менять по размеру.
+- Исправлено - закрытие каталога с указателем на плитке могло уронить программу, завершившееся радио держало компьютер без сна, а панель плеера не зеркалилась в арабском и урду.
+```
+
+```text
+Версія 26.0809.0022
+
+- Вбудований список каналів. Копія банку потоків лежить усередині програми, тож каталог заповнюється при першому запуску без мережі - на старті, після невдалого оновлення і завжди з налаштувань. Він додає та оновлює, нічого не видаляє і називає свій вік.
+- Фільтр за темами каталогу - назви тем перекладені для читання, а канал зберігає початкове ім'я.
+- Поділитися каналом одним коротким рядком тексту і вставити такий рядок назад.
+- Відтворення продовжується з того місця, де закінчився минулий сеанс.
+- Що зараз в ефірі - трек, який станція грає просто зараз, під назвою каналу.
+- Зупинка звуку більше не скидає станцію. Кнопка стає «Продовжити», а гучність і таймер сну лишаються на місці.
+- Програвач пояснює, чому картинка зупинилася - підключення, сигнал втрачено, перепідключення, зміна якості - написом поверх відео, видним і після того, як панель сховалася.
+- Потік, який перестав передавати, але вдає, що грає, розпізнається і перевідкривається, а вікно з кнопкою «Повторити» приходить приблизно за пів хвилини замість двох.
+- Якість відео стежить за тим, що насправді видає з'єднання, запам'ятовується для кожного каналу, і наступне ввімкнення починається з неї.
+- Згортання каталогу більше не згортає програвач, а вікно налаштувань можна змінювати за розміром.
+- Виправлено - закриття каталогу з вказівником на плитці могло аварійно завершити програму, радіо, що скінчилося, тримало комп'ютер без сну, а панель програвача не дзеркалилася в арабській та урду.
+```
 ### Prepared for 26.0806.2225 (Store only - the channels deliberately disagree)
 
 **The Store ships 26.0806.2225 while GitHub and winget stay on 26.0806.2131.** The owner's call on

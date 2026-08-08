@@ -1,0 +1,13 @@
+Version 26.0809.0022
+
+- A built-in channel list. A copy of the stream bank now ships inside the app, so the catalog fills on a first launch with no network - offered at the start, after a failed update, and always from Settings. It adds and updates, never removes, and says how old it is.
+- A topic filter over the catalog's own topics, translated for reading while each channel keeps its original name.
+- Share a channel as one short line of text, and paste one back in.
+- Playback resumes where the last session left off.
+- What is on air - the track the station is playing right now, under the channel name.
+- Stopping the sound now keeps the station. The button becomes Resume audio, and the volume slider and the sleep timer stay where they were.
+- The player says why the picture stopped - connecting, signal lost, reconnecting, switching quality - over the video, so the explanation is there after the controls hide.
+- A stream that stops sending while pretending to play is caught and re-opened, and the Retry dialog now arrives in about half a minute instead of two.
+- Video quality follows what the connection actually delivers, is remembered per channel, and the next play opens there.
+- Minimizing the catalog no longer minimizes the player, and Settings can be resized.
+- Fixed - closing the catalog with the pointer over a tile could crash it, a radio stream that ended kept the machine awake, and the player controls did not mirror in Arabic and Urdu.

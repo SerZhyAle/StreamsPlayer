@@ -101,10 +101,21 @@ foreach ($column in $columns) {
 
 # The pattern consumes the row's terminator too, so the replacement supplies its own CRLF rather than
 # inheriting whatever the match left behind.
+#
+# The row is empty only on the very first export. From the second submission on it carries the previous
+# version's notes, and those cells are quoted and contain CRLFs of their own, so the record spans many
+# physical lines. The pattern is therefore a real CSV record matcher - a field is either a quoted cell
+# (with doubled quotes inside) or a bare run with no comma, quote or newline - anchored at a line that
+# starts with this row's own key. Nothing else in the export starts with `ReleaseNotes,3,Text,`, and the
+# match count is asserted below, so the anchor cannot drift onto another record.
 $replacement = ($row -join ',') + "`r`n"
-$pattern = '(?m)^ReleaseNotes,3,Text,[^"\r\n]*\r?\n'
-if ($text -notmatch $pattern) { throw 'The ReleaseNotes row was not found in its expected empty form. Refusing to guess.' }
-$text = [regex]::Replace($text, $pattern, { $replacement })
+$field = '(?:"(?:[^"]|"")*"|[^,\r\n]*)'
+$pattern = "(?m)^ReleaseNotes,3,Text,$field(?:,$field)*\r?\n"
+$matched = [regex]::Matches($text, $pattern)
+if ($matched.Count -ne 1) {
+    throw "Expected exactly one ReleaseNotes record in the export; found $($matched.Count). Refusing to guess."
+}
+$text = $text.Remove($matched[0].Index, $matched[0].Length).Insert($matched[0].Index, $replacement)
 
 $strayLineFeeds = [regex]::Matches($text, "(?<!\r)\n").Count
 if ($strayLineFeeds -gt 0) { throw "$strayLineFeeds bare line feed(s) in the output. Partner Center needs CRLF everywhere; refusing to write a file that will be rejected." }
