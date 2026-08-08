@@ -6,4 +6,39 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- SP-0052: the snapshot payload reader takes its bytes from the assembly's own resources, so the
+       only way to exercise a damaged or synthetic payload is the internal byte[] overload. Kept internal
+       rather than public on purpose: the application must not be able to apply a snapshot from anywhere
+       other than the one embedded in the build. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="StreamsPlayer.Core.Tests" />
+  </ItemGroup>
+
+  <!-- SP-0052: the bundled catalog snapshot. An embedded resource rather than a file beside the
+       executable, because it has to survive the self-contained single-file publish as well as the
+       release archive, the winget portable package and the Store MSIX. The explicit LogicalName keeps
+       the lookup key independent of this folder. -->
+  <PropertyGroup>
+    <BundledCatalogSnapshotPath>$(MSBuildProjectDirectory)\Resources\catalog-snapshot.zip</BundledCatalogSnapshotPath>
+  </PropertyGroup>
+
+  <!-- SP-0060: the artifact is tracked, so its absence is a mistake rather than a state a working tree
+       is normally in. This condition used to be the only gate, and building past a missing payload was
+       silent: the first-launch offer, the recovery offer and the settings action each degraded to
+       nothing while the build reported success. The check below turns that into a stop; the item group
+       stays conditional so the deliberate opt-out still produces a snapshot-less assembly rather than
+       an MSBuild copy failure. -->
+  <ItemGroup Condition="Exists('$(BundledCatalogSnapshotPath)')">
+    <EmbeddedResource Include="Resources\catalog-snapshot.zip" LogicalName="catalog-snapshot.zip" />
+  </ItemGroup>
+
+  <Target Name="RequireBundledCatalogSnapshot" BeforeTargets="BeforeBuild"
+          Condition="'$(AllowMissingCatalogSnapshot)' != 'true' And !Exists('$(BundledCatalogSnapshotPath)')">
+    <!-- The generator reads its contract from a built StreamsPlayer.Core, so regenerating from a tree
+         that has lost the artifact needs the opt-out for exactly one build. Spelled out here because a
+         message that only forbids leaves that person stuck. -->
+    <Error Code="SP0060"
+           Text="The bundled catalog snapshot is missing: $(BundledCatalogSnapshotPath). This build would ship an application whose first-launch offer, post-failure recovery offer and settings action all have nothing to apply, and none of them would say so. Restore the tracked artifact with: git checkout -- src/StreamsPlayer.Core/Resources/catalog-snapshot.zip - or regenerate it by building once with -p:AllowMissingCatalogSnapshot=true and then running ./tools/build-catalog-snapshot.ps1. Pass -p:AllowMissingCatalogSnapshot=true to build without a snapshot on purpose." />
+  </Target>
+
 </Project>

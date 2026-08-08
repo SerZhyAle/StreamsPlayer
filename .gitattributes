@@ -25,3 +25,7 @@ msix/store-listing-export.sample.csv -text
 *.jpg binary
 *.jpeg binary
 *.msix binary
+# SP-0060: the bundled catalog snapshot is a tracked ZIP. `text=auto` would almost certainly detect
+# it as binary anyway, but "almost certainly" on an archive whose bytes the reader validates is not a
+# guarantee worth relying on - a single normalized byte would reach users as an unreadable list.
+*.zip binary
