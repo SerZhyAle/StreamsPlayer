@@ -6,6 +6,10 @@ public partial class MainWindow
 {
     private async Task StartRequestedPlaybackAsync()
     {
+        // SP-0062: taken before the switch, because nothing is playing yet whichever branch runs. An
+        // explicit launch consumes the record without replaying it, so the stream the user named is the
+        // only thing this session goes on to remember.
+        var recorded = await TakeRecordedPlaybackAsync();
         switch (_launchRequest.Kind)
         {
             case StreamLaunchTargetKind.Url:
@@ -25,24 +29,29 @@ public partial class MainWindow
                 SetStatus("LaunchArgumentsInvalid");
                 break;
             case StreamLaunchTargetKind.None:
-                var lastSelectedChannel = _state.Channels.FirstOrDefault(channel => channel.Id == _state.LastSelectedChannelId);
-                if (lastSelectedChannel is not null)
-                {
-                    await PlayChannelAsync(lastSelectedChannel, rememberSelection: false);
-                }
-
+                // SP-0008 played the last selected channel here unconditionally, and the selection is
+                // written by merely highlighting a row - so an ordinary launch could stream a channel the
+                // user had never listened to, with no way to stop it. SP-0062 withdraws that: an
+                // argument-free launch now starts nothing unless the user asked for a resume, and what it
+                // resumes is what was really playing. The absence of automatic playback here is a decision.
+                await ResumeRecordedPlaybackAsync(recorded);
                 break;
         }
     }
 
+    // SP-0067: this fires on every card click, and it used to serialize the entire channel catalog -
+    // 15.15 MB and up to 377 ms on the owner's 19 855 channels - to record which row was highlighted.
+    // The id lives in the browsing session now. Nothing reads it back to start a stream: SP-0062
+    // withdrew play-on-launch, so this restores a highlight and nothing more.
     private async Task RememberSelectedChannelAsync(Guid channelId)
     {
-        if (_state.LastSelectedChannelId == channelId || _state.Channels.All(channel => channel.Id != channelId))
+        if (_session.LastSelectedChannelId == channelId || _state.Channels.All(channel => channel.Id != channelId))
         {
             return;
         }
 
-        _state = await PersistAsync(_state with { LastSelectedChannelId = channelId });
+        _session = _session with { LastSelectedChannelId = channelId };
+        await PersistSessionAsync();
     }
 
     private static StreamChannel CreateExternalChannel(string url)

@@ -48,6 +48,7 @@ public partial class MainWindow
 
         menu.Items.Add(BuildEntry("HistoryOpen", "HistoryTip", "HistoryTip", HistoryButton_Click));
         menu.Items.Add(BuildEntry("AddStreamPlain", "AddStreamTip", "AddStreamTip", AddButton_Click));
+        menu.Items.Add(BuildEntry("PasteChannelPlain", "PasteChannelTip", "PasteChannelTip", PasteChannelButton_Click));
 
         // The catalog refresh keeps the emphasis it had as a header button: last, fenced off, and the
         // only entry allowed to carry the accent. It is the one action a first-time user is looking for.

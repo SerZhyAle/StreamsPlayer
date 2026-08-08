@@ -19,8 +19,11 @@ public enum SettingsAction
     ExportAll,
     ExportPinned,
     ManageHidden,
+    ApplyCatalogSnapshot,
     DeleteDownloaded,
-    SendLogsToAuthor
+    SendLogsToAuthor,
+    InstallVideoComponents,
+    RemoveVideoComponents
 }
 
 // SP-0016: M3U import/export portability. Import is additive and atomic - it only ever inserts Imported rows
@@ -35,8 +38,11 @@ public partial class MainWindow
         SettingsAction.ExportAll => ExportAsync(pinnedOnly: false, owner),
         SettingsAction.ExportPinned => ExportAsync(pinnedOnly: true, owner),
         SettingsAction.ManageHidden => ShowHiddenChannelsAsync(owner),
+        SettingsAction.ApplyCatalogSnapshot => ApplyBundledSnapshotAsync(owner),
         SettingsAction.DeleteDownloaded => DeleteDownloadedChannelsAsync(owner),
         SettingsAction.SendLogsToAuthor => SendLogsToAuthorAsync(owner),
+        SettingsAction.InstallVideoComponents => InstallVideoComponentsAsync(owner),
+        SettingsAction.RemoveVideoComponents => RemoveVideoComponentsAsync(owner),
         _ => Task.CompletedTask
     };
 

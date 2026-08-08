@@ -16,12 +16,35 @@ namespace StreamsPlayer.App;
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
     private const string AllValue = "All";
-    private readonly string _dataDirectory = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "StreamsPlayer");
+    private readonly string _dataDirectory = AppPaths.DataDirectory;
     private readonly HttpClient _httpClient;
+
+    // SP-0056: dedicated, because HttpClient.Timeout severs the body read even under
+    // ResponseHeadersRead - so a shared 30 s timeout would cut the 7.2 MB ZIP on any link slower than
+    // 250 KB/s and the service's idle bound would never get to act. Raising the shared client's timeout
+    // instead would silently unbound the playlist import and the components installer, which is not this
+    // change's business. Same reason the preview atlas already has its own client.
+    private readonly HttpClient _catalogHttpClient = CreateCatalogHttpClient();
+
+    private static HttpClient CreateCatalogHttpClient()
+    {
+        var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("StreamsPlayer/0.1");
+        return client;
+    }
     private readonly CurrentLog _log;
     private readonly StreamCatalogStore _store;
+    // SP-0067: the browsing session has its own small file. It changes several times a minute and the
+    // catalog does not, so they no longer share a serialization.
+    private readonly BrowsingSessionStore _sessionStore;
     private readonly Dictionary<Guid, ChannelRow> _rowCache = [];
+    // SP-0067: the same rows, indexed the way the preview pipeline asks for them. Maintained beside
+    // _rowCache in GetOrCreateRow and PruneRowCache, which are the only two places that add or drop a
+    // row - see MainWindow.CatalogView.cs.
+    private readonly Dictionary<string, List<ChannelRow>> _rowsByUrl = new(StringComparer.Ordinal);
+    // SP-0067: position of each row in Rows, for arrow-key navigation. Rows.IndexOf was a linear scan
+    // per keypress over as many entries as the filter left showing.
+    private readonly Dictionary<ChannelRow, int> _rowIndex = [];
     private readonly HashSet<PlayerWindow> _playerWindows = [];
     private readonly GridPreviewCoordinator? _previewCoordinator;
     // Kept beside the coordinator so the SP-0031 atlas import can seed the same store the grid reads.
@@ -34,6 +57,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private int _previewEvictions;
     private readonly StreamLaunchRequest _launchRequest;
     private CatalogState _state = new();
+    private BrowsingSession _session = new();
     private ChannelRow? _playingAudio;
     private LivePlaybackRecoveryPolicy? _audioRecovery;
     private CancellationTokenSource? _audioRecoveryCts;
@@ -41,6 +65,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private bool _suppressAudioVolumeSave;
     private ChannelRow? _selectedRow;
     private bool _busy;
+    // SP-0059: whether this launch found no state file at all. Read once, before the load.
+    private bool _cleanInstall;
     private bool _isGridMode;
     private bool _windowActive = true;
     private int _openPlayerWindows;
@@ -50,7 +76,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly DispatcherTimer _browsingSessionSaveTimer;
     private bool _restoringBrowsingSession;
     private bool _resettingFilters;
-    private Guid? _lastVisibleChannelId;
+    // SP-0067: a pixel offset read off the scroll event, not a channel identity searched for among the
+    // rows. See RestoreScrollAnchorAsync for why approximate is the accepted answer here.
+    private double _lastScrollOffset;
+    private ScrollViewer? _streamsScroll;
 
     internal MainWindow(CurrentLog log, StreamLaunchRequest? launchRequest = null)
     {
@@ -59,6 +88,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _launchRequest = launchRequest ?? new StreamLaunchRequest(StreamLaunchTargetKind.None);
         DataContext = this;
         _store = new StreamCatalogStore(_dataDirectory);
+        _sessionStore = new BrowsingSessionStore(_dataDirectory);
         _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("StreamsPlayer/0.1");
         _browsingSessionSaveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
@@ -97,12 +127,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Loaded += MainWindow_Loaded;
         Activated += MainWindow_Activated;
         Deactivated += MainWindow_Deactivated;
+        Closing += MainWindow_Closing; // SP-0062: freeze the resume record before shutdown tears playback down
         Closed += MainWindow_Closed;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-    public ObservableCollection<ChannelRow> Rows { get; } = [];
-    public ObservableCollection<CatalogGridRow> GridRows { get; } = [];
+    public CatalogRowCollection<ChannelRow> Rows { get; } = [];
+    public CatalogRowCollection<CatalogGridRow> GridRows { get; } = [];
     public bool IsGridMode
     {
         get => _isGridMode;
@@ -115,6 +146,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
             _isGridMode = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsGridMode)));
+            // SP-0067: the pinned section is two lists picked by view mode now, so its visibility
+            // derives from this property. Raised here rather than at the call sites - SetViewModeAsync,
+            // the settings apply path and the initial load all assign IsGridMode, and only one of them
+            // went on to call NotifySectionState. The first version of this notified nowhere, and list
+            // mode kept showing the tile list.
+            NotifyPinnedSectionVisibility();
         }
     }
 
@@ -123,9 +160,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         SetStatus("MainOpening");
         SetBusy(true);
         await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
+        // SP-0059: asked before the load, because this same launch persists the detected interface
+        // language a few lines below - after that write the machine looks used, and the one first-launch
+        // question would never be asked again.
+        _cleanInstall = !_store.HasStoredState;
         try
         {
             _state = await _store.LoadAsync();
+            // SP-0067: right after the catalog, and given it as the migration source. When the session
+            // file is absent this is the one read of the old CatalogState fields, ever - it writes the
+            // new file in the same call, so the next launch never looks at them again.
+            _session = await _sessionStore.LoadAsync(_state);
             ThemeService.Apply(_state.Theme);
 
             // SP-0034 decision 5: no saved preference means a fresh install, so follow the operating
@@ -160,14 +205,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             UpdateCatalogColumns();
             await RestoreScrollAnchorAsync();
             _log.Information($"Catalog state loaded: {_state.Channels.Count} channel(s).");
-            if (_state.LastCatalogRefreshAt is null)
-            {
-                SetStatus("MainReadyNoRefresh");
-            }
-            else
-            {
-                SetStatus("MainLastUpdated", _state.LastCatalogRefreshAt.Value.ToLocalTime());
-            }
+            SetCatalogStatus();
         }
         catch (Exception exception)
         {
@@ -186,9 +224,29 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
 
         await StartRequestedPlaybackAsync();
+
+        if (_cleanInstall)
+        {
+            // SP-0059: a machine that has never run the product is asked where its channels come from.
+            await AskWhereChannelsComeFromAsync();
+        }
+        else
+        {
+            // SP-0052: the one first-launch offer, shown after the window has settled so it never
+            // competes with the load itself. Nothing is applied until the user accepts it. Kept exactly
+            // as it was for every installation that already has local state.
+            MaybeOfferCatalogSnapshot();
+        }
     }
 
-    private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+    private async void RefreshButton_Click(object sender, RoutedEventArgs e) => await RefreshCatalogAsync();
+
+    /// <summary>
+    /// The catalog import. SP-0059 gave it a name of its own so the first-launch dialog can await the
+    /// same path the button and the menu entry use - including its offline refusal, its cancellation
+    /// branch, and the bundled-copy offer that follows a failure.
+    /// </summary>
+    private async Task RefreshCatalogAsync()
     {
         if (_busy)
         {
@@ -198,18 +256,28 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (!NetworkInterface.GetIsNetworkAvailable())
         {
             _log.Event("REFUSE", "op=catalog_refresh", "reason=offline");
-            MessageBox.Show(this, LocalizationService.Get("OfflineCatalog"), LocalizationService.Get("ProductName"));
+            // SP-0052: the refusal still stands - nothing is downloaded - but the user is offered the
+            // bundled snapshot as a way forward instead of a dead end.
+            await OfferSnapshotAfterFailedRefreshAsync(LocalizationService.Get("OfflineCatalog"));
             return;
         }
 
+        string? failure = null;
+        _cancellableOperation = new CancellationTokenSource();
+        _reportingProgress = true;
+        var progress = OnDispatcher<DownloadProgress>(report => ShowDownloadProgress(
+            report, "CatalogDownloadProgress", "CatalogDownloadProgressUnknown", "CatalogApplying"));
         SetStatus("DownloadingCatalog");
-        SetBusy(true);
+        SetBusy(true, cancellable: true);
         _log.Information("Catalog refresh started.");
         await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
         try
         {
-            var service = new StreamCatalogService(_httpClient, _store);
-            var result = await service.RefreshAsync(_state);
+            var service = new StreamCatalogService(_catalogHttpClient, _store);
+            var result = await service.RefreshAsync(_state, progress, _cancellableOperation.Token);
+            // The download is over and the outcome is about to be written, so no further report may touch
+            // the status line.
+            _reportingProgress = false;
             _state = result.State;
             _log.Information($"Catalog refresh completed: {result.Added} added, {result.Updated} updated, {result.Removed} removed.");
             // Memberships survive a refresh (ids are stable for surviving URLs); only pruned rows are dropped.
@@ -227,15 +295,34 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             // explicit acceptance of the offer this shows.
             MaybeOfferChannelPreviews();
         }
+        // SP-0056: abandoning is not failing. The guard matters: a silent transfer surfaces as
+        // TimeoutException precisely so it lands in the general catch below, and a disposed source
+        // elsewhere could still raise a cancellation the user never asked for. `failure` stays null, so
+        // no snapshot offer follows - offering a fallback is the wrong answer to a deliberate choice.
+        catch (OperationCanceledException) when (_cancellableOperation?.IsCancellationRequested == true)
+        {
+            _log.Event("CANCEL", "op=catalog_refresh");
+            SetStatus("CatalogUpdateCancelled");
+        }
         catch (Exception exception)
         {
             _log.Error("Catalog refresh failed", exception);
             SetStatus("CatalogUpdateFailedStatus");
-            MessageBox.Show(this, exception.Message, LocalizationService.Get("CatalogUpdateFailedTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
+            failure = exception.Message;
         }
         finally
         {
+            _reportingProgress = false;
             SetBusy(false);
+            _cancellableOperation?.Dispose();
+            _cancellableOperation = null;
+        }
+
+        // SP-0052: outside the busy block, because accepting the offer runs its own busy cycle. The
+        // stored catalog is untouched at this point whichever way the user answers.
+        if (failure is not null)
+        {
+            await OfferSnapshotAfterFailedRefreshAsync(failure);
         }
     }
 
@@ -272,51 +359,25 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         SetStatus("AddedStream", title);
     }
 
-    private void FilterChanged(object sender, EventArgs e)
-    {
-        if (IsLoaded && !_updatingLocalizedOptions && !_restoringBrowsingSession && !_resettingFilters)
-        {
-            ApplyFilter();
-            UpdateFilterPanelChrome();
-            ScrollToCatalogStart();
-            ScheduleBrowsingSessionSave();
-        }
-    }
-
     private void ClearSearchButton_Click(object sender, RoutedEventArgs e)
     {
         SearchBox.Clear();
         SearchBox.Focus();
     }
 
-    // Resets the facet filters only: the search text and the sort order are deliberately kept.
-    private void ClearFiltersButton_Click(object sender, RoutedEventArgs e)
-    {
-        _resettingFilters = true;
-        try
-        {
-            SelectOptionValue(MediaFilter, AllValue, AllValue);
-            SelectOptionValue(CategoryFilter, AllValue, AllValue);
-            SelectOptionValue(LanguageFilter, AllValue, AllValue);
-            SelectOptionValue(CountryFilter, AllValue, AllValue);
-            SelectOptionValue(MinBitrateFilter, AllValue, AllValue);
-            SelectOptionValue(CollectionFilter, AllValue, AllValue);
-        }
-        finally
-        {
-            _resettingFilters = false;
-        }
-
-        FilterChanged(sender, e);
-    }
-
-    private void StreamsList_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateCatalogColumns();
+    // SP-0067: debounced. A drag raises this per pixel, and each column-count crossing re-chunks every
+    // shown channel. SetViewModeAsync deliberately calls UpdateCatalogColumns directly instead - a view
+    // switch must not show the old layout for a beat.
+    private void StreamsList_SizeChanged(object sender, SizeChangedEventArgs e) => ScheduleColumnUpdate();
 
     private void StreamsList_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
         if (e.VerticalChange != 0)
         {
-            _lastVisibleChannelId = GetFirstVisibleChannelId();
+            // SP-0067: the position arrives on the event args. Nothing is queried and nothing is walked -
+            // this replaced a loop over every grid row that asked the generator for a container each time,
+            // and which measured scanned=4961 at the end of the owner's catalog against scanned=1 at the top.
+            _lastScrollOffset = e.VerticalOffset;
             ScheduleBrowsingSessionSave();
         }
 
@@ -326,138 +387,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
-    private void UpdateCatalogColumns()
+    // SP-0067: the pinned tile list scrolls independently now that it virtualizes, so scrolling it
+    // changes which pinned tiles are on screen and therefore which ones want a preview. Its position is
+    // deliberately not part of the browsing session - the section is a handful of rows, and restoring
+    // the main list is what the user notices.
+    private void PinnedList_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        var minimumCardWidth = IsGridMode ? GridTileWidth + 6 : 330;
-        var availableWidth = Math.Max(0, StreamsList.ActualWidth - 12);
-        var columns = Math.Max(1, (int)Math.Floor(availableWidth / minimumCardWidth));
-        if (IsGridMode && availableWidth >= minimumCardWidth * 2)
+        if (IsGridMode && e.VerticalChange != 0)
         {
-            columns = Math.Max(2, columns);
-        }
-        if (columns != _catalogColumns)
-        {
-            _catalogColumns = columns;
-            RebuildGridRows();
+            ScheduleVisiblePreviewUpdate();
         }
     }
-
-    private void RebuildGridRows()
-    {
-        GridRows.Clear();
-        foreach (var row in Rows.Chunk(_catalogColumns))
-        {
-            GridRows.Add(new CatalogGridRow(row, _catalogColumns));
-        }
-    }
-
-    private void ApplyFilter()
-    {
-        var query = SearchBox.Text.Trim();
-        var category = SelectedOptionValue(CategoryFilter);
-        var language = SelectedOptionValue(LanguageFilter);
-        var country = SelectedOptionValue(CountryFilter);
-        var media = SelectedOptionValue(MediaFilter) ?? AllValue;
-        var minBitrate = SelectedOptionValue(MinBitrateFilter) ?? AllValue;
-        int? minBitrateKbps = minBitrate != AllValue &&
-            int.TryParse(minBitrate, System.Globalization.NumberStyles.Integer,
-                System.Globalization.CultureInfo.InvariantCulture, out var parsedMinBitrate)
-            ? parsedMinBitrate
-            : null;
-        var hiddenIdentities = BuildHiddenIdentitySet();
-        var collectionMembers = ActiveCollectionMembers();
-
-        IEnumerable<StreamChannel> channels = _state.Channels.Where(channel =>
-            (collectionMembers is null || collectionMembers.Contains(channel.Id)) &&
-            !IsHiddenBySet(hiddenIdentities, channel) &&
-            (query.Length == 0 || Contains(channel.Title, query) || Contains(channel.Topic, query) || Contains(channel.Language, query)) &&
-            (category is null or AllValue || string.Equals(channel.Category, category, StringComparison.OrdinalIgnoreCase)) &&
-            (language is null or AllValue || LanguageContains(channel.Language, language)) &&
-            (country is null or AllValue || string.Equals(channel.Country, country, StringComparison.OrdinalIgnoreCase)) &&
-            (media == AllValue || media == "Audio" && channel.MediaKind == MediaKind.Audio ||
-             media == "Video" && channel.MediaKind is MediaKind.Video or MediaKind.Rtsp) &&
-            (minBitrateKbps is not int min || StreamBitrate.MeetsMinimum(channel.Bitrate, min)));
-
-        // SP-0025: pinned and unpinned are two distinct sections. Both honour the shared sort (the
-        // pinned set no longer keeps a separate SortIndex-only order).
-        var pinned = SortChannels(channels.Where(channel => channel.Pinned));
-        var unpinned = SortChannels(channels.Where(channel => !channel.Pinned));
-        var atlasPath = _store.ResolveAtlasPath(_state);
-        var maximumIndex = _state.Channels
-            .Where(channel => channel.SourceOrigin == SourceOrigin.Catalog)
-            .Select(channel => channel.FaviconIndex)
-            .DefaultIfEmpty(null)
-            .Max();
-        PruneRowCache();
-        PinnedRows.Clear();
-        foreach (var channel in pinned)
-        {
-            PinnedRows.Add(GetOrCreateRow(channel, atlasPath, maximumIndex));
-        }
-        Rows.Clear();
-        foreach (var channel in unpinned)
-        {
-            Rows.Add(GetOrCreateRow(channel, atlasPath, maximumIndex));
-        }
-        RebuildGridRows();
-
-        var totalShown = PinnedRows.Count + Rows.Count;
-        EmptyPanel.Visibility = totalShown == 0 ? Visibility.Visible : Visibility.Collapsed;
-        StreamsList.Visibility = Rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-        NotifySectionState();
-        UpdatePinnedSectionLayout();
-        if (!_busy)
-        {
-            var visibleUniverse = hiddenIdentities.Count == 0
-                ? _state.Channels.Count
-                : _state.Channels.Count(channel => !IsHiddenBySet(hiddenIdentities, channel));
-            SetStatus("ChannelCount", totalShown, visibleUniverse);
-        }
-        ScheduleVisiblePreviewUpdate();
-    }
-
-    // Rows are cached across filter changes on purpose - they hold the decoded favicon and preview images.
-    // A catalog refresh or purge can drop channels for good, though, and without this their rows (and the
-    // images hanging off them) would stay in the cache for the rest of the session. The row a launch URL
-    // created is kept: an externally launched channel is deliberately absent from the catalog.
-    private void PruneRowCache()
-    {
-        var live = _state.Channels.Select(channel => channel.Id).ToHashSet();
-        var stale = _rowCache
-            .Where(entry => !live.Contains(entry.Key) &&
-                !ReferenceEquals(entry.Value, _playingAudio) &&
-                !ReferenceEquals(entry.Value, _selectedRow))
-            .Select(entry => entry.Key)
-            .ToList();
-        foreach (var id in stale)
-        {
-            _rowCache.Remove(id);
-        }
-    }
-
-    private ChannelRow GetOrCreateRow(StreamChannel channel, string? atlasPath, int? maximumIndex)
-    {
-        if (_rowCache.TryGetValue(channel.Id, out var cached))
-        {
-            cached.UpdatePresentation(atlasPath, maximumIndex);
-            cached.UpdateChannel(channel);
-            return cached;
-        }
-
-        var row = new ChannelRow(channel, atlasPath, maximumIndex);
-        _rowCache[channel.Id] = row;
-        return row;
-    }
-
-    private IEnumerable<StreamChannel> SortChannels(IEnumerable<StreamChannel> channels) =>
-        SelectedOptionValue(SortMode) switch
-        {
-            "Topic" => channels.OrderBy(channel => channel.Topic is null).ThenBy(channel => channel.Topic, StringComparer.OrdinalIgnoreCase),
-            "Language" => channels.OrderBy(channel => channel.Language is null).ThenBy(channel => channel.Language, StringComparer.OrdinalIgnoreCase),
-            "Country" => channels.OrderBy(channel => channel.Country is null).ThenBy(channel => channel.Country, StringComparer.OrdinalIgnoreCase),
-            "Recently added" => channels.OrderByDescending(channel => channel.AddedAt),
-            _ => channels.OrderBy(channel => channel.Title, StringComparer.OrdinalIgnoreCase)
-        };
 
     private void PopulateFacets()
     {
@@ -466,6 +406,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             ? _state.Channels
             : _state.Channels.Where(channel => !IsHiddenBySet(hiddenIdentities, channel)).ToList();
         SetFacet(CategoryFilter, universe.Select(channel => channel.Category));
+        // SP-0061: built from the channels actually present, not from the registry, so a rubric with no
+        // rows is not offered and a rubric this build has never heard of still is. Labels are translated;
+        // the option's value stays the catalog's identifier.
+        SetFacet(TopicFilter, universe.Select(channel => channel.Topic),
+            label: TopicLabels.Text, order: TopicLabels.Comparer);
         // The catalog ships well over a hundred broadcast languages, so the one the user reads the
         // interface in leads the list (with its regional flavours) instead of being hunted for in an
         // alphabetical run. The selected value is deliberately untouched: this orders, it does not filter.
@@ -475,14 +420,28 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         SetFacet(CountryFilter, universe.Select(channel => channel.Country));
     }
 
-    private static void SetFacet(ComboBox comboBox, IEnumerable<string?> values, AppLanguage? preferred = null)
+    /// <summary>
+    /// Fills a facet from the values present in the catalog. <paramref name="label"/> supplies a
+    /// translated caption while the option keeps the catalog's own string as its value;
+    /// <paramref name="order"/> replaces the default label ordering, and compares identifiers so a
+    /// caller can order by something the alphabet alone does not express (SP-0061: General last).
+    /// </summary>
+    private static void SetFacet(
+        ComboBox comboBox,
+        IEnumerable<string?> values,
+        AppLanguage? preferred = null,
+        Func<string, string>? label = null,
+        IComparer<string>? order = null)
     {
         var selected = SelectedOptionValue(comboBox) ?? AllValue;
-        var items = new[] { new UiOption(AllValue, LocalizationService.Get("AllOption")) }.Concat(values.Where(value => !string.IsNullOrWhiteSpace(value))
-            .Select(value => new UiOption(value!, value!))
+        var options = values.Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => new UiOption(value!, label is null ? value! : label(value!)))
             .DistinctBy(value => value.Value, StringComparer.OrdinalIgnoreCase)
-            .OrderBy(value => preferred is { } language ? (int)CatalogLanguages.Match(value.Value, language) : 0)
-            .ThenBy(value => value.Value == AllValue ? string.Empty : value.Label, StringComparer.OrdinalIgnoreCase)).ToList();
+            .OrderBy(value => preferred is { } language ? (int)CatalogLanguages.Match(value.Value, language) : 0);
+        var items = new[] { new UiOption(AllValue, LocalizationService.Get("AllOption")) }.Concat(
+            order is null
+                ? options.ThenBy(value => value.Value == AllValue ? string.Empty : value.Label, StringComparer.OrdinalIgnoreCase)
+                : options.ThenBy(value => value.Value, order)).ToList();
         comboBox.ItemsSource = items;
         comboBox.SelectedItem = items.FirstOrDefault(item => item.Value.Equals(selected, StringComparison.OrdinalIgnoreCase)) ?? items[0];
     }
@@ -554,6 +513,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             Tag = row
         };
         shortcutItem.Click += CreateDesktopShortcutMenuItem_Click;
+        // SP-0058: beside the shortcut item because both hand this channel to something outside the window.
+        var shareItem = new MenuItem
+        {
+            Header = LocalizationService.Get("MenuCopyShareText"),
+            Tag = row
+        };
+        shareItem.Click += CopyShareTextMenuItem_Click;
         var editItem = new MenuItem
         {
             Header = LocalizationService.Get("MenuEdit"),
@@ -578,6 +544,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         menu.Items.Add(newWindowItem);
         menu.Items.Add(new Separator());
         menu.Items.Add(shortcutItem);
+        menu.Items.Add(shareItem);
         menu.Items.Add(editItem);
         menu.Items.Add(aboutItem);
         menu.Items.Add(new Separator());
@@ -740,7 +707,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
-        var currentIndex = _selectedRow is null ? -1 : Rows.IndexOf(_selectedRow);
+        // SP-0067: a dictionary lookup, not a scan of everything the filter left showing.
+        var currentIndex = _selectedRow is not null && _rowIndex.TryGetValue(_selectedRow, out var found)
+            ? found
+            : -1;
         if (currentIndex < 0)
         {
             SelectRow(Rows[0]);
@@ -787,7 +757,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         await PlayChannelAsync(row.Channel, rememberSelection: true);
     }
 
-    private async Task PlayChannelAsync(StreamChannel channel, bool rememberSelection, bool startFullscreen = false)
+    // quiet is set only by the SP-0062 startup resume: the stream starts exactly as it would on a click,
+    // but nothing this route can raise is allowed to be a modal window. A dialog answers an action the
+    // user just took; at launch it is an ambush, and with several streams resumed they would stack.
+    private async Task PlayChannelAsync(StreamChannel channel, bool rememberSelection, bool startFullscreen = false, bool quiet = false)
     {
         if (channel.MediaKind == MediaKind.Audio && _playingAudio?.Channel.Id == channel.Id)
         {
@@ -803,18 +776,32 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (!NetworkInterface.GetIsNetworkAvailable())
         {
             _log.Event("REFUSE", "op=playback", "reason=offline", $"kind={channel.MediaKind}", $"url={channel.Url}");
-            MessageBox.Show(this, LocalizationService.Get("OfflinePlayback"), LocalizationService.Get("ProductName"));
+            if (quiet)
+            {
+                SetStatus("ResumeSkippedOffline");
+            }
+            else
+            {
+                MessageBox.Show(this, LocalizationService.Get("OfflinePlayback"), LocalizationService.Get("ProductName"));
+            }
+
             return;
         }
 
         if (channel.MediaKind == MediaKind.Audio)
         {
+            // Assigned on every audio start, so an ordinary user play is what clears a resume's quiet
+            // session - there is no separate path that has to remember to forget it.
+            _audioQuiet = quiet;
             StopAudioPlayback();
             _audioNavOrder = CaptureAudioNavOrder();
             _currentTrackText = null;
             _audioRecovery = new LivePlaybackRecoveryPolicy();
             _audioRecoveryCts = new CancellationTokenSource();
-            _playingAudio = GetOrCreateRow(channel, _store.ResolveAtlasPath(_state), null);
+            // The same set the list is built from: a row already cached here must not have its atlases
+            // narrowed by the act of starting playback, and a row created here for an externally
+            // launched channel carries no favicon index to resolve in the first place.
+            _playingAudio = GetOrCreateRow(channel, BuildFaviconAtlasSet());
             _playingAudio.SetPlayingAudio(true);
             // System-only wake: keep the machine awake while the radio plays, but let the display
             // turn off normally (Decision 3). Held across bounded reconnects; released in StopAudioPlayback.
@@ -824,10 +811,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             StartAudioPlayback(channel, reconnecting: false);
             EnsureSystemMediaControls();
             PublishAudioSession(playing: true);
+            // SP-0062: the one place a station session opens. A recovery leg re-enters StartAudioPlayback
+            // with reconnecting: true and never comes through here, which is what makes "a reconnect writes
+            // nothing" true by construction rather than by a guard.
+            await NoteStreamStartedAsync(channel.Id);
         }
         else
         {
-            OpenIndependentPlayerWindow(channel, startFullscreen);
+            OpenIndependentPlayerWindow(channel, startFullscreen, quiet);
         }
     }
 
@@ -868,6 +859,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         SetNowPlaying("NowPlaying", _playingAudio.DisplayTitle);
         _log.Event("AUDIO LIVE", $"url={_playingAudio.Channel.Url}");
         NoteAudioLive();
+        // SP-0062: a resumed station that has been live once is an ordinary station, so its later failures
+        // get the ordinary dialog. Cleared here rather than tested against a liveness field, because the
+        // recovery path resets those on every leg and the session would stay silent forever.
+        _audioQuiet = false;
         _audioRecovery?.NotifyLive(); // sustained live - restore the full recovery budget
         await RecordPlayOutcome(_playingAudio.Channel.Id, true);
     }
@@ -945,8 +940,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private async Task FailAudioTerminallyAsync(StreamChannel channel, string reason)
     {
         NoteAudioTerminalFailure(); // before the stop, which is what closes and records the session
+        var quiet = _audioQuiet; // StopAudio below reassigns nothing, but the next play would
         StopAudio();
         await RecordPlayOutcome(channel.Id, false);
+        if (quiet)
+        {
+            // SP-0062: a stream resumed at launch that never reached live reports itself in the status line.
+            // Everything above this point - the outcome record, the session log - is identical to a click.
+            SetStatus("ResumeStreamFailed");
+            return;
+        }
+
         var report = FailureReportFormatter.Format(new FailureReport(
             ProductInfo.Version,
             DateTimeOffset.UtcNow,
@@ -1009,6 +1013,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void StopAudioPlayback(bool clearSystemSession)
     {
         EndAudioSession(); // SP-0040: this is the one funnel every stop, switch, pause and failure passes through
+        // SP-0062: and therefore the one place a station leaves the resume record - including the SP-0021
+        // pause, because a paused session is deliberately not something the next launch brings back.
+        var stoppedChannelId = _playingAudio?.Channel.Id;
         _audioRecoveryCts?.Cancel(); // cancel any in-flight recovery backoff (stop / switch / close)
         _audioRecoveryCts?.Dispose();
         _audioRecoveryCts = null;
@@ -1030,9 +1037,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             _audioPausedChannel = null;
             ClearSystemMediaSession();
         }
+
+        if (stoppedChannelId is { } id)
+        {
+            _ = NoteStreamStoppedAsync(id);
+        }
     }
 
-    private void OpenIndependentPlayerWindow(StreamChannel channel, bool startFullscreen = false)
+    private void OpenIndependentPlayerWindow(StreamChannel channel, bool startFullscreen = false, bool quiet = false)
     {
         var window = new PlayerWindow(
             channel,
@@ -1052,14 +1064,20 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             (url, frame) => _previewCoordinator?.IngestFrame(url, frame),
             () => _state.FrameFolder,
             _state.VideoBackend,
-            startFullscreen) { Owner = this };
+            startFullscreen,
+            quiet) { Owner = this };
         _openPlayerWindows++;
         _playerWindows.Add(window);
         _ = SuspendPreviewsAsync();
+        // SP-0062: an open player window is a playing stream. A window that never reached live is still one
+        // the user chose to have open, and treating it otherwise would need a liveness signal PlayerWindow
+        // does not expose.
+        _ = NoteStreamStartedAsync(channel.Id);
         window.Closed += async (_, _) =>
         {
             _openPlayerWindows = Math.Max(0, _openPlayerWindows - 1);
             _playerWindows.Remove(window);
+            await NoteStreamStoppedAsync(channel.Id);
 
             // Closing the player leaves activation with whatever application sits next in the z-order
             // instead of returning it to this owner, so the catalog dropped behind unrelated windows and
@@ -1143,7 +1161,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
-    private void SetBusy(bool busy)
+    private void SetBusy(bool busy, bool cancellable = false)
     {
         _busy = busy;
         // SP-0050: the catalog refresh and add-stream buttons this used to disable are entries in the
@@ -1152,13 +1170,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         OperationsButton.IsEnabled = !busy;
         SettingsButton.IsEnabled = !busy;
         CatalogProgress.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
-        Mouse.OverrideCursor = busy ? Cursors.Wait : null;
+        // SP-0056: four operations share this bar and only two of them report anything, so the
+        // indeterminate default is restored on both edges. Entering covers the operations that never
+        // report; leaving stops a reporting one from leaking its determinate mode into the next, even
+        // when it left by throwing.
+        CatalogProgress.IsIndeterminate = true;
+        CatalogProgress.Value = 0;
+        // A wait cursor overrides every element's own cursor, so a cancel button under one reads as
+        // disabled. A cancellable operation shows real progress and a real affordance instead.
+        Mouse.OverrideCursor = busy && !cancellable ? Cursors.Wait : null;
+        CancelOperationButton.Visibility = busy && cancellable ? Visibility.Visible : Visibility.Collapsed;
+        CancelOperationButton.IsEnabled = busy && cancellable;
     }
 
-    private static bool Contains(string? value, string query) =>
-        value?.Contains(query, StringComparison.OrdinalIgnoreCase) == true;
-
-    private static bool LanguageContains(string? value, string language) =>
-        value?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Any(item => item.Equals(language, StringComparison.OrdinalIgnoreCase)) == true;
 }

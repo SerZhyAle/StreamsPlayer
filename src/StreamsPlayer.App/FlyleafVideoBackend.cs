@@ -268,8 +268,8 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
                 return;
             }
 
-            var ffmpegPath = ResolveFFmpegPath();
-            log.Event("FLYLEAF ENGINE", "action=start", $"ffmpeg_path={ffmpegPath}");
+            var ffmpegPath = ResolveFFmpegPath(out var source);
+            log.Event("FLYLEAF ENGINE", "action=start", $"ffmpeg_path={ffmpegPath}", $"source={source}");
             Engine.Start(new EngineConfig
             {
                 FFmpegPath = ffmpegPath,
@@ -279,7 +279,26 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         }
     }
 
-    // FlyleafLib's default is "FFmpeg" relative to the app base directory; the native FFmpeg v8 DLLs
-    // (x64) must be deployed there. Missing natives make Engine.Start throw -> LibVLC fallback.
-    private static string ResolveFFmpegPath() => Path.Combine(AppContext.BaseDirectory, "FFmpeg");
+    /// <summary>
+    /// Where the FFmpeg natives are looked for. A complete set beside the executable wins, which keeps
+    /// a hand-deployed folder working and lets it override the managed one; otherwise the per-user
+    /// folder the Settings installer writes to. Missing natives make <c>Engine.Start</c> throw, and
+    /// <see cref="VideoBackendFactory"/> falls back to LibVLC.
+    /// </summary>
+    /// <remarks>
+    /// The per-user folder is the one that works on every channel: an MSIX install lives under the
+    /// protected <c>WindowsApps</c> tree, where nothing can be placed beside the executable at all.
+    /// </remarks>
+    internal static string ResolveFFmpegPath(out string source)
+    {
+        var besideExecutable = FFmpegComponents.ResolveFolder(AppContext.BaseDirectory);
+        if (FFmpegComponents.IsInstalled(besideExecutable))
+        {
+            source = "app";
+            return besideExecutable;
+        }
+
+        source = "user";
+        return FFmpegComponents.ResolveFolder(AppPaths.DataDirectory);
+    }
 }

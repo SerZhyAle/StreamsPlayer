@@ -73,6 +73,28 @@ public partial class MainWindow
         new LogArchiveReadyWindow(archivePath) { Owner = owner }.ShowDialog();
     }
 
+    /// <summary>
+    /// SP-0067: opens a measurement of one catalog-list operation. Pair it with
+    /// <see cref="CatalogPerf"/>, which stamps the elapsed milliseconds and writes the record.
+    /// </summary>
+    /// <remarks>
+    /// A start/stop pair rather than the <c>IDisposable</c> the tactical plan sketched. Two of the four
+    /// measured paths only know their interesting field at the end - <c>shown=</c> for the filter,
+    /// <c>reused=</c> for the re-chunk - and a <c>using var</c> local is read-only, so calling a mutating
+    /// method on a struct measurement would silently record the field into a defensive copy. A class
+    /// would fix that by allocating on a path that runs per scroll event, which is what this measures.
+    /// <see cref="Stopwatch.GetTimestamp"/> keeps the open side free of allocation either way.
+    /// </remarks>
+    private static long BeginCatalogPerf() => Stopwatch.GetTimestamp();
+
+    /// <summary>
+    /// Closes a measurement opened by <see cref="BeginCatalogPerf"/>. Every caller must reach this on
+    /// each exit path; an early <c>return</c> that skips it drops the sample rather than reporting zero.
+    /// </summary>
+    private void CatalogPerf(string operation, long startedAt, params string[] fields) =>
+        _log.Event("CATALOG PERF",
+            [$"op={operation}", .. fields, $"ms={Stopwatch.GetElapsedTime(startedAt).TotalMilliseconds:F1}"]);
+
     private readonly Stopwatch _audioSessionClock = new();
     private string? _audioSessionUrl;
     private int _audioLegCount;

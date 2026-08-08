@@ -276,14 +276,14 @@ public sealed class CatalogStateEnumToleranceTests
 
             var json = await File.ReadAllTextAsync(path);
 
-            Assert.Contains("\"viewMode\": \"Grid\"", json, StringComparison.Ordinal);
-            Assert.Contains("\"theme\": \"Dark\"", json, StringComparison.Ordinal);
-            Assert.Contains("\"tileSize\": \"Large\"", json, StringComparison.Ordinal);
-            Assert.Contains("\"videoBackend\": \"Flyleaf\"", json, StringComparison.Ordinal);
-            Assert.Contains("\"mediaKind\": \"Rtsp\"", json, StringComparison.Ordinal);
-            Assert.Contains("\"sourceOrigin\": \"Imported\"", json, StringComparison.Ordinal);
-            Assert.Contains("\"access\": \"GeoRestricted\"", json, StringComparison.Ordinal);
-            Assert.Contains("\"lastPlayOutcome\": \"Ok\"", json, StringComparison.Ordinal);
+            JsonAssert.HasProperty(json, "viewMode", "\"Grid\"");
+            JsonAssert.HasProperty(json, "theme", "\"Dark\"");
+            JsonAssert.HasProperty(json, "tileSize", "\"Large\"");
+            JsonAssert.HasProperty(json, "videoBackend", "\"Flyleaf\"");
+            JsonAssert.HasProperty(json, "mediaKind", "\"Rtsp\"");
+            JsonAssert.HasProperty(json, "sourceOrigin", "\"Imported\"");
+            JsonAssert.HasProperty(json, "access", "\"GeoRestricted\"");
+            JsonAssert.HasProperty(json, "lastPlayOutcome", "\"Ok\"");
         });
     }
 
@@ -299,7 +299,7 @@ public sealed class CatalogStateEnumToleranceTests
             await store.SaveAsync(new CatalogState { TileSize = (StreamTileSize)99 });
 
             var json = await File.ReadAllTextAsync(path);
-            Assert.Contains("\"tileSize\": \"Medium\"", json, StringComparison.Ordinal);
+            JsonAssert.HasProperty(json, "tileSize", "\"Medium\"");
             Assert.Equal(StreamTileSize.Medium, (await store.LoadAsync()).TileSize);
         });
     }

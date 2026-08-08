@@ -81,7 +81,7 @@ public static class ChannelFactSheet
             new ChannelFact(ChannelFactGroup.Channel, "Pinned", ValueKey: channel.Pinned ? "AboutValueYes" : "AboutValueNo"),
             new ChannelFact(ChannelFactGroup.Channel, "FieldCollections", Join(collectionNames)),
 
-            new ChannelFact(ChannelFactGroup.Catalog, "FieldTopic", Clean(channel.Topic)),
+            TopicFact(channel.Topic),
             new ChannelFact(ChannelFactGroup.Catalog, "Category", Clean(channel.Category)),
             new ChannelFact(ChannelFactGroup.Catalog, "Language", Clean(channel.Language)),
             new ChannelFact(ChannelFactGroup.Catalog, "Country", Clean(channel.Country)),
@@ -171,6 +171,15 @@ public static class ChannelFactSheet
 
         return text.ToString();
     }
+
+    // SP-0061: a rubric from the bank's closed set is a translatable term, so it travels as a key and
+    // the interface supplies the word. Anything else - a catalog newer than this build, a hand-typed
+    // rubric on a manually added channel - travels as text and is shown exactly as it was written.
+    // Never substitute a fallback rubric here: an unstated genre and "General" are different claims.
+    private static ChannelFact TopicFact(string? topic) =>
+        CatalogTopics.ResourceKey(topic) is { } key
+            ? new ChannelFact(ChannelFactGroup.Catalog, "FieldTopic", ValueKey: key)
+            : new ChannelFact(ChannelFactGroup.Catalog, "FieldTopic", Clean(topic));
 
     private static string KindKey(MediaKind kind) => kind switch
     {

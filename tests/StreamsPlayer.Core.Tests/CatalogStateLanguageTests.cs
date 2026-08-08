@@ -156,7 +156,7 @@ public sealed class CatalogStateLanguageTests
             var json = await File.ReadAllTextAsync(path);
 
             Assert.DoesNotContain("\"language\"", json, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("\"audioVolume\": 7", json);
+            JsonAssert.HasProperty(json, "audioVolume", "7");
             return true;
         });
     }
@@ -168,7 +168,7 @@ public sealed class CatalogStateLanguageTests
         {
             await store.SaveAsync(new CatalogState { Language = AppLanguage.Ukrainian });
 
-            Assert.Contains("\"language\": \"Ukrainian\"", await File.ReadAllTextAsync(path));
+            JsonAssert.HasProperty(await File.ReadAllTextAsync(path), "language", "\"Ukrainian\"");
             return true;
         });
     }

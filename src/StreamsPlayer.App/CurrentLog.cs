@@ -14,11 +14,12 @@ internal sealed class CurrentLog : IDisposable
         try
         {
             Directory.CreateDirectory(directory);
-            // SP-0040: keep one generation. The session worth mailing to the author is usually the one
-            // that already ended, so replacing the log on launch destroyed the evidence on the way to
-            // the send button. Rotation is best-effort inside the helper: losing the previous log is
-            // acceptable, failing to open the current one is not.
-            DiagnosticLogFiles.RotateCurrentToPrevious(directory);
+            // SP-0040/SP-0055: retire the finished session and keep the last ten. The session worth
+            // mailing to the author is usually one that already ended, so replacing the log on launch
+            // destroyed the evidence on the way to the send button - and keeping only one spare lost it
+            // again after two restarts. Rotation is best-effort inside the helper: losing retention is
+            // acceptable, failing to open the current log is not.
+            DiagnosticLogFiles.Rotate(directory);
             var stream = new FileStream(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), FileMode.Create, FileAccess.Write, FileShare.Read);
             _writer = new StreamWriter(stream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)) { AutoFlush = true };
         }

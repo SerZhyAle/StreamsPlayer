@@ -22,6 +22,25 @@ public enum PlayOutcome
     Fail
 }
 
+// SP-0052: which stored atlas a channel's FaviconIndex is an offset into. The index and the atlas that
+// shipped with it are one pair, so once the bundled snapshot can add rows on top of a downloaded
+// catalog, two atlases are installed at once and a row that does not name its own would render another
+// channel's icon - a wrong picture, not a missing one. `Catalog` is first so an older state file, and
+// any unreadable value, land on the source every row in such a file actually has.
+public enum FaviconSource
+{
+    Catalog,
+    Snapshot
+}
+
+// SP-0052: the atlas slot a save writes into. The two are independent: a save that replaces one never
+// touches the other, and the store's cleanup keeps whichever files the saved state still names.
+public enum AtlasSlot
+{
+    Catalog,
+    Snapshot
+}
+
 // SP-0033: the catalog's `access` column. `Open` is first so it is the value an older state file and
 // any unrecognised future upstream token both land on - an unknown tag must render as nothing rather
 // than leak a machine value into the UI.
@@ -144,6 +163,11 @@ public sealed record StreamChannel
     public DateTimeOffset? LastPlayOutcomeAt { get; init; }
     public int? FaviconIndex { get; init; }
 
+    // SP-0052: which installed atlas <see cref="FaviconIndex"/> indexes. Defaults to Catalog, so a state
+    // file written before the bundled snapshot existed reads every row as what it is - a row whose icon
+    // belongs to the downloaded atlas.
+    public FaviconSource FaviconSource { get; init; } = FaviconSource.Catalog;
+
     // Optional, untrusted maintainer metadata from the catalog (SP-0018). Bitrate is the raw
     // claim string; numeric interpretation goes through StreamBitrate. Never gate default
     // visibility on these, and never infer a playback decision or success mark from them.
@@ -179,6 +203,26 @@ public sealed record StreamBank(
     byte[]? FaviconAtlas,
     bool CsvWasFirstEntry,
     int? MaximumFaviconIndex);
+
+/// <summary>
+/// The bundled stream bank together with the provenance that lets the interface say where the list came
+/// from and how old it is (SP-0052). The date and the data live in the same archive precisely so they
+/// cannot drift apart in the repository.
+/// </summary>
+public sealed record CatalogSnapshot(
+    StreamBank Bank,
+    DateTimeOffset SourceDate,
+    string SourceUrl);
+
+/// <summary>
+/// Outcome of <see cref="CatalogSnapshotService.ApplyAsync"/>. There is no removal count: applying a
+/// snapshot never removes (SP-0052 decision 4).
+/// </summary>
+public sealed record CatalogSnapshotApplyResult(
+    CatalogState State,
+    int Added,
+    int Updated,
+    DateTimeOffset SourceDate);
 
 /// <summary>
 /// One channel in the local listening history (SP-0019). Keyed by <see cref="ChannelId"/>; a replay
@@ -233,6 +277,34 @@ public sealed record CatalogState
     public List<string> HiddenCatalogUrls { get; init; } = [];
     public string? AtlasFileName { get; init; }
     public DateTimeOffset? LastCatalogRefreshAt { get; init; }
+
+    /// <summary>
+    /// The icon atlas that shipped with the bundled snapshot (SP-0052), installed into the state
+    /// directory alongside the downloaded one, or <c>null</c> when the snapshot was never applied.
+    /// Kept in its own slot because <see cref="StreamChannel.FaviconIndex"/> is only meaningful against
+    /// the atlas of the same bank: one shared slot would make every applied snapshot either overwrite
+    /// the downloaded atlas or be read against it, and both mis-render icons rather than omit them.
+    /// </summary>
+    public string? SnapshotAtlasFileName { get; init; }
+
+    /// <summary>
+    /// Source date of the bundled snapshot whose rows are in this state (SP-0052), or <c>null</c> when
+    /// none was ever applied. Deliberately the date of the <em>data</em> rather than the moment it was
+    /// applied: the interface has to say how old the list is, and a user who applied one build's
+    /// snapshot and then updated the application would otherwise be shown the new build's date over
+    /// the old build's channels. Applying a snapshot never writes
+    /// <see cref="LastCatalogRefreshAt"/> - bundled data must not claim to be a download.
+    /// </summary>
+    public DateTimeOffset? AppliedSnapshotDate { get; init; }
+
+    /// <summary>
+    /// Whether the user declined the one first-launch offer to use the bundled snapshot (SP-0052), in
+    /// which case it is never offered again. Persisted, unlike the channel-preview offer's per-session
+    /// latch, because the offer appears at most once in the product's life; the settings action is the
+    /// way back for a user who changes their mind. An older state file lacking this key deserializes
+    /// to the initializer default and is offered normally.
+    /// </summary>
+    public bool CatalogSnapshotOfferDeclined { get; init; }
     public CatalogViewMode ViewMode { get; init; }
 
     /// <summary>
@@ -281,6 +353,36 @@ public sealed record CatalogState
     /// deserializes to the initializer default, preserving the pre-feature behaviour.
     /// </summary>
     public bool SystemMediaControls { get; init; }
+
+    /// <summary>
+    /// When true, an ordinary launch restarts whatever was playing when the application last closed
+    /// (SP-0062). Defaults off: an older state file lacking this key deserializes to the initializer
+    /// default.
+    /// <para>
+    /// Off is deliberately also the answer for an installation upgraded from a build that predates this
+    /// key, and that <em>withdraws</em> a shipped behaviour. SP-0008 made an argument-free launch play
+    /// <see cref="LastSelectedChannelId"/> unconditionally, and that id is written by merely highlighting
+    /// a row - so the application could open and stream a channel the user had never listened to, with no
+    /// way to stop it. The owner's decision on 2026-08-07 is that this was the defect, so the behaviour is
+    /// withdrawn rather than migrated forward. A reader who finds the launch path with no automatic play
+    /// in it is looking at a decision, not an omission.
+    /// </para>
+    /// </summary>
+    public bool ResumePlaybackOnStartup { get; init; }
+
+    /// <summary>
+    /// The channels that were playing when the application last closed, in the order they started, or
+    /// empty when nothing was (SP-0062). Read at launch only, and only when
+    /// <see cref="ResumePlaybackOnStartup"/> is set; it is never merged, never uploaded, and never
+    /// consulted by the catalog.
+    /// <para>
+    /// A <see cref="List{T}"/> rather than a set because two player windows may hold the same channel, and
+    /// forgetting one of them when the other closes would lose a window the user had open. Maintained on
+    /// the boundaries of each listening session while the application runs - not written at exit - so an
+    /// abnormal termination leaves the last truthful value behind rather than nothing.
+    /// </para>
+    /// </summary>
+    public List<Guid> ResumeChannelIds { get; init; } = [];
     public StreamTileSize TileSize { get; init; } = StreamTileSize.Medium;
     public bool UpdateStreamPreviews { get; init; } = true;
 
@@ -308,6 +410,24 @@ public sealed record CatalogState
     /// later move, and would turn a default into a preference the user never expressed.
     /// </summary>
     public string? FrameFolder { get; init; }
+
+    // ---------------------------------------------------------------------------------------------
+    // Migration-only as of SP-0067. The browsing session - search text, facets, sort order, scroll
+    // position, last selected channel - lives in browsing-session.json now, because it changes several
+    // times a minute and rewriting the channel catalog to record a scroll offset cost 15.15 MB and up
+    // to 377 ms per pause on the owner's 19 855 channels.
+    //
+    // The fields stay here, and stay readable, for exactly one purpose: BrowsingSessionStore.LoadAsync
+    // reads them once when it has no file of its own, and never again. Nothing writes them any more.
+    // Do not delete them - that breaks the migration and every state file written before the split. Do
+    // not mark them [Obsolete] either: the store that legitimately reads them would warn. A downgrade
+    // to a build older than SP-0067 loses the saved session but keeps the catalog, which is the
+    // accepted trade (settled question 3).
+    //
+    // CatalogScrollAnchorId has no counterpart in the session: it named a channel, and the session
+    // stores a pixel position. It migrates to ScrollOffset = 0.
+    // ---------------------------------------------------------------------------------------------
+
     public Guid? LastSelectedChannelId { get; init; }
     public string CatalogSearchQuery { get; init; } = string.Empty;
     public string CatalogMediaFilter { get; init; } = "All";
@@ -316,14 +436,23 @@ public sealed record CatalogState
     public string CatalogCountryFilter { get; init; } = "All";
 
     /// <summary>
+    /// Rubric filter (SP-0061): "All" (default) or a rubric identifier exactly as the bank spells it -
+    /// never a translated label, so the value keeps its meaning when the interface language changes.
+    /// Migration-only since SP-0067; the live value is <see cref="BrowsingSession.TopicFilter"/>.
+    /// </summary>
+    public string CatalogTopicFilter { get; init; } = "All";
+
+    /// <summary>
     /// Minimum-bitrate filter (SP-0018). "All" (default) leaves the catalog view unchanged; a numeric
     /// kbps threshold excludes rows whose advertised bitrate is missing or cannot be interpreted.
-    /// An older state file lacking this key deserializes to the initializer default.
+    /// Migration-only since SP-0067; the live value is <see cref="BrowsingSession.MinBitrateFilter"/>.
     /// </summary>
     public string CatalogMinBitrateFilter { get; init; } = "All";
+
     /// <summary>
     /// Active collection view (SP-0017): "All" (default) or a collection id. A stale id - the
     /// collection was deleted while the app was closed - falls back to "All" instead of an empty list.
+    /// Migration-only since SP-0067; the live value is <see cref="BrowsingSession.CollectionFilter"/>.
     /// </summary>
     public string CatalogCollectionFilter { get; init; } = "All";
     public string CatalogSortMode { get; init; } = "Name";
@@ -344,6 +473,27 @@ public sealed record CatalogState
     /// </summary>
     public bool PinnedSectionCollapsed { get; init; }
     public bool MainSectionCollapsed { get; init; }
+}
+
+/// <summary>
+/// How <see cref="CatalogMerger.Merge"/> treats the entries it is given (SP-0052). The defaults are
+/// exactly what an explicit online refresh does, so every call site that predates the bundled snapshot
+/// keeps its meaning without naming them; only applying the snapshot passes anything else.
+/// </summary>
+/// <param name="RemoveMissing">
+/// Whether catalog rows absent from the entries are pruned. False for the bundled snapshot, which is
+/// always at least as old as the last download: pruning against it would roll a freshly updated catalog
+/// back to release day.
+/// </param>
+/// <param name="FaviconSource">
+/// The atlas the entries' <c>favicon_index</c> values index, stamped on every row this merge adds or
+/// updates so an index and its own atlas always travel together.
+/// </param>
+public sealed record CatalogMergeOptions(
+    bool RemoveMissing = true,
+    FaviconSource FaviconSource = FaviconSource.Catalog)
+{
+    public static readonly CatalogMergeOptions CatalogRefresh = new();
 }
 
 public sealed record MergeResult(

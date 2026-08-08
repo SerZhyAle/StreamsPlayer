@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace StreamsPlayer.Core.Tests;
@@ -16,9 +15,6 @@ internal sealed record LocalizationDictionary(
     IReadOnlyDictionary<string, string> Values)
 {
     private static readonly XNamespace Xaml = "http://schemas.microsoft.com/winfx/2006/xaml";
-
-    /// <summary>Matches a composite format item and captures its argument index.</summary>
-    private static readonly Regex Placeholder = new(@"\{(\d+)(?::[^}]*)?\}", RegexOptions.Compiled);
 
     /// <summary>Where the linked dictionaries land beside the test assembly.</summary>
     internal static string Directory => System.IO.Path.Combine(AppContext.BaseDirectory, "localization");
@@ -68,11 +64,14 @@ internal sealed record LocalizationDictionary(
 
     /// <summary>
     /// The multiset of composite-format argument indices in a value, ordered, so a dropped, duplicated
-    /// or renumbered <c>{0}</c> is a difference. Format specifiers are ignored: <c>{0:N0}</c> and
-    /// <c>{0}</c> take the same argument, and a translator may legitimately want a different one.
+    /// or renumbered <c>{0}</c> is a difference.
     /// </summary>
+    /// <remarks>
+    /// SP-0057: the application's own parser, not a second copy of one. The parity gate and the arity gate
+    /// have to mean the same thing by "placeholder", and the arity gate has to mean the same thing the
+    /// runtime does - three definitions were two too many. The only behavioural difference from the regex
+    /// this replaced is that <c>{{</c> is now correctly read as an escape; no shipped value uses one.
+    /// </remarks>
     internal static IReadOnlyList<int> PlaceholderIndices(string value) =>
-        [.. Placeholder.Matches(value)
-            .Select(match => int.Parse(match.Groups[1].Value))
-            .OrderBy(index => index)];
+        LocalizedFormat.PlaceholderIndices(value);
 }

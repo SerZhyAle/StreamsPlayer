@@ -160,40 +160,112 @@ public partial class MainWindow
         }
     }
 
+    /// <summary>
+    /// The rows a preview would actually be seen on: what is realized and on screen, in both the pinned
+    /// tile list and the main list.
+    /// </summary>
+    /// <remarks>
+    /// SP-0067 changed both halves of this. The pinned half used to declare every pinned row visible, on
+    /// the premise that the section was not virtualized - true when it was written, false now that
+    /// pinning is uncapped and the section virtualizes, so it asks the same realized-container question
+    /// as the main list. The main half used to walk all <c>GridRows.Count</c> entries asking the
+    /// generator for a container; it now walks only the realized range the virtualizing panel reports.
+    /// This runs on the scroll path via <c>ScheduleVisiblePreviewUpdate</c>, which is what makes it part
+    /// of criterion 2.
+    /// </remarks>
     private IReadOnlyList<ChannelRow> GetVisibleRows()
     {
+        var started = BeginCatalogPerf();
         var visible = new List<ChannelRow>();
+        var scanned = 0;
 
-        // The pinned section is a small, non-virtualized region; when it is expanded every pinned tile
-        // is realized, so treat them all as visible (SP-0025 - previews must span both regions).
         if (HasPinned && !PinnedSectionCollapsed && IsGridMode)
         {
-            visible.AddRange(PinnedRows);
+            scanned += CollectVisibleGridRows(PinnedGridList, visible);
         }
 
-        var viewport = new Rect(0, 0, StreamsList.ActualWidth, StreamsList.ActualHeight);
-        for (var index = 0; index < GridRows.Count; index++)
+        scanned += CollectVisibleGridRows(StreamsList, visible);
+        var result = visible.DistinctBy(row => row.Channel.Url).ToList();
+        CatalogPerf("GetVisibleRows", started,
+            $"scanned={scanned}", $"rows={result.Count}", $"catalogRows={GridRows.Count}");
+        return result;
+    }
+
+    /// <summary>
+    /// Adds the cards of every realized, on-screen row of <paramref name="list"/> to
+    /// <paramref name="visible"/>, and returns how many rows it had to look at.
+    /// </summary>
+    /// <remarks>
+    /// It iterates the virtualizing panel's own realized children rather than indexing the bound
+    /// collection, which is what makes the count the viewport's instead of the catalog's - a recycling
+    /// panel holds only what it has realized. Each container carries its row as its
+    /// <c>DataContext</c>, so no index lookup is needed either. A list that has not been laid out yet
+    /// has no panel and contributes nothing: a preview arriving one frame late is invisible, a full
+    /// scan on every wheel notch is not.
+    /// </remarks>
+    private static int CollectVisibleGridRows(ListView list, List<ChannelRow> visible)
+    {
+        if (list.Visibility != Visibility.Visible || FindVirtualizingPanel(list) is not { } panel)
         {
-            if (StreamsList.ItemContainerGenerator.ContainerFromIndex(index) is not ListViewItem container ||
-                !container.IsVisible)
+            return 0;
+        }
+
+        var viewport = new Rect(0, 0, list.ActualWidth, list.ActualHeight);
+        var scanned = 0;
+        foreach (var child in panel.Children)
+        {
+            scanned++;
+            if (child is not ListViewItem { IsVisible: true, DataContext: CatalogGridRow row } container)
             {
                 continue;
             }
 
-            var bounds = container.TransformToAncestor(StreamsList)
-                .TransformBounds(new Rect(container.RenderSize));
+            var bounds = container.TransformToAncestor(list).TransformBounds(new Rect(container.RenderSize));
             if (bounds.IntersectsWith(viewport))
             {
-                visible.AddRange(GridRows[index].Items);
+                visible.AddRange(row.Items);
             }
         }
 
-        return visible.DistinctBy(row => row.Channel.Url).ToList();
+        return scanned;
     }
 
+    private static VirtualizingStackPanel? FindVirtualizingPanel(DependencyObject? root)
+    {
+        if (root is null)
+        {
+            return null;
+        }
+
+        if (root is VirtualizingStackPanel panel)
+        {
+            return panel;
+        }
+
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(root); index++)
+        {
+            if (FindVirtualizingPanel(VisualTreeHelper.GetChild(root, index)) is { } found)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    // SP-0067: looked up, not scanned. Both of these ran a filter over every entry of _rowCache - up to
+    // 19 855 of them - and ClearPreview is called on every eviction from the 192-entry memory cache,
+    // which ordinary grid scrolling produces a steady stream of. The list value is kept because two
+    // channels can carry the same URL (a MANUAL duplicate of a catalog row), which is exactly why the
+    // original iterated instead of taking the first match.
     private void ApplyPreview(string url, ImageSource image, bool? reachable)
     {
-        foreach (var row in _rowCache.Values.Where(row => row.Channel.Url.Equals(url, StringComparison.Ordinal)))
+        if (!_rowsByUrl.TryGetValue(url, out var rows))
+        {
+            return;
+        }
+
+        foreach (var row in rows)
         {
             row.SetPreview(image, reachable);
         }
@@ -201,7 +273,12 @@ public partial class MainWindow
 
     private void ClearPreview(string url)
     {
-        foreach (var row in _rowCache.Values.Where(row => row.Channel.Url.Equals(url, StringComparison.Ordinal)))
+        if (!_rowsByUrl.TryGetValue(url, out var rows))
+        {
+            return;
+        }
+
+        foreach (var row in rows)
         {
             row.ClearPreview();
         }
@@ -231,6 +308,9 @@ public partial class MainWindow
         // stop funnel is not on this path - without this the session the user was listening to when they
         // gave up on it would be the one session missing its summary in the archived log.
         EndAudioSession();
+        // SP-0067: a filter change still inside its debounce would otherwise be dropped, and the session
+        // saved from the state before the user's last keystroke. Flush it, then save.
+        FlushPendingFilterEvaluation();
         _browsingSessionSaveTimer.Stop();
         await SaveBrowsingSessionAsync();
         _viewportDebounce?.Cancel();
@@ -247,5 +327,6 @@ public partial class MainWindow
         _httpClient.Dispose();
         _icyHttpClient.Dispose();
         _previewAtlasHttpClient.Dispose();
+        _catalogHttpClient.Dispose();
     }
 }

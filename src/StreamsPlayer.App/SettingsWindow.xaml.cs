@@ -17,7 +17,7 @@ public partial class SettingsWindow : Window
     // real path so the user can see where frames land either way, hence the separate field.
     private string? _frameFolder;
 
-    public SettingsWindow(AppTheme theme, StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, MediaBackend videoBackend, string? frameFolder, AppLanguage language, StreamChannel? selectedChannel, Func<SettingsAction, Window, Task> runSettingsAction)
+    public SettingsWindow(AppTheme theme, StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, bool resumePlaybackOnStartup, MediaBackend videoBackend, string? frameFolder, AppLanguage language, StreamChannel? selectedChannel, Func<SettingsAction, Window, Task> runSettingsAction)
     {
         InitializeComponent();
         _language = language;
@@ -43,6 +43,7 @@ public partial class SettingsWindow : Window
         UpdatePreviewsCheckBox.IsChecked = updateStreamPreviews;
         KeepAwakeCheckBox.IsChecked = keepAwakeDuringPlayback;
         SystemMediaControlsCheckBox.IsChecked = systemMediaControls;
+        ResumePlaybackCheckBox.IsChecked = resumePlaybackOnStartup;
         var backends = new[]
         {
             new UiOption(nameof(MediaBackend.LibVlc), LocalizationService.Get("VideoBackendLibVlc")),
@@ -50,6 +51,7 @@ public partial class SettingsWindow : Window
         };
         VideoBackendBox.ItemsSource = backends;
         VideoBackendBox.SelectedItem = backends.First(item => item.Value == videoBackend.ToString());
+        ShowVideoComponents();
         _frameFolder = frameFolder;
         ShowFrameFolder();
         VersionText.Text = ProductInfo.Version;
@@ -59,6 +61,15 @@ public partial class SettingsWindow : Window
             : StreamTitleFormatter.Display(selectedChannel.Title);
         CopyLaunchCommandButton.IsEnabled = selectedChannel is not null;
         CreateDesktopShortcutButton.IsEnabled = selectedChannel is not null;
+
+        // SP-0052: offered unconditionally when the build carries a snapshot - it works the same whether
+        // the catalog is empty, snapshot-filled or downloaded. A build without one says so rather than
+        // failing when pressed.
+        if (!BundledCatalogSnapshot.Exists)
+        {
+            ApplyCatalogSnapshotButton.IsEnabled = false;
+            ApplyCatalogSnapshotButton.ToolTip = LocalizationService.Get("CatalogSnapshotUnavailable");
+        }
 
         var choices = InterfaceLanguages.All
             .Select(entry => new LanguageChoice(
@@ -85,6 +96,7 @@ public partial class SettingsWindow : Window
     public bool UpdateStreamPreviews => UpdatePreviewsCheckBox.IsChecked == true;
     public bool KeepAwakeDuringPlayback => KeepAwakeCheckBox.IsChecked == true;
     public bool SystemMediaControls => SystemMediaControlsCheckBox.IsChecked == true;
+    public bool ResumePlaybackOnStartup => ResumePlaybackCheckBox.IsChecked == true;
     public MediaBackend SelectedVideoBackend => Enum.Parse<MediaBackend>(((UiOption)VideoBackendBox.SelectedItem).Value);
 
     /// <summary>The chosen frames folder, or <c>null</c> for "wherever Downloads is at save time".</summary>
@@ -113,7 +125,75 @@ public partial class SettingsWindow : Window
         ShowFrameFolder();
     }
 
-    private void Save_Click(object sender, RoutedEventArgs e) => DialogResult = true;
+    /// <summary>
+    /// SP-0026 - restates the components state after every install or removal. The engine ComboBox on
+    /// its own would let the user select an engine that cannot start, so this line is what makes the
+    /// choice above mean something.
+    /// </summary>
+    private void ShowVideoComponents()
+    {
+        var installed = FFmpegComponents.IsInstalled(FFmpegComponents.ResolveFolder(AppPaths.DataDirectory));
+        VideoComponentsStatusText.Text = installed
+            ? LocalizationService.Get("VideoComponentsInstalled")
+            : LocalizationService.Format(
+                "VideoComponentsMissing", FFmpegComponentsInstaller.ApproximateDownloadMegabytes);
+        VideoComponentsInstallButton.IsEnabled = !installed;
+        VideoComponentsRemoveButton.IsEnabled = installed;
+    }
+
+    /// <summary>
+    /// Replaces the status line with the running byte count. The archive is ~67 MB, so a dialog that
+    /// merely froze until it finished would be indistinguishable from a hang.
+    /// </summary>
+    internal void ShowInstallProgress(FFmpegInstallProgress progress)
+    {
+        VideoComponentsStatusText.Text = progress.Fraction is { } fraction
+            ? LocalizationService.Format("VideoComponentsProgress", (int)(fraction * 100))
+            : LocalizationService.Format("VideoComponentsProgressUnknown", progress.ReceivedBytes / (1024 * 1024));
+    }
+
+    internal void SetVideoComponentsBusy(bool busy)
+    {
+        VideoComponentsInstallButton.IsEnabled = !busy;
+        VideoComponentsRemoveButton.IsEnabled = false;
+        if (!busy)
+        {
+            ShowVideoComponents();
+        }
+    }
+
+    // The download commits on its own like the import and delete actions above: closing Settings with
+    // Cancel does not uninstall what was just fetched.
+    private async void VideoComponentsInstall_Click(object sender, RoutedEventArgs e)
+    {
+        await _runSettingsAction(SettingsAction.InstallVideoComponents, this);
+        ShowVideoComponents();
+    }
+
+    private async void VideoComponentsRemove_Click(object sender, RoutedEventArgs e)
+    {
+        await _runSettingsAction(SettingsAction.RemoveVideoComponents, this);
+        ShowVideoComponents();
+    }
+
+    private void Save_Click(object sender, RoutedEventArgs e)
+    {
+        // Decision 6: saving FlyleafLib without its components would leave the player quietly running
+        // on LibVLC, so the user hears about it here rather than wondering why nothing changed.
+        if (SelectedVideoBackend == MediaBackend.Flyleaf
+            && !FFmpegComponents.IsInstalled(FFmpegComponents.ResolveFolder(AppPaths.DataDirectory))
+            && MessageBox.Show(
+                this,
+                LocalizationService.Get("VideoComponentsRequiredBody"),
+                LocalizationService.Get("VideoComponentsRequiredTitle"),
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.Warning) != MessageBoxResult.OK)
+        {
+            return;
+        }
+
+        DialogResult = true;
+    }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
@@ -136,6 +216,11 @@ public partial class SettingsWindow : Window
 
     // SP-0030: destructive and immediate - the confirmation inside the action is the commit point,
     // so closing Settings with Cancel does not bring the downloaded rows back.
+    // SP-0052: immediate like the two above - applying the bundled snapshot commits on its own, and
+    // closing Settings with Cancel does not take the channels back out.
+    private async void ApplyCatalogSnapshot_Click(object sender, RoutedEventArgs e) =>
+        await _runSettingsAction(SettingsAction.ApplyCatalogSnapshot, this);
+
     private async void DeleteDownloaded_Click(object sender, RoutedEventArgs e) =>
         await _runSettingsAction(SettingsAction.DeleteDownloaded, this);
 

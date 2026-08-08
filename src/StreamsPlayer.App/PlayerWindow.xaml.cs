@@ -65,6 +65,12 @@ public partial class PlayerWindow : Window
     // race protection now lives inside the backend; this window drives engine-agnostic orchestration.
     private readonly IVideoBackend _backend;
     private bool _outcomeRecorded;
+    // SP-0062: set for a window opened by the startup resume, and cleared the first time this window
+    // reaches live. While set, a failure is recorded and logged but never raised as a dialog: at launch
+    // several of them would stack in front of a catalog the user has not touched yet. Deliberately a
+    // one-shot latch of its own rather than a test of _reachedLive, which StartMedia resets on every
+    // recovery leg - reading that field instead would keep a long-lived resumed window silent for good.
+    private bool _quietUntilLive;
     private bool _reachedLive;
     private bool _isStalled;
     private int _stallCount;
@@ -113,7 +119,8 @@ public partial class PlayerWindow : Window
         Action<string, BitmapSource>? onThumbnail,
         Func<string?> frameFolder,
         MediaBackend backend,
-        bool startFullscreen = false)
+        bool startFullscreen = false,
+        bool quietUntilLive = false)
     {
         InitializeComponent();
         _channel = channel;
@@ -130,6 +137,7 @@ public partial class PlayerWindow : Window
         _createCollection = createCollection;
         _saveAudioPreferences = saveAudioPreferences;
         _startFullscreen = startFullscreen;
+        _quietUntilLive = quietUntilLive;
         _backend = VideoBackendFactory.Create(backend, volume, muted, log);
         VideoHost.Children.Add(_backend.View);
         // Move the control overlay out of the WPF root and into the backend's native video surface so
@@ -425,6 +433,7 @@ public partial class PlayerWindow : Window
         {
             _outcomeRecorded = true;
             _reachedLive = true;
+            _quietUntilLive = false; // SP-0062: from here on this is an ordinary window
             _recovery.NotifyLive(); // sustained live - restore the full recovery budget
             // SP-0045: leaves red; an undisturbed first connect is green here, a stream returning from a
             // reconnect passes through yellow and earns green on the clean interval (decision 8).
@@ -666,7 +675,7 @@ public partial class PlayerWindow : Window
             _ = _recordOutcome(_channel.Id, false);
         }
 
-        if (notifyUser)
+        if (notifyUser && !_quietUntilLive)
         {
             ShowFailureDialog(reason);
         }

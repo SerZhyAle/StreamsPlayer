@@ -22,7 +22,8 @@ public sealed class ChannelFactSheetTests
         Assert.Equal("Radio One", Value(facts, "FieldTitle"));
         Assert.Equal("https://example.test/one", Value(facts, "FieldAddress"));
         Assert.Equal("Morning, Jazz", Value(facts, "FieldCollections"));
-        Assert.Equal("News", Value(facts, "FieldTopic"));
+        // SP-0061: a rubric of the bank's closed set arrives as a key, not as the English word.
+        Assert.Equal("TopicNews", Fact(facts, "FieldTopic").ValueKey);
         Assert.Equal("Talk", Value(facts, "Category"));
         Assert.Equal("English", Value(facts, "Language"));
         Assert.Equal("UK", Value(facts, "Country"));
@@ -82,6 +83,19 @@ public sealed class ChannelFactSheetTests
         Assert.Equal("StatusNotPlayed", Fact(never, "FieldLastOutcome").ValueKey);
         Assert.Equal("AboutAccessOpen", Fact(never, "FieldAccess").ValueKey);
         Assert.Equal("RegionRestrictedLabel", Fact(locked, "FieldAccess").ValueKey);
+    }
+
+    [Fact]
+    public void ARubricOutsideTheClosedSetIsShownAsWritten()
+    {
+        // SP-0061 criterion 4. A catalog newer than this build, and a hand-typed rubric on a manually
+        // added channel, both land here. Showing the raw value is the contract; substituting "General"
+        // would invent a claim, and dropping it would hide what the maintainer said.
+        var unknown = ChannelFactSheet.Describe(
+            BareChannel() with { Topic = "Sea shanties" }, [], CultureInfo.InvariantCulture);
+
+        Assert.Null(Fact(unknown, "FieldTopic").ValueKey);
+        Assert.Equal("Sea shanties", Value(unknown, "FieldTopic"));
     }
 
     [Fact]

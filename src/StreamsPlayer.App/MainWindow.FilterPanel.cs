@@ -17,7 +17,7 @@ public partial class MainWindow
     /// </summary>
     private int ActiveFacetCount()
     {
-        ComboBox[] facets = [MediaFilter, CategoryFilter, LanguageFilter, CountryFilter, MinBitrateFilter, CollectionFilter];
+        ComboBox[] facets = [MediaFilter, CategoryFilter, TopicFilter, LanguageFilter, CountryFilter, MinBitrateFilter, CollectionFilter];
         return facets.Count(facet =>
             !string.Equals(SelectedOptionValue(facet) ?? AllValue, AllValue, StringComparison.OrdinalIgnoreCase));
     }

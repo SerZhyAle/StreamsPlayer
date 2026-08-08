@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -15,6 +16,16 @@ namespace StreamsPlayer.App;
 /// </summary>
 internal sealed class LibVlcVideoBackend : IVideoBackend
 {
+    // SP-0054: the width of the window inside which LibVLC may compensate input-clock jitter.
+    // `--clock-jitter` is a compensation *budget*, not a leniency switch: VLC's own help calls it "the
+    // maximal input jitter that is considered valid and can be compensated", and jitter beyond it is
+    // left uncompensated - the clock reference is dropped, the audio output fills with silence and the
+    // video output discards pictures as "too early". The shipped 0 therefore compensated nothing, which
+    // is the opposite of what its comment claimed. In the 2026-08-07 tester log that cost 156 lost clock
+    // references, 63 silence fills and 46 early-skipped pictures, and only 20-50 % of decoded frames
+    // reached the screen while `lost_pics` stayed at 0. 1000 ms covers every steady-state jitter sample
+    // in that log (100-335 ms) while still capping the latency growth VLC's 5000 ms default permits.
+    private const int ClockJitterMilliseconds = 1000;
     private readonly LibVLC _libVlc;
     private readonly MediaPlayer _mediaPlayer;
     private readonly LibVLCSharp.WPF.VideoView _videoView;
@@ -23,6 +34,13 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     private readonly object _mediaGate = new();
     private Media? _media;
     private string _lastUrl = string.Empty;
+    // Baselines for the per-second rates published by LogStats; reset per open so a reconnect does not
+    // report the previous leg's counters as a spike. Written on the UI thread under _mediaGate (Play) and
+    // on the stats tick (LogStats), which is the same UI thread - no cross-thread sharing.
+    private long _rateBytes;
+    private long _rateDisplayed;
+    private long _rateTicks;
+    private double _rateSeconds;
     // Written under _mediaGate on the teardown thread, read without it by the audio setters below.
     private volatile bool _disposed;
 
@@ -30,10 +48,17 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     {
         _log = log;
         LibVLCSharp.Shared.Core.Initialize();
-        // clock-jitter=0 tolerates PCR/PTS jitter; avcodec-hw=none forces software decode to avoid GPU surface starvation.
-        // Drop late frames to keep playback alive (steady ~17 fps, no long black screens); the freeze watchdog reconnects
-        // if the pipeline fully deadlocks. (--no-drop-late-frames / --no-ts-trust-pcr tried and reverted: they deadlock.)
-        _libVlc = new LibVLC("--no-video-title-show", "--no-osd", "--no-snapshot-preview", "--rtsp-tcp", "--clock-jitter=0", "--avcodec-hw=none");
+        // avcodec-hw=none is set here, instance-wide, so it pins software decode for every stream this
+        // backend ever plays and overrides the per-stream softwareDecode argument of Play. That is
+        // deliberate for now - it avoids the GPU surface starvation that caused the original freezes -
+        // but it means only FlyleafVideoBackend actually honours that argument. Making the LibVLC path
+        // honour it too is a decode-path change and must be measured on its own, not folded into a
+        // clock fix (SP-0054).
+        // Late frames are still dropped, and that is correct here: the pictures lost in SP-0054's
+        // evidence were discarded as *early*, not late, so --no-drop-late-frames cannot address them.
+        // The freeze watchdog reconnects if the pipeline fully deadlocks. (--no-ts-trust-pcr was tried
+        // and reverted: it removes the clock reference entirely and deadlocks the vout at 0 fps.)
+        _libVlc = new LibVLC("--no-video-title-show", "--no-osd", "--no-snapshot-preview", "--rtsp-tcp", $"--clock-jitter={ClockJitterMilliseconds}", "--avcodec-hw=none");
         _libVlc.Log += LibVlc_Log;
         _mediaPlayer = new MediaPlayer(_libVlc);
         _mediaPlayer.Volume = Math.Clamp(volume, 0, 100);
@@ -105,6 +130,10 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             }
 
             _lastUrl = url.ToString();
+            _rateBytes = 0;
+            _rateDisplayed = 0;
+            _rateTicks = 0;
+            _rateSeconds = 0;
             _mediaPlayer.NetworkCaching = cacheMilliseconds;
             var previous = _media;
             _media = new Media(_libVlc, url);
@@ -195,7 +224,10 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
     public void SelectSubtitleTrack(int id) => _mediaPlayer.SetSpu(id);
 
-    // Input/demux counters distinguish network starvation (read_bytes frozen) from decode loss (lost_pics rising).
+    // The two derived rates carry the diagnosis: in_kbps separates real network starvation from a stream
+    // that is arriving fine, and disp_fps says whether the screen is actually getting frames. The totals
+    // beside them are kept because they still mean something outside HLS, and because lost_pics/corrupted/
+    // discont are what SP-0045's health stripe differences - but see Rate for why they mislead on their own.
     public void LogStats(string tag)
     {
         // The Media getter retains the native media on every call and LibVLCSharp has no finalizer, so the
@@ -208,17 +240,62 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         }
 
         var s = media.Statistics;
+        OpenRateInterval();
         _log.Event(tag,
             $"read_bytes={s.ReadBytes}",
             $"in_bitrate={s.InputBitrate:F4}",
             $"demux_bytes={s.DemuxReadBytes}",
             $"demux_bitrate={s.DemuxBitrate:F4}",
+            $"in_kbps={Rate(ref _rateBytes, (long)s.DemuxReadBytes, 8d / 1000d)}",
             $"decoded_v={s.DecodedVideo}",
             $"displayed={s.DisplayedPictures}",
+            $"disp_fps={Rate(ref _rateDisplayed, (long)s.DisplayedPictures, 1d)}",
             $"lost_pics={s.LostPictures}",
             $"corrupted={s.DemuxCorrupted}",
             $"discont={s.DemuxDiscontinuity}",
             $"url={_lastUrl}");
+    }
+
+    /// <summary>
+    /// Differences a monotonic counter against the previous sample and scales it to a per-second rate.
+    /// <para>Two counters are published this way, and both exist because the totals beside them mislead.
+    /// <c>in_kbps</c>: libvlc fills <c>ReadBytes</c>/<c>InputBitrate</c> from the access module alone,
+    /// but the HLS and DASH demuxers fetch segments through their own downloader below that layer, so on
+    /// every <c>.m3u8</c> both stay frozen - a 2026-08-07 log held <c>read_bytes=364</c> and
+    /// <c>in_bitrate=0</c> across a whole 124 s session, and a local run measured 1.9 Mbps arriving while
+    /// <c>in_bitrate</c> still read 0. <c>disp_fps</c>: the rate frames actually reach the screen, which
+    /// is the one number a "the stream is jerky" report can be checked against. Do not try to derive that
+    /// from <c>decoded_v - displayed</c>: <c>decoded_v</c> ran at almost exactly twice <c>displayed</c>
+    /// on a stream measured to be playing smoothly at its full frame rate, so the difference between
+    /// those two counters is a counting-semantics artifact, not loss.</para>
+    /// <para><paramref name="previous"/> carries the last sample and is updated in place; the shared
+    /// timestamp is <see cref="_rateTicks"/>, so every counter published in one <see cref="LogStats"/>
+    /// call is differenced over the same interval.</para>
+    /// </summary>
+    private string Rate(ref long previous, long current, double scale)
+    {
+        var previousValue = previous;
+        previous = current;
+        if (_rateSeconds <= 0 || current < previousValue)
+        {
+            // No prior sample for this leg, or the counter went backwards because the demux restarted
+            // underneath us. Report no rate rather than a fabricated or negative one.
+            return "n/a";
+        }
+
+        return ((current - previousValue) * scale / _rateSeconds).ToString("F1");
+    }
+
+    /// <summary>
+    /// Advances the shared rate interval to now and returns the seconds elapsed since the previous
+    /// <see cref="LogStats"/> call, or 0 for the first call of a leg. Called once per sample, before any
+    /// <see cref="Rate"/> call, so the counters cannot disagree about the interval they span.
+    /// </summary>
+    private void OpenRateInterval()
+    {
+        var ticks = Stopwatch.GetTimestamp();
+        _rateSeconds = _rateTicks == 0 ? 0 : (ticks - _rateTicks) / (double)Stopwatch.Frequency;
+        _rateTicks = ticks;
     }
 
     // SP-0045: the same three counters LogStats prints, as numbers the health rule can difference.

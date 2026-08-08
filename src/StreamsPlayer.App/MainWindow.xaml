@@ -1,6 +1,10 @@
 <Window x:Class="StreamsPlayer.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="clr-namespace:StreamsPlayer.Core;assembly=StreamsPlayer.Core"
+        xmlns:PresentationOptions="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+        mc:Ignorable="PresentationOptions"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource ProductName}" Height="780" Width="1180" MinHeight="560" MinWidth="820"
         Background="{DynamicResource WindowBackground}">
     <Window.Resources>
@@ -13,6 +17,18 @@
                     <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                     <Setter Property="BorderThickness" Value="2" />
                 </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- SP-0061: General is 48.2% of the bank, so the rubric facet shows it last (TopicLabels.Comparer)
+             and rules it off from the rubrics that actually narrow the list. The rule is a border rather
+             than a Separator item because a Separator in an ItemsSource still generates a selectable
+             container. The identifier has one home in Core; do not retype it here. -->
+        <Style x:Key="TopicFacetItem" TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Value}" Value="{x:Static core:CatalogTopics.General}">
+                    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                    <Setter Property="BorderThickness" Value="0,1,0,0" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
@@ -87,6 +103,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" Margin="3">
                     <TextBlock Text="{DynamicResource Media}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
@@ -98,17 +115,25 @@
                     <ComboBox x:Name="CategoryFilter" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Category}"
                               AutomationProperties.Name="{DynamicResource CategoryFilterName}" />
                 </StackPanel>
+                <!-- SP-0061: next to category deliberately. They are the catalog's two vocabulary facets
+                     over two different, disjoint column sets, and a reader compares them. -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="3">
+                    <TextBlock Text="{DynamicResource Topic}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox x:Name="TopicFilter" Width="130" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Topic}"
+                              ItemContainerStyle="{StaticResource TopicFacetItem}"
+                              AutomationProperties.Name="{DynamicResource TopicFilterName}" />
+                </StackPanel>
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="3">
                     <TextBlock Text="{DynamicResource Language}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
                     <ComboBox x:Name="LanguageFilter" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Language}"
                               AutomationProperties.Name="{DynamicResource LanguageFilterName}" />
                 </StackPanel>
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="3">
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="3">
                     <TextBlock Text="{DynamicResource Country}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
                     <ComboBox x:Name="CountryFilter" Width="80" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Country}"
                               AutomationProperties.Name="{DynamicResource CountryFilterName}" />
                 </StackPanel>
-                <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="3">
+                <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="3">
                     <TextBlock Text="{DynamicResource MinBitrate}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
                     <ComboBox x:Name="MinBitrateFilter" Width="100" SelectionChanged="FilterChanged" SelectedValuePath="Value"
                               ToolTip="{DynamicResource MinBitrateTip}" AutomationProperties.Name="{DynamicResource MinBitrateName}">
@@ -132,13 +157,13 @@
                         </ComboBox.Style>
                     </ComboBox>
                 </StackPanel>
-                <StackPanel Grid.Column="5" Orientation="Horizontal" Margin="3">
+                <StackPanel Grid.Column="6" Orientation="Horizontal" Margin="3">
                     <TextBlock Text="{DynamicResource SortBy}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
                     <ComboBox x:Name="SortMode" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource SortOrderTip}"
                               AutomationProperties.Name="{DynamicResource SortCatalogName}" />
                 </StackPanel>
                 <!-- SP-0017: one collection at a time, next to the other facets. -->
-                <StackPanel Grid.Column="6" Orientation="Horizontal" Margin="3">
+                <StackPanel Grid.Column="7" Orientation="Horizontal" Margin="3">
                     <TextBlock Text="{DynamicResource CollectionLabel}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
                     <ComboBox x:Name="CollectionFilter" Width="130" SelectionChanged="FilterChanged" SelectedValuePath="Value"
                               ToolTip="{DynamicResource CollectionFilterTip}" AutomationProperties.Name="{DynamicResource CollectionFilterName}" />
@@ -146,7 +171,7 @@
                 <!-- SP-0050 decision 8: two controls, two jobs. Clear resets the facets and leaves the
                      row open; close hides the row and leaves the facets alone. Clear carries the word
                      because two bare crosses side by side would be indistinguishable. -->
-                <StackPanel Grid.Column="7" Orientation="Horizontal" Margin="3">
+                <StackPanel Grid.Column="8" Orientation="Horizontal" Margin="3">
                     <Button x:Name="ClearFiltersButton" Style="{StaticResource ClearGlyphButton}"
                             Content="{DynamicResource Clear}" Click="ClearFiltersButton_Click"
                             VerticalAlignment="Center" ToolTip="{DynamicResource ClearFiltersTip}"
@@ -182,6 +207,27 @@
                     </StackPanel>
                 </Grid>
             </Border>
+            <!-- SP-0052: the one first-launch offer, shown only while the catalog is empty and has never
+                 been downloaded. Same treatment as the preview-atlas bar above; the two cannot both be
+                 eligible, since that one only appears after a successful update. -->
+            <Border x:Name="CatalogSnapshotOfferBar" DockPanel.Dock="Top" Visibility="Collapsed"
+                    Background="{DynamicResource ControlHoverBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
+                    CornerRadius="6" Padding="10,6" Margin="3,3,3,6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{DynamicResource CatalogSnapshotOffer}" TextWrapping="Wrap"
+                               VerticalAlignment="Center" ToolTip="{DynamicResource CatalogSnapshotOfferTip}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                        <Button Content="{DynamicResource CatalogSnapshotUse}" Click="CatalogSnapshotOfferAccept_Click"
+                                Background="{DynamicResource AccentBrush}" Foreground="White" Padding="10,4" Margin="0,0,6,0" />
+                        <Button Content="{DynamicResource CatalogSnapshotNotNow}" Click="CatalogSnapshotOfferDecline_Click"
+                                Padding="10,4" />
+                    </StackPanel>
+                </Grid>
+            </Border>
             <Grid x:Name="CatalogArea" SizeChanged="CatalogArea_SizeChanged">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -209,6 +255,15 @@
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
+                        <!-- SP-0067: one frozen brush shared by every tile, instead of one allocated per
+                             realized tile. Deliberately StaticResource and deliberately not a palette
+                             key: this is a fixed scrim over an image, ThemeService does not recolour it,
+                             and the memory note about StaticResource is about palette keys. -->
+                        <LinearGradientBrush x:Key="TileScrimBrush" StartPoint="0,0" EndPoint="0,1"
+                                             PresentationOptions:Freeze="True">
+                            <GradientStop Color="#00111827" Offset="0" />
+                            <GradientStop Color="#E6111827" Offset="1" />
+                        </LinearGradientBrush>
                         <Style x:Key="StreamGridTileBorderStyle" TargetType="Border">
                             <Setter Property="Background" Value="#FF111827" />
                             <Setter Property="BorderBrush" Value="#FFCBD5E1" />
@@ -219,6 +274,25 @@
                                     <Setter Property="BorderThickness" Value="3" />
                                 </DataTrigger>
                             </Style.Triggers>
+                        </Style>
+                        <!-- SP-0067: shared by all three catalog lists - the main one and the two
+                             pinned ones. It was inline on the main list when there was only one list;
+                             a pinned card differing from a main card by a padding would be a visible
+                             regression, so there is now exactly one definition. -->
+                        <Style x:Key="CatalogItemContainerStyle" TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="VerticalContentAlignment" Value="Top" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListViewItem">
+                                        <ContentPresenter ContentSource="Content"
+                                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
                         </Style>
                         <DataTemplate x:Key="StreamCardTemplate">
                             <Border Style="{StaticResource StreamCardBorderStyle}" CornerRadius="5" Padding="7" Margin="3" MinHeight="84"
@@ -321,7 +395,7 @@
                                                 </Viewbox>
                                             </Grid>
                                         </Button>
-                                        <Button Grid.Column="4" Content="{DynamicResource Play}" ToolTip="{DynamicResource PlayTip}"
+                                        <Button Grid.Column="4" Content="" ToolTip="{DynamicResource PlayTip}"
                                                 AutomationProperties.Name="{DynamicResource PlayTip}" Tag="{Binding}" Click="PlayButton_Click" MinWidth="50" Padding="8,4">
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource PlayGlyphButton}">
@@ -378,6 +452,13 @@
                             </Border>
                         </DataTemplate>
                         <DataTemplate x:Key="StreamGridTileTemplate">
+                            <!-- SP-0067 considered removing this Viewbox as a per-tile measure pass and
+                                 kept it deliberately. It is not decoration: the UniformGrid divides the
+                                 row into equal columns whose width is the available width over the
+                                 column count, while the Border below is a fixed GridTileWidth. The
+                                 Viewbox is what absorbs the remainder and makes tiles meet edge to edge.
+                                 Removing it leaves fixed-size tiles with a ragged gap at the row's end -
+                                 a visible layout change, which this ticket's non-goals forbid. -->
                             <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" Margin="3">
                                 <Border x:Name="TileBorder" Width="{Binding DataContext.GridTileWidth, RelativeSource={RelativeSource AncestorType=Window}}"
                                         Height="{Binding DataContext.GridTileHeight, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -399,10 +480,7 @@
                                                 </Style>
                                             </Border.Style>
                                             <Border.Background>
-                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                                    <GradientStop Color="#00111827" Offset="0" />
-                                                    <GradientStop Color="#E6111827" Offset="1" />
-                                                </LinearGradientBrush>
+                                                <StaticResource ResourceKey="TileScrimBrush" />
                                             </Border.Background>
                                         </Border>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
@@ -696,53 +774,68 @@
                     </StackPanel>
                 </Border>
 
-                <ScrollViewer Grid.Row="1" x:Name="PinnedScroll" Visibility="{Binding PinnedContentVisibility}"
-                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                              Margin="3,0,3,4" Focusable="False">
-                    <ItemsControl x:Name="PinnedItems" ItemsSource="{Binding PinnedRows}"
-                                  MouseDoubleClick="StreamsList_MouseDoubleClick">
-                        <ItemsControl.Style>
-                            <Style TargetType="ItemsControl">
-                                <Setter Property="ItemsPanel">
-                                    <Setter.Value>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel Orientation="Horizontal" />
-                                        </ItemsPanelTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsGridMode}" Value="False">
-                                        <Setter Property="ItemsPanel">
-                                            <Setter.Value>
-                                                <ItemsPanelTemplate>
-                                                    <StackPanel Orientation="Horizontal" />
-                                                </ItemsPanelTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ItemsControl.Style>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <ContentControl Content="{Binding}">
-                                    <ContentControl.Style>
-                                        <Style TargetType="ContentControl">
-                                            <Setter Property="ContentTemplate" Value="{StaticResource StreamCardTemplate}" />
-                                            <Setter Property="Width" Value="326" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataContext.IsGridMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                                                    <Setter Property="ContentTemplate" Value="{StaticResource StreamGridTileTemplate}" />
-                                                    <Setter Property="Width" Value="{Binding DataContext.GridTileWidth, RelativeSource={RelativeSource AncestorType=Window}}" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ContentControl.Style>
-                                </ContentControl>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                <!-- SP-0067: two virtualized lists in one cell, one per view mode, replacing a
+                     ScrollViewer around a non-virtualizing ItemsControl. Pinning is not capped, so this
+                     is a second surface that has to cost its viewport rather than its content. Both
+                     carry the shared container style so a pinned card is identical to a main-list one,
+                     and both keep MouseDoubleClick, which is what launches a pinned channel. -->
+
+                <!-- Tile mode: the same chunked-rows shape as the main list, so pinned and unpinned
+                     tiles line up on the same column grid. -->
+                <ListView Grid.Row="1" x:Name="PinnedGridList" ItemsSource="{Binding PinnedGridRows}"
+                          Visibility="{Binding PinnedGridVisibility}" BorderThickness="0"
+                          ItemContainerStyle="{StaticResource CatalogItemContainerStyle}"
+                          Margin="3,0,3,4" Focusable="False"
+                          ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          VirtualizingPanel.IsVirtualizing="True"
+                          VirtualizingPanel.VirtualizationMode="Recycling"
+                          VirtualizingPanel.ScrollUnit="Pixel"
+                          ScrollViewer.ScrollChanged="PinnedList_ScrollChanged"
+                          MouseDoubleClick="StreamsList_MouseDoubleClick">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ItemsControl ItemsSource="{Binding Items}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="{Binding ColumnCount}" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ContentControl Content="{Binding}"
+                                                        ContentTemplate="{StaticResource StreamGridTileTemplate}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <!-- List mode: a fixed-height sideways strip. CanContentScroll must stay True or the
+                     panel falls back to a plain scrolling surface and virtualizes nothing at all. -->
+                <ListView Grid.Row="1" x:Name="PinnedStripList" ItemsSource="{Binding PinnedRows}"
+                          Visibility="{Binding PinnedStripVisibility}" BorderThickness="0"
+                          ItemContainerStyle="{StaticResource CatalogItemContainerStyle}"
+                          Margin="3,0,3,4" Focusable="False"
+                          ScrollViewer.CanContentScroll="True"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                          VirtualizingPanel.IsVirtualizing="True"
+                          VirtualizingPanel.VirtualizationMode="Recycling"
+                          MouseDoubleClick="StreamsList_MouseDoubleClick">
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ContentControl Content="{Binding}" Width="326"
+                                            ContentTemplate="{StaticResource StreamCardTemplate}" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
 
                 <Border Grid.Row="2" Style="{StaticResource SectionHeaderBorderStyle}"
                         Visibility="{Binding MainHeaderVisibility}" MouseLeftButtonUp="MainHeader_Click"
@@ -782,30 +875,18 @@
                 </Border>
 
                 <Grid Grid.Row="3" Visibility="{Binding MainContentVisibility}">
+                    <!-- SP-0067: ScrollUnit="Pixel" - the panel stays a virtualizing stack panel and
+                         stays virtualized, only the granularity changes. Scrolling by item moved a whole
+                         grid row per wheel notch, which in tile mode is a jump of a full tile height. -->
                     <ListView x:Name="StreamsList" ItemsSource="{Binding GridRows}" BorderThickness="0"
+                              ItemContainerStyle="{StaticResource CatalogItemContainerStyle}"
                               ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               VirtualizingPanel.IsVirtualizing="True"
                               VirtualizingPanel.VirtualizationMode="Recycling"
+                              VirtualizingPanel.ScrollUnit="Pixel"
                               SizeChanged="StreamsList_SizeChanged"
                               ScrollViewer.ScrollChanged="StreamsList_ScrollChanged" PreviewKeyDown="StreamsList_PreviewKeyDown"
                               MouseDoubleClick="StreamsList_MouseDoubleClick">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="VerticalContentAlignment" Value="Top" />
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ListViewItem">
-                                        <ContentPresenter ContentSource="Content"
-                                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <ItemsControl ItemsSource="{Binding Items}">
@@ -839,11 +920,18 @@
                     <Viewbox Width="48" Height="48" HorizontalAlignment="Center">
                         <Path Data="M4,4H20V20H4ZM8,8H16V16H8Z" Fill="{DynamicResource MutedBrush}" />
                     </Viewbox>
-                    <TextBlock Text="{DynamicResource EmptyCatalog}" Margin="0,10" />
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="{DynamicResource EmptyCatalog}" Margin="0,10" TextWrapping="Wrap"
+                               TextAlignment="Center" MaxWidth="420" />
+                    <!-- SP-0059: a WrapPanel, not a row. "Import channels from the internet" is a full
+                         sentence in thirteen languages next to two other commands, and a row clips the
+                         third button on a narrow window - which is the one the empty state must show. -->
+                    <WrapPanel HorizontalAlignment="Center" MaxWidth="460">
                         <Button Style="{StaticResource AddGlyphButton}" Content="{DynamicResource AddStreamPlain}" Click="AddButton_Click" />
+                        <!-- SP-0058: a first-time recipient has an empty catalog and never opens the
+                             operations menu, so the paste command has to be reachable from here too. -->
+                        <Button Style="{StaticResource AddGlyphButton}" Content="{DynamicResource PasteChannelPlain}" Click="PasteChannelButton_Click" />
                         <Button Style="{StaticResource RefreshGlyphButton}" Content="{DynamicResource UpdateCatalogPlain}" Click="RefreshButton_Click" />
-                    </StackPanel>
+                    </WrapPanel>
                 </StackPanel>
                 </Grid>
             </Grid>
@@ -858,8 +946,20 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock x:Name="StatusText" Text="{DynamicResource Ready}" Foreground="White" />
-                    <ProgressBar x:Name="CatalogProgress" Height="4" Margin="0,4,0,2" Width="180" HorizontalAlignment="Left"
-                                 IsIndeterminate="True" Visibility="Collapsed" AutomationProperties.Name="{DynamicResource CatalogProgressName}" />
+                    <!-- SP-0056: the bar and its cancel button share a row so the status area's height does
+                         not shift when a cancellable download starts. Maximum is static; only IsIndeterminate
+                         and Value move, and SetBusy restores the indeterminate default for the operations
+                         that report nothing. -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <ProgressBar x:Name="CatalogProgress" Height="4" Margin="0,4,0,2" Width="180" VerticalAlignment="Center"
+                                     Maximum="100" IsIndeterminate="True" Visibility="Collapsed"
+                                     AutomationProperties.Name="{DynamicResource CatalogProgressName}" />
+                        <Button x:Name="CancelOperationButton" Content="{DynamicResource Cancel}" Click="CancelOperationButton_Click"
+                                Visibility="Collapsed" Margin="8,2,0,0" Padding="8,1" FontSize="11" VerticalAlignment="Center"
+                                Foreground="White" Background="#FF2A3A52" BorderBrush="#FF3E5170"
+                                ToolTip="{DynamicResource CancelDownloadTip}"
+                                AutomationProperties.Name="{DynamicResource CancelDownloadName}" />
+                    </StackPanel>
                     <TextBlock x:Name="NowPlayingText" Text="{DynamicResource NothingPlaying}" Foreground="#FFB8C8DB" FontSize="11" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">

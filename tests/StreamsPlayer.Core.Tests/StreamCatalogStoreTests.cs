@@ -4,6 +4,33 @@ namespace StreamsPlayer.Core.Tests;
 
 public sealed class StreamCatalogStoreTests
 {
+    // SP-0059: the clean-install signal behind the one first-launch question. It has to answer "no"
+    // for a directory the product has never written to, and "yes" from the first save onwards - the
+    // launch that shows the dialog also persists the detected interface language, which is what makes
+    // the question one-shot without a flag of its own.
+    [Fact]
+    public async Task HasStoredState_IsFalseUntilTheFirstSave()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            var store = new StreamCatalogStore(directory);
+            Assert.False(store.HasStoredState);
+
+            // An atlas alone is not the state file, and neither is the directory existing.
+            await store.SaveAsync(new CatalogState());
+            Assert.True(store.HasStoredState);
+            Assert.True(new StreamCatalogStore(directory).HasStoredState);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
     [Fact]
     public async Task Save_ReplacesStateAndAtlasReferenceTogether()
     {
@@ -21,6 +48,45 @@ public sealed class StreamCatalogStoreTests
             Assert.NotEqual(first.AtlasFileName, second.AtlasFileName);
             Assert.Equal([4, 5], await File.ReadAllBytesAsync(store.ResolveAtlasPath(loaded)!));
             Assert.False(File.Exists(store.ResolveAtlasPath(first)!));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    // SP-0052 AC 7: the downloaded and the bundled atlas are two independent slots. Saving either one
+    // must leave the other's file on disk - the cleanup pass sweeps by "named in the saved state",
+    // and without checking both slots a catalog refresh would delete the snapshot's atlas, leaving its
+    // rows resolving their indices against a stranger's sheet.
+    [Fact]
+    public async Task Save_KeepsBothAtlasSlotsAndSweepsOnlyTheReplacedOne()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            var store = new StreamCatalogStore(directory);
+            var withCatalog = await store.SaveAsync(new CatalogState(), [1, 2, 3], replaceAtlas: true);
+            var withBoth = await store.SaveAsync(withCatalog, [4, 5], replaceAtlas: true, AtlasSlot.Snapshot);
+
+            Assert.NotNull(withBoth.AtlasFileName);
+            Assert.NotNull(withBoth.SnapshotAtlasFileName);
+            Assert.Equal(withCatalog.AtlasFileName, withBoth.AtlasFileName);
+            Assert.Equal([1, 2, 3], await File.ReadAllBytesAsync(store.ResolveAtlasPath(withBoth)!));
+            Assert.Equal([4, 5], await File.ReadAllBytesAsync(store.ResolveAtlasPath(withBoth, AtlasSlot.Snapshot)!));
+
+            var loaded = await store.LoadAsync();
+            Assert.Equal(withBoth.AtlasFileName, loaded.AtlasFileName);
+            Assert.Equal(withBoth.SnapshotAtlasFileName, loaded.SnapshotAtlasFileName);
+
+            // Replacing the downloaded atlas sweeps its own predecessor and nothing else.
+            var replaced = await store.SaveAsync(loaded, [6], replaceAtlas: true);
+            Assert.False(File.Exists(store.ResolveAtlasPath(withBoth)!));
+            Assert.True(File.Exists(store.ResolveAtlasPath(replaced, AtlasSlot.Snapshot)!));
+            Assert.Equal([4, 5], await File.ReadAllBytesAsync(store.ResolveAtlasPath(replaced, AtlasSlot.Snapshot)!));
         }
         finally
         {

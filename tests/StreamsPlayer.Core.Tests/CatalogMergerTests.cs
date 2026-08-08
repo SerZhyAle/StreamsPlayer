@@ -103,6 +103,68 @@ public sealed class CatalogMergerTests
         Assert.Equal(0, result.Updated);
     }
 
+    // SP-0052 AC 5: applying the bundled snapshot adds and updates but never prunes, and it must protect
+    // user rows exactly as an online refresh does.
+    [Fact]
+    public void Merge_WithoutRemovalKeepsCatalogRowsTheEntriesDoNotMention()
+    {
+        var survivor = Channel("https://example.test/downloaded", SourceOrigin.Catalog);
+        var manual = Channel("https://example.test/manual", SourceOrigin.Manual);
+        var imported = Channel("https://example.test/imported", SourceOrigin.Imported);
+
+        var result = CatalogMerger.Merge(
+            [survivor, manual, imported],
+            [Entry("Snapshot only", "https://example.test/snapshot", MediaKind.Audio)],
+            Now,
+            new CatalogMergeOptions(RemoveMissing: false, FaviconSource: FaviconSource.Snapshot));
+
+        Assert.Equal(0, result.Removed);
+        Assert.Equal(1, result.Added);
+        Assert.Equal(4, result.Channels.Count);
+        Assert.Contains(result.Channels, channel => channel == manual);
+        Assert.Contains(result.Channels, channel => channel == imported);
+        Assert.Equal(FaviconSource.Catalog, Assert.Single(result.Channels, c => c.Id == survivor.Id).FaviconSource);
+    }
+
+    // SP-0052 AC 7: a favicon index and the atlas it indexes are one pair, so the source is stamped on
+    // rows the snapshot adds and on rows it updates - including one a download had brought in.
+    [Fact]
+    public void Merge_StampsTheFaviconSourceOnAddedAndUpdatedRows()
+    {
+        var entry = Entry("One", "https://example.test/one", MediaKind.Audio);
+        var snapshotOptions = new CatalogMergeOptions(RemoveMissing: false, FaviconSource: FaviconSource.Snapshot);
+
+        var added = Assert.Single(CatalogMerger.Merge([], [entry], Now, snapshotOptions).Channels);
+        Assert.Equal(FaviconSource.Snapshot, added.FaviconSource);
+
+        var downloaded = Assert.Single(CatalogMerger.Merge([], [entry with { Title = "Downloaded" }], Now).Channels);
+        Assert.Equal(FaviconSource.Catalog, downloaded.FaviconSource);
+
+        var restamped = Assert.Single(CatalogMerger.Merge([downloaded], [entry], Now, snapshotOptions).Channels);
+        Assert.Equal(downloaded.Id, restamped.Id);
+        Assert.Equal(FaviconSource.Snapshot, restamped.FaviconSource);
+    }
+
+    // SP-0052 AC 6: a later online refresh treats snapshot rows as its own - updating, pruning and
+    // returning them to the downloaded atlas, with no duplicate left behind.
+    [Fact]
+    public void Merge_OnlineRefreshReclaimsAndPrunesSnapshotRows()
+    {
+        var snapshotOptions = new CatalogMergeOptions(RemoveMissing: false, FaviconSource: FaviconSource.Snapshot);
+        var kept = Entry("Kept", "https://example.test/kept", MediaKind.Audio);
+        var dropped = Entry("Dropped", "https://example.test/dropped", MediaKind.Audio);
+        var seeded = CatalogMerger.Merge([], [kept, dropped], Now, snapshotOptions);
+
+        var refreshed = CatalogMerger.Merge(seeded.Channels, [kept with { Title = "Kept, renamed" }], Now.AddDays(1));
+
+        var survivor = Assert.Single(refreshed.Channels);
+        Assert.Equal("Kept, renamed", survivor.Title);
+        Assert.Equal(FaviconSource.Catalog, survivor.FaviconSource);
+        Assert.Equal(1, refreshed.Removed);
+        Assert.Equal(0, refreshed.Added);
+        Assert.Distinct(refreshed.Channels.Select(channel => channel.Url));
+    }
+
     private static StreamChannel Channel(string url, SourceOrigin origin) => new()
     {
         Id = Guid.NewGuid(),

@@ -5,8 +5,10 @@ public static class CatalogMerger
     public static MergeResult Merge(
         IEnumerable<StreamChannel> existingChannels,
         IEnumerable<CatalogEntry> catalogEntries,
-        DateTimeOffset now)
+        DateTimeOffset now,
+        CatalogMergeOptions? options = null)
     {
+        options ??= CatalogMergeOptions.CatalogRefresh;
         var existing = existingChannels.ToList();
         var byUrl = existing.ToDictionary(channel => channel.Url, StringComparer.Ordinal);
         var seenCatalogUrls = new HashSet<string>(StringComparer.Ordinal);
@@ -34,6 +36,9 @@ public static class CatalogMerger
                     Country = entry.Country,
                     Homepage = entry.Homepage,
                     FaviconIndex = entry.FaviconIndex,
+                    // SP-0052: the index and the atlas it indexes move together or not at all. A row a
+                    // download brought in and a snapshot then updated points at the snapshot's atlas.
+                    FaviconSource = options.FaviconSource,
                     Protocol = entry.Protocol,
                     Format = entry.Format,
                     Bitrate = entry.Bitrate,
@@ -65,6 +70,7 @@ public static class CatalogMerger
                 Country = entry.Country,
                 Homepage = entry.Homepage,
                 FaviconIndex = entry.FaviconIndex,
+                FaviconSource = options.FaviconSource,
                 Protocol = entry.Protocol,
                 Format = entry.Format,
                 Bitrate = entry.Bitrate,
@@ -77,11 +83,17 @@ public static class CatalogMerger
         }
 
         var removed = 0;
-        foreach (var stale in existing.Where(channel =>
-                     channel.SourceOrigin == SourceOrigin.Catalog && !seenCatalogUrls.Contains(channel.Url)))
+        // SP-0052: the one branch the bundled snapshot takes differently. Pruning means "the bank no
+        // longer publishes this channel", which only the bank itself can assert; a snapshot is a copy of
+        // an older bank, so its silence about a URL says nothing about whether the channel still exists.
+        if (options.RemoveMissing)
         {
-            output.Remove(stale.Id);
-            removed++;
+            foreach (var stale in existing.Where(channel =>
+                         channel.SourceOrigin == SourceOrigin.Catalog && !seenCatalogUrls.Contains(channel.Url)))
+            {
+                output.Remove(stale.Id);
+                removed++;
+            }
         }
 
         return new MergeResult(output.Values.ToList(), added, updated, removed);

@@ -8,6 +8,7 @@ public sealed class StreamCatalogStore
     private const string TemporaryFilePrefix = "catalog-state-";
     private const string TemporaryFileExtension = ".tmp";
     private const string AtlasFilePrefix = "favicon-atlas-";
+    private const string SnapshotAtlasFilePrefix = "snapshot-atlas-";
     private const string AtlasFileExtension = ".png";
 
     // A stranded temp file is only swept once it is far too old to belong to an in-flight save - including
@@ -21,7 +22,9 @@ public sealed class StreamCatalogStore
     private readonly SemaphoreSlim _saveGate = new(1, 1);
     private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
-        WriteIndented = true,
+        // SP-0067: off. This is machine state, not a document - nothing reads it by eye, and at 19 855
+        // channels the indentation was about a third of a 15 MB file, paid on every save.
+        WriteIndented = false,
         // SP-0035: every enum the state persists reads through a tolerant converter, so a value written
         // by a newer build costs that one field instead of the entire document (and with it the user's
         // catalog, collections and history). Order matters - the specific converters must precede the
@@ -41,6 +44,10 @@ public sealed class StreamCatalogStore
             new TolerantEnumConverter<ChannelAccess>(ChannelAccess.Open),
             new TolerantEnumConverter<MediaKind>(MediaKind.Video),
             new TolerantEnumConverter<SourceOrigin>(SourceOrigin.Manual),
+            // SP-0052: an unreadable atlas ownership reads as Catalog, whose worst case is an icon that
+            // does not render. The alternative failure - resolving an index against the wrong atlas -
+            // shows another channel's icon, which is a wrong answer rather than a missing one.
+            new TolerantEnumConverter<FaviconSource>(FaviconSource.Catalog),
             new TolerantNullableEnumConverter<PlayOutcome>(),
             new JsonStringEnumConverter()
         }
@@ -52,9 +59,36 @@ public sealed class StreamCatalogStore
         _statePath = Path.Combine(directory, "catalog-state.json");
     }
 
-    public string? ResolveAtlasPath(CatalogState state) => state.AtlasFileName is null
-        ? null
-        : Path.Combine(_directory, state.AtlasFileName);
+    /// <summary>
+    /// The state file this store reads and writes. Exposed for SP-0067's measurement, which reports the
+    /// size and the last-write time of the file a browsing-session save used to rewrite in full.
+    /// </summary>
+    public string StatePath => _statePath;
+
+    /// <summary>
+    /// Whether this machine has run the product before. SP-0059 asks the first-launch question only
+    /// when it has not, and this must be read <em>before</em> <see cref="LoadAsync"/>: that same launch
+    /// persists the detected interface language, so every moment after it looks like a used machine.
+    /// </summary>
+    public bool HasStoredState => File.Exists(_statePath);
+
+    public string? ResolveAtlasPath(CatalogState state, AtlasSlot slot = AtlasSlot.Catalog)
+    {
+        var fileName = FileNameOf(state, slot);
+        return fileName is null ? null : Path.Combine(_directory, fileName);
+    }
+
+    private static string? FileNameOf(CatalogState state, AtlasSlot slot) => slot switch
+    {
+        AtlasSlot.Snapshot => state.SnapshotAtlasFileName,
+        _ => state.AtlasFileName
+    };
+
+    private static string PrefixOf(AtlasSlot slot) => slot switch
+    {
+        AtlasSlot.Snapshot => SnapshotAtlasFilePrefix,
+        _ => AtlasFilePrefix
+    };
 
     public async Task<CatalogState> LoadAsync(CancellationToken cancellationToken = default)
     {
@@ -63,21 +97,35 @@ public sealed class StreamCatalogStore
             return new CatalogState();
         }
 
+        // SP-0067: ConfigureAwait(false) throughout the load and the save. Deserializing 15 MB and
+        // serializing it back are the two longest awaits in the application, and resuming them on the
+        // Dispatcher put that continuation in front of the user's next keystroke for no reason - none of
+        // this touches UI state.
         await using var stream = File.OpenRead(_statePath);
-        return await JsonSerializer.DeserializeAsync<CatalogState>(stream, _jsonOptions, cancellationToken)
-            ?? new CatalogState();
+        return await JsonSerializer
+            .DeserializeAsync<CatalogState>(stream, _jsonOptions, cancellationToken)
+            .ConfigureAwait(false) ?? new CatalogState();
     }
 
     public async Task<CatalogState> SaveAsync(
         CatalogState state,
         byte[]? newAtlas = null,
         bool replaceAtlas = false,
+        CancellationToken cancellationToken = default) =>
+        await SaveAsync(state, newAtlas, replaceAtlas, AtlasSlot.Catalog, cancellationToken);
+
+    public async Task<CatalogState> SaveAsync(
+        CatalogState state,
+        byte[]? newAtlas,
+        bool replaceAtlas,
+        AtlasSlot slot,
         CancellationToken cancellationToken = default)
     {
-        await _saveGate.WaitAsync(cancellationToken);
+        await _saveGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            return await SaveCoreAsync(state, newAtlas, replaceAtlas, cancellationToken);
+            return await SaveCoreAsync(state, newAtlas, replaceAtlas, slot, cancellationToken)
+                .ConfigureAwait(false);
         }
         finally
         {
@@ -89,6 +137,7 @@ public sealed class StreamCatalogStore
         CatalogState state,
         byte[]? newAtlas,
         bool replaceAtlas,
+        AtlasSlot slot,
         CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(_directory);
@@ -98,11 +147,16 @@ public sealed class StreamCatalogStore
             string? atlasFileName = null;
             if (newAtlas is { Length: > 0 })
             {
-                atlasFileName = $"{AtlasFilePrefix}{Guid.NewGuid():N}{AtlasFileExtension}";
-                await File.WriteAllBytesAsync(Path.Combine(_directory, atlasFileName), newAtlas, cancellationToken);
+                atlasFileName = $"{PrefixOf(slot)}{Guid.NewGuid():N}{AtlasFileExtension}";
+                await File.WriteAllBytesAsync(Path.Combine(_directory, atlasFileName), newAtlas, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
-            committedState = state with { AtlasFileName = atlasFileName };
+            // SP-0052: a save writes exactly one slot. The other slot's file name is carried through
+            // untouched, so replacing the downloaded atlas never strands the bundled one, or the reverse.
+            committedState = slot == AtlasSlot.Snapshot
+                ? state with { SnapshotAtlasFileName = atlasFileName }
+                : state with { AtlasFileName = atlasFileName };
         }
 
         var temporaryPath = Path.Combine(_directory, $"{TemporaryFilePrefix}{Guid.NewGuid():N}{TemporaryFileExtension}");
@@ -110,8 +164,10 @@ public sealed class StreamCatalogStore
         {
             await using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                await JsonSerializer.SerializeAsync(stream, committedState, _jsonOptions, cancellationToken);
-                await stream.FlushAsync(cancellationToken);
+                await JsonSerializer
+                    .SerializeAsync(stream, committedState, _jsonOptions, cancellationToken)
+                    .ConfigureAwait(false);
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
             File.Move(temporaryPath, _statePath, overwrite: true);
@@ -124,21 +180,25 @@ public sealed class StreamCatalogStore
             throw;
         }
 
-        RemoveUnreferencedFiles(committedState.AtlasFileName);
+        RemoveUnreferencedFiles(committedState);
         return committedState;
     }
 
-    // Runs on every save: drops the atlas the just-saved state no longer names, and any temp file an
-    // earlier crash, cancellation, or superseded save stranded.
-    private void RemoveUnreferencedFiles(string? currentAtlasFileName)
+    // Runs on every save: drops every atlas the just-saved state no longer names in either slot, and any
+    // temp file an earlier crash, cancellation, or superseded save stranded. Both slots are checked on
+    // every save, whichever one was written - a save of the downloaded atlas must not sweep the bundled
+    // one away just because it was not the slot in hand.
+    private void RemoveUnreferencedFiles(CatalogState committedState)
     {
         var staleBefore = DateTime.UtcNow - TemporaryFileRetention;
         foreach (var path in Directory.EnumerateFiles(_directory))
         {
             var name = Path.GetFileName(path);
-            if (IsNamed(name, AtlasFilePrefix, AtlasFileExtension))
+            if (IsNamed(name, AtlasFilePrefix, AtlasFileExtension) ||
+                IsNamed(name, SnapshotAtlasFilePrefix, AtlasFileExtension))
             {
-                if (!name.Equals(currentAtlasFileName, StringComparison.OrdinalIgnoreCase))
+                if (!name.Equals(committedState.AtlasFileName, StringComparison.OrdinalIgnoreCase) &&
+                    !name.Equals(committedState.SnapshotAtlasFileName, StringComparison.OrdinalIgnoreCase))
                 {
                     TryDelete(path);
                 }

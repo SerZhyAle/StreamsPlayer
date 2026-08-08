@@ -25,7 +25,7 @@ public partial class MainWindow
     /// </summary>
     private async void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SettingsWindow(_state.Theme, _state.TileSize, _state.UpdateStreamPreviews, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.VideoBackend, _state.FrameFolder, LocalizationService.CurrentLanguage, _selectedRow?.Channel, RunSettingsActionAsync)
+        var dialog = new SettingsWindow(_state.Theme, _state.TileSize, _state.UpdateStreamPreviews, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.ResumePlaybackOnStartup, _state.VideoBackend, _state.FrameFolder, LocalizationService.CurrentLanguage, _selectedRow?.Channel, RunSettingsActionAsync)
         {
             Owner = this
         };
@@ -37,6 +37,10 @@ public partial class MainWindow
         var tileSizeChanged = dialog.SelectedTileSize != _state.TileSize;
         var previewsChanged = dialog.UpdateStreamPreviews != _state.UpdateStreamPreviews;
         var systemMediaControlsChanged = dialog.SystemMediaControls != _state.SystemMediaControls;
+        // SP-0062: the launch already gates on the preference, so clearing is not what makes the switch
+        // work - it is that a list of what the user was listening to should not outlive their decision to
+        // stop the feature from using it.
+        var resumeTurnedOff = _state.ResumePlaybackOnStartup && !dialog.ResumePlaybackOnStartup;
         // Null means "the language already in use", so the settings save stays a single write.
         var chosenLanguage = dialog.SelectedLanguage;
         _state = await PersistAsync(_state with
@@ -47,6 +51,9 @@ public partial class MainWindow
             UpdateStreamPreviews = dialog.UpdateStreamPreviews,
             KeepAwakeDuringPlayback = dialog.KeepAwakeDuringPlayback,
             SystemMediaControls = dialog.SystemMediaControls,
+            // Read at launch, so this needs no side effect applied below - it takes effect next time.
+            ResumePlaybackOnStartup = dialog.ResumePlaybackOnStartup,
+            ResumeChannelIds = resumeTurnedOff ? [] : _state.ResumeChannelIds,
             // Takes effect on the next player window opened; an already-open player keeps its engine.
             VideoBackend = dialog.SelectedVideoBackend,
             // Read per capture, so an open player window picks this up without being reopened (SP-0038).

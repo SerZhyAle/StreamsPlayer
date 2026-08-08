@@ -1,0 +1,39 @@
+<Window x:Class="StreamsPlayer.App.FirstRunCatalogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource FirstRunTitle}"
+        SizeToContent="WidthAndHeight" MinWidth="460" MaxWidth="620"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False"
+        Background="{DynamicResource WindowBackground}">
+    <!-- SP-0059: the question a first launch asks. Deliberately a column of full-width answers rather
+         than a button row - the command names are whole sentences in several languages, and a row
+         either clips them or forces a window wider than the main one. -->
+    <StackPanel Margin="20">
+        <TextBlock Text="{DynamicResource FirstRunTitle}" FontWeight="SemiBold" FontSize="15"
+                   TextWrapping="Wrap" />
+        <TextBlock Text="{DynamicResource FirstRunIntro}" TextWrapping="Wrap" Margin="0,8,0,0" />
+
+        <Button x:Name="InternetButton" Content="{DynamicResource UpdateCatalogPlain}"
+                ToolTip="{DynamicResource UpdateCatalogTip}"
+                AutomationProperties.Name="{DynamicResource UpdateCatalogPlain}"
+                Click="Internet_Click" IsDefault="True"
+                Background="{DynamicResource AccentBrush}" Foreground="White"
+                Padding="14,8" Margin="0,18,0,0" />
+
+        <!-- Collapsed, never disabled, on a build that carries no built-in copy: an unexplained dead
+             control is the "looks broken" impression this ticket exists to remove. -->
+        <Button x:Name="BundledButton" Content="{DynamicResource CatalogSnapshotUse}"
+                ToolTip="{DynamicResource CatalogSnapshotOfferTip}"
+                AutomationProperties.Name="{DynamicResource CatalogSnapshotUse}"
+                Click="Bundled_Click" Padding="14,8" Margin="0,8,0,0" />
+
+        <!-- No Click handler on purpose: IsCancel already closes the window, and Choice already reads
+             Decline, so this button, Escape and the title-bar X are literally the same path. -->
+        <Button x:Name="SkipButton" Content="{DynamicResource FirstRunSkip}"
+                ToolTip="{DynamicResource FirstRunSkipTip}"
+                AutomationProperties.Name="{DynamicResource FirstRunSkip}"
+                IsCancel="True" Padding="14,6" Margin="0,8,0,0" />
+        <TextBlock Text="{DynamicResource FirstRunSkipTip}" Foreground="{DynamicResource MutedBrush}"
+                   TextWrapping="Wrap" Margin="0,6,0,0" />
+    </StackPanel>
+</Window>

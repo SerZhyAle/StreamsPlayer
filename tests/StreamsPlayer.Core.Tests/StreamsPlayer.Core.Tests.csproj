@@ -35,4 +35,20 @@
     <Content Include="localization-loanwords.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!--
+    SP-0057: the arity gate compares those dictionaries against the code that formats them, so the App's
+    own sources come in as test DATA on the same terms - read as text, never loaded, no project reference.
+    A non-recursive glob on purpose: the App directory is flat, and ** would sweep in bin and obj, whose
+    generated sources are not call sites and whose file names collide.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\src\StreamsPlayer.App\*.cs"
+             Link="app-source\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\src\StreamsPlayer.App\*.xaml"
+             Exclude="..\..\src\StreamsPlayer.App\Localization.*.xaml"
+             Link="app-source\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

@@ -31,9 +31,16 @@ public sealed class ChannelPreviewAtlasService
     /// </summary>
     public const int MaximumSheetBytes = 48 * 1024 * 1024;
 
-    // The sheet is ~11 MB today and may grow toward the publisher's 30 MiB ceiling, so this bound is
-    // sized for a slow link - it is not the catalog's 30 s deadline.
-    private static readonly TimeSpan Deadline = TimeSpan.FromMinutes(5);
+    // SP-0056: the sidecar is 135 KB. If it has not arrived in this long, the publish or the link is
+    // broken, and failing on the cheap half before the multi-megabyte sheet is the point of fetching it
+    // first.
+    private static readonly TimeSpan SidecarDeadline = TimeSpan.FromSeconds(30);
+
+    // SP-0056: the sheet gets no total-duration bound at all - this is it. The five-minute wall that used
+    // to cover both fetches was "sized for a slow link", which is the job a silence bound does properly:
+    // an 11 MB asset over a slow line now finishes however long it takes, while a socket that stops
+    // answering fails in twenty seconds instead of after five minutes the user cannot tell from a hang.
+    private static readonly TimeSpan DownloadIdleTimeout = TimeSpan.FromSeconds(20);
 
     private readonly HttpClient _httpClient;
 
@@ -42,37 +49,32 @@ public sealed class ChannelPreviewAtlasService
         _httpClient = httpClient;
     }
 
-    public async Task<ChannelPreviewAtlasPayload> DownloadAsync(CancellationToken cancellationToken = default)
+    public async Task<ChannelPreviewAtlasPayload> DownloadAsync(
+        IProgress<DownloadProgress>? progress = null,
+        CancellationToken cancellationToken = default)
     {
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        deadline.CancelAfter(Deadline);
-
         // Sidecar first: at ~135 KB it is the cheap half, so a broken or missing publish fails before
-        // the multi-megabyte sheet is pulled.
-        using var coordsResponse = await _httpClient.GetAsync(CoordsUrl, deadline.Token);
+        // the multi-megabyte sheet is pulled. It reports no progress for the same reason - a fetch that
+        // completes in well under a second would flick a bar to full and back before the real download
+        // even starts.
+        using var sidecar = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        sidecar.CancelAfter(SidecarDeadline);
+        using var coordsResponse = await _httpClient.GetAsync(CoordsUrl, sidecar.Token);
         coordsResponse.EnsureSuccessStatusCode();
-        var coordsJson = await coordsResponse.Content.ReadAsStringAsync(deadline.Token);
+        var coordsJson = await coordsResponse.Content.ReadAsStringAsync(sidecar.Token);
         var coords = ChannelPreviewCoords.Parse(coordsJson);
         if (coords.Count == 0)
         {
             throw new InvalidDataException("The channel-preview sidecar lists no tiles.");
         }
 
-        using var sheetResponse = await _httpClient.GetAsync(AtlasUrl, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+        using var sheetResponse = await _httpClient.GetAsync(AtlasUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         sheetResponse.EnsureSuccessStatusCode();
-        if (sheetResponse.Content.Headers.ContentLength > MaximumSheetBytes)
-        {
-            throw new InvalidDataException(
-                $"The channel-preview atlas is larger than the {MaximumSheetBytes} byte ceiling.");
-        }
-
-        var sheet = await sheetResponse.Content.ReadAsByteArrayAsync(deadline.Token);
-        if (sheet.Length > MaximumSheetBytes)
-        {
-            throw new InvalidDataException(
-                $"The channel-preview atlas is larger than the {MaximumSheetBytes} byte ceiling.");
-        }
-
+        // The ceiling is checked against the declared length and against the bytes that actually arrive;
+        // both live in the download loop now, so doing either here would leave one condition with two
+        // messages.
+        var sheet = await HttpDownload.ReadAllBytesAsync(
+            sheetResponse, progress, MaximumSheetBytes, DownloadIdleTimeout, cancellationToken);
         return new ChannelPreviewAtlasPayload(sheet, coords);
     }
 }

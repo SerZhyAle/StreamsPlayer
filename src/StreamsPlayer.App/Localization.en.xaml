@@ -18,14 +18,21 @@
     <sys:String x:Key="ChannelPreviewsOfferTip">Downloads about 11 MB once and fills the grid without connecting to each channel.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">Download pictures</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">Not now</sys:String>
-    <sys:String x:Key="ChannelPreviewsWorking">Preparing preview pictures.. {0} ready</sys:String>
+    <sys:String x:Key="ChannelPreviewsWorking">Preparing preview pictures.. {0} of {1}</sys:String>
     <sys:String x:Key="ChannelPreviewsDone">Preview pictures added: {0}</sys:String>
     <sys:String x:Key="ChannelPreviewsUnavailable">This computer cannot open the picture pack. Previews keep working as before.</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">Could not download the preview pictures.</sys:String>
+    <sys:String x:Key="ChannelPreviewsDownloadProgress">Downloading pictures.. {0}% ({1} of {2} MB)</sys:String>
+    <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Downloading pictures.. {0} MB</sys:String>
+    <sys:String x:Key="ChannelPreviewsCancelled">Picture download cancelled.</sys:String>
+    <sys:String x:Key="ChannelPreviewsDecoding">Reading the picture pack..</sys:String>
+    <sys:String x:Key="ChannelPreviewsFinishing">Finishing up..</sys:String>
     <sys:String x:Key="AddStream">Add stream</sys:String>
     <sys:String x:Key="AddStreamPlain">Add stream</sys:String>
-    <sys:String x:Key="UpdateCatalog">Update catalog</sys:String>
-    <sys:String x:Key="UpdateCatalogPlain">Update catalog</sys:String>
+    <!-- SP-0059: the command is named by what it does. The keys keep the old vocabulary on purpose -
+         the ticket changes only text the user reads. -->
+    <sys:String x:Key="UpdateCatalog">Import channels from the internet</sys:String>
+    <sys:String x:Key="UpdateCatalogPlain">Import channels from the internet</sys:String>
     <sys:String x:Key="SearchCatalog">Search</sys:String>
     <sys:String x:Key="SearchTip">Search title, topic, or language</sys:String>
     <sys:String x:Key="SearchName">Search catalog by title, topic, or language</sys:String>
@@ -34,7 +41,7 @@
     <sys:String x:Key="ClearFiltersTip">Reset all filters to All (search is kept)</sys:String>
     <sys:String x:Key="ClearFiltersName">Reset all catalog filters</sys:String>
     <sys:String x:Key="Operations">Operations</sys:String>
-    <sys:String x:Key="OperationsTip">Window options, previews, history, add stream, update catalog</sys:String>
+    <sys:String x:Key="OperationsTip">Window options, previews, history, add stream, import channels from the internet</sys:String>
     <sys:String x:Key="AddStreamTip">Add a stream by its address</sys:String>
     <sys:String x:Key="UpdateCatalogTip">Download the latest catalog from the internet</sys:String>
     <sys:String x:Key="FiltersAndSorting">Filters and sorting</sys:String>
@@ -74,7 +81,7 @@
     <sys:String x:Key="ExpandSectionTip">Expand section</sys:String>
     <sys:String x:Key="MoreActionsTip">More actions</sys:String>
     <sys:String x:Key="MoreActionsName">More stream actions</sys:String>
-    <sys:String x:Key="EmptyCatalog">No streams yet. Add a URL or update the catalog.</sys:String>
+    <sys:String x:Key="EmptyCatalog">No streams yet. Add a URL, or import channels from the internet.</sys:String>
     <sys:String x:Key="CatalogProgressName">Catalog activity in progress</sys:String>
     <sys:String x:Key="Ready">Ready</sys:String>
     <sys:String x:Key="NothingPlaying">Nothing playing</sys:String>
@@ -87,6 +94,43 @@
     <sys:String x:Key="SortLanguage">Language</sys:String>
     <sys:String x:Key="SortCountry">Country</sys:String>
     <sys:String x:Key="SortRecentlyAdded">Recently added</sys:String>
+    <!-- SP-0061: the bank's closed rubric set. The identifier stays English in the data - these are only
+         its labels. Keys and their order come from CatalogTopics in StreamsPlayer.Core; a rubric added
+         there without a label here fails CatalogTopicsTests rather than printing its key at runtime. -->
+    <sys:String x:Key="Topic">Topic</sys:String>
+    <sys:String x:Key="TopicFilterName">Topic filter</sys:String>
+    <sys:String x:Key="TopicGeneral">General</sys:String>
+    <sys:String x:Key="TopicNews">News</sys:String>
+    <sys:String x:Key="TopicTalk">Talk</sys:String>
+    <sys:String x:Key="TopicSports">Sports</sys:String>
+    <sys:String x:Key="TopicBusiness">Business</sys:String>
+    <sys:String x:Key="TopicEducation">Education</sys:String>
+    <sys:String x:Key="TopicDocumentary">Documentary</sys:String>
+    <sys:String x:Key="TopicComedy">Comedy</sys:String>
+    <sys:String x:Key="TopicLifestyle">Lifestyle</sys:String>
+    <sys:String x:Key="TopicShopping">Shopping</sys:String>
+    <sys:String x:Key="TopicReligious">Religious</sys:String>
+    <sys:String x:Key="TopicKids">Kids</sys:String>
+    <sys:String x:Key="TopicAdult">Adult</sys:String>
+    <sys:String x:Key="TopicMoviesSeries">Movies &amp; Series</sys:String>
+    <sys:String x:Key="TopicLocalRadio">Local radio</sys:String>
+    <sys:String x:Key="TopicTrafficCams">Traffic cams</sys:String>
+    <sys:String x:Key="TopicWebcam">Webcam</sys:String>
+    <sys:String x:Key="TopicTest">Test</sys:String>
+    <sys:String x:Key="TopicPop">Pop</sys:String>
+    <sys:String x:Key="TopicRock">Rock</sys:String>
+    <sys:String x:Key="TopicMetal">Metal</sys:String>
+    <sys:String x:Key="TopicElectronic">Electronic</sys:String>
+    <sys:String x:Key="TopicChillout">Chillout</sys:String>
+    <sys:String x:Key="TopicHipHop">Hip-hop</sys:String>
+    <sys:String x:Key="TopicRnbSoul">R&amp;B &amp; Soul</sys:String>
+    <sys:String x:Key="TopicJazzBlues">Jazz &amp; Blues</sys:String>
+    <sys:String x:Key="TopicClassical">Classical</sys:String>
+    <sys:String x:Key="TopicCountryFolk">Country &amp; Folk</sys:String>
+    <sys:String x:Key="TopicReggae">Reggae</sys:String>
+    <sys:String x:Key="TopicLatin">Latin</sys:String>
+    <sys:String x:Key="TopicWorld">World</sys:String>
+    <sys:String x:Key="TopicOldies">Oldies</sys:String>
     <sys:String x:Key="KindAudio">AUDIO</sys:String>
     <sys:String x:Key="KindVideo">VIDEO</sys:String>
     <sys:String x:Key="KindRtsp">RTSP</sys:String>
@@ -104,21 +148,53 @@
     <sys:String x:Key="MenuFullscreenUnavailable">Fullscreen is available for video and RTSP streams.</sys:String>
     <sys:String x:Key="MenuEdit">Edit</sys:String>
     <sys:String x:Key="MainOpening">Opening saved catalog…</sys:String>
-    <sys:String x:Key="MainReadyNoRefresh">Ready - catalog downloads only when you choose Update catalog</sys:String>
+    <sys:String x:Key="MainReadyNoRefresh">Ready - channels are downloaded only when you choose Import channels from the internet</sys:String>
     <sys:String x:Key="MainLastUpdated">Catalog last updated {0:g}</sys:String>
     <sys:String x:Key="MainLoadFailed">Could not load local state.</sys:String>
     <sys:String x:Key="OfflineCatalog">You are offline. The catalog was not requested.</sys:String>
     <sys:String x:Key="DownloadingCatalog">Downloading and applying the shared stream catalog…</sys:String>
     <sys:String x:Key="CatalogResult">Catalog: +{0} new, {1} updated, {2} removed</sys:String>
-    <sys:String x:Key="CatalogUpdateFailedStatus">Catalog update failed; the previous catalog is unchanged.</sys:String>
-    <sys:String x:Key="CatalogUpdateFailedTitle">Catalog update failed</sys:String>
+    <sys:String x:Key="CatalogUpdateFailedStatus">The import from the internet failed; your channel list is unchanged.</sys:String>
+    <sys:String x:Key="CatalogDownloadProgress">Downloading catalog.. {0}% ({1} of {2} MB)</sys:String>
+    <sys:String x:Key="CatalogDownloadProgressUnknown">Downloading catalog.. {0} MB</sys:String>
+    <sys:String x:Key="CatalogApplying">Applying the catalog..</sys:String>
+    <sys:String x:Key="CatalogUpdateCancelled">Import cancelled - your channel list is unchanged.</sys:String>
+    <sys:String x:Key="CatalogUpdateFailedTitle">Import from the internet failed</sys:String>
+    <sys:String x:Key="MainSnapshotApplied">Channel list from the built-in copy of {0:d} - the catalog has never been downloaded</sys:String>
+    <sys:String x:Key="CatalogSnapshotOffer">The channel list is empty. This app carries a built-in copy of the catalog that works without the internet.</sys:String>
+    <sys:String x:Key="CatalogSnapshotOfferTip">Adds the channels and their icons straight away. It is as old as this version, so import channels from the internet later for the current list.</sys:String>
+    <sys:String x:Key="CatalogSnapshotUse">Use the built-in copy</sys:String>
+    <sys:String x:Key="CatalogSnapshotNotNow">Not now</sys:String>
+    <sys:String x:Key="CatalogSnapshotTitle">Built-in channel list</sys:String>
+    <sys:String x:Key="CatalogSnapshotWorking">Adding channels from the built-in copy…</sys:String>
+    <sys:String x:Key="CatalogSnapshotResult">Built-in copy of {2:d} applied: +{0} new, {1} updated. The catalog has still not been downloaded.</sys:String>
+    <sys:String x:Key="CatalogSnapshotFailed">Could not use the built-in channel list; your catalog is unchanged.</sys:String>
+    <sys:String x:Key="CatalogSnapshotUnavailable">This build carries no built-in channel list.</sys:String>
+    <sys:String x:Key="CatalogSnapshotAfterFailure">{0}
+
+Use the built-in copy of the channel list instead? It works without the internet and removes nothing you already have.</sys:String>
+    <sys:String x:Key="CatalogSnapshotSettings">Use the built-in channel list</sys:String>
+    <sys:String x:Key="CatalogSnapshotSettingsTip">Adds the built-in channels; nothing is removed and your own streams stay untouched.</sys:String>
+    <sys:String x:Key="CatalogSnapshotSettingsHint">A copy of the channel list ships with the app, so it works with no internet. It only adds and updates channels - it never removes any.</sys:String>
+    <!-- SP-0059: the first launch on a machine that has never run the product. The two positive answers
+         reuse the command names the rest of the interface already shows, so the button pressed here is
+         recognisable later in the menu and on the empty state. -->
+    <sys:String x:Key="FirstRunTitle">Where should the channel list come from?</sys:String>
+    <sys:String x:Key="FirstRunIntro">This app ships with no channels. The shared channel list lives on the internet, and nothing is downloaded until you ask for it.</sys:String>
+    <sys:String x:Key="FirstRunSkip">Start with an empty list</sys:String>
+    <sys:String x:Key="FirstRunSkipTip">Downloads nothing. You can import at any time from the Operations menu.</sys:String>
     <sys:String x:Key="DuplicateStream">That stream URL is already in your list.</sys:String>
     <sys:String x:Key="AddedStream">Added {0}</sys:String>
     <sys:String x:Key="EditedStream">Saved {0}</sys:String>
     <sys:String x:Key="HiddenStream">Hidden {0}</sys:String>
     <sys:String x:Key="DeletedStream">Removed {0}</sys:String>
+    <sys:String x:Key="RevealClearedFilters">Search and filters were cleared to show {0}</sys:String>
     <sys:String x:Key="ChannelCount">Channels: {0:N0} / {1:N0}</sys:String>
     <sys:String x:Key="OfflinePlayback">You are offline. Playback was not attempted.</sys:String>
+    <sys:String x:Key="ResumeSkippedOffline">You are offline. Playback was not resumed.</sys:String>
+    <sys:String x:Key="ResumeStreamFailed">A resumed stream could not be played.</sys:String>
+    <sys:String x:Key="ResumedPlayback">Resumed what was playing.</sys:String>
+    <sys:String x:Key="ResumeNothingToPlay">Nothing left to resume.</sys:String>
     <sys:String x:Key="ConnectingAudio">Connecting to {0}…</sys:String>
     <sys:String x:Key="NowPlaying">Now playing: {0}</sys:String>
     <sys:String x:Key="NowPlayingWithTrack">Now playing: {0} - {1}</sys:String>
@@ -137,6 +213,8 @@
     <sys:String x:Key="FieldBitrate">Bitrate</sys:String>
     <sys:String x:Key="MediaKindAuto">Auto</sys:String>
     <sys:String x:Key="Cancel">Cancel</sys:String>
+    <sys:String x:Key="CancelDownloadTip">Stop the download</sys:String>
+    <sys:String x:Key="CancelDownloadName">Cancel the running download</sys:String>
     <sys:String x:Key="Add">Add</sys:String>
     <sys:String x:Key="InvalidUrl">Enter a valid http, https, or rtsp address.</sys:String>
     <sys:String x:Key="InvalidUrlTitle">Invalid URL</sys:String>
@@ -235,10 +313,26 @@
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">Prevent the machine from sleeping on its idle timer while a stream is playing; video also keeps the display on</sys:String>
     <sys:String x:Key="SystemMediaControls">Show system media controls and respond to media keys</sys:String>
     <sys:String x:Key="SystemMediaControlsTip">Publish the playing station to the Windows media flyout so hardware media keys drive Play/Pause, Stop, and Previous/Next. Off by default</sys:String>
+    <sys:String x:Key="ResumePlaybackOnStartup">Resume playback on startup</sys:String>
+    <sys:String x:Key="ResumePlaybackOnStartupTip">When the app starts, play again whatever was playing when it was last closed - the radio station and every player window alike. Off by default</sys:String>
     <sys:String x:Key="VideoBackendLabel">Video and RTSP playback engine</sys:String>
     <sys:String x:Key="VideoBackendHint">VLC is the default, proven engine. Switch to FlyleafLib only as a fallback to try when a specific video or RTSP stream misbehaves under VLC. The change applies to the next player you open.</sys:String>
     <sys:String x:Key="VideoBackendLibVlc">VLC (default)</sys:String>
     <sys:String x:Key="VideoBackendFlyleaf">FlyleafLib (experimental)</sys:String>
+    <sys:String x:Key="VideoComponentsTitle">FlyleafLib components</sys:String>
+    <sys:String x:Key="VideoComponentsInstalled">FlyleafLib components are installed.</sys:String>
+    <sys:String x:Key="VideoComponentsMissing">FlyleafLib components are not installed. FlyleafLib cannot play anything until they are downloaded ({0} MB).</sys:String>
+    <sys:String x:Key="VideoComponentsInstall">Download components</sys:String>
+    <sys:String x:Key="VideoComponentsRemove">Remove components</sys:String>
+    <sys:String x:Key="VideoComponentsConfirm">FlyleafLib needs the FFmpeg libraries, which are not shipped with the application. Download them now? About {0} MB will be downloaded and about {1} MB stored. Source: {2}.</sys:String>
+    <sys:String x:Key="VideoComponentsProgress">Downloading components.. {0}%</sys:String>
+    <sys:String x:Key="VideoComponentsProgressUnknown">Downloading components.. {0} MB</sys:String>
+    <sys:String x:Key="VideoComponentsInstallDone">Components installed into {0}. FlyleafLib is available for the next player you open.</sys:String>
+    <sys:String x:Key="VideoComponentsInstallFailed">The components could not be downloaded. Nothing was installed. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRemoveConfirm">Remove the FlyleafLib components? FlyleafLib will stop working until they are downloaded again; VLC is unaffected.</sys:String>
+    <sys:String x:Key="VideoComponentsRemoveFailed">The components could not be removed. Close any open player windows and try again. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib is not ready</sys:String>
+    <sys:String x:Key="VideoComponentsRequiredBody">FlyleafLib is selected, but its components are not installed, so players will keep opening on VLC. Download the components to use FlyleafLib.</sys:String>
     <sys:String x:Key="About">About</sys:String>
     <sys:String x:Key="VersionLabel">Version</sys:String>
     <sys:String x:Key="AuthorLabel">Author</sys:String>
@@ -253,8 +347,8 @@
     <sys:String x:Key="AuthorPage">Author page</sys:String>
     <sys:String x:Key="AuthorPageTip">Open SerZhyAle on GitHub</sys:String>
     <sys:String x:Key="SendLogs">Send logs to the author</sys:String>
-    <sys:String x:Key="SendLogsTip">Pack this session's and the previous session's diagnostic logs and open your mail program</sys:String>
-    <sys:String x:Key="SendLogsHint">The archive holds the diagnostic log of this session and of the previous one, plus a short summary of your app version, Windows version and settings. The logs name the streams that were played. Nothing is sent automatically: your mail program opens with the message prepared, and you attach the archive and press Send.</sys:String>
+    <sys:String x:Key="SendLogsTip">Pack the diagnostic logs of the last ten sessions and open your mail program</sys:String>
+    <sys:String x:Key="SendLogsHint">The archive holds the diagnostic logs of the last ten sessions, plus a short summary of your app version, Windows version and settings. The logs name the streams that were played. Nothing is sent automatically: your mail program opens with the message prepared, and you attach the archive and press Send.</sys:String>
     <sys:String x:Key="SendLogsSubject">STREAMS Player logs - version {0}</sys:String>
     <sys:String x:Key="SendLogsBody">Hello,&#x0D;&#x0A;&#x0D;&#x0A;I am sending the STREAMS Player diagnostic logs. Please attach the archive at {0} before sending this message.&#x0D;&#x0A;&#x0D;&#x0A;What happened:&#x0D;&#x0A;</sys:String>
     <sys:String x:Key="SendLogsReady">The archive is ready at {0}. Attach it to the prepared message and press Send.</sys:String>
@@ -277,6 +371,11 @@
     <sys:String x:Key="CreateDesktopShortcutTip">Create a Windows desktop shortcut for the selected stream</sys:String>
     <sys:String x:Key="LaunchCommandCopied">The launch command was copied to the clipboard.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows could not copy the launch command.</sys:String>
+    <!-- SP-0058 share a channel as text -->
+    <sys:String x:Key="MenuCopyShareText">Copy share text</sys:String>
+    <sys:String x:Key="ShareTextCopied">The share text was copied to the clipboard. Paste it into a chat message; the recipient adds the channel with Paste channel.</sys:String>
+    <sys:String x:Key="ShareTextCopyFailed">Windows could not copy the share text.</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">This channel address contains a password or token. The share text carries it in clear text, and whoever receives your message will see it. Copy anyway?</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">Desktop shortcut created: {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">Windows could not create the desktop shortcut.</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">Use --url &lt;address&gt; or --id &lt;channel GUID&gt;.</sys:String>
@@ -317,12 +416,23 @@
     <sys:String x:Key="ExportCredentialWarning">One or more channels contain a password or token in the address. The exported file stores it in clear text. Continue?</sys:String>
     <sys:String x:Key="ExportResult">Exported channels: {0}.</sys:String>
     <sys:String x:Key="ExportFailed">Windows could not write the export file.</sys:String>
+    <!-- SP-0058 paste a shared channel -->
+    <sys:String x:Key="PasteChannelPlain">Paste channel</sys:String>
+    <sys:String x:Key="PasteChannelTip">Add a channel someone sent you as text, from the clipboard</sys:String>
+    <sys:String x:Key="PasteChannelConfirm">Add this channel to your list?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="PasteChannelAlready">{0} is already in your list</sys:String>
+    <sys:String x:Key="PasteChannelHidden">{0} is already in your list, but you have hidden it. Show it again?</sys:String>
+    <sys:String x:Key="PasteChannelRestored">{0} is shown again</sys:String>
+    <sys:String x:Key="PasteNotShareText">The clipboard holds no channel. Copy the share text or the channel address you were sent, then try again.</sys:String>
+    <sys:String x:Key="PasteUnsupportedVersion">This channel was shared by a newer version of the application. Install the latest version to add it. Your list was not changed.</sys:String>
+    <sys:String x:Key="PasteInvalidAddress">This shared channel carries no address the app can play. Your list was not changed.</sys:String>
+    <sys:String x:Key="PasteClipboardFailed">Windows could not read the clipboard. Your list was not changed.</sys:String>
     <!-- SP-0030 delete downloaded catalog streams -->
     <sys:String x:Key="DeleteDownloaded">Delete downloaded streams</sys:String>
     <sys:String x:Key="DeleteDownloadedTip">Remove every stream that came from the downloaded catalog and keep only your own channels</sys:String>
-    <sys:String x:Key="DeleteDownloadedHint">Keep only your own channels: this removes the streams that came from the downloaded catalog. Your added and imported channels stay. Update catalog downloads them again.</sys:String>
+    <sys:String x:Key="DeleteDownloadedHint">Keep only your own channels: this removes the streams that came from the downloaded catalog. Your added and imported channels stay. Import channels from the internet downloads them again.</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">Delete downloaded streams</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">Delete all downloaded catalog streams ({0:N0})? Your added and imported channels are kept. This cannot be undone, but Update catalog downloads them again.</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">Delete all downloaded catalog streams ({0:N0})? Your added and imported channels are kept. This cannot be undone, but Import channels from the internet downloads them again.</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">There are no downloaded catalog streams to delete.</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">Deleted downloaded streams: {0:N0}.</sys:String>
     <!-- SP-0029 language picker -->

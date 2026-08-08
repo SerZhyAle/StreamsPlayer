@@ -140,11 +140,28 @@
                               AutomationProperties.Name="{DynamicResource SystemMediaControls}">
                         <TextBlock Text="{DynamicResource SystemMediaControls}" TextWrapping="Wrap" />
                     </CheckBox>
+                    <CheckBox x:Name="ResumePlaybackCheckBox" Margin="0,10,0,0"
+                              ToolTip="{DynamicResource ResumePlaybackOnStartupTip}"
+                              AutomationProperties.Name="{DynamicResource ResumePlaybackOnStartup}">
+                        <TextBlock Text="{DynamicResource ResumePlaybackOnStartup}" TextWrapping="Wrap" />
+                    </CheckBox>
                     <TextBlock Text="{DynamicResource VideoBackendLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
                     <ComboBox x:Name="VideoBackendBox" Margin="0,5,0,0" HorizontalAlignment="Stretch"
                               AutomationProperties.Name="{DynamicResource VideoBackendLabel}" />
                     <TextBlock Text="{DynamicResource VideoBackendHint}" Foreground="{DynamicResource MutedBrush}"
                                TextWrapping="Wrap" Margin="0,5,0,0" />
+                    <!-- SP-0026: the alternative engine needs FFmpeg natives that are not shipped. This
+                         states whether they are present so the engine choice above cannot silently mean
+                         nothing, and installs them on an explicit click. -->
+                    <TextBlock x:Name="VideoComponentsStatusText" TextWrapping="Wrap" Margin="0,8,0,0" />
+                    <WrapPanel Margin="0,6,0,0">
+                        <Button x:Name="VideoComponentsInstallButton" Style="{StaticResource ImportGlyphButton}"
+                                Content="{DynamicResource VideoComponentsInstall}"
+                                Click="VideoComponentsInstall_Click" />
+                        <Button x:Name="VideoComponentsRemoveButton" Style="{StaticResource ClearGlyphButton}"
+                                Content="{DynamicResource VideoComponentsRemove}"
+                                Click="VideoComponentsRemove_Click" />
+                    </WrapPanel>
                     <!-- SP-0038: where the player's camera button writes its frames. Read-only text plus a
                          picker, so the stored path is always one Windows itself produced. -->
                     <TextBlock Text="{DynamicResource FrameFolderLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
@@ -193,6 +210,16 @@
                             Content="{DynamicResource ManageHiddenOpen}" Click="ManageHidden_Click"
                             ToolTip="{DynamicResource ManageHiddenTip}"
                             AutomationProperties.Name="{DynamicResource ManageHiddenOpen}" />
+                    <!-- SP-0052: the bundled snapshot, available at any time and never destructive - it
+                         adds and updates but removes nothing, so it sits above the separator with the
+                         other safe catalog-content actions. -->
+                    <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
+                    <TextBlock Text="{DynamicResource CatalogSnapshotSettingsHint}" Foreground="{DynamicResource MutedBrush}"
+                               TextWrapping="Wrap" Margin="0,0,0,8" />
+                    <Button x:Name="ApplyCatalogSnapshotButton" Style="{StaticResource ImportGlyphButton}"
+                            HorizontalAlignment="Left" Content="{DynamicResource CatalogSnapshotSettings}"
+                            Click="ApplyCatalogSnapshot_Click" ToolTip="{DynamicResource CatalogSnapshotSettingsTip}"
+                            AutomationProperties.Name="{DynamicResource CatalogSnapshotSettings}" />
                     <!-- SP-0030: destructive catalog cleanup, separated from the reversible import/export row. -->
                     <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
                     <TextBlock Text="{DynamicResource DeleteDownloadedHint}" Foreground="{DynamicResource MutedBrush}"

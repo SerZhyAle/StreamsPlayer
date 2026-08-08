@@ -82,8 +82,15 @@ public static class LocalizationService
 
     public static string Get(string key) => Application.Current.TryFindResource(key) as string ?? key;
 
+    /// <summary>
+    /// SP-0057: <see cref="LocalizedFormat"/> rather than <c>string.Format</c>, because every caller is an
+    /// <c>async void</c> event handler and none of them filters <see cref="FormatException"/> - a string
+    /// that gained a placeholder its call site does not supply used to end the process. The gate in
+    /// <c>LocalizedCallSiteTests</c> is what stops that being written; this is what it costs if one
+    /// escapes. Composes with <see cref="Get"/>'s own degradation: an unknown key renders as the key name.
+    /// </summary>
     public static string Format(string key, params object?[] arguments) =>
-        string.Format(CultureInfo.CurrentUICulture, Get(key), arguments);
+        LocalizedFormat.Apply(CultureInfo.CurrentUICulture, Get(key), arguments);
 }
 
 public sealed record UiOption(string Value, string Label)

@@ -12,21 +12,22 @@ public sealed class DiagnosticArchiveBuilderTests
     private static readonly DateTimeOffset Stamp = new(2026, 7, 30, 1, 2, 3, TimeSpan.Zero);
 
     [Fact]
-    public void Build_PacksBothSessionLogsAndTheSummary()
+    public void Build_PacksEveryRetainedSessionLogAndTheSummary()
     {
         RunInTempDirectory(directory =>
         {
             File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), "current session");
-            File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.PreviousLogName), "previous session");
+            File.WriteAllText(Path.Combine(directory, "Session-20260730-0100.log"), "previous session");
+            File.WriteAllText(Path.Combine(directory, "Session-20260729-2359.log"), "older session");
 
             var outputDirectory = Path.Combine(directory, "saved-files");
             var path = DiagnosticArchiveBuilder.Build(directory, outputDirectory, "app_version=26.0730.0012\r\n", Stamp);
 
             using var archive = ZipFile.OpenRead(path);
             Assert.Equal(
-                [DiagnosticLogFiles.CurrentLogName, DiagnosticLogFiles.PreviousLogName, DiagnosticArchiveBuilder.SummaryEntryName],
+                [DiagnosticLogFiles.CurrentLogName, "Session-20260729-2359.log", "Session-20260730-0100.log", DiagnosticArchiveBuilder.SummaryEntryName],
                 archive.Entries.Select(entry => entry.FullName).OrderBy(name => name, StringComparer.Ordinal));
-            Assert.Equal("previous session", ReadEntry(archive, DiagnosticLogFiles.PreviousLogName));
+            Assert.Equal("previous session", ReadEntry(archive, "Session-20260730-0100.log"));
             Assert.Equal("app_version=26.0730.0012\r\n", ReadEntry(archive, DiagnosticArchiveBuilder.SummaryEntryName));
             Assert.EndsWith("StreamsPlayer-logs-20260730-010203.zip", path, StringComparison.Ordinal);
             Assert.StartsWith(outputDirectory, path, StringComparison.Ordinal);

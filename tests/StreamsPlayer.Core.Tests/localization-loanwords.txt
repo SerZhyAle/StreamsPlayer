@@ -12,7 +12,27 @@
 # EveryLoanwordExceptionIsStillNeeded deletes the slack automatically: if the translation later stops
 # matching English, or the key or language goes away, that test fails until the stale line is removed.
 
+# SP-0061 note on the rubric labels (Topic*): music-genre names are the loanword case this file was
+# written for. Where a language genuinely writes the English word - "Rock" in German, "Reggae" in
+# French - the entry below says so. Where it does not, the label is translated and no entry exists.
+
 # --- German ---
+de:TopicTalk        # German radio bills a spoken-word station as "Talk".
+de:TopicComedy      # "Comedy" is the established German genre name; "Komödie" means a stage or film play.
+de:TopicLifestyle   # "Lifestyle" is the ordinary German word for this genre.
+de:TopicShopping    # "Shopping" is German; a "Shoppingsender" is what such a channel is called.
+de:TopicTest        # "Test" is German.
+de:TopicPop         # Genre name, written the same way.
+de:TopicRock        # Genre name, written the same way.
+de:TopicMetal       # Genre name, written the same way.
+de:TopicChillout    # "Chillout" is the German genre name too.
+de:TopicRnbSoul     # Both genre names are English in German; only the ampersand joins them.
+de:TopicJazzBlues   # Same: "Jazz" and "Blues" are the German words.
+de:TopicCountryFolk # "Country" and "Folk" are the German genre names.
+de:TopicReggae      # Genre name, written the same way.
+de:TopicLatin       # German radio labels the genre "Latin"; "lateinisch" means the language.
+de:TopicOldies      # "Oldies" is the standard German radio format name.
+
 de:LiveLabel        # "Live" is the standard German broadcast term.
 de:AudioOption      # "Audio" is German.
 de:KindAudio        # Same word, upper-cased badge.
@@ -43,10 +63,27 @@ it:BufferingProgress # Same term with the percentage placeholder.
 it:Privacy          # "Privacy" is the ordinary Italian word for this.
 it:AboutValueNo     # "No" is the Italian word for no.
 it:FrameRateValue   # "fps" is what Italian media software prints for frames per second.
+it:TopicTalk        # Italian radio bills a spoken-word station as "talk".
+it:TopicLifestyle   # "Lifestyle" is the usual Italian term for this genre.
+it:TopicShopping    # "Shopping" is Italian.
+it:TopicWebcam      # "Webcam" is Italian.
+it:TopicTest        # "Test" is Italian.
+it:TopicPop         # Genre name, written the same way.
+it:TopicRock        # Genre name, written the same way.
+it:TopicMetal       # Genre name, written the same way.
+it:TopicChillout    # "Chillout" is the Italian genre name too.
+it:TopicHipHop      # Genre name, written the same way.
+it:TopicReggae      # Genre name, written the same way.
 
 # --- Portuguese ---
 pt:FieldBitrate     # "Bitrate" is what Brazilian media software labels this field; "taxa de bits" reads as a spec sheet.
 pt:FrameRateValue   # "fps" is what Portuguese media software prints for frames per second.
+pt:TopicPop         # Genre name, written the same way.
+pt:TopicRock        # Genre name, written the same way.
+pt:TopicMetal       # Genre name, written the same way.
+pt:TopicChillout    # "Chillout" is the Brazilian genre name too.
+pt:TopicHipHop      # Genre name, written the same way.
+pt:TopicReggae      # Genre name, written the same way.
 
 # --- Chinese ---
 zh:FrameRateValue   # "fps" is written in Latin script in Chinese media software, like "kbps".
@@ -58,6 +95,13 @@ es:AudioTracks      # "Audio" heads the Spanish label too, matching "pista de au
 es:MediaKindAuto    # "Auto" is the usual Spanish abbreviation for automatic.
 es:AboutValueNo     # "No" is the Spanish word for no.
 es:FrameRateValue   # "fps" is what Spanish media software prints for frames per second.
+es:TopicGeneral     # "General" is the Spanish word, spelled identically.
+es:TopicPop         # Genre name, written the same way.
+es:TopicRock        # Genre name, written the same way.
+es:TopicMetal       # Genre name, written the same way.
+es:TopicChillout    # "Chillout" is the Spanish genre name too.
+es:TopicHipHop      # Genre name, written the same way.
+es:TopicReggae      # Genre name, written the same way.
 
 # --- French ---
 fr:AudioOption      # "Audio" is French; the filter option keeps it.
@@ -72,6 +116,13 @@ fr:CollectionLabel  # "Collection" is French and is the glossary term for fr.
 fr:CollectionManageTitle # Plural of the same French word.
 fr:FieldOrigin      # "Source" is French.
 fr:FieldCollections # Plural of the French glossary term for collection.
+fr:TopicShopping    # "Shopping" is French.
+fr:TopicTest        # "Test" is French.
+fr:TopicPop         # Genre name, written the same way.
+fr:TopicRock        # Genre name, written the same way.
+fr:TopicChillout    # "Chillout" is the French genre name too.
+fr:TopicHipHop      # Genre name, written the same way.
+fr:TopicReggae      # Genre name, written the same way.
 
 # --- Hindi ---
 hi:FrameRateValue   # "fps" is written in Latin script in Hindi media software, like "kbps".

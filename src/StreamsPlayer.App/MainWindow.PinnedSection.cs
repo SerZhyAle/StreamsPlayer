@@ -9,10 +9,15 @@ namespace StreamsPlayer.App;
 
 public partial class MainWindow
 {
-    // Favourites live in their own anchored section above the main list (SP-0025). The section is a
-    // flat (non-virtualized) collection - favourites are few - presented as a wrapping tile grid in
-    // grid view and a sideways-scrolling card strip in list view. The main list keeps virtualization.
-    public ObservableCollection<ChannelRow> PinnedRows { get; } = [];
+    // Favourites live in their own anchored section above the main list (SP-0025), presented as a
+    // wrapping tile grid in grid view and a sideways-scrolling card strip in list view.
+    public CatalogRowCollection<ChannelRow> PinnedRows { get; } = [];
+
+    // SP-0067: the tile-mode view of the same rows, chunked on the main list's column count so pinned
+    // and unpinned tiles sit on one grid. It exists because the section virtualizes now, and a
+    // virtualizing panel needs uniform items to virtualize - which a chunked row is and a wrapped tile
+    // is not. The strip in list mode binds PinnedRows directly and needs no such thing.
+    public CatalogRowCollection<CatalogGridRow> PinnedGridRows { get; } = [];
 
     // List-mode strip height: one card row (MinHeight 84 + card margins) plus a horizontal scrollbar.
     private const double PinnedStripHeight = 118;
@@ -26,8 +31,21 @@ public partial class MainWindow
     public Visibility PinnedHeaderVisibility => HasPinned ? Visibility.Visible : Visibility.Collapsed;
     public Visibility PinnedContentVisibility =>
         HasPinned && !PinnedSectionCollapsed ? Visibility.Visible : Visibility.Collapsed;
+
+    // SP-0067: the section is two lists sharing a cell now, so its visibility splits by view mode.
+    // Exactly one of these is ever Visible, and both are Collapsed when the section is.
+    public Visibility PinnedGridVisibility =>
+        PinnedContentVisibility == Visibility.Visible && IsGridMode ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility PinnedStripVisibility =>
+        PinnedContentVisibility == Visibility.Visible && !IsGridMode ? Visibility.Visible : Visibility.Collapsed;
     public Visibility MainHeaderVisibility => IsCatalogEmpty ? Visibility.Collapsed : Visibility.Visible;
     public Visibility MainContentVisibility => MainSectionCollapsed ? Visibility.Collapsed : Visibility.Visible;
+
+    private void NotifyPinnedSectionVisibility()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PinnedGridVisibility)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PinnedStripVisibility)));
+    }
 
     private void InitializeSectionState(CatalogState state)
     {
@@ -50,6 +68,7 @@ public partial class MainWindow
     [
         nameof(PinnedSectionCollapsed), nameof(MainSectionCollapsed), nameof(HasPinned),
         nameof(PinnedHeaderVisibility), nameof(PinnedContentVisibility),
+        nameof(PinnedGridVisibility), nameof(PinnedStripVisibility),
         nameof(MainHeaderVisibility), nameof(MainContentVisibility)
     ];
 
@@ -84,32 +103,24 @@ public partial class MainWindow
 
     private void CatalogArea_SizeChanged(object sender, SizeChangedEventArgs e) => UpdatePinnedSectionLayout();
 
-    // Sizes the pinned scroll region to match the active view. Grid view grows with content but caps at
-    // roughly half the catalog area (scrolling within itself past that) so it never crowds the main list
-    // out; when the main section is collapsed the cap is lifted. List view is a fixed-height sideways strip.
+    // Sizes the pinned region to match the active view. The rules are unchanged by SP-0067: tile view
+    // grows with content but caps at roughly half the catalog area (scrolling within itself past that)
+    // so it never crowds the main list out, and the cap is lifted when the main section is collapsed;
+    // list view is a fixed-height sideways strip. What changed is that the size is applied to whichever
+    // of the two lists is showing, rather than to the one ScrollViewer that used to wrap both. The
+    // scroll-bar visibilities are declared in the markup now, per list, because each list only ever
+    // has one orientation.
     private void UpdatePinnedSectionLayout()
     {
-        if (PinnedScroll is null)
+        if (PinnedGridList is null || PinnedStripList is null)
         {
             return;
         }
 
-        if (IsGridMode)
-        {
-            PinnedScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
-            PinnedScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-            PinnedScroll.Height = double.NaN;
-            var available = CatalogArea?.ActualHeight ?? 0;
-            PinnedScroll.MaxHeight = MainSectionCollapsed || available <= 0
-                ? double.PositiveInfinity
-                : Math.Max(GridTileHeight + 24, available * 0.5);
-        }
-        else
-        {
-            PinnedScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
-            PinnedScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
-            PinnedScroll.MaxHeight = double.PositiveInfinity;
-            PinnedScroll.Height = PinnedStripHeight;
-        }
+        var available = CatalogArea?.ActualHeight ?? 0;
+        PinnedGridList.MaxHeight = MainSectionCollapsed || available <= 0
+            ? double.PositiveInfinity
+            : Math.Max(GridTileHeight + 24, available * 0.5);
+        PinnedStripList.Height = PinnedStripHeight;
     }
 }

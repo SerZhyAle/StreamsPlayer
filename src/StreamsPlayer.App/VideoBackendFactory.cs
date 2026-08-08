@@ -18,9 +18,18 @@ internal static class VideoBackendFactory
             }
             catch (Exception ex)
             {
-                // FlyleafLib could not initialize (missing FFmpeg natives, win-arm64, or an engine fault).
+                // FlyleafLib could not initialize (missing FFmpeg components, win-arm64, or an engine fault).
                 // Fall back to the proven LibVLC engine rather than failing playback (experimental, not a crash).
-                log.Event("FLYLEAF FALLBACK", "to=libvlc", $"reason={ex.GetType().Name}", $"err={ex.Message}");
+                // Settings warns the user up front when the components are the reason, so this is a log
+                // record for the case they were present and the engine still refused.
+                var folder = FlyleafVideoBackend.ResolveFFmpegPath(out _);
+                var missing = FFmpegComponents.MissingLibraries(folder);
+                log.Event(
+                    "FLYLEAF FALLBACK",
+                    "to=libvlc",
+                    $"reason={ex.GetType().Name}",
+                    $"components={(missing.Count == 0 ? "present" : $"missing:{string.Join('+', missing)}")}",
+                    $"err={ex.Message}");
             }
         }
 

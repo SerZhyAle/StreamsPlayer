@@ -54,10 +54,16 @@ internal sealed class ChannelPreviewAtlasImporter
         _log = log;
     }
 
+    /// <param name="progress">
+    /// Reports tiles examined against the sidecar's total. It deliberately does not report tiles seeded:
+    /// a tile skipped because its channel is absent from this install or because a captured frame already
+    /// exists is real work that took real time, so counting only writes left the number frozen for
+    /// minutes on a re-import where almost everything is skipped.
+    /// </param>
     public ChannelPreviewImportResult Import(
         ChannelPreviewAtlasPayload payload,
         IReadOnlyCollection<string> catalogUrls,
-        IProgress<int>? progress,
+        IProgress<(int Processed, int Total)>? progress,
         CancellationToken cancellationToken)
     {
         var sheet = TryDecodeSheet(payload.Sheet);
@@ -67,6 +73,7 @@ internal sealed class ChannelPreviewAtlasImporter
         }
 
         var known = catalogUrls as IReadOnlySet<string> ?? new HashSet<string>(catalogUrls, StringComparer.Ordinal);
+        var total = payload.Coords.Count;
         var seeded = 0;
         var skipped = 0;
         var outOfBounds = 0;
@@ -79,7 +86,7 @@ internal sealed class ChannelPreviewAtlasImporter
             processed++;
             if (processed % ProgressInterval == 0)
             {
-                progress?.Report(seeded);
+                progress?.Report((processed, total));
             }
 
             if (!known.Contains(url))
@@ -111,7 +118,9 @@ internal sealed class ChannelPreviewAtlasImporter
         // One pass at the end: TrimOnce walks the whole directory, so per-frame trimming would be
         // quadratic across ~1900 writes.
         _store.TrimOnce(cancellationToken);
-        progress?.Report(seeded);
+        // After the trim, not before it: the directory walk is the last measurable step, and a bar that
+        // reached full and then sat through it would be the same lie in miniature.
+        progress?.Report((total, total));
         _log.Event("PREVIEW ATLAS",
             $"seeded={seeded}",
             $"skipped_existing={skipped}",

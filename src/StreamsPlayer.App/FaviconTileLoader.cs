@@ -6,60 +6,98 @@ namespace StreamsPlayer.App;
 
 public static class FaviconTileLoader
 {
-    private static string? _loadedPath;
-    private static BitmapSource? _atlas;
-    private static readonly Dictionary<int, ImageSource> Tiles = [];
+    private const int TileSize = 32;
+    private const int TilesPerRow = 16;
+
+    // SP-0052: keyed by path rather than holding one atlas at a time. Two atlases - the downloaded one
+    // and the bundled snapshot's - are alive at once as soon as a snapshot has been applied, and a
+    // single-slot cache would reload both on every alternating row.
+    private static readonly Dictionary<string, LoadedAtlas> Atlases = new(StringComparer.OrdinalIgnoreCase);
+
+    // At most two atlases are ever in play, but each refresh writes a new file name, so a long session
+    // would otherwise accumulate every atlas it ever saw - decoded sheets, several megabytes each.
+    // Clearing wholesale on the third distinct path costs one reload of the two live ones and bounds the
+    // cache without tracking which paths the state still names.
+    private const int MaximumCachedAtlases = 2;
 
     public static ImageSource? Load(string? atlasPath, int? index, int? maximumIndex)
     {
-        if (atlasPath is null || index is not int tileIndex || tileIndex < 0 || tileIndex > maximumIndex || !File.Exists(atlasPath))
+        // SP-0067: no File.Exists here. It was one syscall per first-shown row - tens per viewport while
+        // scrolling - to answer a question the decode below already answers, and caches: a missing file
+        // opens as "no sheet" exactly once per path, and every later row for that path reads the cached
+        // failure instead of asking the file system again.
+        if (atlasPath is null || index is not int tileIndex || tileIndex < 0 || tileIndex > maximumIndex)
         {
             return null;
         }
 
-        if (!atlasPath.Equals(_loadedPath, StringComparison.OrdinalIgnoreCase))
+        if (!Atlases.TryGetValue(atlasPath, out var atlas))
         {
-            LoadAtlas(atlasPath);
+            if (Atlases.Count >= MaximumCachedAtlases)
+            {
+                Atlases.Clear();
+            }
+
+            atlas = LoadedAtlas.Open(atlasPath);
+            Atlases[atlasPath] = atlas;
         }
 
-        if (_atlas is null)
-        {
-            return null;
-        }
-
-        if (Tiles.TryGetValue(tileIndex, out var cached))
-        {
-            return cached;
-        }
-
-        var x = tileIndex % 16 * 32;
-        var y = tileIndex / 16 * 32;
-        if (x + 32 > _atlas.PixelWidth || y + 32 > _atlas.PixelHeight)
-        {
-            return null;
-        }
-
-        var tile = new CroppedBitmap(_atlas, new System.Windows.Int32Rect(x, y, 32, 32));
-        tile.Freeze();
-        Tiles[tileIndex] = tile;
-        return tile;
+        return atlas.Tile(tileIndex);
     }
 
-    private static void LoadAtlas(string atlasPath)
+    private sealed class LoadedAtlas
     {
-        _loadedPath = atlasPath;
-        _atlas = null;
-        Tiles.Clear();
-        try
+        private readonly BitmapSource? _sheet;
+        private readonly Dictionary<int, ImageSource> _tiles = [];
+
+        private LoadedAtlas(BitmapSource? sheet)
         {
-            using var stream = new FileStream(atlasPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-            _atlas = decoder.Frames[0];
-            _atlas.Freeze();
+            _sheet = sheet;
         }
-        catch
+
+        public static LoadedAtlas Open(string atlasPath)
         {
-            _atlas = null;
+            try
+            {
+                using var stream = new FileStream(atlasPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                var sheet = decoder.Frames[0];
+                sheet.Freeze();
+                return new LoadedAtlas(sheet);
+            }
+            catch
+            {
+                // A missing, corrupt or half-written atlas costs the icons of its own bank and nothing
+                // else; the failure is cached as "no sheet" so it is neither re-decoded nor re-probed
+                // once per row. FileNotFoundException lands here like any other open failure, which is
+                // what let SP-0067 drop the File.Exists that used to precede this.
+                return new LoadedAtlas(null);
+            }
+        }
+
+        public ImageSource? Tile(int tileIndex)
+        {
+            if (_sheet is null)
+            {
+                return null;
+            }
+
+            if (_tiles.TryGetValue(tileIndex, out var cached))
+            {
+                return cached;
+            }
+
+            var x = tileIndex % TilesPerRow * TileSize;
+            var y = tileIndex / TilesPerRow * TileSize;
+            if (x + TileSize > _sheet.PixelWidth || y + TileSize > _sheet.PixelHeight)
+            {
+                return null;
+            }
+
+            var tile = new CroppedBitmap(_sheet, new System.Windows.Int32Rect(x, y, TileSize, TileSize));
+            tile.Freeze();
+            _tiles[tileIndex] = tile;
+            return tile;
         }
     }
 }
