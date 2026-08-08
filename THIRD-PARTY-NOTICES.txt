@@ -38,12 +38,40 @@ The full texts of the GNU LGPL v2.1 and GNU GPL v2 are available at:
 FlyleafLib is licensed under LGPL-3.0-or-later.
 Source: https://github.com/SuRGeoNix/Flyleaf
 
-FFmpeg is licensed under LGPL-2.1-or-later, with some optional components under
-GPL-2.0-or-later depending on how the native libraries are built. The native
-FFmpeg libraries are NOT bundled in this package; they are supplied separately
-by the user only when the FlyleafLib engine is selected.
+The native FFmpeg libraries are NOT bundled in this package and no GPL-licensed
+binary is distributed with this application. They are downloaded only when the
+user explicitly asks for them in Settings, into that user's own application data
+folder, and only when the optional FlyleafLib engine is being used. The default
+VLC engine needs none of them.
+
+The build fetched is LGPL-3.0-or-later - FFmpeg n8.1, win64, shared, configured
+without --enable-gpl:
+  https://github.com/BtbN/FFmpeg-Builds
 FFmpeg source: https://ffmpeg.org/download.html
 FFmpeg legal: https://ffmpeg.org/legal.html
+
+The full text of the GNU LGPL v3 is available at:
+  https://www.gnu.org/licenses/lgpl-3.0.txt
+
+-----------------------------------------------------------------------
+4. Bundled stream catalog snapshot (data, not code)
+   File: catalog-snapshot.zip, embedded in StreamsPlayer.Core
+-----------------------------------------------------------------------
+A copy of the published FastMediaSorter stream bank travels inside this
+application so the channel list can be filled without a network connection.
+It is data - stream addresses, station names and icons - and carries no
+executable code and no license of its own beyond the bank's own terms.
+
+Taken from the published release asset:
+  https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-catalog.zip
+
+The exact source address and the date the copy was taken are recorded inside
+the archive itself (snapshot.json) and shown in the application when the copy
+is used, so a user is never told bundled data is a fresh download.
+
+The stream addresses are the publishers' own public endpoints; this
+application redistributes the list, not the streams. The copy is refreshed
+only when the application is released, never between releases.
 
 -----------------------------------------------------------------------
 Written offer

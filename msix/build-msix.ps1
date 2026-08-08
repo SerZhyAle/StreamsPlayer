@@ -43,7 +43,9 @@ function Find-SdkTool([string] $Name) {
 }
 
 if (-not $Version) {
-    $Version = "$((Get-Date).ToUniversalTime().ToString('yy.MMdd.HHmm')).0"
+    # Local time, not UTC: the stamp exists to tell the owner when the package was built, read against
+    # his own clock. This script only ever runs on his machine, so machine-local is that clock.
+    $Version = "$((Get-Date).ToString('yy.MMdd.HHmm')).0"
 }
 if ($Version -notmatch '^\d{2}\.\d{4}\.\d{4}\.0$') { throw 'Version must use YY.MMDD.HHmm.0.' }
 $appVersion = $Version.Substring(0, $Version.Length - 2)
