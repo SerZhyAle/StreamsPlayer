@@ -29,7 +29,7 @@
 
 | Find a channel | Keep your choices | Play the right media |
 | --- | --- | --- |
-| Browse a curated catalog and filter by category, language, country, or media type. | Search, sort, pin, and add your own streams without an account. | Listen to radio in the main window or open live video and RTSP in a focused player window. |
+| Browse a curated catalog and filter by category, topic, language, country, or media type. | Search, sort, pin, and add your own streams without an account. | Listen to radio in the main window or open live video and RTSP in a focused player window. |
 
 STREAMS Player is an independent Windows desktop application for internet radio,
 live video, and RTSP channels. It consumes the published FastMediaSorter stream
@@ -40,6 +40,16 @@ code or features.
 
 - Refresh the catalog only when you choose to. There are no surprise background
   catalog downloads.
+- Watch the catalog and the preview pictures arrive: both downloads show how much
+  is left, and either can be stopped at any point. Stopping one leaves your
+  channel list exactly as it was.
+- Fill the channel list without any internet from the copy of the catalog that
+  ships inside the app. It is offered once on a first launch with an empty list,
+  offered again whenever an update cannot go through, and available at any time
+  from the **Playlists (M3U)** tab in Settings. It only adds and updates channels
+  - it never removes any - and the app always says the list came from the
+  built-in copy and how old that copy is, so it is never mistaken for a fresh
+  download. Applying it is always your choice; nothing happens on its own.
 - Read the published stream bank with RFC-4180 CSV, ZIP entry-order, and optional
   favicon-atlas checks.
 - Protect your `MANUAL` and `IMPORTED` rows while updating the catalog by URL.
@@ -51,9 +61,16 @@ code or features.
   tooltip counts the filters still narrowing the catalog. The broadcast-language
   filter leads with your interface language and its regional variants, and still
   starts on **All**.
+- Narrow the list to one **topic** - the catalog's own set of station topics,
+  from News and Classical to Traffic cams. Topic names are shown in your
+  interface language and sorted in its alphabet, while the catalog itself keeps
+  the original English name, so a list exported from one language reads the same
+  in another. A topic this version has not seen yet is shown as the catalog
+  spells it rather than hidden. **General** covers about half the catalog, so it
+  sits at the end of the list, below the topics that actually narrow it.
 - Reach the actions you use rarely from one **Operations** menu in the header:
   always on top, refresh previews (in grid mode), history, add stream, and
-  **Update catalog**.
+  **Import channels from the internet**.
 - Keep the main window or video player independently always on top, and expand
   video to a borderless full screen with the button or `F11` (`Esc` exits). The
   player's three-dot actions menu keeps its own always-on-top switch alongside
@@ -96,9 +113,20 @@ code or features.
   counts before applying; HLS media manifests import nothing and explain why.
 - Export your added (`MANUAL`/`IMPORTED`) channels, or just the pinned ones, to a
   UTF-8 M3U file, with a warning before writing any credential-bearing URL.
+- Recommend a single channel as an ordinary chat message: **Copy share text** in a
+  channel's actions menu puts one short line on the clipboard, such as
+  `SPCH1 https://example.test/live`, which you paste into Telegram or anywhere else.
+  The recipient chooses **Paste channel** - from the operations menu, or from the
+  empty-catalog panel on a fresh install - reads what it found, and confirms before
+  anything is added as an `IMPORTED` row. The line carries the address and nothing
+  else: the title is derived from the address, so a password or token inside an
+  address is visible to everyone who receives your message, and copying such a
+  channel asks first. A channel you already have is not added twice - the app takes
+  you to it, and offers to restore it if you had hidden it.
 - Delete every downloaded catalog stream in one confirmed action from the
   **Playlists (M3U)** tab in Settings and keep only your own `MANUAL`/`IMPORTED`
-  channels; **Update catalog** downloads them again whenever you want them back.
+  channels; **Import channels from the internet** downloads them again whenever
+  you want them back.
 - Switch the complete interface between thirteen languages from the **Language**
   tab in Settings - the first one, marked with a globe - including right-to-left
   layout for Arabic and Urdu; the choice is restored on the next launch, and the
@@ -114,9 +142,11 @@ code or features.
   station switch and ends the session once when it expires.
 - Store catalog state, manual entries, pins, collections, hidden catalog
   channels, listening history, cached preview frames, and the diagnostic
-  `Current.log` and `Previous.log` under `%LOCALAPPDATA%\StreamsPlayer`.
+  logs of the last ten launches under `%LOCALAPPDATA%\StreamsPlayer` -
+  `Current.log` for the running session, `Session-<date>-<time>.log` for the
+  nine before it.
 - Report a problem with **Send logs to the author** in the **About** tab of
-  Settings: it packs both diagnostic logs plus a short summary of your app
+  Settings: it packs those diagnostic logs plus a short summary of your app
   version, Windows version and settings into one archive in the **Saved files
   folder** (Downloads by default, configurable in Playback settings), then opens
   your mail program with the message prepared. Its confirmation shows the complete
@@ -134,6 +164,12 @@ metadata shows its current track beside the station name and in **Recently
 played**, and in the Windows media session when system media controls are on. The
 video player offers audio-track and subtitle selection whenever a stream carries
 more than one.
+
+Video and RTSP can also run on a second, experimental engine, FlyleafLib, chosen
+in **Settings → Playback** as a fallback for a stream that misbehaves under VLC.
+It needs FFmpeg libraries that are not shipped with the application; the same
+screen states whether they are installed and downloads them on request, and VLC
+stays the default until you change it.
 
 ## Run from source
 
@@ -167,7 +203,9 @@ persisted GUID:
 StreamsPlayer.exe --id "channel-guid"
 ```
 
-An ordinary launch without arguments resumes the last selected saved channel.
+An ordinary launch without arguments starts nothing. Turn on **Resume playback on startup** on the
+Playback tab in Settings and a launch brings back whatever was playing when you last closed the app -
+the radio station and every player window alike. It is off by default.
 
 ## Development
 

@@ -125,7 +125,7 @@ Find a channel
 Curated catalog on first launch - no setup.
 
 @@cap-find-2
-Filter by category, language, country, media type - open the row when you need it.
+Filter by category, topic, language, country, media type - open the row when you need it.
 
 @@cap-find-3
 Search always sits on the title line.
@@ -221,7 +221,7 @@ With the .NET 10 SDK installed, restore, build, and launch from the repository r
 Pick and play
 
 @@use-2-text
-Browse the catalog, filter or search, then select a channel. Radio starts in the main window; video and RTSP open in the player window. Launching with no channel selected resumes the last one you played.
+Browse the catalog, filter or search, then select a channel. Radio starts in the main window; video and RTSP open in the player window. An ordinary launch starts nothing; turn on Resume playback on startup in Settings and it brings back whatever was playing when you last closed the app.
 
 @@use-3-title
 Open any URL directly

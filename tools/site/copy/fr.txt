@@ -125,7 +125,7 @@ Trouver une chaîne
 Catalogue prêt à l'emploi au premier lancement - sans configuration.
 
 @@cap-find-2
-Filtrez par catégorie, langue, pays et type de média - la ligne souvre au besoin.
+Filtrez par catégorie, thème, langue, pays et type de média - la ligne souvre au besoin.
 
 @@cap-find-3
 La recherche est toujours dans la ligne de titre.
@@ -221,7 +221,7 @@ Avec le .NET 10 SDK installé, restaurez, compilez et lancez l'application depui
 Choisir et lire
 
 @@use-2-text
-Parcourez le catalogue, filtrez ou cherchez, puis sélectionnez une chaîne. La radio démarre dans la fenêtre principale ; la vidéo et le RTSP s'ouvrent dans la fenêtre du lecteur. Un lancement sans chaîne sélectionnée reprend la dernière que vous avez lue.
+Parcourez le catalogue, filtrez ou cherchez, puis sélectionnez une chaîne. La radio démarre dans la fenêtre principale ; la vidéo et le RTSP s'ouvrent dans la fenêtre du lecteur. Un lancement ordinaire ne lit rien ; activez « Reprendre la lecture au démarrage » dans les réglages et le lancement retrouve ce qui était en cours de lecture à la dernière fermeture.
 
 @@use-3-title
 Ouvrir n'importe quelle URL directement

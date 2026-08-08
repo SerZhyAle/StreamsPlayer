@@ -63,7 +63,11 @@ dictionaries rather than retranslating it here.
   "catalog", because the transliteration reads as a printed sales catalogue in all three.
 - **channel** and **stream** must stay distinguishable. Where a language would naturally use one word
   for both, the stream term takes the broadcast sense and the channel term the list-row sense.
-- **refresh** is a verb in the UI ("Update catalog"), never a noun, so the imperative form is listed.
+- **refresh** is a verb in the UI, never a noun, so the imperative form is listed. Since SP-0059 it is
+  no longer the *name* of the command that fetches the bank - that command is "Import channels from
+  the internet" (`UpdateCatalogPlain`), which names its source and its effect. The rendering below is
+  still the verb to use wherever a string genuinely means "update something"; do not reconstruct the
+  old button label from it.
 - **preview** in Arabic and Urdu uses the "viewing/inspection" sense rather than a transliteration.
 - **stream** in Ukrainian is "потік", not "трансляція", because `Трансляції` is the localized product
   name. Rendering the unit of playback the same way would collide with the product name in the same

@@ -8,7 +8,7 @@ Explore a curated catalog by category, language, country, or media type. Search 
 
 Choose a compact list or a visual grid. Grid mode can capture current thumbnails for visible HTTP(S) video streams; tile size and automatic thumbnail updates are controlled in Settings. The complete interface is available in thirteen languages, with mirrored right-to-left layout for Arabic and Urdu.
 
-Catalog downloads happen only when you choose Update catalog. STREAMS Player has no account, advertising, analytics, or telemetry. Catalog state, manual entries, favorites, playback marks, settings, and cached thumbnails stay in your Windows profile.
+Catalog downloads happen only when you choose Import channels from the internet. STREAMS Player has no account, advertising, analytics, or telemetry. Catalog state, manual entries, favorites, playback marks, settings, and cached thumbnails stay in your Windows profile.
 
 Playback compatibility depends on the stream provider, network availability, protocol, and media codecs supported by the included or Windows media components. STREAMS Player does not host or control third-party stream content.
 

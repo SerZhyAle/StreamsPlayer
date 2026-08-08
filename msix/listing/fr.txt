@@ -8,7 +8,7 @@ Explorez un catalogue prêt à l'emploi par catégorie, langue, pays ou type de 
 
 Choisissez une liste compacte ou une grille visuelle. En vue en grille, l'application peut capturer les vignettes actuelles des flux vidéo HTTP(S) visibles ; la taille des vignettes et leur actualisation automatique se règlent dans les Paramètres. L'interface complète est disponible en treize langues, avec une mise en page miroir de droite à gauche pour l'arabe et l'ourdou.
 
-Le catalogue ne se télécharge que lorsque vous choisissez « Actualiser le catalogue ». STREAMS Player n'a ni compte, ni publicité, ni analyse d'usage, ni télémétrie. L'état du catalogue, les entrées ajoutées à la main, les favoris, les marques de lecture, les paramètres et les vignettes en cache restent dans votre profil Windows.
+Le catalogue ne se télécharge que lorsque vous choisissez « Importer des chaînes depuis internet ». STREAMS Player n'a ni compte, ni publicité, ni analyse d'usage, ni télémétrie. L'état du catalogue, les entrées ajoutées à la main, les favoris, les marques de lecture, les paramètres et les vignettes en cache restent dans votre profil Windows.
 
 La compatibilité de lecture dépend du fournisseur du flux, de la disponibilité du réseau, du protocole et des codecs pris en charge par les composants multimédias inclus ou par ceux de Windows. STREAMS Player n'héberge pas et ne contrôle pas le contenu des flux tiers.
 

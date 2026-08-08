@@ -132,8 +132,8 @@ entry must render as "no favicons", no error. Never assume a fixed atlas height.
 
 ### A.7 Refresh discipline
 
-Re-fetch the bank only on an **explicit user action** (a "Refresh / Update catalog" command, an "Import
-list" flow, or first-run onboarding). Never auto-download on app launch/update.
+Re-fetch the bank only on an **explicit user action** (an "Import channels from the internet" command,
+an "Import list" flow, or first-run onboarding). Never auto-download on app launch/update.
 
 Today a failed fetch has no fallback: the refresh throws, the UI reports it, and a first launch without a
 network leaves the catalog empty. `SP-0052` proposes shipping a bundled snapshot of the bank (CSV + atlas,
@@ -262,7 +262,7 @@ Your media backend must handle **progressive HTTP(S)** audio and video, **HLS** 
 The Android flavor and user gates (`SUPPORT_STREAMS`, `enableStreams`) are Android-specific and do not
 apply. StreamsPlayer opens directly to its dedicated **Streams window**. It may later offer an optional
 pinned-channel panel/strip, settings, and Windows shortcuts. The catalog download belongs behind an
-explicit "Update catalog" / "Import list" action and/or first-run onboarding.
+explicit "Import channels from the internet" / "Import list" action and/or first-run onboarding.
 
 ---
 

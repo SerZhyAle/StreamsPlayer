@@ -125,7 +125,7 @@ Encontrar un canal
 Catálogo ya preparado en el primer arranque - sin configuración.
 
 @@cap-find-2
-Filtra por categoría, idioma, país y tipo de medio: la fila se abre cuando la necesitas.
+Filtra por categoría, tema, idioma, país y tipo de medio: la fila se abre cuando la necesitas.
 
 @@cap-find-3
 La búsqueda está siempre en la línea del título.
@@ -221,7 +221,7 @@ Con el .NET 10 SDK instalado, restaura, compila y lanza la aplicación desde la 
 Elegir y reproducir
 
 @@use-2-text
-Explora el catálogo, filtra o busca y luego selecciona un canal. La radio empieza en la ventana principal; el vídeo y RTSP se abren en la ventana del reproductor. Si lo inicias sin ningún canal seleccionado, se reanuda el último que reprodujiste.
+Explora el catálogo, filtra o busca y luego selecciona un canal. La radio empieza en la ventana principal; el vídeo y RTSP se abren en la ventana del reproductor. Un inicio normal no reproduce nada; activa «Reanudar la reproducción al iniciar» en los ajustes y el inicio recupera lo que estaba sonando en el último cierre.
 
 @@use-3-title
 Abrir cualquier URL directamente

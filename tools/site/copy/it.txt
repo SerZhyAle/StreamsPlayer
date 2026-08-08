@@ -125,7 +125,7 @@ Trovare un canale
 Catalogo già pronto al primo avvio - senza configurazione.
 
 @@cap-find-2
-Filtri per categoria, lingua, paese e tipo di media - la riga si apre quando serve.
+Filtri per categoria, argomento, lingua, paese e tipo di media - la riga si apre quando serve.
 
 @@cap-find-3
 La ricerca è sempre nella riga del titolo.
@@ -221,7 +221,7 @@ Con .NET 10 SDK installato, esegui ripristino, build e avvio dalla radice del re
 Scegli e riproduci
 
 @@use-2-text
-Sfoglia il catalogo, filtra o cerca, poi seleziona un canale. La radio parte nella finestra principale; video e RTSP si aprono nella finestra del lettore. Se avvii senza un canale selezionato, riprende l'ultimo che hai riprodotto.
+Sfoglia il catalogo, filtra o cerca, poi seleziona un canale. La radio parte nella finestra principale; video e RTSP si aprono nella finestra del lettore. Un avvio normale non riproduce nulla; attiva «Riprendi la riproduzione all'avvio» nelle impostazioni e l'avvio riporta ciò che era in riproduzione alla chiusura precedente.
 
 @@use-3-title
 Aprire un URL qualsiasi

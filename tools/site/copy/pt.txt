@@ -125,7 +125,7 @@ Encontrar um canal
 Catálogo pronto na primeira execução - sem configuração.
 
 @@cap-find-2
-Filtro por categoria, idioma, país e tipo de mídia - a linha abre quando você precisa.
+Filtro por categoria, tema, idioma, país e tipo de mídia - a linha abre quando você precisa.
 
 @@cap-find-3
 A pesquisa fica sempre na linha do título.
@@ -221,7 +221,7 @@ Com o .NET 10 SDK instalado, restaure, compile e inicie a partir da raiz do repo
 Escolher e reproduzir
 
 @@use-2-text
-Percorra o catálogo, filtre ou pesquise e então selecione um canal. O rádio começa na janela principal; vídeo e RTSP abrem na janela do player. Iniciar sem nenhum canal selecionado retoma o último que você reproduziu.
+Percorra o catálogo, filtre ou pesquise e então selecione um canal. O rádio começa na janela principal; vídeo e RTSP abrem na janela do player. Um início comum não reproduz nada; ative «Retomar a reprodução ao iniciar» nas configurações e o início traz de volta o que estava tocando no último fechamento.
 
 @@use-3-title
 Abrir qualquer URL diretamente

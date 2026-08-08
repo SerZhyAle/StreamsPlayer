@@ -295,7 +295,7 @@ Playback support varies by stream protocol, provider availability, and codec
 STREAMS Player does not require an account, payment, activation, or test credentials.
 
 Suggested test path:
-1. Start the app and choose Update catalog.
+1. Start the app and choose Import channels from the internet.
 2. Search or filter the catalog and play an audio entry.
 3. Switch to Grid mode to observe cached/live thumbnails for visible HTTP(S) video entries.
 4. Open Settings to change tile size and disable or re-enable automatic thumbnails.

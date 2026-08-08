@@ -8,7 +8,7 @@ Explora un catálogo ya preparado por categoría, idioma, país o tipo de medio.
 
 Elige una lista compacta o una cuadrícula visual. En la vista de cuadrícula la aplicación puede capturar las miniaturas actuales de las transmisiones de vídeo HTTP(S) visibles; el tamaño del mosaico y la actualización automática de las miniaturas se controlan en Ajustes. La interfaz completa está disponible en trece idiomas, con diseño reflejado de derecha a izquierda para el árabe y el urdu.
 
-El catálogo se descarga solo cuando eliges «Actualizar catálogo». STREAMS Player no tiene cuenta, publicidad, analítica ni telemetría. El estado del catálogo, las entradas añadidas a mano, los favoritos, las marcas de reproducción, los ajustes y las miniaturas en caché se quedan en tu perfil de Windows.
+El catálogo se descarga solo cuando eliges «Importar canales de internet». STREAMS Player no tiene cuenta, publicidad, analítica ni telemetría. El estado del catálogo, las entradas añadidas a mano, los favoritos, las marcas de reproducción, los ajustes y las miniaturas en caché se quedan en tu perfil de Windows.
 
 La compatibilidad de reproducción depende del proveedor de la transmisión, de la disponibilidad de la red, del protocolo y de los códecs de medios que admitan los componentes multimedia incluidos o los de Windows. STREAMS Player no aloja ni controla el contenido de transmisiones de terceros.
 

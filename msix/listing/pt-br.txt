@@ -8,7 +8,7 @@ Explore um catálogo selecionado por categoria, idioma, país ou tipo de mídia.
 
 Escolha uma lista compacta ou uma grade visual. No modo de grade, o aplicativo pode capturar as miniaturas atuais das transmissões de vídeo HTTP(S) visíveis; o tamanho dos blocos e a atualização automática das miniaturas ficam em Configurações. A interface completa está disponível em treze idiomas, com layout espelhado da direita para a esquerda para árabe e urdu.
 
-O catálogo só é baixado quando você escolhe Atualizar catálogo. O STREAMS Player não tem conta, publicidade, análise de uso nem telemetria. O estado do catálogo, as entradas manuais, os canais fixados, as marcas de reprodução, as configurações e as miniaturas em cache ficam no seu perfil do Windows.
+O catálogo só é baixado quando você escolhe Importar canais da internet. O STREAMS Player não tem conta, publicidade, análise de uso nem telemetria. O estado do catálogo, as entradas manuais, os canais fixados, as marcas de reprodução, as configurações e as miniaturas em cache ficam no seu perfil do Windows.
 
 A compatibilidade de reprodução depende do provedor da transmissão, da disponibilidade da rede, do protocolo e dos codecs de mídia suportados pelos componentes de mídia incluídos ou pelos do Windows. O STREAMS Player não hospeda nem controla o conteúdo de transmissões de terceiros.
 

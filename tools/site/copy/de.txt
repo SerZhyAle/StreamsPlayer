@@ -125,7 +125,7 @@ Einen Kanal finden
 Fertiger Katalog beim ersten Start - ohne Einrichtung.
 
 @@cap-find-2
-Filter nach Kategorie, Sprache, Land und Medienart - Zeile bei Bedarf einblenden.
+Filter nach Kategorie, Thema, Sprache, Land und Medienart - Zeile bei Bedarf einblenden.
 
 @@cap-find-3
 Die Suche liegt immer in der Titelzeile.
@@ -221,7 +221,7 @@ Mit installiertem .NET 10 SDK aus dem Wurzelverzeichnis des Repositorys wiederhe
 Wählen und abspielen
 
 @@use-2-text
-Katalog durchsuchen, filtern oder suchen und dann einen Kanal auswählen. Radio startet im Hauptfenster; Video und RTSP öffnen sich im Playerfenster. Ein Start ohne ausgewählten Kanal setzt den zuletzt abgespielten fort.
+Katalog durchsuchen, filtern oder suchen und dann einen Kanal auswählen. Radio startet im Hauptfenster; Video und RTSP öffnen sich im Playerfenster. Ein gewöhnlicher Start spielt nichts ab; aktivieren Sie in den Einstellungen „Wiedergabe beim Start fortsetzen“, und der Start holt zurück, was beim letzten Schließen lief.
 
 @@use-3-title
 Eine beliebige URL direkt öffnen

@@ -8,7 +8,7 @@ Durchsuchen Sie einen gepflegten Katalog nach Kategorie, Sprache, Land oder Medi
 
 Wählen Sie eine kompakte Liste oder ein visuelles Raster. Im Raster kann die App aktuelle Miniaturbilder sichtbarer HTTP(S)-Video-Streams aufnehmen; Kachelgröße und automatische Aktualisierung der Miniaturbilder werden in den Einstellungen gesteuert. Die vollständige Benutzeroberfläche gibt es in dreizehn Sprachen, mit gespiegeltem Layout von rechts nach links für Arabisch und Urdu.
 
-Der Katalog wird nur geladen, wenn Sie „Katalog aktualisieren“ wählen. STREAMS Player hat kein Konto, keine Werbung, keine Analyse und keine Telemetrie. Katalogzustand, manuelle Einträge, Favoriten, Wiedergabemarken, Einstellungen und zwischengespeicherte Miniaturbilder bleiben in Ihrem Windows-Profil.
+Der Katalog wird nur geladen, wenn Sie „Kanäle aus dem Internet importieren“ wählen. STREAMS Player hat kein Konto, keine Werbung, keine Analyse und keine Telemetrie. Katalogzustand, manuelle Einträge, Favoriten, Wiedergabemarken, Einstellungen und zwischengespeicherte Miniaturbilder bleiben in Ihrem Windows-Profil.
 
 Die Wiedergabefähigkeit hängt vom Stream-Anbieter, der Netzwerkverfügbarkeit, dem Protokoll und den Mediencodecs ab, die von den mitgelieferten oder von den Windows-Medienkomponenten unterstützt werden. STREAMS Player hostet oder kontrolliert keine Stream-Inhalte Dritter.
 

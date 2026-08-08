@@ -28,21 +28,36 @@ We only found the real cause after adding structured diagnostics. Log, per playb
 
 - **Time-to-first-frame** (open → first rendered frame).
 - **Stall start / resume** (buffering begins after playback was live; and when it recovers).
-- **Periodic counters** (~every 2 s): input bytes, demux bytes, **decoded / rendered / dropped
-  frames**.
+- **Periodic counters** (~every 2 s): demux bytes, a **rate you computed yourself** from them, and
+  **decoded / rendered / dropped frames**.
 - **The player's own warning/error log** - this is where the true cause shows up.
+
+**Two counters that look informative and are not.** Both cost us months of wrong conclusions:
+
+- **Input bytes / input bitrate are dead on HLS.** libVLC fills them from the access module, but
+  the HLS and DASH demuxers fetch segments through their own downloader below that layer. A
+  2026-08-07 log held `read_bytes=364` and `in_bitrate=0` for an entire 124-second session that
+  played fine. Never read "input bytes frozen" as starvation on a `.m3u8` - it is frozen always.
+  Difference the **demux** byte counter over wall time and publish that instead.
+- **Decoded and rendered counters do not count the same event, so their difference is not loss.**
+  On a stream measured playing smoothly at 27-32 fps, libVLC still reported `decoded_v` at almost
+  exactly **twice** `displayed` (2235 vs 1083) with zero dropped frames. We briefly shipped that
+  difference as a "skipped frames" column and it reported 50 % loss on a healthy stream. Do not
+  reason from the gap between two counters whose semantics you have not verified.
 
 **Decision rule:**
 
 | Observation | Conclusion | Action |
 |---|---|---|
-| Rendered frames frozen, bytes still arriving | Clock or decode problem | §2, §3 |
+| Rendered frames frozen, demux bytes still arriving | Clock or decode problem | §2, §3 |
 | Dropped/lost frames climbing | Decode or timestamp problem | §2, §3 |
-| Input bytes frozen | Real network starvation | buffer/retry helps |
+| Rendered **fps** below the stream's nominal rate | Clock or decode problem | §2, §3 |
+| Clock/timestamp messages recurring in the player log | Clock thrash | §3 |
+| Demux byte rate collapsing | Real network starvation | buffer/retry helps |
 
-**HLS caveat:** the "input bytes / input bitrate" counter often reflects only the `.m3u8`
-playlist read, **not** the segment downloads. For HLS, trust the **frame counters**
-(rendered vs dropped), not input bitrate, to judge whether the network is the problem.
+**The single most useful number is the rendered frame rate**, differenced from the rendered-frame
+counter over wall time. It needs no assumption about what any counter means, it is what the user
+is complaining about, and it is directly comparable to the stream's nominal rate.
 
 ---
 
@@ -83,16 +98,41 @@ available, and force software only for streams you've measured as HW-problematic
 `playback way too early (-1011084): playing silence`. The streams emit inconsistent
 timestamps; the player's clock sync thrashes, plays silence, and drops late pictures.
 
-**What helped (desktop libVLC):**
+**What `--clock-jitter` actually does** (corrected 2026-08-07 - the earlier text in this section
+had it backwards, and the wrong reading was shipped in the code comment too):
 
-- `--clock-jitter=0` - ignore clock jitter and play as soon as possible instead of stalling to
-  silence on every timestamp jump. This dropped our worst jitter from ~9 s to <250 ms.
-- `--no-drop-late-frames` - **the biggest win for the per-second micro-stutter.** On broken
-  streams the video output was discarding ~1/3 of frames as "picture is too late to be
-  displayed" (≈8 dropped frames/sec, seen as a small freeze every second). Displaying the
-  slightly-late frames instead removed the drops entirely (35 → 0 in a controlled test on the
-  same stream) at the cost of a few tens of ms of latency. Decode was never the bottleneck -
-  it was the vout dropping late frames.
+It is a **compensation budget, not a leniency switch.** VLC's own help calls it "the maximal
+input jitter that is considered valid and **can be compensated** (in milliseconds)", default
+5000. Jitter *within* the budget is absorbed silently; jitter *beyond* it is left uncompensated,
+which drops the clock reference. So `--clock-jitter=0` compensates **nothing** - every late PCR,
+however small, breaks the clock.
+
+We originally read the option the other way round and shipped 0, then recorded "worst jitter
+9 s → <250 ms" as a win. That number fell because VLC stopped *accumulating* a compensation
+window, not because the stream got smoother: we traded a few large freezes for a continuous
+stream of small clock resets. A 2026-08-07 tester log over 19 minutes of normal viewing shows
+what that costs:
+
+| symptom | count |
+|---|---|
+| `Timestamp conversion failed .. no reference clock` | 156 |
+| `Could not convert timestamp 0 for FFmpeg` | 102 |
+| `PCR is called too late (jitter of 100-335 ms)` | 86 |
+| `playback way too early (-1.0 s): playing silence` | 63 |
+| `early picture skipped` | 46 |
+
+Those message counts are the evidence. **Count the player's own clock messages; do not try to
+infer the loss from `decoded` minus `displayed`.** We tried exactly that - the same log showed
+20-50 % of decoded frames apparently never displayed with `lost_pics` at 0, which looked like a
+smoking gun - and then a controlled local run disproved it: on a stream playing visibly smoothly
+at its full rate, `decoded_v` still ran at almost exactly **twice** `displayed` (2235 vs 1083)
+while measured output held a steady 27-32 fps. The two counters simply do not count the same
+event. What a stutter actually looks like is the rendered **frame rate** falling - so measure
+that directly (§1).
+
+**What we now ship (desktop libVLC):** `--clock-jitter=1000` - wide enough to absorb every
+steady-state jitter sample observed (100-335 ms), far below the 5 s of latency growth the
+default permits.
 
 **What we tried and rejected:**
 
@@ -102,9 +142,16 @@ timestamps; the player's clock sync thrashes, plays silence, and drops late pict
   Do **not** ship this globally. If you need it, gate it behind a per-stream opt-in and watch
   for a growing decoded-vs-displayed gap.
 
-**Lesson:** prefer options that make the player *tolerate* bad timing (don't drop, ignore
-jitter) over options that *remove the clock reference* - the latter can turn a stutter into a
-freeze.
+**What is still open:** `--no-drop-late-frames`. An earlier revision of this section called it
+"the biggest win for the per-second micro-stutter" (35 → 0 dropped frames in one controlled
+test), but it is **not** in the shipped option set in §8 and never has been - treat that claim as
+unverified. Note also that it can only affect the *late*-drop path, so it does **not** explain
+the early-skip losses above. Re-measure it separately, after the clock is fixed.
+
+**Lesson:** understand what an option does to the *clock reference* before tuning it. Both of the
+mistakes in this section - shipping `clock-jitter=0` and trying `no-ts-trust-pcr` - came from
+reaching for something that removes or starves the clock, and both turned a stutter into a worse
+stutter or a freeze.
 
 **Android mapping:** ExoPlayer is generally more tolerant here and re-derives HLS timing across
 discontinuities on its own. There is no exact 1:1 for `no-ts-trust-pcr`, but:
@@ -278,7 +325,7 @@ For anyone using libVLC on Android, these map 1:1:
 
 ```
 # LibVLC init (live player):
---no-video-title-show --no-osd --no-snapshot-preview --rtsp-tcp --clock-jitter=0 --avcodec-hw=none
+--no-video-title-show --no-osd --no-snapshot-preview --rtsp-tcp --clock-jitter=1000 --avcodec-hw=none
 
 # Per-media options (live player):
 :network-caching=15000
@@ -292,7 +339,10 @@ For anyone using libVLC on Android, these map 1:1:
 ```
 
 (`--no-snapshot-preview` stops VLC drawing the grabbed frame as a corner overlay - see §6.5.
-`--no-ts-trust-pcr` is the next lever to try for streams that still micro-stutter from bad PCR.)
+`--clock-jitter` was `0` until 2026-08-07; §3 explains why that was a misreading of the option.
+`--avcodec-hw=none` on the init line pins software decode instance-wide and therefore overrides
+any per-media `:avcodec-hw`, so on libVLC the decode mode is **not** a per-stream choice.
+Do **not** add `--no-ts-trust-pcr`; `--no-drop-late-frames` is unverified - see §3.)
 
 ---
 
@@ -300,7 +350,12 @@ For anyone using libVLC on Android, these map 1:1:
 
 - **Time-to-first-frame**, **stall count + durations**.
 - **Rendered vs dropped frames:** `AnalyticsListener.onDroppedVideoFrames(...)`,
-  `onRenderedFirstFrame(...)`.
+  `onRenderedFirstFrame(...)`. Publish them as **separate** numbers, but read them as separate
+  numbers too - their difference is not loss unless you have verified they count the same event (§1).
+- **The rendered frame rate**, differenced from the rendered-frame counter over wall time. This is
+  the number that tracks the complaint (§1).
+- **A byte rate you computed yourself**, differenced from a counter you can see move on HLS -
+  not the player's own input-bitrate field (§1).
 - **Decoder chosen (HW vs SW):** `onVideoDecoderInitialized(...)` (inspect the decoder name).
 - **Errors with codes:** `onPlayerError(PlaybackException)` - e.g.
   `ERROR_CODE_IO_NETWORK_CONNECTION_FAILED`, `ERROR_CODE_DECODER_INIT_FAILED`,
@@ -326,13 +381,23 @@ Test stream: `http://88.212.15.19/live/test_ctsport_25p/playlist.m3u8` (HLS, 25 
 The residual is the **stream's own defect** (invalid timestamps) - now *tolerated* (a few
 percent dropped frames) rather than *fatal* (multi-second freezes).
 
+**Read the "worst clock jitter" row with §3 in hand.** That number fell because
+`--clock-jitter=0` stopped VLC accumulating a compensation window, not because the timing got
+better. What the table does not show - because nothing was measuring it - is the residual left
+behind: a 2026-08-07 tester log over 19 minutes still carried 156 lost clock references, 63
+silence fills and 46 early-skipped pictures during ordinary viewing, reported by the user as a
+sharp picture with jerky motion. The 2026-08-07 revision (`--clock-jitter=1000`) targets exactly
+that residual. A before/after belongs in this table once measured on the same stream, with the
+rendered frame rate of §1 as the metric.
+
 ---
 
 ### Priority order if you only do a few things
 
 1. **Decoder fallback on** (Android) / software decode for known-bad streams (§2).
 2. **Do not reconnect to grow the buffer**; rebuffer in place; one sane buffer value (§4).
-3. **Tolerate bad clocks** - `clock-jitter=0`, and let ExoPlayer manage HLS live timing (§3).
+3. **Give the clock a compensation budget** - `clock-jitter=1000`, **not** `0`, and let ExoPlayer
+   manage HLS live timing (§3).
 4. **RTSP over TCP** (§5).
 5. **Instrument** so the above are measured, not guessed (§1, §9).
 
@@ -357,8 +422,18 @@ FlyleafLib parity against this baseline (measured / expected):
 
 Deployment caveats (surface as the experimental label, never as a crash):
 
-- The **FFmpeg v8 native binaries are not delivered by NuGet**; they must be deployed (x64 only)
-  into an `FFmpeg` folder beside the executable. If absent - or on win-arm64 - the engine fails to
-  start and the app **silently falls back to LibVLC** (logged as `FLYLEAF FALLBACK to=libvlc`).
+- The **FFmpeg natives are not delivered by NuGet and are not shipped in any package**. Settings →
+  Playback downloads them on an explicit click, into `%LOCALAPPDATA%\StreamsPlayer\FFmpeg`, and
+  states there whether they are present. A complete set in an `FFmpeg` folder beside the executable
+  still wins if one exists, which keeps a hand-deployed folder working; `FLYLEAF ENGINE` logs
+  `source=app` or `source=user` accordingly.
+- The download is **LGPL-3.0** (`BtbN/FFmpeg-Builds`, `ffmpeg-n8.1-latest-win64-lgpl-shared`). The
+  natives published alongside FlyleafLib itself are built `--enable-gpl --enable-version3`, so they
+  are deliberately not used: shipping or fetching them by default would impose GPLv3 terms the
+  product does not carry. Both builds export the same sonames, so the bindings bind to either.
+- If the components are absent - or on win-arm64 - the engine fails to start and the app falls back
+  to LibVLC (logged as `FLYLEAF FALLBACK to=libvlc`). The fallback is **announced**: Settings warns
+  when FlyleafLib is saved without its components, so the user is never left believing they are on
+  an engine that never started.
 - Running LibVLC and FlyleafLib native stacks in the same process is not upstream-verified; the
   engines are used one at a time per player window.

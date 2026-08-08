@@ -8,7 +8,7 @@ Esplora un catalogo curato per categoria, lingua, paese o tipo di media. Cerca e
 
 Scegli un elenco compatto o una griglia visiva. Nella vista griglia l'app può catturare le miniature attuali dei flussi video HTTP(S) visibili; la dimensione dei riquadri e l'aggiornamento automatico delle miniature si regolano nelle Impostazioni. L'interfaccia completa è disponibile in tredici lingue, con layout speculare da destra a sinistra per arabo e urdu.
 
-Il catalogo viene scaricato solo quando scegli «Aggiorna catalogo». STREAMS Player non ha account, pubblicità, analisi o telemetria. Stato del catalogo, voci aggiunte a mano, preferiti, contrassegni di riproduzione, impostazioni e miniature nella cache restano nel tuo profilo Windows.
+Il catalogo viene scaricato solo quando scegli «Importa canali da internet». STREAMS Player non ha account, pubblicità, analisi o telemetria. Stato del catalogo, voci aggiunte a mano, preferiti, contrassegni di riproduzione, impostazioni e miniature nella cache restano nel tuo profilo Windows.
 
 La compatibilità di riproduzione dipende dal fornitore del flusso, dalla disponibilità della rete, dal protocollo e dai codec multimediali supportati dai componenti multimediali inclusi nell'app o da quelli di Windows. STREAMS Player non ospita né controlla i contenuti dei flussi di terze parti.
 
