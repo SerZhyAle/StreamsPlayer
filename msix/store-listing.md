@@ -63,6 +63,18 @@ Version REPLACE_VERSION
 
 ### Prepared for 26.0809.0022
 
+**Released on GitHub and submitted to winget on 2026-08-09; the Partner Center upload is still to
+happen.** The package is built and waiting at `msix/dist/StreamsPlayer-26.0809.0022-windows-x64.msix`
+(139 133 279 bytes, Identity `SZA.StreamsPlayer`, Publisher `CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD`,
+Identity Version `26.809.22.0`, x64, `runFullTrust` only, `THIRD-PARTY-NOTICES.txt` inside), and the
+listing import with this version's notes in all thirteen languages is at
+`msix/dist/store-listing-import.csv`, built from the owner's 2026-08-08 export. Both steps past that -
+the upload and the certification submission - are console work only.
+
+Screenshots under `assets/store/` still date from 2026-07-27 and therefore predate the dark theme, the
+consolidated header and everything in this release. They were already stale for 26.0806.2225 and are
+not a blocker, but they are the obvious next thing to regenerate.
+
 Everything on `main` after 26.0806.2225, which is the Store's own previous stamp, and after
 26.0806.2131 on GitHub and winget. The two channels converge again here - this one text goes to the
 GitHub Release body, the three winget locale manifests and Partner Center, because it was written

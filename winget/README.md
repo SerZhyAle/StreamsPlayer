@@ -39,20 +39,23 @@ fine (2026-07-27).
 Either way, winget can only be refreshed **after** an approved GitHub Release
 exists. The package is live; use the flow above to submit each subsequent version.
 
-Submission state re-checked against the API on 2026-08-06. Both of the submissions
-that were open on 2026-07-30 have merged - [#408215](https://github.com/microsoft/winget-pkgs/pull/408215)
-for 26.0727.0253 on 2026-07-30, [#408825](https://github.com/microsoft/winget-pkgs/pull/408825)
-for 26.0728.1352 on 2026-08-06 - so `winget-pkgs` now publishes four versions up
-to **26.0728.1352** and no submission for this package is open. Review latency
-there is days, not hours: do not treat an unmerged PR as a failure, and do not
-re-submit the same version because it has not landed yet.
+Submission state re-checked against the API on 2026-08-09. `winget show
+SerZhyAle.StreamsPlayer --versions` still lists only four versions, up to
+**26.0728.1352**: [#413363](https://github.com/microsoft/winget-pkgs/pull/413363)
+for 26.0806.2131 has been **open since 2026-08-06** and has not merged. Review
+latency there is days, not hours - do not treat an unmerged PR as a failure, and
+do not re-submit the same version because it has not landed yet.
 
-The pile-up the previous note worried about resolved itself, and the queue was
-empty when 26.0806.2131 was submitted as
-[#413363](https://github.com/microsoft/winget-pkgs/pull/413363), so that release
-needed none of the three options it listed. 26.0730.1512 was never submitted here;
-the package therefore steps from 26.0728.1352 straight to 26.0806.2131, which is
-legal - winget carries versions, not a chain.
+26.0809.0022 was submitted on 2026-08-09 as
+[#414229](https://github.com/microsoft/winget-pkgs/pull/414229) while #413363 was
+still open. Two open submissions for the same package are legal - winget carries
+versions, not a chain - and the earlier two, [#408215](https://github.com/microsoft/winget-pkgs/pull/408215)
+for 26.0727.0253 and [#408825](https://github.com/microsoft/winget-pkgs/pull/408825)
+for 26.0728.1352, merged the same way. **26.0806.2131 is nonetheless superseded**:
+26.0809.0022 contains everything it did, and its archive is about 36% smaller
+because the LibVLC native-tree fix landed after it was cut. #414229 says so and
+leaves closing #413363 to the owner or a reviewer; nothing breaks if both merge.
+26.0730.1512 was never submitted here at all.
 
 `wingetcreate ... --submit` could not open that pull request: it refuses to run
 until the fork's `master` is synced with upstream, and the sync fails because the
