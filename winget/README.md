@@ -29,6 +29,25 @@ Manual alternative (when you need full control of the manifest):
 4. Validate with `winget validate --manifest <folder>` and submit a pull request
    to `microsoft/winget-pkgs`.
 
+**Read this before writing a single word of the pull request.** Fetch
+`microsoft/winget-pkgs` `.github/PULL_REQUEST_TEMPLATE.md` at submission time and use it verbatim -
+its headings, its wording, its checklist, in its order - putting an `x` only in boxes that are
+genuinely true. Never write a body of your own structure, never paraphrase the checklist from memory,
+and never append this project's own commit footer: the maintainer bots parse the template, so a
+rewritten one reads as an unfilled one. The template also states the **title** format in an HTML
+comment on its first line. For a package already in the repository that is
+`Update: SerZhyAle.StreamsPlayer to <version>`, **not** `New version: ...`; the wrong title gets the
+submission labelled `New-Manifest`, which says an existing package is brand new, and editing the
+title afterwards does not take the label back off.
+
+This has now gone wrong on three submissions - #408215 on 2026-07-27, and #414229 on 2026-08-09,
+which was opened with a hand-written body and the `New version:` title and picked up `New-Manifest`
+within the minute. It is written here, at the step where it happens, precisely because it was already
+written in `memory/MEMORY.md` and that was not enough. The template changes: on 2026-08-09 it carried
+`## 📖 Description`, `## ✅ Checklist` and `## 📦 Manifest Checklist`, including a
+`This PR only modifies one (1) manifest` box that did not exist in July. Fetch it; do not reproduce
+the version quoted here.
+
 **Release notes must not contain `": "`.** Every `REPLACE_...` token sits in a plain YAML scalar, so
 a colon-plus-space anywhere in the substituted text makes the YAML scanner read it as a nested
 mapping and `winget validate` fails with "mapping values are not allowed in this context". Use a

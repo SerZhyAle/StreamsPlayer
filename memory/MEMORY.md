@@ -24,6 +24,19 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   complaint, despite the manifest itself being correct and the Azure pipeline passing.
   This overrides the house rule about the Claude Code footer in PR bodies: that rule is for this
   project's own PRs, and a third-party template wins over it.
+  **It happened again on 2026-08-09**, PR #414229, in the same two ways - a self-invented body with
+  its own `### Validation` heading, and the `New version:` title - and `New-Manifest` was attached
+  within the minute. Editing the title afterwards did not remove the label.
+  Why the entry did not prevent it, which is the part worth keeping: this file was never opened that
+  session. It was grepped for one line and appended to, and the top was never read, so an entry
+  sitting at line 12 changed nothing. **Two conclusions.** Read this file before acting, not while
+  editing it. And a rule that guards one step belongs at that step as well as here - the winget rule
+  now also lives in `winget/README.md` beside "submit a pull request", which is the document actually
+  open during a release. Treat a repeat of a recorded correction as evidence the rule is in the wrong
+  place, not only as a lapse.
+  Also: the template is not stable. On 2026-08-09 it had emoji headings (`## 📖 Description`,
+  `## ✅ Checklist`, `## 📦 Manifest Checklist`) and a `This PR only modifies one (1) manifest` box
+  that did not exist in July. Fetch it every time; never reproduce a remembered copy.
 
 ## Project
 
