@@ -47,15 +47,21 @@ latency there is days, not hours - do not treat an unmerged PR as a failure, and
 do not re-submit the same version because it has not landed yet.
 
 26.0809.0022 was submitted on 2026-08-09 as
-[#414229](https://github.com/microsoft/winget-pkgs/pull/414229) while #413363 was
-still open. Two open submissions for the same package are legal - winget carries
-versions, not a chain - and the earlier two, [#408215](https://github.com/microsoft/winget-pkgs/pull/408215)
-for 26.0727.0253 and [#408825](https://github.com/microsoft/winget-pkgs/pull/408825)
-for 26.0728.1352, merged the same way. **26.0806.2131 is nonetheless superseded**:
-26.0809.0022 contains everything it did, and its archive is about 36% smaller
-because the LibVLC native-tree fix landed after it was cut. #414229 says so and
-leaves closing #413363 to the owner or a reviewer; nothing breaks if both merge.
-26.0730.1512 was never submitted here at all.
+[#414229](https://github.com/microsoft/winget-pkgs/pull/414229), and #413363 was
+then **closed as superseded** on the owner's call: 26.0809.0022 contains
+everything 26.0806.2131 did, and its archive is about 36% smaller because the
+LibVLC native-tree fix landed after that version was cut. Merging both would have
+added a strictly worse 221 MB build to the version list. Two open submissions for
+the same package would have been legal - winget carries versions, not a chain -
+so this was hygiene, not necessity. The earlier two,
+[#408215](https://github.com/microsoft/winget-pkgs/pull/408215) for 26.0727.0253
+and [#408825](https://github.com/microsoft/winget-pkgs/pull/408825) for
+26.0728.1352, merged normally. 26.0730.1512 was never submitted here at all.
+
+**The lesson worth keeping**: this note claimed 26.0806.2131 was submitted
+cleanly and left it at that, so the next release assumed the source carried it.
+It did not - the PR sat open for three days. Re-check `winget show <id>
+--versions` against the API at the start of a release, not the note.
 
 `wingetcreate ... --submit` could not open that pull request: it refuses to run
 until the fork's `master` is synced with upstream, and the sync fails because the
