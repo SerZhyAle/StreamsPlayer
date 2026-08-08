@@ -88,15 +88,22 @@ public sealed class HttpDownloadTests
     [Fact]
     public async Task ReadAllBytes_DoesNotCutASlowButLiveTransfer()
     {
-        // Six chunks, 100 ms apart: the transfer runs well past the 200 ms idle bound while never being
+        // Fifteen chunks, 100 ms apart: the transfer runs past the 1 s idle bound while never being
         // silent for it. This is the whole of the decision - the bound is on silence, not on duration.
-        var body = Body(6 * 1024);
+        //
+        // The two margins are deliberately lopsided. Duration only ever grows - Task.Delay is a floor,
+        // never a ceiling - so 1.5 s against a 1 s bound cannot shrink below it however loaded the
+        // machine is. The silent gap is the fragile side, and it was 100 ms against 200 ms until
+        // 2026-08-09, when a GitHub runner stretched one delay past the bound and failed this test
+        // twice in a row on a commit that passed locally and in the release job. Ten times the drip
+        // is the room that costs 0.9 s of test time and buys a gate that does not lie.
+        var body = Body(15 * 1024);
         using var response = Responding(
             new DrippingStream(body, chunkBytes: 1024, delay: TimeSpan.FromMilliseconds(100)),
             declaredLength: body.Length);
 
         var bytes = await HttpDownload.ReadAllBytesAsync(
-            response, null, null, TimeSpan.FromMilliseconds(200), default);
+            response, null, null, TimeSpan.FromSeconds(1), default);
 
         Assert.Equal(body, bytes);
     }
