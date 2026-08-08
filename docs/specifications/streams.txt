@@ -230,8 +230,11 @@ Your media backend must handle **progressive HTTP(S)** audio and video, **HLS** 
 
 > **What the Windows build actually does.** The adaptive-buffer and live-window numbers below were *not*
 > mirrored: LibVLC gets a fixed 15 s live buffer, dropping to 4 s when a stalled stream is re-opened, and
-> growing it was tried and did not help. The **recovery budgets and backoff** below *were* mirrored
-> (`LivePlaybackRecoveryPolicy`). Read this part as the Android reference it is, not as shipped behaviour.
+> growing it was tried and did not help. The **backoff curves** below were mirrored
+> (`LivePlaybackRecoveryPolicy`), and so are the budgets of **3**; the two budgets of **4** are **2** on
+> Windows (SP-0079). Four transient attempts on the exponential curve is about two minutes of black
+> screen before the user is offered Retry, and SP-0072 put that wait on screen where it can be read.
+> Read this part as the Android reference it is, not as shipped behaviour.
 
 - **HTTP data source**: connect/read timeout **15,000 ms**; **allow cross-protocol redirects** (Icecast/
   Shoutcast relays hop http<->https); send `Icy-MetaData: 1`; support **Basic Auth from a

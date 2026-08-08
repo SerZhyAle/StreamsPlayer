@@ -12,15 +12,18 @@ public sealed class LivePlaybackRecoveryPolicyTests
     [Fact]
     public void Transient_FollowsExponentialBackoffThenHardFails()
     {
+        // SP-0079: two attempts, not Part D's four. The backoff curve is unchanged, so the budget is the
+        // only thing that moved - and the whole point of moving it is the total wait, which is why the
+        // delays are asserted alongside it rather than left implied.
         var policy = new LivePlaybackRecoveryPolicy();
-        var expected = new[] { 2, 4, 8, 16 };
+        var expected = new[] { 2, 4 };
         for (var i = 0; i < expected.Length; i++)
         {
             var decision = policy.Decide(Transient());
             Assert.Equal(RecoveryActionKind.Reconnect, decision.Kind);
             Assert.Equal(RecoveryTrigger.Transient, decision.Trigger);
             Assert.Equal(i + 1, decision.Attempt);
-            Assert.Equal(4, decision.Budget);
+            Assert.Equal(2, decision.Budget);
             Assert.Equal(TimeSpan.FromSeconds(expected[i]), decision.Delay);
         }
 
@@ -58,14 +61,17 @@ public sealed class LivePlaybackRecoveryPolicyTests
     }
 
     [Fact]
-    public void StreamEnded_AllowsFourReconnectsThenHardFails()
+    public void StreamEnded_AllowsTwoReconnectsThenHardFails()
     {
+        // SP-0079 cut this one with the transient budget: both were Part D's four, and a channel whose
+        // server keeps closing the response is not more likely to hold on the fourth try than the second.
         var policy = new LivePlaybackRecoveryPolicy();
-        for (var i = 0; i < 4; i++)
+        for (var i = 0; i < 2; i++)
         {
             var decision = policy.Decide(Ended());
             Assert.Equal(RecoveryActionKind.Reconnect, decision.Kind);
             Assert.Equal(RecoveryTrigger.StreamEnded, decision.Trigger);
+            Assert.Equal(2, decision.Budget);
         }
 
         Assert.Equal(RecoveryActionKind.HardFail, policy.Decide(Ended()).Kind);
@@ -89,7 +95,7 @@ public sealed class LivePlaybackRecoveryPolicyTests
     public void Budgets_AreIndependentPerTrigger()
     {
         var policy = new LivePlaybackRecoveryPolicy();
-        for (var i = 0; i < 4; i++)
+        for (var i = 0; i < 2; i++)
         {
             policy.Decide(Transient());
         }

@@ -2,6 +2,23 @@ using System.Globalization;
 
 namespace StreamsPlayer.Core;
 
+/// <summary>What the launching session found where the finished session's log used to be (SP-0085).</summary>
+public enum LogRotationOutcome
+{
+    /// <summary>
+    /// Nothing was there, or it was retired: <see cref="DiagnosticLogFiles.CurrentLogName"/> is free for
+    /// the launching session to take.
+    /// </summary>
+    CurrentLogFree,
+
+    /// <summary>
+    /// The finished session's log could not be retired and still holds
+    /// <see cref="DiagnosticLogFiles.CurrentLogName"/> - normally because a previous instance has not let
+    /// go of the handle yet. The launching session must write somewhere else or it writes nowhere.
+    /// </summary>
+    PreviousLogRetained,
+}
+
 /// <summary>
 /// Names and retention rule for the session diagnostic logs (SP-0013, SP-0040, SP-0055).
 /// </summary>
@@ -41,14 +58,19 @@ public static class DiagnosticLogFiles
 
     /// <summary>
     /// Retires the finished session's log under a name carrying when that session started, then prunes
-    /// the archive to the newest <see cref="KeptSessions"/>.
+    /// the archive to the newest <see cref="KeptSessions"/>, and reports whether
+    /// <see cref="CurrentLogName"/> came free.
     /// <para>Best-effort by contract: a locked or ACL-denied file costs retention, never the launch.
     /// The caller still needs a writable current log to start, and that is the only hard requirement.</para>
+    /// <para>SP-0085: the returned outcome is that requirement's other half. Retirement failing silently
+    /// left the caller opening a name another process still owned, which throws - and cost a whole
+    /// session its log. A caller told the name is taken can write somewhere else instead.</para>
     /// </summary>
-    public static void Rotate(string directory)
+    public static LogRotationOutcome Rotate(string directory)
     {
         AdoptLegacyPreviousLog(directory);
         var current = Path.Combine(directory, CurrentLogName);
+        var outcome = LogRotationOutcome.CurrentLogFree;
         try
         {
             if (File.Exists(current))
@@ -59,9 +81,11 @@ public static class DiagnosticLogFiles
         catch (Exception exception) when (IsRetentionFailure(exception))
         {
             // Keep going: pruning is still worth attempting even if this session could not be retired.
+            outcome = LogRotationOutcome.PreviousLogRetained;
         }
 
         Prune(directory);
+        return outcome;
     }
 
     /// <summary>
@@ -142,11 +166,15 @@ public static class DiagnosticLogFiles
     }
 
     /// <summary>
-    /// Builds a free path for the retired log. Two sessions can start within the same minute - a quick
-    /// restart, or an automated run - so a taken name gets a numeric suffix rather than overwriting the
-    /// evidence the rotation exists to preserve.
+    /// Builds a free path for a session log started at <paramref name="startedLocal"/>. Two sessions can
+    /// start within the same minute - a quick restart, or an automated run - so a taken name gets a
+    /// numeric suffix rather than overwriting the evidence the rotation exists to preserve.
+    /// <para>Public because retirement is not its only caller: a session that <see cref="Rotate"/> told
+    /// <see cref="LogRotationOutcome.PreviousLogRetained"/> writes here from the start, under its own
+    /// start time (SP-0085). Such a log needs no later retirement - it is already named as one - and it
+    /// is found, packed and pruned by the same rules as every other session's.</para>
     /// </summary>
-    private static string ReserveSessionPath(string directory, DateTime startedLocal)
+    public static string ReserveSessionPath(string directory, DateTime startedLocal)
     {
         var stamp = startedLocal.ToString(StampFormat, CultureInfo.InvariantCulture);
         var candidate = Path.Combine(directory, $"{SessionPrefix}{stamp}{LogExtension}");

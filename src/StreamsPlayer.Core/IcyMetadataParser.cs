@@ -1,11 +1,9 @@
-using System.Text;
-
 namespace StreamsPlayer.Core;
 
 /// <summary>
 /// Extracts the current-track title from a decoded ICY/Shoutcast metadata block.
 /// The value is untrusted broadcaster text, so it is sanitized and length-bounded
-/// here before any caller surfaces it.
+/// through <see cref="BroadcastText"/> before any caller surfaces it.
 /// </summary>
 public static class IcyMetadataParser
 {
@@ -40,44 +38,6 @@ public static class IcyMetadataParser
             ? metadataBlock[valueStart..]
             : metadataBlock[valueStart..valueEnd];
 
-        return Sanitize(rawValue);
-    }
-
-    private static string? Sanitize(string value)
-    {
-        var builder = new StringBuilder(Math.Min(value.Length, MaxTitleLength));
-        var lastWasSpace = false;
-        foreach (var ch in value)
-        {
-            // Drop control characters (newlines, NULs, tabs) and collapse whitespace runs.
-            var normalized = char.IsControl(ch) ? ' ' : ch;
-            if (normalized == ' ')
-            {
-                if (lastWasSpace || builder.Length == 0)
-                {
-                    continue;
-                }
-
-                lastWasSpace = true;
-            }
-            else
-            {
-                lastWasSpace = false;
-            }
-
-            builder.Append(normalized);
-            if (builder.Length >= MaxTitleLength)
-            {
-                break;
-            }
-        }
-
-        // Trim a trailing collapsed space.
-        while (builder.Length > 0 && builder[^1] == ' ')
-        {
-            builder.Length--;
-        }
-
-        return builder.Length == 0 ? null : builder.ToString();
+        return BroadcastText.Sanitize(rawValue, MaxTitleLength);
     }
 }

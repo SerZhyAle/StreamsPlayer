@@ -43,7 +43,28 @@ public partial class MainWindow
 
         // Constructed on the UI thread, so the callback marshals back to it.
         var progress = new Progress<string?>(title => OnNowPlayingTitle(generation, title));
-        _ = new IcyMetadataReader(_icyHttpClient).ReadAsync(channel.Url, progress, cts.Token);
+        _ = ReadNowPlayingMetadataAsync(uri, channel.Url, progress, cts.Token);
+    }
+
+    /// <summary>
+    /// SP-0074: one line per attempt, so an archived session can answer why a station showed no track.
+    /// Before this, every failure was swallowed and a station that could not be read looked exactly like
+    /// a station that announces nothing.
+    /// </summary>
+    /// <remarks>
+    /// The host, never the address: a catalog URL may carry credentials and <see cref="Uri.Host"/> cannot.
+    /// <c>Cancelled</c> is logged too - it is the ordinary teardown and therefore the common value, but
+    /// without it a log in which a station simply stops appearing could not be told from one where the
+    /// read never started.
+    /// </remarks>
+    private async Task ReadNowPlayingMetadataAsync(
+        Uri uri,
+        string url,
+        IProgress<string?> progress,
+        CancellationToken cancellationToken)
+    {
+        var outcome = await new IcyMetadataReader(_icyHttpClient).ReadAsync(url, progress, cancellationToken);
+        _log.Event("ICY METADATA", $"outcome={outcome}", $"host={uri.Host}");
     }
 
     private void StopNowPlayingMetadata()

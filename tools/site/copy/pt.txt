@@ -137,34 +137,34 @@ Fixe os canais aos quais você sempre volta.
 Reproduzir do jeito certo
 
 @@cap-play-1
-O rádio toca na janela principal.
+O rádio toca na janela principal e mostra a faixa no ar quando a emissora a informa.
 
 @@cap-play-2
-Vídeo ao vivo e RTSP abrem em uma janela de player dedicada.
+Pare o som sem perder a emissora - o volume e o temporizador de sono continuam ali, prontos para retomar.
 
 @@cap-play-3
-Buffer ao vivo de cerca de 15 segundos, com progresso visível.
+Vídeo ao vivo e RTSP abrem em uma janela de player dedicada que mostra a faixa no ar sobre a imagem.
 
 @@cap-play-4
-O volume e o silenciamento são lembrados.
+Buffer ao vivo de cerca de 15 segundos, e o vídeo assenta na qualidade que sua conexão aguenta e abre ali na próxima vez.
 
 @@cap-window-title
 Assista do seu jeito
 
 @@cap-window-1
-Mantenha a janela principal ou o player sempre visível.
+Mantenha a janela principal ou o player sempre visível, ou vá para tela cheia sem bordas com F11 (Esc sai).
 
 @@cap-window-2
-Tela cheia sem bordas por botão ou com F11 (Esc sai).
+O player é uma janela própria - minimize o catálogo e a imagem continua.
 
 @@cap-window-3
-Blocos de transmissão muito pequenos, pequenos, médios ou grandes.
+Blocos de transmissão de muito pequenos a grandes, uma janela de configurações redimensionável e um tema claro, escuro ou o do Windows.
 
 @@cap-window-4
 Guarde o quadro atual como JPEG.
 
 @@cap-window-5
-Siga o tema de cor do Windows ou mantenha a aplicação clara ou escura.
+Quando a imagem para, o player diz o porquê sobre o vídeo - e reabre uma transmissão que congelou em silêncio.
 
 @@cap-grid-title
 Grade visual

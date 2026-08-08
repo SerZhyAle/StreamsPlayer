@@ -117,10 +117,24 @@ public partial class MainWindow
             return;
         }
 
+        // SP-0069: the height stays finite in every branch. PinnedGridList sits in an Auto row, which
+        // measures its child with infinite height, and this MaxHeight was the only thing making that
+        // finite - so the old PositiveInfinity handed the VirtualizingStackPanel an unbounded viewport
+        // and it realized a container for every pinned channel at once, with no cap on how many there
+        // are. Collapsing the main section still gives the pinned area everything it can show; it now
+        // stops at the window instead of at the last pinned channel, and its scrollbar absorbs the rest.
+        // Before the first layout pass CatalogArea has no height yet, and the markup declares no
+        // MaxHeight - so the fallback has to be a real number rather than "leave it alone", or the
+        // default of PositiveInfinity is what the panel measures against on the pass that populates it.
+        // One tile row is the conservative choice; CatalogArea_SizeChanged corrects it as soon as there
+        // is a height to correct it to.
         var available = CatalogArea?.ActualHeight ?? 0;
-        PinnedGridList.MaxHeight = MainSectionCollapsed || available <= 0
-            ? double.PositiveInfinity
-            : Math.Max(GridTileHeight + 24, available * 0.5);
+        var singleRow = GridTileHeight + 24;
+        PinnedGridList.MaxHeight = available <= 0
+            ? singleRow
+            : MainSectionCollapsed
+                ? available
+                : Math.Max(singleRow, available * 0.5);
         PinnedStripList.Height = PinnedStripHeight;
     }
 }

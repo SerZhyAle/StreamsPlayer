@@ -10,11 +10,17 @@ namespace StreamsPlayer.Core;
 /// </summary>
 public sealed class LivePlaybackRecoveryPolicy
 {
-    // Part D retry budgets.
+    // Part D retry budgets, with one deliberate divergence from the Android reference.
     private const int BehindLiveWindowBudget = 3;
-    private const int TransientBudget = 4;
+    // SP-0079, owner decision of 2026-08-08: the two budgets Part D set to four are two here. Four
+    // transient attempts on the shipped exponential backoff means roughly two minutes of black screen
+    // before the user is told anything actionable, and SP-0072 put that wait on screen where it can now
+    // be read - which is what made its length the visible problem. Two attempts hard-fail at about
+    // thirty seconds, and the failure dialog offers Retry, so nothing that would have recovered on
+    // attempt three is lost; it just stops costing ninety silent seconds to find out.
+    private const int TransientBudget = 2;
     private const int StallBudget = 3;
-    private const int StreamEndedBudget = 4;
+    private const int StreamEndedBudget = 2;
 
     // Part D leaves no explicit backoff for a stall or a stream-end re-open; a short fixed delay avoids
     // a tight reconnect loop without adding perceptible latency to a recovery.

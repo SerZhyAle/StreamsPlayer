@@ -84,6 +84,7 @@
     <sys:String x:Key="Ready">প্রস্তুত</sys:String>
     <sys:String x:Key="NothingPlaying">কিছু চলছে না</sys:String>
     <sys:String x:Key="StopAudio">অডিও থামান</sys:String>
+    <sys:String x:Key="ResumeAudio">অডিও আবার চালান</sys:String>
     <sys:String x:Key="AllOption">সব</sys:String>
     <sys:String x:Key="AudioOption">অডিও</sys:String>
     <sys:String x:Key="VideoOption">ভিডিও</sys:String>
@@ -217,10 +218,15 @@
     <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">বাফার হচ্ছে…</sys:String>
     <sys:String x:Key="BufferingProgress">বাফার হচ্ছে… {0}%</sys:String>
-    <sys:String x:Key="PlayingLive">লাইভ চলছে</sys:String>
+    <sys:String x:Key="PlayingLive">লাইভ চলছে -{0} সে</sys:String>
     <sys:String x:Key="ReconnectingAttempt">আবার সংযোগ করা হচ্ছে… ({1}-এর মধ্যে {0} নম্বর চেষ্টা)</sys:String>
     <sys:String x:Key="ReconnectingAudioAttempt">{0}-এ আবার সংযোগ করা হচ্ছে… ({2}-এর মধ্যে {1} নম্বর চেষ্টা)</sys:String>
     <sys:String x:Key="PlayerUnavailable">স্ট্রিম পাওয়া যাচ্ছে না</sys:String>
+    <sys:String x:Key="PlayerNoticeConnecting">সংযোগ করা হচ্ছে…</sys:String>
+    <sys:String x:Key="PlayerNoticeSignalLost">সিগন্যাল হারিয়েছে - খোঁজা হচ্ছে…</sys:String>
+    <sys:String x:Key="PlayerNoticeReconnecting">আবার সংযোগ করা হচ্ছে… {0}/{1}</sys:String>
+    <sys:String x:Key="PlayerNoticeQuality">মান বদলানো হচ্ছে…</sys:String>
+    <sys:String x:Key="PlayerOnAir">সম্প্রচারে: {0}</sys:String>
     <!-- SP-0045: the player stripe's state, shown as its tooltip so the colour is never the only
          carrier of the meaning. These name the state, not its cause - the status line above the
          stripe already says what is happening. -->

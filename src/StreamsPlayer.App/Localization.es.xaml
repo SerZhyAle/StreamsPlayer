@@ -84,6 +84,7 @@
     <sys:String x:Key="Ready">Listo</sys:String>
     <sys:String x:Key="NothingPlaying">No se está reproduciendo nada</sys:String>
     <sys:String x:Key="StopAudio">Detener el audio</sys:String>
+    <sys:String x:Key="ResumeAudio">Reanudar el audio</sys:String>
     <sys:String x:Key="AllOption">Todos</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Vídeo</sys:String>
@@ -217,10 +218,15 @@
     <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">Almacenando en búfer…</sys:String>
     <sys:String x:Key="BufferingProgress">Almacenando en búfer… {0}%</sys:String>
-    <sys:String x:Key="PlayingLive">En directo</sys:String>
+    <sys:String x:Key="PlayingLive">En directo -{0} s</sys:String>
     <sys:String x:Key="ReconnectingAttempt">Reconectando… (intento {0} de {1})</sys:String>
     <sys:String x:Key="ReconnectingAudioAttempt">Reconectando con {0}… (intento {1} de {2})</sys:String>
     <sys:String x:Key="PlayerUnavailable">Transmisión no disponible</sys:String>
+    <sys:String x:Key="PlayerNoticeConnecting">Conectando…</sys:String>
+    <sys:String x:Key="PlayerNoticeSignalLost">Señal perdida - buscando…</sys:String>
+    <sys:String x:Key="PlayerNoticeReconnecting">Reconectando… {0}/{1}</sys:String>
+    <sys:String x:Key="PlayerNoticeQuality">Cambiando la calidad…</sys:String>
+    <sys:String x:Key="PlayerOnAir">En emisión: {0}</sys:String>
     <!-- SP-0045: the player stripe's state, shown as its tooltip so the colour is never the only
          carrier of the meaning. These name the state, not its cause - the status line above the
          stripe already says what is happening. -->

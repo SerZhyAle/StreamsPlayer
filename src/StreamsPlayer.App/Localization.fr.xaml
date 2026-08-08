@@ -84,6 +84,7 @@
     <sys:String x:Key="Ready">Prêt</sys:String>
     <sys:String x:Key="NothingPlaying">Aucune lecture en cours</sys:String>
     <sys:String x:Key="StopAudio">Arrêter l'audio</sys:String>
+    <sys:String x:Key="ResumeAudio">Reprendre l'audio</sys:String>
     <sys:String x:Key="AllOption">Tous</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Vidéo</sys:String>
@@ -217,10 +218,15 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">Mise en mémoire tampon…</sys:String>
     <sys:String x:Key="BufferingProgress">Mise en mémoire tampon… {0} %</sys:String>
-    <sys:String x:Key="PlayingLive">En direct</sys:String>
+    <sys:String x:Key="PlayingLive">En direct -{0} s</sys:String>
     <sys:String x:Key="ReconnectingAttempt">Reconnexion… (tentative {0} sur {1})</sys:String>
     <sys:String x:Key="ReconnectingAudioAttempt">Reconnexion à {0}… (tentative {1} sur {2})</sys:String>
     <sys:String x:Key="PlayerUnavailable">Flux indisponible</sys:String>
+    <sys:String x:Key="PlayerNoticeConnecting">Connexion…</sys:String>
+    <sys:String x:Key="PlayerNoticeSignalLost">Signal perdu - recherche…</sys:String>
+    <sys:String x:Key="PlayerNoticeReconnecting">Reconnexion… {0}/{1}</sys:String>
+    <sys:String x:Key="PlayerNoticeQuality">Changement de qualité…</sys:String>
+    <sys:String x:Key="PlayerOnAir">À l'antenne : {0}</sys:String>
     <!-- SP-0045: the player stripe's state, shown as its tooltip so the colour is never the only
          carrier of the meaning. These name the state, not its cause - the status line above the
          stripe already says what is happening. -->

@@ -137,34 +137,34 @@ Fissa i canali a cui torni più spesso.
 Riprodurre nel modo giusto
 
 @@cap-play-1
-La radio si ascolta nella finestra principale.
+La radio si ascolta nella finestra principale e mostra il brano in onda quando la stazione lo comunica.
 
 @@cap-play-2
-Video live e RTSP si aprono in una finestra del lettore dedicata.
+Ferma l'audio senza perdere la stazione - volume e timer di spegnimento restano al loro posto, pronti a riprendere.
 
 @@cap-play-3
-Buffer live di circa 15 secondi con avanzamento del buffering visibile.
+Video live e RTSP si aprono in una finestra del lettore dedicata che mostra il brano in onda sopra l'immagine.
 
 @@cap-play-4
-Volume e disattivazione dell'audio vengono ricordati.
+Buffer live di circa 15 secondi, e il video si assesta sulla qualità che la tua connessione regge e riparte da lì la volta dopo.
 
 @@cap-window-title
 Guardare come vuoi
 
 @@cap-window-1
-Mantieni la finestra principale o il lettore sempre in primo piano.
+Mantieni la finestra principale o il lettore sempre in primo piano, oppure passa a schermo intero senza bordi con F11 (Esc esce).
 
 @@cap-window-2
-Schermo intero senza bordi con un pulsante o con F11 (Esc esce).
+Il lettore è una finestra a sé - riduci a icona il catalogo e l'immagine continua.
 
 @@cap-window-3
-Riquadri dei flussi molto piccoli, piccoli, medi o grandi.
+Riquadri dei flussi da molto piccoli a grandi, una finestra delle impostazioni ridimensionabile e un tema chiaro, scuro o quello di Windows.
 
 @@cap-window-4
 Salva il fotogramma corrente come JPEG.
 
 @@cap-window-5
-Segui il tema colore di Windows oppure resta su chiaro o scuro.
+Quando l'immagine si ferma, il lettore ne dice il motivo sopra il video - e riapre un flusso bloccatosi in silenzio.
 
 @@cap-grid-title
 Griglia visiva

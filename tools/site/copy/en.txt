@@ -137,34 +137,34 @@ Pin the channels you return to.
 Play the right way
 
 @@cap-play-1
-Radio plays in the main window.
+Radio plays in the main window and names the track on air whenever the station provides it.
 
 @@cap-play-2
-Live video & RTSP open in a focused player window.
+Stop the sound without losing the station - the volume you set and the sleep timer stay, ready to resume.
 
 @@cap-play-3
-~15-second live buffer with visible buffering progress.
+Live video and RTSP open in a focused player window that shows the track on air over the picture.
 
 @@cap-play-4
-Volume and mute are remembered.
+A ~15-second live buffer, and video that settles at the quality your connection holds, then opens there next time.
 
 @@cap-window-title
 Watch your way
 
 @@cap-window-1
-Keep the main window or player always on top.
+Keep the main window or player always on top, or go borderless full screen with F11 (Esc exits).
 
 @@cap-window-2
-Borderless full screen with a button or F11 (Esc exits).
+The player is a window of its own - minimize the catalog and the picture keeps playing.
 
 @@cap-window-3
-Very Small, Small, Medium, or Large stream tiles.
+Very Small to Large stream tiles, a resizable Settings window, and a light, dark or Windows-matching theme.
 
 @@cap-window-4
 Save the frame you are watching as a JPEG.
 
 @@cap-window-5
-Follow the Windows colour theme, or stay light or dark.
+The player says why over the video whenever the picture stops - and re-opens a stream that froze silently.
 
 @@cap-grid-title
 Visual grid

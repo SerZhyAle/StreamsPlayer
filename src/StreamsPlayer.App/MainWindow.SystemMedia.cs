@@ -128,14 +128,14 @@ public partial class MainWindow
             case SystemMediaControls.Command.Play:
                 if (_playingAudio is null)
                 {
-                    ResumeAudioFromSystemMedia();
+                    ResumeAudio();
                 }
 
                 break;
             case SystemMediaControls.Command.Pause:
                 if (_playingAudio is not null)
                 {
-                    PauseAudioForSystemMedia();
+                    PauseAudio();
                 }
 
                 break;
@@ -151,7 +151,12 @@ public partial class MainWindow
         }
     }
 
-    private void PauseAudioForSystemMedia()
+    /// <summary>
+    /// Stops the sound and keeps the station. Reached from the system flyout's Pause and, since SP-0081,
+    /// from the panel's own transport button - the two are deliberately the same act, so the panel and
+    /// the flyout can never disagree about what the session is.
+    /// </summary>
+    private void PauseAudio()
     {
         var channel = _playingAudio?.Channel;
         if (channel is null)
@@ -163,12 +168,15 @@ public partial class MainWindow
         // Play restart it at the live edge. Keep the system session visible as Paused.
         StopAudioPlayback(clearSystemSession: false);
         _audioPausedChannel = channel;
+        // SP-0081: after the field above - this is what turns the panel's controls back on and flips the
+        // button to Resume, for a session that is silent but not finished.
+        ApplyAudioTransportState();
         SetNowPlaying("PausedAudio", StreamTitleFormatter.Display(channel.Title));
         PublishAudioSession(playing: false);
         _ = StartPreviewsAsync();
     }
 
-    private void ResumeAudioFromSystemMedia()
+    private void ResumeAudio()
     {
         var channel = _audioPausedChannel;
         if (channel is null)

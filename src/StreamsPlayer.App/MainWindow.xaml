@@ -58,7 +58,7 @@
                     <TextBlock Text="{DynamicResource SearchCatalog}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="16,0,6,0" />
                     <TextBox x:Name="SearchBox" Width="180" Padding="7,4" ToolTip="{DynamicResource SearchTip}" TextChanged="FilterChanged"
                              VerticalAlignment="Center" AutomationProperties.Name="{DynamicResource SearchName}" />
-                    <Button Style="{StaticResource ClearGlyphButton}" Content="{DynamicResource Clear}" Click="ClearSearchButton_Click"
+                    <Button Style="{StaticResource ClearGlyphButton}" Click="ClearSearchButton_Click"
                             VerticalAlignment="Center" ToolTip="{DynamicResource ClearTip}" AutomationProperties.Name="{DynamicResource ClearTip}" />
                     <Button x:Name="FiltersButton" Style="{StaticResource FiltersRevealButton}"
                             Content="{DynamicResource FiltersAndSorting}" Click="FiltersButton_Click"
@@ -957,6 +957,7 @@
                         <Button x:Name="CancelOperationButton" Content="{DynamicResource Cancel}" Click="CancelOperationButton_Click"
                                 Visibility="Collapsed" Margin="8,2,0,0" Padding="8,1" FontSize="11" VerticalAlignment="Center"
                                 Foreground="White" Background="#FF2A3A52" BorderBrush="#FF3E5170"
+                                ContentTemplate="{StaticResource ButtonOwnColourCaption}"
                                 ToolTip="{DynamicResource CancelDownloadTip}"
                                 AutomationProperties.Name="{DynamicResource CancelDownloadName}" />
                     </StackPanel>
@@ -968,17 +969,22 @@
                             Visibility="Collapsed"
                             ToolTip="{DynamicResource AudioVolumeTip}" AutomationProperties.Name="{DynamicResource AudioVolumeName}" />
                     <!-- SP-0022: the sleep timer lives next to Stop, so it is one click away mid-listening. -->
-                    <Button x:Name="SleepTimerButton" Style="{StaticResource SleepTimerGlyphButton}" Content="{DynamicResource SleepTimer}"
+                    <Button x:Name="SleepTimerButton" Style="{StaticResource SleepTimerGlyphButton}"
                             Click="SleepTimerButton_Click" Visibility="Collapsed" Foreground="White" Background="#FF2A3A52" BorderBrush="#FF3E5170"
                             ToolTip="{DynamicResource SleepTimerTip}" AutomationProperties.Name="{DynamicResource SleepTimer}">
                         <Button.ContextMenu>
                             <ContextMenu x:Name="SleepTimerMenu" />
                         </Button.ContextMenu>
                     </Button>
-                    <Button x:Name="StopAudioButton" Style="{StaticResource StopGlyphButton}" Content="{DynamicResource StopAudio}" Click="StopAudioButton_Click" IsEnabled="False" Visibility="Collapsed" />
+                    <!-- SP-0081: one button with two states - stop the sound of the current station, or
+                         start it again. Its style and caption are assigned in code because they change
+                         with the state; the XAML here only reserves the place. -->
+                    <Button x:Name="AudioTransportButton" Style="{StaticResource StopGlyphButton}" Content="{DynamicResource StopAudio}"
+                            Click="AudioTransportButton_Click" IsEnabled="False" Visibility="Collapsed" />
                 </StackPanel>
                 <MediaElement x:Name="AudioPlayer" Visibility="Collapsed" LoadedBehavior="Manual" UnloadedBehavior="Manual"
-                              MediaOpened="AudioPlayer_MediaOpened" MediaFailed="AudioPlayer_MediaFailed" />
+                              MediaOpened="AudioPlayer_MediaOpened" MediaFailed="AudioPlayer_MediaFailed"
+                              MediaEnded="AudioPlayer_MediaEnded" />
             </Grid>
         </Border>
 

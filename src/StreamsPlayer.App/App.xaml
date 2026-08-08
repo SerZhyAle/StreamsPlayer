@@ -85,17 +85,25 @@
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                 <Setter Property="Template">
                     <Setter.Value>
+                        <!-- A Grid, not a horizontal StackPanel: a stack measures its children with
+                             infinite width, so a wrapping label never learns how much room it has and
+                             is clipped instead of wrapped. The star column hands the label the width
+                             that is actually left. -->
                         <ControlTemplate TargetType="CheckBox">
-                            <StackPanel Orientation="Horizontal">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
                                 <Border x:Name="CheckBorder" Width="15" Height="15" Margin="0,0,6,0"
                                         VerticalAlignment="Center" Background="{DynamicResource ControlBrush}"
                                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="2">
                                     <Path x:Name="CheckMark" Data="M3,8 L6,11 L12,4" Stroke="{DynamicResource AccentBrush}"
                                           StrokeThickness="2" StrokeLineJoin="Round" Visibility="Collapsed" />
                                 </Border>
-                                <ContentPresenter VerticalAlignment="Center" Content="{TemplateBinding Content}"
+                                <ContentPresenter Grid.Column="1" VerticalAlignment="Center" Content="{TemplateBinding Content}"
                                                   ContentTemplate="{TemplateBinding ContentTemplate}" />
-                            </StackPanel>
+                            </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsChecked" Value="True">
                                     <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
@@ -281,28 +289,80 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <Style x:Key="PlayerOverlayButton" TargetType="Button">
-                <Setter Property="Background" Value="#99000000" />
-                <Setter Property="BorderBrush" Value="#80FFFFFF" />
+            <!-- The caption of a button whose Foreground is chosen for the surface it sits on - a dark
+                 status bar, live video - rather than inherited from the theme. A string handed to a
+                 ContentPresenter is drawn by a TextBlock the presenter generates, and the implicit
+                 TextBlock style above beats the Foreground that TextBlock would otherwise inherit from
+                 the button: the caption came out in the theme's text colour however the button was
+                 painted. Binding the colour as a local value is what wins that contest. -->
+            <DataTemplate x:Key="ButtonOwnColourCaption">
+                <TextBlock Text="{Binding}" VerticalAlignment="Center"
+                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+            </DataTemplate>
+            <!-- The player's buttons are drawn over live video, so nothing about their legibility may
+                 depend on the frame behind them or on the interface theme. Three things follow, and each
+                 is here because leaving it out was visibly wrong:
+                 * The fill is opaque. A translucent wash reads over a dark frame and disappears over a
+                   bright one, and the player has no say in which frame it gets.
+                 * Every caption and glyph carries its colour as a local value - see
+                   ButtonOwnColourCaption above for why inheriting it is not enough.
+                 * Hover and pressed are restated. Inherited from the interface's Button style they are
+                   near-white brushes, and white text vanishes into them.
+                 This style is the one home for all three; the glyph variants below add only a shape. -->
+            <Style x:Key="PlayerOverlayButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Background" Value="#FF141A24" />
+                <Setter Property="BorderBrush" Value="#FF7E8B9E" />
+                <Setter Property="BorderThickness" Value="1" />
                 <Setter Property="Foreground" Value="White" />
                 <Setter Property="Padding" Value="10,6" />
                 <Setter Property="Margin" Value="3" />
                 <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="ContentTemplate" Value="{StaticResource ButtonOwnColourCaption}" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#FF27303D" />
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter Property="Background" Value="#FF39445A" />
+                    </Trigger>
+                </Style.Triggers>
             </Style>
-            <Style x:Key="PlayerOverlayGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
-                <Setter Property="Background" Value="#99000000" />
-                <Setter Property="BorderBrush" Value="#80FFFFFF" />
-                <Setter Property="Foreground" Value="White" />
+            <Style x:Key="PlayerOverlayGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayButton}">
+                <Setter Property="ContentTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Viewbox Width="16" Height="16" Margin="0,0,7,0" VerticalAlignment="Center">
+                                    <Path Data="{DynamicResource GlyphGeometry}"
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                          StrokeThickness="1.6" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                </Viewbox>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
             <Style x:Key="PlayerOverlayVolumeGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,10H8L13,6V18L8,14H4ZM16,9A4,4 0 0 1 16,15M18,7A7,7 0 0 1 18,17" /></Style.Resources>
             </Style>
             <!-- SP-0038: the camera carries the whole meaning, so this one overlay button drops its
                  caption; its tooltip still names the action, as every player button does. -->
-            <Style x:Key="PlayerOverlayGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
-                <Setter Property="Background" Value="#99000000" />
-                <Setter Property="BorderBrush" Value="#80FFFFFF" />
-                <Setter Property="Foreground" Value="White" />
+            <Style x:Key="PlayerOverlayGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayButton}">
+                <Setter Property="ContentTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <Viewbox Width="16" Height="16" VerticalAlignment="Center">
+                                <Path Data="{DynamicResource GlyphGeometry}"
+                                      Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                      StrokeThickness="1.6" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                            </Viewbox>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
             <Style x:Key="PlayerOverlayCameraGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphOnlyButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M3,7H7L9,5H15L17,7H21V19H3ZM12,10A3,3 0 1 0 12,16A3,3 0 1 0 12,10" /></Style.Resources>
@@ -371,14 +431,31 @@
                 <Setter Property="ContentTemplate">
                     <Setter.Value>
                         <DataTemplate>
+                            <!-- SP-0022: the clock alone names the control - the caption beside it is the
+                                 running countdown and nothing else, so it is absent (and takes no width)
+                                 whenever no timer is set. The colour is bound rather than inherited
+                                 because this button sits on the dark status bar: the implicit TextBlock
+                                 style would otherwise repaint the countdown in the theme's text colour,
+                                 which is the bar's own near-black. -->
                             <StackPanel Orientation="Horizontal">
-                                <Viewbox Width="16" Height="16" Margin="0,0,7,0" VerticalAlignment="Center">
+                                <Viewbox Width="16" Height="16" VerticalAlignment="Center">
                                     <Path Data="M12,3.5 A8.5,8.5 0 1 1 11.99,3.5 M12,7 V12 L15.5,14"
                                           Fill="Transparent"
                                           Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                           StrokeThickness="1.6" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
                                 </Viewbox>
-                                <ContentPresenter Content="{Binding}" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center" Margin="7,0,0,0"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding}" Value="">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
                             </StackPanel>
                         </DataTemplate>
                     </Setter.Value>

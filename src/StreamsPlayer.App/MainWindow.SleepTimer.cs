@@ -101,6 +101,20 @@ public partial class MainWindow
         SetStatus("SleepTimerSet", deadline.LocalDateTime.ToString("t", System.Globalization.CultureInfo.CurrentUICulture));
     }
 
+    /// <summary>Stop the ticker without touching the deadline, for window teardown.</summary>
+    /// <remarks>
+    /// SP-0069: separate from <see cref="CancelSleepTimer"/> on purpose - closing the window must release
+    /// the dispatcher's hold on this window, not cancel the user's sleep timer as though they had asked.
+    /// </remarks>
+    private void StopSleepTicker()
+    {
+        _sleepTicker?.Stop();
+        if (_sleepTicker is not null)
+        {
+            _sleepTicker.Tick -= SleepTicker_Tick;
+        }
+    }
+
     private DispatcherTimer CreateSleepTicker()
     {
         var ticker = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
@@ -147,7 +161,13 @@ public partial class MainWindow
         }
     }
 
-    /// <summary>Shows the remaining time while a timer runs; the plain label otherwise.</summary>
+    /// <summary>
+    /// Shows the remaining time while a timer runs, and nothing but the clock otherwise. The idle
+    /// caption is deliberately empty rather than the control's name: the name is what the tooltip and
+    /// the accessible name are for, and the status bar it shares with the station, the now-playing line
+    /// and Stop has no width to spend on a word the glyph already says. The empty string is not null -
+    /// a null content skips the template that draws the clock.
+    /// </summary>
     private void UpdateSleepTimerButton()
     {
         if (_sleepDeadline is { } deadline)
@@ -159,7 +179,7 @@ public partial class MainWindow
         }
         else
         {
-            SleepTimerButton.Content = LocalizationService.Get("SleepTimer");
+            SleepTimerButton.Content = string.Empty;
             SleepTimerButton.ToolTip = LocalizationService.Get("SleepTimerTip");
         }
     }

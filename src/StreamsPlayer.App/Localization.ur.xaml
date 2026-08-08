@@ -84,6 +84,7 @@
     <sys:String x:Key="Ready">تیار</sys:String>
     <sys:String x:Key="NothingPlaying">کچھ نہیں چل رہا</sys:String>
     <sys:String x:Key="StopAudio">آڈیو روکیں</sys:String>
+    <sys:String x:Key="ResumeAudio">آڈیو دوبارہ چلائیں</sys:String>
     <sys:String x:Key="AllOption">سب</sys:String>
     <sys:String x:Key="AudioOption">آڈیو</sys:String>
     <sys:String x:Key="VideoOption">ویڈیو</sys:String>
@@ -217,10 +218,15 @@
     <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">بفر ہو رہا ہے…</sys:String>
     <sys:String x:Key="BufferingProgress">بفر ہو رہا ہے… {0}%</sys:String>
-    <sys:String x:Key="PlayingLive">براہِ راست چل رہا ہے</sys:String>
+    <sys:String x:Key="PlayingLive">براہِ راست چل رہا ہے ({0} سیکنڈ تاخیر)</sys:String>
     <sys:String x:Key="ReconnectingAttempt">دوبارہ جڑ رہے ہیں… (کوشش {0} از {1})</sys:String>
     <sys:String x:Key="ReconnectingAudioAttempt">{0} سے دوبارہ جڑ رہے ہیں… (کوشش {1} از {2})</sys:String>
     <sys:String x:Key="PlayerUnavailable">نشریات دستیاب نہیں</sys:String>
+    <sys:String x:Key="PlayerNoticeConnecting">جڑ رہے ہیں…</sys:String>
+    <sys:String x:Key="PlayerNoticeSignalLost">سگنل منقطع - تلاش جاری…</sys:String>
+    <sys:String x:Key="PlayerNoticeReconnecting">دوبارہ جڑ رہے ہیں… {0}/{1}</sys:String>
+    <sys:String x:Key="PlayerNoticeQuality">معیار بدلا جا رہا ہے…</sys:String>
+    <sys:String x:Key="PlayerOnAir">نشر ہو رہا ہے: {0}</sys:String>
     <!-- SP-0045: the player stripe's state, shown as its tooltip so the colour is never the only
          carrier of the meaning. These name the state, not its cause - the status line above the
          stripe already says what is happening. -->

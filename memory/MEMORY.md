@@ -40,6 +40,18 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   cannot open. Also note `Flyleaf.FFmpeg.Bindings` is pinned to **8.0.1 against FlyleafLib's nuspec
   dependency of 7.1.1** - that is deliberate and upstream-documented ("use Flyleaf.FFmpeg.Bindings v8
   at your project"), not a mistake to "fix" (SP-0026 Phase 6, 2026-08-07).
+- **The player's overlay leaves the window's inheritance chain, so inherited properties must be set on it
+  explicitly.** `PlayerWindow` detaches `ControlsOverlay` in its constructor and hands it to
+  `IVideoBackend.SetOverlay`, which makes it the `Content` of LibVLC's `VideoView` / Flyleaf's
+  `FlyleafHost` - and both present that content on a **separate foreground window** stacked over the
+  native video surface. That is what keeps the controls above the video through resizes (airspace), and
+  it is also why WPF property inheritance from `PlayerWindow` stops at the boundary: the overlay's new
+  ancestor is that foreground window, not the player window. `FlowDirection="{DynamicResource
+  UiFlowDirection}"` on the window therefore never reached the control panel, which rendered
+  left-to-right in Arabic and Urdu for as long as the overlay has been reparented. Fixed by binding it on
+  `ControlsOverlay` itself (SP-0072, 2026-08-08, verified by running the app in Arabic). Anything else
+  inherited - `DataContext`, `FontFamily`, `TextElement` properties - has the same hole; set it on the
+  overlay, not on the window.
 - **The colour theme only works because every palette reference is a `DynamicResource`.** `ThemeService`
   (App layer; Core only stores the `AppTheme` enum) recolours named brushes in
   `Application.Current.Resources` at runtime, so a single `StaticResource` on a palette key silently opts
@@ -65,6 +77,22 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   `Unhandled WPF dispatcher exception: UnauthorizedAccessException at File.Move`, no
   "Application shutdown." line. `MainWindow.PersistAsync` now absorbs and logs I/O failures - keep new
   saves funnelled through it, and debounce any control that can fire it continuously (2026-07-31).
+- **UI events keep arriving after `MainWindow_Closed` has started disposing things.** Two mechanisms,
+  both observed, not inferred (SP-0065, 2026-08-08): the handler is `async void` and awaits a session save,
+  so the dispatcher pumps input in the middle of the teardown; and destroying the hwnd disposes
+  `HwndMouseInputProvider`, which synthesizes a final `MouseLeave` for whatever the pointer was over.
+  Measured ordering in one log: `Closed` body → `SaveBrowsingSessionAsync` → `MouseLeave` →
+  `Application shutdown.` - so the leave lands **after** the disposals in that same handler, which is how
+  `StreamTile_MouseLeave` came to call `Cancel()` on a disposed `CancellationTokenSource` and take the
+  process down. Consequences to keep in mind for any teardown work: an unhandled exception here skips
+  `App.OnExit`, and that is where `WakeGuard.Reset()` lives, so the crash could leave a power request
+  behind. **Disposing a field is not enough - null it, and gate the handlers.** `MainWindow._shuttingDown`
+  is the latch (set as the first statement of `Closed`, before any await) and `GridPreviewCoordinator`
+  carries its own `_disposed` flag because it owns the semaphores that a late `StartAsync`/`StopAsync`
+  would wait on. Closing the catalog also closes every open `PlayerWindow` - explicitly, through
+  `MainWindow.CloseOpenPlayerWindows()`, since a player is a top-level window and no longer WPF-owned by
+  the catalog - and their `Closed` handler calls back into `StartPreviewsAsync`, so the late caller is
+  not always an input event.
 - **The README trio is the product's manual, not repo prose.** Settings -> Instructions opens
   `README.md`, `README.ru.md` or `README.uk.md` by interface language
   (`ProductInfo.InstructionsUrl`), so a UI change is not finished until all three describe it.
@@ -246,6 +274,139 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   depends on a build-time payload, make its absence a build failure, because "condition on Exists" and
   "silently ship less" are the same line of MSBuild (2026-08-08).
 
+- **A `PLAN/DONE/` folder is not evidence that its phases landed.** `SP-0042`'s INDEX claims phases 1-6
+  shipped; the working tree contradicts it for at least four items, each re-found from scratch by
+  SP-0069 on 2026-08-08: there was no `MediaEnded` handler anywhere in `src/` (phase 2's stated
+  deliverable), no staged native teardown (phase 3), no in-session log size cap (phase 5), and
+  `_sessionCts` was never disposed (phase 6's AC 8 - though that one turns out to be a *deliberate*
+  omission recorded in `temp/leak-audit/DOSSIER.md` L6a, which the INDEX also fails to say). This is the
+  same shape as SP-0060's untracked snapshot: a claim in a document outliving the artifact it describes.
+  The rule that follows is cheap - before treating a closed ticket's work as present, `rg` for one symbol
+  it must have created. Two greps would have saved most of an audit.
+
+- **The GUI sandbox's dangerous failure is not "the run fails", it is "the run succeeds against the
+  owner's real folder".** `Enter-SpSandbox` renames `%LOCALAPPDATA%\StreamsPlayer` aside, and both legs
+  are fragile in ways that only show under load (SP-0069, 2026-08-08). (1) A live app instance holds
+  `Current.log`, so the rename fails with `Access to the path is denied` - and a script that does not
+  check will happily continue unsandboxed. (2) `Exit-SpSandbox` deletes the sandbox folder *before*
+  renaming the backup back, so a still-running app makes the delete throw and the owner's catalog is left
+  sitting in `StreamsPlayer.agentbak` - which happened, and was recovered by hand. Always stop strays
+  before entering, stop the app before exiting, retry the restore, and hash `catalog-state.json` before
+  and after. (3) Worse for planning: after a crashed run the folder stayed **un-renameable for the rest of
+  the session with no owning process** - only the recently written logs were locked, the 10.8 MB state
+  file was free, and 180 s of retries plus a graceful close did not release it. Signature of an on-access
+  scanner or the indexer. Budget for the possibility that a measurement simply cannot run until later,
+  and do not "work around" it by moving the owner's catalog file by file.
+
+- **`MediaElement` reports a cleanly closed audio stream as `MediaEnded`, never `MediaFailed`** - and for
+  five months nothing listened, so the session never ended: `_playingAudio` stayed set, the `WakeGuard`
+  hold kept **forbidding the machine to sleep**, the sleep ticker kept counting and the SMTC session kept
+  saying Playing. The fix is not a hard stop: the product already routes exactly this event through the
+  bounded recovery policy on the video side (`PlayerWindow.Backend_EndReached` sends
+  `PlaybackFailureSignal("end_reached", EndReached: true)`), and Core has carried the whole mechanism all
+  along - `PlaybackRecoveryClassifier` maps that flag to `RecoveryTrigger.StreamEnded`. Audio simply never
+  fed it. For radio that is also the right reading: a server closing the response is more often a relay
+  dropping than a broadcast finishing, and `MediaElement` cannot tell them apart, so the budget reconnects
+  a few times and *then* hard-fails into the funnel that releases the hold (SP-0069, 2026-08-08).
+
+- **`ForgetRow` and `PruneRowCache` are a pair, and only one of them knew it.** Rows live in two maps -
+  `_rowCache` by id and `_rowsByUrl` by URL - and dropping from the first without `UnindexUrl`ing the
+  second strands a `ChannelRow` that nothing can ever reach again, because the prune walks `_rowCache`.
+  The subtle part is the growth rate: hiding a channel again after unhiding it builds a *new* row and
+  `IndexUrl` appends it under a reference-equality check, so the leak is one row per **gesture**, not one
+  per channel. Any future second index over rows needs the same pairing (SP-0069, 2026-08-08).
+
+- **A rule that costs a re-open is priced in black screen, not in events - and the agent's own runs will
+  not show it.** SP-0071's probe looked correct on every agent run and on 33 unit tests; the owner's first
+  real session was the measurement that mattered: `legs=10 | reconnects=0 | stalls=11` meant *every*
+  interruption was the feature's own re-open, 108.9 s of black out of 656 s, 73 % of it spent probing.
+  The number to compute from a session log is `sum(ttff_ms) / session_ms`, and `legs - reconnects` says
+  how many of those interruptions the feature caused itself. Two defects followed from the same root -
+  state whose lifetime was one scope too narrow: the probe wait belonged to the governor rather than the
+  rung (a success at 796k forgave a top rung already failed three times), and the whole record belonged to
+  the window rather than to the source (every re-open of the channel re-learned it, 60 % of the remaining
+  black screen). Both were invisible to tests that only ever exercised one governor for one session
+  (2026-08-08).
+
+- **libvlc surfaces ICY now-playing over `http://` and not over `https://`, and its `Title` field is the
+  URL's last path segment.** Measured on the same station in the same minute (SP-0073, 2026-08-08):
+  `http://ice1.somafm.com/groovesalad-128-mp3` reported `NowPlaying = Bistro Boy - Journey` at 2.0 s,
+  while the `https://` form of the *same* mount stayed blank for the whole watch - the station itself was
+  fine, a raw request with `Icy-MetaData: 1` returned `icy-metaint: 45000` and
+  `StreamTitle='Bistro Boy - Journey'`. So a TLS station will never show a track in the player, and that
+  is VLC's HTTPS access module, not our code. The second half matters as much: `MetadataType.Title` came
+  back as `groovesalad-128-mp3` and `master.m3u8` - the URL's tail - so using it as a fallback for
+  `NowPlaying`, which is the obvious design, would print a link under the channel name. Consult
+  `NowPlaying` and nothing else. Also confirmed: libvlc *does* refresh the field mid-stream (three
+  distinct values at 2/22/45 s against a proxy injecting a change every 20 s), so a session that shows one
+  value for three minutes is a station that has not changed track, not a caching bug - that
+  misreading cost a run.
+- **FlyleafLib reads a stream's metadata once and never again.** `Demuxer.Metadata` is filled in
+  `FillInfo()` during `Open()`; nothing in the demux loop re-reads `fmtCtx->metadata` and the library
+  never checks FFmpeg's `AVFMT_EVENT_FLAG_METADATA_UPDATED`. Polling that property therefore reports
+  whatever the stream said at open, for the life of the leg - which looks like a working feature on a
+  station whose title happens to be set at connect. Parity with the LibVLC engine needs FFmpeg's own live
+  `icy_metadata_packet` AVOption off `FormatContext->pb`, read under the library's public `lockFmtCtx`;
+  that is why `StreamsPlayer.App` now sets `AllowUnsafeBlocks` for exactly one member
+  (`FlyleafVideoBackend.ReadNowPlaying`). Keep it to that one (SP-0073, 2026-08-08).
+- **FlyleafLib's public `Player.Speed` re-buffers on every assignment, so no rate-control loop can be
+  built on it - the library's own `Config.Player.MaxLatency` is the only non-stuttering path.** The setter
+  sets `requiresBuffering = true` and `RequiresResync = true`, which is a visible stall per nudge; the
+  private `ChangeSpeedWithoutBuffering` that avoids it is reachable only by setting a non-zero
+  `MaxLatency`, after which the video screamer calls `CheckLatency()` once per presented frame. Three
+  consequences that decide any live-latency design on this engine (read out of 3.10.4 by decompiling the
+  referenced assembly, SP-0078, 2026-08-08): the correction speed is
+  `max(round(distance / MaxLatency, 1, ToPositiveInfinity), 1.1)` - **the 1.1x floor is hard-coded**, so a
+  Media3-style 1.02x nudge is not available and a corridor can only make the correction rarer, never
+  gentler; the distance is measured as the *client's own undisplayed queue*, not a broadcaster offset, so
+  it caps at `Demuxer.BufferDuration` and a buffer at the target makes the rule inert; and above 4.0x the
+  engine discards the queue instead of playing it out, so the buffer-to-target ratio is what separates a
+  gradual catch-up from a visible jump. Setting `MaxLatency` also raises `Demuxer.BufferDuration` to twice
+  the target - overriding a smaller per-play buffer - and forces `Decoder.LowDelay`; setting it back to 0
+  restores both. Audio at a non-unit speed goes through FFmpeg `atempo`, so pitch survives, and that path
+  is live only because `avfilter-11.dll` is already in `FFmpegComponents.RequiredLibraries`. Read
+  `MainDemuxer?.IsLive`, never `Player.IsLive`, whose getter dereferences a null demuxer.
+- **`HttpClient` cannot talk to a Shoutcast v1 station at all**, and this is the measured cause behind
+  SP-0074's "the string almost never appears". A v1 server greets with `ICY 200 OK` instead of
+  `HTTP/1.1 200 OK`, and .NET throws `HttpRequestException: Received an invalid status line: 'ICY 200 OK'`
+  before a single header is read. Proved against a fake station answering each way in turn, same code
+  path, same socket: the `HTTP/1.1` case read `icy-metaint` fine, the `ICY` case threw
+  (`temp/SP-0074/probe-icy-status-line.ps1`). `IcyMetadataReader` swallows it in a bare `catch`, so the
+  station is indistinguishable from one that sends no metadata - which is exactly the invisibility that
+  ticket exists to end. Fixed in SP-0074 by a plaintext socket fallback entered on
+  `HttpRequestException.HttpRequestError == InvalidResponse` (the typed signal - matching the English
+  message text would break on a localized runtime); the frame pump is reused unchanged, because the
+  greeting was the only thing that ever differed (2026-08-08).
+- **"Cancelled" was about to make SP-0074's log useless, and only running it showed that.** A live
+  station's metadata read is almost always torn down by the user moving on, not ended by the station, so
+  the first implementation logged `outcome=Cancelled` for a station happily feeding titles *and* for one
+  that connected and never said a word - the precise distinction the ticket was written to obtain. The
+  fix is a sink that remembers whether a real title went through, so the cancelled path reports
+  `TitlesReported` when one did. Nothing in the test suite could have caught this: every case was green
+  and the enum was fully covered. The general shape - an outcome enum whose most common value is the
+  least informative one - is worth checking for whenever a long-lived read reports how it ended
+  (2026-08-08).
+- **A metadata feature cannot be observed on a public URL, and the reason is structural.** The player only
+  opens URLs whose path carries a video extension (`StreamMediaKindClassifier`), while every station that
+  actually announces a track is a plain ICY endpoint with no extension at all; SomaFM publishes no HLS
+  (its own `channels.json` lists only `.pls`), and sampled HLS sources announced nothing. The way through
+  is `temp/SP-0073/icy-proxy.ps1`: it serves one real station under `/gs.ts` so the app routes it to the
+  player, under `/silent.ts` with ICY simply not requested (a control that changes the metadata and
+  nothing else), and with `-Inject` rewrites each ICY block on a fixed cadence so "does the line follow a
+  change" is a bounded observation instead of a wait on four-to-seven-minute tracks. One trap cost three
+  debugging rounds: **forward the upstream reply's headers verbatim.** VLC recognises an ICY source by the
+  `icy-name`/Icecast signature and only *then* re-requests with `Icy-MetaData: 1`; a proxy that rewrites
+  the response down to `Content-Type` + `icy-metaint` never triggers that, and the client instead gets
+  metadata bytes it was never told to expect - which shows up as decoder errors and a silent title, not as
+  a proxy bug (2026-08-08).
+- **Writing an invisible character literally into a source file is a defect even when it works.** SP-0073's
+  bidi-strip rule and its test both first went in with real U+202E/U+200F characters pasted into the C#,
+  in the very file whose job is to neutralize them: unreviewable in a diff, and one re-encoding away from
+  silently ceasing to match. Both are now named `(char)0x202E`-style constants and the rule file is pure
+  ASCII, checked by a byte scan rather than by eye. Note the related trap: `char.IsControl` does **not**
+  cover these - they are format characters - so the pre-existing ICY sanitizer had been letting them
+  through into the radio line since SP-0014 (2026-08-08).
+
 ## References
 
 - Toolbar glyph icons: `App.xaml`'s shared `GlyphButton` template applies **both**
@@ -255,13 +416,95 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   `ContentTemplate` with `Fill="Transparent"` instead of only swapping `GlyphGeometry` -
   see `HistoryGlyphButton` (SP-0019). Confirmed 2026-07-22.
 
+- **Playback run-and-observe needs no UIA at all: launch with `--url` and read the log.** The app takes
+  `--url <stream>` (`StreamLaunchRequest.Parse`) and opens the player on it directly, so a playback
+  behaviour can be proved by the events in a fresh `Current.log` instead of by driving the tree and
+  taking screenshots. Three traps, each one wasted run (SP-0070, 2026-08-08): (1) `dotnet` is **not** on
+  the PATH of the agent's Bash tool - launch from PowerShell; a launch that silently did nothing looks
+  exactly like an app that started and closed, so confirm by the `Application startup.` line, never by
+  the absence of an error. (2) `dotnet run` in a backgrounded task **dies when that task ends** - the
+  first attempt was killed at 89 s, mid-freeze, seconds before the event it was there to catch. Use
+  `Start-Process` on the built exe so the process outlives the command. (3) A Release build fails with
+  `MSB3027 file locked by StreamsPlayer` whenever the owner has the app running from `bin/Release`;
+  `-c Debug` still proves compilation, and the Release gate can wait until the process is closed.
+
+- **Capping an adaptive stream's rendition in libvlc 3 costs a re-open, and the option is per media.**
+  `:adaptive-maxwidth` / `:adaptive-maxheight` (both present in `VideoLAN.LibVLC.Windows 3.0.23.1`'s
+  `libadaptive_plugin.dll`, alongside `adaptive-logic`, `adaptive-bw`, `adaptive-livedelay`,
+  `adaptive-lowlatency`, `adaptive-maxbuffer`, `adaptive-use-access`) are read when the media is opened,
+  so there is no runtime rung switch on this libvlc generation - changing the cap means playing a new
+  `Media`. Set **both** dimensions: the representation selector excludes a rendition whose width *or*
+  height exceeds the limit. FlyleafLib's equivalent is `Config.Video.MaxVerticalResolutionCustom`
+  (0 = no limit), also read at open. Confirmed working 2026-08-08 (SP-0071): the same channel delivered a
+  steady 730-900 kbps at `disp_fps` 24-27 under a 796k/640x360 cap where the uncapped 2096k rung collapsed
+  to `disp_fps=0` within seconds. **Confirmed directly 2026-08-08 (SP-0077)**, at the resolution rather
+  than through a byte counter: under an 848x480 cap the engine climbed and stopped exactly on that rung
+  (707-1084 kbps), where the same source uncapped reached 1920x1080 at 7 163-11 155 kbps.
+  **Corrected 2026-08-08 (SP-0076):** this entry used to end "cap only to a resolution the stream really
+  offers - the selector has nothing to fall back to" when every rendition exceeds the limit. Measured
+  against a five-rung playlist with a deliberate 200x100 cap, libvlc 3.0.23 **played anyway**: `PLAYBACK
+  LIVE ttff_ms=357`, no error. So an over-tight cap is not automatically a black screen on this build. Do
+  not read that as a licence to invent ceilings - the fallback is not a documented guarantee and says
+  nothing about FlyleafLib - but a design may now treat "the cap fits nothing" as a quality bug to detect
+  and undo rather than as a playback outage to prevent at all costs.
+
+- **To learn which rendition libvlc 3 is actually showing, read the media's track list and take the
+  highest video ES id. The two APIs that look right are both wrong on an adaptive stream.** Measured over
+  40 samples of a healthy 1080p HLS session (SP-0077, 2026-08-08): `MediaPlayer.VideoTrack`, documented as
+  "current video track ID", stays at **-1** for the whole session - there is no selection to read;
+  `MediaPlayer.Size(0, ..)` returns **the resolution the video output was first built with** (320x184)
+  long after the engine climbed to 1920x1080 at eight times the rate, and it returns `True` while doing
+  so, giving the caller no hint the answer is stale. `Media.Tracks` is a **history** of every ES the media
+  has opened, ids ascending as the demuxer opens them, so the highest-numbered video track is the one on
+  screen - the new entry appears in the same sample the data rate rises. Corollary already recorded in
+  SP-0077: that list cannot be used to build a ladder (it omits rungs that never played and reports zero
+  bandwidth for all of them), only to say what is playing now. FlyleafLib does expose
+  `Player.Video.Width/Height`, undocumented in its package XML and found by reflection.
+
+- **Proving a rendition cap took effect needs `demux_bytes`, a long sample, and an A/B - and the first
+  seconds of two sessions are worthless.** `read_bytes`/`in_bitrate` come from the access module the
+  adaptive demuxer bypasses, so they are flat noise on HLS (see the counters entry above). `demux_bytes`
+  works, but only after libvlc's adaptive logic has climbed: two sessions of the *same* source, one
+  uncapped and one capped to the lowest rung, reported **byte-identical** `demux_bytes` for their first
+  three samples, which read as "the cap did nothing" and nearly cost a wrong verdict. At +34 s versus
+  +48 s the same pair read 25 647 993 bytes / 10 171 kbps uncapped against 1 423 619 / 204 kbps capped -
+  18x, unmistakable. Sample past ~30 s, and compare two runs rather than one run against an expectation
+  (SP-0076, 2026-08-08).
+
+- **A WPF window can read a local file before its first action without costing anything, if the read
+  starts in the constructor.** SP-0076 needed `quality-memory.json` in hand *before* `StartMedia` in
+  `Loaded`, and the obvious objection is that this delays the first frame. Start the `Task` in the
+  constructor, make `Loaded` `async void`, and `await` it there: by then it has almost always completed,
+  and awaiting a completed `Task` resumes **inline** rather than posting a continuation. Measured across
+  six sessions: 0.87-1.47 ms between the recall's log line and `PLAYBACK OPEN`, and `ttff_ms` 343 with no
+  record against 344 with one. The constructor-to-`Loaded` gap - window creation, XAML load, measure and
+  arrange - is what pays for the read (2026-08-08).
+
+- **A relaunch that races the dying process can produce a session with no log at all.** Killing
+  StreamsPlayer and starting it again in the same command left the new instance playing for two minutes
+  having written **zero** lines: `DiagnosticLogFiles` retires `Current.log` at launch, the rename failed
+  silently while the old process still held the handle, and the session then logged to nothing. This is
+  the SP-0070 trap's twin - "started and closed" and "started and logged nothing" look identical - and it
+  cost one run of SP-0076's observation. When scripting run-and-observe, wait for the process to actually
+  exit before relaunching.
+  **Fixed in SP-0085 (2026-08-08), and the mechanism is worth keeping:** a live session holds its log
+  with `FileAccess.Write` + `FileShare.Read`, which denies *both* halves of the launch - `File.Move`
+  needs delete-sharing to retire it, and a second `FileMode.Create` on the same name is a sharing
+  violation the constructor's blanket `catch` then swallows. `DiagnosticLogFiles.Rotate` now returns
+  `LogRotationOutcome`, and a blocked launch writes to `ReserveSessionPath(..)` - its own
+  `Session-<start>.log` - opening with `LOG ROTATION FAILED`. So a raced relaunch is diagnosable again,
+  but note where to look: **that run's log is not `Current.log`**, and the newest `Session-*` file may be
+  a session still running rather than a retired one. Retention overshoots by one file for that launch and
+  the next launch prunes it back.
+
 - GUI run-and-observe without a human: drive the app from PowerShell with
   `Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes` and screenshot with
   `System.Drawing` `CopyFromScreen`. Three traps found 2026-07-24 (SP-0030): (1) `PlayerWindow`,
   `SettingsWindow`, and `MessageBox` are **descendants** of the main window in the UIA tree, not
   root children - `FindFirst(TreeScope.Children, ...)` on the desktop only ever returns
-  `Трансляции`/`STREAMS Player`; (2) Settings tabs expose no usable `Name` (headers are
-  StackPanels) - select by index via `SelectionItemPattern`; (3) `ShowDialog` disables the other
+  `Трансляции`/`STREAMS Player`; (2) Settings tabs exposed no usable `Name` (headers are
+  StackPanels), so they had to be selected by index via `SelectionItemPattern` - **fixed in SP-0064**,
+  they are addressable by label now; (3) `ShowDialog` disables the other
   app windows, so a topmost `PlayerWindow` left over from launch resume cannot be closed and will
   sit on top of every screenshot - close it *before* opening Settings, and `SetForegroundWindow`
   is unreliable against foreground lock.
@@ -294,6 +537,25 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   wrong channel. Note the consequence for the header's own menus: a `BuildEntry` item's UIA name is its
   **tooltip** key, not its header, so the operations entries are found by their description
   ("Add a channel someone sent you as text..."), while the overflow entries carry their header text.
+  A shutdown-path variant, 2026-08-08 (SP-0065): to observe a *crash on exit* you need the real cursor over
+  a real tile at the moment of destruction, so park it with `SetCursorPos` (**two** calls - WPF raises
+  `MouseEnter` on a move delta, not on a position), then `PostMessage(hwnd, WM_CLOSE)` and read
+  `Process.ExitCode` plus the tail of `Current.log`. The pass condition is the `Application shutdown.` line,
+  because that is what `App.OnExit` writes and what an unhandled exception skips. A clean exit alone proves
+  little when the bug is intermittent - temporarily log from the guarded handler so the run also shows the
+  late event *arriving*, then remove the instrumentation and re-run. Harness kept at
+  `temp/SP-0065/observe.ps1`. Note it persists whatever view mode it switches to, so restore the owner's
+  preference afterwards.
+  The cheapest way past traps (1) and (4), found 2026-08-08 while resizing Settings: **stop using UIA to
+  find the dialog and stop trying to own the foreground.** `EnumWindows` filtered by the process id
+  returns every top-level window including the modal (diff the list taken before the click against the
+  one after), `PrintWindow(hwnd, hdc, PW_RENDERFULLCONTENT=2)` captures a window that is *behind* the
+  editor so no foreground call is needed at all, and `MoveWindow` resizes it - a whole run with no
+  synthetic mouse and no DPI arithmetic. Open the dialog with `InvokePattern`: it throws
+  `"Unrecognized error"` because the modal takes the message loop, but the window **does** open, so
+  catch and continue. Everything else that "should" work does not: `SetForegroundWindow` from a
+  background host is refused, a posted `WM_KEYDOWN` never reaches the focused element, and a coordinate
+  click lands on the editor. Harness kept at `artifacts/verify-settings-window.ps1`.
 
 - `StreamCatalogStore.SaveAsync` calls `RemoveUnreferencedAtlases` on **every** save, deleting any
   `favicon-atlas-*.png` that the just-saved state does not name. Consequence when testing against
@@ -418,6 +680,17 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   right-to-left window is cheaper by swapping the single root `"language"` token in `catalog-state.json`
   and restoring it afterwards - never by a JSON round trip, which would rewrite 2.9 MB of the owner's
   real catalog (2026-07-30).
+
+- **A WPF control derives its automation name from header *text*, so a composite header yields no name at
+  all** - and the control still looks perfectly labelled on screen, which is why the Settings tab strip
+  shipped that way for the window's whole life. The `TabItem`s carry
+  `AutomationProperties.Name` since SP-0064 and are now selectable by their English label
+  (`Language`, `Grid`, `Launch shortcuts`, `Playback`, `Playlists (M3U)`, `About`), which supersedes
+  SP-0030's "select by index". `TabAutomationNameTests` gates it, and the pattern it
+  uses is reusable for any markup rule: the application's `*.xaml` is already linked into the test project
+  as data (SP-0057), XAML is XML, so `XDocument` over `AppSourceFile.LoadAll("*.xaml")` gates markup
+  without a project reference. Prove such a gate by mutating the *copy* in the test output and running
+  `dotnet test --no-build`, which leaves the source untouched (2026-08-08).
 
 - **The live Store listing is byte-identical to the repo deck again.** A fresh Partner Center export
   taken 2026-07-30 filled **0 cells across all thirteen languages** under both the default run and

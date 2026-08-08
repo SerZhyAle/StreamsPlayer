@@ -38,7 +38,11 @@ We only found the real cause after adding structured diagnostics. Log, per playb
   the HLS and DASH demuxers fetch segments through their own downloader below that layer. A
   2026-08-07 log held `read_bytes=364` and `in_bitrate=0` for an entire 124-second session that
   played fine. Never read "input bytes frozen" as starvation on a `.m3u8` - it is frozen always.
-  Difference the **demux** byte counter over wall time and publish that instead.
+  Difference the **demux** byte counter over wall time and publish that instead. **This one is
+  engine-specific, not a platform law:** it follows from where libVLC's counter is filled. On a
+  player whose transfer listener sits on the segment fetches themselves - Media3/ExoPlayer, for
+  instance - the same counter is live and worth reading. Verify where your engine fills it before
+  copying either the warning or the workaround.
 - **Decoded and rendered counters do not count the same event, so their difference is not loss.**
   On a stream measured playing smoothly at 27-32 fps, libVLC still reported `decoded_v` at almost
   exactly **twice** `displayed` (2235 vs 1083) with zero dropped frames. We briefly shipped that

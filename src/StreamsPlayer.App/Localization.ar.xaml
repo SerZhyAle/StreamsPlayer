@@ -84,6 +84,7 @@
     <sys:String x:Key="Ready">جاهز</sys:String>
     <sys:String x:Key="NothingPlaying">لا شيء قيد التشغيل</sys:String>
     <sys:String x:Key="StopAudio">إيقاف الصوت</sys:String>
+    <sys:String x:Key="ResumeAudio">استئناف الصوت</sys:String>
     <sys:String x:Key="AllOption">الكل</sys:String>
     <sys:String x:Key="AudioOption">صوت</sys:String>
     <sys:String x:Key="VideoOption">فيديو</sys:String>
@@ -217,10 +218,15 @@
     <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">جارٍ التخزين المؤقت…</sys:String>
     <sys:String x:Key="BufferingProgress">جارٍ التخزين المؤقت… {0}%</sys:String>
-    <sys:String x:Key="PlayingLive">تشغيل مباشر</sys:String>
+    <sys:String x:Key="PlayingLive">تشغيل مباشر (تأخير {0} ث)</sys:String>
     <sys:String x:Key="ReconnectingAttempt">جارٍ إعادة الاتصال… (محاولة {0} من {1})</sys:String>
     <sys:String x:Key="ReconnectingAudioAttempt">جارٍ إعادة الاتصال بـ {0}… (محاولة {1} من {2})</sys:String>
     <sys:String x:Key="PlayerUnavailable">البث غير متاح</sys:String>
+    <sys:String x:Key="PlayerNoticeConnecting">جارٍ الاتصال…</sys:String>
+    <sys:String x:Key="PlayerNoticeSignalLost">فُقدت الإشارة - جارٍ البحث…</sys:String>
+    <sys:String x:Key="PlayerNoticeReconnecting">جارٍ إعادة الاتصال… {0}/{1}</sys:String>
+    <sys:String x:Key="PlayerNoticeQuality">جارٍ تغيير الجودة…</sys:String>
+    <sys:String x:Key="PlayerOnAir">على الهواء: {0}</sys:String>
     <!-- SP-0045: the player stripe's state, shown as its tooltip so the colour is never the only
          carrier of the meaning. These name the state, not its cause - the status line above the
          stripe already says what is happening. -->

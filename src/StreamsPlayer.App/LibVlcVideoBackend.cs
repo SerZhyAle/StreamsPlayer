@@ -82,6 +82,8 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     // VLC surface; its Content is the only WPF layer that stays on top of the video through resizes.
     public void SetOverlay(FrameworkElement overlay) => _videoView.Content = overlay;
 
+    public string EngineName => "libvlc";
+
     public long PositionMs => _mediaPlayer.Time;
 
     public bool IsPlaying => _mediaPlayer.State == VLCState.Playing;
@@ -120,7 +122,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     public event Action? TracksChanged;
     public event Action<BitmapSource>? SnapshotReady;
 
-    public bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode)
+    public bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling)
     {
         lock (_mediaGate)
         {
@@ -135,23 +137,56 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             _rateTicks = 0;
             _rateSeconds = 0;
             _mediaPlayer.NetworkCaching = cacheMilliseconds;
+            // SP-0069: the field takes ownership only once Play has returned. Assigning it first and
+            // disposing the previous wrapper afterwards - which is what this did - strands one Media per
+            // throwing Play, and on the recovery leg that throw lands inside a Task.Run nobody observes.
+            // The previous wrapper is still disposed after Play rather than before it, because the player
+            // may be reading from it until the new one takes effect.
             var previous = _media;
-            _media = new Media(_libVlc, url);
-            _media.AddOption($":network-caching={cacheMilliseconds}");
-            _media.AddOption($":live-caching={cacheMilliseconds}");
-            if (rtspOverTcp)
+            var next = new Media(_libVlc, url);
+            try
             {
-                _media.AddOption(":rtsp-tcp");
-            }
+                next.AddOption($":network-caching={cacheMilliseconds}");
+                next.AddOption($":live-caching={cacheMilliseconds}");
+                if (rtspOverTcp)
+                {
+                    next.AddOption(":rtsp-tcp");
+                }
 
-            if (softwareDecode)
+                if (softwareDecode)
+                {
+                    next.AddOption(":avcodec-hw=none");
+                }
+
+                // SP-0071: libvlc's adaptive demuxer excludes a rendition whose width *or* height exceeds
+                // the limit, so both are set - a source may declare only one of them usefully. Verified
+                // against the shipped plugin rather than assumed: adaptive-maxwidth ("Maximum device
+                // width") and adaptive-maxheight ("Maximum device height") are both present in
+                // VideoLAN.LibVLC.Windows 3.0.23.1's libadaptive_plugin.dll.
+                // The representation selector has nothing to fall back to when *every* rendition exceeds
+                // the limit, so a ceiling must never be invented from something the stream did not offer -
+                // a screen size, for instance. SP-0076's remembered ceiling was a rung of this stream's
+                // own ladder when it was recorded, which can go stale; the player, not this method, is
+                // where that risk is bounded.
+                if (qualityCeiling is { } ceiling)
+                {
+                    next.AddOption($":adaptive-maxwidth={ceiling.Width}");
+                    next.AddOption($":adaptive-maxheight={ceiling.Height}");
+                }
+
+                var started = _mediaPlayer.Play(next);
+                _media = next;
+                previous?.Dispose();
+                return started;
+            }
+            finally
             {
-                _media.AddOption(":avcodec-hw=none");
+                // Reached with the field still naming `previous` only when Play threw past the assignment.
+                if (!ReferenceEquals(_media, next))
+                {
+                    next.Dispose();
+                }
             }
-
-            var started = _mediaPlayer.Play(_media);
-            previous?.Dispose();
-            return started;
         }
     }
 
@@ -175,16 +210,24 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         // _mediaGate serializes this against any in-flight reconnect Play so they never race natively.
         var mediaPlayer = _mediaPlayer;
         var libVlc = _libVlc;
+        // SP-0069: staged, because these five releases used to share one unprotected block. The comment
+        // above says Stop() can take seconds on a flapping stream - the very case where it is most
+        // likely to fault - and a throw there skipped the Media, the MediaPlayer, the LibVLC instance
+        // and the VideoView below, leaking a whole native engine with its worker threads and its child
+        // HWND. The caller cannot await this task, so the fault was invisible until some later GC.
         await Task.Run(() =>
         {
             lock (_mediaGate)
             {
                 _disposed = true;
-                mediaPlayer.Stop();
-                _media?.Dispose();
-                _media = null;
-                mediaPlayer.Dispose();
-                libVlc.Dispose();
+                ReleaseStage("stop", mediaPlayer.Stop);
+                ReleaseStage("media", () =>
+                {
+                    _media?.Dispose();
+                    _media = null;
+                });
+                ReleaseStage("player", mediaPlayer.Dispose);
+                ReleaseStage("engine", libVlc.Dispose);
             }
         });
 
@@ -193,7 +236,27 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         // LibVLCSharp that destroys the per-view child HWND (VideoHwndHost) and closes the ForegroundWindow
         // overlay. Runs after the native stop so no vout is still rendering into that HWND; Dispose is
         // idempotent and Window.Close on an already-closed overlay is a no-op.
-        _videoView.Dispose();
+        ReleaseStage("view", _videoView.Dispose);
+    }
+
+    /// <summary>Run one native release so a fault in it cannot skip the releases that follow.</summary>
+    /// <remarks>
+    /// SP-0069: the filter is narrow on purpose - a native stop or dispose reports through
+    /// <see cref="VLCException"/>, and a doubly-torn-down wrapper through
+    /// <see cref="ObjectDisposedException"/>. Anything else is not a teardown failure and must keep
+    /// propagating. A failed stage is logged rather than swallowed: the whole point of the staging is
+    /// that the next stage still runs, so the record of what did not close is the only trace left.
+    /// </remarks>
+    private void ReleaseStage(string stage, Action release)
+    {
+        try
+        {
+            release();
+        }
+        catch (Exception ex) when (ex is VLCException or ObjectDisposedException)
+        {
+            _log.Event("PLAYBACK TEARDOWN", $"stage={stage}", "ok=false", $"err={ex.Message}", $"url={_lastUrl}");
+        }
     }
 
     public bool RequestSnapshot(int width)
@@ -318,6 +381,29 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         return new DecoderLossCounters(s.LostPictures, s.DemuxCorrupted, s.DemuxDiscontinuity);
     }
 
+    // SP-0070: the two counters the freeze rule differences, from the same statistics LogStats prints and
+    // under the same Media-wrapper discipline - the getter retains the native media on every call, and
+    // this runs on the watchdog's 3 s tick, so an undisposed wrapper would leak a media per sample.
+    // DemuxReadBytes, not ReadBytes: as documented on Rate above, libvlc fills the access-side counter
+    // only, and the HLS/DASH demuxers fetch their segments below it - so ReadBytes sits frozen for a
+    // whole healthy .m3u8 session and would read as "no data arriving" on every adaptive stream.
+    public PlaybackProgressCounters? ReadProgressCounters()
+    {
+        if (_disposed)
+        {
+            return null;
+        }
+
+        using var media = _mediaPlayer.Media;
+        if (media is null)
+        {
+            return null;
+        }
+
+        var s = media.Statistics;
+        return new PlaybackProgressCounters(s.DisplayedPictures, (long)s.DemuxReadBytes);
+    }
+
     // Same Media-wrapper discipline as LogStats: the getter retains the native media on every call.
     public StreamTransmission? DescribeTransmission()
     {
@@ -328,6 +414,70 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
         using var media = _mediaPlayer.Media;
         return media is null ? null : StreamTransmissionProbe.Read(media);
+    }
+
+    // SP-0073: the same Media-wrapper discipline as LogStats - the getter retains the native media on
+    // every call, and this runs on the two-second stats tick, so an undisposed wrapper would leak one
+    // media per sample.
+    //
+    // NowPlaying only, deliberately. libvlc also carries MetadataType.Title, but on an HTTP source that
+    // is routinely the URL or its last path segment, so consulting it as a fallback would put a link
+    // under the channel name and read as a defect. NowPlaying is the field that means "what is on air":
+    // libvlc fills it from ICY StreamTitle on a radio stream and from the current programme on a source
+    // that announces one, which is exactly the two cases the ticket names.
+    public string? ReadNowPlaying()
+    {
+        if (_disposed)
+        {
+            return null;
+        }
+
+        using var media = _mediaPlayer.Media;
+        return media?.Meta(MetadataType.NowPlaying);
+    }
+
+    /// <summary>SP-0077: the rendition on screen - the newest video ES this media has opened.</summary>
+    /// <remarks>
+    /// <para>Indirect on purpose. The two APIs that look like the answer were measured and both lie on an
+    /// adaptive stream: <c>MediaPlayer.VideoTrack</c> stays at -1 for the whole session, and
+    /// <c>MediaPlayer.Size</c> keeps returning the resolution the vout was first built with while the
+    /// engine plays something else entirely - and returns <c>true</c> while doing it. The media's own ES
+    /// list is a <em>history</em> with ascending ids, so its highest-numbered video track is the one most
+    /// recently started, which is the one being shown; never the first entry and never the widest, as
+    /// both name a rendition that may have stopped playing minutes ago. Evidence and the one case where
+    /// this rule would be wrong (two video ES opened together, only one played): `docs/PLAYBACK_RESILIENCE.md`
+    /// §5 and `temp/SP-0077/OBSERVATION.md`.</para>
+    /// <para>Same Media-wrapper discipline as <see cref="LogStats"/>: the getter retains the native media
+    /// on every call, and this runs on the two-second stats tick, so an undisposed wrapper would leak one
+    /// media per sample.</para>
+    /// </remarks>
+    public VideoRendition? ReadRendition()
+    {
+        if (_disposed)
+        {
+            return null;
+        }
+
+        using var media = _mediaPlayer.Media;
+        if (media is null)
+        {
+            return null;
+        }
+
+        var newest = -1;
+        VideoRendition? playing = null;
+        foreach (var track in media.Tracks)
+        {
+            if (track.TrackType != TrackType.Video || track.Id <= newest)
+            {
+                continue;
+            }
+
+            newest = track.Id;
+            playing = new VideoRendition((int)track.Data.Video.Width, (int)track.Data.Video.Height);
+        }
+
+        return playing;
     }
 
     private static VideoTrack[] Describe(TrackDescription[]? tracks) =>

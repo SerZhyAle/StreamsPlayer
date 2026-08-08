@@ -7,8 +7,12 @@
         <!-- SP-0026: the selected video backend's surface is injected here at runtime. -->
         <Grid x:Name="VideoHost" />
         <!-- ControlsOverlay is detached at runtime and hosted inside the backend's native video
-             surface so it floats above the video (airspace) instead of being covered on resize. -->
-        <Grid x:Name="ControlsOverlay" Background="#01000000" PreviewMouseDown="VideoSurface_MouseDown">
+             surface so it floats above the video (airspace) instead of being covered on resize.
+             SP-0072: that reparenting also takes it out of this window's inheritance chain, so the
+             window's FlowDirection no longer reaches it - hence the explicit binding here. Without it
+             the overlay renders left-to-right in Arabic and Urdu whatever the window declares. -->
+        <Grid x:Name="ControlsOverlay" Background="#01000000" PreviewMouseDown="VideoSurface_MouseDown"
+              FlowDirection="{DynamicResource UiFlowDirection}">
         <Border x:Name="ControlPanel" VerticalAlignment="Bottom" Background="#B0000000" Padding="12">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -17,6 +21,12 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock x:Name="TitleText" Foreground="White" FontWeight="SemiBold" FontSize="16" />
+                    <!-- SP-0073: what is on air, under the name of the channel it is on. Collapsed until
+                         the stream announces something, so a source that says nothing leaves this panel
+                         exactly as it was. TextTrimming is what bounds a hostile or padded title to one
+                         line - the column beside it is Auto, so untrimmed text would push the buttons. -->
+                    <TextBlock x:Name="OnAirText" Foreground="#FFD4DCE8" TextTrimming="CharacterEllipsis"
+                               Visibility="Collapsed" />
                     <TextBlock x:Name="WaitText" Text="{DynamicResource Buffering}" Foreground="#FFD4DCE8" />
                     <!-- SP-0045: still the buffer gauge (0..100); its colour now reports signal health,
                          and both brushes plus the tooltip are assigned from code so the colour and the
@@ -45,6 +55,15 @@
                     <Button Style="{StaticResource PlayerOverlayCloseGlyphButton}" Content="{DynamicResource Close}" Click="Close_Click" />
                 </StackPanel>
             </Grid>
+        </Border>
+        <!-- SP-0072: why the screen is black, said in the layer that survives the control panel's
+             ten-second auto-hide. HorizontalAlignment is Left rather than a corner name so the overlay's
+             FlowDirection mirrors it into the trailing corner for right-to-left languages. -->
+        <Border x:Name="InterruptionNotice" VerticalAlignment="Top" HorizontalAlignment="Left"
+                Background="#B0000000" CornerRadius="4" Padding="10,6" Margin="12"
+                Visibility="Collapsed" IsHitTestVisible="False">
+            <TextBlock x:Name="InterruptionNoticeText" Foreground="White" FontSize="14" FontWeight="SemiBold"
+                       MaxWidth="360" TextWrapping="Wrap" />
         </Border>
         <Border x:Name="FrameSavedToast" VerticalAlignment="Center" HorizontalAlignment="Center"
                 Background="#C8000000" CornerRadius="6" Padding="20,13" Opacity="0" IsHitTestVisible="False">

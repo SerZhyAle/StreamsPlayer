@@ -84,6 +84,7 @@
     <sys:String x:Key="Ready">Готово</sys:String>
     <sys:String x:Key="NothingPlaying">Ничего не воспроизводится</sys:String>
     <sys:String x:Key="StopAudio">Остановить аудио</sys:String>
+    <sys:String x:Key="ResumeAudio">Возобновить аудио</sys:String>
     <sys:String x:Key="AllOption">Все</sys:String>
     <sys:String x:Key="AudioOption">Аудио</sys:String>
     <sys:String x:Key="VideoOption">Видео</sys:String>
@@ -214,10 +215,15 @@
     <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">Буферизация…</sys:String>
     <sys:String x:Key="BufferingProgress">Буферизация… {0}%</sys:String>
-    <sys:String x:Key="PlayingLive">Прямой эфир</sys:String>
+    <sys:String x:Key="PlayingLive">Прямой эфир -{0} с</sys:String>
     <sys:String x:Key="ReconnectingAttempt">Переподключение… (попытка {0} из {1})</sys:String>
     <sys:String x:Key="ReconnectingAudioAttempt">Переподключение к {0}… (попытка {1} из {2})</sys:String>
     <sys:String x:Key="PlayerUnavailable">Поток недоступен</sys:String>
+    <sys:String x:Key="PlayerNoticeConnecting">Подключение…</sys:String>
+    <sys:String x:Key="PlayerNoticeSignalLost">Сигнал потерян - идёт поиск…</sys:String>
+    <sys:String x:Key="PlayerNoticeReconnecting">Переподключение… {0}/{1}</sys:String>
+    <sys:String x:Key="PlayerNoticeQuality">Смена качества…</sys:String>
+    <sys:String x:Key="PlayerOnAir">В эфире: {0}</sys:String>
     <!-- SP-0045: the player stripe's state, shown as its tooltip so the colour is never the only
          carrier of the meaning. These name the state, not its cause - the status line above the
          stripe already says what is happening. -->

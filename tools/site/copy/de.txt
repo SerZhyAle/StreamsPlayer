@@ -137,34 +137,34 @@ Kanäle anheften, zu denen Sie zurückkehren.
 Richtig abspielen
 
 @@cap-play-1
-Radio läuft im Hauptfenster.
+Radio läuft im Hauptfenster und nennt den Titel, der gerade läuft, sofern der Sender ihn mitsendet.
 
 @@cap-play-2
-Live-Video und RTSP öffnen sich in einem eigenen Playerfenster.
+Den Ton stoppen, ohne den Sender zu verlieren - Lautstärke und Sleeptimer bleiben und sind bereit zum Fortsetzen.
 
 @@cap-play-3
-Live-Puffer von etwa 15 Sekunden mit sichtbarem Pufferfortschritt.
+Live-Video und RTSP öffnen sich in einem eigenen Playerfenster, das den laufenden Titel über dem Bild zeigt.
 
 @@cap-play-4
-Lautstärke und Stummschaltung werden gemerkt.
+Live-Puffer von etwa 15 Sekunden, und das Video pendelt sich auf der Qualität ein, die Ihre Verbindung trägt, und startet beim nächsten Mal gleich dort.
 
 @@cap-window-title
 Ansicht nach Ihrem Wunsch
 
 @@cap-window-1
-Hauptfenster oder Player immer im Vordergrund halten.
+Hauptfenster oder Player immer im Vordergrund halten oder randloses Vollbild per F11 (Esc beendet es).
 
 @@cap-window-2
-Randloses Vollbild per Schaltfläche oder F11 (Esc beendet es).
+Der Player ist ein eigenes Fenster - minimieren Sie den Katalog, das Bild läuft weiter.
 
 @@cap-window-3
-Kacheln der Streams: sehr klein, klein, mittel oder groß.
+Kacheln von sehr klein bis groß, ein größenveränderbares Einstellungsfenster und ein helles, dunkles oder Windows-eigenes Farbschema.
 
 @@cap-window-4
 Aktuelles Bild als JPEG speichern.
 
 @@cap-window-5
-Dem Farbschema von Windows folgen oder dauerhaft hell bzw. dunkel bleiben.
+Wenn das Bild stehen bleibt, sagt der Player über dem Video warum - und öffnet einen still eingefrorenen Stream neu.
 
 @@cap-grid-title
 Visuelles Raster

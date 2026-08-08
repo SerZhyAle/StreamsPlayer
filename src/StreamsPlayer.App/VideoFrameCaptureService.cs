@@ -26,7 +26,12 @@ public sealed class VideoFrameCaptureService : IAsyncDisposable
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(FirstFrameTimeout);
-        using var mediaPlayer = new VlcMediaPlayer(_libVlc) { Mute = true, Volume = 0 };
+        // SP-0069: deliberately not a `using`. The teardown order below is load-bearing and `using`
+        // would run this disposal *after* the finally block - that is, after the pixel buffer has been
+        // unpinned and after the two video callbacks have lost their last GC.KeepAlive. LibVLC keeps the
+        // callback function pointers registered until the player is released, so that window is a write
+        // into memory the GC may have moved and a call through a delegate that may have been collected.
+        var mediaPlayer = new VlcMediaPlayer(_libVlc) { Mute = true, Volume = 0 };
         using var media = new Media(_libVlc, new Uri(url));
         media.AddOption(":no-audio");
         media.AddOption(":network-caching=2000");
@@ -93,14 +98,23 @@ public sealed class VideoFrameCaptureService : IAsyncDisposable
             mediaPlayer.EncounteredError -= OnError;
             try
             {
-                await Task.Run(mediaPlayer.Stop);
-            }
-            catch (VLCException)
-            {
-                // Disposal below remains mandatory even if native stop reports failure.
+                try
+                {
+                    await Task.Run(mediaPlayer.Stop);
+                }
+                catch (VLCException)
+                {
+                    // Disposal below remains mandatory even if native stop reports failure - and a stop
+                    // that failed is exactly the case where the decoder may still be running, so the
+                    // player must be released before the buffer is unpinned rather than after.
+                }
+
+                mediaPlayer.Dispose();
             }
             finally
             {
+                // Only now can the buffer move and the callbacks be collected: the player that held
+                // pointers to both is gone.
                 if (pinnedPixels.IsAllocated)
                 {
                     pinnedPixels.Free();

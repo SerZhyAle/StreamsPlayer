@@ -86,6 +86,7 @@
     <sys:String x:Key="Ready">Ready</sys:String>
     <sys:String x:Key="NothingPlaying">Nothing playing</sys:String>
     <sys:String x:Key="StopAudio">Stop audio</sys:String>
+    <sys:String x:Key="ResumeAudio">Resume audio</sys:String>
     <sys:String x:Key="AllOption">All</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Video</sys:String>
@@ -225,10 +226,23 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">Buffering…</sys:String>
     <sys:String x:Key="BufferingProgress">Buffering… {0}%</sys:String>
-    <sys:String x:Key="PlayingLive">Playing live</sys:String>
+    <!-- The live state, carrying how far behind the source this window is playing: the live buffer the
+         current media was opened with, in whole seconds. {0} is that delay. The sign, the unit and their
+         order are part of the translation rather than composed in code, because a right-to-left paragraph
+         reorders a bare "-{0}" unpredictably - ar and ur therefore say the delay in words. -->
+    <sys:String x:Key="PlayingLive">Playing live -{0} s</sys:String>
     <sys:String x:Key="ReconnectingAttempt">Reconnecting… (attempt {0} of {1})</sys:String>
     <sys:String x:Key="ReconnectingAudioAttempt">Reconnecting to {0}… (attempt {1} of {2})</sys:String>
     <sys:String x:Key="PlayerUnavailable">Stream unavailable</sys:String>
+    <!-- SP-0072: the same causes as the status line above, worded for the caption drawn over the video
+         while there is no picture. Shorter than the panel's wording on purpose and not by accident: this
+         text sits on top of what the user is trying to watch, in thirteen languages, and the panel is
+         still there to say it at length. The terminal case reuses PlayerUnavailable. -->
+    <sys:String x:Key="PlayerNoticeConnecting">Connecting…</sys:String>
+    <sys:String x:Key="PlayerNoticeSignalLost">Signal lost - searching…</sys:String>
+    <sys:String x:Key="PlayerNoticeReconnecting">Reconnecting… {0}/{1}</sys:String>
+    <sys:String x:Key="PlayerNoticeQuality">Switching quality…</sys:String>
+    <sys:String x:Key="PlayerOnAir">On air: {0}</sys:String>
     <!-- SP-0045: the player stripe's state, shown as its tooltip so the colour is never the only
          carrier of the meaning. These name the state, not its cause - the status line above the
          stripe already says what is happening. -->

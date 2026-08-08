@@ -52,7 +52,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     // Decoded previews held in memory. Every eviction blanks that tile back to its favicon until the row
     // scrolls back into view, so this must comfortably exceed one viewport's worth of tiles (pinned band
-    // included) or ordinary scrolling visibly strips the grid. 240x135 atlas tiles cost ~130 KB each.
+    // included) or ordinary scrolling visibly strips the grid.
+    // SP-0069: the bound is entries, not bytes, and an entry's cost depends on where the frame came from -
+    // a 240x135 atlas tile is ~130 KB, but a 480x270 live capture (VideoFrameCaptureService) is 518 400 B.
+    // So this cap is 24 MiB of imported previews or 95 MiB of captured ones, and the accepted ceiling is
+    // the larger figure. A byte budget was considered and rejected: these are frozen BitmapSources whose
+    // pixels live in unmanaged WIC memory the cache does not own, so it would have to estimate the very
+    // number it claimed to enforce. The comment used to quote only the small figure, which read as a 24 MiB
+    // ceiling that was never true.
     private const int PreviewMemoryCacheCapacity = 192;
     private int _previewEvictions;
     private readonly StreamLaunchRequest _launchRequest;
@@ -73,6 +80,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private int _catalogColumns = 1;
     private CancellationTokenSource? _viewportDebounce;
     private CancellationTokenSource? _hoverDwell;
+    // SP-0065: this window is closing, so the preview subsystem is closed for business. Set as the very
+    // first statement of MainWindow_Closed - the handler is async void and the dispatcher pumps input
+    // while it saves, so events keep arriving right through the teardown that disposes the two sources
+    // above. Every preview entry point reads it; see MainWindow.Previews.cs.
+    private bool _shuttingDown;
     private readonly DispatcherTimer _browsingSessionSaveTimer;
     private bool _restoringBrowsingSession;
     private bool _resettingFilters;
@@ -843,9 +855,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         AudioVolumeSlider.Visibility = Visibility.Visible;
         AudioPlayer.Source = new Uri(channel.Url);
         AudioPlayer.Play();
-        StopAudioButton.IsEnabled = true;
-        StopAudioButton.Visibility = Visibility.Visible;
-        ShowSleepTimerControl(true);
+        ApplyAudioTransportState();
         StartNowPlayingMetadata(channel);
     }
 
@@ -883,10 +893,34 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         await RecoverAudioAsync(row.Channel, reason);
     }
 
+    /// <remarks>
+    /// SP-0069: <c>MediaElement</c> reports a server that closed the response *cleanly* as MediaEnded,
+    /// not MediaFailed - and nothing was listening, so the session simply never ended. What stayed behind
+    /// was worse than a leak: <c>_audioWake</c> kept forbidding the machine to sleep, the sleep timer kept
+    /// counting, the Windows media session kept showing Playing and the now-playing line kept naming a
+    /// station that had stopped. A station that ends is the ordinary way a relay drops, so this takes the
+    /// same bounded path video already takes for the same event
+    /// (<see cref="PlayerWindow"/>'s EndReached handler): reconnect within the StreamEnded budget, and
+    /// once that budget is spent fail terminally - which is the funnel that finally releases the hold.
+    /// </remarks>
+    private async void AudioPlayer_MediaEnded(object sender, RoutedEventArgs e)
+    {
+        var row = _playingAudio;
+        _log.Event("AUDIO ENDED", $"url={row?.Channel.Url ?? "n/a"}");
+        if (row is null)
+        {
+            return;
+        }
+
+        AudioPlayer.Stop();
+        AudioPlayer.Source = null;
+        await RecoverAudioAsync(row.Channel, "end_reached", endReached: true);
+    }
+
     // Bounded audio recovery (streams.txt Part D). Classifies the failure, then reconnects after a cancellable
     // backoff (showing a Reconnecting label) or, once the budget is spent or a hard failure is hit, shows the
     // terminal dialog. There is no position stall-watchdog for audio: MediaElement exposes no live telemetry.
-    private async Task RecoverAudioAsync(StreamChannel channel, string reason)
+    private async Task RecoverAudioAsync(StreamChannel channel, string reason, bool endReached = false)
     {
         var policy = _audioRecovery;
         var cts = _audioRecoveryCts;
@@ -895,13 +929,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return; // audio was stopped or switched to another channel
         }
 
-        var status = await PlaybackStatusProbe.TryGetStatusAsync(channel.Url, cts.Token);
+        // Only a fresh open failure needs the status probe; a stream that ended already carries its own
+        // signal, and probing it would spend a request to learn nothing. Same rule the video path applies.
+        int? status = endReached ? null : await PlaybackStatusProbe.TryGetStatusAsync(channel.Url, cts.Token);
         if (cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
         {
             return; // stopped or switched while probing - do not relabel or restart
         }
 
-        var decision = policy.Decide(new PlaybackFailureSignal(reason, HttpStatusCode: status));
+        var decision = policy.Decide(new PlaybackFailureSignal(reason, EndReached: endReached, HttpStatusCode: status));
         _log.Event("AUDIO RECOVER",
             $"trigger={decision.Trigger}",
             $"action={decision.Kind}",
@@ -995,7 +1031,41 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _state = await PersistAsync(_state with { AudioVolume = volume });
     }
 
-    private void StopAudioButton_Click(object sender, RoutedEventArgs e) => StopAudio();
+    // SP-0081: the panel's own transport. Silencing a station is the common reason to press this, and
+    // ending the session is not what that asks for - so the button stops the sound and keeps the station,
+    // then offers it back. A real stop is still one click away on the playing row, on the system flyout's
+    // Stop, and in starting another station.
+    private void AudioTransportButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_playingAudio is not null)
+        {
+            PauseAudio();
+        }
+        else
+        {
+            ResumeAudio();
+        }
+    }
+
+    /// <summary>
+    /// Puts the panel's transport button, volume and sleep timer into the state the audio session is
+    /// actually in. Reading both fields here, rather than showing and hiding them at each call site, is
+    /// what keeps the paused state - a stopped session with a remembered station - from looking like
+    /// nothing playing: <see cref="StopAudioPlayback(bool)"/> runs on the way into it as well.
+    /// </summary>
+    private void ApplyAudioTransportState()
+    {
+        var playing = _playingAudio is not null;
+        var hasStation = playing || _audioPausedChannel is not null;
+        AudioTransportButton.IsEnabled = hasStation;
+        AudioTransportButton.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
+        AudioVolumeSlider.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
+        ShowSleepTimerControl(hasStation);
+        AudioTransportButton.Style = (Style)FindResource(playing ? "StopGlyphButton" : "PlayGlyphButton");
+        // A resource reference rather than an assigned string, so the caption follows a language change
+        // on its own - this window is open across every one of them.
+        AudioTransportButton.SetResourceReference(ContentControl.ContentProperty, playing ? "StopAudio" : "ResumeAudio");
+    }
 
     private void StopAudio()
     {
@@ -1027,16 +1097,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         AudioPlayer.Source = null;
         _playingAudio?.SetPlayingAudio(false);
         _playingAudio = null;
-        StopAudioButton.IsEnabled = false;
-        StopAudioButton.Visibility = Visibility.Collapsed;
-        AudioVolumeSlider.Visibility = Visibility.Collapsed;
-        ShowSleepTimerControl(false);
         SetNowPlaying("NothingPlaying");
         if (clearSystemSession)
         {
             _audioPausedChannel = null;
             ClearSystemMediaSession();
         }
+
+        // SP-0081: after the fields above, so the panel reports the state this stop actually left behind.
+        // The pause path re-runs it once it has recorded its station, which is what turns the controls
+        // back on for a session that is stopped but not over.
+        ApplyAudioTransportState();
 
         if (stoppedChannelId is { } id)
         {
@@ -1091,7 +1162,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
             await StartPreviewsAsync();
         };
+        // The owner above is lent for the CenterOwner placement and taken back as soon as the window is
+        // placed - see PlayerWindow_Loaded for why the player must not stay an owned window.
         window.Show();
+    }
+
+    // ToArray: every Close raises the Closed handler registered above, which mutates the set.
+    private void CloseOpenPlayerWindows()
+    {
+        foreach (var window in _playerWindows.ToArray())
+        {
+            window.Close();
+        }
     }
 
     private async Task SuspendPreviewsAsync()

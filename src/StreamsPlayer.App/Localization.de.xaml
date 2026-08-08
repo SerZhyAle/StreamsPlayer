@@ -84,6 +84,7 @@
     <sys:String x:Key="Ready">Bereit</sys:String>
     <sys:String x:Key="NothingPlaying">Es läuft nichts</sys:String>
     <sys:String x:Key="StopAudio">Audio anhalten</sys:String>
+    <sys:String x:Key="ResumeAudio">Audio fortsetzen</sys:String>
     <sys:String x:Key="AllOption">Alle</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Video</sys:String>
@@ -217,10 +218,15 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">Puffern…</sys:String>
     <sys:String x:Key="BufferingProgress">Puffern… {0} %</sys:String>
-    <sys:String x:Key="PlayingLive">Live-Wiedergabe</sys:String>
+    <sys:String x:Key="PlayingLive">Live-Wiedergabe -{0} s</sys:String>
     <sys:String x:Key="ReconnectingAttempt">Neuverbindung… (Versuch {0} von {1})</sys:String>
     <sys:String x:Key="ReconnectingAudioAttempt">Neuverbindung zu {0}… (Versuch {1} von {2})</sys:String>
     <sys:String x:Key="PlayerUnavailable">Stream nicht verfügbar</sys:String>
+    <sys:String x:Key="PlayerNoticeConnecting">Verbindung…</sys:String>
+    <sys:String x:Key="PlayerNoticeSignalLost">Signal verloren - Suche läuft…</sys:String>
+    <sys:String x:Key="PlayerNoticeReconnecting">Neuverbindung… {0}/{1}</sys:String>
+    <sys:String x:Key="PlayerNoticeQuality">Qualitätswechsel…</sys:String>
+    <sys:String x:Key="PlayerOnAir">Auf Sendung: {0}</sys:String>
     <!-- SP-0045: the player stripe's state, shown as its tooltip so the colour is never the only
          carrier of the meaning. These name the state, not its cause - the status line above the
          stripe already says what is happening. -->

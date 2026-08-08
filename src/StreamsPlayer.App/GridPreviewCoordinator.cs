@@ -41,6 +41,11 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
     private readonly SemaphoreSlim _lifecycle = new(1, 1);
     private CancellationTokenSource? _session;
     private Task[]? _workers;
+    // SP-0065: _signal and _lifecycle are gone once this is set, so every entry point that waits on one
+    // has to read it first. Shutdown legitimately calls in late - MainWindow_Deactivated, and the Closed
+    // callback of each PlayerWindow this window owns - and an ObjectDisposedException raised inside those
+    // async void handlers takes the process down instead of merely failing a preview.
+    private bool _disposed;
 
     public GridPreviewCoordinator(
         Dispatcher dispatcher,
@@ -68,6 +73,11 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
 
     public async Task StartAsync()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         await _lifecycle.WaitAsync();
         try
         {
@@ -104,7 +114,7 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
     /// </remarks>
     public async Task QueueVisibleAsync(bool force, CancellationToken cancellationToken = default)
     {
-        if (!GridPreviewFeature.CaptureEnabled)
+        if (!GridPreviewFeature.CaptureEnabled || _disposed)
         {
             return;
         }
@@ -166,6 +176,11 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
 
     public async Task StopAsync()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         await _lifecycle.WaitAsync();
         try
         {
@@ -228,7 +243,15 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        // Ordered, not incidental: StopAsync itself returns early on the flag, so it has to run while the
+        // flag is still clear or the workers are never woken and never awaited.
         await StopAsync();
+        _disposed = true;
         await _captureService.DisposeAsync();
         _signal.Dispose();
         _lifecycle.Dispose();
@@ -248,6 +271,21 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
             if (_lastHoverCapture.TryGetValue(url, out var last) && now - last < HoverThrottle)
             {
                 return;
+            }
+
+            // SP-0069: an entry older than the throttle window can never suppress anything again, so it
+            // is dead weight. Without this sweep the map kept one entry per tile the pointer had ever
+            // crossed and was emptied only by StopAsync - a session-long map bounded by nothing but the
+            // catalog. Sweeping on insert keeps the cost proportional to the hovering that caused it.
+            if (_lastHoverCapture.Count > 0)
+            {
+                foreach (var expired in _lastHoverCapture
+                    .Where(entry => now - entry.Value >= HoverThrottle)
+                    .Select(entry => entry.Key)
+                    .ToList())
+                {
+                    _lastHoverCapture.Remove(expired);
+                }
             }
 
             _lastHoverCapture[url] = now;

@@ -80,7 +80,9 @@ public partial class MainWindow
     {
         // The coordinator runs in Grid mode to *show* stored thumbnails (capture is gated separately by the setting).
         // Never run while something is playing: a background LibVLC decode competes with the player.
-        if (_previewCoordinator is null || !_windowActive || !IsGridMode ||
+        // SP-0065: _shuttingDown first, because this is the funnel the late callers reach - the last owned
+        // PlayerWindow closing during teardown runs its Closed handler, which lands here.
+        if (_shuttingDown || _previewCoordinator is null || !_windowActive || !IsGridMode ||
             _openPlayerWindows > 0 || _playingAudio is not null)
         {
             return;
@@ -94,7 +96,7 @@ public partial class MainWindow
     {
         // Not gated on IsRunning: repainting rows from the disk store is what makes scrolling work while
         // capture is suspended (window inactive, or a stream playing).
-        if (!IsGridMode || _previewCoordinator is null)
+        if (_shuttingDown || !IsGridMode || _previewCoordinator is null)
         {
             return;
         }
@@ -120,7 +122,7 @@ public partial class MainWindow
 
     private void StreamTile_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
     {
-        if (sender is not FrameworkElement { DataContext: ChannelRow row })
+        if (_shuttingDown || sender is not FrameworkElement { DataContext: ChannelRow row })
         {
             return;
         }
@@ -137,8 +139,17 @@ public partial class MainWindow
         _ = HoverCaptureAfterDwellAsync(row.Channel.Url, _hoverDwell.Token);
     }
 
+    // SP-0065: destroying the window disposes the mouse input provider, which synthesizes a final
+    // MouseLeave for whatever the pointer was over. That arrives after MainWindow_Closed has disposed
+    // _hoverDwell, and Cancel on a disposed source throws - an unhandled exception that skipped App.OnExit
+    // and with it WakeGuard.Reset. There is no hover state worth updating in a window that is closing.
     private void StreamTile_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
     {
+        if (_shuttingDown)
+        {
+            return;
+        }
+
         if (sender is FrameworkElement { DataContext: ChannelRow row })
         {
             row.SetTileHovered(false);
@@ -296,14 +307,20 @@ public partial class MainWindow
     private async void MainWindow_Deactivated(object? sender, EventArgs e)
     {
         _windowActive = false;
-        if (_previewCoordinator is not null)
+        // SP-0065: closing deactivates, and this one does not go through StartPreviewsAsync's funnel.
+        if (_shuttingDown || _previewCoordinator is null)
         {
-            await _previewCoordinator.StopAsync();
+            return;
         }
+
+        await _previewCoordinator.StopAsync();
     }
 
     private async void MainWindow_Closed(object? sender, EventArgs e)
     {
+        // SP-0065: before the first await. Everything below tears down state that the preview handlers
+        // touch, and the dispatcher keeps delivering input to them while this handler saves.
+        _shuttingDown = true;
         // SP-0040: quitting while a station plays is a normal way to end a listening session, and the
         // stop funnel is not on this path - without this the session the user was listening to when they
         // gave up on it would be the one session missing its summary in the archived log.
@@ -312,11 +329,19 @@ public partial class MainWindow
         // saved from the state before the user's last keystroke. Flush it, then save.
         FlushPendingFilterEvaluation();
         _browsingSessionSaveTimer.Stop();
+        // SP-0069: a started DispatcherTimer is rooted by the dispatcher and keeps its Tick target - this
+        // window - alive. The sleep ticker repeats and stops itself only when its deadline arrives or the
+        // user cancels it, so quitting with a sleep timer armed left one running against a closed window.
+        StopSleepTicker();
         await SaveBrowsingSessionAsync();
         _viewportDebounce?.Cancel();
         _viewportDebounce?.Dispose();
+        _viewportDebounce = null;
         _hoverDwell?.Cancel();
         _hoverDwell?.Dispose();
+        // SP-0065: nulled, not merely disposed. The latch above is the policy; this is the mechanical
+        // guarantee that a handler which forgets to consult it cannot reach a disposed source.
+        _hoverDwell = null;
         if (_previewCoordinator is not null)
         {
             await _previewCoordinator.DisposeAsync();

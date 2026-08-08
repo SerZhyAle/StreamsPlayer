@@ -137,34 +137,34 @@ Fija los canales a los que vuelves.
 Reproducir como debe ser
 
 @@cap-play-1
-La radio se reproduce en la ventana principal.
+La radio se reproduce en la ventana principal y muestra la pista en antena cuando la emisora la envía.
 
 @@cap-play-2
-El vídeo en directo y RTSP se abren en una ventana de reproductor aparte.
+Detén el sonido sin perder la emisora - el volumen y el temporizador de apagado se quedan, listos para reanudar.
 
 @@cap-play-3
-Búfer de directo de unos 15 segundos, con el progreso del búfer a la vista.
+El vídeo en directo y RTSP se abren en una ventana de reproductor aparte que muestra la pista en antena sobre la imagen.
 
 @@cap-play-4
-El volumen y el silencio se recuerdan.
+Búfer de directo de unos 15 segundos, y el vídeo se asienta en la calidad que aguanta tu conexión y abre ahí la próxima vez.
 
 @@cap-window-title
 Ver a tu manera
 
 @@cap-window-1
-Mantén la ventana principal o el reproductor siempre visible.
+Mantén la ventana principal o el reproductor siempre visible, o pasa a pantalla completa sin bordes con F11 (Esc para salir).
 
 @@cap-window-2
-Pantalla completa sin bordes, con un botón o con F11 (Esc para salir).
+El reproductor es una ventana propia - minimiza el catálogo y la imagen sigue en marcha.
 
 @@cap-window-3
-Mosaicos de transmisión muy pequeños, pequeños, medianos o grandes.
+Mosaicos de transmisión de muy pequeños a grandes, una ventana de ajustes redimensionable y un tema claro, oscuro o el de Windows.
 
 @@cap-window-4
 Guarda el fotograma actual como JPEG.
 
 @@cap-window-5
-Sigue el tema de color de Windows o mantén la app en claro u oscuro.
+Cuando la imagen se detiene, el reproductor dice por qué sobre el vídeo - y vuelve a abrir una transmisión que se congeló en silencio.
 
 @@cap-grid-title
 Cuadrícula visual

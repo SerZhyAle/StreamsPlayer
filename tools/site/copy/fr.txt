@@ -137,34 +137,34 @@ La recherche est toujours dans la ligne de titre.
 Lire comme il faut
 
 @@cap-play-1
-La radio est lue dans la fenêtre principale.
+La radio est lue dans la fenêtre principale et affiche le titre à l'antenne lorsque la station le transmet.
 
 @@cap-play-2
-La vidéo en direct et le RTSP s'ouvrent dans une fenêtre de lecteur dédiée.
+Coupez le son sans perdre la station - le volume et la minuterie de veille restent en place, prêts à reprendre.
 
 @@cap-play-3
-Mémoire tampon de direct d'environ 15 secondes, avec la progression de la mise en mémoire tampon visible.
+La vidéo en direct et le RTSP s'ouvrent dans une fenêtre de lecteur dédiée qui affiche le titre à l'antenne sur l'image.
 
 @@cap-play-4
-Le volume et le mode muet sont mémorisés.
+Mémoire tampon de direct d'environ 15 secondes, et la vidéo se cale sur la qualité que votre connexion tient, puis rouvre là la fois suivante.
 
 @@cap-window-title
 Regarder à votre façon
 
 @@cap-window-1
-Gardez la fenêtre principale ou le lecteur au premier plan.
+Gardez la fenêtre principale ou le lecteur au premier plan, ou passez en plein écran sans bordure avec F11 (Esc pour quitter).
 
 @@cap-window-2
-Plein écran sans bordure, par un bouton ou avec F11 (Esc pour quitter).
+Le lecteur est une fenêtre à part - réduisez le catalogue, l'image continue.
 
 @@cap-window-3
-Vignettes de flux très petites, petites, moyennes ou grandes.
+Vignettes de flux de très petites à grandes, une fenêtre de réglages redimensionnable et un thème clair, sombre ou celui de Windows.
 
 @@cap-window-4
 Enregistrez l'image en cours au format JPEG.
 
 @@cap-window-5
-Suivez le thème de couleur de Windows, ou restez en clair ou en sombre.
+Quand l'image s'arrête, le lecteur en dit la raison sur la vidéo - et rouvre un flux figé en silence.
 
 @@cap-grid-title
 Grille visuelle

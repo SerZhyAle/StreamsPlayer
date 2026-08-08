@@ -44,6 +44,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- SP-0073: enabled for exactly one member, FlyleafVideoBackend.ReadNowPlaying. FlyleafLib reads
+         the stream's metadata once, in Demuxer.Open, and never refreshes it, so the "what is on air"
+         line could not reach parity with the LibVLC engine through the library's managed surface. The
+         supported route is the one FlyleafLib itself leaves public - the AVFormatContext pointer and the
+         lock that guards it - which needs pointer syntax. Nothing else in this assembly uses it; keep it
+         that way. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
 </Project>

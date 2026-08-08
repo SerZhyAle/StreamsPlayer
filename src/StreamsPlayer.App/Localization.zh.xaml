@@ -84,6 +84,7 @@
     <sys:String x:Key="Ready">就绪</sys:String>
     <sys:String x:Key="NothingPlaying">未在播放</sys:String>
     <sys:String x:Key="StopAudio">停止音频</sys:String>
+    <sys:String x:Key="ResumeAudio">继续播放音频</sys:String>
     <sys:String x:Key="AllOption">全部</sys:String>
     <sys:String x:Key="AudioOption">音频</sys:String>
     <sys:String x:Key="VideoOption">视频</sys:String>
@@ -217,10 +218,15 @@
     <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">正在缓冲…</sys:String>
     <sys:String x:Key="BufferingProgress">正在缓冲… {0}%</sys:String>
-    <sys:String x:Key="PlayingLive">正在直播播放</sys:String>
+    <sys:String x:Key="PlayingLive">正在直播播放 -{0} 秒</sys:String>
     <sys:String x:Key="ReconnectingAttempt">正在重新连接…（第 {0} 次，共 {1} 次）</sys:String>
     <sys:String x:Key="ReconnectingAudioAttempt">正在重新连接 {0}…（第 {1} 次，共 {2} 次）</sys:String>
     <sys:String x:Key="PlayerUnavailable">流不可用</sys:String>
+    <sys:String x:Key="PlayerNoticeConnecting">正在连接…</sys:String>
+    <sys:String x:Key="PlayerNoticeSignalLost">信号中断 - 正在搜索…</sys:String>
+    <sys:String x:Key="PlayerNoticeReconnecting">正在重新连接… {0}/{1}</sys:String>
+    <sys:String x:Key="PlayerNoticeQuality">正在切换画质…</sys:String>
+    <sys:String x:Key="PlayerOnAir">正在播出：{0}</sys:String>
     <!-- SP-0045: the player stripe's state, shown as its tooltip so the colour is never the only
          carrier of the meaning. These name the state, not its cause - the status line above the
          stripe already says what is happening. -->

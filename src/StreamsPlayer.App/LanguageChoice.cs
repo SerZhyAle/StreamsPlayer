@@ -10,5 +10,8 @@ namespace StreamsPlayer.App;
 /// <param name="IsActive">Whether this is the language the interface is currently showing.</param>
 internal sealed record LanguageChoice(AppLanguage Language, string Endonym, bool IsActive)
 {
-    internal Visibility ActiveMarkerVisibility => IsActive ? Visibility.Visible : Visibility.Collapsed;
+    // Public on purpose: WPF binds through reflection over public members only, so an internal
+    // property silently resolves to nothing and the marker keeps its default Visible - a check mark
+    // on every row. The record itself stays internal.
+    public Visibility ActiveMarkerVisibility => IsActive ? Visibility.Visible : Visibility.Collapsed;
 }

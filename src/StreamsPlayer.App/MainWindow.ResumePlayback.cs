@@ -12,13 +12,19 @@ public partial class MainWindow
     private bool _audioQuiet;
 
     // Shutdown tears playback down through the very hooks that maintain the record: closing this window
-    // closes its owned player windows, and their Closed handler removes them from the record. Without this
-    // latch the act of quitting would empty the list that quitting is supposed to preserve.
+    // closes the player windows it tracks, and their Closed handler removes them from the record. Without
+    // this latch the act of quitting would empty the list that quitting is supposed to preserve.
     private bool _resumeRecordFrozen;
 
-    // Closing on the owner runs before the owner closes, and therefore before any owned window is torn
-    // down. That ordering is the whole reason this is Closing and not Closed.
-    private void MainWindow_Closing(object? sender, CancelEventArgs e) => _resumeRecordFrozen = true;
+    // Freeze the record first, tear the players down second - that ordering is the whole reason this is
+    // Closing and not Closed. The players are no longer owned windows (see OpenIndependentPlayerWindow),
+    // so closing them is this handler's job; doing it while the catalog is still open also keeps the last
+    // player's close from tripping the last-window shutdown before the catalog has saved its state.
+    private void MainWindow_Closing(object? sender, CancelEventArgs e)
+    {
+        _resumeRecordFrozen = true;
+        CloseOpenPlayerWindows();
+    }
 
     // Read the record and clear it in one move, at the start of every launch however it was launched.
     // Nothing is playing at this moment, so an uncleared record would be a lie: the live hooks below are

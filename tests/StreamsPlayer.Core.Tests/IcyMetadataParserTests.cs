@@ -54,6 +54,22 @@ public sealed class IcyMetadataParserTests
     }
 
     [Fact]
+    public void ExtractStreamTitle_StripsBidirectionalOverrides()
+    {
+        // SP-0073 decision 6: these are format characters, not control characters, so the previous rule
+        // let them through - and one of them reverses the reading order of every character rendered
+        // after it in the same line. The radio line takes the same hardening as the player's, because it
+        // reads the same field from the same broadcasters.
+        // Built from code points: a literal override in this file would be invisible in review.
+        const char rightToLeftOverride = (char)0x202E;
+        const char rightToLeftMark = (char)0x200F;
+
+        Assert.Equal(
+            "Artist - Song",
+            IcyMetadataParser.ExtractStreamTitle($"StreamTitle='{rightToLeftOverride}Artist - Song{rightToLeftMark}';"));
+    }
+
+    [Fact]
     public void ExtractStreamTitle_MalformedUnterminatedBlockIsBestEffort()
     {
         // No closing "';" - must not throw and should still surface the value.

@@ -1,8 +1,9 @@
 <Window x:Class="StreamsPlayer.App.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource SettingsWindowTitle}" Width="620" Height="480"
-        ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource SettingsWindowTitle}" Width="620" Height="560"
+        MinWidth="620" MinHeight="420"
+        ResizeMode="CanResize" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="{DynamicResource WindowBackground}">
     <Window.Resources>
         <!-- Monochrome tab-strip icon, matching the app's glyph vocabulary. -->
@@ -35,7 +36,11 @@
                  Enter handlers the standalone picker had are deliberately not carried over: inside a
                  tabbed dialog the window's own Save button is the commit, and a double-click that closed
                  the whole settings window would be a surprise. -->
-            <TabItem>
+            <!-- SP-0064: a composite header gives a TabItem no automation name, so every tab states its own.
+                 The value is the label resource the header already shows - the tab strip is the window's
+                 primary navigation, and without it neither a screen reader nor a UIA-driven check can name
+                 the tab it is on. -->
+            <TabItem AutomationProperties.Name="{DynamicResource Language}">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Path Style="{StaticResource TabIcon}" Data="M12,3A9,9 0 1 0 12,21A9,9 0 1 0 12,3M3,12H21M12,3C9,6 9,18 12,21M12,3C15,6 15,18 12,21" Fill="Transparent" />
@@ -83,228 +88,240 @@
             </TabItem>
 
             <!-- Grid / Layout -->
-            <TabItem>
+            <TabItem AutomationProperties.Name="{DynamicResource GridSettings}">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Path Style="{StaticResource TabIcon}" Data="M4,4H10V10H4ZM14,4H20V10H14ZM4,14H10V20H4ZM14,14H20V20H14Z" />
                         <TextBlock Text="{DynamicResource GridSettings}" VerticalAlignment="Center" />
                     </StackPanel>
                 </TabItem.Header>
-                <StackPanel>
-                    <TextBlock Text="{DynamicResource ThemeLabel}" FontWeight="SemiBold" />
-                    <ComboBox x:Name="ThemeBox" Margin="0,5,0,12" HorizontalAlignment="Stretch"
-                              AutomationProperties.Name="{DynamicResource ThemeLabel}" />
-                    <TextBlock Text="{DynamicResource StreamTileSizeLabel}" FontWeight="SemiBold" />
-                    <ComboBox x:Name="TileSizeBox" Margin="0,5,0,12" HorizontalAlignment="Stretch"
-                              AutomationProperties.Name="{DynamicResource StreamTileSizeLabel}" />
-                    <CheckBox x:Name="UpdatePreviewsCheckBox" Content="{DynamicResource UpdateStreamPreviews}"
-                              ToolTip="{DynamicResource UpdateStreamPreviewsTip}"
-                              AutomationProperties.Name="{DynamicResource UpdateStreamPreviews}" />
-                </StackPanel>
+                <!-- Every tab whose body is a plain stack scrolls: the window is resizable, but a tab that
+                     outgrows the smallest allowed height must still reach its last control. -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0,0,4,0">
+                        <TextBlock Text="{DynamicResource ThemeLabel}" FontWeight="SemiBold" />
+                        <ComboBox x:Name="ThemeBox" Margin="0,5,0,12" HorizontalAlignment="Stretch"
+                                  AutomationProperties.Name="{DynamicResource ThemeLabel}" />
+                        <TextBlock Text="{DynamicResource StreamTileSizeLabel}" FontWeight="SemiBold" />
+                        <ComboBox x:Name="TileSizeBox" Margin="0,5,0,12" HorizontalAlignment="Stretch"
+                                  AutomationProperties.Name="{DynamicResource StreamTileSizeLabel}" />
+                        <CheckBox x:Name="UpdatePreviewsCheckBox" Content="{DynamicResource UpdateStreamPreviews}"
+                                  ToolTip="{DynamicResource UpdateStreamPreviewsTip}"
+                                  AutomationProperties.Name="{DynamicResource UpdateStreamPreviews}" />
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
             <!-- Launch shortcuts -->
-            <TabItem>
+            <TabItem AutomationProperties.Name="{DynamicResource LaunchShortcuts}">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Path Style="{StaticResource TabIcon}" Data="M10,14L14,10M8,16H6A4,4 0 0 1 6,8H10M16,8H18A4,4 0 0 1 18,16H14" Fill="Transparent" />
                         <TextBlock Text="{DynamicResource LaunchShortcuts}" VerticalAlignment="Center" />
                     </StackPanel>
                 </TabItem.Header>
-                <StackPanel>
-                    <TextBlock x:Name="SelectedStreamText" Margin="0,0,0,10" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" />
-                    <WrapPanel>
-                        <Button x:Name="CopyLaunchCommandButton" Style="{StaticResource LinkGlyphButton}" Content="{DynamicResource CopyLaunchCommand}"
-                                Click="CopyLaunchCommand_Click" ToolTip="{DynamicResource CopyLaunchCommandTip}" />
-                        <Button x:Name="CreateDesktopShortcutButton" Style="{StaticResource ShortcutGlyphButton}" Content="{DynamicResource CreateDesktopShortcut}"
-                                Click="CreateDesktopShortcut_Click" ToolTip="{DynamicResource CreateDesktopShortcutTip}" />
-                    </WrapPanel>
-                </StackPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0,0,4,0">
+                        <TextBlock x:Name="SelectedStreamText" Margin="0,0,0,10" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" />
+                        <WrapPanel>
+                            <Button x:Name="CopyLaunchCommandButton" Style="{StaticResource LinkGlyphButton}" Content="{DynamicResource CopyLaunchCommand}"
+                                    Click="CopyLaunchCommand_Click" ToolTip="{DynamicResource CopyLaunchCommandTip}" />
+                            <Button x:Name="CreateDesktopShortcutButton" Style="{StaticResource ShortcutGlyphButton}" Content="{DynamicResource CreateDesktopShortcut}"
+                                    Click="CreateDesktopShortcut_Click" ToolTip="{DynamicResource CreateDesktopShortcutTip}" />
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
             <!-- Playback -->
-            <TabItem>
+            <TabItem AutomationProperties.Name="{DynamicResource PlaybackSettings}">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Path Style="{StaticResource TabIcon}" Data="M7,4L20,12L7,20Z" />
                         <TextBlock Text="{DynamicResource PlaybackSettings}" VerticalAlignment="Center" />
                     </StackPanel>
                 </TabItem.Header>
-                <StackPanel>
-                    <CheckBox x:Name="KeepAwakeCheckBox" ToolTip="{DynamicResource KeepAwakeDuringPlaybackTip}"
-                              AutomationProperties.Name="{DynamicResource KeepAwakeDuringPlayback}">
-                        <TextBlock Text="{DynamicResource KeepAwakeDuringPlayback}" TextWrapping="Wrap" />
-                    </CheckBox>
-                    <CheckBox x:Name="SystemMediaControlsCheckBox" Margin="0,10,0,0"
-                              ToolTip="{DynamicResource SystemMediaControlsTip}"
-                              AutomationProperties.Name="{DynamicResource SystemMediaControls}">
-                        <TextBlock Text="{DynamicResource SystemMediaControls}" TextWrapping="Wrap" />
-                    </CheckBox>
-                    <CheckBox x:Name="ResumePlaybackCheckBox" Margin="0,10,0,0"
-                              ToolTip="{DynamicResource ResumePlaybackOnStartupTip}"
-                              AutomationProperties.Name="{DynamicResource ResumePlaybackOnStartup}">
-                        <TextBlock Text="{DynamicResource ResumePlaybackOnStartup}" TextWrapping="Wrap" />
-                    </CheckBox>
-                    <TextBlock Text="{DynamicResource VideoBackendLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
-                    <ComboBox x:Name="VideoBackendBox" Margin="0,5,0,0" HorizontalAlignment="Stretch"
-                              AutomationProperties.Name="{DynamicResource VideoBackendLabel}" />
-                    <TextBlock Text="{DynamicResource VideoBackendHint}" Foreground="{DynamicResource MutedBrush}"
-                               TextWrapping="Wrap" Margin="0,5,0,0" />
-                    <!-- SP-0026: the alternative engine needs FFmpeg natives that are not shipped. This
-                         states whether they are present so the engine choice above cannot silently mean
-                         nothing, and installs them on an explicit click. -->
-                    <TextBlock x:Name="VideoComponentsStatusText" TextWrapping="Wrap" Margin="0,8,0,0" />
-                    <WrapPanel Margin="0,6,0,0">
-                        <Button x:Name="VideoComponentsInstallButton" Style="{StaticResource ImportGlyphButton}"
-                                Content="{DynamicResource VideoComponentsInstall}"
-                                Click="VideoComponentsInstall_Click" />
-                        <Button x:Name="VideoComponentsRemoveButton" Style="{StaticResource ClearGlyphButton}"
-                                Content="{DynamicResource VideoComponentsRemove}"
-                                Click="VideoComponentsRemove_Click" />
-                    </WrapPanel>
-                    <!-- SP-0038: where the player's camera button writes its frames. Read-only text plus a
-                         picker, so the stored path is always one Windows itself produced. -->
-                    <TextBlock Text="{DynamicResource FrameFolderLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
-                    <TextBox x:Name="FrameFolderBox" IsReadOnly="True" Margin="0,5,0,0" Padding="7,4"
-                             TextWrapping="NoWrap" AutomationProperties.Name="{DynamicResource FrameFolderLabel}" />
-                    <TextBlock Text="{DynamicResource FrameFolderHint}" Foreground="{DynamicResource MutedBrush}"
-                               TextWrapping="Wrap" Margin="0,5,0,0" />
-                    <WrapPanel Margin="0,6,0,0">
-                        <Button x:Name="FrameFolderBrowseButton" Style="{StaticResource ImportGlyphButton}"
-                                Content="{DynamicResource FrameFolderBrowse}" Click="FrameFolderBrowse_Click" />
-                        <Button x:Name="FrameFolderResetButton" Style="{StaticResource ClearGlyphButton}"
-                                Content="{DynamicResource FrameFolderReset}" Click="FrameFolderReset_Click" />
-                    </WrapPanel>
-                </StackPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0,0,4,0">
+                        <CheckBox x:Name="KeepAwakeCheckBox" ToolTip="{DynamicResource KeepAwakeDuringPlaybackTip}"
+                                  AutomationProperties.Name="{DynamicResource KeepAwakeDuringPlayback}">
+                            <TextBlock Text="{DynamicResource KeepAwakeDuringPlayback}" TextWrapping="Wrap" />
+                        </CheckBox>
+                        <CheckBox x:Name="SystemMediaControlsCheckBox" Margin="0,10,0,0"
+                                  ToolTip="{DynamicResource SystemMediaControlsTip}"
+                                  AutomationProperties.Name="{DynamicResource SystemMediaControls}">
+                            <TextBlock Text="{DynamicResource SystemMediaControls}" TextWrapping="Wrap" />
+                        </CheckBox>
+                        <CheckBox x:Name="ResumePlaybackCheckBox" Margin="0,10,0,0"
+                                  ToolTip="{DynamicResource ResumePlaybackOnStartupTip}"
+                                  AutomationProperties.Name="{DynamicResource ResumePlaybackOnStartup}">
+                            <TextBlock Text="{DynamicResource ResumePlaybackOnStartup}" TextWrapping="Wrap" />
+                        </CheckBox>
+                        <TextBlock Text="{DynamicResource VideoBackendLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
+                        <ComboBox x:Name="VideoBackendBox" Margin="0,5,0,0" HorizontalAlignment="Stretch"
+                                  AutomationProperties.Name="{DynamicResource VideoBackendLabel}" />
+                        <TextBlock Text="{DynamicResource VideoBackendHint}" Foreground="{DynamicResource MutedBrush}"
+                                   TextWrapping="Wrap" Margin="0,5,0,0" />
+                        <!-- SP-0026: the alternative engine needs FFmpeg natives that are not shipped. This
+                             states whether they are present so the engine choice above cannot silently mean
+                             nothing, and installs them on an explicit click. -->
+                        <TextBlock x:Name="VideoComponentsStatusText" TextWrapping="Wrap" Margin="0,8,0,0" />
+                        <WrapPanel Margin="0,6,0,0">
+                            <Button x:Name="VideoComponentsInstallButton" Style="{StaticResource ImportGlyphButton}"
+                                    Content="{DynamicResource VideoComponentsInstall}"
+                                    Click="VideoComponentsInstall_Click" />
+                            <Button x:Name="VideoComponentsRemoveButton" Style="{StaticResource ClearGlyphButton}"
+                                    Content="{DynamicResource VideoComponentsRemove}"
+                                    Click="VideoComponentsRemove_Click" />
+                        </WrapPanel>
+                        <!-- SP-0038: where the player's camera button writes its frames. Read-only text plus a
+                             picker, so the stored path is always one Windows itself produced. -->
+                        <TextBlock Text="{DynamicResource FrameFolderLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
+                        <TextBox x:Name="FrameFolderBox" IsReadOnly="True" Margin="0,5,0,0" Padding="7,4"
+                                 TextWrapping="NoWrap" AutomationProperties.Name="{DynamicResource FrameFolderLabel}" />
+                        <TextBlock Text="{DynamicResource FrameFolderHint}" Foreground="{DynamicResource MutedBrush}"
+                                   TextWrapping="Wrap" Margin="0,5,0,0" />
+                        <WrapPanel Margin="0,6,0,0">
+                            <Button x:Name="FrameFolderBrowseButton" Style="{StaticResource ImportGlyphButton}"
+                                    Content="{DynamicResource FrameFolderBrowse}" Click="FrameFolderBrowse_Click" />
+                            <Button x:Name="FrameFolderResetButton" Style="{StaticResource ClearGlyphButton}"
+                                    Content="{DynamicResource FrameFolderReset}" Click="FrameFolderReset_Click" />
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
             <!-- Playlists (M3U) import/export -->
-            <TabItem>
+            <TabItem AutomationProperties.Name="{DynamicResource PlaylistPortability}">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Path Style="{StaticResource TabIcon}" Data="M4,5H20M4,12H14M4,19H14M17,15V21M14,18L17,21L20,18" Fill="Transparent" />
                         <TextBlock Text="{DynamicResource PlaylistPortability}" VerticalAlignment="Center" />
                     </StackPanel>
                 </TabItem.Header>
-                <StackPanel>
-                    <TextBlock Text="{DynamicResource PlaylistPortabilityHint}" Foreground="{DynamicResource MutedBrush}"
-                               TextWrapping="Wrap" Margin="0,0,0,10" />
-                    <WrapPanel>
-                        <Button x:Name="ImportFromFileButton" Style="{StaticResource ImportGlyphButton}"
-                                Content="{DynamicResource ImportFromFile}" Click="ImportFromFile_Click"
-                                ToolTip="{DynamicResource ImportListTip}" />
-                        <Button x:Name="ImportFromUrlButton" Style="{StaticResource ImportGlyphButton}"
-                                Content="{DynamicResource ImportFromUrl}" Click="ImportFromUrl_Click"
-                                ToolTip="{DynamicResource ImportListTip}" />
-                        <Button x:Name="ExportAllButton" Style="{StaticResource ExportGlyphButton}"
-                                Content="{DynamicResource ExportAll}" Click="ExportAll_Click"
-                                ToolTip="{DynamicResource ExportListTip}" />
-                        <Button x:Name="ExportPinnedButton" Style="{StaticResource ExportGlyphButton}"
-                                Content="{DynamicResource ExportPinned}" Click="ExportPinned_Click"
-                                ToolTip="{DynamicResource ExportListTip}" />
-                    </WrapPanel>
-                    <!-- Moved out of the main header: it belongs with the other catalog-content actions and
-                         is always offered, since the manager itself reports an empty hidden set. -->
-                    <Button x:Name="ManageHiddenButton" Style="{StaticResource HiddenGlyphButton}"
-                            HorizontalAlignment="Left" Margin="0,10,0,0"
-                            Content="{DynamicResource ManageHiddenOpen}" Click="ManageHidden_Click"
-                            ToolTip="{DynamicResource ManageHiddenTip}"
-                            AutomationProperties.Name="{DynamicResource ManageHiddenOpen}" />
-                    <!-- SP-0052: the bundled snapshot, available at any time and never destructive - it
-                         adds and updates but removes nothing, so it sits above the separator with the
-                         other safe catalog-content actions. -->
-                    <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
-                    <TextBlock Text="{DynamicResource CatalogSnapshotSettingsHint}" Foreground="{DynamicResource MutedBrush}"
-                               TextWrapping="Wrap" Margin="0,0,0,8" />
-                    <Button x:Name="ApplyCatalogSnapshotButton" Style="{StaticResource ImportGlyphButton}"
-                            HorizontalAlignment="Left" Content="{DynamicResource CatalogSnapshotSettings}"
-                            Click="ApplyCatalogSnapshot_Click" ToolTip="{DynamicResource CatalogSnapshotSettingsTip}"
-                            AutomationProperties.Name="{DynamicResource CatalogSnapshotSettings}" />
-                    <!-- SP-0030: destructive catalog cleanup, separated from the reversible import/export row. -->
-                    <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
-                    <TextBlock Text="{DynamicResource DeleteDownloadedHint}" Foreground="{DynamicResource MutedBrush}"
-                               TextWrapping="Wrap" Margin="0,0,0,8" />
-                    <Button x:Name="DeleteDownloadedButton" Style="{StaticResource TrashGlyphButton}"
-                            HorizontalAlignment="Left" Content="{DynamicResource DeleteDownloaded}"
-                            Click="DeleteDownloaded_Click" ToolTip="{DynamicResource DeleteDownloadedTip}"
-                            AutomationProperties.Name="{DynamicResource DeleteDownloaded}" />
-                </StackPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0,0,4,0">
+                        <TextBlock Text="{DynamicResource PlaylistPortabilityHint}" Foreground="{DynamicResource MutedBrush}"
+                                   TextWrapping="Wrap" Margin="0,0,0,10" />
+                        <WrapPanel>
+                            <Button x:Name="ImportFromFileButton" Style="{StaticResource ImportGlyphButton}"
+                                    Content="{DynamicResource ImportFromFile}" Click="ImportFromFile_Click"
+                                    ToolTip="{DynamicResource ImportListTip}" />
+                            <Button x:Name="ImportFromUrlButton" Style="{StaticResource ImportGlyphButton}"
+                                    Content="{DynamicResource ImportFromUrl}" Click="ImportFromUrl_Click"
+                                    ToolTip="{DynamicResource ImportListTip}" />
+                            <Button x:Name="ExportAllButton" Style="{StaticResource ExportGlyphButton}"
+                                    Content="{DynamicResource ExportAll}" Click="ExportAll_Click"
+                                    ToolTip="{DynamicResource ExportListTip}" />
+                            <Button x:Name="ExportPinnedButton" Style="{StaticResource ExportGlyphButton}"
+                                    Content="{DynamicResource ExportPinned}" Click="ExportPinned_Click"
+                                    ToolTip="{DynamicResource ExportListTip}" />
+                        </WrapPanel>
+                        <!-- Moved out of the main header: it belongs with the other catalog-content actions and
+                             is always offered, since the manager itself reports an empty hidden set. -->
+                        <Button x:Name="ManageHiddenButton" Style="{StaticResource HiddenGlyphButton}"
+                                HorizontalAlignment="Left" Margin="0,10,0,0"
+                                Content="{DynamicResource ManageHiddenOpen}" Click="ManageHidden_Click"
+                                ToolTip="{DynamicResource ManageHiddenTip}"
+                                AutomationProperties.Name="{DynamicResource ManageHiddenOpen}" />
+                        <!-- SP-0052: the bundled snapshot, available at any time and never destructive - it
+                             adds and updates but removes nothing, so it sits above the separator with the
+                             other safe catalog-content actions. -->
+                        <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
+                        <TextBlock Text="{DynamicResource CatalogSnapshotSettingsHint}" Foreground="{DynamicResource MutedBrush}"
+                                   TextWrapping="Wrap" Margin="0,0,0,8" />
+                        <Button x:Name="ApplyCatalogSnapshotButton" Style="{StaticResource ImportGlyphButton}"
+                                HorizontalAlignment="Left" Content="{DynamicResource CatalogSnapshotSettings}"
+                                Click="ApplyCatalogSnapshot_Click" ToolTip="{DynamicResource CatalogSnapshotSettingsTip}"
+                                AutomationProperties.Name="{DynamicResource CatalogSnapshotSettings}" />
+                        <!-- SP-0030: destructive catalog cleanup, separated from the reversible import/export row. -->
+                        <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
+                        <TextBlock Text="{DynamicResource DeleteDownloadedHint}" Foreground="{DynamicResource MutedBrush}"
+                                   TextWrapping="Wrap" Margin="0,0,0,8" />
+                        <Button x:Name="DeleteDownloadedButton" Style="{StaticResource TrashGlyphButton}"
+                                HorizontalAlignment="Left" Content="{DynamicResource DeleteDownloaded}"
+                                Click="DeleteDownloaded_Click" ToolTip="{DynamicResource DeleteDownloadedTip}"
+                                AutomationProperties.Name="{DynamicResource DeleteDownloaded}" />
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
             <!-- About -->
-            <TabItem>
+            <TabItem AutomationProperties.Name="{DynamicResource About}">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
                         <Path Style="{StaticResource TabIcon}" Data="M12,3A9,9 0 1 0 12,21A9,9 0 1 0 12,3M11.35,6.6H12.65V7.9H11.35ZM12,10.4V16.6" Fill="Transparent" />
                         <TextBlock Text="{DynamicResource About}" VerticalAlignment="Center" />
                     </StackPanel>
                 </TabItem.Header>
-                <StackPanel>
-                    <TextBlock Text="{DynamicResource ProductName}" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" />
-                    <!-- SP-0050 decision 5: the tagline is a sentence read once. This is where a product
-                         describes itself; it does not need a permanent line in a working window. -->
-                    <TextBlock Text="{DynamicResource MainSubtitle}" Foreground="{DynamicResource MutedBrush}"
-                               TextWrapping="Wrap" Margin="0,4,0,0" />
-                    <Grid Margin="0,8,0,10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{DynamicResource VersionLabel}" FontWeight="SemiBold" Margin="0,0,10,5" />
-                        <TextBlock x:Name="VersionText" Grid.Column="1" Margin="0,0,0,5" />
-                        <TextBlock Grid.Row="1" Text="{DynamicResource AuthorLabel}" FontWeight="SemiBold" Margin="0,0,10,0" />
-                        <TextBlock x:Name="AuthorText" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" />
-                    </Grid>
-                    <WrapPanel>
-                        <TextBlock Margin="0,0,18,8">
-                            <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Instructions"
-                                       Click="OpenLink_Click" ToolTip="{DynamicResource DocumentationTip}"
-                                       AutomationProperties.Name="{DynamicResource Documentation}">
-                                <Run Text="{DynamicResource Documentation}" />
-                            </Hyperlink>
-                        </TextBlock>
-                        <TextBlock Margin="0,0,18,8">
-                            <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Source"
-                                       Click="OpenLink_Click" ToolTip="{DynamicResource SourceCodeTip}"
-                                       AutomationProperties.Name="{DynamicResource SourceCode}">
-                                <Run Text="{DynamicResource SourceCode}" />
-                            </Hyperlink>
-                        </TextBlock>
-                        <TextBlock Margin="0,0,18,8">
-                            <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Website"
-                                       Click="OpenLink_Click" ToolTip="{DynamicResource WebsiteTip}"
-                                       AutomationProperties.Name="{DynamicResource Website}">
-                                <Run Text="{DynamicResource Website}" />
-                            </Hyperlink>
-                        </TextBlock>
-                        <TextBlock Margin="0,0,18,8">
-                            <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Privacy"
-                                       Click="OpenLink_Click" ToolTip="{DynamicResource PrivacyTip}"
-                                       AutomationProperties.Name="{DynamicResource Privacy}">
-                                <Run Text="{DynamicResource Privacy}" />
-                            </Hyperlink>
-                        </TextBlock>
-                        <TextBlock Margin="0,0,18,8">
-                            <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Author"
-                                       Click="OpenLink_Click" ToolTip="{DynamicResource AuthorPageTip}"
-                                       AutomationProperties.Name="{DynamicResource AuthorPage}">
-                                <Run Text="{DynamicResource AuthorPage}" />
-                            </Hyperlink>
-                        </TextBlock>
-                    </WrapPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0,0,4,0">
+                        <TextBlock Text="{DynamicResource ProductName}" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" />
+                        <!-- SP-0050 decision 5: the tagline is a sentence read once. This is where a product
+                             describes itself; it does not need a permanent line in a working window. -->
+                        <TextBlock Text="{DynamicResource MainSubtitle}" Foreground="{DynamicResource MutedBrush}"
+                                   TextWrapping="Wrap" Margin="0,4,0,0" />
+                        <Grid Margin="0,8,0,10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{DynamicResource VersionLabel}" FontWeight="SemiBold" Margin="0,0,10,5" />
+                            <TextBlock x:Name="VersionText" Grid.Column="1" Margin="0,0,0,5" />
+                            <TextBlock Grid.Row="1" Text="{DynamicResource AuthorLabel}" FontWeight="SemiBold" Margin="0,0,10,0" />
+                            <TextBlock x:Name="AuthorText" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" />
+                        </Grid>
+                        <WrapPanel>
+                            <TextBlock Margin="0,0,18,8">
+                                <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Instructions"
+                                           Click="OpenLink_Click" ToolTip="{DynamicResource DocumentationTip}"
+                                           AutomationProperties.Name="{DynamicResource Documentation}">
+                                    <Run Text="{DynamicResource Documentation}" />
+                                </Hyperlink>
+                            </TextBlock>
+                            <TextBlock Margin="0,0,18,8">
+                                <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Source"
+                                           Click="OpenLink_Click" ToolTip="{DynamicResource SourceCodeTip}"
+                                           AutomationProperties.Name="{DynamicResource SourceCode}">
+                                    <Run Text="{DynamicResource SourceCode}" />
+                                </Hyperlink>
+                            </TextBlock>
+                            <TextBlock Margin="0,0,18,8">
+                                <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Website"
+                                           Click="OpenLink_Click" ToolTip="{DynamicResource WebsiteTip}"
+                                           AutomationProperties.Name="{DynamicResource Website}">
+                                    <Run Text="{DynamicResource Website}" />
+                                </Hyperlink>
+                            </TextBlock>
+                            <TextBlock Margin="0,0,18,8">
+                                <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Privacy"
+                                           Click="OpenLink_Click" ToolTip="{DynamicResource PrivacyTip}"
+                                           AutomationProperties.Name="{DynamicResource Privacy}">
+                                    <Run Text="{DynamicResource Privacy}" />
+                                </Hyperlink>
+                            </TextBlock>
+                            <TextBlock Margin="0,0,18,8">
+                                <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Author"
+                                           Click="OpenLink_Click" ToolTip="{DynamicResource AuthorPageTip}"
+                                           AutomationProperties.Name="{DynamicResource AuthorPage}">
+                                    <Run Text="{DynamicResource AuthorPage}" />
+                                </Hyperlink>
+                            </TextBlock>
+                        </WrapPanel>
 
-                    <!-- SP-0040: user-initiated diagnostic report. Nothing is sent by the app itself. -->
-                    <Separator Margin="0,6,0,10" />
-                    <Button x:Name="SendLogsButton" HorizontalAlignment="Left" Margin="0,0,0,6"
-                            Content="{DynamicResource SendLogs}" Click="SendLogs_Click"
-                            ToolTip="{DynamicResource SendLogsTip}"
-                            AutomationProperties.Name="{DynamicResource SendLogs}" />
-                    <TextBlock Text="{DynamicResource SendLogsHint}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" />
-                </StackPanel>
+                        <!-- SP-0040: user-initiated diagnostic report. Nothing is sent by the app itself. -->
+                        <Separator Margin="0,6,0,10" />
+                        <Button x:Name="SendLogsButton" HorizontalAlignment="Left" Margin="0,0,0,6"
+                                Content="{DynamicResource SendLogs}" Click="SendLogs_Click"
+                                ToolTip="{DynamicResource SendLogsTip}"
+                                AutomationProperties.Name="{DynamicResource SendLogs}" />
+                        <TextBlock Text="{DynamicResource SendLogsHint}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" />
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
 

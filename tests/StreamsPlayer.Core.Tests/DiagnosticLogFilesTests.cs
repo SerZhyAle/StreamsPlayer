@@ -15,7 +15,7 @@ public sealed class DiagnosticLogFilesTests
     {
         RunInTempDirectory(directory =>
         {
-            DiagnosticLogFiles.Rotate(directory);
+            Assert.Equal(LogRotationOutcome.CurrentLogFree, DiagnosticLogFiles.Rotate(directory));
 
             Assert.Empty(Directory.GetFiles(directory));
         });
@@ -61,7 +61,7 @@ public sealed class DiagnosticLogFilesTests
             var started = new DateTimeOffset(2026, 8, 7, 14, 36, 5, TimeSpan.Zero);
             WriteLog(directory, DiagnosticLogFiles.CurrentLogName, $"{started:O} [Information] Application startup.");
 
-            DiagnosticLogFiles.Rotate(directory);
+            Assert.Equal(LogRotationOutcome.CurrentLogFree, DiagnosticLogFiles.Rotate(directory));
 
             var expected = $"Session-{started.ToLocalTime():yyyyMMdd-HHmm}.log";
             Assert.False(File.Exists(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName)));
@@ -154,10 +154,68 @@ public sealed class DiagnosticLogFilesTests
             File.WriteAllText(current, "locked");
             using var hold = new FileStream(current, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
 
-            DiagnosticLogFiles.Rotate(directory);
+            Assert.Equal(LogRotationOutcome.PreviousLogRetained, DiagnosticLogFiles.Rotate(directory));
 
             Assert.True(File.Exists(current)); // could not be retired, and that is acceptable
             Assert.False(File.Exists(stale)); // pruning still ran
+        });
+    }
+
+    // SP-0085: what the launching session does next is the whole point of that outcome. Losing retention
+    // is acceptable; losing the run's log is not, and until this ticket that is exactly what happened -
+    // the name was still owned by the dying instance, opening it threw, and the session wrote nothing.
+    [Fact]
+    public void Rotate_WithTheCurrentLogHeldOpen_LeavesTheLaunchingSessionAFreeNameOfItsOwn()
+    {
+        RunInTempDirectory(directory =>
+        {
+            var current = Path.Combine(directory, DiagnosticLogFiles.CurrentLogName);
+            File.WriteAllText(current, "the previous instance is still writing here");
+            // The exact handle a live session holds: writing, and sharing reads only.
+            using var hold = new FileStream(current, FileMode.Open, FileAccess.Write, FileShare.Read);
+
+            var outcome = DiagnosticLogFiles.Rotate(directory);
+            Assert.Equal(LogRotationOutcome.PreviousLogRetained, outcome);
+
+            var mine = DiagnosticLogFiles.ReserveSessionPath(directory, new DateTime(2026, 8, 8, 21, 14, 0));
+            Assert.False(File.Exists(mine));
+            using (var stream = new FileStream(mine, FileMode.Create, FileAccess.Write, FileShare.Read))
+            using (var writer = new StreamWriter(stream) { AutoFlush = true })
+            {
+                writer.WriteLine("this session logs after all");
+            }
+
+            // The held log is evidence too: taking a name of our own must not have truncated it. Read it
+            // the way the archive builder does - the live writer's own handle excludes any other share mode.
+            using (var held = new FileStream(current, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var reader = new StreamReader(held))
+            {
+                Assert.Equal("the previous instance is still writing here", reader.ReadToEnd());
+            }
+
+            Assert.Equal([current, mine], DiagnosticLogFiles.ExistingLogs(directory));
+        });
+    }
+
+    // Third instance in the same minute: the first took the name, the second the -2, so the third needs
+    // the -3 rather than overwriting a session that is very likely still open.
+    [Fact]
+    public void ReserveSessionPath_WithTheNameAlreadyTaken_ReturnsTheNextFreeOne()
+    {
+        RunInTempDirectory(directory =>
+        {
+            var started = new DateTime(2026, 8, 8, 21, 14, 0);
+            var first = DiagnosticLogFiles.ReserveSessionPath(directory, started);
+            File.WriteAllText(first, "first");
+            var second = DiagnosticLogFiles.ReserveSessionPath(directory, started);
+            File.WriteAllText(second, "second");
+
+            var third = DiagnosticLogFiles.ReserveSessionPath(directory, started);
+
+            Assert.Equal(Path.Combine(directory, "Session-20260808-2114.log"), first);
+            Assert.Equal(Path.Combine(directory, "Session-20260808-2114-2.log"), second);
+            Assert.Equal(Path.Combine(directory, "Session-20260808-2114-3.log"), third);
+            Assert.False(File.Exists(third));
         });
     }
 

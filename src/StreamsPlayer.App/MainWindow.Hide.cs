@@ -95,9 +95,21 @@ public partial class MainWindow
     }
 
     /// <summary>Drop cached UI state for a channel that is leaving the visible set.</summary>
+    /// <remarks>
+    /// SP-0069: unindexing is not optional here. <see cref="PruneRowCache"/> is the only other place a
+    /// row leaves the cache and it pairs the two dictionaries; dropping the row from <c>_rowCache</c>
+    /// alone strands it in <c>_rowsByUrl</c> with its decoded favicon, and nothing can reach it again -
+    /// the prune walks <c>_rowCache</c>, where the entry no longer is. Worse than one orphan per channel:
+    /// hiding a channel again after unhiding it builds a *new* row, and <see cref="IndexUrl"/> appends it
+    /// under a reference check, so the list grows once per gesture rather than once per channel.
+    /// </remarks>
     private void ForgetRow(Guid id)
     {
-        _rowCache.Remove(id);
+        if (_rowCache.Remove(id, out var row))
+        {
+            UnindexUrl(row.Channel.Url, row);
+        }
+
         if (_selectedRow?.Channel.Id == id)
         {
             _selectedRow = null;

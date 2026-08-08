@@ -25,7 +25,8 @@ public partial class PlayerWindow : Window
     // Volume is applied to the engine on every slider move but persisted only once the slider settles:
     // a drag raises ValueChanged per pixel and each save rewrites the entire catalog state.
     private static readonly TimeSpan VolumeSaveDelay = TimeSpan.FromMilliseconds(600);
-    // Part D stall watchdog: poll every 3 s; a freeze is 3 consecutive polls (~9 s) with no position progress.
+    // Part D stall watchdog: how often the engine is observed. What counts as a freeze, and for how long
+    // it must last, is PlaybackFreezeDetector's answer (SP-0070), not this interval's.
     private static readonly TimeSpan WatchdogInterval = TimeSpan.FromSeconds(3);
     private readonly DispatcherTimer _controlsHideTimer;
     private readonly DispatcherTimer _statsTimer;
@@ -78,7 +79,12 @@ public partial class PlayerWindow : Window
     // measures the current leg only; the archived log has to answer "how did this session as a whole
     // cope with a bad stream", which needs a clock and counters that survive the re-opens.
     private readonly Stopwatch _sessionClock = Stopwatch.StartNew();
-    private int _legCount;
+    // Written by StartMedia, which two of its three callers run on a worker thread, and read on the UI
+    // thread by ObserveRendition; volatile so a rendition belonging to the new leg is never filed under
+    // the previous one - that mislabelling is precisely what SP-0077's criterion 2 forbids. Incremented
+    // in one place only, and StartMedia never runs against itself (_recoveryInFlight guards the paths
+    // that could), so a read-modify-write on it is not a race in practice.
+    private volatile int _legCount;
     private int _reconnectCount;
     private long _firstLiveMs = -1;
     private string _sessionOutcome = "closed";
@@ -88,11 +94,16 @@ public partial class PlayerWindow : Window
     private readonly DispatcherTimer _watchdogTimer;
     private bool _recovering;        // label guard: a Reconnecting label is showing
     private bool _recoveryInFlight;  // re-entry guard: a decision for the current failure is being applied
-    private long _lastWatchdogTime;
-    private int _frozenPolls;
+    // SP-0070: the freeze decision itself lives in Core; this window only feeds it what it already
+    // observes on the watchdog tick and applies the answer.
+    private readonly PlaybackFreezeDetector _freeze = new();
     private bool _buffering;
     private long _bufferingSinceMs;
     private long _bufferingStartPosition;
+    // The live buffer the media currently open was started with - the delay the live caption reports.
+    // Written by StartMedia, which two of its three callers run on a worker thread, and read on the UI
+    // thread in ShowLiveStatus; volatile so the reader never sees the previous leg's buffer.
+    private volatile uint _liveCacheMs = LiveCacheMilliseconds;
     private bool _settingsReady;
     private bool _isMuted;
     private bool _fullscreen;
@@ -161,6 +172,12 @@ public partial class PlayerWindow : Window
         _backend.EndReached += Backend_EndReached;
         _backend.TracksChanged += Backend_TracksChanged;
         _backend.SnapshotReady += Backend_SnapshotReady;
+        // SP-0076: started here rather than in Loaded so a local file read overlaps window layout instead
+        // of standing in front of the first open. Video only - radio has no renditions to choose between,
+        // so its first open must not pay a read that could never produce a ceiling.
+        _qualityRecall = channel.MediaKind == MediaKind.Video
+            ? QualityMemoryFile.RecallAsync(channel.Url, DateTimeOffset.UtcNow)
+            : null;
         Topmost = topmost;
         _settingsReady = true;
         TitleText.Text = StreamTitleFormatter.Display(channel.Title);
@@ -179,6 +196,8 @@ public partial class PlayerWindow : Window
         }
 
         RefreshSignalHealthText(); // SP-0045: the stripe's tooltip is assigned, not bound, so it replays here
+        RefreshInterruptionNotice(); // SP-0072: same reason - one of its states carries numbers
+        ApplyNowPlaying(); // SP-0073: same reason - the line wraps untranslated broadcast text in a translated one
     }
 
     // Stream name first so the taskbar button identifies the broadcast even when heavily truncated.
@@ -201,14 +220,39 @@ public partial class PlayerWindow : Window
         WaitText.SetResourceReference(TextBlock.TextProperty, resourceKey);
     }
 
-    private void PlayerWindow_Loaded(object sender, RoutedEventArgs e)
+    /// <remarks>
+    /// SP-0076: <c>async void</c> because the remembered ceiling has to be in hand before the first open,
+    /// and the read that produces it started in the constructor - so the await below almost always resumes
+    /// inline and the first frame is no later than it was. The one thing it can introduce is a window that
+    /// closed inside that gap, which the guard after it answers.
+    /// </remarks>
+    private async void PlayerWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        // The catalog lends this window its ownership for the CenterOwner placement only, and gets it back
+        // here, at the first moment the placement is already applied. Windows minimizes and restores owned
+        // windows together with their owner, so an owned player - a fullscreen one included, which is
+        // exactly when the catalog gets minimized - went down with the list. From here on this is an
+        // independent top-level window; MainWindow_Closing is what closes it when the catalog quits.
+        // Before StartMedia: opening the stream holds the UI thread, and every millisecond of it is a
+        // millisecond in which the window is on screen and still owned.
+        Owner = null;
         // System + display wake for the video/RTSP session lifetime (Decision 3: the user is watching).
         // Tied to the window rather than LibVLC's thread-affine, flapping play/pause events, so the
         // hold survives bounded reconnects and is released reliably in PlayerWindow_Closed.
         _wake = WakeGuard.Acquire(keepDisplayOn: true);
         ApplySignalHealth(); // SP-0045: the colourless opening state, before any claim can be made
-        StartMedia("initial");
+        // SP-0072: the blackout starts here, before the open, so its delay is measured from the moment
+        // the window went black rather than from the first event the engine happens to raise.
+        NotifyInterrupted(PlaybackInterruptionKind.Connecting);
+        // SP-0076: the ladder is still read only after this open, but what earlier sessions recorded about
+        // this source is a local file and arrives in time to shape it.
+        await ApplyRememberedCeilingAsync();
+        if (_closing)
+        {
+            return; // the window was closed inside the read; PlayerWindow_Closed has already torn down
+        }
+
+        StartMedia("initial", QualityCeiling); // SP-0071: the ladder's answer is not in yet - memory's may be
         _statsTimer.Start();
         _watchdogTimer.Start();
         ShowControls();
@@ -218,7 +262,12 @@ public partial class PlayerWindow : Window
         }
     }
 
-    private void StartMedia(string reason)
+    /// <summary>
+    /// Opens the channel. <paramref name="qualityCeiling"/> is passed in rather than read here because
+    /// two of the three callers run this on a worker thread and the governor that owns the answer is
+    /// single-threaded; the caller reads it on the UI thread, as late as it can (SP-0071).
+    /// </summary>
+    private void StartMedia(string reason, StreamQualityRung? qualityCeiling)
     {
         if (_closing)
         {
@@ -228,8 +277,9 @@ public partial class PlayerWindow : Window
         _reachedLive = false;
         _isStalled = false;
         _outcomeRecorded = false;
-        _frozenPolls = 0;
-        _lastWatchdogTime = 0;
+        // SP-0070: same reason as the health baseline below - the new media restarts the engine's
+        // progress counters from zero, and differencing across that boundary would invent a freeze.
+        _freeze.Reset();
         _buffering = false;
         _playbackClock.Restart();
         _legCount++;
@@ -238,8 +288,15 @@ public partial class PlayerWindow : Window
         // reconnect must stay red while it is in progress.
         NotifySignalHealthOpening();
         var cacheMs = reason == "initial" ? LiveCacheMilliseconds : ReconnectCacheMilliseconds;
-        _log.Event("PLAYBACK OPEN", $"reason={reason}", $"kind={_channel.MediaKind}", $"cache_ms={cacheMs}", $"url={_channel.Url}");
-        if (!_backend.Play(new Uri(_channel.Url), cacheMs, rtspOverTcp: true, softwareDecode: true))
+        _liveCacheMs = cacheMs;
+        _log.Event("PLAYBACK OPEN",
+            $"reason={reason}",
+            $"kind={_channel.MediaKind}",
+            $"cache_ms={cacheMs}",
+            $"engine={_backend.EngineName}",       // SP-0071: which engine received the ceiling below
+            $"ceiling={Describe(qualityCeiling)}", // SP-0071: every leg says what it was opened with
+            $"url={_channel.Url}");
+        if (!_backend.Play(new Uri(_channel.Url), cacheMs, rtspOverTcp: true, softwareDecode: true, qualityCeiling))
         {
             ShowPlaybackFailure("play_rejected");
         }
@@ -367,6 +424,10 @@ public partial class PlayerWindow : Window
     {
         _backend.LogStats("STATS");
         SampleSignalHealth();
+        ObserveQuality(); // SP-0071 rides this tick too: the probe clock, no timer of its own
+        ObserveRendition(); // SP-0077 rides it as well: what the engine actually put on screen
+        ApplyInterruptionNotice(); // SP-0072 rides it as well: what makes the appear delay elapse
+        SampleNowPlaying(); // SP-0073 rides it too: the stream's own "what is on air", no poll of its own
     }
 
     // Backend raises EndReached on its own thread; hop to the UI thread before driving recovery.
@@ -405,14 +466,29 @@ public partial class PlayerWindow : Window
                 // the clean interval instead of turning green in the middle of itself.
                 _health.NotifyDisturbance(HealthNow);
                 ApplySignalHealth();
+                if (!_recovering)
+                {
+                    // SP-0072: the buffer emptied under a stream that was playing. Guarded on _recovering
+                    // for the same reason the label above is: a recovery already owns the caption and
+                    // names its attempt, which is the more useful of the two truths.
+                    NotifyInterrupted(PlaybackInterruptionKind.SignalLost);
+                }
             }
+
+            // SP-0072: the backend raises this event continuously through a buffer fill, which gives the
+            // caption a far finer cadence than the stats tick in exactly the state it reports.
+            ApplyInterruptionNotice();
 
             if (_reachedLive && !_isStalled)
             {
                 _isStalled = true;
                 _stallCount++;
-                _log.Event("PLAYBACK STALL", $"cache={percentage}", $"count={_stallCount}", $"at_ms={_playbackClock.ElapsedMilliseconds}", $"cache_ms={LiveCacheMilliseconds}", $"url={_channel.Url}");
+                _log.Event("PLAYBACK STALL", $"cache={percentage}", $"count={_stallCount}", $"at_ms={_playbackClock.ElapsedMilliseconds}", $"cache_ms={_liveCacheMs}", $"url={_channel.Url}");
                 _backend.LogStats("STALL STATS");
+                // SP-0071: the buffer emptied on a stream that was playing - the one measurement that says
+                // this source is not delivering the current rung in real time. Nothing else re-opens here,
+                // so a decision taken now has to open the media itself.
+                NotifyQualityStarvation("stall", reopenNow: true);
             }
 
             return;
@@ -420,7 +496,10 @@ public partial class PlayerWindow : Window
 
         _buffering = false;
         _recovering = false; // reached live - clear any Reconnecting label
-        SetWaitTextResource("PlayingLive");
+        ShowLiveStatus();
+        // SP-0072: the repo's own definition of "the picture is back" - this is where PLAYBACK LIVE is
+        // logged, and the ticket's 3-18 s blackouts were measured to that line.
+        NotifyPictureLive();
         RefreshTrackControls();
         if (_isStalled)
         {
@@ -446,6 +525,7 @@ public partial class PlayerWindow : Window
             }
 
             _sessionOutcome = "live";
+            RequestQualityLadder(); // SP-0071: after live, so the measurement never delays the first open
             _ = _recordOutcome(_channel.Id, true);
             if (!_thumbnailCaptured && _onThumbnail is not null)
             {
@@ -453,6 +533,29 @@ public partial class PlayerWindow : Window
                 _ = CaptureThumbnailSoonAsync();
             }
         }
+    }
+
+    /// <summary>
+    /// The live caption, carrying how far behind the source this window is playing. The number is the live
+    /// buffer the current leg was opened with - the delay the player itself adds, and the only part of the
+    /// distance to the live edge it can state without asking the source anything - in whole seconds. It is
+    /// therefore a floor rather than the whole truth: a segmented source adds its own pipeline on top.
+    /// <para>The caption is re-assigned only when what it would say changes. The engine raises the
+    /// buffering event that leads here continuously on a healthy stream, while the delay moves only when a
+    /// re-open swaps the buffer (the initial 15 s for the reconnect's 4 s), so without this guard the label
+    /// would be reformatted several times a second to say what it already says. The guard tests the
+    /// rendered label rather than a remembered number, so a Buffering or Reconnecting caption that
+    /// overwrote it is always restored.</para>
+    /// </summary>
+    private void ShowLiveStatus()
+    {
+        var seconds = (int)Math.Round(_liveCacheMs / 1000.0, MidpointRounding.AwayFromZero);
+        if (_waitResourceKey == "PlayingLive" && _waitArguments is [int shown] && shown == seconds)
+        {
+            return;
+        }
+
+        SetWaitText("PlayingLive", seconds);
     }
 
     private async Task CaptureThumbnailSoonAsync()
@@ -543,6 +646,11 @@ public partial class PlayerWindow : Window
         // the monitor keeps it colourless, so an ordinary open that retries never flashes red.
         _health.NotifyRecovering(HealthNow);
         ApplySignalHealth();
+        // SP-0072: said before the status probe below, which is a network round trip and can take
+        // seconds. That phase is precisely "the signal is gone and the player is looking"; leaving the
+        // caption on the previous cause until a decision exists would be silent for exactly as long as
+        // the probe runs, and an error that arrived without a rebuffer would leave it silent entirely.
+        NotifyInterrupted(PlaybackInterruptionKind.SignalLost);
         try
         {
             // Only a fresh http/https open failure needs the status probe; stall/end/live-window already carry their signal.
@@ -576,6 +684,9 @@ public partial class PlayerWindow : Window
             }
 
             SetWaitText("ReconnectingAttempt", decision.Attempt, decision.Budget);
+            // SP-0072: the same fact, in the layer the panel's auto-hide cannot take away. One blackout,
+            // so this replaces the text in place instead of restarting the appear delay.
+            NotifyInterrupted(PlaybackInterruptionKind.Reconnecting, decision.Attempt, decision.Budget);
             try
             {
                 await Task.Delay(decision.Delay, _sessionCts.Token);
@@ -591,8 +702,14 @@ public partial class PlayerWindow : Window
             }
 
             _reconnectCount++;
+            // SP-0076: a session re-opening without ever having played is the one case where the ceiling
+            // that came from memory is a likelier cause than the source.
+            DropRememberedCeilingOnMiss();
+            // SP-0071: read here, on the UI thread and as late as possible - the governor may have moved
+            // the ceiling during the backoff above, and this re-open is what carries the new one.
+            var ceiling = QualityCeiling;
             // Play off the UI thread (the backend serializes play against teardown) so a flapping stream never freezes WPF.
-            await Task.Run(() => { if (!_closing) { StartMedia("recover"); } });
+            await Task.Run(() => { if (!_closing) { StartMedia("recover", ceiling); } });
         }
         finally
         {
@@ -600,8 +717,9 @@ public partial class PlayerWindow : Window
         }
     }
 
-    // Part D stall watchdog for silent freezes (no error thrown). Genuine rebuffering (position still advancing,
-    // or a short rebuffer) recovers in place (tuning §4); only a stuck stream is torn down and re-prepared.
+    // Part D stall watchdog for silent freezes (no error thrown). Genuine rebuffering - data still
+    // arriving, or pictures still reaching the screen - recovers in place (tuning §4); only a stream that
+    // has stopped on both counts is torn down and re-prepared.
     private void WatchdogTimer_Tick(object? sender, EventArgs e)
     {
         if (_closing || _recoveryInFlight || !_reachedLive)
@@ -611,35 +729,18 @@ public partial class PlayerWindow : Window
 
         var position = _backend.PositionMs;
 
-        // Freeze A: nominally playing but the position advanced < 500 ms for 3 consecutive polls (~9 s).
-        if (_backend.IsPlaying)
+        // Freeze A: nothing is reaching the screen and nothing is arriving from the source (SP-0070).
+        // The rule is in Core; this tick is only its observation cadence, and the threshold is a duration
+        // there rather than a poll count here.
+        if (_freeze.Observe(HealthNow, _backend.IsPlaying, position, _backend.ReadProgressCounters()))
         {
-            if (position >= 0 && position - _lastWatchdogTime < 500)
-            {
-                _frozenPolls++;
-            }
-            else
-            {
-                _frozenPolls = 0;
-            }
-
-            _lastWatchdogTime = position;
-            if (_frozenPolls >= 3)
-            {
-                _frozenPolls = 0;
-                _log.Event("PLAYBACK WATCHDOG", "kind=frozen", $"pos_ms={position}", $"url={_channel.Url}");
-                _health.NotifyDisturbance(HealthNow); // SP-0045: a caught freeze is a disturbance in its own right
-                _ = RecoverAsync(new PlaybackFailureSignal("stall_frozen", Stall: true));
-                return;
-            }
-        }
-        else
-        {
-            _frozenPolls = 0;
-            if (position >= 0)
-            {
-                _lastWatchdogTime = position;
-            }
+            _log.Event("PLAYBACK WATCHDOG", "kind=frozen", $"pos_ms={position}", $"url={_channel.Url}");
+            _health.NotifyDisturbance(HealthNow); // SP-0045: a caught freeze is a disturbance in its own right
+            // SP-0071: a caught freeze is starvation too. reopenNow: false because the recovery below
+            // re-opens anyway and reads the ceiling then - here the step down costs nothing extra.
+            NotifyQualityStarvation("freeze", reopenNow: false);
+            _ = RecoverAsync(new PlaybackFailureSignal("stall_frozen", Stall: true));
+            return;
         }
 
         // Freeze B: buffering longer than 15 s with no position progress (a stuck buffer, not a live rebuffer).
@@ -664,6 +765,13 @@ public partial class PlayerWindow : Window
         }
 
         SetWaitTextResource("PlayerUnavailable");
+        // SP-0072: a terminal failure is a black screen too, and it is the one the user can be left
+        // staring at after dismissing the dialog - or that raises no dialog at all under _quietUntilLive.
+        NotifyInterrupted(PlaybackInterruptionKind.Unavailable);
+        // SP-0073 acceptance 3: the broadcast is over, so what was on it stops being said. This is the
+        // only ending this window outlives - a channel change opens a different window, and a stop closes
+        // this one.
+        ClearNowPlaying();
         // SP-0045 acceptance 5: red behind the failure dialog, including for a channel that never played.
         _health.NotifyFailed(HealthNow);
         ApplySignalHealth();
@@ -697,7 +805,13 @@ public partial class PlayerWindow : Window
             case PlaybackFailureChoice.Retry:
                 _recovery.Reset(); // a manual retry starts a fresh recovery budget
                 _recovering = false;
-                StartMedia("retry");
+                // SP-0071: the recovery budget is reset, the ceiling is not. What the governor learned
+                // about this source's delivery did not stop being true because the user pressed Retry.
+                // SP-0076: a ceiling that came from memory and never produced a picture is the exception -
+                // the hand retry is exactly the moment to stop insisting on a week-old opinion.
+                DropRememberedCeilingOnMiss();
+                NotifyInterrupted(PlaybackInterruptionKind.Connecting); // SP-0072: connecting again, by hand
+                StartMedia("retry", QualityCeiling);
                 break;
             case PlaybackFailureChoice.Remove:
                 _ = RemoveAndCloseAsync();

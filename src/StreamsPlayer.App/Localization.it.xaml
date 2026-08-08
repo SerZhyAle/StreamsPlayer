@@ -84,6 +84,7 @@
     <sys:String x:Key="Ready">Pronto</sys:String>
     <sys:String x:Key="NothingPlaying">Nessuna riproduzione</sys:String>
     <sys:String x:Key="StopAudio">Interrompi audio</sys:String>
+    <sys:String x:Key="ResumeAudio">Riprendi audio</sys:String>
     <sys:String x:Key="AllOption">Tutti</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Video</sys:String>
@@ -217,10 +218,15 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="WindowTitleWithSubject">{0} - {1}</sys:String>
     <sys:String x:Key="Buffering">Buffering…</sys:String>
     <sys:String x:Key="BufferingProgress">Buffering… {0}%</sys:String>
-    <sys:String x:Key="PlayingLive">Riproduzione live</sys:String>
+    <sys:String x:Key="PlayingLive">Riproduzione live -{0} s</sys:String>
     <sys:String x:Key="ReconnectingAttempt">Riconnessione… (tentativo {0} di {1})</sys:String>
     <sys:String x:Key="ReconnectingAudioAttempt">Riconnessione a {0}… (tentativo {1} di {2})</sys:String>
     <sys:String x:Key="PlayerUnavailable">Flusso non disponibile</sys:String>
+    <sys:String x:Key="PlayerNoticeConnecting">Connessione…</sys:String>
+    <sys:String x:Key="PlayerNoticeSignalLost">Segnale perso - ricerca…</sys:String>
+    <sys:String x:Key="PlayerNoticeReconnecting">Riconnessione… {0}/{1}</sys:String>
+    <sys:String x:Key="PlayerNoticeQuality">Cambio qualità…</sys:String>
+    <sys:String x:Key="PlayerOnAir">In onda: {0}</sys:String>
     <!-- SP-0045: the player stripe's state, shown as its tooltip so the colour is never the only
          carrier of the meaning. These name the state, not its cause - the status line above the
          stripe already says what is happening. -->

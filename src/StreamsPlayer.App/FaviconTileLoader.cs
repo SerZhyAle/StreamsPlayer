@@ -47,6 +47,14 @@ public static class FaviconTileLoader
 
     private sealed class LoadedAtlas
     {
+        // SP-0069: the crops were kept for the life of the atlas, so a full scroll of the shipped bank
+        // left one wrapper per distinct favicon index - about 19 000 - with no bound at all. The pixels
+        // are shared with the frozen sheet, so the cost is the wrappers rather than image data, but an
+        // unbounded map is what the ticket exists to remove. Wholesale clearing is the same shape the
+        // atlas cache above already uses: a crop is cheap to redo precisely because it decodes nothing,
+        // and the cap is set far above one viewport so scrolling never re-crops what is on screen.
+        private const int MaximumCachedTiles = 4096;
+
         private readonly BitmapSource? _sheet;
         private readonly Dictionary<int, ImageSource> _tiles = [];
 
@@ -96,6 +104,11 @@ public static class FaviconTileLoader
 
             var tile = new CroppedBitmap(_sheet, new System.Windows.Int32Rect(x, y, TileSize, TileSize));
             tile.Freeze();
+            if (_tiles.Count >= MaximumCachedTiles)
+            {
+                _tiles.Clear();
+            }
+
             _tiles[tileIndex] = tile;
             return tile;
         }

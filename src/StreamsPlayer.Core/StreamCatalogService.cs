@@ -15,6 +15,21 @@ public sealed class StreamCatalogService
     // shape there in a way it is not for a transfer.
     private static readonly TimeSpan ApplyDeadline = TimeSpan.FromSeconds(60);
 
+    /// <summary>Largest catalog archive this client will accept.</summary>
+    /// <remarks>
+    /// SP-0069: read this as a ceiling, never as a size - the bank is republished without an app release
+    /// and grows with the channel count (2 361 rows once, 19 855 in 2026-08). The live artifact was
+    /// 7.2 MB when this was written, so the headroom is deliberate and large; what it rules out is the
+    /// mis-published or hostile response, which until now was pulled whole into a byte[] with
+    /// OutOfMemoryException as the only backstop. Every other network payload in the product already had
+    /// such a bound - <see cref="StreamBankReader.MaximumAtlasBytes"/> and
+    /// <see cref="ChannelPreviewAtlasService.MaximumSheetBytes"/> - and the catalog, the one payload
+    /// always downloaded, was the exception.
+    /// Unlike the atlas cap, exceeding this is an error rather than a silent drop: there is no catalog
+    /// without the archive, so continuing would mean reporting success over an empty result.
+    /// </remarks>
+    public const long MaximumArchiveBytes = 128L * 1024 * 1024;
+
     private readonly HttpClient _httpClient;
     private readonly StreamCatalogStore _store;
 
@@ -32,11 +47,10 @@ public sealed class StreamCatalogService
         using var request = new HttpRequestMessage(HttpMethod.Get, CatalogUrl);
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
-        // ceilingBytes is null deliberately: this class has never bounded the ZIP's size, and introducing
-        // a ceiling is a behaviour change with its own failure mode rather than part of reporting. Passing
-        // the argument explicitly is what keeps the omission legible.
+        // SP-0069 closed the omission that SP-0056 recorded here: bounding the archive is a behaviour
+        // change, which is why it did not belong in a reporting ticket, and it belongs in a resilience one.
         var bytes = await HttpDownload.ReadAllBytesAsync(
-            response, progress, ceilingBytes: null, DownloadIdleTimeout, cancellationToken);
+            response, progress, MaximumArchiveBytes, DownloadIdleTimeout, cancellationToken);
 
         // Nothing below writes to the store until SaveAsync, so an abandoned refresh already left the
         // catalog untouched - but checking here makes that an asserted property instead of a coincidence,
@@ -44,8 +58,16 @@ public sealed class StreamCatalogService
         cancellationToken.ThrowIfCancellationRequested();
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(ApplyDeadline);
-        using var stream = new MemoryStream(bytes, writable: false);
-        var bank = StreamBankReader.Read(stream);
+        // SP-0069: scoped rather than a method-wide `using var`. The stream holds the archive array, so a
+        // method-scoped one kept several megabytes on the large-object heap rooted through the merge, the
+        // save and the serialization - the most allocation-heavy stretch of the refresh - although its
+        // last use is the read on the next line.
+        StreamBank bank;
+        using (var stream = new MemoryStream(bytes, writable: false))
+        {
+            bank = StreamBankReader.Read(stream);
+        }
+
         if (bank.Entries.Count == 0)
         {
             throw new InvalidDataException("The downloaded catalog contains no valid channels.");

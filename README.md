@@ -77,7 +77,9 @@ code or features.
   pinning and adding the stream to an existing or new collection. In either
   windowed or full screen mode, the player's control panel disappears after ten
   seconds without input; click the video to bring it back without interrupting
-  playback.
+  playback. The player is a top-level window in its own right: minimizing or
+  restoring the catalog no longer takes the picture with it, while quitting the
+  catalog still closes every player.
 - Switch between the list and a persisted visual grid with one header button that
   names the mode you are switching to. The grid captures visible HTTP(S) video
   previews, up to four at a time, and caches the frames on disk within a 150 MB
@@ -87,7 +89,8 @@ code or features.
   disable automatic thumbnail updates (**Grid**); keep the computer awake, show system
   media controls, pick the video backend, and choose the folder for saved frames
   (**Playback**); and read the `YY.MMDD.HHmm` version and open the instruction,
-  project, website, privacy, and author pages (**About**).
+  project, website, privacy, and author pages (**About**). The Settings window
+  can be resized, and a tab taller than the window scrolls instead of clipping.
 - Save the frame you are watching from the player's camera button: a JPEG named
   `Channel_YYYYMMDD-HHmmss` lands in the folder set on the **Playback** tab, or in
   Downloads when that is empty, and the same frame becomes the channel icon.
@@ -137,6 +140,14 @@ code or features.
   choice updates in the same session when Windows changes.
 - Group channels into local named collections, browse one collection at a time
   from the catalog filters, and manage them without touching pins or the catalog.
+- Stop the sound without giving up the station: the bottom bar's audio button is
+  a two-state transport, so **Stop audio** ends the session but keeps the station
+  current and turns into **Resume audio**, which opens it again at the live edge.
+  The volume slider and the sleep timer stay on the bar instead of disappearing,
+  and pausing from the Windows media flyout leaves the bar in exactly the same
+  state. A real stop - clicking the playing station in the list, **Stop** in the
+  flyout, or starting another station - still clears the station and the controls
+  with it.
 - Set a sleep timer for inline radio - 15/30/45/60 minutes or a clock time - and
   watch the remaining time count down next to **Stop audio**; it survives a
   station switch and ends the session once when it expires.
@@ -157,13 +168,23 @@ code or features.
 Audio playback uses WPF `MediaElement`; video and RTSP use the bundled LibVLC
 runtime with a 15-second live buffer - 4 seconds when a stalled stream is
 re-opened - and visible buffering progress. Grid preview capture also uses
-LibVLC. Live playback recovers from transient network failures and silent stalls
+LibVLC. Live playback recovers from transient network failures and silent
+stalls - including a stream that stops sending while still reporting that it is
+playing, which is detected and re-opened instead of leaving a frozen picture -
 with a bounded retry policy, showing a distinct Reconnecting state and the
-failure dialog above when recovery is exhausted. A station that publishes ICY
-metadata shows its current track beside the station name and in **Recently
-played**, and in the Windows media session when system media controls are on. The
-video player offers audio-track and subtitle selection whenever a stream carries
-more than one.
+failure dialog above when recovery is exhausted. Whenever the picture is not
+running, the player writes the reason over the video - connecting, signal lost,
+reconnecting with the attempt count, or switching quality - and that caption is
+placed so that it stays readable after the control panel auto-hides. An HLS
+stream that offers more than one quality is watched while it plays: repeated
+buffer starvation settles the ceiling one rung lower, the player probes back up
+when the connection allows it again, and the ceiling it settled on is remembered
+per channel, so the next session opens there rather than measuring from scratch.
+A station that publishes ICY metadata shows its current track beside the station
+name, in the player window under the channel name, in **Recently played**, and
+in the Windows media session when system media controls are on. The video player
+offers audio-track and subtitle selection whenever a stream carries more than
+one.
 
 Video and RTSP can also run on a second, experimental engine, FlyleafLib, chosen
 in **Settings → Playback** as a fallback for a stream that misbehaves under VLC.
