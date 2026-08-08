@@ -27,6 +27,19 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
 
 ## Project
 
+- **The FFmpeg natives FlyleafLib publishes are GPLv3, so they can never be bundled.** The `FFmpeg`
+  folder inside `Flyleaf_v3.10.4.7z` is built `--enable-gpl --enable-version3` with libx264/libx265;
+  its `avutil` reports `GPL version 3 or later`. FlyleafLib *itself* is LGPL-3.0, which is what made
+  SP-0026's original "ship both native stacks" decision look safe - the licence trap is one layer
+  down, in the binaries upstream tells you to fetch. StreamsPlayer therefore downloads an **LGPL**
+  build instead (`BtbN/FFmpeg-Builds`, `ffmpeg-n8.1-latest-win64-lgpl-shared`), on explicit user
+  request, into `%LOCALAPPDATA%\StreamsPlayer\FFmpeg` - never into the package. Two facts that make
+  this work and are not obvious: both builds export the *same* sonames (`avcodec-62`, `avformat-62`,
+  `avutil-60`, `swresample-6`, `swscale-9`, `avfilter-11`, `avdevice-62`), so `Flyleaf.FFmpeg.Bindings
+  8.0.1` binds to either; and the LGPL asset is a `.zip` while Flyleaf's is a `.7z` the framework
+  cannot open. Also note `Flyleaf.FFmpeg.Bindings` is pinned to **8.0.1 against FlyleafLib's nuspec
+  dependency of 7.1.1** - that is deliberate and upstream-documented ("use Flyleaf.FFmpeg.Bindings v8
+  at your project"), not a mistake to "fix" (SP-0026 Phase 6, 2026-08-07).
 - **The colour theme only works because every palette reference is a `DynamicResource`.** `ThemeService`
   (App layer; Core only stores the `AppTheme` enum) recolours named brushes in
   `Application.Current.Resources` at runtime, so a single `StaticResource` on a palette key silently opts
@@ -119,6 +132,119 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   from a scan made earlier in the session; and before reporting a diff, run `git status` and separate your
   own changes from the other session's rather than describing the whole working tree as yours. The clash
   was resolved by renumbering the later, still-in-progress ticket (region lock → SP-0033).
+  Confirmed again 2026-08-08: SP-0059 landed in `MainWindow.xaml.cs`, `Localization.en.xaml` and the
+  README trio *while* SP-0058 was being implemented in the same files. Nothing was lost, because both
+  changes were additive and every edit went through `Edit` (which fails on a stale read) rather than a
+  whole-file rewrite. The practical rule that follows: prefer `Edit` over `Write` on any file another
+  ticket might be touching, and re-run the gates at the end rather than trusting a result from before.
+
+- **The bank folded `topic` into a closed set of 32 rubrics, and told nobody.** Measured on the live
+  artifact 2026-08-07: 19855 rows, 31 distinct values, zero blanks (`Test` is declared and unused).
+  The upstream contract document still describes `topic` as free text with examples that no longer
+  occur ("Jazz", "Lo-fi", "Science & Space") and still reports a 2361-row bank - so for this column
+  **the data is the authority and that README is stale**, which is the standing "columns change
+  silently" warning arriving a second time. Two consequences worth keeping: the vocabulary is a Core
+  registry (`CatalogTopics`) that maps an identifier to a localization key and answers `null` for
+  anything else, so an unknown rubric is displayed rather than dropped; and `Traffic cams` (881 rows)
+  is entirely `is_live=false` while `Webcam` (140) is entirely `is_live=true` - the split exists so a
+  client does not promise a broadcast that is really a clip re-posted every few minutes (SP-0061).
+
+- **A localization dictionary edit needs an App rebuild before any GUI check.** `Localization.*.xaml`
+  compiles into the App assembly, and `dotnet test` builds only Core and the test project - so a UIA
+  pass straight after a dictionary change renders every new string as its own key name
+  (`TopicAdult`, `TopicPop`). That looks exactly like a missing key and sends you into the wrong file.
+  Cost one full sandboxed run on 2026-08-07 (SP-0061).
+
+- **CLDR's `ru` collation reorders Cyrillic ahead of every other script**, so a label written in Latin
+  ("R&B и соул") correctly sorts *after* the whole Cyrillic block in a Russian list. Reading that as a
+  sorting bug is the easy mistake - it is what a Russian reader expects, and it only appears once a
+  list is ordered by `StringComparer.Create(CurrentUICulture, ..)` instead of ordinally (SP-0061).
+
+- **`CatalogState` serializes `Channels` before `Language`, so the root `language` token is the *last*
+  `"language"` match in `catalog-state.json`** - every earlier one belongs to a channel. The documented
+  cheap way to capture a right-to-left or Russian window (swap the single root token instead of a JSON
+  round trip) silently edits a channel if it takes the first match. Related trap from the same run:
+  `[regex]::Match` on an absent token returns a **zero-length match at index 0**, so a
+  `Remove/Insert` at `$m.Index` prepends the replacement to the document and the state file stops
+  parsing altogether (2026-08-07).
+
+- **Three ticket numbers were allocated twice.** `SP-0054` was taken by the verified clock-jitter ticket
+  *and* by the rubric draft (renumbered to `SP-0061` on 2026-08-07; the clock-jitter one is cited from
+  shipped code, so it keeps the number). `SP-0053` was taken by "About this channel" *and* by the
+  snapshot-freshness draft (renumbered to `SP-0066` on 2026-08-08, same tie-break: About is cited from
+  shipped code in twenty-five places, the draft in two lines of tooling prose). `SP-0056` was taken by
+  the verified `visible_download_progress` *and* by `catalog_list_costs_what_is_visible` (renumbered to
+  `SP-0067` on 2026-08-08, same tie-break: the download-progress work is cited from shipped code in
+  fourteen places, the performance ticket in none - it had no code yet). Re-scan `PLAN/` and
+  `PLAN/DONE/` immediately before writing a new ticket file; a scan from earlier in the session is what
+  produces this.
+
+- **A single-run millisecond figure on this machine is not evidence.** Three identical scripted sessions
+  against the same 19 855-channel catalog, same binary, gave `ApplyFilter` medians of 96.3, 154.0 and
+  96.9 ms and browsing-session-save medians of 63.2, 183.2 and 85.5 - up to 3x apart. Counts, the
+  `scanned=` bounds and written byte counts were stable to the digit across all three. Measure the
+  quantity the change actually controls; treat ms as a coarse "nothing got dramatically worse" check.
+  Corollary that made SP-0067's criterion 1 provable: record the *request* as well as the *evaluation*
+  (`op=FilterRequested` before the debounce, `op=ApplyFilter` after), so one run's log shows the collapse
+  without needing a differently-built binary to compare against (2026-08-08).
+
+- **`CatalogState` reference equality is a usable cache key, with one exception worth knowing.** Every
+  change to the channel list's *membership* - add, import, hide/delete, purge, refresh - goes through
+  `_state with { Channels = ... }` and yields a new instance. `ReplaceChannel` is the sole in-place
+  mutator and only ever swaps one element for another, never adds or removes; `StreamCatalogStore.SaveAsync`
+  also returns the *same* instance when no atlas is replaced. So `ReferenceEquals(_cachedSource, _state)`
+  correctly gates anything that depends on membership, and does not gate anything that depends on a single
+  channel's fields (2026-08-08, SP-0067).
+
+- **`artwork-manifest.json` does not cover `stream-catalog.zip`.** Its `sets` are exactly two -
+  `channelPreview` and `streamLogo`, the tile packs - and the publisher's catalog path emits no stamp,
+  hash or size record at all. Both `SP-0053`'s draft and `SP-0052`'s 2026-08-07 update consequence 4
+  asserted the opposite ("a `stamp` per payload"), and that wrong premise survived into two ticket
+  bodies and two lines of shipped tooling prose before anyone read the upstream schema
+  (`delivery/stream-catalog/README.md`, the `artwork-manifest.json` section) or its producer. The
+  catalog's only published freshness signal is the asset's HTTP `Last-Modified`, which the snapshot
+  generator already stores verbatim as `snapshot.json` `sourceDate` - so the comparison is a `HEAD`
+  against the `CatalogUrl` the app already knows, and it never needed the second network address that
+  `SP-0052` decision 10 deferred the work over. Corrected in `SP-0066` (2026-08-08). Note the manifest
+  *is* the right file for the preview-atlas payload, where the app is still pinned to the `v1` sheets
+  while upstream publishes `v2` under stable names - a separate, still-open gap.
+
+- **The test project can read the App's own source as data, and now does.** `Localization.*.xaml` had been
+  linked in as `Content` since SP-0034 because tests depend on Core only; SP-0057 extended that to
+  `src/StreamsPlayer.App/*.cs` and `*.xaml` so a gate could compare the shipped strings against the code
+  that formats them. Two facts worth keeping. (1) The glob is deliberately **non-recursive** - `**` sweeps
+  in `bin` and `obj`, whose generated sources are not call sites and whose file names collide. (2) The
+  reader masks rather than parses: one pass blanks the body of every comment and literal while preserving
+  length and line breaks, so bracket matching and comma splitting cannot trip on a comma inside a string, a
+  `//` inside a URL, or a brace inside an interpolation hole. The case that breaks a naive scanner is
+  `$"{map["k"]}"` - the nested literal ends the outer string early and every bracket after it is counted
+  wrong. Measured coverage when written: 67 files, 214 literal-key call sites, 181 distinct keys.
+- **`string.Format` is asymmetric, and that asymmetry used to be fatal here.** Surplus arguments are
+  ignored in silence; a template referencing an index the caller did not supply throws. Every localized
+  string is rendered from an `async void` handler and `App_DispatcherUnhandledException` logs without
+  setting `e.Handled`, so adding a placeholder to a shipped string without finding its call site ended the
+  process - the same failure shape as the state-save incident above. `LocalizationParityTests` forced the
+  new `{1}` into all thirteen languages and still could not see the one-argument call site, which is what
+  made this invisible. Since SP-0057 all rendering goes through `LocalizedFormat.Apply` (Core), which pads
+  a short argument array with nulls and catches the unparseable template, and `LocalizedCallSiteTests`
+  fails the build on the disagreement. Consequence for future work: a placeholder added to a string now
+  *forces* its call site, and the surplus direction fails too - it is the signature of a placeholder
+  deleted from the string and left behind in the code, which nothing at runtime can report (2026-08-08).
+
+- **A generated artifact that only the owner's tree carries is invisible until a user reports the
+  absence.** `src/StreamsPlayer.Core/Resources/catalog-snapshot.zip` was generated by SP-0052 and never
+  committed. The build embedded it under an `Exists` condition, so every clone, every CI run and every
+  release build succeeded and shipped an application whose first-launch offer, post-failure recovery
+  offer and settings action all silently had nothing to apply - the only visible trace was one disabled
+  button in Settings. Nothing was wrong with the code; the artifact was simply absent from git while
+  the generator's help, its `-Check` mode and the release checklist all said "tracked" and "commit it".
+  Since SP-0060 the artifact is tracked (`*.zip binary` in `.gitattributes`, so no content sniffing
+  decides an archive's line endings) and a build without it fails with error `SP0060`. **The
+  chicken-and-egg to remember:** `tools/build-catalog-snapshot.ps1` reads its contract from a *built*
+  `StreamsPlayer.Core`, so a tree that has lost the artifact must build once with
+  `-p:AllowMissingCatalogSnapshot=true` before it can regenerate. The general lesson: when a feature
+  depends on a build-time payload, make its absence a build failure, because "condition on Exists" and
+  "silently ship less" are the same line of MSBuild (2026-08-08).
 
 ## References
 
@@ -151,12 +277,30 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   is bare video. Send a single left click (only a *double* click toggles fullscreen), then
   capture within the 10 s `ControlsHideTimeout`. Shell state does not survive between tool
   calls, so the whole `Add-Type` + find + click + capture sequence must be one invocation.
+  Two more, each one debugging round, found 2026-08-08 (SP-0058), and both look like "the control is
+  missing" rather than what they are: (4) **`Set-SpForeground` blinds the automation tree.** Its
+  foreground-lock bypass taps ALT, which leaves WPF in menu/access-key mode, and while the window is in
+  that mode its *content* peers are not exposed at all - the tree collapses to the non-client chrome and
+  stays collapsed. Measured (`temp/SP-0058/probe4.ps1`): 13 buttons at rest, 13 after
+  `ShowWindow`+`SetForegroundWindow`+`BringWindowToTop`+`SetWindowPos(topmost)`, **6 after a bare ALT
+  tap**, 13 again after Escape. So the ALT tap is the only harmful part of `ForceForeground`; pair every
+  foreground call with an Escape and poll until the count recovers. (5) **A channel card exposes itself
+  as one `DataItem` and nothing inside it.** WPF caches an item container's automation peer, and a
+  container realized by virtualization starts out with no children, so a card's own buttons and texts are
+  unreachable by name however long you poll - and neither clicking the card, filtering the list, nor
+  `RevealChannelAsync`'s `ScrollIntoView` brought them back. The card's *rectangle* is reported
+  correctly, so the overflow glyph has to be clicked by geometry (32 px wide, against the card's right
+  padding, on the title line) with the list narrowed to a single row so the click cannot land on the
+  wrong channel. Note the consequence for the header's own menus: a `BuildEntry` item's UIA name is its
+  **tooltip** key, not its header, so the operations entries are found by their description
+  ("Add a channel someone sent you as text..."), while the overflow entries carry their header text.
 
 - `StreamCatalogStore.SaveAsync` calls `RemoveUnreferencedAtlases` on **every** save, deleting any
   `favicon-atlas-*.png` that the just-saved state does not name. Consequence when testing against
   the real `%LOCALAPPDATA%\StreamsPlayer` state: a backup copy of `catalog-state.json` restored
   after a refresh points at an atlas file that no longer exists (icons go blank; no crash - the
-  loader `File.Exists`-guards). Repair is one explicit **Update catalog**, which merges by URL and
+  loader `File.Exists`-guards). Repair is one explicit **Import channels from the internet** (named
+  **Update catalog** before SP-0059), which merges by URL and
   keeps ids, pins, outcome marks, and history links. Confirmed 2026-07-24.
 
 - Never edit a repo file from `powershell.exe` (Windows PowerShell 5.1): `Get-Content -Raw` reads a
@@ -253,6 +397,19 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   button opens its account-setup screen instead of a compose window - a `mailto:` flow cannot be observed
   end to end here, which is why SP-0040 proved the link with unit tests instead (2026-07-30).
 
+- **Two traps that make a UIA pass lie about a modal dialog and about the operations menu** (SP-0059,
+  2026-08-08). (1) `Set-SpForeground` in `tmp/uia/driver.ps1` raises **the main window**, so calling it
+  before injecting a keystroke aimed at a modal puts the owner on top and the key lands there instead:
+  Escape appeared to do nothing, the dialog stayed on screen, and the decline that *was* eventually
+  recorded came from `Stop-Sp` closing the window later - a green-looking result proving the wrong
+  thing. Force the foreground onto the dialog's own `NativeWindowHandle`. Related: the main window's
+  UIA `IsEnabled` still reads `True` while it owns an open `ShowDialog`, so it is not a usable "is the
+  modal up" probe - enumerate sub-windows instead. (2) `BuildOperationsMenu` passes the **tooltip** key
+  as the accessible name for four of its five entries (`BuildEntry(header, tooltip, name, ..)` called
+  with the tooltip key twice), so a `MenuItem` search by the visible command name finds nothing. Match
+  on the row's `Text` descendant, or on the tooltip. Also: WPF hosts the menu in its own popup HWND, so
+  it is reachable from the desktop root and **not** under the application window.
+
 - **GUI evidence via UI Automation: address controls by `AutomationId`, which WPF fills from `x:Name`** -
   language-independent, unlike `AutomationProperties.Name`. Two traps measured on SP-0040: a modal dialog
   is not in the UIA tree the instant `Invoke` returns (poll for one of its children instead of sleeping),
@@ -273,8 +430,13 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
 - **`SetThreadExecutionState` is per-thread, so `powercfg /requests` lists one entry per *thread* that
   holds a request - never per acquire.** `WakeGuard`'s ref-counted acquires all run on the one WPF UI
   thread and can therefore only ever produce a single `StreamsPlayer.exe` line. Two lines during audio
-  is normal: the second is the WPF `MediaElement` stack's own request (appears ~8 s after playback
-  starts, gone at stop, unaffected by the setting - see SP-0051). A `DISPLAY x1 + SYSTEM x1` residue
+  is normal: the second is **the Windows audio stack's own request** - reason *"An audio stream is
+  currently in use."*, created for any active render stream, appears ~8 s after playback starts, gone
+  at stop, unaffected by the setting. **No application API can clear it** (`PowerClearRequest` needs
+  the creator's own handle, `SetThreadExecutionState` only adds, no audio-client or Media Foundation
+  opt-out is documented); the only lever is to close the stream rather than pause it, which
+  `StopAudioPlayback` already does. SP-0051 triaged this and closed Archived - the promise in the
+  Settings tip is knowingly broader than what the app controls (2026-08-08). A `DISPLAY x1 + SYSTEM x1` residue
   lingering ~14 s after a player window closes is LibVLC's native teardown settling, not a leak. Reading
   a count as a leak is the easy mistake; the discriminator is to toggle the setting and see which entry
   moves (2026-08-06).
@@ -317,6 +479,18 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   against the previous package rather than by re-testing playback: all 425 `libvlc/win-x64` entries
   matched on size and CRC32, which is what makes the change provably inert (2026-08-06).
 
+- **The single-file EXE from `build.ps1 -Deploy` is not standalone - never hand it to anyone on its
+  own.** LibVLCSharp resolves the natives from `libvlc\win-x64\` *beside the executable*, and the
+  `VideoLAN.LibVLC.Windows` DLLs arrive as MSBuild `Content`, which `PublishSingleFile` does not embed -
+  `IncludeNativeLibrariesForSelfExtract` only covers real native dependencies of the assemblies. Run the
+  EXE from a clean folder and it dies at startup in `VideoFrameCaptureService..ctor` with "Failed to load
+  required native libraries", listing the paths it wanted. The `-Deploy` flow appears to work only
+  because it copies **just the EXE** onto `C:\GD\i` and `C:\GD\tc\SZA\_APP`, which already hold a
+  `libvlc\` tree from an older full copy. The distributable artifact is the portable **zip** that
+  `.github/workflows/release.yml` builds - a plain self-contained folder publish, no single-file - and
+  a build meant for someone else must be produced and verified that way, by extracting it and launching
+  the extracted EXE (2026-08-07).
+
 - **A Partner Center listing import must be CRLF everywhere, and it reports a bare LF as the wrong
   error entirely.** The export is CRLF throughout, inside quoted multi-line cells as much as between
   records. Write one record terminated by a lone `\n` and Partner Center's reader does not close that
@@ -327,3 +501,24 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   which is exactly how a CRLF file grows bare line feeds. Match the terminator explicitly (`\r?\n`),
   emit `\r\n`, normalise newlines inside every cell you write, and assert zero `(?<!\r)\n` before
   writing. Cost one rejected submission (2026-08-07).
+
+- **`--clock-jitter` is a compensation budget, not a leniency switch.** VLC's help: "the maximal input
+  jitter that is considered valid and *can be compensated* (in milliseconds)", default 5000. Jitter
+  inside the budget is absorbed; jitter beyond it is left uncompensated and the clock reference is
+  dropped. So `--clock-jitter=0` compensates **nothing** - every late PCR, however small, breaks the
+  clock, and the outputs then fill with silence and skip pictures as early. StreamsPlayer shipped 0 for
+  months with a code comment and a `docs/` section both asserting the opposite, because the change *had*
+  measured well: worst-case jitter fell 8958 ms → 250 ms. That number fell only because VLC stopped
+  accumulating a compensation window - a few large freezes were traded for continuous small clock resets
+  (SP-0054, 2026-08-07).
+
+- **libvlc's playback counters mislead in two specific ways; measure rates, not counter differences.**
+  (1) `decoded_v` and `displayed` do **not** count the same event: on a stream measured playing smoothly
+  at a steady 27-32 fps, `decoded_v` ran at almost exactly **twice** `displayed` (2235 vs 1083) with
+  `lost_pics=0`. A "skipped frames" column derived from that difference was written, shipped into a local
+  build, and reported 50 % loss on a healthy stream before being removed the same day. Do not reason from
+  the gap between two counters whose semantics are unverified - difference the rendered counter over wall
+  time and compare that fps to the stream's nominal rate. (2) `read_bytes` and `in_bitrate` come from the
+  access module, which the HLS and DASH demuxers bypass, so on any `.m3u8` they are frozen forever -
+  `read_bytes=364` and `in_bitrate=0` across a 124 s session, and `in_bitrate=0.0000` while a measured
+  1.9 Mbps was arriving. Difference the demux byte counter instead (SP-0054, 2026-08-07).

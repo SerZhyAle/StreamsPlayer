@@ -94,7 +94,15 @@ git push -u origin main
 
 ## Version convention
 
-- StreamsPlayer versions use UTC release time in `YY.MMDD.HHmm` form, for example `26.0719.0131`.
+- StreamsPlayer versions use the **author's local release time** (Europe/Malta) in `YY.MMDD.HHmm` form,
+  for example `26.0719.0131`. The version's purpose is to tell the owner when a build was made, read
+  against the clock on his wall; a stamp he has to convert does not serve that purpose. Versions up to
+  and including `26.0806.2131` were stamped in UTC, so they read two hours (one in winter) earlier than
+  the local time they were built at. The **shape** `YY.MMDD.HHmm` is frozen for the product's life and
+  does not change with this.
+- Accepted consequence: the autumn clock change repeats one local hour, so a release inside that hour
+  could carry a version lower than one already published. Deliberate - releases are not cut on the hour
+  boundary of a DST change, and the monotonicity check before a release is the real guard.
 - Git tags use the same value with a `v` prefix: `v26.0719.0131`.
 - `Version`, `AssemblyVersion`, `FileVersion`, and `InformationalVersion` in `Directory.Build.props` are updated together before a release. The Settings window displays `InformationalVersion`.
 - MSIX package identity requires four components and its version schema forbids leading zeros, so `msix/build-msix.ps1` int-casts each component and appends `.0`: `26.0719.0131` → `26.719.131.0` (with a per-component `≤ 65535` ceiling guard). Winget and GitHub retain the canonical zero-padded three-component value.
