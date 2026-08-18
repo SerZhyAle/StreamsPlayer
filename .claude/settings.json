@@ -1,5 +1,5 @@
 {
-  "//": "Universal Agent Kit defaults, tightened for StreamsPlayer (.NET 10 / WPF on Windows). Read/glob/grep + edit/write + git, plus the .NET and PowerShell build flow so it does not prompt. Review before widening `allow`.",
+  "//": "Universal Agent Kit defaults, tightened for StreamsPlayer (.NET 10 / WPF on Windows). Read/glob/grep + edit/write + git, plus the .NET and PowerShell build flow so it does not prompt. Review before widening `allow`. The former `./build.ps1` / `./run.ps1` / `./scripts/*` entries were removed on 2026-08-18: the canon's guard-bash hook refuses a .ps1 in Bash command-head position, so those rules could never be exercised - every script now goes through `Bash(pwsh *)` as `pwsh -NoProfile -File ./script.ps1`.",
   "agent": "streamsplayer-rd-lead",
   "permissions": {
     "allow": [
@@ -10,10 +10,7 @@
       "Write(**)",
       "Bash(git *)",
       "Bash(dotnet *)",
-      "Bash(pwsh *)",
-      "Bash(./build.ps1*)",
-      "Bash(./run.ps1*)",
-      "Bash(./scripts/*)"
+      "Bash(pwsh *)"
     ],
     "defaultMode": "acceptEdits"
   }

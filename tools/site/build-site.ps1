@@ -112,6 +112,52 @@ function Get-Placeholder {
     return @(($inlineMarkup.Keys | Where-Object { $Value.Contains($_) }) | Sort-Object)
 }
 
+function Get-JsonLd {
+    # Structured data for the page, emitted as a complete <script type="application/ld+json"> block.
+    #
+    # Built here rather than in the template on purpose: an HTML parser does NOT decode entities
+    # inside a ld+json script element, so reusing the HTML-escaped {{page.title}} there would put a
+    # literal &quot; into the JSON and break it. These values are therefore taken raw from the copy
+    # deck and escaped by ConvertTo-Json, which is the correct escaping for this context.
+    param(
+        [Parameter(Mandatory)] $Page,
+        [Parameter(Mandatory)] $Deck,
+        [Parameter(Mandatory)] [string] $Canonical,
+        [Parameter(Mandatory)] [string] $BaseUrl
+    )
+
+    $name = $Deck.Values["title-$($Page.Name)"]
+    $description = $Deck.Values["description-$($Page.Name)"]
+
+    if ($Page.Name -eq 'home') {
+        $data = [ordered]@{
+            '@context'            = 'https://schema.org'
+            '@type'               = 'SoftwareApplication'
+            'name'                = 'STREAMS Player'
+            'description'         = $description
+            'url'                 = $Canonical
+            'image'               = "${BaseUrl}assets/og-card.png"
+            'applicationCategory' = 'MultimediaApplication'
+            'operatingSystem'     = 'Windows'
+            'isAccessibleForFree' = $true
+            'author'              = [ordered]@{ '@type' = 'Person'; 'name' = 'Serhii Zhyhunenko' }
+            'offers'              = [ordered]@{ '@type' = 'Offer'; 'price' = '0'; 'priceCurrency' = 'USD' }
+        }
+    } else {
+        $data = [ordered]@{
+            '@context'    = 'https://schema.org'
+            '@type'       = 'WebPage'
+            'name'        = $name
+            'description' = $description
+            'url'         = $Canonical
+            'isPartOf'    = [ordered]@{ '@type' = 'WebSite'; 'name' = 'STREAMS Player'; 'url' = $BaseUrl }
+        }
+    }
+
+    $json = $data | ConvertTo-Json -Depth 5 -Compress
+    return '    <script type="application/ld+json">{0}</script>' -f $json
+}
+
 function Get-HrefLang {
     param([Parameter(Mandatory)] [pscustomobject] $Language)
 
@@ -281,6 +327,8 @@ foreach ($language in $languages) {
             ) -join "`n"
         }
 
+        $canonical = '{0}{1}{2}' -f $BaseUrl, $(if ($isRoot) { '' } else { "$code/" }), $(if ($page.File -eq 'index.html') { '' } else { $page.File })
+
         $structural = [ordered]@{
             '{{page.lang}}'           = Get-HrefLang -Language $language
             '{{page.code}}'           = $code
@@ -289,7 +337,7 @@ foreach ($language in $languages) {
             '{{page.base}}'           = if ($isRoot) { '' } else { '../' }
             '{{page.home}}'           = Get-RelativeUrl -FromCode $urlCode -ToCode $urlCode -File 'index.html'
             '{{page.privacy}}'        = 'privacy.html'
-            '{{page.canonical}}'      = '{0}{1}{2}' -f $BaseUrl, $(if ($isRoot) { '' } else { "$code/" }), $(if ($page.File -eq 'index.html') { '' } else { $page.File })
+            '{{page.canonical}}'      = $canonical
             '{{page.alternates}}'     = $alternates -join "`n"
             '{{page.languageUrls}}'   = ($languageUrls | ConvertTo-Json -Compress)
             '{{page.languageOptions}}' = $options -join "`n"
@@ -297,6 +345,8 @@ foreach ($language in $languages) {
             '{{page.machineNote}}'    = $machineNote
             '{{page.title}}'          = ConvertTo-HtmlText $deck.Values["title-$($page.Name)"]
             '{{page.description}}'    = ConvertTo-HtmlText $deck.Values["description-$($page.Name)"]
+            '{{page.ogImage}}'        = "${BaseUrl}assets/og-card.png"
+            '{{page.jsonLd}}'         = Get-JsonLd -Page $page -Deck $deck -Canonical $canonical -BaseUrl $BaseUrl
         }
 
         foreach ($entry in $structural.GetEnumerator()) {
@@ -318,6 +368,52 @@ foreach ($language in $languages) {
 
 Save-Generated -Path (Join-Path $outputDirectory 'site.js') `
     -Content ([System.IO.File]::ReadAllText((Join-Path $templateDirectory 'site.js')).Replace("`r`n", "`n"))
+
+# robots.txt and sitemap.xml. Both are generated from the same language x page product the pages
+# themselves come from, so a fourteenth language or a third page lands in them without an edit here
+# - the failure mode a hand-maintained sitemap always ends in is a URL list that silently stops
+# matching the site.
+$sitemapLines = [System.Collections.Generic.List[string]]::new()
+$sitemapLines.Add('<?xml version="1.0" encoding="UTF-8"?>')
+$sitemapLines.Add('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">')
+foreach ($page in $pages) {
+    foreach ($language in $languages) {
+        $code = $language.DictionaryCode
+        $prefix = if ($code -eq 'en') { '' } else { "$code/" }
+        $leaf = if ($page.File -eq 'index.html') { '' } else { $page.File }
+        $url = "$BaseUrl$prefix$leaf"
+
+        $sitemapLines.Add('  <url>')
+        $sitemapLines.Add("    <loc>$url</loc>")
+        # Every alternate is declared on every entry, which is what makes a multilingual sitemap
+        # usable: a crawler that finds one URL learns the whole set.
+        foreach ($other in $languages) {
+            $otherPrefix = if ($other.DictionaryCode -eq 'en') { '' } else { "$($other.DictionaryCode)/" }
+            $otherHref = Get-HrefLang -Language $other
+            # Built into a variable first: inside a method-call argument list, -f binds tighter than
+            # the comma, so an inline '{0}..{3}' -f a, b, c, d would hand the format only its first
+            # argument and throw.
+            $alternateLine = '    <xhtml:link rel="alternate" hreflang="{0}" href="{1}{2}{3}"/>' -f $otherHref, $BaseUrl, $otherPrefix, $leaf
+            $sitemapLines.Add($alternateLine)
+        }
+        $defaultLine = '    <xhtml:link rel="alternate" hreflang="x-default" href="{0}{1}"/>' -f $BaseUrl, $leaf
+        $sitemapLines.Add($defaultLine)
+        $sitemapLines.Add("    <changefreq>monthly</changefreq>")
+        $sitemapLines.Add('  </url>')
+    }
+}
+$sitemapLines.Add('</urlset>')
+Save-Generated -Path (Join-Path $outputDirectory 'sitemap.xml') -Content (($sitemapLines -join "`n") + "`n")
+
+$robots = @(
+    '# STREAMS Player - https://github.com/SerZhyAle/StreamsPlayer'
+    '# Generated by tools/site/build-site.ps1 - do not hand-edit.'
+    'User-agent: *'
+    'Allow: /'
+    ''
+    "Sitemap: ${BaseUrl}sitemap.xml"
+) -join "`n"
+Save-Generated -Path (Join-Path $outputDirectory 'robots.txt') -Content ($robots + "`n")
 
 # A language dropped from the registry leaves its folder behind. Only two-letter folders are
 # considered, which is why docs/agent, docs/assets, docs/localization and docs/specifications cannot

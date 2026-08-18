@@ -37,21 +37,25 @@ asks. The build-versus-release rule itself has one home in the canon
 
 ## Development commands
 
-Run from the repository root in PowerShell.
+Run from the repository root. A human types these in PowerShell. **An agent must prefix every `.ps1`
+with `pwsh -NoProfile -File`** - a bare `./build.ps1` in a Bash tool call is refused by the canon's
+`guard-bash` hook (`GITHUB_INTERACTION.md` §6), and backgrounding one would report the wrapper's exit
+code instead of the build's.
 
-- `build.ps1` deploys by default: `-Deploy` is `$true` unless you pass `-Deploy:$false`, and it forces Release + win-x64 for every invocation. Every `build.ps1` line below inherits that.
-- `./build.ps1 -Test -Deploy:$false` - restore, build and run tests without touching the local app folders.
-- `./build.ps1 -Deploy` - build a self-contained Release EXE and copy it to the local SZA app folders; this is not a release.
-- `./run.ps1` - restore, build and launch the app in Debug, never deploying. `./build.ps1 -Run` deploys first and runs Release.
-- `./scripts/check.ps1` - Release restore, build, and test check.
+- `build.ps1` deploys by default: `-Deploy` is `$true` unless you pass `-Deploy:$false`. Deploying forces Release; it *throws* rather than silently coercing if `-Configuration` is bound to non-Release or `-Runtime` to anything but `win-x64`. Every `build.ps1` line below inherits that.
+- `pwsh -NoProfile -File ./build.ps1 -Test -Deploy:$false` - restore, build and run tests without touching the local app folders.
+- `pwsh -NoProfile -File ./build.ps1 -Deploy` - build a self-contained Release EXE and copy it to the local SZA app folders; this is not a release.
+- `pwsh -NoProfile -File ./run.ps1` - restore, build and launch the app in Debug, never deploying. `build.ps1 -Run` deploys first and runs Release.
+- `pwsh -NoProfile -File ./scripts/check.ps1` - Release restore, build, and test check.
 - `dotnet format StreamsPlayer.sln --verify-no-changes` - formatting diagnostic; it currently reports a pre-existing line-ending/encoding baseline and is not a passing gate until that baseline is normalized.
 - `dotnet run --project src/StreamsPlayer.App` - run the desktop application.
 - `dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png`
   - check the live catalog contract.
-- `./msix/build-msix.ps1 -SelfSign` - build and locally test an MSIX package; use only for package work.
-- `./scripts/release.ps1` - print the manual release checklist only.
+- `pwsh -NoProfile -File ./msix/build-msix.ps1 -SelfSign` - build and locally test an MSIX package; use only for package work.
+- `pwsh -NoProfile -File ./scripts/release.ps1` - print the manual release checklist only; it changes no remote state.
+- `pwsh -NoProfile -File ./tools/site/build-site.ps1 -Check` - fail if `docs/` is stale against the generator, writing nothing.
 
-Never run `./scripts/build-local.ps1` unless the user explicitly requests a commit: it stages and commits changes.
+Never run `scripts/build-local.ps1` unless the user explicitly requests a commit: it runs `git add --all` and commits.
 
 ## Code and test conventions
 
@@ -70,26 +74,18 @@ Never run `./scripts/build-local.ps1` unless the user explicitly requests a comm
 
 ## Git conventions
 
-Use `main` as the primary branch. Commit subjects are short and imperative,
-for example `Add Store package template` or `Fix catalog URL merge`. Keep each
-commit focused. Pull requests should state the user-visible result, verification
-commands, linked issues where relevant, and screenshots for WPF, Store, or web
-page changes.
+Commit and PR discipline - when to commit, message shape, the co-author trailer, English artifacts -
+has one home in the canon (`GITHUB_INTERACTION.md` §2-3). Repo-local deltas only:
 
-Configure this repository only (not the user's global Git identity):
+- The primary branch is `main`, and `origin` is already set to `https://github.com/SerZhyAle/StreamsPlayer.git`.
+- A PR touching WPF, the Store listing, or the Pages site carries **screenshots**; every PR carries the
+  verification commands it actually ran.
+- Identity is configured per repository, never on the user's global Git config:
 
 ```powershell
 git config user.name "Serhii Zhyhunenko"
 git config user.email "serzhyale@gmail.com"
 git config pull.rebase false
-git config init.defaultBranch main
-```
-
-After the GitHub repository is created, add the remote:
-
-```powershell
-git remote add origin https://github.com/SerZhyAle/StreamsPlayer.git
-git push -u origin main
 ```
 
 ## Version convention
@@ -104,7 +100,7 @@ git push -u origin main
   could carry a version lower than one already published. Deliberate - releases are not cut on the hour
   boundary of a DST change, and the monotonicity check before a release is the real guard.
 - Git tags use the same value with a `v` prefix: `v26.0719.0131`.
-- `Version`, `AssemblyVersion`, `FileVersion`, and `InformationalVersion` in `Directory.Build.props` are updated together before a release. The Settings window displays `InformationalVersion`.
+- **For a real release the version is not hand-edited.** `.github/workflows/release.yml` derives it from the `v*` tag (regex + a real `ParseExact`, so an impossible stamp fails the job) and passes it as `-p:Version=/-p:AssemblyVersion=/-p:FileVersion=/-p:InformationalVersion=`. The four fields in `Directory.Build.props` are the *local build* stamp only; the tag wins for anything published. The Settings window displays `InformationalVersion`.
 - MSIX package identity requires four components and its version schema forbids leading zeros, so `msix/build-msix.ps1` int-casts each component and appends `.0`: `26.0719.0131` → `26.719.131.0` (with a per-component `≤ 65535` ceiling guard). Winget and GitHub retain the canonical zero-padded three-component value.
 - A release version must be later than every published version. Do not reuse a timestamp for different package contents.
 
