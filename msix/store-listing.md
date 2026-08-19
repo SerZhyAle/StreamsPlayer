@@ -128,6 +128,46 @@ Version 26.0819.0156
 - Станцію з дуже довгою назвою можна винести на робочий стіл, не втрачаючи програму, а кнопки-гліфи знову читаються в темній темі.
 ```
 
+#### Store-only What's new for 26.0819.0156
+
+Not a second source for the release notes above - a different text for a different audience. The Store
+sits on 26.0806.2225, so its user has never seen 26.0809.0022. These blocks cover both releases and
+are what Partner Center gets; GitHub and winget keep the blocks above. The ten machine-translated
+languages get the English text.
+
+```text
+Version 26.0819.0156
+
+- The catalog can shrink to a compact radio panel while a station plays - always on top, carrying the station, the current track, the volume, the transport, the sleep timer and Random station.
+- Play a random station. One press picks from the whole catalog, ignoring the search and the facets, and skips hidden stations, video and RTSP. One that stays silent gives way to the next draw.
+- A built-in channel list. A copy of the stream bank ships inside the app, so the catalog fills on a first launch with no network. It adds and updates, never removes, and says how old it is.
+- A topic filter, sharing a channel as one line of text, playback that resumes where the last session left off, and what is on air under the channel name.
+- The player says why the picture stopped, a stream that stalls while pretending to play is caught and re-opened, and video quality follows the connection and is remembered per channel.
+- Fixed - a very long station name could take the desktop shortcut down with it, dark-theme glyph buttons were unreadable, closing the catalog over a tile could crash it, and a radio stream that ended kept the machine awake.
+```
+
+```text
+Версия 26.0819.0156
+
+- Каталог умеет ужаться до компактной радиопанели, пока играет станция - поверх других окон, со станцией, текущим треком, громкостью, управлением, таймером сна и случайной станцией.
+- Включить случайную станцию. Одно нажатие выбирает из всего каталога, не глядя на поиск и фасеты, и пропускает скрытые станции, видео и RTSP. Молчащая уступает место следующей.
+- Встроенный список каналов. Копия банка потоков лежит внутри программы, поэтому каталог заполняется при первом запуске без сети. Он добавляет и обновляет, ничего не удаляет и называет свой возраст.
+- Фильтр по темам, отправка канала одной строкой текста, продолжение воспроизведения с места прошлого сеанса и трек, который станция играет прямо сейчас, под названием канала.
+- Плеер объясняет, почему картинка остановилась, поток, который делает вид, что играет, переоткрывается, а качество видео следует за соединением и запоминается для канала.
+- Исправлено - очень длинное название станции могло уронить программу при выносе ярлыка, кнопки-глифы в тёмной теме были нечитаемы, закрытие каталога над плиткой могло его уронить, а завершившееся радио держало компьютер без сна.
+```
+
+```text
+Версія 26.0819.0156
+
+- Каталог уміє стиснутися до компактної радіопанелі, поки грає станція - поверх інших вікон, зі станцією, поточним треком, гучністю, керуванням, таймером сну та випадковою станцією.
+- Увімкнути випадкову станцію. Одне натискання обирає з усього каталогу, не зважаючи на пошук і фасети, і пропускає приховані станції, відео та RTSP. Мовчазна поступається наступній.
+- Вбудований список каналів. Копія банку потоків лежить усередині програми, тож каталог заповнюється при першому запуску без мережі. Він додає та оновлює, нічого не видаляє і називає свій вік.
+- Фільтр за темами, надсилання каналу одним рядком тексту, продовження відтворення з місця минулого сеансу і трек, який станція грає просто зараз, під назвою каналу.
+- Програвач пояснює, чому картинка зупинилася, потік, що вдає, ніби грає, перевідкривається, а якість відео стежить за з'єднанням і запам'ятовується для каналу.
+- Виправлено - дуже довга назва станції могла аварійно завершити програму при винесенні ярлика, кнопки-гліфи в темній темі були нечитабельні, закриття каталогу над плиткою могло її уронити, а радіо, що скінчилося, тримало комп'ютер без сну.
+```
+
 ### Prepared for 26.0809.0022
 
 **Released on GitHub and submitted to winget on 2026-08-09; the Partner Center upload is still to

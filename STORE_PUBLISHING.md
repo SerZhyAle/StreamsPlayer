@@ -39,11 +39,19 @@ individual developer account is free.
 
 ```powershell
 # Uses the reserved identity by default. Unsigned = Store-ready (Microsoft signs at certification).
+# ALWAYS pass -Version on a release. Without it the script stamps the clock at the moment it runs,
+# not the version being released, and you get a package whose name and Identity Version disagree with
+# the tag, the GitHub Release and the winget manifest (observed on 26.0819.0156, which first built as
+# 26.0819.0217). The argument takes the four-part form - the released YY.MMDD.HHmm plus ".0".
+./msix/build-msix.ps1 -Version <YY.MMDD.HHmm>.0
+
+# Ad-hoc local package, where a fresh clock stamp is exactly what you want:
 ./msix/build-msix.ps1
 
 # Local sideload test only (never upload a self-signed package):
-./msix/build-msix.ps1 -SelfSign
+./msix/build-msix.ps1 -SelfSign -Version <YY.MMDD.HHmm>.0
 ```
+
 
 Output: `msix/dist/StreamsPlayer-<version>-windows-x64.msix`.
 The package bundles `LICENSE.txt` (MIT) **and** the repo-root `THIRD-PARTY-NOTICES.txt`
