@@ -24,19 +24,19 @@ Search, sort, and filter by category, language, country, and media type
 Pin favorite streams and add direct stream URLs
 
 @@Feature4
-List and visual grid layouts with selectable tile sizes
+List and visual grid layouts with selectable tile sizes and optional live thumbnails for visible HTTP(S) video streams
 
 @@Feature5
-Optional live thumbnails for visible HTTP(S) video streams
+Play a radio station drawn at random from the whole catalog - one that stays silent gives way to the next draw
 
 @@Feature6
-Thirteen interface languages, with right-to-left layout where it belongs
+Compact always-on-top radio panel with the station, the track, the volume, the transport, and the sleep timer
 
 @@Feature7
-Independent always-on-top controls for the app and video player
+Independent always-on-top controls for the app and video player, and borderless video fullscreen with F11 and Escape
 
 @@Feature8
-Borderless video fullscreen with F11 and Escape shortcuts
+Thirteen interface languages, with right-to-left layout where it belongs
 
 @@Feature9
 Explicit catalog refresh with no surprise background catalog downloads

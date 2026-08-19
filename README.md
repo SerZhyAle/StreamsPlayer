@@ -69,8 +69,8 @@ code or features.
   spells it rather than hidden. **General** covers about half the catalog, so it
   sits at the end of the list, below the topics that actually narrow it.
 - Reach the actions you use rarely from one **Operations** menu in the header:
-  always on top, refresh previews (in grid mode), history, add stream, and
-  **Import channels from the internet**.
+  always on top, refresh previews (in grid mode), **Random station**, history,
+  add stream, and **Import channels from the internet**.
 - Keep the main window or video player independently always on top, and expand
   video to a borderless full screen with the button or `F11` (`Esc` exits). The
   player's three-dot actions menu keeps its own always-on-top switch alongside
@@ -151,6 +151,29 @@ code or features.
 - Set a sleep timer for inline radio - 15/30/45/60 minutes or a clock time - and
   watch the remaining time count down next to **Stop audio**; it survives a
   station switch and ends the session once when it expires.
+- Let the catalog choose: **Random station** in the **Operations** menu draws one
+  radio station from the whole catalog and plays it. The draw ignores the current
+  search, the open facets and the active collection, and it never offers a
+  channel you hid, a video stream or an RTSP address. A station that refuses, or
+  that connects and stays silent for ten seconds, is dropped for the next draw
+  with no dialog to dismiss; after five such stations in a row the hunt stops and
+  says so on the status line. Nothing in the list moves - no scroll, no filter
+  reset - and pressing the command again restarts the hunt instead of starting a
+  second one beside it. A station that does start plays like any other: history,
+  the Windows media flyout, the sleep timer and resume on startup all apply. The
+  same command sits on the compact radio panel below.
+- Shrink the catalog to a compact radio panel while a station is on. The button
+  next to the transport hides the catalog and leaves a small window that stays
+  above other programs and carries the station, the current track, the volume,
+  the transport, the sleep timer with its countdown, and **Random station**. The
+  two views are one application - one taskbar button, one Alt+Tab entry, one
+  sound - and everything you change in one is what the other shows. Stopping the
+  radio leaves the panel where it is instead of throwing the catalog back over
+  your work, and so does a station that drops out. Drag it where you like: a
+  panel pushed past an edge, or left on a monitor that is then switched off,
+  comes back inside a screen you can see. Going back restores the full window
+  exactly as you left it, scroll position, filter and selection included. The
+  panel is a mode for the session: the next launch always opens the catalog.
 - Store catalog state, manual entries, pins, collections, hidden catalog
   channels, listening history, cached preview frames, and the diagnostic
   logs of the last ten launches under `%LOCALAPPDATA%\StreamsPlayer` -

@@ -24,19 +24,19 @@ Búsqueda, ordenación y filtros por categoría, idioma, país y tipo de medio
 Fija tus transmisiones favoritas y añade URL directas de transmisión
 
 @@Feature4
-Vistas de lista y de cuadrícula visual con tamaños de mosaico a elegir
+Vistas de lista y de cuadrícula visual con tamaños de mosaico a elegir y miniaturas en directo opcionales de las transmisiones de vídeo HTTP(S) visibles
 
 @@Feature5
-Miniaturas en directo opcionales de las transmisiones de vídeo HTTP(S) visibles
+Emisora de radio al azar de todo el catálogo - si se queda muda, le toca a la siguiente
 
 @@Feature6
-Trece idiomas de interfaz, con diseño de derecha a izquierda donde corresponde
+Panel de radio compacto siempre visible con emisora, pista, volumen, controles y temporizador de apagado
 
 @@Feature7
-«Siempre visible» independiente para la aplicación y para el reproductor de vídeo
+«Siempre visible» independiente para la aplicación y el reproductor de vídeo, y pantalla completa sin bordes con F11 y Escape
 
 @@Feature8
-Pantalla completa de vídeo sin bordes con las teclas F11 y Escape
+Trece idiomas de interfaz, con diseño de derecha a izquierda donde corresponde
 
 @@Feature9
 Actualización del catálogo solo cuando la pides, sin descargas inesperadas en segundo plano

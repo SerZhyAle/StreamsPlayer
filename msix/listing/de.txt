@@ -24,19 +24,19 @@ Suchen, Sortieren und Filtern nach Kategorie, Sprache, Land und Medienart
 Lieblings-Streams anheften und direkte Stream-URLs hinzufügen
 
 @@Feature4
-Listen- und Rasteransicht mit wählbaren Kachelgrößen
+Listen- und Rasteransicht mit wählbaren Kachelgrößen und abschaltbaren Live-Miniaturbildern für sichtbare HTTP(S)-Video-Streams
 
 @@Feature5
-Abschaltbare Live-Miniaturbilder für sichtbare HTTP(S)-Video-Streams
+Zufälliger Radiosender aus dem gesamten Katalog - bleibt er stumm, folgt der nächste
 
 @@Feature6
-Dreizehn Oberflächensprachen, mit Layout von rechts nach links, wo es hingehört
+Kompaktes Radiofenster im Vordergrund mit Sender, Titel, Lautstärke, Wiedergabe und Einschlaftimer
 
 @@Feature7
-Unabhängige Bedienelemente „Immer im Vordergrund“ für App und Videoplayer
+Unabhängige Bedienelemente „Immer im Vordergrund“ für App und Videoplayer sowie randloses Video-Vollbild mit F11 und Escape
 
 @@Feature8
-Randloses Video-Vollbild mit den Tasten F11 und Escape
+Dreizehn Oberflächensprachen, mit Layout von rechts nach links, wo es hingehört
 
 @@Feature9
 Katalogaktualisierung nur auf Ihren Befehl, ohne überraschende Downloads im Hintergrund

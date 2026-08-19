@@ -133,6 +133,9 @@ La búsqueda está siempre en la línea del título.
 @@cap-find-4
 Fija los canales a los que vuelves.
 
+@@cap-find-5
+Pon una emisora de radio al azar de todo el catálogo - si se queda muda, la aplicación pasa sola a la siguiente.
+
 @@cap-play-title
 Reproducir como debe ser
 
@@ -165,6 +168,9 @@ Guarda el fotograma actual como JPEG.
 
 @@cap-window-5
 Cuando la imagen se detiene, el reproductor dice por qué sobre el vídeo - y vuelve a abrir una transmisión que se congeló en silencio.
+
+@@cap-window-6
+Reduce el catálogo a un panel pequeño siempre visible mientras suena la radio - con la emisora, la pista, el volumen, los controles y el temporizador de apagado.
 
 @@cap-grid-title
 Cuadrícula visual

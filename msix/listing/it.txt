@@ -24,19 +24,19 @@ Ricerca, ordinamento e filtri per categoria, lingua, paese e tipo di media
 Fissa i flussi preferiti e aggiungi gli URL diretti dei flussi
 
 @@Feature4
-Viste a elenco e a griglia con dimensione dei riquadri selezionabile
+Viste a elenco e a griglia con dimensione dei riquadri selezionabile e miniature live opzionali per i flussi video HTTP(S) visibili
 
 @@Feature5
-Miniature live opzionali per i flussi video HTTP(S) visibili
+Stazione radio scelta a caso nell'intero catalogo - se resta muta, tocca alla successiva
 
 @@Feature6
-Tredici lingue dell'interfaccia, con layout da destra a sinistra dove serve
+Pannello radio compatto sempre in primo piano con stazione, brano, volume, comandi e timer di spegnimento
 
 @@Feature7
-«Sempre in primo piano» indipendente per l'app e per il lettore video
+«Sempre in primo piano» indipendente per l'app e per il lettore video, e schermo intero senza bordi con F11 ed Escape
 
 @@Feature8
-Schermo intero senza bordi del video con i tasti F11 ed Escape
+Tredici lingue dell'interfaccia, con layout da destra a sinistra dove serve
 
 @@Feature9
 Aggiornamento del catalogo solo su tua richiesta, senza download a sorpresa in background

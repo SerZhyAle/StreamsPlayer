@@ -133,6 +133,9 @@ La recherche est toujours dans la ligne de titre.
 @@cap-find-4
 Épinglez les chaînes sur lesquelles vous revenez.
 
+@@cap-find-5
+Lancez une station de radio tirée au hasard dans tout le catalogue - si elle reste muette, l'application passe à la suivante.
+
 @@cap-play-title
 Lire comme il faut
 
@@ -165,6 +168,9 @@ Enregistrez l'image en cours au format JPEG.
 
 @@cap-window-5
 Quand l'image s'arrête, le lecteur en dit la raison sur la vidéo - et rouvre un flux figé en silence.
+
+@@cap-window-6
+Réduisez le catalogue à un petit panneau au premier plan pendant que la radio joue - avec la station, le titre, le volume, la lecture et la minuterie de veille.
 
 @@cap-grid-title
 Grille visuelle

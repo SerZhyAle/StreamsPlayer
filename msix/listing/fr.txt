@@ -24,19 +24,19 @@ Recherche, tri et filtres par catégorie, langue, pays et type de média
 Épinglez vos flux favoris et ajoutez des URL de flux directes
 
 @@Feature4
-Vues en liste et en grille visuelle, avec tailles de vignettes au choix
+Vues en liste et en grille visuelle, avec tailles de vignettes au choix et vignettes en direct facultatives pour les flux vidéo HTTP(S) visibles
 
 @@Feature5
-Vignettes en direct facultatives pour les flux vidéo HTTP(S) visibles
+Station de radio tirée au hasard dans tout le catalogue - si elle reste muette, la suivante prend le relais
 
 @@Feature6
-Treize langues d'interface, avec mise en page de droite à gauche là où il le faut
+Panneau radio compact au premier plan, avec station, titre, volume, lecture et minuterie de veille
 
 @@Feature7
-Mode « toujours au premier plan » indépendant pour l'application et le lecteur vidéo
+Mode « toujours au premier plan » indépendant pour l'application et le lecteur vidéo, et plein écran sans bordure avec F11 et Escape
 
 @@Feature8
-Plein écran vidéo sans bordure avec les touches F11 et Escape
+Treize langues d'interface, avec mise en page de droite à gauche là où il le faut
 
 @@Feature9
 Actualisation du catalogue à votre demande uniquement, sans téléchargement surprise en arrière-plan

@@ -24,19 +24,19 @@ Pesquisa, ordenação e filtros por categoria, idioma, país e tipo de mídia
 Fixe as transmissões favoritas e adicione URLs de transmissão diretas
 
 @@Feature4
-Modos de lista e de grade visual com tamanhos de bloco selecionáveis
+Modos de lista e de grade visual com tamanhos de bloco selecionáveis e miniaturas ao vivo opcionais para as transmissões de vídeo HTTP(S) visíveis
 
 @@Feature5
-Miniaturas ao vivo opcionais para as transmissões de vídeo HTTP(S) visíveis
+Estação de rádio sorteada em todo o catálogo - se ficar muda, entra a próxima
 
 @@Feature6
-Treze idiomas de interface, com layout da direita para a esquerda onde é devido
+Painel de rádio compacto sempre visível com estação, faixa, volume, controles e temporizador de desligamento
 
 @@Feature7
-Controles Sempre visível independentes para o aplicativo e para o player de vídeo
+Controles Sempre visível independentes para o aplicativo e para o player de vídeo, e tela cheia sem bordas com F11 e Escape
 
 @@Feature8
-Tela cheia de vídeo sem bordas com os atalhos F11 e Escape
+Treze idiomas de interface, com layout da direita para a esquerda onde é devido
 
 @@Feature9
 Catálogo atualizado só por sua ordem, sem downloads inesperados em segundo plano

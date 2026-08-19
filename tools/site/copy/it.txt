@@ -133,6 +133,9 @@ La ricerca è sempre nella riga del titolo.
 @@cap-find-4
 Fissa i canali a cui torni più spesso.
 
+@@cap-find-5
+Metti una stazione radio scelta a caso nell'intero catalogo - se resta muta, l'app passa da sola alla successiva.
+
 @@cap-play-title
 Riprodurre nel modo giusto
 
@@ -165,6 +168,9 @@ Salva il fotogramma corrente come JPEG.
 
 @@cap-window-5
 Quando l'immagine si ferma, il lettore ne dice il motivo sopra il video - e riapre un flusso bloccatosi in silenzio.
+
+@@cap-window-6
+Riduci il catalogo a un piccolo pannello sempre in primo piano mentre la radio suona - con stazione, brano, volume, comandi e timer di spegnimento.
 
 @@cap-grid-title
 Griglia visiva

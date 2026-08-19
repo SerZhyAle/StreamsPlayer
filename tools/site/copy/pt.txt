@@ -133,6 +133,9 @@ A pesquisa fica sempre na linha do título.
 @@cap-find-4
 Fixe os canais aos quais você sempre volta.
 
+@@cap-find-5
+Toque uma estação de rádio sorteada em todo o catálogo - se ela ficar muda, o aplicativo passa sozinho para a próxima.
+
 @@cap-play-title
 Reproduzir do jeito certo
 
@@ -165,6 +168,9 @@ Guarde o quadro atual como JPEG.
 
 @@cap-window-5
 Quando a imagem para, o player diz o porquê sobre o vídeo - e reabre uma transmissão que congelou em silêncio.
+
+@@cap-window-6
+Reduza o catálogo a um pequeno painel sempre visível enquanto o rádio toca - com a estação, a faixa, o volume, os controles e o temporizador de desligamento.
 
 @@cap-grid-title
 Grade visual

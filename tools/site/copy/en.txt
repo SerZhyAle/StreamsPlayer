@@ -133,6 +133,9 @@ Search always sits on the title line.
 @@cap-find-4
 Pin the channels you return to.
 
+@@cap-find-5
+Play a random radio station from the whole catalog - one that stays silent is replaced by the next draw.
+
 @@cap-play-title
 Play the right way
 
@@ -165,6 +168,9 @@ Save the frame you are watching as a JPEG.
 
 @@cap-window-5
 The player says why over the video whenever the picture stops - and re-opens a stream that froze silently.
+
+@@cap-window-6
+Shrink the catalog to a small always-on-top panel while radio plays - it carries the station, the track, the volume, the transport and the sleep timer.
 
 @@cap-grid-title
 Visual grid
