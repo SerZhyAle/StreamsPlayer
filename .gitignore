@@ -36,3 +36,12 @@ secrets/
 .env
 *token*
 *secret*
+
+# Bundled catalog snapshot - tracked on purpose (SP-0052, SP-0060). tools/build-catalog-snapshot.ps1
+# produces it; StreamsPlayer.Core embeds it as a resource, so a clone without it builds an app with an
+# empty catalog. Regenerate it with the script, never hand-edit it.
+!src/StreamsPlayer.Core/Resources/catalog-snapshot.zip
+
+# Editor-local settings - personal colour schemes and layouts, never product state.
+.vscode/
+.idea/
