@@ -61,6 +61,73 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.0819.0156
+
+**Released on GitHub and submitted to winget on 2026-08-19.** The Partner Center upload for this
+version is console work; see the gap note below before writing the Store's What's new.
+
+**The Store is still on 26.0806.2225.** The 26.0809.0022 package was built and released on GitHub and
+winget but never uploaded, so a Store user moving to this version also receives everything in
+`msix/listing/release-notes/26.0809.0022.{en-us,ru,uk}.txt` - the bundled channel list, the topic
+filter, sharing a channel as text, resumed playback, what is on air, the caption over the video, the
+silent-freeze detection and the adaptive quality ceiling. The three blocks below are written for
+GitHub and winget, which shipped 26.0809.0022 already. A Store submission needs its own What's new
+covering both releases, written when the upload is actually made rather than improvised at the
+console.
+
+Screenshots under `assets/store/` still date from 2026-07-27, so they predate the dark theme, the
+consolidated header, the compact panel and everything in this release. Not a blocker, still the
+obvious next thing to regenerate.
+
+Ships SP-0080 (the compact radio panel, with `ScreenPlacement` bringing it back onto a visible screen)
+and SP-0086 (the random station and its silent-station hunt), plus the SP-0008 shortcut-name fix, the
+click-to-position volume sliders in both windows, and the dark-theme glyph foreground.
+
+Deliberately not bulleted: the `.gitignore` and `docs/PLAYBACK_RESILIENCE.md` housekeeping and the
+regenerated catalog snapshot - the snapshot is a data refresh a user reads as the catalog simply being
+current, not as a feature.
+
+Measured against the 1,500-character limit: 1357 en, 1316 ru, 1302 uk. The same three blocks live as
+`msix/listing/release-notes/26.0819.0156.{en-us,ru,uk}.txt`, which is what
+`tools/store/write-release-notes.ps1` reads - these fences are a copy of those files, not a second
+source.
+
+```text
+Version 26.0819.0156
+
+- The catalog can shrink to a compact radio panel while a station plays. The small window stays above other programs and carries the station, the current track, the volume, the transport, the sleep timer with its countdown and Random station - one taskbar button, one Alt+Tab entry, one sound.
+- Volume, the sleep timer and stop work the same on the panel and in the catalog, and coming back restores the full window as you left it - scroll position, filter and selection included.
+- Stopping the radio, or a station that drops out, leaves the panel where it is instead of throwing the catalog over your work. Dragged anywhere, the panel returns inside a visible screen. It is a mode for the session - the next launch opens the catalog.
+- Play a random station. One press picks from the whole catalog, ignoring the search, the facets and the active collection, and skips hidden stations, video and RTSP. It is on the Operations menu and on the panel.
+- A drawn station that stays silent is replaced by the next draw without a dialog, and after a run of silent ones the hunt stops and says so.
+- Click anywhere on a volume slider to jump straight to that level, in the catalog and in the player.
+- Pin a station with a very long name to the desktop without losing the application, and glyph buttons are legible again in the dark theme.
+```
+
+```text
+Версия 26.0819.0156
+
+- Каталог умеет ужаться до компактной радиопанели, пока играет станция. Маленькое окно держится поверх других программ и несёт станцию, текущий трек, громкость, управление, таймер сна с отсчётом и «Случайную станцию» - одна кнопка на панели задач, один пункт в Alt+Tab, один звук.
+- Громкость, таймер сна и остановка работают одинаково на панели и в каталоге, а возврат восстанавливает полное окно таким, каким вы его оставили - вместе с прокруткой, фильтром и выделением.
+- Остановка радио или пропавшая станция оставляют панель на месте, а не бросают каталог поверх вашей работы. Куда бы вы панель ни перетащили, она вернётся в пределы видимого экрана. Это режим сеанса - следующий запуск снова открывает каталог.
+- Включить случайную станцию. Одно нажатие выбирает из всего каталога, не глядя на поиск, фасеты и активную подборку, и пропускает скрытые станции, видео и RTSP. Пункт есть в меню «Операции» и на панели.
+- Выпавшая станция, которая молчит, заменяется следующей без единого диалога, а после череды молчаливых перебор останавливается и говорит об этом.
+- Щелчок в любом месте ползунка громкости сразу ставит этот уровень - и в каталоге, и в плеере.
+- Станцию с очень длинным названием можно вынести на рабочий стол, не теряя программу, а кнопки-глифы снова читаются в тёмной теме.
+```
+
+```text
+Версія 26.0819.0156
+
+- Каталог уміє стиснутися до компактної радіопанелі, поки грає станція. Маленьке вікно тримається поверх інших програм і несе станцію, поточний трек, гучність, керування, таймер сну з відліком і «Випадкову станцію» - одна кнопка на панелі задач, один пункт в Alt+Tab, один звук.
+- Гучність, таймер сну та зупинка працюють однаково на панелі й у каталозі, а повернення відновлює повне вікно таким, яким ви його лишили - разом із прокручуванням, фільтром і виділенням.
+- Зупинка радіо або станція, що зникла, лишають панель на місці, а не кидають каталог поверх вашої роботи. Хоч куди ви панель перетягнете, вона повернеться в межі видимого екрана. Це режим сеансу - наступний запуск знову відкриває каталог.
+- Увімкнути випадкову станцію. Одне натискання обирає з усього каталогу, не зважаючи на пошук, фасети й активну добірку, і пропускає приховані станції, відео та RTSP. Пункт є в меню «Операції» та на панелі.
+- Станція, що випала і мовчить, замінюється наступною без жодного діалогу, а після низки мовчазних перебір зупиняється і каже про це.
+- Клац у будь-якому місці повзунка гучності одразу ставить цей рівень - і в каталозі, і у програвачі.
+- Станцію з дуже довгою назвою можна винести на робочий стіл, не втрачаючи програму, а кнопки-гліфи знову читаються в темній темі.
+```
+
 ### Prepared for 26.0809.0022
 
 **Released on GitHub and submitted to winget on 2026-08-09; the Partner Center upload is still to
