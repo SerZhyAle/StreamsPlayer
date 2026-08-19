@@ -85,6 +85,10 @@
     <sys:String x:Key="NothingPlaying">Aucune lecture en cours</sys:String>
     <sys:String x:Key="StopAudio">Arrêter l'audio</sys:String>
     <sys:String x:Key="ResumeAudio">Reprendre l'audio</sys:String>
+    <sys:String x:Key="CompactPanelTip">Réduire en un petit panneau qui reste au premier plan</sys:String>
+    <sys:String x:Key="CompactPanelName">Réduire l'application en un panneau radio compact</sys:String>
+    <sys:String x:Key="ExpandFromPanelTip">Revenir à la fenêtre entière</sys:String>
+    <sys:String x:Key="ExpandFromPanelName">Revenir à la fenêtre complète du catalogue</sys:String>
     <sys:String x:Key="AllOption">Tous</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Vidéo</sys:String>
@@ -186,6 +190,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="OfflinePlayback">Vous êtes hors ligne. La lecture n'a pas été tentée.</sys:String>
     <sys:String x:Key="ResumeSkippedOffline">Vous êtes hors ligne. La lecture n'a pas été reprise.</sys:String>
     <sys:String x:Key="ResumeStreamFailed">Un flux repris n'a pas pu être lu.</sys:String>
+    <sys:String x:Key="CompactPanelStreamFailed">{0} s'est interrompue et n'a pas pu être rétablie.</sys:String>
     <sys:String x:Key="ResumedPlayback">Lecture reprise.</sys:String>
     <sys:String x:Key="ResumeNothingToPlay">Il n'y a rien à reprendre.</sys:String>
     <sys:String x:Key="ConnectingAudio">Connexion à {0}…</sys:String>
@@ -255,6 +260,12 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="HistoryTitle">Lus récemment</sys:String>
     <sys:String x:Key="HistoryOpen">Historique</sys:String>
     <sys:String x:Key="HistoryTip">Voir les chaînes que vous avez lues récemment</sys:String>
+    <!-- SP-0086 random radio station -->
+    <sys:String x:Key="RandomStation">Station aléatoire</sys:String>
+    <sys:String x:Key="RandomStationTip">Lire une station de radio choisie au hasard dans tout le catalogue</sys:String>
+    <sys:String x:Key="RandomStationTrying">Essai de {0}… ({1} sur {2})</sys:String>
+    <sys:String x:Key="RandomStationExhausted">{0} stations essayées, aucune n'a répondu</sys:String>
+    <sys:String x:Key="RandomStationNone">Aucune station de radio à choisir</sys:String>
     <sys:String x:Key="HistoryEmpty">Aucun historique pour le moment.</sys:String>
     <sys:String x:Key="HistoryClear">Effacer l'historique</sys:String>
     <sys:String x:Key="HistoryClearConfirm">Effacer tout l'historique d'écoute ? Cette action est irréversible.</sys:String>

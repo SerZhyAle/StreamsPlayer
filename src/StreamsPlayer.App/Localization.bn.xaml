@@ -85,6 +85,10 @@
     <sys:String x:Key="NothingPlaying">কিছু চলছে না</sys:String>
     <sys:String x:Key="StopAudio">অডিও থামান</sys:String>
     <sys:String x:Key="ResumeAudio">অডিও আবার চালান</sys:String>
+    <sys:String x:Key="CompactPanelTip">সবার উপরে থাকা ছোট প্যানেলে ছোট করুন</sys:String>
+    <sys:String x:Key="CompactPanelName">অ্যাপটিকে ছোট রেডিও প্যানেলে ছোট করুন</sys:String>
+    <sys:String x:Key="ExpandFromPanelTip">পূর্ণ উইন্ডোতে ফিরুন</sys:String>
+    <sys:String x:Key="ExpandFromPanelName">পূর্ণ তালিকা উইন্ডোতে ফিরে যান</sys:String>
     <sys:String x:Key="AllOption">সব</sys:String>
     <sys:String x:Key="AudioOption">অডিও</sys:String>
     <sys:String x:Key="VideoOption">ভিডিও</sys:String>
@@ -186,6 +190,7 @@
     <sys:String x:Key="OfflinePlayback">আপনি অফলাইন। চালানোর চেষ্টা করা হয়নি।</sys:String>
     <sys:String x:Key="ResumeSkippedOffline">আপনি অফলাইন। বাজানো আবার শুরু করা হয়নি।</sys:String>
     <sys:String x:Key="ResumeStreamFailed">আবার চালু করা স্ট্রিমটি বাজানো যায়নি।</sys:String>
+    <sys:String x:Key="CompactPanelStreamFailed">{0} বন্ধ হয়ে গেছে এবং ফিরিয়ে আনা যায়নি।</sys:String>
     <sys:String x:Key="ResumedPlayback">বাজানো আবার শুরু করা হয়েছে।</sys:String>
     <sys:String x:Key="ResumeNothingToPlay">আবার শুরু করার কিছু নেই।</sys:String>
     <sys:String x:Key="ConnectingAudio">{0}-এ সংযোগ করা হচ্ছে…</sys:String>
@@ -255,6 +260,12 @@
     <sys:String x:Key="HistoryTitle">সম্প্রতি চালানো</sys:String>
     <sys:String x:Key="HistoryOpen">ইতিহাস</sys:String>
     <sys:String x:Key="HistoryTip">সম্প্রতি চালানো চ্যানেল দেখুন</sys:String>
+    <!-- SP-0086 random radio station -->
+    <sys:String x:Key="RandomStation">এলোমেলো স্টেশন</sys:String>
+    <sys:String x:Key="RandomStationTip">সম্পূর্ণ ক্যাটালগ থেকে এলোমেলোভাবে বেছে নেওয়া একটি রেডিও স্টেশন চালান</sys:String>
+    <sys:String x:Key="RandomStationTrying">{0} চেষ্টা করা হচ্ছে… ({1}/{2})</sys:String>
+    <sys:String x:Key="RandomStationExhausted">{0}টি স্টেশন চেষ্টা করা হয়েছে, কোনোটিই সাড়া দেয়নি</sys:String>
+    <sys:String x:Key="RandomStationNone">বেছে নেওয়ার মতো কোনো রেডিও স্টেশন নেই</sys:String>
     <sys:String x:Key="HistoryEmpty">এখনও কোনও ইতিহাস নেই।</sys:String>
     <sys:String x:Key="HistoryClear">ইতিহাস সাফ করুন</sys:String>
     <sys:String x:Key="HistoryClearConfirm">শোনার সব ইতিহাস সাফ করবেন? এটি ফেরানো যাবে না।</sys:String>

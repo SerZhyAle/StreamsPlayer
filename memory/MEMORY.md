@@ -420,6 +420,39 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   cover these - they are format characters - so the pre-existing ICY sanitizer had been letting them
   through into the radio line since SP-0014 (2026-08-08).
 
+- **A modal dialog owned by a hidden window is invisible, not merely awkward - and the always-on-top
+  sibling is what makes it fatal.** SP-0080 collapses the catalog by `Hide()`ing it and showing a
+  topmost panel, and `MainWindow` raises two modals owned by `this`:
+  `FailAudioTerminallyAsync`'s `PlaybackFailureDialog` and `PlayChannelAsync`'s offline `MessageBox`.
+  Owned by a hidden window, both render *below* the topmost panel with no taskbar button of their own,
+  so the listener gets a frozen application and no way to answer. Reachable in normal use - a station
+  whose reconnect budget runs out while the catalog is collapsed is exactly the case the panel exists
+  for. Neither "expand to show it" nor "re-own it to the panel" is right here, because the ticket had
+  already ruled that trade: a window jumping over someone's full-screen work is worse than a quiet
+  line. Both now take the status-line route SP-0062's resume path has taken since it shipped.
+  **The general rule: before hiding a window, enumerate every modal that names it as `Owner`.** In
+  this repo `rg "Owner = this"` finds them, and there are eleven (2026-08-19).
+- **`LocationChanged` is the wrong place to clamp a window's position, and WPF exposes no right one.**
+  Writing `Left`/`Top` while the modal move loop still owns the window makes it fight the cursor - the
+  listener sees jitter, not a limit. The signal that says the drag is over is the Win32
+  `WM_EXITSIZEMOVE` (`0x0232`), which has no WPF event; `CompactPanelWindow` hooks it through
+  `OnSourceInitialized` + `HwndSource.AddHook` and raises its own `MoveFinished`. Two adjacent facts
+  from the same work: `MonitorFromRect(MONITOR_DEFAULTTONEAREST)` + `GetMonitorInfo` is the whole
+  answer to "the monitor it stood on was switched off" - no `System.Windows.Forms` reference needed,
+  which this project does not carry - and the device/DIP transform must come from the window being
+  *placed*, not from whichever window is doing the placing, or a mixed-scaling desktop lands it off by
+  the DPI ratio. Measured on a five-monitor desktop: dragged to `8815,4835`, the panel came to rest at
+  right edge `8820` / bottom `4839`, exactly `\.\DISPLAY6`'s work area (SP-0080, 2026-08-19).
+- **A window shown while its sibling is hidden gets the taskbar button, and that is how "one
+  application, two views" is built.** `ShowInTaskbar` decides `WS_EX_APPWINDOW`, and Alt+Tab follows
+  the same rule, so the check that actually proves the criterion is an `EnumWindows` pass counting
+  windows where `visible && !WS_EX_TOOLWINDOW && (WS_EX_APPWINDOW || no owner)` - one, while
+  collapsed. Do **not** reach for an owned window here: `PlayerWindow` clears its `Owner` in `Loaded`
+  for the opposite need (independent minimising), and an owned window carrying its own taskbar button
+  is the shape that produces two entries. Also note the default `ShutdownMode` is `OnLastWindowClose`
+  and a hidden window still counts as open, so closing the visible one does **not** end the process -
+  SP-0080 routes the panel's close through `MainWindow.Close()` so the ordinary save path runs
+  (2026-08-19).
 ## References
 
 - Toolbar glyph icons: `App.xaml`'s shared `GlyphButton` template applies **both**

@@ -22,8 +22,15 @@ public partial class MainWindow
     // player's close from tripping the last-window shutdown before the catalog has saved its state.
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
+        // SP-0086: before the freeze. A hunt's in-flight probe is not a station the next launch should
+        // bring back, and a hunt that outlived its window would write a status line into a dead one.
+        CancelRandomStationHunt();
         _resumeRecordFrozen = true;
         CloseOpenPlayerWindows();
+        // SP-0080: the compact panel is a top-level window of this application's making, so it goes the
+        // same way and for the same reason - the catalog must still be open when its last companion
+        // closes, or OnLastWindowClose fires before the state below has been saved.
+        CloseCompactPanel();
     }
 
     // Read the record and clear it in one move, at the start of every launch however it was launched.

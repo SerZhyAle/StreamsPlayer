@@ -85,6 +85,10 @@
     <sys:String x:Key="NothingPlaying">未在播放</sys:String>
     <sys:String x:Key="StopAudio">停止音频</sys:String>
     <sys:String x:Key="ResumeAudio">继续播放音频</sys:String>
+    <sys:String x:Key="CompactPanelTip">缩小为始终置顶的小面板</sys:String>
+    <sys:String x:Key="CompactPanelName">将应用缩小为紧凑的广播面板</sys:String>
+    <sys:String x:Key="ExpandFromPanelTip">返回完整窗口</sys:String>
+    <sys:String x:Key="ExpandFromPanelName">返回完整的频道目录窗口</sys:String>
     <sys:String x:Key="AllOption">全部</sys:String>
     <sys:String x:Key="AudioOption">音频</sys:String>
     <sys:String x:Key="VideoOption">视频</sys:String>
@@ -186,6 +190,7 @@
     <sys:String x:Key="OfflinePlayback">当前处于离线状态，未尝试播放。</sys:String>
     <sys:String x:Key="ResumeSkippedOffline">当前离线，未继续播放。</sys:String>
     <sys:String x:Key="ResumeStreamFailed">无法播放已恢复的流。</sys:String>
+    <sys:String x:Key="CompactPanelStreamFailed">{0} 已中断，无法恢复。</sys:String>
     <sys:String x:Key="ResumedPlayback">已继续播放。</sys:String>
     <sys:String x:Key="ResumeNothingToPlay">没有可继续播放的内容。</sys:String>
     <sys:String x:Key="ConnectingAudio">正在连接 {0}…</sys:String>
@@ -255,6 +260,12 @@
     <sys:String x:Key="HistoryTitle">最近播放</sys:String>
     <sys:String x:Key="HistoryOpen">历史记录</sys:String>
     <sys:String x:Key="HistoryTip">查看您最近播放过的频道</sys:String>
+    <!-- SP-0086 random radio station -->
+    <sys:String x:Key="RandomStation">随机电台</sys:String>
+    <sys:String x:Key="RandomStationTip">从整个目录中随机挑选一个广播电台播放</sys:String>
+    <sys:String x:Key="RandomStationTrying">正在尝试 {0}…（{1}/{2}）</sys:String>
+    <sys:String x:Key="RandomStationExhausted">已尝试 {0} 个电台，没有一个有响应</sys:String>
+    <sys:String x:Key="RandomStationNone">没有可供挑选的广播电台</sys:String>
     <sys:String x:Key="HistoryEmpty">暂无历史记录。</sys:String>
     <sys:String x:Key="HistoryClear">清除历史记录</sys:String>
     <sys:String x:Key="HistoryClearConfirm">要清除全部收听历史记录吗？此操作无法撤消。</sys:String>

@@ -602,7 +602,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             var path = StreamShortcutService.CreateDesktopShortcut(row.Channel);
             SetStatus("DesktopShortcutCreated", path);
         }
-        catch (Exception exception) when (exception is System.Runtime.InteropServices.COMException or InvalidOperationException or UnauthorizedAccessException)
+        // The shell writes the file through COM, so a desktop that rejects the path - too long, read-only,
+        // a name already held by a directory - arrives as an IOException rather than a COMException.
+        catch (Exception exception) when (exception is System.Runtime.InteropServices.COMException or InvalidOperationException or UnauthorizedAccessException or IOException)
         {
             SetStatus("DesktopShortcutFailed");
         }
@@ -772,12 +774,24 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // quiet is set only by the SP-0062 startup resume: the stream starts exactly as it would on a click,
     // but nothing this route can raise is allowed to be a modal window. A dialog answers an action the
     // user just took; at launch it is an ambush, and with several streams resumed they would stack.
-    private async Task PlayChannelAsync(StreamChannel channel, bool rememberSelection, bool startFullscreen = false, bool quiet = false)
+    // SP-0086: randomHunt marks the random-station hunt's own calls. It suppresses exactly two things,
+    // both meaning "this is not a user asking for this channel": the stop-toggle below - an independent
+    // draw may name the station already playing, and the command must never answer with silence - and the
+    // hunt cancellation, which every other caller does trigger because every other caller is a user or
+    // system decision that supersedes a hunt in flight. Cancelling here rather than in StopAudioPlayback
+    // is deliberate: that funnel is also the hunt's own between-attempt stop, so a hook there would make
+    // the hunt cancel itself after its first attempt.
+    private async Task PlayChannelAsync(StreamChannel channel, bool rememberSelection, bool startFullscreen = false, bool quiet = false, bool randomHunt = false)
     {
-        if (channel.MediaKind == MediaKind.Audio && _playingAudio?.Channel.Id == channel.Id)
+        if (!randomHunt && channel.MediaKind == MediaKind.Audio && _playingAudio?.Channel.Id == channel.Id)
         {
             StopAudio();
             return;
+        }
+
+        if (!randomHunt)
+        {
+            CancelRandomStationHunt();
         }
 
         if (rememberSelection)
@@ -791,6 +805,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             if (quiet)
             {
                 SetStatus("ResumeSkippedOffline");
+            }
+            else if (IsCompact)
+            {
+                // SP-0080: see IsCompact - a modal owned by the hidden catalog would sit under the panel.
+                SetStatus("OfflinePlayback");
             }
             else
             {
@@ -873,6 +892,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // get the ordinary dialog. Cleared here rather than tested against a liveness field, because the
         // recovery path resets those on every leg and the session would stay silent forever.
         _audioQuiet = false;
+        // SP-0086: the hand-off. From this line the station is an ordinary station with the recovery
+        // policy PlayChannelAsync installed, and the hunt that started it is over.
+        if (_randomHunt is { } hunt && hunt.ProbeChannelId == _playingAudio.Channel.Id)
+        {
+            hunt.Outcome.TrySetResult(true);
+        }
+
         _audioRecovery?.NotifyLive(); // sustained live - restore the full recovery budget
         await RecordPlayOutcome(_playingAudio.Channel.Id, true);
     }
@@ -883,6 +909,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var reason = e.ErrorException?.GetType().Name ?? "unknown";
         _log.Event("AUDIO FAIL", $"reason={reason}", $"url={row?.Channel.Url ?? "n/a"}");
         if (row is null)
+        {
+            return;
+        }
+
+        if (YieldToRandomStationHunt(row.Channel, reason))
         {
             return;
         }
@@ -908,6 +939,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var row = _playingAudio;
         _log.Event("AUDIO ENDED", $"url={row?.Channel.Url ?? "n/a"}");
         if (row is null)
+        {
+            return;
+        }
+
+        if (YieldToRandomStationHunt(row.Channel, "end_reached"))
         {
             return;
         }
@@ -987,6 +1023,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
+        // SP-0080: see IsCompact. The panel is the only surface on screen, and it is the surface the
+        // ticket chose over a window that jumps in front of the listener's other work - so a station
+        // that could not be brought back says so on the line the panel mirrors, and nothing pops up.
+        if (IsCompact)
+        {
+            SetStatus("CompactPanelStreamFailed", StreamTitleFormatter.Display(channel.Title));
+            return;
+        }
+
         var report = FailureReportFormatter.Format(new FailureReport(
             ProductInfo.Version,
             DateTimeOffset.UtcNow,
@@ -1018,6 +1063,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         var volume = (int)Math.Round(e.NewValue);
         AudioPlayer.Volume = volume / 100.0;
+        UpdateCompactPanel(); // SP-0080: before the early returns below - the panel mirrors the position, not the save
         if (_suppressAudioVolumeSave)
         {
             return;
@@ -1035,7 +1081,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // ending the session is not what that asks for - so the button stops the sound and keeps the station,
     // then offers it back. A real stop is still one click away on the playing row, on the system flyout's
     // Stop, and in starting another station.
-    private void AudioTransportButton_Click(object sender, RoutedEventArgs e)
+    private void AudioTransportButton_Click(object sender, RoutedEventArgs e) => ToggleAudioTransport();
+
+    // SP-0080: extracted from the handler so the compact panel's transport button reaches the same
+    // decision rather than restating it. A second copy of "playing means pause" is exactly how the two
+    // surfaces would come to disagree about what the button does.
+    private void ToggleAudioTransport()
     {
         if (_playingAudio is not null)
         {
@@ -1060,17 +1111,25 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         AudioTransportButton.IsEnabled = hasStation;
         AudioTransportButton.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
         AudioVolumeSlider.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
+        // SP-0080: the panel exists for an audio session, and after SP-0081 a stopped-but-remembered
+        // station is still one - which is what keeps criterion 4's "stop while collapsed" from removing
+        // the way back in.
+        CompactPanelButton.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
         ShowSleepTimerControl(hasStation);
         AudioTransportButton.Style = (Style)FindResource(playing ? "StopGlyphButton" : "PlayGlyphButton");
         // A resource reference rather than an assigned string, so the caption follows a language change
         // on its own - this window is open across every one of them.
         AudioTransportButton.SetResourceReference(ContentControl.ContentProperty, playing ? "StopAudio" : "ResumeAudio");
+        UpdateCompactPanel();
     }
 
     private void StopAudio()
     {
         // A user-initiated stop ends the sleep timer too (SP-0022); an internal stop for a station
         // switch goes through StopAudioPlayback directly and keeps the deadline.
+        // SP-0086: and for the same reason it ends a random-station hunt. The hunt's own between-attempt
+        // stop takes the StopAudioPlayback route below, so it cannot cancel itself here.
+        CancelRandomStationHunt();
         CancelSleepTimer(announce: false);
         StopAudioPlayback();
         _ = StartPreviewsAsync();

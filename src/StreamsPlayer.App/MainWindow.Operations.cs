@@ -46,6 +46,11 @@ public partial class MainWindow
             menu.Items.Add(BuildEntry("RefreshPreviews", "RefreshPreviewsTip", "RefreshPreviewsName", RefreshPreviewsButton_Click));
         }
 
+        // SP-0086: a playback action, so it leads the entries below it, which are catalog and window
+        // actions. Unconditional unlike RefreshPreviews above - there is no mode in which it is
+        // meaningless, and an empty catalog is answered by a status line rather than a missing entry.
+        menu.Items.Add(BuildEntry("RandomStation", "RandomStationTip", "RandomStationTip", PlayRandomStationMenuItem_Click));
+
         menu.Items.Add(BuildEntry("HistoryOpen", "HistoryTip", "HistoryTip", HistoryButton_Click));
         menu.Items.Add(BuildEntry("AddStreamPlain", "AddStreamTip", "AddStreamTip", AddButton_Click));
         menu.Items.Add(BuildEntry("PasteChannelPlain", "PasteChannelTip", "PasteChannelTip", PasteChannelButton_Click));

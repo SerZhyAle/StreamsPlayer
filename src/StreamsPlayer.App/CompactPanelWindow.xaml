@@ -1,0 +1,67 @@
+<Window x:Class="StreamsPlayer.App.CompactPanelWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        FlowDirection="{DynamicResource UiFlowDirection}"
+        Title="{DynamicResource ProductName}"
+        Width="470" Height="152"
+        SizeToContent="Manual" ResizeMode="NoResize" WindowStartupLocation="Manual"
+        Topmost="True" ShowInTaskbar="True"
+        Background="{DynamicResource WindowBackground}"
+        Foreground="{DynamicResource TextBrush}"
+        LocationChanged="Window_LocationChanged">
+    <!-- SP-0080: the width is fixed and SizeToContent is Manual on purpose. Every line below is
+         single-line and trimmed, so no broadcast string - however long, however malformed - can change
+         this window's size or push it off the screen. That is acceptance criterion 7, met by the shape
+         of the window rather than by a length check that would have to be kept correct. -->
+    <Border Padding="12,10" Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Margin="6">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock x:Name="NowPlayingText" Grid.Row="0" FontSize="14"
+                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                       Foreground="{DynamicResource TextBrush}"
+                       Text="{DynamicResource NothingPlaying}" />
+
+            <TextBlock x:Name="StatusText" Grid.Row="1" FontSize="11" Margin="0,3,0,0"
+                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                       Foreground="{DynamicResource MutedBrush}"
+                       Text="{DynamicResource Ready}" />
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0" VerticalAlignment="Center">
+                <Slider x:Name="VolumeSlider" Width="120" Minimum="0" Maximum="100" Value="100"
+                        TickFrequency="10" IsMoveToPointEnabled="True" VerticalAlignment="Center"
+                        ValueChanged="VolumeSlider_ValueChanged"
+                        ToolTip="{DynamicResource AudioVolumeTip}"
+                        AutomationProperties.Name="{DynamicResource AudioVolumeName}" />
+
+                <Button x:Name="SleepTimerButton" Style="{StaticResource SleepTimerGlyphButton}"
+                        Margin="8,0,0,0" Click="SleepTimerButton_Click"
+                        ToolTip="{DynamicResource SleepTimerTip}"
+                        AutomationProperties.Name="{DynamicResource SleepTimer}">
+                    <Button.ContextMenu>
+                        <ContextMenu x:Name="SleepTimerContextMenu" />
+                    </Button.ContextMenu>
+                </Button>
+
+                <Button x:Name="RandomButton" Style="{StaticResource RandomGlyphOnlyButton}"
+                        Margin="6,0,0,0" Click="RandomButton_Click"
+                        ToolTip="{DynamicResource RandomStationTip}"
+                        AutomationProperties.Name="{DynamicResource RandomStation}" />
+
+                <Button x:Name="TransportButton" Style="{StaticResource StopGlyphOnlyButton}"
+                        Margin="6,0,0,0" Click="TransportButton_Click" IsEnabled="False"
+                        ToolTip="{DynamicResource StopAudio}"
+                        AutomationProperties.Name="{DynamicResource StopAudio}" />
+
+                <Button x:Name="ExpandButton" Style="{StaticResource ExpandGlyphOnlyButton}"
+                        Margin="6,0,0,0" Click="ExpandButton_Click"
+                        ToolTip="{DynamicResource ExpandFromPanelTip}"
+                        AutomationProperties.Name="{DynamicResource ExpandFromPanelName}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

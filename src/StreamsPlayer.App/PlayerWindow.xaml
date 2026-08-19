@@ -45,7 +45,9 @@
                             AutomationProperties.Name="{DynamicResource SaveFrame}" />
                     <Button x:Name="MuteButton" Style="{StaticResource PlayerOverlayVolumeGlyphButton}" Content="{DynamicResource Mute}" Click="MuteButton_Click"
                             ToolTip="{DynamicResource MuteTip}" />
+                    <!-- IsMoveToPointEnabled: a click jumps the volume straight to the clicked level instead of stepping toward it. -->
                     <Slider x:Name="VolumeSlider" Width="100" Minimum="0" Maximum="100" Value="100" TickFrequency="10"
+                            IsMoveToPointEnabled="True"
                             ValueChanged="VolumeSlider_ValueChanged" VerticalAlignment="Center" Margin="4,0,8,0"
                             ToolTip="{DynamicResource VolumeTip}" AutomationProperties.Name="{DynamicResource VolumeName}" />
                     <Button x:Name="FullscreenButton" Style="{StaticResource PlayerOverlayFullscreenGlyphButton}" Content="{DynamicResource Fullscreen}" Click="FullscreenButton_Click"

@@ -10,8 +10,9 @@ internal static class StreamShortcutService
 
     public static string CreateDesktopShortcut(StreamChannel channel)
     {
-        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-            $"{SafeFileName(StreamTitleFormatter.Display(channel.Title))} - StreamsPlayer.lnk");
+        var path = DesktopShortcutName.PathFor(
+            Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+            StreamTitleFormatter.Display(channel.Title));
         var type = Type.GetTypeFromProgID("WScript.Shell") ?? throw new InvalidOperationException();
         dynamic shell = Activator.CreateInstance(type) ?? throw new InvalidOperationException();
         dynamic shortcut = shell.CreateShortcut(path);
@@ -33,11 +34,4 @@ internal static class StreamShortcutService
     }
 
     private static string LaunchArguments(Guid channelId) => $"--id \"{channelId:D}\"";
-
-    private static string SafeFileName(string value)
-    {
-        var invalid = Path.GetInvalidFileNameChars();
-        var result = new string(value.Select(character => invalid.Contains(character) ? '_' : character).ToArray()).Trim();
-        return string.IsNullOrWhiteSpace(result) ? "Stream" : result;
-    }
 }

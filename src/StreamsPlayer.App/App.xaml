@@ -31,7 +31,13 @@
             <Style TargetType="Control">
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
             </Style>
+            <!-- The Foreground setter is not decoration. Every glyph template below paints its Path from
+                 the button's own Foreground, and without a setter that property is only inherited - from
+                 a Window that has none, so it resolves to the system's black. In the dark theme that put
+                 black glyphs on a near-black ControlBrush. The implicit Control style above does not
+                 cover this: an implicit style matches the exact type, never a derived one. -->
             <Style TargetType="Button">
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                 <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
                 <Setter Property="Padding" Value="12,7" />
@@ -516,6 +522,35 @@
             <Style x:Key="StopGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M6,6H18V18H6Z" /></Style.Resources>
+            </Style>
+            <!-- SP-0080: the compact panel's row has room for glyphs and nothing else, so the transport
+                 pair gets caption-free variants. The shapes and the FlowDirection pin are the ones
+                 above, restated here rather than shared, because a style cannot swap only its template
+                 without also re-declaring the geometry its base resolved. -->
+            <Style x:Key="PlayGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M7,4L20,12L7,20Z" /></Style.Resources>
+            </Style>
+            <Style x:Key="StopGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M6,6H18V18H6Z" /></Style.Resources>
+            </Style>
+            <!-- Two crossing arrows: the shuffle mark, and direction-independent for the same reason the
+                 transport glyphs are - it says "any of them", not "forward". -->
+            <Style x:Key="RandomGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M3,7H7L17,17H21M17,7H21L11,17H3M18,4L21,7L18,10M18,14L21,17L18,20" /></Style.Resources>
+            </Style>
+            <!-- Arrows pointing inward: shrink to the panel. Its opposite points outward. Both are pinned
+                 to LeftToRight so the pair keeps meaning "in" and "out" rather than mirroring into each
+                 other under Arabic and Urdu. -->
+            <Style x:Key="CollapseGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M10,4V10H4M20,10H14V4M14,20V14H20M4,14H10V20" /></Style.Resources>
+            </Style>
+            <Style x:Key="ExpandGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,10V4H10M14,4H20V10M20,14V20H14M10,20H4V14" /></Style.Resources>
             </Style>
             <Style x:Key="ConfirmGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,12L9,17L20,6" /></Style.Resources>

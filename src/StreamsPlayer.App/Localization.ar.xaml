@@ -85,6 +85,10 @@
     <sys:String x:Key="NothingPlaying">لا شيء قيد التشغيل</sys:String>
     <sys:String x:Key="StopAudio">إيقاف الصوت</sys:String>
     <sys:String x:Key="ResumeAudio">استئناف الصوت</sys:String>
+    <sys:String x:Key="CompactPanelTip">التصغير إلى لوحة صغيرة تبقى في المقدمة</sys:String>
+    <sys:String x:Key="CompactPanelName">تصغير التطبيق إلى لوحة راديو مدمجة</sys:String>
+    <sys:String x:Key="ExpandFromPanelTip">العودة إلى النافذة الكاملة</sys:String>
+    <sys:String x:Key="ExpandFromPanelName">العودة إلى نافذة الدليل الكاملة</sys:String>
     <sys:String x:Key="AllOption">الكل</sys:String>
     <sys:String x:Key="AudioOption">صوت</sys:String>
     <sys:String x:Key="VideoOption">فيديو</sys:String>
@@ -186,6 +190,7 @@
     <sys:String x:Key="OfflinePlayback">أنت غير متصل. لم تُجرَ محاولة التشغيل.</sys:String>
     <sys:String x:Key="ResumeSkippedOffline">أنت غير متصل. لم يُستأنف التشغيل.</sys:String>
     <sys:String x:Key="ResumeStreamFailed">تعذّر تشغيل بث مستأنف.</sys:String>
+    <sys:String x:Key="CompactPanelStreamFailed">توقّفت {0} ولم يتسنَّ استعادتها.</sys:String>
     <sys:String x:Key="ResumedPlayback">تم استئناف التشغيل.</sys:String>
     <sys:String x:Key="ResumeNothingToPlay">لا يوجد ما يُستأنف.</sys:String>
     <sys:String x:Key="ConnectingAudio">جارٍ الاتصال بـ {0}…</sys:String>
@@ -255,6 +260,12 @@
     <sys:String x:Key="HistoryTitle">المشغَّلة حديثًا</sys:String>
     <sys:String x:Key="HistoryOpen">السجل</sys:String>
     <sys:String x:Key="HistoryTip">القنوات التي شغّلتها حديثًا</sys:String>
+    <!-- SP-0086 random radio station -->
+    <sys:String x:Key="RandomStation">محطة عشوائية</sys:String>
+    <sys:String x:Key="RandomStationTip">تشغيل محطة إذاعية مختارة عشوائيًا من الكتالوج بأكمله</sys:String>
+    <sys:String x:Key="RandomStationTrying">جارٍ تجربة {0}… ({1} من {2})</sys:String>
+    <sys:String x:Key="RandomStationExhausted">تمت تجربة {0} محطة ولم تستجب أي منها</sys:String>
+    <sys:String x:Key="RandomStationNone">لا توجد محطات إذاعية للاختيار منها</sys:String>
     <sys:String x:Key="HistoryEmpty">لا يوجد سجل بعد.</sys:String>
     <sys:String x:Key="HistoryClear">مسح السجل</sys:String>
     <sys:String x:Key="HistoryClearConfirm">هل تريد مسح كل سجل الاستماع؟ لا يمكن التراجع عن ذلك.</sys:String>

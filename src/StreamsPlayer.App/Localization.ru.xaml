@@ -85,6 +85,10 @@
     <sys:String x:Key="NothingPlaying">Ничего не воспроизводится</sys:String>
     <sys:String x:Key="StopAudio">Остановить аудио</sys:String>
     <sys:String x:Key="ResumeAudio">Возобновить аудио</sys:String>
+    <sys:String x:Key="CompactPanelTip">Свернуть в маленькую панель поверх других окон</sys:String>
+    <sys:String x:Key="CompactPanelName">Свернуть приложение в компактную панель радио</sys:String>
+    <sys:String x:Key="ExpandFromPanelTip">Вернуться к полному окну</sys:String>
+    <sys:String x:Key="ExpandFromPanelName">Вернуться к полному окну каталога</sys:String>
     <sys:String x:Key="AllOption">Все</sys:String>
     <sys:String x:Key="AudioOption">Аудио</sys:String>
     <sys:String x:Key="VideoOption">Видео</sys:String>
@@ -186,6 +190,7 @@
     <sys:String x:Key="OfflinePlayback">Нет подключения к сети. Воспроизведение не запускалось.</sys:String>
     <sys:String x:Key="ResumeSkippedOffline">Нет сети. Воспроизведение не возобновлено.</sys:String>
     <sys:String x:Key="ResumeStreamFailed">Не удалось воспроизвести возобновлённый поток.</sys:String>
+    <sys:String x:Key="CompactPanelStreamFailed">{0} - вещание прервалось, вернуть станцию не удалось.</sys:String>
     <sys:String x:Key="ResumedPlayback">Воспроизведение возобновлено.</sys:String>
     <sys:String x:Key="ResumeNothingToPlay">Возобновлять нечего.</sys:String>
     <sys:String x:Key="ConnectingAudio">Подключение к {0}…</sys:String>
@@ -252,6 +257,12 @@
     <sys:String x:Key="HistoryTitle">Недавно воспроизведённые</sys:String>
     <sys:String x:Key="HistoryOpen">История</sys:String>
     <sys:String x:Key="HistoryTip">Каналы, которые вы недавно воспроизводили</sys:String>
+    <!-- SP-0086 random radio station -->
+    <sys:String x:Key="RandomStation">Случайная станция</sys:String>
+    <sys:String x:Key="RandomStationTip">Включить радиостанцию, выбранную случайно из всего каталога</sys:String>
+    <sys:String x:Key="RandomStationTrying">Пробуем {0}… ({1} из {2})</sys:String>
+    <sys:String x:Key="RandomStationExhausted">Проверено станций: {0}, ни одна не ответила</sys:String>
+    <sys:String x:Key="RandomStationNone">Нет радиостанций для выбора</sys:String>
     <sys:String x:Key="HistoryEmpty">История пуста.</sys:String>
     <sys:String x:Key="HistoryClear">Очистить историю</sys:String>
     <sys:String x:Key="HistoryClearConfirm">Очистить всю историю воспроизведения? Это действие нельзя отменить.</sys:String>

@@ -150,6 +150,7 @@ public partial class MainWindow
         _statusResourceKey = resourceKey;
         _statusArguments = arguments;
         StatusText.Text = LocalizationService.Format(resourceKey, arguments);
+        UpdateCompactPanel();
     }
 
     private void SetNowPlaying(string resourceKey, params object?[] arguments)
@@ -158,6 +159,7 @@ public partial class MainWindow
         _nowPlayingArguments = arguments;
         NowPlayingText.Text = LocalizationService.Format(resourceKey, arguments);
         RefreshWindowTitle();
+        UpdateCompactPanel();
     }
 
     // The title bar (and therefore the taskbar button) names the station currently playing or paused,
@@ -178,5 +180,8 @@ public partial class MainWindow
         StatusText.Text = LocalizationService.Format(_statusResourceKey, _statusArguments);
         NowPlayingText.Text = LocalizationService.Format(_nowPlayingResourceKey, _nowPlayingArguments);
         RefreshWindowTitle();
+        // SP-0080: the panel is a copy of these two lines, so a language change reaches it here and
+        // nowhere else. Its own captions are DynamicResource and follow the switch on their own.
+        UpdateCompactPanel();
     }
 }

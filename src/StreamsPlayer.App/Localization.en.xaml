@@ -87,6 +87,10 @@
     <sys:String x:Key="NothingPlaying">Nothing playing</sys:String>
     <sys:String x:Key="StopAudio">Stop audio</sys:String>
     <sys:String x:Key="ResumeAudio">Resume audio</sys:String>
+    <sys:String x:Key="CompactPanelTip">Shrink to a small panel that stays on top</sys:String>
+    <sys:String x:Key="CompactPanelName">Shrink the application to a compact radio panel</sys:String>
+    <sys:String x:Key="ExpandFromPanelTip">Back to the full window</sys:String>
+    <sys:String x:Key="ExpandFromPanelName">Return to the full catalog window</sys:String>
     <sys:String x:Key="AllOption">All</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Video</sys:String>
@@ -194,6 +198,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="OfflinePlayback">You are offline. Playback was not attempted.</sys:String>
     <sys:String x:Key="ResumeSkippedOffline">You are offline. Playback was not resumed.</sys:String>
     <sys:String x:Key="ResumeStreamFailed">A resumed stream could not be played.</sys:String>
+    <sys:String x:Key="CompactPanelStreamFailed">{0} stopped and could not be brought back.</sys:String>
     <sys:String x:Key="ResumedPlayback">Resumed what was playing.</sys:String>
     <sys:String x:Key="ResumeNothingToPlay">Nothing left to resume.</sys:String>
     <sys:String x:Key="ConnectingAudio">Connecting to {0}…</sys:String>
@@ -271,6 +276,12 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="HistoryTitle">Recently played</sys:String>
     <sys:String x:Key="HistoryOpen">History</sys:String>
     <sys:String x:Key="HistoryTip">See channels you recently played</sys:String>
+    <!-- SP-0086 random radio station -->
+    <sys:String x:Key="RandomStation">Random station</sys:String>
+    <sys:String x:Key="RandomStationTip">Play a radio station picked at random from the whole catalog</sys:String>
+    <sys:String x:Key="RandomStationTrying">Trying {0}… ({1} of {2})</sys:String>
+    <sys:String x:Key="RandomStationExhausted">Tried {0} stations, none responded</sys:String>
+    <sys:String x:Key="RandomStationNone">No radio stations to pick from</sys:String>
     <sys:String x:Key="HistoryEmpty">No history yet.</sys:String>
     <sys:String x:Key="HistoryClear">Clear history</sys:String>
     <sys:String x:Key="HistoryClearConfirm">Clear all listening history? This cannot be undone.</sys:String>

@@ -964,7 +964,9 @@
                     <TextBlock x:Name="NowPlayingText" Text="{DynamicResource NothingPlaying}" Foreground="#FFB8C8DB" FontSize="11" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- IsMoveToPointEnabled: a click jumps the volume straight to the clicked level instead of stepping toward it. -->
                     <Slider x:Name="AudioVolumeSlider" Width="110" Minimum="0" Maximum="100" Value="100" TickFrequency="10"
+                            IsMoveToPointEnabled="True"
                             ValueChanged="AudioVolumeSlider_ValueChanged" VerticalAlignment="Center" Margin="0,0,10,0"
                             Visibility="Collapsed"
                             ToolTip="{DynamicResource AudioVolumeTip}" AutomationProperties.Name="{DynamicResource AudioVolumeName}" />
@@ -981,6 +983,14 @@
                          with the state; the XAML here only reserves the place. -->
                     <Button x:Name="AudioTransportButton" Style="{StaticResource StopGlyphButton}" Content="{DynamicResource StopAudio}"
                             Click="AudioTransportButton_Click" IsEnabled="False" Visibility="Collapsed" />
+                    <!-- SP-0080: one action, next to the controls it takes with it. Glyph only - the bar
+                         has no width left for a fifth caption, and the tooltip and the accessible name
+                         carry the words. -->
+                    <Button x:Name="CompactPanelButton" Style="{StaticResource CollapseGlyphOnlyButton}"
+                            Click="CompactPanelButton_Click" Visibility="Collapsed" Margin="8,0,0,0"
+                            Foreground="White" Background="#FF2A3A52" BorderBrush="#FF3E5170"
+                            ToolTip="{DynamicResource CompactPanelTip}"
+                            AutomationProperties.Name="{DynamicResource CompactPanelName}" />
                 </StackPanel>
                 <MediaElement x:Name="AudioPlayer" Visibility="Collapsed" LoadedBehavior="Manual" UnloadedBehavior="Manual"
                               MediaOpened="AudioPlayer_MediaOpened" MediaFailed="AudioPlayer_MediaFailed"

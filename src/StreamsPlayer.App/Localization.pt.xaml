@@ -85,6 +85,10 @@
     <sys:String x:Key="NothingPlaying">Nada em reprodução</sys:String>
     <sys:String x:Key="StopAudio">Parar o áudio</sys:String>
     <sys:String x:Key="ResumeAudio">Retomar o áudio</sys:String>
+    <sys:String x:Key="CompactPanelTip">Reduzir a um pequeno painel que fica sempre à frente</sys:String>
+    <sys:String x:Key="CompactPanelName">Reduzir a aplicação a um painel de rádio compacto</sys:String>
+    <sys:String x:Key="ExpandFromPanelTip">Voltar à janela inteira</sys:String>
+    <sys:String x:Key="ExpandFromPanelName">Voltar à janela completa do catálogo</sys:String>
     <sys:String x:Key="AllOption">Todos</sys:String>
     <sys:String x:Key="AudioOption">Áudio</sys:String>
     <sys:String x:Key="VideoOption">Vídeo</sys:String>
@@ -186,6 +190,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="OfflinePlayback">Você está sem conexão. A reprodução não foi tentada.</sys:String>
     <sys:String x:Key="ResumeSkippedOffline">Você está offline. A reprodução não foi retomada.</sys:String>
     <sys:String x:Key="ResumeStreamFailed">Não foi possível reproduzir um fluxo retomado.</sys:String>
+    <sys:String x:Key="CompactPanelStreamFailed">{0} foi interrompida e não foi possível retomá-la.</sys:String>
     <sys:String x:Key="ResumedPlayback">Reprodução retomada.</sys:String>
     <sys:String x:Key="ResumeNothingToPlay">Não há nada para retomar.</sys:String>
     <sys:String x:Key="ConnectingAudio">Conectando a {0}…</sys:String>
@@ -255,6 +260,12 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="HistoryTitle">Reproduzidos recentemente</sys:String>
     <sys:String x:Key="HistoryOpen">Histórico</sys:String>
     <sys:String x:Key="HistoryTip">Ver os canais que você reproduziu recentemente</sys:String>
+    <!-- SP-0086 random radio station -->
+    <sys:String x:Key="RandomStation">Estação aleatória</sys:String>
+    <sys:String x:Key="RandomStationTip">Reproduzir uma estação de rádio escolhida ao acaso em todo o catálogo</sys:String>
+    <sys:String x:Key="RandomStationTrying">A tentar {0}… ({1} de {2})</sys:String>
+    <sys:String x:Key="RandomStationExhausted">{0} estações testadas, nenhuma respondeu</sys:String>
+    <sys:String x:Key="RandomStationNone">Não há estações de rádio para escolher</sys:String>
     <sys:String x:Key="HistoryEmpty">Ainda não há histórico.</sys:String>
     <sys:String x:Key="HistoryClear">Limpar o histórico</sys:String>
     <sys:String x:Key="HistoryClearConfirm">Limpar todo o histórico de reprodução? Não é possível desfazer.</sys:String>

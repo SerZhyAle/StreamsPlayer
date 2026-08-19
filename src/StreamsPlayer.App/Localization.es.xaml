@@ -85,6 +85,10 @@
     <sys:String x:Key="NothingPlaying">No se está reproduciendo nada</sys:String>
     <sys:String x:Key="StopAudio">Detener el audio</sys:String>
     <sys:String x:Key="ResumeAudio">Reanudar el audio</sys:String>
+    <sys:String x:Key="CompactPanelTip">Reducir a un panel pequeño que se mantiene encima</sys:String>
+    <sys:String x:Key="CompactPanelName">Reducir la aplicación a un panel de radio compacto</sys:String>
+    <sys:String x:Key="ExpandFromPanelTip">Volver a la ventana completa</sys:String>
+    <sys:String x:Key="ExpandFromPanelName">Volver a la ventana completa del catálogo</sys:String>
     <sys:String x:Key="AllOption">Todos</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Vídeo</sys:String>
@@ -186,6 +190,7 @@
     <sys:String x:Key="OfflinePlayback">No hay conexión. No se ha intentado la reproducción.</sys:String>
     <sys:String x:Key="ResumeSkippedOffline">Estás sin conexión. No se reanudó la reproducción.</sys:String>
     <sys:String x:Key="ResumeStreamFailed">No se pudo reproducir una transmisión reanudada.</sys:String>
+    <sys:String x:Key="CompactPanelStreamFailed">{0} se interrumpió y no se pudo recuperar.</sys:String>
     <sys:String x:Key="ResumedPlayback">Reproducción reanudada.</sys:String>
     <sys:String x:Key="ResumeNothingToPlay">No hay nada que reanudar.</sys:String>
     <sys:String x:Key="ConnectingAudio">Conectando con {0}…</sys:String>
@@ -255,6 +260,12 @@
     <sys:String x:Key="HistoryTitle">Reproducidos recientemente</sys:String>
     <sys:String x:Key="HistoryOpen">Historial</sys:String>
     <sys:String x:Key="HistoryTip">Ver los canales que has reproducido recientemente</sys:String>
+    <!-- SP-0086 random radio station -->
+    <sys:String x:Key="RandomStation">Emisora aleatoria</sys:String>
+    <sys:String x:Key="RandomStationTip">Reproducir una emisora de radio elegida al azar de todo el catálogo</sys:String>
+    <sys:String x:Key="RandomStationTrying">Probando {0}… ({1} de {2})</sys:String>
+    <sys:String x:Key="RandomStationExhausted">Se probaron {0} emisoras y ninguna respondió</sys:String>
+    <sys:String x:Key="RandomStationNone">No hay emisoras de radio para elegir</sys:String>
     <sys:String x:Key="HistoryEmpty">El historial está vacío.</sys:String>
     <sys:String x:Key="HistoryClear">Borrar el historial</sys:String>
     <sys:String x:Key="HistoryClearConfirm">¿Borrar todo el historial de escucha? No se puede deshacer.</sys:String>

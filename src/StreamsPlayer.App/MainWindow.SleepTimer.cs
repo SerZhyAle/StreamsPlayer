@@ -182,6 +182,8 @@ public partial class MainWindow
             SleepTimerButton.Content = string.Empty;
             SleepTimerButton.ToolTip = LocalizationService.Get("SleepTimerTip");
         }
+
+        UpdateCompactPanel();
     }
 
     /// <summary>The control follows the audio session; the deadline itself survives a station switch.</summary>
@@ -191,6 +193,12 @@ public partial class MainWindow
         if (visible)
         {
             UpdateSleepTimerButton();
+        }
+        else
+        {
+            // SP-0080: the hide is a state change the panel has to hear about too, and the branch above
+            // does not run to carry it.
+            UpdateCompactPanel();
         }
     }
 }
