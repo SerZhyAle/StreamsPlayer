@@ -67,6 +67,17 @@ Version REPLACE_VERSION
 are separate manual steps and were **not** done in the run that cut this version - see the release
 checklist, steps 8 and 9.
 
+Landed: tag `v26.0820.1828` on commit `dbb4296`, workflow run 32394456616 green in 2m24s, Release
+published 16:55:02Z with `StreamsPlayer-26.0820.1828-windows-x64.zip` (140 086 557 bytes) and its
+`.sha256`. The asset's SHA256, which step 8 needs for `InstallerSha256`, is
+
+    8A149D7FD56D93F31C4795E43DA0AF06E59ACCC80EFF82350C1F44C5EDE73A27
+
+verified after download against the published `.sha256` file, and the packaged
+`StreamsPlayer.exe` reports FileVersion `26.0820.1828` and ProductVersion
+`26.0820.1828+dbb42963d8a7bd5ea322cd850f781657ed1467f2`, so binary, asset name and tag agree.
+`THIRD-PARTY-NOTICES.txt`, `LICENSE` and `README.md` are inside the ZIP.
+
 **The Store is still on 26.0806.2225.** Two GitHub releases have gone past it - 26.0809.0022 and
 26.0819.0156 - so a Store user moving to this version receives all three at once. That is why the
 Store-only blocks below exist and are longer than the release notes; they are what Partner Center
