@@ -61,6 +61,117 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.0820.1828
+
+**Stamped and released on GitHub on 2026-08-20.** The winget submission and the Partner Center upload
+are separate manual steps and were **not** done in the run that cut this version - see the release
+checklist, steps 8 and 9.
+
+**The Store is still on 26.0806.2225.** Two GitHub releases have gone past it - 26.0809.0022 and
+26.0819.0156 - so a Store user moving to this version receives all three at once. That is why the
+Store-only blocks below exist and are longer than the release notes; they are what Partner Center
+gets, and GitHub and winget keep the three blocks above them.
+
+Screenshots under `assets/store/` still date from 2026-07-27, so they predate the dark theme, the
+consolidated header, the compact panel, the monogram placeholder and everything in this release. Not
+a blocker, still the obvious next thing to regenerate.
+
+Ships SP-0087 (the monogram a channel without a favicon draws from its own name), and the three rules
+of the 2026-08-20 catalog contract amendment: SP-0088 (a build's `favicon_index` values resolve only
+against the atlas that arrived in the same ZIP), SP-0089 (a row the bank stops listing is retired
+rather than deleted whenever it carries anything the user made) and SP-0091 (artwork read through
+`artwork-manifest.json` and the stable asset names instead of a pinned, frozen revision). Also the
+catalog-snapshot offer as a modal question rather than an inline bar, and the regenerated bundled
+snapshot.
+
+Deliberately not bulleted: the memory notes and the contract text in `CLAUDE.md`, which are
+maintainer-facing, and the refreshed snapshot's channel count, which is mentioned once as a date
+rather than sold as a feature.
+
+Measured against the 1,500-character limit: 1288 en, 1276 ru, 1272 uk. The same three blocks live as
+`msix/listing/release-notes/26.0820.1828.{en-us,ru,uk}.txt`, which is what
+`tools/store/write-release-notes.ps1` reads - these fences are a copy of those files, not a second
+source.
+
+```text
+Version 26.0820.1828
+
+- A channel the catalog gives no logo now carries a mark of its own: initials from its name, a colour drawn from that same name so it always looks the same, and its country code where the catalog knows one. Most of the channel list has no logo, and an empty square read as something that failed to load.
+- A channel the catalog stops publishing no longer takes your work with it. If you pinned it, put it in a collection, played it or gave it an icon, the channel is kept and marked retired: it leaves the general list and the random station draw, stays in the pinned strip and in its collections, and comes back on its own if the catalog lists it again.
+- The picture pack is checked against the publisher's own manifest before a single picture is used, so a pack rebuilt while it was being fetched can no longer put another station's picture on a channel. It also always reads the current pack instead of one frozen build.
+- An update that arrives without a usable icon sheet now shows marks rather than the wrong logos, and the next update puts the real icons back.
+- The built-in channel list is offered as a plain question you answer once, instead of a bar across the catalog.
+- The built-in list itself was refreshed on 2026-08-20 and carries 18 010 channels.
+```
+
+```text
+Версия 26.0820.1828
+
+- Канал, которому каталог не дал логотипа, теперь несёт собственный знак: инициалы из названия, цвет, выведенный из того же названия, поэтому знак всегда одинаков, и код страны, если каталог его знает. Логотипа нет у большей части списка, а пустой квадрат читался как что-то, что не загрузилось.
+- Канал, который каталог перестал публиковать, больше не уносит вашу работу с собой. Если вы его закрепили, положили в подборку, слушали или дали ему иконку, канал остаётся и помечается выведенным: он уходит из общего списка и из выбора случайной станции, остаётся в полосе закреплённых и в своих подборках и возвращается сам, если каталог снова его перечислит.
+- Пакет картинок сверяется с манифестом издателя до того, как использована хотя бы одна картинка, поэтому пакет, пересобранный во время загрузки, больше не поставит на канал кадр чужой станции. И читается всегда текущий пакет, а не одна замороженная сборка.
+- Обновление, пришедшее без пригодного листа иконок, теперь показывает знаки, а не чужие логотипы, и следующее обновление вернёт настоящие иконки.
+- Встроенный список каналов предлагается обычным вопросом, на который вы отвечаете один раз, а не полосой поперёк каталога.
+- Сам встроенный список обновлён 2026-08-20 и несёт 18 010 каналов.
+```
+
+```text
+Версія 26.0820.1828
+
+- Канал, якому каталог не дав логотипа, тепер несе власний знак: ініціали з назви, колір, виведений із тієї самої назви, тож знак завжди однаковий, і код країни, якщо каталог його знає. Логотипа немає у більшої частини списку, а порожній квадрат читався як щось, що не завантажилося.
+- Канал, який каталог перестав публікувати, більше не забирає вашу роботу з собою. Якщо ви його закріпили, поклали в добірку, слухали або дали йому піктограму, канал лишається і позначається виведеним: він іде із загального списку та з вибору випадкової станції, лишається в смузі закріплених і у своїх добірках і повертається сам, якщо каталог знову його перелічить.
+- Пакет картинок звіряється з маніфестом видавця до того, як використано бодай одну картинку, тож пакет, перезібраний під час завантаження, більше не поставить на канал кадр чужої станції. І читається завжди поточний пакет, а не одна заморожена збірка.
+- Оновлення, що прийшло без придатного аркуша піктограм, тепер показує знаки, а не чужі логотипи, і наступне оновлення поверне справжні піктограми.
+- Вбудований список каналів пропонується звичайним запитанням, на яке ви відповідаєте один раз, а не смугою впоперек каталогу.
+- Сам вбудований список оновлено 2026-08-20 і він несе 18 010 каналів.
+```
+
+#### Store-only What's new for 26.0820.1828
+
+Not a second source for the release notes above - a different text for a different audience. The Store
+sits on 26.0806.2225, so its user has never seen 26.0809.0022 or 26.0819.0156. These blocks cover all
+three releases and are what Partner Center gets. The ten machine-translated languages get the English
+text.
+
+```text
+Version 26.0820.1828
+
+- Channels the catalog gives no logo now carry a mark of their own - initials from the name, a colour drawn from that same name, and the country code where it is known.
+- A channel the catalog stops publishing keeps your pins, your collections and your history instead of vanishing, and returns on its own if the catalog lists it again.
+- The catalog can shrink to a compact radio panel while a station plays - always on top, carrying the station, the current track, the volume, the transport, the sleep timer and Random station.
+- Play a random station. One press picks from the whole catalog, ignoring the search and the facets, and skips hidden stations, video and RTSP. One that stays silent gives way to the next draw.
+- A built-in channel list. A copy of the stream bank ships inside the app, so the catalog fills on a first launch with no network. It adds and updates, never removes, and says how old it is.
+- A topic filter, sharing a channel as one line of text, playback that resumes where the last session left off, and what is on air under the channel name.
+- The player says why the picture stopped, a stream that stalls while pretending to play is caught and re-opened, and video quality follows the connection and is remembered per channel.
+- Fixed - a very long station name could take the desktop shortcut down with it, dark-theme glyph buttons were unreadable, and a radio stream that ended kept the machine awake.
+```
+
+```text
+Версия 26.0820.1828
+
+- Каналы, которым каталог не дал логотипа, теперь несут собственный знак - инициалы из названия, цвет, выведенный из того же названия, и код страны, если он известен.
+- Канал, который каталог перестал публиковать, сохраняет ваши закрепления, подборки и историю вместо того, чтобы исчезнуть, и возвращается сам, если каталог снова его перечислит.
+- Каталог умеет ужаться до компактной радиопанели, пока играет станция - поверх других окон, со станцией, текущим треком, громкостью, управлением, таймером сна и случайной станцией.
+- Включить случайную станцию. Одно нажатие выбирает из всего каталога, не глядя на поиск и фасеты, и пропускает скрытые станции, видео и RTSP. Молчащая уступает место следующей.
+- Встроенный список каналов. Копия банка потоков лежит внутри программы, поэтому каталог заполняется при первом запуске без сети. Он добавляет и обновляет, ничего не удаляет и называет свой возраст.
+- Фильтр по темам, отправка канала одной строкой текста, продолжение воспроизведения с места прошлого сеанса и трек, который станция играет прямо сейчас, под названием канала.
+- Плеер объясняет, почему картинка остановилась, поток, который делает вид, что играет, переоткрывается, а качество видео следует за соединением и запоминается для канала.
+- Исправлено - очень длинное название станции могло уронить программу при выносе ярлыка, кнопки-глифы в тёмной теме были нечитаемы, а завершившееся радио держало компьютер без сна.
+```
+
+```text
+Версія 26.0820.1828
+
+- Канали, яким каталог не дав логотипа, тепер несуть власний знак - ініціали з назви, колір, виведений із тієї самої назви, і код країни, якщо він відомий.
+- Канал, який каталог перестав публікувати, зберігає ваші закріплення, добірки та історію замість того, щоб зникнути, і повертається сам, якщо каталог знову його перелічить.
+- Каталог уміє стиснутися до компактної радіопанелі, поки грає станція - поверх інших вікон, зі станцією, поточним треком, гучністю, керуванням, таймером сну та випадковою станцією.
+- Увімкнути випадкову станцію. Одне натискання обирає з усього каталогу, не зважаючи на пошук і фасети, і пропускає приховані станції, відео та RTSP. Мовчазна поступається наступній.
+- Вбудований список каналів. Копія банку потоків лежить усередині програми, тож каталог заповнюється при першому запуску без мережі. Він додає та оновлює, нічого не видаляє і називає свій вік.
+- Фільтр за темами, надсилання каналу одним рядком тексту, продовження відтворення з місця минулого сеансу і трек, який станція грає просто зараз, під назвою каналу.
+- Програвач пояснює, чому картинка зупинилася, потік, який вдає, що грає, перевідкривається, а якість відео йде за з'єднанням і запам'ятовується для каналу.
+- Виправлено - дуже довга назва станції могла впустити програму під час винесення ярлика, кнопки-гліфи в темній темі були нечитабельні, а радіо, що завершилося, тримало комп'ютер без сну.
+```
+
 ### Prepared for 26.0819.0156
 
 **Released on GitHub and submitted to winget on 2026-08-19.** The Partner Center upload for this
