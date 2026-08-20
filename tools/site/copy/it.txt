@@ -122,7 +122,7 @@ Tutto il necessario per trovare, conservare e riprodurre un flusso - raggruppato
 Trovare un canale
 
 @@cap-find-1
-Catalogo già pronto al primo avvio - senza configurazione.
+Catalogo già pronto al primo avvio - senza configurazione. Un canale a cui il catalogo non ha dato un'icona ha comunque un volto suo - iniziali e un colore ricavati dal nome, più la sigla del paese quando è nota.
 
 @@cap-find-2
 Filtri per categoria, argomento, lingua, paese e tipo di media - la riga si apre quando serve.
@@ -191,7 +191,7 @@ Personalizzalo
 Aggiungi un flusso tramite URL, senza account.
 
 @@cap-yours-2
-I flussi che aggiungi e importi sopravvivono agli aggiornamenti del catalogo.
+I flussi che aggiungi e importi sopravvivono agli aggiornamenti del catalogo. Un canale del catalogo che hai fissato o ascoltato viene conservato, non cancellato, quando il catalogo smette di elencarlo.
 
 @@cap-yours-3
 Contrassegni di riproduzione locali: OK o errore.

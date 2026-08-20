@@ -53,6 +53,16 @@ code or features.
 - Read the published stream bank with RFC-4180 CSV, ZIP entry-order, and optional
   favicon-atlas checks.
 - Protect your `MANUAL` and `IMPORTED` rows while updating the catalog by URL.
+- Keep a catalog channel you made something of, even after the catalog stops
+  listing it. A row you never touched is still removed, but one carrying a pin,
+  a collection, a playback mark, listening history, or an icon you chose is
+  retired instead of deleted: it keeps its identity, so pins, collections, and
+  history stay attached to it. Retired means kept, not offered - it leaves the
+  general channel list and the **Random station** draw, because a channel the
+  catalog no longer publishes must not sit among current ones as if it were
+  still available, and it stays exactly where you put it, in the pinned strip
+  and inside its collections. A later update that lists the address again simply
+  brings the channel back.
 - Search from the title line at any time, and open the filter and sorting row
   only when you need it with **Filters and sorting**. The row starts hidden,
   remembers whether you left it open, and closes from its own button without
@@ -84,6 +94,15 @@ code or features.
   names the mode you are switching to. The grid captures visible HTTP(S) video
   previews, up to four at a time, and caches the frames on disk within a 150 MB
   budget.
+- Recognise a channel the catalog gave no icon instead of reading it as a failed
+  load. Most published rows carry no icon at all, and the empty square they used
+  to leave looked like a picture that never arrived. Such a channel now shows a
+  placeholder made from its own data - initials taken from the title, a
+  background colour worked out from that same title, so one station looks the
+  same on every launch and on every machine, and the two-letter country code
+  where the row carries one. It appears in the list and on the grid tile, in the
+  light and the dark theme alike; where a captured preview frame exists, the
+  frame is still what you see.
 - Open Settings to pick the interface language (**Language**, the first tab,
   marked with a globe); choose Very Small, Small, Medium, or Large stream tiles and
   disable automatic thumbnail updates (**Grid**); keep the computer awake, show system

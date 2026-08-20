@@ -122,7 +122,7 @@ Alles, was man braucht, um einen Stream zu finden, zu behalten und abzuspielen -
 Einen Kanal finden
 
 @@cap-find-1
-Fertiger Katalog beim ersten Start - ohne Einrichtung.
+Fertiger Katalog beim ersten Start - ohne Einrichtung. Ein Kanal, dem der Katalog kein Symbol gegeben hat, bekommt trotzdem ein eigenes Gesicht - Initialen und eine Farbe aus seinem Namen, dazu das Länderkürzel, sofern bekannt.
 
 @@cap-find-2
 Filter nach Kategorie, Thema, Sprache, Land und Medienart - Zeile bei Bedarf einblenden.
@@ -191,7 +191,7 @@ Machen Sie es zu Ihrem
 Stream per URL hinzufügen, ohne Konto.
 
 @@cap-yours-2
-Ihre hinzugefügten und importierten Streams überleben Katalogaktualisierungen.
+Ihre hinzugefügten und importierten Streams überleben Katalogaktualisierungen. Ein Katalogkanal, den Sie angeheftet oder gespielt haben, bleibt erhalten und wird nicht gelöscht, wenn der Katalog ihn nicht mehr führt.
 
 @@cap-yours-3
 Lokale Wiedergabemarken: OK oder Fehler.

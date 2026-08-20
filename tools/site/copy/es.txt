@@ -122,7 +122,7 @@ Todo lo necesario para encontrar, guardar y reproducir una transmisión - agrupa
 Encontrar un canal
 
 @@cap-find-1
-Catálogo ya preparado en el primer arranque - sin configuración.
+Catálogo ya preparado en el primer arranque - sin configuración. Un canal al que el catálogo no dio icono también tiene una cara propia - las iniciales y un color sacados de su nombre, más el código de país cuando se conoce.
 
 @@cap-find-2
 Filtra por categoría, tema, idioma, país y tipo de medio: la fila se abre cuando la necesitas.
@@ -191,7 +191,7 @@ Hazlo tuyo
 Añade una transmisión por URL - sin cuenta.
 
 @@cap-yours-2
-Tus transmisiones añadidas e importadas sobreviven a las actualizaciones del catálogo.
+Tus transmisiones añadidas e importadas sobreviven a las actualizaciones del catálogo. Un canal del catálogo que hayas fijado o reproducido se conserva, no se borra, cuando el catálogo deja de incluirlo.
 
 @@cap-yours-3
 Conserva marcas locales de reproducción: correcta o fallida.

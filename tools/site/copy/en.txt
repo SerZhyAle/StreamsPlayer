@@ -122,7 +122,7 @@ Everything needed to find, keep, and play a stream - grouped by what you are act
 Find a channel
 
 @@cap-find-1
-Curated catalog on first launch - no setup.
+Curated catalog on first launch - no setup. A channel the catalog gave no icon still gets a face of its own - initials and a colour taken from its name, plus its country code where known.
 
 @@cap-find-2
 Filter by category, topic, language, country, media type - open the row when you need it.
@@ -191,7 +191,7 @@ Make it yours
 Add a stream by URL, no account.
 
 @@cap-yours-2
-Your added and imported streams survive catalog updates.
+Your added and imported streams survive catalog updates. A catalog channel you pinned or played is kept, not deleted, when the catalog stops listing it.
 
 @@cap-yours-3
 Keep local OK / fail playback marks.
