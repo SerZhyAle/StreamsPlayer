@@ -88,16 +88,17 @@ Deliberately not bulleted: the memory notes and the contract text in `CLAUDE.md`
 maintainer-facing, and the refreshed snapshot's channel count, which is mentioned once as a date
 rather than sold as a feature.
 
-Measured against the 1,500-character limit: 1288 en, 1276 ru, 1272 uk. The same three blocks live as
-`msix/listing/release-notes/26.0820.1828.{en-us,ru,uk}.txt`, which is what
-`tools/store/write-release-notes.ps1` reads - these fences are a copy of those files, not a second
-source.
+Measured against the 1,500-character limit: 1290 en, 1278 ru, 1274 uk. Written with no
+colon-plus-space anywhere, which is what lets one text survive the winget YAML scalar unchanged.
+The same three blocks live as `msix/listing/release-notes/26.0820.1828.{en-us,ru,uk}.txt`, which is
+what `tools/store/write-release-notes.ps1` reads - these fences are a copy of those files, not a
+second source.
 
 ```text
 Version 26.0820.1828
 
-- A channel the catalog gives no logo now carries a mark of its own: initials from its name, a colour drawn from that same name so it always looks the same, and its country code where the catalog knows one. Most of the channel list has no logo, and an empty square read as something that failed to load.
-- A channel the catalog stops publishing no longer takes your work with it. If you pinned it, put it in a collection, played it or gave it an icon, the channel is kept and marked retired: it leaves the general list and the random station draw, stays in the pinned strip and in its collections, and comes back on its own if the catalog lists it again.
+- A channel the catalog gives no logo now carries a mark of its own - initials from its name, a colour drawn from that same name so it always looks the same, and its country code where the catalog knows one. Most of the channel list has no logo, and an empty square read as something that failed to load.
+- A channel the catalog stops publishing no longer takes your work with it. If you pinned it, put it in a collection, played it or gave it an icon, the channel is kept and marked retired - it leaves the general list and the random station draw, stays in the pinned strip and in its collections, and comes back on its own if the catalog lists it again.
 - The picture pack is checked against the publisher's own manifest before a single picture is used, so a pack rebuilt while it was being fetched can no longer put another station's picture on a channel. It also always reads the current pack instead of one frozen build.
 - An update that arrives without a usable icon sheet now shows marks rather than the wrong logos, and the next update puts the real icons back.
 - The built-in channel list is offered as a plain question you answer once, instead of a bar across the catalog.
@@ -107,8 +108,8 @@ Version 26.0820.1828
 ```text
 Версия 26.0820.1828
 
-- Канал, которому каталог не дал логотипа, теперь несёт собственный знак: инициалы из названия, цвет, выведенный из того же названия, поэтому знак всегда одинаков, и код страны, если каталог его знает. Логотипа нет у большей части списка, а пустой квадрат читался как что-то, что не загрузилось.
-- Канал, который каталог перестал публиковать, больше не уносит вашу работу с собой. Если вы его закрепили, положили в подборку, слушали или дали ему иконку, канал остаётся и помечается выведенным: он уходит из общего списка и из выбора случайной станции, остаётся в полосе закреплённых и в своих подборках и возвращается сам, если каталог снова его перечислит.
+- Канал, которому каталог не дал логотипа, теперь несёт собственный знак - инициалы из названия, цвет, выведенный из того же названия, поэтому знак всегда одинаков, и код страны, если каталог его знает. Логотипа нет у большей части списка, а пустой квадрат читался как что-то, что не загрузилось.
+- Канал, который каталог перестал публиковать, больше не уносит вашу работу с собой. Если вы его закрепили, положили в подборку, слушали или дали ему иконку, канал остаётся и помечается выведенным - он уходит из общего списка и из выбора случайной станции, остаётся в полосе закреплённых и в своих подборках и возвращается сам, если каталог снова его перечислит.
 - Пакет картинок сверяется с манифестом издателя до того, как использована хотя бы одна картинка, поэтому пакет, пересобранный во время загрузки, больше не поставит на канал кадр чужой станции. И читается всегда текущий пакет, а не одна замороженная сборка.
 - Обновление, пришедшее без пригодного листа иконок, теперь показывает знаки, а не чужие логотипы, и следующее обновление вернёт настоящие иконки.
 - Встроенный список каналов предлагается обычным вопросом, на который вы отвечаете один раз, а не полосой поперёк каталога.
@@ -118,8 +119,8 @@ Version 26.0820.1828
 ```text
 Версія 26.0820.1828
 
-- Канал, якому каталог не дав логотипа, тепер несе власний знак: ініціали з назви, колір, виведений із тієї самої назви, тож знак завжди однаковий, і код країни, якщо каталог його знає. Логотипа немає у більшої частини списку, а порожній квадрат читався як щось, що не завантажилося.
-- Канал, який каталог перестав публікувати, більше не забирає вашу роботу з собою. Якщо ви його закріпили, поклали в добірку, слухали або дали йому піктограму, канал лишається і позначається виведеним: він іде із загального списку та з вибору випадкової станції, лишається в смузі закріплених і у своїх добірках і повертається сам, якщо каталог знову його перелічить.
+- Канал, якому каталог не дав логотипа, тепер несе власний знак - ініціали з назви, колір, виведений із тієї самої назви, тож знак завжди однаковий, і код країни, якщо каталог його знає. Логотипа немає у більшої частини списку, а порожній квадрат читався як щось, що не завантажилося.
+- Канал, який каталог перестав публікувати, більше не забирає вашу роботу з собою. Якщо ви його закріпили, поклали в добірку, слухали або дали йому піктограму, канал лишається і позначається виведеним - він іде із загального списку та з вибору випадкової станції, лишається в смузі закріплених і у своїх добірках і повертається сам, якщо каталог знову його перелічить.
 - Пакет картинок звіряється з маніфестом видавця до того, як використано бодай одну картинку, тож пакет, перезібраний під час завантаження, більше не поставить на канал кадр чужої станції. І читається завжди поточний пакет, а не одна заморожена збірка.
 - Оновлення, що прийшло без придатного аркуша піктограм, тепер показує знаки, а не чужі логотипи, і наступне оновлення поверне справжні піктограми.
 - Вбудований список каналів пропонується звичайним запитанням, на яке ви відповідаєте один раз, а не смугою впоперек каталогу.
