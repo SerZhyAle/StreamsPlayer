@@ -247,8 +247,8 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   generator already stores verbatim as `snapshot.json` `sourceDate` - so the comparison is a `HEAD`
   against the `CatalogUrl` the app already knows, and it never needed the second network address that
   `SP-0052` decision 10 deferred the work over. Corrected in `SP-0066` (2026-08-08). Note the manifest
-  *is* the right file for the preview-atlas payload, where the app is still pinned to the `v1` sheets
-  while upstream publishes `v2` under stable names - a separate, still-open gap.
+  *is* the right file for the preview-artwork payload, and that gap is now closed: SP-0091 (2026-08-20)
+  moved the app off the pinned sheet revision onto the stable names plus `artwork-manifest.json`.
 
 - **The test project can read the App's own source as data, and now does.** `Localization.*.xaml` had been
   linked in as `Content` since SP-0034 because tests depend on Core only; SP-0057 extended that to
@@ -453,6 +453,50 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   and a hidden window still counts as open, so closing the visible one does **not** end the process -
   SP-0080 routes the panel's close through `MainWindow.Close()` so the ordinary save path runs
   (2026-08-19).
+- **The stream bank is republished in place several times a day, so any row count written into a
+  ticket is stale before the ticket is finished - and the atlas can stay byte-identical while the CSV
+  changes underneath it.** Measured inside a single session on 2026-08-19: at 18:45 the asset was
+  7 557 268 bytes with 19 534 rows and 5 624 favicon indices; at 21:56 the *same URL* served
+  7 487 265 bytes with 17 628 rows and 5 252 indices - 1 906 channels withdrawn in about three hours -
+  while `favicon-atlas.png` was byte-for-byte identical (same SHA-256, same 512x11488). Two
+  consequences. First, a refresh that "loses" thousands of rows is not a merge bug: verify against a
+  **freshly downloaded** bank before investigating the code, because a snapshot taken earlier in the
+  same session is already a different artifact. Second, an unchanged atlas size or hash proves nothing
+  about the CSV, so the pair must always be taken from one download - which is exactly what
+  `StreamCatalogService` does by committing rows and atlas in one `SaveAsync`. Cite counts with the
+  timestamp of the download they came from, never as standing facts (SP-0087, 2026-08-19).
+- **A pinned upstream asset revision is a trap the pin cannot detect, and our code comment argued the
+  opposite.** `ChannelPreviewAtlasService.Revision` pins `-v3` and its comment reasons that the pin is
+  *protective*: "the publisher ships a tile-incompatible rebuild under a new suffix so an older client
+  keeps resolving the sheet it was built against". The publisher's contract says the opposite of the
+  premise - revisioned artwork names are **frozen artifacts**: never deleted, and never rebuilt again.
+  So the pin does not hold a compatible payload, it holds a *dead* one, and it looks healthy forever
+  because the asset it names keeps returning 200 with the last bytes it ever had. Measured 2026-08-20:
+  `channel-preview-atlas-v3.webp` was still the 60-row `8160x8100` sheet from 2026-08-12 while the
+  contract described a current `8160x11340` build. The current revision is a fact about today published
+  in the producer's README, never a constant - read artwork through `artwork-manifest.json` and the
+  stable names instead (SP-0091). General form worth carrying beyond this asset: when a comment
+  justifies a hardcoded upstream version by asserting what the publisher will do, verify that assertion
+  against the publisher's own contract - a wrong one is unfalsifiable from inside the client.
+  **Confirmed and made worse the same day.** Between the morning measurement and the SP-0091 build,
+  `channel-preview-atlas-v3.webp` was *rebuilt in place*: same name, 09:38, `8160x10935` and 2 723 tiles
+  where hours earlier it had been the 60-row `8160x8100` from 2026-08-12. The producer's own "frozen,
+  never rebuilt again" promise about revisioned names did not hold - so a pinned name is not merely a
+  way to go stale, it is a payload that can change **shape** underneath a client that believes its
+  geometry is settled. Two lessons kept: read a revisioned name as no promise at all, and never
+  hardcode a row count against any sheet (we never did - `IsInBounds` measured the decoded image, which
+  is the only reason this was survivable). SP-0091 removed the sheet path outright.
+- **The published artwork pair can tear, and only the manifest can catch it.** Publishing is
+  delete-then-upload per asset, so `channel-preview-coords.json` and `channel-preview-tiles.zip` are
+  replaced separately: a rebuild landing between our two fetches gives two files that each answer 200,
+  each parse cleanly, and whose index spaces disagree. The result is not a missing picture - it is
+  another station's still on a channel that looks perfectly healthy, the failure shape of source
+  contract item A. Nothing downstream can detect it, because a seeded JPEG in `grid-previews/` is never
+  re-checked against anything. `artwork-manifest.json` declares `size` + `sha256` per file and a per-set
+  `stamp` (which, as published on 2026-08-20, is simply the tile pack's own hash), and SP-0091 verifies
+  both files against it before a single frame is written. If a future change makes the artwork fetch
+  cheaper by skipping a hash, that is the thing it is skipping.
+
 ## References
 
 - Toolbar glyph icons: `App.xaml`'s shared `GlyphButton` template applies **both**
@@ -841,3 +885,43 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   access module, which the HLS and DASH demuxers bypass, so on any `.m3u8` they are frozen forever -
   `read_bytes=364` and `in_bitrate=0` across a 124 s session, and `in_bitrate=0.0000` while a measured
   1.9 Mbps was arriving. Difference the demux byte counter instead (SP-0054, 2026-08-07).
+
+- **The stream-bank contract is authored outside this repo and is not in it.** The authoritative spec
+  set lives at `P:\ANDROID\FastMediaSorter_mob_v2\dev\handoff\streams-source-spec\` - files `01`, `03`,
+  `04` and `09` define the bank, the CSV, the favicon atlas and the artwork atlases, and a dated
+  `NN_contract_amendment_*.md` **amends** them, so read the highest-numbered amendment first and treat
+  the rest as the rules it edits. Its own words: "Where a consumer's current behaviour differs from a
+  rule below, the consumer changes - not the rule." Nothing in `StreamsPlayer` mirrors these files, and
+  `docs/specifications/` is unrelated - so when the owner says "the spec set", do not search this
+  repository and do not infer the contract from our own code comments. The delivery artifacts themselves
+  live on one GitHub release, tag `delivery-so-v1` of `SerZhyAle/FastMediaSorter_mob_v2`; the release
+  asset list and `artwork-manifest.json` are the cheapest way to tell what is actually published from
+  what a document says is published, and on 2026-08-20 those two disagreed.
+
+- **`UserAuthoredChannels.Identify` is a list that has to grow, and nothing enforces it.** Since SP-0089
+  a catalog refresh no longer deletes a row just because the bank stopped listing its URL - it deletes
+  only rows carrying nothing the user made, and retires the rest (`StreamChannel.RetiredAt`, id kept so
+  collections and history stay attached). The whole rule rests on one enumeration in
+  `src/StreamsPlayer.Core/UserAuthoredChannels.cs`: pin, collection membership, history entry. **Any new
+  feature that attaches a user-made value to a channel must be added there**, or a refresh will delete it
+  the first time the producer's liveness probe misfires - which is not hypothetical: on 2026-08-19 the
+  bank dropped 1 906 rows, 79 % of them on an `unknown` verdict and 1 321 of them still playing the next
+  day. There is no compiler error and no failing test for forgetting; the cost is a user losing something
+  they made. Deliberately excluded, and each for a reason worth re-reading before "fixing" it: hidden
+  URLs (kept by normalized URL in their own list, and keeping the row would contradict the request),
+  quality memory (by URL, own file, a cache), and `LastPlayedAt`/`LastPlayOutcome`/`SortIndex` (things
+  the application wrote about itself, not things the user made).
+
+- **The App's data directory cannot be redirected, so GUI state cannot be faked for observation.**
+  `AppPaths` uses `Environment.SpecialFolder.LocalApplicationData`, which on Windows resolves through
+  `SHGetFolderPath` and **ignores `%LOCALAPPDATA%`** - setting the environment variable for a child
+  process does nothing. The tempting workaround, swapping `catalog-state.json` for a crafted one, is
+  worse than it looks: `StreamCatalogStore.SaveAsync` prunes atlas files the state no longer references,
+  so a crafted state without `AtlasFileName` makes the first save delete the owner's real
+  `favicon-atlas-<guid>.png`, and only a full re-download brings the icons back. Consequence for the
+  evidence rule: a visible behaviour that only appears on state the live bank does not produce is
+  **not** observable on this machine, and the honest move is to say so in the ticket rather than
+  manufacture the state. Read-only measurement against the real state is fine and is the right
+  substitute - load the built `StreamsPlayer.Core.dll` with `Add-Type`, call the product's own
+  `StreamCatalogStore.LoadAsync` / `CatalogMerger.Merge`, inspect the result in memory, write nothing
+  (`artifacts/sp0089-measure.ps1` is the worked example; `artifacts/` is gitignored).
