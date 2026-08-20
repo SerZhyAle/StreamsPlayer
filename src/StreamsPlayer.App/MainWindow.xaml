@@ -186,48 +186,6 @@
 
         <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="4">
             <DockPanel>
-            <!-- SP-0031: offered after an explicit catalog update, never on its own. It waits for a
-                 decision instead of auto-hiding: a timed hint here competes with the "catalog updated"
-                 status line and is missed. Declining only hides it; the next update offers again. -->
-            <Border x:Name="ChannelPreviewOfferBar" DockPanel.Dock="Top" Visibility="Collapsed"
-                    Background="{DynamicResource ControlHoverBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
-                    CornerRadius="6" Padding="10,6" Margin="3,3,3,6">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="{DynamicResource ChannelPreviewsOffer}" TextWrapping="Wrap"
-                               VerticalAlignment="Center" ToolTip="{DynamicResource ChannelPreviewsOfferTip}" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                        <Button Content="{DynamicResource ChannelPreviewsDownload}" Click="ChannelPreviewOfferAccept_Click"
-                                Background="{DynamicResource AccentBrush}" Foreground="White" Padding="10,4" Margin="0,0,6,0" />
-                        <Button Content="{DynamicResource ChannelPreviewsNotNow}" Click="ChannelPreviewOfferDismiss_Click"
-                                Padding="10,4" />
-                    </StackPanel>
-                </Grid>
-            </Border>
-            <!-- SP-0052: the one first-launch offer, shown only while the catalog is empty and has never
-                 been downloaded. Same treatment as the preview-atlas bar above; the two cannot both be
-                 eligible, since that one only appears after a successful update. -->
-            <Border x:Name="CatalogSnapshotOfferBar" DockPanel.Dock="Top" Visibility="Collapsed"
-                    Background="{DynamicResource ControlHoverBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
-                    CornerRadius="6" Padding="10,6" Margin="3,3,3,6">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="{DynamicResource CatalogSnapshotOffer}" TextWrapping="Wrap"
-                               VerticalAlignment="Center" ToolTip="{DynamicResource CatalogSnapshotOfferTip}" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                        <Button Content="{DynamicResource CatalogSnapshotUse}" Click="CatalogSnapshotOfferAccept_Click"
-                                Background="{DynamicResource AccentBrush}" Foreground="White" Padding="10,4" Margin="0,0,6,0" />
-                        <Button Content="{DynamicResource CatalogSnapshotNotNow}" Click="CatalogSnapshotOfferDecline_Click"
-                                Padding="10,4" />
-                    </StackPanel>
-                </Grid>
-            </Border>
             <Grid x:Name="CatalogArea" SizeChanged="CatalogArea_SizeChanged">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -313,8 +271,33 @@
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <Border Width="32" Height="32" Background="{DynamicResource FaviconPlateBrush}" CornerRadius="4" VerticalAlignment="Center">
-                                            <Image Source="{Binding Favicon}" Width="32" Height="32" Stretch="None" />
+                                        <Border Width="32" Height="32" Background="{DynamicResource FaviconPlateBrush}" CornerRadius="4"
+                                                VerticalAlignment="Center" ClipToBounds="True">
+                                            <Grid>
+                                                <!-- SP-0087: shown only when the bank gave this channel no icon, and drawn *under*
+                                                     the image rather than instead of it - a favicon with a transparent background
+                                                     must still sit on the neutral plate and not on a colour. A collapsed Auto row
+                                                     is zero high, so a channel with no country centres its monogram in the full
+                                                     32 points and one with a country centres it in what the strip leaves. -->
+                                                <Border Background="{Binding MonogramBrush}" CornerRadius="4"
+                                                        Visibility="{Binding FaviconFallbackVisibility}">
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="*" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
+                                                        <TextBlock Grid.Row="0" Text="{Binding MonogramText}" Foreground="{Binding MonogramForeground}"
+                                                                   FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center" />
+                                                        <Border Grid.Row="1" Background="#59000000" Visibility="{Binding CountryCodeVisibility}">
+                                                            <TextBlock Text="{Binding CountryCode}" Foreground="{Binding MonogramForeground}"
+                                                                       FontSize="7" LineHeight="9" LineStackingStrategy="BlockLineHeight"
+                                                                       HorizontalAlignment="Center" />
+                                                        </Border>
+                                                    </Grid>
+                                                </Border>
+                                                <Image Source="{Binding Favicon}" Width="32" Height="32" Stretch="None" />
+                                            </Grid>
                                         </Border>
                                         <!-- Now-playing indicator: spins over the favicon while this station's audio plays. -->
                                         <Grid Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -468,6 +451,41 @@
                                         MouseEnter="StreamTile_MouseEnter" MouseLeave="StreamTile_MouseLeave"
                                         ToolTip="{Binding DisplayTitle}">
                                     <Grid>
+                                        <!-- SP-0087: the same fallback as the list card, sized by the tile. Its visibility reads
+                                             TileImage, so a captured preview frame wins over the monogram with no second rule. The
+                                             Viewbox is what makes one markup serve every StreamTileSize. -->
+                                        <Border Background="{Binding MonogramBrush}" Visibility="{Binding TileFallbackVisibility}">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <Viewbox Grid.Row="0" Stretch="Uniform" Margin="8" MaxWidth="150" MaxHeight="120">
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding MonogramText}" Foreground="{Binding MonogramForeground}"
+                                                                   FontSize="48" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                                        <TextBlock Text="{Binding CountryCode}" Foreground="{Binding MonogramForeground}"
+                                                                   Visibility="{Binding CountryCodeVisibility}" Opacity="0.75"
+                                                                   FontSize="16" HorizontalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Viewbox>
+                                                <!-- Reserves exactly the band the title scrim below occupies, so the monogram is
+                                                     laid out above the title instead of behind it - at every tile size, because
+                                                     the band is a fixed 70 while the tile is 67 to 225 tall. Collapsed by the same
+                                                     IsVerySmallTile trigger the scrim itself uses, so the two can never disagree. -->
+                                                <Border Grid.Row="1" Height="70">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsVerySmallTile, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
                                         <Image Source="{Binding TileImage}" Stretch="UniformToFill" />
                                         <Border VerticalAlignment="Bottom" Height="70">
                                             <Border.Style>

@@ -40,6 +40,40 @@ public sealed class ChannelRow : INotifyPropertyChanged
     }
 
     public ImageSource? TileImage => _preview ?? Favicon;
+
+    // SP-0087: what the row shows when the bank gave this channel no icon - 71.2% of the published rows
+    // on 2026-08-19. Each visibility reads the image property it guards rather than a flag of its own,
+    // so the fallback and the picture are decided in one pass and can never disagree; and
+    // TileFallbackVisibility reading TileImage is what lets a captured preview frame win over the
+    // monogram without a second rule anywhere.
+    public Visibility FaviconFallbackVisibility =>
+        Favicon is null ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility TileFallbackVisibility =>
+        TileImage is null ? Visibility.Visible : Visibility.Collapsed;
+    public string MonogramText => _monogram ??= ChannelMonogram.Text(Channel.Title);
+    public Brush MonogramBrush => MonogramPalette.Plate(Channel.Title);
+    public Brush MonogramForeground => MonogramPalette.Foreground;
+
+    // Cached behind its own flag rather than behind the value: null is a legitimate answer here - the
+    // bank leaves country blank on 62% of rows and spells it 54 different ways on some of the rest - so
+    // a `??=` would re-run the lookup on every read for exactly the rows where it fails.
+    public string? CountryCode
+    {
+        get
+        {
+            if (!_countryResolved)
+            {
+                _countryCode = CatalogCountries.ToCode(Channel.Country);
+                _countryResolved = true;
+            }
+
+            return _countryCode;
+        }
+    }
+
+    public Visibility CountryCodeVisibility =>
+        CountryCode is null ? Visibility.Collapsed : Visibility.Visible;
+
     public bool IsSelected
     {
         get => _isSelected;
@@ -130,9 +164,11 @@ public sealed class ChannelRow : INotifyPropertyChanged
         _favicon = null;
         _faviconLoaded = false;
         OnPropertyChanged(nameof(Favicon));
+        OnPropertyChanged(nameof(FaviconFallbackVisibility));
         if (_preview is null)
         {
             OnPropertyChanged(nameof(TileImage));
+            OnPropertyChanged(nameof(TileFallbackVisibility));
         }
     }
 
@@ -144,6 +180,7 @@ public sealed class ChannelRow : INotifyPropertyChanged
             _previewReachable = reachable;
         }
         OnPropertyChanged(nameof(TileImage));
+        OnPropertyChanged(nameof(TileFallbackVisibility));
         OnPropertyChanged(nameof(PreviewStatusBrush));
         OnPropertyChanged(nameof(PreviewStatusLabel));
     }
@@ -153,6 +190,7 @@ public sealed class ChannelRow : INotifyPropertyChanged
         _preview = null;
         _previewReachable = null;
         OnPropertyChanged(nameof(TileImage));
+        OnPropertyChanged(nameof(TileFallbackVisibility));
         OnPropertyChanged(nameof(PreviewStatusBrush));
         OnPropertyChanged(nameof(PreviewStatusLabel));
     }
@@ -187,6 +225,12 @@ public sealed class ChannelRow : INotifyPropertyChanged
     // RefreshLocalization. There is no third invalidation point to remember.
     private string? _metadata;
     private string? _technicalDetails;
+    // SP-0087: the monogram and the country code are derived from Channel in exactly the same way, so
+    // they live in the same cache and are dropped at the same point. There is no third invalidation
+    // site to remember.
+    private string? _monogram;
+    private string? _countryCode;
+    private bool _countryResolved;
 
     // SP-0061: the rubric is shown translated; an identifier outside the bank's closed set falls through
     // as written. RefreshLocalization re-renders the row when the interface language changes.
@@ -211,6 +255,9 @@ public sealed class ChannelRow : INotifyPropertyChanged
     {
         _metadata = null;
         _technicalDetails = null;
+        _monogram = null;
+        _countryCode = null;
+        _countryResolved = false;
     }
 
     private string? BitrateLabel()
