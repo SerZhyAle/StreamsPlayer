@@ -78,6 +78,27 @@ verified after download against the published `.sha256` file, and the packaged
 `26.0820.1828+dbb42963d8a7bd5ea322cd850f781657ed1467f2`, so binary, asset name and tag agree.
 `THIRD-PARTY-NOTICES.txt`, `LICENSE` and `README.md` are inside the ZIP.
 
+winget followed on the same day as
+[#421532](https://github.com/microsoft/winget-pkgs/pull/421532) - see `winget/README.md` for the
+submission record and for the one checklist box that went out unticked.
+
+**The Store package is built and waiting for a Partner Center upload.**
+`msix/dist/StreamsPlayer-26.0820.1828-windows-x64.msix`, 138 614 500 bytes, sha256
+`062E7AD1E76F5888907E52E1F8BF0D3497CECE550F8959929211FEC461623381`. Built by passing all three
+identity values explicitly rather than relying on the script's defaults, then read back out of the
+packed `AppxManifest.xml` rather than trusted from the command line - `Name` `SZA.StreamsPlayer`,
+`Publisher` `CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD`, `PublisherDisplayName` `SZA`, all three
+unchanged, which is what keeps every installed copy upgradeable. `Version` is `26.820.1828.0`: the
+`YY.MMDD.HHmm` stamp int-cast per component, because the Identity Version schema forbids leading
+zeros, with revision 0 and every part under 65535. It is greater than the `26.806.2225.0` the Store
+currently carries. The package is **unsigned** and must stay that way - Microsoft re-signs at
+certification, and `-SelfSign` produces a package that must never be uploaded. `THIRD-PARTY-NOTICES.txt`
+is in the payload and `TargetDeviceFamily` MinVersion is `10.0.17763.0`, matching the winget floor.
+
+Still to do at the console, in this order: build-store-listing-csv and write-release-notes against a
+**fresh** Partner Center export, upload the MSIX, then submit. The Store-only What's new below is the
+text that goes in.
+
 **The Store is still on 26.0806.2225.** Two GitHub releases have gone past it - 26.0809.0022 and
 26.0819.0156 - so a Store user moving to this version receives all three at once. That is why the
 Store-only blocks below exist and are longer than the release notes; they are what Partner Center
