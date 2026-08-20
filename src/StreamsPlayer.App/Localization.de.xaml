@@ -15,7 +15,7 @@
     <sys:String x:Key="RefreshPreviewsTip">Sichtbare Videovorschauen jetzt aufnehmen</sys:String>
     <sys:String x:Key="RefreshPreviewsName">Sichtbare Videovorschauen aktualisieren</sys:String>
     <sys:String x:Key="ChannelPreviewsOffer">Für die meisten Videokanäle gibt es fertige Vorschaubilder.</sys:String>
-    <sys:String x:Key="ChannelPreviewsOfferTip">Lädt einmalig etwa 11 MB und füllt das Raster, ohne sich mit jedem Kanal zu verbinden.</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">Lädt das Bildpaket einmalig herunter und füllt das Raster, ohne sich mit jedem Kanal zu verbinden.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">Bilder laden</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">Nicht jetzt</sys:String>
     <sys:String x:Key="ChannelPreviewsWorking">Vorschaubilder werden vorbereitet.. {0} von {1}</sys:String>
@@ -26,7 +26,6 @@
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Bilder werden geladen.. {0} MB</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">Bilddownload abgebrochen.</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">Bildpaket wird gelesen..</sys:String>
-    <sys:String x:Key="ChannelPreviewsFinishing">Wird abgeschlossen..</sys:String>
     <sys:String x:Key="AddStream">Stream hinzufügen</sys:String>
     <sys:String x:Key="AddStreamPlain">Stream hinzufügen</sys:String>
     <sys:String x:Key="UpdateCatalog">Kanäle aus dem Internet importieren</sys:String>

@@ -15,7 +15,7 @@
     <sys:String x:Key="RefreshPreviewsTip">Capture visible video previews now</sys:String>
     <sys:String x:Key="RefreshPreviewsName">Refresh visible video previews</sys:String>
     <sys:String x:Key="ChannelPreviewsOffer">Ready-made preview pictures are available for most video channels.</sys:String>
-    <sys:String x:Key="ChannelPreviewsOfferTip">Downloads about 11 MB once and fills the grid without connecting to each channel.</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">Downloads the picture pack once and fills the grid without connecting to each channel.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">Download pictures</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">Not now</sys:String>
     <sys:String x:Key="ChannelPreviewsWorking">Preparing preview pictures.. {0} of {1}</sys:String>
@@ -26,7 +26,6 @@
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Downloading pictures.. {0} MB</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">Picture download cancelled.</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">Reading the picture pack..</sys:String>
-    <sys:String x:Key="ChannelPreviewsFinishing">Finishing up..</sys:String>
     <sys:String x:Key="AddStream">Add stream</sys:String>
     <sys:String x:Key="AddStreamPlain">Add stream</sys:String>
     <!-- SP-0059: the command is named by what it does. The keys keep the old vocabulary on purpose -

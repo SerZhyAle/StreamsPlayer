@@ -23,7 +23,7 @@ public sealed class StreamCatalogService
     /// mis-published or hostile response, which until now was pulled whole into a byte[] with
     /// OutOfMemoryException as the only backstop. Every other network payload in the product already had
     /// such a bound - <see cref="StreamBankReader.MaximumAtlasBytes"/> and
-    /// <see cref="ChannelPreviewAtlasService.MaximumSheetBytes"/> - and the catalog, the one payload
+    /// <see cref="ChannelPreviewArtworkService.MaximumTilePackBytes"/> - and the catalog, the one payload
     /// always downloaded, was the exception.
     /// Unlike the atlas cap, exceeding this is an error rather than a silent drop: there is no catalog
     /// without the archive, so continuing would mean reporting success over an empty result.
@@ -74,7 +74,30 @@ public sealed class StreamCatalogService
         }
 
         var now = DateTimeOffset.UtcNow;
-        var merge = CatalogMerger.Merge(currentState.Channels, bank.Entries, now);
+        // SP-0088, source contract item A: a build is atomic - `favicon_index` is an offset into the
+        // atlas that arrived in the same ZIP and carries no meaning against any other one. When this
+        // build brought no usable atlas (absent, over the ceiling, unreadable) its indices are discarded
+        // here, before the merge can stamp them onto rows that still point at the previously installed
+        // sheet. Keeping them was not a cosmetic bug: of the three outcomes - right icons, no icons,
+        // wrong icons - only the third is invisible to the user and undescribable in a support report,
+        // and it is the one the old code produced. The stored atlas is still not deleted (see below), so
+        // the degraded state is "no icon" for one refresh, which SP-0087's monogram renders as a
+        // deliberate placeholder rather than a broken image.
+        var bankCarriedAtlas = bank.FaviconAtlas is { Length: > 0 };
+        var entries = bankCarriedAtlas
+            ? bank.Entries
+            : [.. bank.Entries.Select(entry => entry with { FaviconIndex = null })];
+
+        // SP-0089, source contract item D: the merge is told which rows carry user-authored data before it
+        // is allowed to prune, because absence from this build is not authority to delete a pin, a
+        // collection membership or a history entry. Computed from the state that is about to be replaced -
+        // the only moment both the old rows and their references are still in hand.
+        var merge = CatalogMerger.Merge(
+            currentState.Channels,
+            entries,
+            now,
+            options: null,
+            channelsWithUserData: UserAuthoredChannels.Identify(currentState));
         var channels = merge.Channels.ToList();
         var state = currentState with
         {
@@ -95,11 +118,19 @@ public sealed class StreamCatalogService
         // unconditionally made a bank without an atlas - a mispackaged upstream zip, or one whose atlas this
         // reader rejected - delete the installed atlas, so a single refresh silently stripped the favicon
         // from every channel with no error and no way back short of a corrected republish.
+        // Keeping the file and discarding this build's indices are the two halves of one rule: the sheet
+        // survives so a later corrected bank can re-point at it, and nothing points at it meanwhile.
         state = await _store.SaveAsync(
             state,
             bank.FaviconAtlas,
-            replaceAtlas: bank.FaviconAtlas is { Length: > 0 },
+            replaceAtlas: bankCarriedAtlas,
             deadline.Token);
-        return new CatalogRefreshResult(state, merge.Added, merge.Updated, merge.Removed);
+        return new CatalogRefreshResult(
+            state,
+            merge.Added,
+            merge.Updated,
+            merge.Removed,
+            bankCarriedAtlas,
+            merge.Retired);
     }
 }

@@ -27,14 +27,34 @@ public partial class MainWindow
         !_state.CatalogSnapshotOfferDeclined &&
         !_state.Channels.Any(channel => channel.SourceOrigin == SourceOrigin.Catalog);
 
-    private void MaybeOfferCatalogSnapshot()
+    /// <summary>
+    /// SP-0088: a modal question where an inline bar used to be. Nothing is applied unless the user
+    /// says yes, and the eligibility rule above is unchanged - this still appears at most once in the
+    /// product's life, which is why "no" is persisted rather than latched.
+    /// </summary>
+    private async Task OfferCatalogSnapshotAsync()
     {
         if (!CatalogSnapshotOfferEligible)
         {
             return;
         }
 
-        CatalogSnapshotOfferBar.Visibility = Visibility.Visible;
+        var answer = MessageBox.Show(
+            this,
+            $"{LocalizationService.Get("CatalogSnapshotOffer")}{Environment.NewLine}{Environment.NewLine}" +
+                LocalizationService.Get("CatalogSnapshotOfferTip"),
+            LocalizationService.Get("CatalogSnapshotTitle"),
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+        if (answer == MessageBoxResult.Yes)
+        {
+            await ApplyBundledSnapshotAsync(this);
+            return;
+        }
+
+        // The settings action is the way back for a user who changes their mind.
+        _state = await PersistAsync(_state with { CatalogSnapshotOfferDeclined = true });
+        _log.Event("CATALOG SNAPSHOT", "op=offer", "result=declined");
     }
 
     /// <summary>
@@ -70,22 +90,6 @@ public partial class MainWindow
                 _state = await PersistAsync(_state with { CatalogSnapshotOfferDeclined = true });
                 break;
         }
-    }
-
-    private async void CatalogSnapshotOfferAccept_Click(object sender, RoutedEventArgs e)
-    {
-        CatalogSnapshotOfferBar.Visibility = Visibility.Collapsed;
-        await ApplyBundledSnapshotAsync(this);
-    }
-
-    private async void CatalogSnapshotOfferDecline_Click(object sender, RoutedEventArgs e)
-    {
-        CatalogSnapshotOfferBar.Visibility = Visibility.Collapsed;
-        // Persisted, unlike the channel-preview offer's per-session latch: this offer appears at most
-        // once in the product's life, so "not now" has to mean "not again" - the settings action is the
-        // way back for a user who changes their mind.
-        _state = await PersistAsync(_state with { CatalogSnapshotOfferDeclined = true });
-        _log.Event("CATALOG SNAPSHOT", "op=offer", "result=declined");
     }
 
     /// <summary>

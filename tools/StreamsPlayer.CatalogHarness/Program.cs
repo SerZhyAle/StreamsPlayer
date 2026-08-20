@@ -6,13 +6,24 @@ using StreamsPlayer.Core;
 
 var outputPath = Path.GetFullPath(args.FirstOrDefault() ?? "favicon-sample.png");
 Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+// SP-0087: the diagnostic now downloads the way the application does. A 30 s HttpClient.Timeout severs
+// the body read even under ResponseHeadersRead, so on a link slower than about 250 KB/s this harness
+// failed where the product - whose catalog client bounds silence rather than duration since SP-0056 -
+// succeeds. A diagnostic that fails differently from the thing it diagnoses is worse than none.
+using var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
 client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("StreamsPlayer-CatalogHarness", "0.1"));
 
 Console.WriteLine($"Downloading {StreamCatalogService.CatalogUrl}");
 using var response = await client.GetAsync(StreamCatalogService.CatalogUrl, HttpCompletionOption.ResponseHeadersRead);
 response.EnsureSuccessStatusCode();
-await using var zipStream = await response.Content.ReadAsStreamAsync();
+var archive = await HttpDownload.ReadAllBytesAsync(
+    response,
+    progress: null,
+    StreamCatalogService.MaximumArchiveBytes,
+    TimeSpan.FromSeconds(20),
+    CancellationToken.None);
+Console.WriteLine($"Archive bytes: {archive.Length:N0}");
+using var zipStream = new MemoryStream(archive, writable: false);
 var bank = StreamBankReader.Read(zipStream);
 
 Console.WriteLine($"Valid channels: {bank.Entries.Count:N0}");

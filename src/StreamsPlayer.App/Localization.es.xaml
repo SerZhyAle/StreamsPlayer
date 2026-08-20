@@ -15,7 +15,7 @@
     <sys:String x:Key="RefreshPreviewsTip">Capturar ahora las vistas previas de los vídeos visibles</sys:String>
     <sys:String x:Key="RefreshPreviewsName">Actualizar las vistas previas de vídeo visibles</sys:String>
     <sys:String x:Key="ChannelPreviewsOffer">Hay imágenes de vista previa ya preparadas para la mayoría de los canales de vídeo.</sys:String>
-    <sys:String x:Key="ChannelPreviewsOfferTip">Descarga unos 11 MB una sola vez y rellena la cuadrícula sin conectarse a cada canal.</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">Descarga el paquete de imágenes una sola vez y rellena la cuadrícula sin conectarse a cada canal.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">Descargar imágenes</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">Ahora no</sys:String>
     <sys:String x:Key="ChannelPreviewsWorking">Preparando las imágenes de vista previa.. {0} de {1}</sys:String>
@@ -26,7 +26,6 @@
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Descargando imágenes.. {0} MB</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">Descarga de imágenes cancelada.</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">Leyendo el paquete de imágenes..</sys:String>
-    <sys:String x:Key="ChannelPreviewsFinishing">Finalizando..</sys:String>
     <sys:String x:Key="AddStream">Añadir transmisión</sys:String>
     <sys:String x:Key="AddStreamPlain">Añadir transmisión</sys:String>
     <sys:String x:Key="UpdateCatalog">Importar canales de internet</sys:String>

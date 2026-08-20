@@ -172,6 +172,16 @@ public partial class MainWindow
                 continue;
             }
 
+            // SP-0089: a retired row is kept, not offered. It stays exactly where the user put it - the
+            // pinned strip, or the collection currently being browsed - and leaves the general list,
+            // because a channel the bank has stopped publishing must not sit among current ones as if it
+            // were still on offer. Placed above visibleUniverse so the status line's total counts what is
+            // actually reachable; a pinned retired row is reachable and is counted.
+            if (channel.RetiredAt is not null && !channel.Pinned && collectionMembers is null)
+            {
+                continue;
+            }
+
             visibleUniverse++;
             if (collectionMembers is not null && !collectionMembers.Contains(channel.Id))
             {

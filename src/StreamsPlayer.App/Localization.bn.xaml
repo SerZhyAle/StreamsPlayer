@@ -15,7 +15,7 @@
     <sys:String x:Key="RefreshPreviewsTip">দৃশ্যমান ভিডিও প্রিভিউ এখনই নিন</sys:String>
     <sys:String x:Key="RefreshPreviewsName">দৃশ্যমান ভিডিও প্রিভিউ হালনাগাদ করুন</sys:String>
     <sys:String x:Key="ChannelPreviewsOffer">বেশির ভাগ ভিডিও চ্যানেলের জন্য তৈরি প্রিভিউ ছবি পাওয়া যায়।</sys:String>
-    <sys:String x:Key="ChannelPreviewsOfferTip">একবার প্রায় 11 MB নামায় এবং প্রতিটি চ্যানেলে সংযোগ না করেই গ্রিড ভরে দেয়।</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">একবার ছবির প্যাক নামায় এবং প্রতিটি চ্যানেলে সংযোগ না করেই গ্রিড ভরে দেয়।</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">ছবি নামান</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">এখন নয়</sys:String>
     <sys:String x:Key="ChannelPreviewsWorking">প্রিভিউ ছবি তৈরি হচ্ছে.. {1}-এর মধ্যে {0}</sys:String>
@@ -26,7 +26,6 @@
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">ছবি নামানো হচ্ছে.. {0} MB</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">ছবি নামানো বাতিল হয়েছে।</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">ছবির প্যাক পড়া হচ্ছে..</sys:String>
-    <sys:String x:Key="ChannelPreviewsFinishing">শেষ করা হচ্ছে..</sys:String>
     <sys:String x:Key="AddStream">স্ট্রিম যোগ করুন</sys:String>
     <sys:String x:Key="AddStreamPlain">স্ট্রিম যোগ করুন</sys:String>
     <sys:String x:Key="UpdateCatalog">ইন্টারনেট থেকে চ্যানেল আমদানি করুন</sys:String>

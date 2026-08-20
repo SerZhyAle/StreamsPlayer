@@ -72,6 +72,26 @@ public sealed class RandomStationSelectionTests
         Assert.Equal(channels.Select(channel => channel.Url), eligible.Select(channel => channel.Url));
     }
 
+    // SP-0089: a retired row is a pin or a history entry the application is keeping alive, not a station
+    // on offer. "Surprise me" must not volunteer a channel the bank has stopped publishing.
+    [Fact]
+    public void Eligible_DropsARetiredRow()
+    {
+        var channels = new[]
+        {
+            Channel("https://example.com/gone", MediaKind.Audio) with
+            {
+                Pinned = true,
+                RetiredAt = DateTimeOffset.UnixEpoch
+            },
+            Channel("https://example.com/offered", MediaKind.Audio)
+        };
+
+        var eligible = RandomStationSelection.Eligible(channels, []);
+
+        Assert.Equal(["https://example.com/offered"], eligible.Select(channel => channel.Url));
+    }
+
     [Fact]
     public void Draw_OnAnEmptySetReturnsNull()
     {

@@ -351,7 +351,7 @@ public partial class MainWindow
         DisposeSystemMediaControls(); // SP-0021: end the Windows media session with the window
         _httpClient.Dispose();
         _icyHttpClient.Dispose();
-        _previewAtlasHttpClient.Dispose();
+        _previewArtworkHttpClient.Dispose();
         _catalogHttpClient.Dispose();
     }
 }

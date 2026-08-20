@@ -15,7 +15,7 @@
     <sys:String x:Key="RefreshPreviewsTip">Захопити видимі відеопрев’ю зараз</sys:String>
     <sys:String x:Key="RefreshPreviewsName">Оновити видимі відеопрев’ю</sys:String>
     <sys:String x:Key="ChannelPreviewsOffer">Для більшості відеоканалів є готові картинки прев’ю.</sys:String>
-    <sys:String x:Key="ChannelPreviewsOfferTip">Один раз завантажить близько 11 МБ і заповнить сітку, не під’єднуючись до кожного каналу.</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">Один раз завантажить пакет зображень і заповнить сітку, не під’єднуючись до кожного каналу.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">Завантажити картинки</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">Не зараз</sys:String>
     <sys:String x:Key="ChannelPreviewsWorking">Готуємо картинки прев’ю.. {0} з {1}</sys:String>
@@ -26,7 +26,6 @@
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Завантаження картинок.. {0} МБ</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">Завантаження картинок скасовано.</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">Читаємо набір картинок..</sys:String>
-    <sys:String x:Key="ChannelPreviewsFinishing">Завершуємо..</sys:String>
     <sys:String x:Key="AddStream">Додати потік</sys:String>
     <sys:String x:Key="AddStreamPlain">Додати потік</sys:String>
     <sys:String x:Key="UpdateCatalog">Імпортувати канали з інтернету</sys:String>

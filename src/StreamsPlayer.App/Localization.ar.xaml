@@ -15,7 +15,7 @@
     <sys:String x:Key="RefreshPreviewsTip">التقاط معاينات الفيديو الظاهرة الآن</sys:String>
     <sys:String x:Key="RefreshPreviewsName">تحديث معاينات الفيديو الظاهرة</sys:String>
     <sys:String x:Key="ChannelPreviewsOffer">تتوفر صور معاينة جاهزة لمعظم قنوات الفيديو.</sys:String>
-    <sys:String x:Key="ChannelPreviewsOfferTip">ينزّل نحو 11 ميغابايت مرة واحدة ويملأ الشبكة دون الاتصال بكل قناة.</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">ينزّل حزمة الصور مرة واحدة ويملأ الشبكة دون الاتصال بكل قناة.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">تنزيل الصور</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">ليس الآن</sys:String>
     <sys:String x:Key="ChannelPreviewsWorking">جارٍ تحضير صور المعاينة.. {0} من {1}</sys:String>
@@ -26,7 +26,6 @@
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">جارٍ تنزيل الصور.. {0} ميغابايت</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">أُلغي تنزيل الصور.</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">جارٍ قراءة حزمة الصور..</sys:String>
-    <sys:String x:Key="ChannelPreviewsFinishing">جارٍ الإنهاء..</sys:String>
     <sys:String x:Key="AddStream">إضافة بث</sys:String>
     <sys:String x:Key="AddStreamPlain">إضافة بث</sys:String>
     <sys:String x:Key="UpdateCatalog">استيراد القنوات من الإنترنت</sys:String>

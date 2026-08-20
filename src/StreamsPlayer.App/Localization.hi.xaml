@@ -15,7 +15,7 @@
     <sys:String x:Key="RefreshPreviewsTip">दिखाई दे रहे वीडियो पूर्वावलोकन अभी लें</sys:String>
     <sys:String x:Key="RefreshPreviewsName">दिखाई दे रहे वीडियो पूर्वावलोकन अद्यतन करें</sys:String>
     <sys:String x:Key="ChannelPreviewsOffer">अधिकांश वीडियो चैनलों के लिए तैयार पूर्वावलोकन चित्र उपलब्ध हैं।</sys:String>
-    <sys:String x:Key="ChannelPreviewsOfferTip">एक बार लगभग 11 MB डाउनलोड करता है और हर चैनल से जुड़े बिना ग्रिड भर देता है।</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">चित्रों का पैक एक बार डाउनलोड करता है और हर चैनल से जुड़े बिना ग्रिड भर देता है।</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">चित्र डाउनलोड करें</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">अभी नहीं</sys:String>
     <sys:String x:Key="ChannelPreviewsWorking">पूर्वावलोकन चित्र तैयार हो रहे हैं.. {1} में से {0}</sys:String>
@@ -26,7 +26,6 @@
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">चित्र डाउनलोड हो रहे हैं.. {0} MB</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">चित्र डाउनलोड रद्द हुआ।</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">चित्र पैक पढ़ा जा रहा है..</sys:String>
-    <sys:String x:Key="ChannelPreviewsFinishing">पूरा किया जा रहा है..</sys:String>
     <sys:String x:Key="AddStream">स्ट्रीम जोड़ें</sys:String>
     <sys:String x:Key="AddStreamPlain">स्ट्रीम जोड़ें</sys:String>
     <sys:String x:Key="UpdateCatalog">इंटरनेट से चैनल आयात करें</sys:String>

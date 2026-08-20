@@ -68,11 +68,13 @@ public static class StreamCatalogCsvParser
         _ => null
     };
 
-    // Only the one documented value is recognised. A blank cell, an absent column, and any token the
-    // catalog adds later all mean "say nothing" rather than surface an unknown tag to the user.
-    private static ChannelAccess ParseAccess(string value) => value.Trim().ToLowerInvariant() switch
-    {
-        "geo" => ChannelAccess.GeoRestricted,
-        _ => ChannelAccess.Open
-    };
+    // SP-0088, source contract item E: `access` is an opaque token, not a closed set. Blank - and an
+    // absent column, which reads as blank - means open; any non-empty value means a restriction this
+    // consumer does not model. Switching on the single known token `geo` and folding everything else
+    // into "open" was the inversion of that rule: a token the producer adds later would be read as the
+    // absence of a restriction, which is the one answer that cannot be right. The producer currently
+    // drops region-locked rows instead of tagging them, so this branch is unreachable against today's
+    // bank (0 of 18 908 rows) - it exists so it starts working on its own if a producer returns.
+    private static ChannelAccess ParseAccess(string value) =>
+        value.Trim().Length == 0 ? ChannelAccess.Open : ChannelAccess.GeoRestricted;
 }

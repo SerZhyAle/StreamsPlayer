@@ -180,6 +180,29 @@ public sealed record StreamChannel
     // GeoRestricted channel is deliberately kept and stays fully playable - never gate, reorder, or
     // hide on this, and never turn it into a playback decision or a failure verdict.
     public ChannelAccess Access { get; init; } = ChannelAccess.Open;
+
+    /// <summary>
+    /// SP-0089, source contract item D: when an explicit refresh found this row's URL missing from the
+    /// bank while the user had authored something on it, or <c>null</c> while the bank still lists it.
+    /// </summary>
+    /// <remarks>
+    /// <para>A row's absence from a bank build says "this build does not offer this channel". It does not
+    /// say the user's pin, collection membership or history about it are invalid, and the producer's own
+    /// incident of 2026-08-19 - 1 906 rows dropped, 79% of them on an <c>unknown</c> verdict and 1 321 of
+    /// them demonstrably still playing the next day - is what turned that from a principle into a rule.
+    /// Deletion there was unrecoverable in both directions: both sides keyed by absence and minted a new
+    /// identity on return, so republishing the very same bytes restored no pin at all.</para>
+    /// <para>The identity is the whole point of retiring rather than deleting. Collections and listening
+    /// history reference <see cref="Id"/>, so the row surviving with its id is what makes the user's data
+    /// reattach by itself when a later bank lists the URL again - at which point the merge clears this
+    /// field and the channel is simply on offer once more. A row carrying nothing the user authored is
+    /// still deleted outright; this field exists for the rows where deletion would destroy something.</para>
+    /// <para>Retired means "kept, not offered": it stays where the user put it and leaves the general
+    /// browse list, because a build that no longer publishes a channel must not have it presented as
+    /// current. Absent from a state file written before SP-0089, which reads as null - correct, since
+    /// every row in such a file was on offer at the last refresh.</para>
+    /// </remarks>
+    public DateTimeOffset? RetiredAt { get; init; }
 }
 
 public sealed record CatalogEntry(
@@ -387,13 +410,22 @@ public sealed record CatalogState
     public bool UpdateStreamPreviews { get; init; } = true;
 
     /// <summary>
-    /// Element revision of the published channel-preview atlas already seeded into the local preview
-    /// store (SP-0031), or null when it never has been. Equal to
-    /// <see cref="ChannelPreviewAtlasService.Revision"/> means "seeded, do not offer"; a different value
-    /// means the publisher shipped a new, tile-incompatible sheet and the offer becomes eligible again.
-    /// Written only after a successful import, so a failed or declined one always leaves the offer open.
+    /// Which published artwork build seeded the local preview store, as
+    /// <c>artwork-manifest.json</c> stamps it (SP-0091), or null when none has.
     /// </summary>
-    public string? ChannelPreviewAtlasRevision { get; init; }
+    /// <remarks>
+    /// <para>A record, not a gate. It replaces <c>ChannelPreviewAtlasRevision</c>, which held a
+    /// compiled-in revision suffix - a value that said which asset name this client was pinned to and
+    /// therefore could never disagree with itself. The stamp says which bytes actually landed, which is
+    /// the question a support log needs answered: two installs reporting the same seeded count and
+    /// different stamps are not the same install.</para>
+    /// <para>The old key is not migrated. Its values named frozen sheet revisions that no longer
+    /// identify anything, so carrying one forward would assert a build we cannot name; absent reads as
+    /// "unknown", which is the truth. Written only after a successful import - a failed or declined one
+    /// leaves it as it was. SP-0088 made the offer ask every time, so nothing reads this to decide
+    /// whether to ask: a later catalog can bring channels the same artwork build already covers.</para>
+    /// </remarks>
+    public string? ChannelPreviewArtworkStamp { get; init; }
 
     /// <summary>
     /// Playback engine for the video/RTSP player window only (SP-0026). Defaults to
@@ -496,11 +528,23 @@ public sealed record CatalogMergeOptions(
     public static readonly CatalogMergeOptions CatalogRefresh = new();
 }
 
+/// <param name="Removed">
+/// Catalog rows the bank no longer lists that carried nothing the user authored, and were therefore
+/// deleted. Always 0 when <see cref="CatalogMergeOptions.RemoveMissing"/> is false.
+/// </param>
+/// <param name="Retired">
+/// Catalog rows the bank no longer lists that were kept anyway, because deleting them would have taken
+/// a pin, a collection membership or a history entry with them (SP-0089). This is the count in the
+/// retired state after the merge, not the count newly retired by it: the question a log has to answer is
+/// how many rows are being kept without being offered, and a row retired two refreshes ago is still one
+/// of them. Added and Removed already account for the transitions.
+/// </param>
 public sealed record MergeResult(
     IReadOnlyList<StreamChannel> Channels,
     int Added,
     int Updated,
-    int Removed);
+    int Removed,
+    int Retired);
 
 /// <summary>
 /// Outcome of <see cref="CatalogPurge.RemoveDownloaded"/> (SP-0030): the state without downloaded
@@ -510,8 +554,24 @@ public sealed record CatalogPurgeResult(
     CatalogState State,
     IReadOnlyList<Guid> RemovedChannelIds);
 
+/// <param name="AtlasReplaced">
+/// Whether this refresh installed the bank's own icon atlas. <c>false</c> means the archive carried no
+/// usable atlas - absent, empty, or past <see cref="StreamBankReader.MaximumAtlasBytes"/>, which the
+/// reader drops silently - and the previously installed atlas was therefore kept, because deleting it
+/// would strip the icons off every channel over one mispackaged upload. Since SP-0088 that build's
+/// favicon indices are discarded instead of pointed at the surviving sheet, so the outcome is missing
+/// icons for one refresh rather than confidently wrong ones. Still worth a log line: it is the one
+/// refresh outcome with no visible failure, and the icons the user loses came back on their own.
+/// </param>
+/// <param name="Retired">
+/// Catalog rows kept despite the bank no longer listing them, because the user had authored something on
+/// them (SP-0089). Not part of <paramref name="Removed"/>: these rows did not leave, they stopped being
+/// offered.
+/// </param>
 public sealed record CatalogRefreshResult(
     CatalogState State,
     int Added,
     int Updated,
-    int Removed);
+    int Removed,
+    bool AtlasReplaced = true,
+    int Retired = 0);

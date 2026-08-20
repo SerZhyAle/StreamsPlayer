@@ -45,6 +45,14 @@ public static class RandomStationSelection
                 continue;
             }
 
+            // SP-0089: a retired row is user data the application is keeping alive, not a station on
+            // offer. Drawing one would be the application volunteering a channel the bank has stopped
+            // publishing - the opposite of what "surprise me" asks for, and the likeliest one to be dead.
+            if (channel.RetiredAt is not null)
+            {
+                continue;
+            }
+
             eligible.Add(channel);
         }
 

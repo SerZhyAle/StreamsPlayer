@@ -15,7 +15,7 @@
     <sys:String x:Key="RefreshPreviewsTip">Cattura ora le anteprime video visibili</sys:String>
     <sys:String x:Key="RefreshPreviewsName">Aggiorna le anteprime video visibili</sys:String>
     <sys:String x:Key="ChannelPreviewsOffer">Per la maggior parte dei canali video sono disponibili immagini di anteprima già pronte.</sys:String>
-    <sys:String x:Key="ChannelPreviewsOfferTip">Scarica circa 11 MB una sola volta e riempie la griglia senza collegarsi a ogni canale.</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">Scarica il pacchetto di immagini una sola volta e riempie la griglia senza collegarsi a ogni canale.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">Scarica immagini</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">Non ora</sys:String>
     <sys:String x:Key="ChannelPreviewsWorking">Preparazione delle anteprime.. {0} di {1}</sys:String>
@@ -26,7 +26,6 @@
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Download delle immagini.. {0} MB</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">Download delle immagini annullato.</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">Lettura del pacchetto di immagini..</sys:String>
-    <sys:String x:Key="ChannelPreviewsFinishing">Completamento..</sys:String>
     <sys:String x:Key="AddStream">Aggiungi flusso</sys:String>
     <sys:String x:Key="AddStreamPlain">Aggiungi flusso</sys:String>
     <sys:String x:Key="UpdateCatalog">Importa canali da internet</sys:String>

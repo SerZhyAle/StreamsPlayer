@@ -15,7 +15,7 @@
     <sys:String x:Key="RefreshPreviewsTip">立即抓取可见视频的预览</sys:String>
     <sys:String x:Key="RefreshPreviewsName">更新可见视频的预览</sys:String>
     <sys:String x:Key="ChannelPreviewsOffer">大多数视频频道都有现成的预览图片。</sys:String>
-    <sys:String x:Key="ChannelPreviewsOfferTip">一次下载约 11 MB，无需连接每个频道即可填满网格。</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">一次下载图片包，无需连接每个频道即可填满网格。</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">下载图片</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">暂不下载</sys:String>
     <sys:String x:Key="ChannelPreviewsWorking">正在准备预览图片.. {0} / {1}</sys:String>
@@ -26,7 +26,6 @@
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">正在下载图片.. {0} MB</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">图片下载已取消。</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">正在读取图片包..</sys:String>
-    <sys:String x:Key="ChannelPreviewsFinishing">即将完成..</sys:String>
     <sys:String x:Key="AddStream">添加流</sys:String>
     <sys:String x:Key="AddStreamPlain">添加流</sys:String>
     <sys:String x:Key="UpdateCatalog">从互联网导入频道</sys:String>

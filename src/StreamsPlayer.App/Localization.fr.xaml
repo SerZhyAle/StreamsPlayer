@@ -15,7 +15,7 @@
     <sys:String x:Key="RefreshPreviewsTip">Capturer maintenant les aperçus vidéo visibles</sys:String>
     <sys:String x:Key="RefreshPreviewsName">Actualiser les aperçus vidéo visibles</sys:String>
     <sys:String x:Key="ChannelPreviewsOffer">Des images d'aperçu prêtes à l'emploi existent pour la plupart des chaînes vidéo.</sys:String>
-    <sys:String x:Key="ChannelPreviewsOfferTip">Télécharge environ 11 Mo une seule fois et remplit la grille sans se connecter à chaque chaîne.</sys:String>
+    <sys:String x:Key="ChannelPreviewsOfferTip">Télécharge le pack d’images une seule fois et remplit la grille sans se connecter à chaque chaîne.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownload">Télécharger les images</sys:String>
     <sys:String x:Key="ChannelPreviewsNotNow">Pas maintenant</sys:String>
     <sys:String x:Key="ChannelPreviewsWorking">Préparation des images d'aperçu.. {0} sur {1}</sys:String>
@@ -26,7 +26,6 @@
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Téléchargement des images.. {0} Mo</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">Téléchargement des images annulé.</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">Lecture du pack d'images..</sys:String>
-    <sys:String x:Key="ChannelPreviewsFinishing">Finalisation..</sys:String>
     <sys:String x:Key="AddStream">Ajouter un flux</sys:String>
     <sys:String x:Key="AddStreamPlain">Ajouter un flux</sys:String>
     <sys:String x:Key="UpdateCatalog">Importer des chaînes depuis internet</sys:String>

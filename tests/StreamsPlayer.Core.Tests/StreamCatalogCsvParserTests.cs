@@ -79,16 +79,19 @@ public sealed class StreamCatalogCsvParserTests
         Assert.Equal(expected, Assert.Single(StreamCatalogCsvParser.Parse(csv)).IsLive);
     }
 
-    // SP-0033: only the documented `geo` token is recognised. Everything else - blank, whitespace, and
-    // any value the catalog adds later - must stay Open so an unknown tag never reaches the UI.
+    // SP-0088, source contract item E: `access` is an opaque token, not a closed set. Blank means open;
+    // every non-empty value means a restriction this consumer does not model. SP-0033 had this inverted -
+    // it recognised `geo` alone and folded every other token into Open, so a token the producer adds
+    // later would read as the *absence* of a restriction, which is the one answer that cannot be right.
     [Theory]
     [InlineData("geo", ChannelAccess.GeoRestricted)]
     [InlineData("GEO", ChannelAccess.GeoRestricted)]
     [InlineData("  geo  ", ChannelAccess.GeoRestricted)]
     [InlineData("", ChannelAccess.Open)]
     [InlineData("   ", ChannelAccess.Open)]
-    [InlineData("paywall", ChannelAccess.Open)]
-    public void Parse_RecognisesOnlyTheDocumentedAccessValue(string value, ChannelAccess expected)
+    [InlineData("paywall", ChannelAccess.GeoRestricted)]
+    [InlineData("drm", ChannelAccess.GeoRestricted)]
+    public void Parse_TreatsAnyNonEmptyAccessTokenAsARestriction(string value, ChannelAccess expected)
     {
         var csv = $"name,url,access\r\nTest,https://radio.test/live,\"{value}\"\r\n";
         Assert.Equal(expected, Assert.Single(StreamCatalogCsvParser.Parse(csv)).Access);

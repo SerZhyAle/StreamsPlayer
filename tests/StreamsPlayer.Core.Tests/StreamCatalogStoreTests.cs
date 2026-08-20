@@ -4,6 +4,10 @@ namespace StreamsPlayer.Core.Tests;
 
 public sealed class StreamCatalogStoreTests
 {
+    // The channelPreview stamp of the artwork build published 2026-08-20, as artwork-manifest.json
+    // carries it: a real value, so the round trip is exercised on the shape the field actually holds.
+    private const string Stamp = "f954f493b7b3c07470787bb2798def420a1eeecf3ed2aed62cba2b14359f4905";
+
     // SP-0059: the clean-install signal behind the one first-launch question. It has to answer "no"
     // for a directory the product has never written to, and "yes" from the first save onwards - the
     // launch that shows the dialog also persists the detected interface language, which is what makes
@@ -194,8 +198,9 @@ public sealed class StreamCatalogStoreTests
             Assert.True(loaded.PlayerWindowTopmost);
             Assert.Equal(35, loaded.VideoVolume);
             Assert.True(loaded.VideoMuted);
-            // Never seeded is the default for a state file written before SP-0031.
-            Assert.Null(loaded.ChannelPreviewAtlasRevision);
+            // Never seeded is the default for a state file written before SP-0031 - and for one written before
+            // SP-0091, whose ChannelPreviewAtlasRevision key named a frozen sheet revision and is not migrated.
+            Assert.Null(loaded.ChannelPreviewArtworkStamp);
         }
         finally
         {
@@ -298,7 +303,7 @@ public sealed class StreamCatalogStoreTests
     }
 
     [Fact]
-    public async Task Save_PreservesChannelPreviewAtlasRevision()
+    public async Task Save_PreservesTheChannelPreviewArtworkStamp()
     {
         var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
         try
@@ -306,12 +311,12 @@ public sealed class StreamCatalogStoreTests
             var store = new StreamCatalogStore(directory);
             await store.SaveAsync(new CatalogState
             {
-                ChannelPreviewAtlasRevision = ChannelPreviewAtlasService.Revision
+                ChannelPreviewArtworkStamp = Stamp
             });
 
             var loaded = await store.LoadAsync();
 
-            Assert.Equal(ChannelPreviewAtlasService.Revision, loaded.ChannelPreviewAtlasRevision);
+            Assert.Equal(Stamp, loaded.ChannelPreviewArtworkStamp);
         }
         finally
         {

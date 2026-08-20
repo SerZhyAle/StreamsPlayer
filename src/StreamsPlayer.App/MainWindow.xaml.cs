@@ -247,7 +247,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             // SP-0052: the one first-launch offer, shown after the window has settled so it never
             // competes with the load itself. Nothing is applied until the user accepts it. Kept exactly
             // as it was for every installation that already has local state.
-            MaybeOfferCatalogSnapshot();
+            await OfferCatalogSnapshotAsync();
         }
     }
 
@@ -275,6 +275,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
 
         string? failure = null;
+        var imported = false;
         _cancellableOperation = new CancellationTokenSource();
         _reportingProgress = true;
         var progress = OnDispatcher<DownloadProgress>(report => ShowDownloadProgress(
@@ -291,7 +292,28 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             // the status line.
             _reportingProgress = false;
             _state = result.State;
-            _log.Information($"Catalog refresh completed: {result.Added} added, {result.Updated} updated, {result.Removed} removed.");
+            _log.Information(
+                $"Catalog refresh completed: {result.Added} added, {result.Updated} updated, " +
+                $"{result.Removed} removed, {result.Retired} retired.");
+            if (!result.AtlasReplaced)
+            {
+                // SP-0087: the one refresh outcome that was invisible. The bank carried no usable icon
+                // atlas, so the installed one was kept. SP-0088 then made this build's favicon indices be
+                // discarded rather than resolved against that older sheet, so what the user sees is
+                // monograms where icons were - recoverable by the next refresh, and never another
+                // channel's logo. Still nothing on the outside says a download was mispackaged.
+                _log.Event("CATALOG ATLAS", "op=catalog_refresh", "bank_atlas=absent", "installed=kept",
+                    "indices=discarded", "effect=monogram_until_next_refresh");
+            }
+            if (result.Retired > 0)
+            {
+                // SP-0089: rows the bank stopped listing that were kept because the user had authored
+                // something on them. Logged separately from `removed` precisely because the two are
+                // opposite outcomes, and a support report has to be able to tell "332 channels vanished"
+                // from "332 went, none of yours".
+                _log.Event("CATALOG RETIRED", "op=catalog_refresh", $"retired={result.Retired}",
+                    $"deleted={result.Removed}", "reason=user_authored_state_survives_absence");
+            }
             // Memberships survive a refresh (ids are stable for surviving URLs); only pruned rows are dropped.
             await PruneCollectionsAsync();
             PopulateFacets();
@@ -303,9 +325,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 await QueueVisibleSafelyAsync(force: true);
             }
 
-            // SP-0031: the only path that can lead to a preview-atlas download, and only via the user's
-            // explicit acceptance of the offer this shows.
-            MaybeOfferChannelPreviews();
+            imported = true;
         }
         // SP-0056: abandoning is not failing. The guard matters: a silent transfer surfaces as
         // TimeoutException precisely so it lands in the general catch below, and a disposed source
@@ -335,6 +355,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (failure is not null)
         {
             await OfferSnapshotAfterFailedRefreshAsync(failure);
+            return;
+        }
+
+        // SP-0088: the only path that can lead to a preview-atlas download, and only through the user's
+        // answer to the question it asks. Out here for the same reason as the offer above - accepting it
+        // runs its own busy cycle, and the modal must not open over a window still showing this one's
+        // progress bar.
+        if (imported)
+        {
+            await OfferChannelPreviewsAsync();
         }
     }
 
