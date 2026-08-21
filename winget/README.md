@@ -91,6 +91,27 @@ then submitted as
 fork-branch plus contents-API path described above; `wingetcreate` was not
 attempted, for the reason recorded below it.
 
+Re-checked against the API on 2026-08-21 before submitting: #421532 merged, the tree carries seven
+versions up to and including **26.0820.1828**, and no StreamsPlayer pull request was open.
+26.0821.1208 was then submitted as
+[#422124](https://github.com/microsoft/winget-pkgs/pull/422124), same fork-branch plus contents-API
+path, five files, additions only, and the title got no `New-Manifest` label.
+
+**That submission mattered more than a version bump.** 26.0820.1828 - the version this repository was
+serving - carries a WPF runtime that breaks `MediaElement` network audio outright, so `winget install`
+was handing people an application that opens its catalog and plays nothing at all. The lesson is not
+about winget: **a channel that was not touched is not a channel that is fine.** What it delivers can
+break underneath a manifest nobody edited, and the only way to know is to install from the channel and
+use the product, which is exactly what the local install test below now buys.
+
+**The unticked box is now tickable, and was ticked.** `LocalManifestFiles` turned out to be already
+enabled on the machine, so the full ladder ran for the first time in this package's history:
+`winget install --manifest` downloaded the asset, verified the hash itself, extracted the portable
+payload and registered the `streamsplayer` alias; the installed payload was then launched against a
+live station and reached `AUDIO LIVE`; `winget uninstall` removed it and left `%LOCALAPPDATA%\StreamsPlayer`
+intact. Check `winget settings export | ConvertFrom-Json` for `adminSettings.LocalManifestFiles`
+before assuming the elevation problem below still applies to this machine.
+
 **One checklist box went out unticked, deliberately.** `winget install --manifest`
 needs `winget settings --enable LocalManifestFiles`, which needs an elevated
 shell. Where the release runs without one, the box is a lie and must stay empty -

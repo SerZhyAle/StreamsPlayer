@@ -63,20 +63,39 @@ Version REPLACE_VERSION
 
 ### Prepared for 26.0821.1208
 
-**Stamped and released on GitHub on 2026-08-21.** The winget submission and the Partner Center upload
-were deliberately **not** done in the run that cut this version - the owner's call, recorded here so a
-later reader does not read the omission as an oversight. That decision has a cost, stated plainly
-below.
+**Stamped and released on GitHub on 2026-08-21, and submitted to winget the same day** as
+[#422124](https://github.com/microsoft/winget-pkgs/pull/422124). The Partner Center upload is the one
+step still outstanding, and the reason is in the next paragraph, not an oversight.
 
 Ships SP-0092 (the Inno Setup installer as a fourth delivery channel, per-user and elevation-free) and
 SP-0093 (the WPF runtime pinned back from 10.0.11, which broke `MediaElement` network audio outright).
 
-**SP-0093 is why this release matters more than its feature list.** 26.0820.1828 shipped runtime
-10.0.11 and plays no station at all - the failure is total, not intermittent, and it reaches every
-channel that carries that build. GitHub now serves the fix. **winget and the Store do not** - winget
-resolves `SerZhyAle.StreamsPlayer` to 26.0820.1828 and the Store sits on 26.0806.2225. A winget user
-who installs or upgrades today gets an application that opens and plays nothing. Submitting the winget
-manifest is the single cheapest way to close that, and it is step 8 of the release checklist.
+**SP-0093 is why this release matters more than its feature list - but only on two of the four
+channels.** 26.0820.1828 shipped runtime 10.0.11 and plays no station at all: the failure is total,
+not intermittent. GitHub serves the fix now, and the winget submission above closes the channel that
+was actually resolving to the broken build. **The Store was never in that set.** It sits on
+26.0806.2225, which predates 10.0.11 entirely, so a Store user's application has been playing
+normally throughout - old, not broken. That is the whole reason the Partner Center step is not
+urgent, and it is worth stating explicitly, because "republish everything that is broken" reads as
+including the Store until you check which runtime each channel actually carries.
+
+The Store package itself is built and waiting: `msix/dist/StreamsPlayer-26.0821.1208-windows-x64.msix`,
+138,619,159 bytes, `NotSigned` as Partner Center requires, sha256
+`EA86D8B975BEAD9CCF6A50035A791D792A0981AB422D7B9039D9D32BEA9BFCED`. Checklist step 5 was done for
+real rather than skipped: the self-signed twin was installed with `Add-AppxPackage`, launched from its
+`WindowsApps` location and reached `AUDIO LIVE` on a live station, which is what proves the pin
+survives MSIX packaging and not only the plain publish. The test package and its machine-wide
+certificate were then removed.
+
+**Built from a clean `git worktree` at the tag, and the first attempt was thrown away.** Unlike the zip
+and the installer, which `release.yml` builds from a fresh checkout of `v26.0821.1208`, an MSIX built
+by `msix/build-msix.ps1` publishes **the working tree as it stands right now**. Unreleased work was in
+progress in this one - SP-0094, timestamps three minutes before the pack - so the first package carried
+1,502 bytes of UI that is in no release, under a version number claiming to be 26.0821.1208. It was
+deleted rather than kept "for reference", because the one thing worse than no prepared package is a
+prepared package nobody can tell is wrong. **Build a Store package from
+`git worktree add ../<dir> v<version>` unless the tree is provably clean at the tag**; `git status`
+before the pack is the whole check, and it costs one command.
 
 New in the release assets: `StreamsPlayer-26.0821.1208-windows-x64-setup.exe` and its `.sha256`
 sidecar, beside the portable zip. The zip's name and shape are unchanged, which is what keeps the
@@ -91,10 +110,6 @@ source.
 Deliberately not bulleted: the installer's internals, the runtime pin's mechanics, and the fourth tile
 on the site. A user reads three sentences about what changed for them, not a build log.
 
-No Store-only block is prepared for this version. The Store is still on 26.0806.2225 and the
-accumulated Store text under 26.0820.1828 below is what a Partner Center submission would carry; it
-needs the two items above added to it before it is submitted, and rewriting it now - for a submission
-the owner has declined - would only let it go stale twice.
 
 ```text
 Version 26.0821.1208
@@ -118,6 +133,59 @@ Version 26.0821.1208
 - Радіо знову грає. У 26.0820.1828 будь-яка станція обривалася одразу при відкритті, на будь-якій машині - причина була в системному рантаймі Windows, з яким постачалася програма, а не в станції і не у вашому з'єднанні. Якщо та версія не грала нічого, ця це виправляє, і нічого скидати не потрібно.
 - З'явився інсталятор. Завантажте один файл, запустіть, і програма встановиться для вашого облікового запису, не питаючи прав адміністратора, додасться в меню «Пуск» і до списку встановлених програм і звідти ж видаляється. Переносний ZIP лишився рівно таким, яким був, для тих, хто воліє розпакувати теку.
 - Видалення програми не чіпає ваші дані - закріплені канали, добірки, історія та налаштування переживають видалення і лишаються на місці, якщо ви встановите програму знову.
+```
+
+#### Store-only What's new for 26.0821.1208
+
+Not a second source for the release notes above - a different text for a different audience. The Store
+sits on 26.0806.2225, so its user has never seen 26.0809.0022, 26.0819.0156 or 26.0820.1828. These
+blocks cover all four releases and are what Partner Center gets. The ten machine-translated languages
+get the English text.
+
+**Identical to the 26.0820.1828 block except the version line, and that is correct, not lazy.** Neither
+item this version actually adds is a Store item. The audio fix repairs a runtime that 26.0806.2225
+never carried, so the Store user's application was never broken and has nothing to be told it is fixed
+from; and the installer is a different delivery channel, which a Store listing has no business
+advertising. Measured: 1454 en, 1454 ru, 1419 uk against a 1,500-character limit, so there was no room
+for a fifth item either way.
+
+```text
+Version 26.0821.1208
+
+- Channels the catalog gives no logo now carry a mark of their own - initials from the name, a colour drawn from that same name, and the country code where it is known.
+- A channel the catalog stops publishing keeps your pins, your collections and your history instead of vanishing, and returns on its own if the catalog lists it again.
+- The catalog can shrink to a compact radio panel while a station plays - always on top, carrying the station, the current track, the volume, the transport, the sleep timer and Random station.
+- Play a random station. One press picks from the whole catalog, ignoring the search and the facets, and skips hidden stations, video and RTSP. One that stays silent gives way to the next draw.
+- A built-in channel list. A copy of the stream bank ships inside the app, so the catalog fills on a first launch with no network. It adds and updates, never removes, and says how old it is.
+- A topic filter, sharing a channel as one line of text, playback that resumes where the last session left off, and what is on air under the channel name.
+- The player says why the picture stopped, a stream that stalls while pretending to play is caught and re-opened, and video quality follows the connection and is remembered per channel.
+- Fixed - a very long station name could take the desktop shortcut down with it, dark-theme glyph buttons were unreadable, and a radio stream that ended kept the machine awake.
+```
+
+```text
+Версия 26.0821.1208
+
+- Каналы, которым каталог не дал логотипа, теперь несут собственный знак - инициалы из названия, цвет, выведенный из того же названия, и код страны, если он известен.
+- Канал, который каталог перестал публиковать, сохраняет ваши закрепления, подборки и историю вместо того, чтобы исчезнуть, и возвращается сам, если каталог снова его перечислит.
+- Каталог умеет ужаться до компактной радиопанели, пока играет станция - поверх других окон, со станцией, текущим треком, громкостью, управлением, таймером сна и случайной станцией.
+- Включить случайную станцию. Одно нажатие выбирает из всего каталога, не глядя на поиск и фасеты, и пропускает скрытые станции, видео и RTSP. Молчащая уступает место следующей.
+- Встроенный список каналов. Копия банка потоков лежит внутри программы, поэтому каталог заполняется при первом запуске без сети. Он добавляет и обновляет, ничего не удаляет и называет свой возраст.
+- Фильтр по темам, отправка канала одной строкой текста, продолжение воспроизведения с места прошлого сеанса и трек, который станция играет прямо сейчас, под названием канала.
+- Плеер объясняет, почему картинка остановилась, поток, который делает вид, что играет, переоткрывается, а качество видео следует за соединением и запоминается для канала.
+- Исправлено - очень длинное название станции могло уронить программу при выносе ярлыка, кнопки-глифы в тёмной теме были нечитаемы, а завершившееся радио держало компьютер без сна.
+```
+
+```text
+Версія 26.0821.1208
+
+- Канали, яким каталог не дав логотипа, тепер несуть власний знак - ініціали з назви, колір, виведений із тієї самої назви, і код країни, якщо він відомий.
+- Канал, який каталог перестав публікувати, зберігає ваші закріплення, добірки та історію замість того, щоб зникнути, і повертається сам, якщо каталог знову його перелічить.
+- Каталог уміє стиснутися до компактної радіопанелі, поки грає станція - поверх інших вікон, зі станцією, поточним треком, гучністю, керуванням, таймером сну та випадковою станцією.
+- Увімкнути випадкову станцію. Одне натискання обирає з усього каталогу, не зважаючи на пошук і фасети, і пропускає приховані станції, відео та RTSP. Мовчазна поступається наступній.
+- Вбудований список каналів. Копія банку потоків лежить усередині програми, тож каталог заповнюється при першому запуску без мережі. Він додає та оновлює, нічого не видаляє і називає свій вік.
+- Фільтр за темами, надсилання каналу одним рядком тексту, продовження відтворення з місця минулого сеансу і трек, який станція грає просто зараз, під назвою каналу.
+- Програвач пояснює, чому картинка зупинилася, потік, який вдає, що грає, перевідкривається, а якість відео йде за з'єднанням і запам'ятовується для каналу.
+- Виправлено - дуже довга назва станції могла впустити програму під час винесення ярлика, кнопки-гліфи в темній темі були нечитабельні, а радіо, що завершилося, тримало комп'ютер без сну.
 ```
 
 ### Prepared for 26.0820.1828

@@ -988,3 +988,37 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   distinction is `AUDIO OPEN` present-and-then-failing (a real fault) versus no `AUDIO` line whatsoever
   (a mis-typed invocation). Also allow ~30 s for the catalog to load before playback is even attempted;
   killing the process at 30 s reads as a failure too (2026-08-21).
+
+- **`project` - "channel unchanged" and "channel fine" are different claims.** SP-0093 shipped a total
+  playback failure to 26.0820.1828, and the owner's instinct was to leave winget and the Store alone
+  because their manifests had not changed. The manifests had not; what they *delivered* had. winget
+  resolved to the broken build and was handing people a silent application, while the Store sat on
+  26.0806.2225 - a version predating the bad runtime entirely, so genuinely fine, just old. **The two
+  channels needed opposite answers, and neither answer was derivable from "did we touch it".** Decide
+  per channel by asking what artifact it actually serves and what runtime that artifact carries, then
+  say which channels are in the broken set and which are not - and say it in
+  `msix/store-listing.md`, where the next submission will read it (2026-08-21).
+
+- **`reference` - `LocalManifestFiles` was already enabled on this machine, so the winget install test
+  is available.** Three submissions went out with the `winget install --manifest` box unticked because
+  the note in `winget/README.md` said enabling it needs elevation. It was already on. Check
+  `winget settings export | ConvertFrom-Json` -> `adminSettings.LocalManifestFiles` before believing a
+  note that says a check is impossible - a note records what was true once, and the cheapest possible
+  probe is one command. The full ladder now runs: install from the manifest, launch the payload with
+  `--url` against a live station, `winget uninstall`, confirm `%LOCALAPPDATA%\StreamsPlayer` survived
+  (2026-08-21).
+
+- **`project` - `msix/build-msix.ps1` packs the working tree, not the tag.** `release.yml` builds the
+  zip and the installer from a fresh checkout of `v<version>`, so those assets cannot pick up
+  uncommitted work; the MSIX has no such protection - it runs `dotnet publish` against whatever is on
+  disk and then stamps the version you passed on the result. On 2026-08-21 that produced a
+  "26.0821.1208" package carrying 1,502 bytes of an unreleased feature another session was editing in
+  the same tree, three minutes before the pack. Caught only by `git status` before committing, not by
+  anything in the build. **Build a Store package from `git worktree add ../<dir> v<version>`** unless
+  the tree is provably clean at the tag, and delete a contaminated package instead of keeping it - a
+  wrong package that looks right is worse than none.
+
+- **`project` - this working tree can have another agent session editing it concurrently.** `git add -A`
+  staged twenty-one files of someone else's in-progress SP-0094 work along with mine. Stage by explicit
+  path when the tree is shared, and read `git status` before every commit rather than trusting that the
+  only changes present are the ones you made (2026-08-21).
