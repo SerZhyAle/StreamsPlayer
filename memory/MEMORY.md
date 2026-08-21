@@ -25,8 +25,15 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   This overrides the house rule about the Claude Code footer in PR bodies: that rule is for this
   project's own PRs, and a third-party template wins over it.
   **It happened again on 2026-08-09**, PR #414229, in the same two ways - a self-invented body with
-  its own `### Validation` heading, and the `New version:` title - and `New-Manifest` was attached
-  within the minute. Editing the title afterwards did not remove the label.
+  its own `### Validation` heading, and the `New version:` title.
+  **Correction, 2026-08-21: `New-Manifest` was never the tell, and this entry taught that wrongly
+  twice.** Checked against the API: every merged submission this package has - #414229, #420274,
+  #421532 - carries `New-Manifest` alongside `Validation-Completed`, `Moderator-Approved` and
+  `Publish-Pipeline-Succeeded`, and #420274 and #421532 both went out with the *correct* `Update:`
+  title. The bot applies it because the pull request adds a manifest folder, which every new version
+  does. So the label is noise, the title rule stands on its own merits, and **a symptom that appears
+  on the successes too is not evidence of the failure** - which is the general lesson worth more than
+  the winget detail. Confirm a diagnosis against the cases that went right before believing it.
   Why the entry did not prevent it, which is the part worth keeping: this file was never opened that
   session. It was grepped for one line and appended to, and the top was never read, so an entry
   sitting at line 12 changed nothing. **Two conclusions.** Read this file before acting, not while

@@ -36,14 +36,21 @@ genuinely true. Never write a body of your own structure, never paraphrase the c
 and never append this project's own commit footer: the maintainer bots parse the template, so a
 rewritten one reads as an unfilled one. The template also states the **title** format in an HTML
 comment on its first line. For a package already in the repository that is
-`Update: SerZhyAle.StreamsPlayer to <version>`, **not** `New version: ...`; the wrong title gets the
-submission labelled `New-Manifest`, which says an existing package is brand new, and editing the
-title afterwards does not take the label back off.
+`Update: SerZhyAle.StreamsPlayer to <version>`, **not** `New version: ...`.
 
-This has now gone wrong on three submissions - #408215 on 2026-07-27, and #414229 on 2026-08-09,
-which was opened with a hand-written body and the `New version:` title and picked up `New-Manifest`
-within the minute. It is written here, at the step where it happens, precisely because it was already
-written in `memory/MEMORY.md` and that was not enough. The template changes: on 2026-08-09 it carried
+**Correction, checked against the API on 2026-08-21: the `New-Manifest` label is not the tell this
+note claimed it was.** It said a wrong title earns that label and a right one avoids it. It does not.
+Every merged submission this package has - #414229, #420274, #421532 - went out with the correct
+`Update:` title and carries `New-Manifest` anyway, beside `Validation-Completed`,
+`Moderator-Approved` and `Publish-Pipeline-Succeeded`. The bot applies it because the pull request
+*adds* a manifest folder, which every new version does. #422124 has it too. **Do not chase it, do not
+re-open a submission over it, and do not read it as evidence the title was wrong** - check the title
+against the template's own HTML comment instead, which is the only thing that actually settles it.
+Use the right title because it is the right title, not to dodge a label.
+
+The title itself did go wrong once, on #414229 on 2026-08-09 - opened with a hand-written body and a
+`New version:` title. That is the reason the "use the template verbatim" rule above exists; the label
+was never the symptom. The template changes: on 2026-08-09 it carried
 `## 📖 Description`, `## ✅ Checklist` and `## 📦 Manifest Checklist`, including a
 `This PR only modifies one (1) manifest` box that did not exist in July. Fetch it; do not reproduce
 the version quoted here.
