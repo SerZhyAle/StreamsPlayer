@@ -79,6 +79,9 @@ Windows 10 / 11
 @@fact-langs
 13 种界面语言
 
+@@hero-download
+下载 (.exe)
+
 @@hero-cta-use
 如何使用
 

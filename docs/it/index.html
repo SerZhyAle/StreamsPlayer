@@ -167,9 +167,15 @@
             <span class="fact">Nessuna telemetria</span>
             <span class="fact">13 lingue dell'interfaccia</span>
           </div>
+          <!-- The installer is the primary action, and it is first because it was not here at all:
+               the only route to a download sat in the Distribution grid at 90% of the page height, so a
+               visitor who did not scroll to the bottom never found one. site.js rewrites this href to the
+               exact -windows-x64-setup.exe of the current release; the static href reaches the release
+               page, which is a working answer rather than a dead link when that fetch fails. -->
           <div class="button-group">
-            <a class="button button-primary" href="#use">Come si usa</a>
-            <a class="button button-gold" href="https://github.com/SerZhyAle/StreamsPlayer">Vedi il codice sorgente</a>
+            <a class="button button-primary" id="dl-setup-hero" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">Scarica (.exe)</a>
+            <a class="button button-gold" href="#use">Come si usa</a>
+            <a class="button button-ghost" href="https://github.com/SerZhyAle/StreamsPlayer">Vedi il codice sorgente</a>
             <a class="button button-ghost" href="#distribution">Stato del rilascio</a>
           </div>
         </div>

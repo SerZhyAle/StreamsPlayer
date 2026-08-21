@@ -69,8 +69,12 @@ document.addEventListener("DOMContentLoaded", () => {
 // offline, rate-limited, renamed asset - leaves the rendered releases-page href untouched, which is a
 // working link rather than a broken one.
 (function resolveInstallerLink() {
-  const link = document.getElementById("dl-setup");
-  if (!link) {
+  // Two links, one request: the hero button and the Distribution tile point at the same file. Both
+  // ids are looked up before the fetch so a page without one of them still resolves the other.
+  const links = ["dl-setup-hero", "dl-setup"]
+    .map((id) => document.getElementById(id))
+    .filter(Boolean);
+  if (!links.length) {
     return;
   }
   fetch("https://api.github.com/repos/SerZhyAle/StreamsPlayer/releases/latest")
@@ -80,7 +84,9 @@ document.addEventListener("DOMContentLoaded", () => {
         /-windows-x64-setup\.exe$/.test(candidate.name)
       );
       if (asset && asset.browser_download_url) {
-        link.href = asset.browser_download_url;
+        links.forEach((link) => {
+          link.href = asset.browser_download_url;
+        });
       }
     })
     .catch(() => {

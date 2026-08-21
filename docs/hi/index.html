@@ -167,9 +167,15 @@
             <span class="fact">टेलीमेट्री नहीं</span>
             <span class="fact">13 इंटरफ़ेस भाषाएँ</span>
           </div>
+          <!-- The installer is the primary action, and it is first because it was not here at all:
+               the only route to a download sat in the Distribution grid at 90% of the page height, so a
+               visitor who did not scroll to the bottom never found one. site.js rewrites this href to the
+               exact -windows-x64-setup.exe of the current release; the static href reaches the release
+               page, which is a working answer rather than a dead link when that fetch fails. -->
           <div class="button-group">
-            <a class="button button-primary" href="#use">कैसे उपयोग करें</a>
-            <a class="button button-gold" href="https://github.com/SerZhyAle/StreamsPlayer">स्रोत कोड देखें</a>
+            <a class="button button-primary" id="dl-setup-hero" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">डाउनलोड करें (.exe)</a>
+            <a class="button button-gold" href="#use">कैसे उपयोग करें</a>
+            <a class="button button-ghost" href="https://github.com/SerZhyAle/StreamsPlayer">स्रोत कोड देखें</a>
             <a class="button button-ghost" href="#distribution">रिलीज़ की स्थिति</a>
           </div>
         </div>

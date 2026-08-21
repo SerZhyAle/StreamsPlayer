@@ -79,6 +79,9 @@ Sans télémétrie
 @@fact-langs
 13 langues d'interface
 
+@@hero-download
+Télécharger (.exe)
+
 @@hero-cta-use
 Comment l'utiliser
 

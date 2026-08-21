@@ -79,6 +79,9 @@ Keine Telemetrie
 @@fact-langs
 13 Oberflächensprachen
 
+@@hero-download
+Herunterladen (.exe)
+
 @@hero-cta-use
 Bedienung
 
