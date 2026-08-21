@@ -64,8 +64,15 @@ Version REPLACE_VERSION
 ### Prepared for 26.0821.1208
 
 **Stamped and released on GitHub on 2026-08-21, and submitted to winget the same day** as
-[#422124](https://github.com/microsoft/winget-pkgs/pull/422124). The Partner Center upload is the one
-step still outstanding, and the reason is in the next paragraph, not an oversight.
+[#422124](https://github.com/microsoft/winget-pkgs/pull/422124).
+
+**Not submitted to the Store, by the owner's decision on 2026-08-21, and that decision is closed.**
+The Store keeps 26.0806.2225. This is not a step left pending for a later run to pick up: with the
+Store outside the broken set (see below), what 26.0821.1208 would carry to a Store user is a
+minor-changes update, and a Partner Center submission costs a certification cycle for it. The next
+Store submission is whichever version has something a Store user actually needs - it will inherit the
+accumulated What's new block below, which is why that block is written and kept current even though
+this version is not going out. Do not open this as an outstanding task.
 
 Ships SP-0092 (the Inno Setup installer as a fourth delivery channel, per-user and elevation-free) and
 SP-0093 (the WPF runtime pinned back from 10.0.11, which broke `MediaElement` network audio outright).
@@ -75,13 +82,16 @@ channels.** 26.0820.1828 shipped runtime 10.0.11 and plays no station at all: th
 not intermittent. GitHub serves the fix now, and the winget submission above closes the channel that
 was actually resolving to the broken build. **The Store was never in that set.** It sits on
 26.0806.2225, which predates 10.0.11 entirely, so a Store user's application has been playing
-normally throughout - old, not broken. That is the whole reason the Partner Center step is not
-urgent, and it is worth stating explicitly, because "republish everything that is broken" reads as
-including the Store until you check which runtime each channel actually carries.
+normally throughout - old, not broken. That is what settled the Partner Center question, and it is
+worth stating explicitly, because "republish everything that is broken" reads as including the Store
+until you check which runtime each channel actually carries. Checking first is what turned a
+certification cycle into a decision that took one command.
 
-The Store package itself is built and waiting: `msix/dist/StreamsPlayer-26.0821.1208-windows-x64.msix`,
-138,619,159 bytes, `NotSigned` as Partner Center requires, sha256
-`EA86D8B975BEAD9CCF6A50035A791D792A0981AB422D7B9039D9D32BEA9BFCED`. Checklist step 5 was done for
+The Store package exists but is **not queued for upload** - it was built to run checklist step 5, and
+it stays on disk as the evidence for it, not as a submission waiting for a click:
+`msix/dist/StreamsPlayer-26.0821.1208-windows-x64.msix`, 138,619,159 bytes, `NotSigned` as Partner
+Center requires, sha256 `EA86D8B975BEAD9CCF6A50035A791D792A0981AB422D7B9039D9D32BEA9BFCED`. A later
+Store submission should rebuild from its own tag rather than reach for this file. Step 5 was done for
 real rather than skipped: the self-signed twin was installed with `Add-AppxPackage`, launched from its
 `WindowsApps` location and reached `AUDIO LIVE` on a live station, which is what proves the pin
 survives MSIX packaging and not only the plain publish. The test package and its machine-wide
