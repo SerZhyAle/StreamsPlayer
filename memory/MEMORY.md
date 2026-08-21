@@ -970,3 +970,21 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
      `Microsoft.Windows.SDK.NET.Ref`, whose versions look like `10.0.19041.57`, so restore dies `NU1102`
      hunting a "10.0.10" of it. The pin has to update `KnownFrameworkReference`, which only exists after
      the SDK targets - hence a root `Directory.Build.targets` (2026-08-21).
+
+- **`project` - a release and the site that advertises it must be two pushes, in that order.**
+  `pages.yml` deploys on any push to `main` touching `docs/**`, so a single commit carrying both the
+  release wiring and the generated site publishes the download tile *before* the release that contains
+  the file - the tile would resolve to nothing for the minutes the release workflow runs, and to the
+  previous release forever if the workflow failed. Split it: commit everything except `docs/`, push,
+  tag, wait for the release to land and verify the asset, then commit `docs/` and push. Nothing in CI
+  gates `docs/` against `tools/site/templates`, so the split leaves no red build in between - the only
+  cost is remembering to run `build-site.ps1` and make the second commit (2026-08-21).
+
+- **`reference` - launching a station from the command line takes `--url <value>`, two arguments.**
+  `StreamLaunchRequest.Parse` accepts exactly zero or two arguments; anything else is `Invalid`, and an
+  `Invalid` launch is *silent* - the app opens and loads the catalog normally and simply never plays.
+  A bare URL is therefore not a weaker form of the same thing, it is a no-op that looks exactly like the
+  SP-0093 audio failure: no `AUDIO` line in `Current.log` at all. When verifying playback, the
+  distinction is `AUDIO OPEN` present-and-then-failing (a real fault) versus no `AUDIO` line whatsoever
+  (a mis-typed invocation). Also allow ~30 s for the catalog to load before playback is even attempted;
+  killing the process at 30 s reads as a failure too (2026-08-21).
