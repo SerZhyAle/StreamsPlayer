@@ -47,6 +47,7 @@ code instead of the build's.
 - `pwsh -NoProfile -File ./build.ps1 -Deploy` - build a self-contained Release EXE and copy it to the local SZA app folders; this is not a release.
 - `pwsh -NoProfile -File ./run.ps1` - restore, build and launch the app in Debug, never deploying. `build.ps1 -Run` deploys first and runs Release.
 - `pwsh -NoProfile -File ./scripts/check.ps1` - Release restore, build, and test check.
+- `pwsh -NoProfile -File ./scripts/smoke-playback.ps1` - plays a live radio station and a live video stream through the shipping binary. Mandatory before a release; `check.ps1` cannot cover it, because it tests this repository's code and SP-0093 broke the runtime beneath it while all 858 tests stayed green.
 - `dotnet format StreamsPlayer.sln --verify-no-changes` - formatting diagnostic; it currently reports a pre-existing line-ending/encoding baseline and is not a passing gate until that baseline is normalized.
 - `dotnet run --project src/StreamsPlayer.App` - run the desktop application.
 - `dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png`

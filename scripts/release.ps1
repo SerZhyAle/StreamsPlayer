@@ -18,6 +18,12 @@ try {
 
 1. Confirm all intended changes are committed on main and CI is green.
 2. Run: ./scripts/check.ps1
+2b. Run: ./scripts/smoke-playback.ps1
+   Publishes the current tree, then plays a live radio station and a live video stream through the
+   shipping binary. Red here blocks the release outright. check.ps1 cannot cover this and never
+   could: it exercises this repository's code, and SP-0093 was a defect in the WPF runtime
+   underneath it - 858 tests stayed green while the product played nothing and a release shipped.
+   A build that plays is the only evidence that it plays.
 3. Regenerate the bundled catalog snapshot and commit it, then verify it:
    ./tools/build-catalog-snapshot.ps1  and  ./tools/build-catalog-snapshot.ps1 -Check
    A snapshot that is missing, over its size ceiling, or older than the bank currently published

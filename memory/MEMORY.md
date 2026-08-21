@@ -1053,3 +1053,16 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   line at all** - identical to what a mis-typed invocation looks like, and easy to misread as the
   playback bug itself. `Get-Process StreamsPlayer` and kill before any run-and-observe check
   (2026-08-21).
+
+- **`project` - the release gate that unit tests structurally cannot be: `scripts/smoke-playback.ps1`.**
+  Added 2026-08-21, after SP-0093 shipped a release that built clean, passed 858 tests and played
+  nothing. It publishes the tree and plays a live radio station (WPF `MediaElement`) and a live video
+  stream (LibVLC) through the shipping binary; `release.ps1` step 2b, rung 8 of the validation ladder.
+  It is deliberately outside `check.ps1`, which must stay offline and deterministic for CI.
+  **The reason is the generalizable part: tests cover the code you wrote, and the thing that broke was
+  something the build merely consumes.** No amount of unit testing reaches it. When a product depends
+  on a runtime, a native library or a service, the only evidence it works is that it worked.
+  **A gate nobody has watched fail is not a gate.** This one was proved in both directions before being
+  committed: green on the released build, and red - exit 1, both stations, the right diagnosis printed
+  - on a deliberately unpinned build carrying the broken runtime. Do that for every new gate; the
+  negative control is the cheap half and the only half that proves anything.
