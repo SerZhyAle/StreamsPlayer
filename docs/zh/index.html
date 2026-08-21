@@ -177,7 +177,7 @@
         <aside class="status-card" aria-labelledby="status-title">
           <span class="status-label">当前状态</span>
           <h2 id="status-title">已发布</h2>
-          <p>STREAMS Player 已发布，并且免费。可从 Microsoft Store 获取，从 GitHub 上最新的发布页下载便携版 ZIP，或使用 winget 安装 - 无需账户，没有广告，没有遥测。</p>
+          <p>STREAMS Player 已发布，并且免费。可运行 GitHub 上最新发布页里的安装程序，从 Microsoft Store 获取，下载便携版 ZIP，或使用 winget 安装 - 无需账户，没有广告，没有遥测。</p>
           <div class="status-links">
             <a class="button button-primary button-small" href="https://apps.microsoft.com/detail/9NBTD5SXB8TB">Microsoft Store</a>
             <a class="button button-ghost button-small" href="#distribution">获取方式</a>
@@ -255,7 +255,7 @@
 
       <section class="section" id="use" aria-labelledby="use-title">
         <h2 class="section-heading" id="use-title"><span class="hash">#</span><span>如何使用</span></h2>
-        <p class="section-description">打开它，选一个频道 - 整个流程就是这样。可从 Microsoft Store、winget 或便携版 ZIP 安装，也可以从源代码运行；还可以直接从命令行启动一个流。</p>
+        <p class="section-description">打开它，选一个频道 - 整个流程就是这样。可用安装程序，或从 Microsoft Store、winget 或便携版 ZIP 安装，也可以从源代码运行；还可以直接从命令行启动一个流。</p>
         <ol class="steps">
           <li class="step">
             <div>
@@ -295,8 +295,12 @@
 
       <section class="section" id="distribution" aria-labelledby="distribution-title">
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>分发渠道</span></h2>
-        <p class="section-description">三种获取方式都已可用。可从 Microsoft Store 获取，从 GitHub 上最新的发布页下载便携版 ZIP，或使用 <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code> 安装。</p>
+        <p class="section-description">四种获取方式都已可用。可运行 GitHub 上最新发布页里的安装程序，从 Microsoft Store 获取，下载便携版 ZIP，或使用 <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code> 安装。</p>
         <div class="distribution-grid">
+          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+            <span class="channel-mark">EXE</span>
+            <div><strong>安装程序（.exe）</strong><span class="pill">可用</span></div>
+          </a>
           <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
             <span class="channel-mark">ZIP</span>
             <div><strong>便携版 ZIP</strong><span class="pill">可用</span></div>
@@ -310,6 +314,7 @@
             <div><strong>winget</strong><span class="pill">可用</span></div>
           </a>
         </div>
+        <p class="section-description">安装程序就是文件名以 -windows-x64-setup.exe 结尾的那个文件。它只为当前用户安装，从不索取管理员权限；卸载它也不会影响您的频道、置顶和播放记录。它没有签名，因此首次运行时 Windows 会发出警告；每次发布都会在每个下载文件旁附上一个 .sha256 文件，您可以据此核对拿到的东西就是发布出来的东西。</p>
       </section>
     </main>
 

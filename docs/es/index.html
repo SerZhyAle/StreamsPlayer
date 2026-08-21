@@ -177,7 +177,7 @@
         <aside class="status-card" aria-labelledby="status-title">
           <span class="status-label">Estado actual</span>
           <h2 id="status-title">Publicado</h2>
-          <p>STREAMS Player está publicado y es gratuito. Consíguelo en Microsoft Store, como ZIP portable de la última versión publicada en GitHub, o con winget - sin cuenta, sin anuncios, sin telemetría.</p>
+          <p>STREAMS Player está publicado y es gratuito. Ejecuta el instalador de la última versión publicada en GitHub, consíguelo en Microsoft Store, llévate el ZIP portable, o instálalo con winget - sin cuenta, sin anuncios, sin telemetría.</p>
           <div class="status-links">
             <a class="button button-primary button-small" href="https://apps.microsoft.com/detail/9NBTD5SXB8TB">Microsoft Store</a>
             <a class="button button-ghost button-small" href="#distribution">Dónde conseguirlo</a>
@@ -255,7 +255,7 @@
 
       <section class="section" id="use" aria-labelledby="use-title">
         <h2 class="section-heading" id="use-title"><span class="hash">#</span><span>Cómo usarlo</span></h2>
-        <p class="section-description">Ábrelo y elige un canal - eso es todo. Instálalo desde Microsoft Store, con winget o como ZIP portable - o ejecútalo desde el código fuente; también puedes lanzar una transmisión directamente desde la línea de comandos.</p>
+        <p class="section-description">Ábrelo y elige un canal - eso es todo. Instálalo con el ejecutable de instalación, desde Microsoft Store, con winget o como ZIP portable - o ejecútalo desde el código fuente; también puedes lanzar una transmisión directamente desde la línea de comandos.</p>
         <ol class="steps">
           <li class="step">
             <div>
@@ -295,8 +295,12 @@
 
       <section class="section" id="distribution" aria-labelledby="distribution-title">
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>Distribución</span></h2>
-        <p class="section-description">Los tres canales de distribución están disponibles. Consíguelo en Microsoft Store, descarga el ZIP portable de la última versión publicada en GitHub o instálalo con <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
+        <p class="section-description">Los cuatro canales de distribución están disponibles. Ejecuta el instalador de la última versión publicada en GitHub, consíguelo en Microsoft Store, descarga el ZIP portable o instálalo con <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
         <div class="distribution-grid">
+          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+            <span class="channel-mark">EXE</span>
+            <div><strong>Instalador (.exe)</strong><span class="pill">Disponible</span></div>
+          </a>
           <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
             <span class="channel-mark">ZIP</span>
             <div><strong>ZIP portable</strong><span class="pill">Disponible</span></div>
@@ -310,6 +314,7 @@
             <div><strong>winget</strong><span class="pill">Disponible</span></div>
           </a>
         </div>
+        <p class="section-description">El instalador es el archivo que termina en -windows-x64-setup.exe. Se instala solo para el usuario actual y nunca pide permisos de administrador, y al desinstalarlo tus canales, tus anclados y tu historial quedan intactos. No está firmado, así que Windows avisa la primera vez que lo ejecutas; cada versión publica un archivo .sha256 junto a cada descarga, para que compruebes que lo que recibiste es lo que se publicó.</p>
       </section>
     </main>
 

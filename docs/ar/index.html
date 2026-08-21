@@ -177,7 +177,7 @@
         <aside class="status-card" aria-labelledby="status-title">
           <span class="status-label">الحالة الحالية</span>
           <h2 id="status-title">تم الإصدار</h2>
-          <p>تم إصدار STREAMS Player وهو مجاني. احصل عليه من Microsoft Store، أو كملف ZIP محمول من أحدث إصدار على GitHub، أو عبر winget - بلا حساب، وبلا إعلانات، وبلا قياس عن بُعد.</p>
+          <p>تم إصدار STREAMS Player وهو مجاني. شغّل المثبِّت من أحدث إصدار على GitHub، أو احصل عليه من Microsoft Store، أو خذ ملف ZIP المحمول، أو ثبّته عبر winget - بلا حساب، وبلا إعلانات، وبلا قياس عن بُعد.</p>
           <div class="status-links">
             <a class="button button-primary button-small" href="https://apps.microsoft.com/detail/9NBTD5SXB8TB">Microsoft Store</a>
             <a class="button button-ghost button-small" href="#distribution">من أين تحصل عليه</a>
@@ -255,7 +255,7 @@
 
       <section class="section" id="use" aria-labelledby="use-title">
         <h2 class="section-heading" id="use-title"><span class="hash">#</span><span>كيف تستخدمه</span></h2>
-        <p class="section-description">افتحه واختر قناة - هذا هو المسار كله. ثبّته من Microsoft Store أو winget أو من ملف ZIP المحمول - أو شغّله من الكود المصدري؛ ويمكنك أيضًا تشغيل بث مباشرة من سطر الأوامر.</p>
+        <p class="section-description">افتحه واختر قناة - هذا هو المسار كله. ثبّته بملف التثبيت التنفيذي، أو من Microsoft Store، أو عبر winget، أو من ملف ZIP المحمول - أو شغّله من الكود المصدري؛ ويمكنك أيضًا تشغيل بث مباشرة من سطر الأوامر.</p>
         <ol class="steps">
           <li class="step">
             <div>
@@ -295,8 +295,12 @@
 
       <section class="section" id="distribution" aria-labelledby="distribution-title">
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>التوزيع</span></h2>
-        <p class="section-description">طرق التوزيع الثلاث كلها متاحة. احصل عليه من Microsoft Store، أو نزّل ملف ZIP المحمول من أحدث إصدار على GitHub، أو ثبّته بالأمر <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
+        <p class="section-description">طرق التوزيع الأربع كلها متاحة. شغّل المثبِّت من أحدث إصدار على GitHub، أو احصل عليه من Microsoft Store، أو نزّل ملف ZIP المحمول، أو ثبّته بالأمر <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
         <div class="distribution-grid">
+          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+            <span class="channel-mark">EXE</span>
+            <div><strong>المثبِّت (.exe)</strong><span class="pill">متاح</span></div>
+          </a>
           <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
             <span class="channel-mark">ZIP</span>
             <div><strong>ملف ZIP محمول</strong><span class="pill">متاح</span></div>
@@ -310,6 +314,7 @@
             <div><strong>winget</strong><span class="pill">متاح</span></div>
           </a>
         </div>
+        <p class="section-description">المثبِّت هو الملف الذي ينتهي اسمه بـ -windows-x64-setup.exe. يثبّت التطبيق للمستخدم الحالي وحده ولا يطلب صلاحيات المسؤول أبدًا، وإزالته تترك قنواتك وتثبيتاتك وسجلك كما هي. وهو غير موقّع، لذا يحذّرك Windows في أول تشغيل؛ ومع كل إصدار يُنشر ملف .sha256 بجوار كل تنزيل، لتتحقق من أن ما حصلت عليه هو ما نُشر.</p>
       </section>
     </main>
 

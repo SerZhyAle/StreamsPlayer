@@ -177,7 +177,7 @@
         <aside class="status-card" aria-labelledby="status-title">
           <span class="status-label">বর্তমান অবস্থা</span>
           <h2 id="status-title">রিলিজ হয়েছে</h2>
-          <p>STREAMS Player রিলিজ হয়েছে এবং বিনামূল্যে। Microsoft Store থেকে নিন, সাম্প্রতিক GitHub Release থেকে পোর্টেবল ZIP হিসেবে নিন, বা winget দিয়ে ইনস্টল করুন - কোনও অ্যাকাউন্ট নয়, কোনও বিজ্ঞাপন নয়, কোনও টেলিমেট্রি নয়।</p>
+          <p>STREAMS Player রিলিজ হয়েছে এবং বিনামূল্যে। সাম্প্রতিক GitHub Release থেকে ইনস্টলার চালান, Microsoft Store থেকে নিন, পোর্টেবল ZIP নিন, বা winget দিয়ে ইনস্টল করুন - কোনও অ্যাকাউন্ট নয়, কোনও বিজ্ঞাপন নয়, কোনও টেলিমেট্রি নয়।</p>
           <div class="status-links">
             <a class="button button-primary button-small" href="https://apps.microsoft.com/detail/9NBTD5SXB8TB">Microsoft Store</a>
             <a class="button button-ghost button-small" href="#distribution">কোথায় পাবেন</a>
@@ -255,7 +255,7 @@
 
       <section class="section" id="use" aria-labelledby="use-title">
         <h2 class="section-heading" id="use-title"><span class="hash">#</span><span>কীভাবে ব্যবহার করবেন</span></h2>
-        <p class="section-description">খুলুন আর একটি চ্যানেল বাছুন - এটুকুই। Microsoft Store, winget বা পোর্টেবল ZIP থেকে ইনস্টল করুন - কিংবা সোর্স থেকে চালান; কমান্ড লাইন থেকেও সরাসরি একটি স্ট্রিম চালু করা যায়।</p>
+        <p class="section-description">খুলুন আর একটি চ্যানেল বাছুন - এটুকুই। সেটআপ ফাইল দিয়ে, Microsoft Store, winget বা পোর্টেবল ZIP থেকে ইনস্টল করুন - কিংবা সোর্স থেকে চালান; কমান্ড লাইন থেকেও সরাসরি একটি স্ট্রিম চালু করা যায়।</p>
         <ol class="steps">
           <li class="step">
             <div>
@@ -295,8 +295,12 @@
 
       <section class="section" id="distribution" aria-labelledby="distribution-title">
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>বিতরণ</span></h2>
-        <p class="section-description">তিনটি পথই খোলা। Microsoft Store থেকে নিন, সাম্প্রতিক GitHub Release থেকে পোর্টেবল ZIP নামান, বা <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code> দিয়ে ইনস্টল করুন।</p>
+        <p class="section-description">চারটি পথই খোলা। সাম্প্রতিক GitHub Release থেকে ইনস্টলার চালান, Microsoft Store থেকে নিন, পোর্টেবল ZIP নামান, বা <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code> দিয়ে ইনস্টল করুন।</p>
         <div class="distribution-grid">
+          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+            <span class="channel-mark">EXE</span>
+            <div><strong>ইনস্টলার (.exe)</strong><span class="pill">পাওয়া যাচ্ছে</span></div>
+          </a>
           <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
             <span class="channel-mark">ZIP</span>
             <div><strong>পোর্টেবল ZIP</strong><span class="pill">পাওয়া যাচ্ছে</span></div>
@@ -310,6 +314,7 @@
             <div><strong>winget</strong><span class="pill">পাওয়া যাচ্ছে</span></div>
           </a>
         </div>
+        <p class="section-description">ইনস্টলার হলো সেই ফাইল যার নাম -windows-x64-setup.exe দিয়ে শেষ হয়। এটি কেবল বর্তমান ব্যবহারকারীর জন্য ইনস্টল হয় এবং কখনও প্রশাসকের অনুমতি চায় না, আর আনইনস্টল করলেও আপনার চ্যানেল, পিন ও ইতিহাস অক্ষত থাকে। এটি স্বাক্ষরিত নয়, তাই প্রথমবার চালানোর সময় Windows সতর্ক করে; প্রতিটি রিলিজে প্রতিটি ডাউনলোডের পাশে একটি .sha256 ফাইল প্রকাশ করা হয়, যাতে আপনি মিলিয়ে নিতে পারেন যা পেয়েছেন তা-ই প্রকাশ করা হয়েছিল।</p>
       </section>
     </main>
 

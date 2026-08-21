@@ -177,7 +177,7 @@
         <aside class="status-card" aria-labelledby="status-title">
           <span class="status-label">Поточний статус</span>
           <h2 id="status-title">Випущено</h2>
-          <p>STREAMS Player випущено, він безкоштовний. Встановіть із Microsoft Store, завантажте портативний ZIP з останнього релізу на GitHub або встановіть через winget - без облікового запису, без реклами, без телеметрії.</p>
+          <p>STREAMS Player випущено, він безкоштовний. Запустіть інсталятор з останнього релізу на GitHub, встановіть із Microsoft Store, завантажте портативний ZIP або встановіть через winget - без облікового запису, без реклами, без телеметрії.</p>
           <div class="status-links">
             <a class="button button-primary button-small" href="https://apps.microsoft.com/detail/9NBTD5SXB8TB">Microsoft Store</a>
             <a class="button button-ghost button-small" href="#distribution">Де завантажити</a>
@@ -255,7 +255,7 @@
 
       <section class="section" id="use" aria-labelledby="use-title">
         <h2 class="section-heading" id="use-title"><span class="hash">#</span><span>Як користуватися</span></h2>
-        <p class="section-description">Відкрийте й виберіть канал - ось і весь сценарій. Встановіть із Microsoft Store, через winget або з портативного ZIP - або запускайте з вихідного коду; потік можна відкрити й прямо з командного рядка.</p>
+        <p class="section-description">Відкрийте й виберіть канал - ось і весь сценарій. Встановіть інсталятором, із Microsoft Store, через winget або розпакуйте портативний ZIP - або запускайте з вихідного коду; потік можна відкрити й прямо з командного рядка.</p>
         <ol class="steps">
           <li class="step">
             <div>
@@ -295,8 +295,12 @@
 
       <section class="section" id="distribution" aria-labelledby="distribution-title">
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>Поширення</span></h2>
-        <p class="section-description">Усі три способи встановлення доступні. Встановіть із Microsoft Store, завантажте портативний ZIP з останнього релізу на GitHub або встановіть командою <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
+        <p class="section-description">Усі чотири способи встановлення доступні. Запустіть інсталятор з останнього релізу на GitHub, встановіть із Microsoft Store, завантажте портативний ZIP або встановіть командою <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
         <div class="distribution-grid">
+          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+            <span class="channel-mark">EXE</span>
+            <div><strong>Інсталятор (.exe)</strong><span class="pill">Доступно</span></div>
+          </a>
           <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
             <span class="channel-mark">ZIP</span>
             <div><strong>Портативний ZIP</strong><span class="pill">Доступно</span></div>
@@ -310,6 +314,7 @@
             <div><strong>winget</strong><span class="pill">Доступно</span></div>
           </a>
         </div>
+        <p class="section-description">Інсталятор - це файл, ім'я якого закінчується на -windows-x64-setup.exe. Він встановлюється лише для поточного користувача й ніколи не просить прав адміністратора, а видалення не чіпає ваші канали, закріплені станції та історію. Він не підписаний, тому під час першого запуску Windows покаже попередження; поряд із кожним файлом у релізі публікується .sha256, тож ви можете перевірити, що завантажили саме те, що було опубліковано.</p>
       </section>
     </main>
 

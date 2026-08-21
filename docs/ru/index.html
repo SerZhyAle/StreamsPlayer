@@ -177,7 +177,7 @@
         <aside class="status-card" aria-labelledby="status-title">
           <span class="status-label">Текущий статус</span>
           <h2 id="status-title">Выпущен</h2>
-          <p>Трансляции выпущен и бесплатен. Установите из Microsoft Store, скачайте портативный ZIP из последнего релиза на GitHub или установите через winget - без аккаунта, без рекламы, без телеметрии.</p>
+          <p>Трансляции выпущен и бесплатен. Запустите инсталлятор из последнего релиза на GitHub, установите из Microsoft Store, скачайте портативный ZIP или поставьте через winget - без аккаунта, без рекламы, без телеметрии.</p>
           <div class="status-links">
             <a class="button button-primary button-small" href="https://apps.microsoft.com/detail/9NBTD5SXB8TB">Microsoft Store</a>
             <a class="button button-ghost button-small" href="#distribution">Где скачать</a>
@@ -255,7 +255,7 @@
 
       <section class="section" id="use" aria-labelledby="use-title">
         <h2 class="section-heading" id="use-title"><span class="hash">#</span><span>Как пользоваться</span></h2>
-        <p class="section-description">Откройте и выберите канал - вот и весь сценарий. Установите из Microsoft Store, через winget или портативным ZIP - либо запускайте из исходников; поток можно открыть и прямо из командной строки.</p>
+        <p class="section-description">Откройте и выберите канал - вот и весь сценарий. Установите инсталлятором, из Microsoft Store, через winget или распакуйте портативный ZIP - либо запускайте из исходников; поток можно открыть и прямо из командной строки.</p>
         <ol class="steps">
           <li class="step">
             <div>
@@ -295,8 +295,12 @@
 
       <section class="section" id="distribution" aria-labelledby="distribution-title">
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>Распространение</span></h2>
-        <p class="section-description">Все три канала доступны. Установите из Microsoft Store, скачайте портативный ZIP из последнего релиза на GitHub или установите командой <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
+        <p class="section-description">Все четыре канала доступны. Запустите инсталлятор из последнего релиза на GitHub, установите из Microsoft Store, скачайте портативный ZIP или установите командой <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
         <div class="distribution-grid">
+          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+            <span class="channel-mark">EXE</span>
+            <div><strong>Инсталлятор (.exe)</strong><span class="pill">Доступно</span></div>
+          </a>
           <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
             <span class="channel-mark">ZIP</span>
             <div><strong>Портативный ZIP</strong><span class="pill">Доступно</span></div>
@@ -310,6 +314,7 @@
             <div><strong>winget</strong><span class="pill">Доступно</span></div>
           </a>
         </div>
+        <p class="section-description">Инсталлятор - это файл, имя которого заканчивается на -windows-x64-setup.exe. Он ставится только для текущего пользователя и никогда не просит прав администратора, а удаление не трогает ваши каналы, закреплённые станции и историю. Он не подписан, поэтому при первом запуске Windows покажет предупреждение; рядом с каждым файлом в релизе публикуется .sha256, так что вы можете проверить, что скачали именно то, что было опубликовано.</p>
       </section>
     </main>
 

@@ -571,7 +571,9 @@ code {
 
 .distribution-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Self-sizing rather than a fixed three: SP-0092 added a fourth channel, and a hardcoded count
+     leaves an orphaned tile on the second row every time the set changes. */
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 0.8rem;
 }
 
