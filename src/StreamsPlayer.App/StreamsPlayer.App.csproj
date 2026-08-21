@@ -39,6 +39,11 @@
          Windows 10 builds; the SMTC APIs used have shipped since 10.0.10240. -->
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <!-- SP-0093: the WPF runtime is pinned back from 10.0.11, which breaks MediaElement network audio
+         and leaves the app opening, listing the catalog, and playing nothing. The pin cannot live in
+         this file - it has to update a KnownFrameworkReference the SDK defines after every line here -
+         so it lives in Directory.Build.targets at the repository root, with the full evidence and the
+         instructions for removing it. -->
     <AssemblyName>StreamsPlayer</AssemblyName>
     <ApplicationIcon Condition="Exists('..\..\assets\streamsplayer.ico')">..\..\assets\streamsplayer.ico</ApplicationIcon>
     <Nullable>enable</Nullable>

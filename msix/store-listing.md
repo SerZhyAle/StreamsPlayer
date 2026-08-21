@@ -61,6 +61,65 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.0821.1208
+
+**Stamped and released on GitHub on 2026-08-21.** The winget submission and the Partner Center upload
+were deliberately **not** done in the run that cut this version - the owner's call, recorded here so a
+later reader does not read the omission as an oversight. That decision has a cost, stated plainly
+below.
+
+Ships SP-0092 (the Inno Setup installer as a fourth delivery channel, per-user and elevation-free) and
+SP-0093 (the WPF runtime pinned back from 10.0.11, which broke `MediaElement` network audio outright).
+
+**SP-0093 is why this release matters more than its feature list.** 26.0820.1828 shipped runtime
+10.0.11 and plays no station at all - the failure is total, not intermittent, and it reaches every
+channel that carries that build. GitHub now serves the fix. **winget and the Store do not** - winget
+resolves `SerZhyAle.StreamsPlayer` to 26.0820.1828 and the Store sits on 26.0806.2225. A winget user
+who installs or upgrades today gets an application that opens and plays nothing. Submitting the winget
+manifest is the single cheapest way to close that, and it is step 8 of the release checklist.
+
+New in the release assets: `StreamsPlayer-26.0821.1208-windows-x64-setup.exe` and its `.sha256`
+sidecar, beside the portable zip. The zip's name and shape are unchanged, which is what keeps the
+existing winget manifest template valid.
+
+Measured against the 1,500-character limit: 817 en, 805 ru, 798 uk. No colon-plus-space anywhere, so
+one text survives the winget YAML scalar unchanged. The same three blocks live as
+`msix/listing/release-notes/26.0821.1208.{en-us,ru,uk}.txt`, which is what
+`tools/store/write-release-notes.ps1` reads - these fences are a copy of those files, not a second
+source.
+
+Deliberately not bulleted: the installer's internals, the runtime pin's mechanics, and the fourth tile
+on the site. A user reads three sentences about what changed for them, not a build log.
+
+No Store-only block is prepared for this version. The Store is still on 26.0806.2225 and the
+accumulated Store text under 26.0820.1828 below is what a Partner Center submission would carry; it
+needs the two items above added to it before it is submitted, and rewriting it now - for a submission
+the owner has declined - would only let it go stale twice.
+
+```text
+Version 26.0821.1208
+
+- Radio plays again. In 26.0820.1828 every station failed the moment it was opened, on every machine - the fault was in the Windows runtime the application shipped with, not in the station or your connection. If that version played nothing for you, this one fixes it and nothing needs to be reset.
+- There is now an installer. Download one file, run it, and the application installs for your account without asking for administrator rights, adds itself to the Start menu and to the list of installed applications, and uninstalls from there. The portable ZIP stays exactly as it was for anyone who prefers to unpack a folder.
+- Removing the application leaves your own data alone - pinned channels, collections, history and settings survive an uninstall, and are still there if you install again.
+```
+
+```text
+Версия 26.0821.1208
+
+- Радио снова играет. В 26.0820.1828 любая станция обрывалась сразу при открытии, на любой машине - причина была в системном рантайме Windows, с которым поставлялось приложение, а не в станции и не в вашем соединении. Если та версия не играла ничего, эта чинит это, и ничего сбрасывать не нужно.
+- Появился установщик. Скачайте один файл, запустите, и приложение установится для вашей учётной записи, не спрашивая прав администратора, добавится в меню «Пуск» и в список установленных программ и оттуда же удаляется. Переносимый ZIP остался ровно таким, каким был, для тех, кто предпочитает распаковать папку.
+- Удаление приложения не трогает ваши данные - закреплённые каналы, подборки, история и настройки переживают удаление и остаются на месте, если вы установите приложение снова.
+```
+
+```text
+Версія 26.0821.1208
+
+- Радіо знову грає. У 26.0820.1828 будь-яка станція обривалася одразу при відкритті, на будь-якій машині - причина була в системному рантаймі Windows, з яким постачалася програма, а не в станції і не у вашому з'єднанні. Якщо та версія не грала нічого, ця це виправляє, і нічого скидати не потрібно.
+- З'явився інсталятор. Завантажте один файл, запустіть, і програма встановиться для вашого облікового запису, не питаючи прав адміністратора, додасться в меню «Пуск» і до списку встановлених програм і звідти ж видаляється. Переносний ZIP лишився рівно таким, яким був, для тих, хто воліє розпакувати теку.
+- Видалення програми не чіпає ваші дані - закріплені канали, добірки, історія та налаштування переживають видалення і лишаються на місці, якщо ви встановите програму знову.
+```
+
 ### Prepared for 26.0820.1828
 
 **Stamped and released on GitHub on 2026-08-20.** The winget submission and the Partner Center upload

@@ -95,7 +95,7 @@ Windows 10 / 11
 已发布
 
 @@status-description
-STREAMS Player 已发布，并且免费。可从 Microsoft Store 获取，从 GitHub 上最新的发布页下载便携版 ZIP，或使用 winget 安装 - 无需账户，没有广告，没有遥测。
+STREAMS Player 已发布，并且免费。可运行 GitHub 上最新发布页里的安装程序，从 Microsoft Store 获取，下载便携版 ZIP，或使用 winget 安装 - 无需账户，没有广告，没有遥测。
 
 @@status-source
 Microsoft Store
@@ -215,7 +215,7 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 如何使用
 
 @@use-description
-打开它，选一个频道 - 整个流程就是这样。可从 Microsoft Store、winget 或便携版 ZIP 安装，也可以从源代码运行；还可以直接从命令行启动一个流。
+打开它，选一个频道 - 整个流程就是这样。可用安装程序，或从 Microsoft Store、winget 或便携版 ZIP 安装，也可以从源代码运行；还可以直接从命令行启动一个流。
 
 @@use-1-title
 从源代码运行
@@ -251,7 +251,13 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 分发渠道
 
 @@distribution-description
-三种获取方式都已可用。可从 Microsoft Store 获取，从 GitHub 上最新的发布页下载便携版 ZIP，或使用 [[command]] 安装。
+四种获取方式都已可用。可运行 GitHub 上最新发布页里的安装程序，从 Microsoft Store 获取，下载便携版 ZIP，或使用 [[command]] 安装。
+
+@@channel-setup
+安装程序（.exe）
+
+@@channel-setup-note
+安装程序就是文件名以 -windows-x64-setup.exe 结尾的那个文件。它只为当前用户安装，从不索取管理员权限；卸载它也不会影响您的频道、置顶和播放记录。它没有签名，因此首次运行时 Windows 会发出警告；每次发布都会在每个下载文件旁附上一个 .sha256 文件，您可以据此核对拿到的东西就是发布出来的东西。
 
 @@channel-github
 便携版 ZIP

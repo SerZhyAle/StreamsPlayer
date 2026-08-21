@@ -925,3 +925,48 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   substitute - load the built `StreamsPlayer.Core.dll` with `Add-Type`, call the product's own
   `StreamCatalogStore.LoadAsync` / `CatalogMerger.Merge`, inspect the result in memory, write nothing
   (`artifacts/sp0089-measure.ps1` is the worked example; `artifacts/` is gitignored).
+
+- **The house version stamp cannot be handed to a version-resource field, and the failure is silent.**
+  `YY.MMDD.HHmm` (`26.0820.1828`) is a *string* shape whose middle field is zero-padded. Anything that
+  wants a numeric dotted quad - Inno Setup's `VersionInfoVersion`, and the same trap exists in MSI/WiX -
+  parses `0820` as `820`, so the artifact ends up stamped `26.820.1828` while the application it
+  installs reports `26.0820.1828`. Nothing errors; the two versions simply disagree forever, and the
+  installer's Programs-and-Features entry is the one users see. SP-0092 sets that field deliberately and
+  separately, with the reason written in `installer/StreamsPlayer.iss`. The general rule: the house stamp
+  is display metadata, and any field that demands numeric components needs its own value, chosen once and
+  non-decreasing. (This is the same padding hazard `build-msix.ps1` already solves by int-casting each
+  component - the MSIX remap was not a one-off quirk, it was the first instance of a recurring class,
+  2026-08-21.)
+
+- **Adding a fourth install channel is mostly a copy-deck and overlay job, not a build job.** SP-0092
+  shipped the Inno installer without touching `src/` or `tests/` at all: the release workflow already
+  staged a complete self-contained tree in `stage/StreamsPlayer` for the ZIP, so the installer is a
+  second consumer of that same staging directory - which is also what guarantees the two assets can
+  never carry different payloads. The expensive parts were elsewhere: thirteen copy decks gated on key
+  parity (the generator throws before writing, naming every deck that lags), `docs/style.css` hardcoding
+  `repeat(3, ...)` for the channel grid, and `AGENTS.md` plus the canon's `contrib/streams_player.md`
+  both *declaring* the repo installer-free in several places at once. Check those declarations before
+  assuming a distribution change is small (2026-08-21).
+
+- **A runtime patch can break the product's core function, and a green build says nothing about it.**
+  WPF runtime **10.0.11** breaks `MediaElement` network audio: every station fails instantly with
+  `InvalidOperationException` out of `MediaFailed` while the server answers `200`. The app opens, loads
+  the catalog, renders the grid - and plays nothing. `scripts/check.ps1` stayed 858/858 green throughout,
+  because nothing in the repo was wrong. SP-0093 pins `Microsoft.WindowsDesktop.App` to 10.0.10 in
+  `Directory.Build.targets`. **The published 26.0820.1828 shipped with 10.0.11 and is affected** - it was
+  released before anyone played a stream from it.
+  Three durable lessons, each of which cost a wrong turn here:
+  1. **Isolate by swapping one variable under an unchanged artifact.** Overlaying only the WindowsDesktop
+     runtime DLLs onto one already-published build settled it in minutes, after version-vs-version and
+     packaging-vs-packaging comparisons had produced a confident and wrong theory (they were confounded:
+     the only build that worked was both older *and* single-file).
+  2. **`Get-Process().Modules` is the cheap oracle for native-stack failures.** The broken build stops
+     after `MFPlat.DLL` and never loads `mfnetcore.dll`, the Media Foundation *network* source; a working
+     one loads the whole `MFCORE`/`mfnetcore`/`mfsrcsnk` chain. That diff named the layer immediately.
+  3. **Verify a version pin by reading the version out of the publish output, never by the build
+     succeeding.** `RuntimeFrameworkVersion` metadata on a `FrameworkReference` item is *silently
+     ignored* - it builds clean and ships the unpinned runtime anyway. And the global
+     `RuntimeFrameworkVersion` property cannot be used here at all: it is inherited by
+     `Microsoft.Windows.SDK.NET.Ref`, whose versions look like `10.0.19041.57`, so restore dies `NU1102`
+     hunting a "10.0.10" of it. The pin has to update `KnownFrameworkReference`, which only exists after
+     the SDK targets - hence a root `Directory.Build.targets` (2026-08-21).

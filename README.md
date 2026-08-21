@@ -19,10 +19,13 @@
   <a href="README.uk.md">Українська</a>
 </p>
 
-> **Release status:** STREAMS Player is released and free. Get it on the
-> [Microsoft Store](https://apps.microsoft.com/detail/9NBTD5SXB8TB), as a
-> portable ZIP from the [latest GitHub Release](https://github.com/SerZhyAle/StreamsPlayer/releases/latest),
-> or with `winget install SerZhyAle.StreamsPlayer`. No account, no ads, no
+> **Release status:** STREAMS Player is released and free. Run
+> `StreamsPlayer-<version>-windows-x64-setup.exe` from the
+> [latest GitHub Release](https://github.com/SerZhyAle/StreamsPlayer/releases/latest)
+> - it installs for the current user and needs no administrator rights - or get
+> it on the [Microsoft Store](https://apps.microsoft.com/detail/9NBTD5SXB8TB),
+> take the portable ZIP from the same release, or use
+> `winget install SerZhyAle.StreamsPlayer`. No account, no ads, no
 > telemetry; the source is MIT.
 
 ## A calm player for the stream in front of you

@@ -19,11 +19,14 @@
   <a href="README.uk.md">Українська</a>
 </p>
 
-> **Статус випуску:** STREAMS Player випущено, він безкоштовний. Встановіть його з
-> [Microsoft Store](https://apps.microsoft.com/detail/9NBTD5SXB8TB), завантажте
-> портативний ZIP з [останнього релізу на GitHub](https://github.com/SerZhyAle/StreamsPlayer/releases/latest)
-> або встановіть командою `winget install SerZhyAle.StreamsPlayer`. Без
-> облікового запису, без реклами, без телеметрії; вихідний код під MIT.
+> **Статус випуску:** STREAMS Player випущено, він безкоштовний. Запустіть
+> `StreamsPlayer-<version>-windows-x64-setup.exe` з
+> [останнього релізу на GitHub](https://github.com/SerZhyAle/StreamsPlayer/releases/latest)
+> - він встановлюється для поточного користувача й не потребує прав
+> адміністратора - або встановіть з [Microsoft Store](https://apps.microsoft.com/detail/9NBTD5SXB8TB),
+> завантажте портативний ZIP з того самого релізу чи встановіть командою
+> `winget install SerZhyAle.StreamsPlayer`. Без облікового запису, без реклами,
+> без телеметрії; вихідний код під MIT.
 
 ## Спокійний плеєр для потрібного вам потоку
 

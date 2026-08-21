@@ -95,7 +95,7 @@ Stato attuale
 Rilasciato
 
 @@status-description
-STREAMS Player è rilasciato e gratuito. Scaricalo dal Microsoft Store, come ZIP portatile dall'ultima release su GitHub, oppure installalo con winget - senza account, senza pubblicità, senza telemetria.
+STREAMS Player è rilasciato e gratuito. Avvia l'installer dall'ultima release su GitHub, scaricalo dal Microsoft Store, prendi lo ZIP portatile, oppure installalo con winget - senza account, senza pubblicità, senza telemetria.
 
 @@status-source
 Microsoft Store
@@ -215,7 +215,7 @@ Il catalogo si aggiorna solo quando lo decidi tu.
 Come si usa
 
 @@use-description
-Aprilo e scegli un canale - è tutta la procedura. Installalo dal Microsoft Store, con winget o come ZIP portatile - oppure eseguilo dai sorgenti; puoi anche avviare un flusso direttamente dalla riga di comando.
+Aprilo e scegli un canale - è tutta la procedura. Installalo con l'eseguibile di installazione, dal Microsoft Store, con winget o come ZIP portatile - oppure eseguilo dai sorgenti; puoi anche avviare un flusso direttamente dalla riga di comando.
 
 @@use-1-title
 Eseguirlo dai sorgenti
@@ -251,7 +251,13 @@ Apri le Impostazioni, vai su «Informazioni» e premi «Invia i registri all'aut
 Distribuzione
 
 @@distribution-description
-Tutti e tre i canali di distribuzione sono disponibili. Scaricalo dal Microsoft Store, prendi lo ZIP portatile dall'ultima release su GitHub oppure installalo con [[command]].
+Tutti e quattro i canali di distribuzione sono disponibili. Avvia l'installer dall'ultima release su GitHub, scaricalo dal Microsoft Store, prendi lo ZIP portatile oppure installalo con [[command]].
+
+@@channel-setup
+Installer (.exe)
+
+@@channel-setup-note
+L'installer è il file che termina con -windows-x64-setup.exe. Si installa solo per l'utente corrente e non chiede mai i diritti di amministratore, e disinstallarlo lascia intatti i tuoi canali, i canali fissati e la cronologia. Non è firmato, quindi Windows avvisa al primo avvio; ogni release pubblica un file .sha256 accanto a ogni download, così puoi verificare che quello che hai ricevuto sia quello che è stato pubblicato.
 
 @@channel-github
 ZIP portatile

@@ -95,7 +95,7 @@ Aktueller Status
 Veröffentlicht
 
 @@status-description
-STREAMS Player ist veröffentlicht und kostenlos. Holen Sie ihn im Microsoft Store, als portables ZIP aus dem neuesten Release auf GitHub oder über winget - ohne Konto, ohne Werbung, ohne Telemetrie.
+STREAMS Player ist veröffentlicht und kostenlos. Starten Sie das Installationsprogramm aus dem neuesten Release auf GitHub, holen Sie ihn im Microsoft Store, nehmen Sie das portable ZIP oder installieren Sie über winget - ohne Konto, ohne Werbung, ohne Telemetrie.
 
 @@status-source
 Microsoft Store
@@ -215,7 +215,7 @@ Der Katalog wird nur aktualisiert, wenn Sie es wählen.
 So verwenden Sie es
 
 @@use-description
-Öffnen und einen Kanal wählen - das ist der ganze Ablauf. Installieren Sie ihn aus dem Microsoft Store, über winget oder als portables ZIP - oder starten Sie ihn aus dem Quellcode; einen Stream können Sie auch direkt über die Befehlszeile öffnen.
+Öffnen und einen Kanal wählen - das ist der ganze Ablauf. Installieren Sie ihn mit dem Installationsprogramm, aus dem Microsoft Store, über winget oder als portables ZIP - oder starten Sie ihn aus dem Quellcode; einen Stream können Sie auch direkt über die Befehlszeile öffnen.
 
 @@use-1-title
 Aus dem Quellcode starten
@@ -251,7 +251,13 @@ Ein Problem mithilfe der Protokolle melden
 Bezugswege
 
 @@distribution-description
-Alle drei Wege sind verfügbar. Holen Sie ihn im Microsoft Store, laden Sie das portable ZIP aus dem neuesten Release auf GitHub herunter oder installieren Sie ihn mit [[command]].
+Alle vier Wege sind verfügbar. Starten Sie das Installationsprogramm aus dem neuesten Release auf GitHub, holen Sie ihn im Microsoft Store, laden Sie das portable ZIP herunter oder installieren Sie ihn mit [[command]].
+
+@@channel-setup
+Installationsprogramm (.exe)
+
+@@channel-setup-note
+Das Installationsprogramm ist die Datei, die auf -windows-x64-setup.exe endet. Es installiert nur für das aktuelle Benutzerkonto und verlangt nie Administratorrechte, und beim Deinstallieren bleiben Ihre Kanäle, Ihre Anheftungen und der Verlauf unangetastet. Es ist nicht signiert, deshalb warnt Windows beim ersten Start; zu jeder Veröffentlichung erscheint neben jedem Download eine .sha256-Datei, mit der Sie prüfen können, dass Sie genau das erhalten haben, was veröffentlicht wurde.
 
 @@channel-github
 Portables ZIP

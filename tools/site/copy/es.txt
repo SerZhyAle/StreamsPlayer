@@ -95,7 +95,7 @@ Estado actual
 Publicado
 
 @@status-description
-STREAMS Player está publicado y es gratuito. Consíguelo en Microsoft Store, como ZIP portable de la última versión publicada en GitHub, o con winget - sin cuenta, sin anuncios, sin telemetría.
+STREAMS Player está publicado y es gratuito. Ejecuta el instalador de la última versión publicada en GitHub, consíguelo en Microsoft Store, llévate el ZIP portable, o instálalo con winget - sin cuenta, sin anuncios, sin telemetría.
 
 @@status-source
 Microsoft Store
@@ -215,7 +215,7 @@ El catálogo se actualiza solo cuando tú lo decides.
 Cómo usarlo
 
 @@use-description
-Ábrelo y elige un canal - eso es todo. Instálalo desde Microsoft Store, con winget o como ZIP portable - o ejecútalo desde el código fuente; también puedes lanzar una transmisión directamente desde la línea de comandos.
+Ábrelo y elige un canal - eso es todo. Instálalo con el ejecutable de instalación, desde Microsoft Store, con winget o como ZIP portable - o ejecútalo desde el código fuente; también puedes lanzar una transmisión directamente desde la línea de comandos.
 
 @@use-1-title
 Ejecutarlo desde el código fuente
@@ -251,7 +251,13 @@ Abre Ajustes, ve a «Acerca de» y pulsa «Enviar los registros al autor». La a
 Distribución
 
 @@distribution-description
-Los tres canales de distribución están disponibles. Consíguelo en Microsoft Store, descarga el ZIP portable de la última versión publicada en GitHub o instálalo con [[command]].
+Los cuatro canales de distribución están disponibles. Ejecuta el instalador de la última versión publicada en GitHub, consíguelo en Microsoft Store, descarga el ZIP portable o instálalo con [[command]].
+
+@@channel-setup
+Instalador (.exe)
+
+@@channel-setup-note
+El instalador es el archivo que termina en -windows-x64-setup.exe. Se instala solo para el usuario actual y nunca pide permisos de administrador, y al desinstalarlo tus canales, tus anclados y tu historial quedan intactos. No está firmado, así que Windows avisa la primera vez que lo ejecutas; cada versión publica un archivo .sha256 junto a cada descarga, para que compruebes que lo que recibiste es lo que se publicó.
 
 @@channel-github
 ZIP portable

@@ -95,7 +95,7 @@ Current status
 Released
 
 @@status-description
-STREAMS Player is released and free. Get it on the Microsoft Store, as a portable ZIP from the latest GitHub Release, or with winget - no account, no ads, no telemetry.
+STREAMS Player is released and free. Run the installer from the latest GitHub Release, get it on the Microsoft Store, take the portable ZIP, or use winget - no account, no ads, no telemetry.
 
 @@status-source
 Microsoft Store
@@ -215,7 +215,7 @@ Refresh the catalog only when you choose.
 How to use it
 
 @@use-description
-Open it and pick a channel - that is the whole flow. Install it from the Microsoft Store, winget, or the portable ZIP - or run it from source; you can also launch a stream directly from the command line.
+Open it and pick a channel - that is the whole flow. Install it with the setup executable, from the Microsoft Store, with winget, or unpack the portable ZIP - or run it from source; you can also launch a stream directly from the command line.
 
 @@use-1-title
 Run it from source
@@ -251,7 +251,13 @@ Open Settings, go to About, and press Send logs to the author. The app packs the
 Distribution
 
 @@distribution-description
-All three channels are available. Get it from the Microsoft Store, download the portable ZIP from the latest GitHub Release, or install with [[command]].
+All four channels are available. Run the installer from the latest GitHub Release, get it from the Microsoft Store, download the portable ZIP, or install with [[command]].
+
+@@channel-setup
+Installer (.exe)
+
+@@channel-setup-note
+The installer is the file ending in -windows-x64-setup.exe. It installs for the current user alone and never asks for administrator rights, and uninstalling it leaves your channels, pins and history untouched. It is not signed, so Windows warns the first time you run it; every release publishes a .sha256 file beside each download, so you can check that what you got is what was published.
 
 @@channel-github
 Portable ZIP

@@ -1,0 +1,39 @@
+<Project>
+
+  <!-- SP-0093: hold the WPF runtime back from 10.0.11, which breaks MediaElement network audio.
+
+       Symptom: every station fails instantly. MediaElement raises MediaFailed with an
+       InvalidOperationException while the server answers 200, so the application opens, loads the
+       catalog, and plays nothing at all. Module traces show the broken build stopping after MFPlat and
+       never loading mfnetcore.dll, the Media Foundation *network* source; a working build loads the
+       whole MFCORE / mfnetcore / mfsrcsnk chain.
+
+       Isolated by swapping only the WindowsDesktop runtime underneath one unchanged published build:
+         PresentationCore 10.0.1126.37416  (runtime 10.0.11)  fails
+         PresentationCore 10.0.1026.32716  (runtime 10.0.10)  reaches AUDIO LIVE
+         PresentationCore 10.0.926.27113   (runtime 10.0.9)   reaches AUDIO LIVE
+       The published 26.0820.1828 release carries 10.0.11 and is affected, so this pin is what makes the
+       next release playable rather than a precaution.
+
+       Why it lives here and not in the project file. The runtime pack version is carried by
+       KnownFrameworkReference items, which the .NET SDK defines in its own targets - imported after
+       every line of a project's body. Directory.Build.targets is imported later still, so this is the
+       first place the item exists to be updated. Two earlier attempts are recorded so they are not
+       retried: the global RuntimeFrameworkVersion property is inherited by Microsoft.Windows.SDK.NET.Ref
+       too, whose versions look like 10.0.19041.57, and restore dies with NU1102 hunting a "10.0.10" of
+       it; and RuntimeFrameworkVersion metadata on a FrameworkReference item is silently ignored - it
+       builds, and ships 10.0.11 anyway.
+
+       Removing the pin: delete this file once a runtime past 10.0.11 is confirmed fixed. Confirm by
+       publishing and launching with a live station URL on the command line and watching for AUDIO LIVE,
+       never on the strength of a version number. -->
+
+  <!-- Unconditional on purpose: every project here targets net10.0, so there is no other
+       KnownFrameworkReference row to protect. Revisit if a second target framework is ever added. -->
+  <ItemGroup>
+    <KnownFrameworkReference Update="Microsoft.WindowsDesktop.App"
+                             DefaultRuntimeFrameworkVersion="10.0.10"
+                             LatestRuntimeFrameworkVersion="10.0.10" />
+  </ItemGroup>
+
+</Project>

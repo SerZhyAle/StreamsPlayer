@@ -1,0 +1,5 @@
+Version 26.0821.1208
+
+- Radio plays again. In 26.0820.1828 every station failed the moment it was opened, on every machine - the fault was in the Windows runtime the application shipped with, not in the station or your connection. If that version played nothing for you, this one fixes it and nothing needs to be reset.
+- There is now an installer. Download one file, run it, and the application installs for your account without asking for administrator rights, adds itself to the Start menu and to the list of installed applications, and uninstalls from there. The portable ZIP stays exactly as it was for anyone who prefers to unpack a folder.
+- Removing the application leaves your own data alone - pinned channels, collections, history and settings survive an uninstall, and are still there if you install again.
