@@ -1029,3 +1029,27 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   staged twenty-one files of someone else's in-progress SP-0094 work along with mine. Stage by explicit
   path when the tree is shared, and read `git status` before every commit rather than trusting that the
   only changes present are the ones you made (2026-08-21).
+
+- **`project` - WPF 10.0.11 blocks Internet-zone media on purpose, and ships an undocumented switch to
+  turn it off.** `MediaPlayerState.OpenMedia` gained a default-credentials **zone policy**: any
+  `http(s)` URI outside Local/Intranet/Trusted is refused before Media Foundation is touched, because
+  the native media pipeline attaches system credentials and managed code cannot suppress them. The
+  escape hatch is `Switch.System.Windows.Net.DoNotApplyZoneCheckForDefaultCredentials`, set through
+  `RuntimeHostConfigurationOption` - verified to restore playback on 10.0.11 with the whole MF chain
+  loaded. It has **zero** hits in GitHub issues and `dotnet/docs`, so it is not findable by search.
+  Reported as [dotnet/wpf#11856](https://github.com/dotnet/wpf/issues/11856).
+  **The lesson is about the diagnostic, not the policy.** The block reuses
+  `Media_PackURIsAreNotSupported` - "Only site-of-origin pack URIs are supported for media" - for an
+  ordinary `https://` URL. A borrowed error message does not merely fail to help, it actively
+  misdirects: it cost this investigation a day of bisecting runtimes and produced a shipped fix (a
+  version pin) that was worse than the real one, because the message never hinted the cause was policy
+  rather than a broken runtime. **When an error message describes a thing that is not present in your
+  program at all, suspect the message before you suspect your understanding** - and go read the throw
+  site in the source rather than reasoning from the text (2026-08-21).
+
+- **`reference` - a leftover StreamsPlayer process silently swallows a `--url` launch.** The app is
+  single-instance: starting it while another copy runs hands off, and the new process contributes
+  nothing to `Current.log`. The symptom is a log full of ordinary catalog activity and **no `AUDIO`
+  line at all** - identical to what a mis-typed invocation looks like, and easy to misread as the
+  playback bug itself. `Get-Process StreamsPlayer` and kill before any run-and-observe check
+  (2026-08-21).
