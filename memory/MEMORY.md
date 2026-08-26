@@ -503,6 +503,29 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   `stamp` (which, as published on 2026-08-20, is simply the tile pack's own hash), and SP-0091 verifies
   both files against it before a single frame is written. If a future change makes the artwork fetch
   cheaper by skipping a hash, that is the thing it is skipping.
+- **The winget-pkgs bot names a cause; the check runs hold the verdict, and on 2026-08-26 they
+  disagreed.** #422124 came back twice with `msftbot/validationError/installers/validationDefender` -
+  a Defender template naming the Installers Scan test - plus the `Validation-Defender-Error` label.
+  `gh api repos/microsoft/winget-pkgs/commits/<head-sha>/check-runs` said `07. Installers Scan`
+  **passed** and `08. Installation Validation` failed, having run exactly 17:27:44Z -> 19:27:44Z with a
+  progress log holding only `Status: Waiting`, `Status: Completed`, `Error: Failed`. A round two-hour
+  span with no installation progress is the sandbox window expiring; the real cause was payload weight
+  (140 MB compressed, 322 MB and 920 files extracted), and the canon's winget reference already
+  documented that abort. **Two things generalize.** The comment template flattens a per-step failure
+  into one wrong sentence, so read `check-runs` and its `output.text`, never the comment, and never
+  chase the label the comment brings with it. And when an external gate blames the artifact, re-verify
+  the artifact independently before believing it - here the hash matched the manifest exactly and a
+  local `MpCmdRun -Scan -ScanType 3` at the current signature found nothing in either asset, which is
+  what made it safe to stop looking for malware and start looking at the clock. Caveat on that scan:
+  `Get-MpPreference` showed `MAPSReporting=0` on this machine, so it is signature-only and cannot
+  reproduce a cloud `!ml` verdict - a clean local scan is evidence, not proof.
+- **A winget-pkgs manifest edited in a clone lies about its own line endings.** Upstream
+  `.gitattributes` marks them `text=auto`, and git reads it from the index even under a sparse
+  checkout, so a checked-out file shows CRLF while the stored blob is LF. Inspecting the bytes on disk
+  therefore proves nothing, and `core.autocrlf false` does not override the attribute. Verify the blob:
+  `git cat-file -s HEAD:<path>` against the on-disk size shows how many CR bytes were dropped. The
+  merged manifests are UTF-8 **with BOM** and **LF** - confirmed 2026-08-26 by fetching 26.0809.0022,
+  26.0819.0156 and 26.0820.1828 raw from the contents API, all three 671 bytes, BOM present, zero CRLF.
 
 ## References
 

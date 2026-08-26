@@ -9,25 +9,30 @@ ships thirteen interface languages. A winget locale is prose the owner has to ma
 on every release; machine-translated package metadata in ten more languages would be a maintenance
 cost with no reader. Do not "complete" this set to match the application.
 
-After an explicit release, the preferred path (matches the sibling SZA apps) is
-`wingetcreate`, which recomputes the SHA256 and opens the PR for you:
+**The asset winget installs is the Inno `setup.exe`, not the portable ZIP** (changed 2026-08-26; the
+rejection that forced it is logged at the end of this file). The templates carry
+`InstallerType: inno` and a `ProductCode` derived from the frozen Inno `AppId` in
+`installer/StreamsPlayer.iss` - that value is the ARP subkey a per-user install writes under `HKCU`,
+so it changes only if the frozen anchor changes, which it never does. The portable ZIP is still
+published in every release and is still the primary artifact; it is simply not what this channel
+points at.
 
-```powershell
-wingetcreate update SerZhyAle.StreamsPlayer `
-  --version <YY.MMDD.HHmm> `
-  --urls https://github.com/SerZhyAle/StreamsPlayer/releases/download/v<version>/StreamsPlayer-<version>-windows-x64.zip `
-  --submit
-```
+`wingetcreate update` is **not** the default path here despite what this note said before. It rebuilds
+from the manifest already published in winget-pkgs and bumps only version, URL and hash, so the
+`Description`, `Tags` and `ReleaseNotes` maintained in `templates/` never reach the catalog - and it
+cannot express the installer-type switch at all. Use it only when nothing but version, URL and hash
+changed, which is rare, because almost every release rewrites the release notes.
 
-Manual alternative (when you need full control of the manifest):
+The manual path, which is the normal one:
 
-1. Download the `StreamsPlayer-<version>-windows-x64.zip` and `.sha256` from the
-   GitHub Release created by `release.yml`.
+1. Download the `StreamsPlayer-<version>-windows-x64-setup.exe` and its `.sha256` from the
+   GitHub Release created by `release.yml`, and confirm the recomputed hash matches the sidecar.
 2. Confirm the release/tag uses `YY.MMDD.HHmm`, then copy the five files from `templates/` into a matching `winget-pkgs` manifest
    folder: `manifests/s/SerZhyAle/StreamsPlayer/<version>/`.
-3. Replace all `REPLACE_...` values, including all three locale release notes (`REPLACE_RELEASE_NOTES`, `REPLACE_RELEASE_NOTES_RU`, `REPLACE_RELEASE_NOTES_UK`), the ZIP SHA256 and ISO `YYYY-MM-DD` release date. All `PackageVersion` values must exactly match the three-part release version.
-4. Validate with `winget validate --manifest <folder>` and submit a pull request
-   to `microsoft/winget-pkgs`.
+3. Replace all `REPLACE_...` values, including all three locale release notes (`REPLACE_RELEASE_NOTES`, `REPLACE_RELEASE_NOTES_RU`, `REPLACE_RELEASE_NOTES_UK`), the installer SHA256 and ISO `YYYY-MM-DD` release date. All `PackageVersion` values must exactly match the three-part release version.
+4. Validate with `winget validate --manifest <folder>`, then install from it with
+   `winget install --manifest <folder>` - schema validation alone never touches the URL or the hash -
+   and submit a pull request to `microsoft/winget-pkgs`.
 
 **Read this before writing a single word of the pull request.** Fetch
 `microsoft/winget-pkgs` `.github/PULL_REQUEST_TEMPLATE.md` at submission time and use it verbatim -
@@ -111,6 +116,38 @@ about winget: **a channel that was not touched is not a channel that is fine.** 
 break underneath a manifest nobody edited, and the only way to know is to install from the channel and
 use the product, which is exactly what the local install test below now buys.
 
+**#422124 was rejected twice on the portable ZIP, and the bot named the wrong cause.** Both times the
+comment came back as `msftbot/validationError/installers/validationDefender` - "blocked from
+installing", pointing at Defender and at the Installers Scan test. The check runs said something else:
+`07. Installers Scan` **passed**, and `08. Installation Validation` failed after running 17:27:44Z ->
+19:27:44Z, exactly two hours, with a progress log holding only `Status: Waiting`, `Status: Completed`,
+`Error: Failed` and not one line of installation progress. A round two-hour span with an empty log is
+the sandbox window expiring, not a malware verdict. The archive is 140,070,979 bytes and expands to
+322 MB across 920 files; the canon's winget reference already records a heavy portable ZIP aborting
+mid-install for exactly this reason, and names the Inno `setup.exe` as the shape that works.
+
+Independently re-checked before touching anything, because a bot's stated cause is a claim: the
+downloaded ZIP hashed to `8A9360C1...CD92`, identical to the manifest, so the "check the URL and the
+hash" advice was inapplicable; and `MpCmdRun.exe -Scan -ScanType 3` with signature 1.457.345.0
+reported `found no threats` on both the ZIP and the `setup.exe`, exit 0. **Read the check runs, not
+the bot comment** - `gh api repos/microsoft/winget-pkgs/commits/<head-sha>/check-runs` carries the
+per-step verdicts and the `output.text` log that the comment template flattens into one wrong sentence.
+
+The fix was to repoint the existing PR branch at the `setup.exe`, never to open a second PR: a
+`wingetcreate submit` re-run would have done exactly that. Pushing to the branch cleared
+`Validation-Defender-Error` and `Needs-Author-Feedback` on its own and re-queued validation from the
+new head. The full ladder ran locally first this time - `winget validate` exit 0, then
+`winget install --manifest` reporting the installer hash verified and the install succeeded, exit 0,
+leaving `ARP\User\X64\{15F4F08C-E78B-41B7-9039-6A3332D7D080}_is1` at version `26.0821.1208`, which is
+the correlation `08. Installation Validation` matches on.
+
+**One consequence has no manifest-side fix.** Anyone who installed a previous version through winget
+got the portable shape and the `streamsplayer` command alias. Upgrading to the Inno package does not
+migrate that install - it lands beside it, and the old alias stays until the user runs
+`winget uninstall` on the portable entry. There is no manifest field that expresses "this supersedes
+the portable install of the same package"; the alternative was to keep shipping a channel whose
+installs time out, which is worse.
+
 **The unticked box is now tickable, and was ticked.** `LocalManifestFiles` turned out to be already
 enabled on the machine, so the full ladder ran for the first time in this package's history:
 `winget install --manifest` downloaded the asset, verified the hash itself, extracted the portable
@@ -136,6 +173,16 @@ without one. Add `EF BB BF` to each file before submitting, and keep the endings
 LF - the working tree here is LF, and Git's autocrlf would otherwise put CRLF in
 the file the API uploads. `winget validate` passes either way, so this is not
 something the gate will catch for you.
+
+**Re-checked 2026-08-26, and confirmed against the merged 26.0809.0022, 26.0819.0156 and 26.0820.1828
+manifests fetched raw from the contents API: BOM present, zero CRLF.** One wrinkle the note above
+misses, which matters when the edit is made in a *clone* of winget-pkgs rather than through the
+contents API: the upstream `.gitattributes` marks these files `text=auto`, and git reads it from the
+index even under a sparse checkout, so the checked-out file shows CRLF while the committed blob is LF.
+Inspecting the bytes of a checked-out manifest therefore tells you nothing about what is stored, and a
+file written with CRLF is normalized back to LF on commit - which is the outcome wanted here, but for
+a reason worth knowing. Verify the blob, not the working file: `git cat-file -s HEAD:<path>` against
+the on-disk size shows exactly how many CR bytes were dropped.
 
 **The lesson worth keeping**: this note claimed 26.0806.2131 was submitted
 cleanly and left it at that, so the next release assumed the source carried it.
