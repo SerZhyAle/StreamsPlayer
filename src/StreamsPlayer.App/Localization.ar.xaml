@@ -45,6 +45,8 @@
     <sys:String x:Key="FiltersAndSortingTip">إظهار صف التصفية والترتيب</sys:String>
     <sys:String x:Key="FiltersActiveTip">إظهار صف التصفية والترتيب. عوامل التصفية النشطة: {0}</sys:String>
     <sys:String x:Key="HideFilters">إخفاء التصفية والترتيب</sys:String>
+    <sys:String x:Key="QuickVideoTip">تصفية سريعة: الفيديو فقط</sys:String>
+    <sys:String x:Key="QuickAudioTip">تصفية سريعة: الصوت فقط</sys:String>
     <sys:String x:Key="Media">الوسائط</sys:String>
     <sys:String x:Key="MediaKindTip">نوع الوسائط</sys:String>
     <sys:String x:Key="MediaFilterName">عامل تصفية الوسائط</sys:String>

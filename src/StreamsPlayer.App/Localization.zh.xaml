@@ -45,6 +45,8 @@
     <sys:String x:Key="FiltersAndSortingTip">显示筛选与排序行</sys:String>
     <sys:String x:Key="FiltersActiveTip">显示筛选与排序行。已启用的筛选器：{0}</sys:String>
     <sys:String x:Key="HideFilters">隐藏筛选与排序</sys:String>
+    <sys:String x:Key="QuickVideoTip">快速筛选：仅视频</sys:String>
+    <sys:String x:Key="QuickAudioTip">快速筛选：仅音频</sys:String>
     <sys:String x:Key="Media">媒体</sys:String>
     <sys:String x:Key="MediaKindTip">媒体类型</sys:String>
     <sys:String x:Key="MediaFilterName">媒体类型筛选器</sys:String>

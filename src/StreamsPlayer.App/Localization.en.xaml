@@ -47,6 +47,8 @@
     <sys:String x:Key="FiltersAndSortingTip">Show the filter and sorting row</sys:String>
     <sys:String x:Key="FiltersActiveTip">Show the filter and sorting row. Active filters: {0}</sys:String>
     <sys:String x:Key="HideFilters">Hide filters and sorting</sys:String>
+    <sys:String x:Key="QuickVideoTip">Quick filter: video only</sys:String>
+    <sys:String x:Key="QuickAudioTip">Quick filter: audio only</sys:String>
     <sys:String x:Key="Media">Media</sys:String>
     <sys:String x:Key="MediaKindTip">Media kind</sys:String>
     <sys:String x:Key="MediaFilterName">Media filter</sys:String>

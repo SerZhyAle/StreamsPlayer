@@ -45,6 +45,8 @@
     <sys:String x:Key="FiltersAndSortingTip">ফিল্টার ও সাজানোর সারি দেখান</sys:String>
     <sys:String x:Key="FiltersActiveTip">ফিল্টার ও সাজানোর সারি দেখান। সক্রিয় ফিল্টার: {0}</sys:String>
     <sys:String x:Key="HideFilters">ফিল্টার ও সাজানো লুকান</sys:String>
+    <sys:String x:Key="QuickVideoTip">দ্রুত ফিল্টার: শুধু ভিডিও</sys:String>
+    <sys:String x:Key="QuickAudioTip">দ্রুত ফিল্টার: শুধু অডিও</sys:String>
     <sys:String x:Key="Media">মিডিয়া</sys:String>
     <sys:String x:Key="MediaKindTip">মিডিয়ার ধরন</sys:String>
     <sys:String x:Key="MediaFilterName">মিডিয়া ফিল্টার</sys:String>

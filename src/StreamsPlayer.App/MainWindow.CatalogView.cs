@@ -223,8 +223,8 @@ public partial class MainWindow
             }
 
             if (media != AllValue &&
-                !(media == "Audio" && channel.MediaKind == MediaKind.Audio) &&
-                !(media == "Video" && channel.MediaKind is MediaKind.Video or MediaKind.Rtsp))
+                !(media == AudioFilterValue && channel.MediaKind == MediaKind.Audio) &&
+                !(media == VideoFilterValue && channel.MediaKind is MediaKind.Video or MediaKind.Rtsp))
             {
                 continue;
             }

@@ -45,6 +45,8 @@
     <sys:String x:Key="FiltersAndSortingTip">Mostrar a linha de filtros e ordenação</sys:String>
     <sys:String x:Key="FiltersActiveTip">Mostrar a linha de filtros e ordenação. Filtros ativos: {0}</sys:String>
     <sys:String x:Key="HideFilters">Ocultar filtros e ordenação</sys:String>
+    <sys:String x:Key="QuickVideoTip">Filtro rápido: apenas vídeo</sys:String>
+    <sys:String x:Key="QuickAudioTip">Filtro rápido: apenas áudio</sys:String>
     <sys:String x:Key="Media">Mídia</sys:String>
     <sys:String x:Key="MediaKindTip">Tipo de mídia</sys:String>
     <sys:String x:Key="MediaFilterName">Filtro de tipo de mídia</sys:String>

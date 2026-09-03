@@ -508,6 +508,40 @@
             <Style x:Key="FilterGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,5H20L14,12V19L10,21V12Z" /></Style.Resources>
             </Style>
+            <!-- SP-0094: the two quick media buttons in the title line. Pressed and unpressed have to be
+                 told apart across a room, so the pair swings the whole plate - a muted glyph on the
+                 ordinary control fill when off, an accent fill with its own foreground when on - rather
+                 than tinting the glyph alone. The Tag trigger is declared here, in the derived style, so
+                 it outranks the base style's IsMouseOver background and a pressed button keeps its accent
+                 while the pointer is over it. MainWindow.FilterPanel.cs drives the Tag; it is never set
+                 in markup, because the value it reflects is the Media facet and nothing else. -->
+            <Style x:Key="QuickMediaFilterButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="Padding" Value="8,6" />
+                <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                <Setter Property="Opacity" Value="0.75" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Opacity" Value="1" />
+                    </Trigger>
+                    <Trigger Property="Tag" Value="Active">
+                        <Setter Property="Opacity" Value="1" />
+                        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <!-- A camcorder: the body and the lens block. Left to mirror like the camera glyph above,
+                 which it deliberately matches - a flipped camcorder still reads as a camcorder, unlike
+                 the transport triangle that reads as "rewind". -->
+            <Style x:Key="QuickVideoFilterButton" TargetType="Button" BasedOn="{StaticResource QuickMediaFilterButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M3,7H14V17H3ZM14,11L20,7V17L14,13Z" /></Style.Resources>
+            </Style>
+            <!-- The speaker with two waves, the same shape VolumeGlyphButton uses: the application
+                 already spells "sound" this way and a second vocabulary for it would only compete. -->
+            <Style x:Key="QuickAudioFilterButton" TargetType="Button" BasedOn="{StaticResource QuickMediaFilterButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,10H8L13,6V18L8,14H4ZM16,9A4,4 0 0 1 16,15M18,7A7,7 0 0 1 18,17" /></Style.Resources>
+            </Style>
             <!-- SP-0034 decision 2: media transport glyphs are direction-independent by convention and
                  must not mirror with the layout. Left to inherit, WPF would flip this triangle to point
                  left under Arabic and Urdu, which reads as "rewind". Stop is a square and is pinned for

@@ -45,6 +45,8 @@
     <sys:String x:Key="FiltersAndSortingTip">فلٹر اور ترتیب کی سطر دکھائیں</sys:String>
     <sys:String x:Key="FiltersActiveTip">فلٹر اور ترتیب کی سطر دکھائیں۔ فعال فلٹر: {0}</sys:String>
     <sys:String x:Key="HideFilters">فلٹر اور ترتیب چھپائیں</sys:String>
+    <sys:String x:Key="QuickVideoTip">فوری فلٹر: صرف ویڈیو</sys:String>
+    <sys:String x:Key="QuickAudioTip">فوری فلٹر: صرف آڈیو</sys:String>
     <sys:String x:Key="Media">میڈیا</sys:String>
     <sys:String x:Key="MediaKindTip">میڈیا کی قسم</sys:String>
     <sys:String x:Key="MediaFilterName">میڈیا کا فلٹر</sys:String>

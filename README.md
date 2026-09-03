@@ -74,6 +74,14 @@ code or features.
   tooltip counts the filters still narrowing the catalog. The broadcast-language
   filter leads with your interface language and its regional variants, and still
   starts on **All**.
+- Switch between watching and listening from the title line itself: two small
+  buttons beside **Filters and sorting** are that same media filter in one
+  click - press **video** to keep video and RTSP only, **audio** to keep radio
+  only, press the same button again for everything. A pressed button is lit and
+  an unpressed one is dimmed; the pair stays in the title line whether the
+  filter row is open or closed, narrows the pinned strip along with the list,
+  and is still in force after a restart. It is the row's own **Media** filter,
+  so the two can never disagree.
 - Narrow the list to one **topic** - the catalog's own set of station topics,
   from News and Classical to Traffic cams. Topic names are shown in your
   interface language and sorted in its alphabet, while the catalog itself keeps

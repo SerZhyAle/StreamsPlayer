@@ -45,6 +45,8 @@
     <sys:String x:Key="FiltersAndSortingTip">फ़िल्टर और क्रम की पंक्ति दिखाएँ</sys:String>
     <sys:String x:Key="FiltersActiveTip">फ़िल्टर और क्रम की पंक्ति दिखाएँ। सक्रिय फ़िल्टर: {0}</sys:String>
     <sys:String x:Key="HideFilters">फ़िल्टर और क्रम छिपाएँ</sys:String>
+    <sys:String x:Key="QuickVideoTip">त्वरित फ़िल्टर: केवल वीडियो</sys:String>
+    <sys:String x:Key="QuickAudioTip">त्वरित फ़िल्टर: केवल ऑडियो</sys:String>
     <sys:String x:Key="Media">मीडिया</sys:String>
     <sys:String x:Key="MediaKindTip">मीडिया का प्रकार</sys:String>
     <sys:String x:Key="MediaFilterName">मीडिया फ़िल्टर</sys:String>

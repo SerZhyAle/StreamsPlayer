@@ -45,6 +45,8 @@
     <sys:String x:Key="FiltersAndSortingTip">Die Filter- und Sortierzeile einblenden</sys:String>
     <sys:String x:Key="FiltersActiveTip">Die Filter- und Sortierzeile einblenden. Aktive Filter: {0}</sys:String>
     <sys:String x:Key="HideFilters">Filter und Sortierung ausblenden</sys:String>
+    <sys:String x:Key="QuickVideoTip">Schnellfilter: nur Video</sys:String>
+    <sys:String x:Key="QuickAudioTip">Schnellfilter: nur Audio</sys:String>
     <sys:String x:Key="Media">Medien</sys:String>
     <sys:String x:Key="MediaKindTip">Medienart</sys:String>
     <sys:String x:Key="MediaFilterName">Medienfilter</sys:String>

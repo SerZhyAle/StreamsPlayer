@@ -64,6 +64,17 @@
                             Content="{DynamicResource FiltersAndSorting}" Click="FiltersButton_Click"
                             VerticalAlignment="Center" ToolTip="{DynamicResource FiltersAndSortingTip}"
                             AutomationProperties.Name="{DynamicResource FiltersAndSorting}" />
+                    <!-- SP-0094: the Media facet's second form. They stay in the title line whether the
+                         filter row is open or closed - unlike FiltersButton, which the open row replaces -
+                         because the whole point is a switch that costs one click from wherever you are. -->
+                    <Button x:Name="QuickVideoButton" Style="{StaticResource QuickVideoFilterButton}"
+                            Click="QuickVideoButton_Click" VerticalAlignment="Center"
+                            ToolTip="{DynamicResource QuickVideoTip}"
+                            AutomationProperties.Name="{DynamicResource QuickVideoTip}" />
+                    <Button x:Name="QuickAudioButton" Style="{StaticResource QuickAudioFilterButton}"
+                            Click="QuickAudioButton_Click" VerticalAlignment="Center"
+                            ToolTip="{DynamicResource QuickAudioTip}"
+                            AutomationProperties.Name="{DynamicResource QuickAudioTip}" />
                 </StackPanel>
             </Viewbox>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
