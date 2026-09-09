@@ -41,6 +41,43 @@ public static class ScreenPlacement
         };
     }
 
+    /// <summary>
+    /// SP-0084: places a remembered rectangle that may no longer make sense - the size is corrected as
+    /// well as the position, which is what separates this from <see cref="Clamp"/>.
+    /// </summary>
+    /// <remarks>
+    /// A deliberately separate method rather than a wider <see cref="Clamp"/>. The compact panel is
+    /// fixed-size and its rule is that the size is never touched; a remembered player window is the
+    /// opposite case, because the monitor it was sized on may be gone, smaller, or scaled differently.
+    /// Widening the shared method would have quietly changed the panel's behaviour to buy this one.
+    /// <para>
+    /// The size is capped to the work area first and only then raised to the window's minimum, so a
+    /// minimum larger than the screen still yields a usable window rather than an unreachable one - it
+    /// simply cannot satisfy both edges, and <see cref="ClampAxis"/> pins it to the origin exactly as it
+    /// does for the panel. A degenerate work area returns the rectangle untouched, for the same reason
+    /// as <see cref="Clamp"/>: a caller that could not read the monitor must not be told to move a
+    /// window to nowhere.
+    /// </para>
+    /// </remarks>
+    public static ScreenRect Fit(ScreenRect window, ScreenRect workArea, double minWidth, double minHeight)
+    {
+        if (workArea.Width <= 0 || workArea.Height <= 0)
+        {
+            return window;
+        }
+
+        var sized = window with
+        {
+            Width = FitLength(window.Width, workArea.Width, minWidth),
+            Height = FitLength(window.Height, workArea.Height, minHeight)
+        };
+
+        return Clamp(sized, workArea);
+    }
+
+    private static double FitLength(double length, double areaLength, double minimum) =>
+        Math.Max(Math.Min(length, areaLength), minimum);
+
     // The pull-back runs first and the push-forward second, so the near edge wins on an axis where both
     // are violated. That ordering is what makes a window dragged off the left edge come back.
     private static double ClampAxis(double start, double length, double areaStart, double areaLength)

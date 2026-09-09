@@ -190,6 +190,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             // file is absent this is the one read of the old CatalogState fields, ever - it writes the
             // new file in the same call, so the next launch never looks at them again.
             _session = await _sessionStore.LoadAsync(_state);
+            // SP-0084: read once here so that placing a player window later needs no await - a window
+            // cannot be positioned after it is visible without the user seeing it jump. Its own file, so
+            // a failure costs window placements and nothing else.
+            await PlayerGeometryFile.PrimeAsync();
             ThemeService.Apply(_state.Theme);
 
             // SP-0034 decision 5: no saved preference means a fresh install, so follow the operating
@@ -1302,8 +1306,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
             await StartPreviewsAsync();
         };
+        // SP-0084: before Show, so a remembered window appears where it belongs instead of appearing in
+        // the centre and then moving. This window is lent as the DPI reference the new one does not have
+        // yet; PlayerWindow corrects the result against its own once it has one.
+        window.ApplyRememberedPlacement(this);
         // The owner above is lent for the CenterOwner placement and taken back as soon as the window is
-        // placed - see PlayerWindow_Loaded for why the player must not stay an owned window.
+        // placed - see PlayerWindow_Loaded for why the player must not stay an owned window. A window
+        // placed from memory has already set WindowStartupLocation to Manual and does not use it.
         window.Show();
     }
 
