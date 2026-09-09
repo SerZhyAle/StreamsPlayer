@@ -13,6 +13,14 @@ public static class PlaybackRecoveryClassifier
             return RecoveryTrigger.Stall;
         }
 
+        // SP-0096: our own verdict about a leg that produced no engine text at all. Tested before every
+        // substring rule below, which would otherwise read its reason token as an ordinary network
+        // timeout and hand it the transient budget.
+        if (signal.OpenTimedOut)
+        {
+            return RecoveryTrigger.OpenTimeout;
+        }
+
         var reason = signal.Reason?.Trim() ?? string.Empty;
 
         if (signal.BehindLiveWindow || ContainsAny(reason, "behind live window", "live window", "live edge"))

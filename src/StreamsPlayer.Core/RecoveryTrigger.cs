@@ -19,7 +19,16 @@ public enum RecoveryTrigger
     StreamEnded,
 
     /// <summary>Non-retryable: an explicit non-429 4xx, a malformed manifest, or an unsupported container.</summary>
-    HardFail
+    HardFail,
+
+    /// <summary>
+    /// SP-0096: the stream was opened and never reached the screen inside <see cref="PlaybackOpenBudget"/>.
+    /// Distinct from <see cref="Transient"/>, which describes a failure the engine reported: here the
+    /// engine reported nothing at all, and the verdict is ours. Appended rather than inserted - the
+    /// enum is persisted nowhere, but its member order has already shipped inside PLAYBACK RECOVER log
+    /// lines.
+    /// </summary>
+    OpenTimeout
 }
 
 /// <summary>Whether the policy wants another bounded reconnect, or a terminal hard failure.</summary>

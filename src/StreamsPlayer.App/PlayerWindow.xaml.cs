@@ -97,6 +97,15 @@ public partial class PlayerWindow : Window
     // SP-0070: the freeze decision itself lives in Core; this window only feeds it what it already
     // observes on the watchdog tick and applies the answer.
     private readonly PlaybackFreezeDetector _freeze = new();
+    // SP-0096: the pre-live half of the supervision _freeze deliberately does not cover, and its exact
+    // inverse in scope. Note the clocks are different on purpose: _freeze is fed HealthNow (the session
+    // clock, which must span reconnects), this one is fed _playbackClock, which restarts per leg -
+    // feeding it the session clock would expire the second re-open the instant it began.
+    private readonly PlaybackOpenBudget _openBudget = new();
+    // SP-0096 criterion 6: a terminal failure is announced once. The budget expiring in the same second
+    // as an engine error is a real race, and ShowFailureDialog is modal - a second call would stack a
+    // dialog behind the first.
+    private bool _failureShown;
     private bool _buffering;
     private long _bufferingSinceMs;
     private long _bufferingStartPosition;
@@ -252,9 +261,16 @@ public partial class PlayerWindow : Window
             return; // the window was closed inside the read; PlayerWindow_Closed has already torn down
         }
 
-        StartMedia("initial", QualityCeiling); // SP-0071: the ladder's answer is not in yet - memory's may be
+        // SP-0096: started before the open, not after it. StartMedia restarts the budget clock and then
+        // blocks for as long as the engine takes to hand back a media object - about 2 s against an
+        // unresponsive host. Starting the cadence afterwards offsets every observation by that cost, so
+        // the 8 s dead-source rule was observed at 10 s twice running in phase 6, and the offset grows
+        // with the open rather than staying put. Anchoring both to the same instant is what makes the
+        // priced numbers the ones actually paid. The first tick is 2 s out, so StartMedia has long
+        // returned before either timer looks at the backend.
         _statsTimer.Start();
         _watchdogTimer.Start();
+        StartMedia("initial", QualityCeiling); // SP-0071: the ladder's answer is not in yet - memory's may be
         ShowControls();
         if (_startFullscreen)
         {
@@ -280,6 +296,9 @@ public partial class PlayerWindow : Window
         // SP-0070: same reason as the health baseline below - the new media restarts the engine's
         // progress counters from zero, and differencing across that boundary would invent a freeze.
         _freeze.Reset();
+        // SP-0096: one leg, one open budget. A re-open is entitled to its own, which is what makes the
+        // budget a per-leg quantity rather than a session-wide one.
+        _openBudget.Reset();
         _buffering = false;
         _playbackClock.Restart();
         _legCount++;
@@ -428,6 +447,51 @@ public partial class PlayerWindow : Window
         ObserveRendition(); // SP-0077 rides it as well: what the engine actually put on screen
         ApplyInterruptionNotice(); // SP-0072 rides it as well: what makes the appear delay elapse
         SampleNowPlaying(); // SP-0073 rides it too: the stream's own "what is on air", no poll of its own
+        // SP-0096 rides it last: a verdict raised here must replace the caption ApplyInterruptionNotice
+        // just put up, not be overwritten by it. This tick and not the watchdog's because 2 s divides
+        // the 8 s threshold and 3 s does not - the watchdog would report a dead source a second late.
+        ObserveOpenBudget();
+    }
+
+    /// <summary>
+    /// SP-0096: the pre-live supervision. Deliberately the mirror image of <see cref="WatchdogTimer_Tick"/>'s
+    /// guard - that one returns until the stream has been live, this one returns once it has - so between
+    /// them the two rules cover the whole session with no overlap and no gap.
+    /// </summary>
+    private void ObserveOpenBudget()
+    {
+        if (_closing || _recoveryInFlight || _reachedLive)
+        {
+            return;
+        }
+
+        var received = _backend.ReadReceivedBytes();
+        var verdict = _openBudget.Observe(TimeSpan.FromMilliseconds(_playbackClock.ElapsedMilliseconds), received);
+        if (verdict == PlaybackOpenVerdict.None)
+        {
+            return;
+        }
+
+        _log.Event("PLAYBACK GIVEUP",
+            $"rule={(verdict == PlaybackOpenVerdict.DeadSource ? "dead_source" : "deadline")}",
+            $"at_ms={_playbackClock.ElapsedMilliseconds}",
+            $"leg={_legCount}",
+            $"bytes={received?.ToString() ?? "n/a"}",
+            $"url={_channel.Url}");
+
+        if (verdict == PlaybackOpenVerdict.DeadSource)
+        {
+            // Straight to the verdict, not through RecoverAsync with a hard-fail signal. Two reasons,
+            // both load-bearing: RecoverAsync would spend a PlaybackStatusProbe round trip on a host
+            // that has just proved it answers nothing - adding seconds to the very wait this rule
+            // exists to cut - and the owner's decision was no re-open attempt at all, which a
+            // PLAYBACK RECOVER line would misreport. Nothing touches the remembered quality ceiling
+            // either: a host that answered nothing said nothing about which rung was to blame.
+            ShowPlaybackFailure("open_dead_source");
+            return;
+        }
+
+        _ = RecoverAsync(new PlaybackFailureSignal("open_timeout", OpenTimedOut: true));
     }
 
     // Backend raises EndReached on its own thread; hop to the UI thread before driving recovery.
@@ -514,6 +578,10 @@ public partial class PlayerWindow : Window
             _reachedLive = true;
             _quietUntilLive = false; // SP-0062: from here on this is an ordinary window
             _recovery.NotifyLive(); // sustained live - restore the full recovery budget
+            // SP-0096: the picture is on the screen, so this stream is the freeze rule's from here.
+            // Told rather than tested, so a stream that went live half a second before its deadline
+            // cannot be taken off the screen by the observation that follows.
+            _openBudget.NotifyLive();
             // SP-0045: leaves red; an undisturbed first connect is green here, a stream returning from a
             // reconnect passes through yellow and earns green on the clean interval (decision 8).
             _health.NotifyLive();
@@ -575,8 +643,8 @@ public partial class PlayerWindow : Window
 
     private void RefreshTrackControls()
     {
-        AudioTracksButton.Visibility = _backend.AudioTracks.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
-        SubtitleTracksButton.Visibility = _backend.SubtitleTracks.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+        AudioTracksButton.Visibility = _backend.AudioTracks.Count > 1 ? Visibility.Visible : Visibility.Hidden;
+        SubtitleTracksButton.Visibility = _backend.SubtitleTracks.Count > 1 ? Visibility.Visible : Visibility.Hidden;
     }
 
     private void AudioTracksButton_Click(object sender, RoutedEventArgs e) =>
@@ -640,6 +708,16 @@ public partial class PlayerWindow : Window
             return; // window tearing down, or a decision for this same failure is already being applied
         }
 
+        if (_failureShown)
+        {
+            // SP-0096: the verdict is final. The backend is not stopped by ShowPlaybackFailure, so a dead
+            // host keeps raising EncounteredError for as long as the dialog stands - observed in phase 6:
+            // a dead_source give-up at 8 s was followed 23 s later by Reconnect attempt=1 against the very
+            // URL just declared dead, replacing the "Unavailable" caption with "Reconnecting". Giving up
+            // has to mean it. A hand retry is the one way back, and it clears this latch itself.
+            return;
+        }
+
         _recoveryInFlight = true;
         _recovering = true;
         // SP-0045: red once the stream has played at least once; before that it is still connecting and
@@ -653,9 +731,11 @@ public partial class PlayerWindow : Window
         NotifyInterrupted(PlaybackInterruptionKind.SignalLost);
         try
         {
-            // Only a fresh http/https open failure needs the status probe; stall/end/live-window already carry their signal.
+            // Only a fresh http/https open failure needs the status probe; stall/end/live-window already
+            // carry their signal, and so does SP-0096's open verdict - the source has just had its full
+            // twenty seconds to answer, so asking again buys nothing but more of the wait being cut.
             var enriched = signal;
-            if (signal.HttpStatusCode is null && !signal.Stall && !signal.EndReached && !signal.BehindLiveWindow)
+            if (signal.HttpStatusCode is null && !signal.Stall && !signal.EndReached && !signal.BehindLiveWindow && !signal.OpenTimedOut)
             {
                 enriched = signal with { HttpStatusCode = await PlaybackStatusProbe.TryGetStatusAsync(_channel.Url, _sessionCts.Token) };
             }
@@ -764,6 +844,15 @@ public partial class PlayerWindow : Window
             return;
         }
 
+        if (_failureShown)
+        {
+            // SP-0096 criterion 6: the open budget expiring in the same second as an engine error is a
+            // real race, and _recoveryInFlight guards only the re-open path. Announcing the same dead
+            // channel twice would stack a second modal dialog behind the first.
+            return;
+        }
+
+        _failureShown = true;
         SetWaitTextResource("PlayerUnavailable");
         // SP-0072: a terminal failure is a black screen too, and it is the one the user can be left
         // staring at after dismissing the dialog - or that raises no dialog at all under _quietUntilLive.
@@ -805,6 +894,7 @@ public partial class PlayerWindow : Window
             case PlaybackFailureChoice.Retry:
                 _recovery.Reset(); // a manual retry starts a fresh recovery budget
                 _recovering = false;
+                _failureShown = false; // SP-0096: a hand retry is a new session, entitled to its own verdict
                 // SP-0071: the recovery budget is reset, the ceiling is not. What the governor learned
                 // about this source's delivery did not stop being true because the user pressed Retry.
                 // SP-0076: a ceiling that came from memory and never produced a picture is the exception -

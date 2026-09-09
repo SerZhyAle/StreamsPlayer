@@ -220,6 +220,11 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     // judging this engine by media time, which is the watchdog it had before SP-0070.
     public PlaybackProgressCounters? ReadProgressCounters() => null;
 
+    // SP-0096: no byte counter here either, so the open budget loses its dead-source branch on this
+    // engine and keeps its deadline. That is the correct degradation, not a gap: an engine that reports
+    // nothing must never be read as reporting zero.
+    public long? ReadReceivedBytes() => null;
+
     // SP-0053: the same documented gap as LogStats. This backend's stream description is not exposed in
     // the shape the About window needs, and a partly-filled reading would be indistinguishable from a
     // stream that carries no audio - so this engine reports nothing rather than something wrong.

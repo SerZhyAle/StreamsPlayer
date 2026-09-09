@@ -21,16 +21,25 @@ public sealed class LivePlaybackRecoveryPolicy
     private const int TransientBudget = 2;
     private const int StallBudget = 3;
     private const int StreamEndedBudget = 2;
+    // SP-0096, owner decision of 2026-09-09: one re-open and then the verdict. The trigger fires only
+    // after PlaybackOpenBudget.OpenDeadline has already elapsed once, so every extra attempt costs
+    // another full deadline of black screen - two attempts would be worse than the sixty-five-second
+    // wait this rule exists to end.
+    private const int OpenTimeoutBudget = 1;
 
     // Part D leaves no explicit backoff for a stall or a stream-end re-open; a short fixed delay avoids
     // a tight reconnect loop without adding perceptible latency to a recovery.
     private static readonly TimeSpan StallBackoff = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan StreamEndedBackoff = TimeSpan.FromSeconds(1);
+    // SP-0096: not the transient 2 s/4 s ladder. Twenty seconds have already been spent waiting by the
+    // time this trigger fires; the delay exists only so the re-open is not a tight loop.
+    private static readonly TimeSpan OpenTimeoutBackoff = TimeSpan.FromSeconds(1);
 
     private int _behindLiveWindowAttempts;
     private int _transientAttempts;
     private int _stallAttempts;
     private int _streamEndedAttempts;
+    private int _openTimeoutAttempts;
 
     /// <summary>Classifies the signal and returns the next recovery action for its trigger.</summary>
     public RecoveryDecision Decide(PlaybackFailureSignal signal)
@@ -57,6 +66,7 @@ public sealed class LivePlaybackRecoveryPolicy
         _transientAttempts = 0;
         _stallAttempts = 0;
         _streamEndedAttempts = 0;
+        _openTimeoutAttempts = 0;
     }
 
     private (int Attempt, int Budget, TimeSpan Delay) Advance(RecoveryTrigger trigger) => trigger switch
@@ -69,6 +79,7 @@ public sealed class LivePlaybackRecoveryPolicy
             ++_transientAttempts, TransientBudget, TimeSpan.FromSeconds(Math.Pow(2, _transientAttempts))),
         RecoveryTrigger.Stall => (++_stallAttempts, StallBudget, StallBackoff),
         RecoveryTrigger.StreamEnded => (++_streamEndedAttempts, StreamEndedBudget, StreamEndedBackoff),
+        RecoveryTrigger.OpenTimeout => (++_openTimeoutAttempts, OpenTimeoutBudget, OpenTimeoutBackoff),
         _ => (0, 0, TimeSpan.Zero)
     };
 }

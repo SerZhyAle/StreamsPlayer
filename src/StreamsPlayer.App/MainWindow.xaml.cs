@@ -86,6 +86,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // above. Every preview entry point reads it; see MainWindow.Previews.cs.
     private bool _shuttingDown;
     private readonly DispatcherTimer _browsingSessionSaveTimer;
+    // SP-0096: the radio's half of the open budget. A timer rather than PlaybackOpenBudget itself
+    // because MediaElement publishes no counters at all - there is nothing to observe, so the rule
+    // collapses to its deadline and the dead-source branch has no input on this engine. The interval
+    // still comes from Core so the radio and the player cannot drift apart.
+    private readonly DispatcherTimer _audioOpenTimer;
     private bool _restoringBrowsingSession;
     private bool _resettingFilters;
     // SP-0067: a pixel offset read off the scroll event, not a channel identity searched for among the
@@ -105,6 +110,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("StreamsPlayer/0.1");
         _browsingSessionSaveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
         _browsingSessionSaveTimer.Tick += BrowsingSessionSaveTimer_Tick;
+        _audioOpenTimer = new DispatcherTimer { Interval = PlaybackOpenBudget.OpenDeadline };
+        _audioOpenTimer.Tick += AudioOpenTimer_Tick;
         if (GridPreviewFeature.CaptureEnabled)
         {
             var memoryCache = new PreviewFrameCache(PreviewMemoryCacheCapacity, url =>
@@ -904,6 +911,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         AudioVolumeSlider.Visibility = Visibility.Visible;
         AudioPlayer.Source = new Uri(channel.Url);
         AudioPlayer.Play();
+        // SP-0096: restarted on every leg, so the budget is a per-leg quantity exactly as it is for
+        // video. Before this, a station whose URL never opened raised no MediaOpened, no MediaFailed and
+        // no MediaEnded, so nothing in this window ever learned that it had not started - the line said
+        // "Connecting.." for as long as the user left it there, and _audioWake forbade sleep throughout.
+        _audioOpenTimer.Stop();
+        _audioOpenTimer.Start();
         ApplyAudioTransportState();
         StartNowPlayingMetadata(channel);
     }
@@ -929,6 +942,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             hunt.Outcome.TrySetResult(true);
         }
 
+        _audioOpenTimer.Stop(); // SP-0096: it opened, which is the only thing the budget was waiting for
         _audioRecovery?.NotifyLive(); // sustained live - restore the full recovery budget
         await RecordPlayOutcome(_playingAudio.Channel.Id, true);
     }
@@ -983,10 +997,41 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         await RecoverAudioAsync(row.Channel, "end_reached", endReached: true);
     }
 
+    /// <summary>
+    /// SP-0096: the station has had the whole open budget and has raised nothing - not MediaOpened, not
+    /// MediaFailed, not MediaEnded. Takes exactly the path a reported failure takes from here, which is
+    /// the funnel that stops the station, records the outcome, releases the idle-sleep hold and tells
+    /// the user; the only thing this handler adds is the fact that the silence has ended.
+    /// </summary>
+    private async void AudioOpenTimer_Tick(object? sender, EventArgs e)
+    {
+        _audioOpenTimer.Stop();
+        if (_playingAudio is not { } row)
+        {
+            return;
+        }
+
+        _log.Event("AUDIO GIVEUP",
+            "rule=deadline",
+            $"at_ms={PlaybackOpenBudget.OpenDeadline.TotalMilliseconds:F0}",
+            $"url={row.Channel.Url}");
+        // SP-0086: first, exactly as MediaEnded does it. A hunt in progress owns the outcome of its own
+        // probe, and taking it would leave the hunt waiting out its separate connect timeout for a
+        // station this rule has already condemned.
+        if (YieldToRandomStationHunt(row.Channel, "open_timeout"))
+        {
+            return;
+        }
+
+        AudioPlayer.Stop();
+        AudioPlayer.Source = null;
+        await RecoverAudioAsync(row.Channel, "open_timeout", openTimedOut: true);
+    }
+
     // Bounded audio recovery (streams.txt Part D). Classifies the failure, then reconnects after a cancellable
     // backoff (showing a Reconnecting label) or, once the budget is spent or a hard failure is hit, shows the
     // terminal dialog. There is no position stall-watchdog for audio: MediaElement exposes no live telemetry.
-    private async Task RecoverAudioAsync(StreamChannel channel, string reason, bool endReached = false)
+    private async Task RecoverAudioAsync(StreamChannel channel, string reason, bool endReached = false, bool openTimedOut = false)
     {
         var policy = _audioRecovery;
         var cts = _audioRecoveryCts;
@@ -997,13 +1042,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         // Only a fresh open failure needs the status probe; a stream that ended already carries its own
         // signal, and probing it would spend a request to learn nothing. Same rule the video path applies.
-        int? status = endReached ? null : await PlaybackStatusProbe.TryGetStatusAsync(channel.Url, cts.Token);
+        // SP-0096 is the second such case: the source has just had the full open budget to answer, so
+        // asking it again buys nothing but more of the wait that budget exists to end.
+        int? status = endReached || openTimedOut ? null : await PlaybackStatusProbe.TryGetStatusAsync(channel.Url, cts.Token);
         if (cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
         {
             return; // stopped or switched while probing - do not relabel or restart
         }
 
-        var decision = policy.Decide(new PlaybackFailureSignal(reason, EndReached: endReached, HttpStatusCode: status));
+        var decision = policy.Decide(new PlaybackFailureSignal(reason, EndReached: endReached, HttpStatusCode: status, OpenTimedOut: openTimedOut));
         _log.Event("AUDIO RECOVER",
             $"trigger={decision.Trigger}",
             $"action={decision.Kind}",
@@ -1175,6 +1222,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // SP-0062: and therefore the one place a station leaves the resume record - including the SP-0021
         // pause, because a paused session is deliberately not something the next launch brings back.
         var stoppedChannelId = _playingAudio?.Channel.Id;
+        // SP-0096: this being the one funnel every stop, switch, pause and failure passes through is
+        // what makes a single Stop here enough - a station the user stopped must not fail ten seconds
+        // later, and a station being switched away from must not condemn its successor.
+        _audioOpenTimer.Stop();
         _audioRecoveryCts?.Cancel(); // cancel any in-flight recovery backoff (stop / switch / close)
         _audioRecoveryCts?.Dispose();
         _audioRecoveryCts = null;

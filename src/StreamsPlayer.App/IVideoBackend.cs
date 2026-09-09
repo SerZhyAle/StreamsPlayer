@@ -97,6 +97,24 @@ internal interface IVideoBackend
     PlaybackProgressCounters? ReadProgressCounters();
 
     /// <summary>
+    /// SP-0096: total bytes this leg has taken off the network - the access layer's and the demuxer's
+    /// counts summed - for the open budget to test against zero. Read on the player's existing stats
+    /// tick; like <see cref="ReadLossCounters"/> it must not open, wait for, or poll anything of its own.
+    /// <para>The sum, and not either counter alone, because the two swap roles at the moment this rule
+    /// cares about. While an HLS stream is opening only the access-side count moves - the playlists come
+    /// through it and the demuxer has nothing yet - and a logged healthy open sat at
+    /// <c>read_bytes=3046 | demux_bytes=0</c> for four seconds, including one tick after it went live.
+    /// Once it plays the access counter freezes for the whole session instead (see
+    /// <see cref="ReadProgressCounters"/>). The open budget asks only "has anything at all arrived",
+    /// and only the sum answers that across both phases. <see cref="PlaybackProgressCounters"/> keeps
+    /// its SP-0070 meaning untouched.</para>
+    /// <para>Null means this engine reports no bytes. The rule reads that as "no evidence" and drops its
+    /// dead-source branch - never as "nothing arrived", which would condemn every stream on an engine
+    /// that simply does not count.</para>
+    /// </summary>
+    long? ReadReceivedBytes();
+
+    /// <summary>
     /// SP-0053: what this engine already knows about the stream it is playing, for the About window.
     /// Reads state that exists; never opens, re-opens, or waits for anything. Null where the engine
     /// does not describe its stream, or before it has one.

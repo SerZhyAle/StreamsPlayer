@@ -404,6 +404,28 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         return new PlaybackProgressCounters(s.DisplayedPictures, (long)s.DemuxReadBytes);
     }
 
+    // SP-0096: both byte counters summed, under the same Media-wrapper discipline as everything above.
+    // ReadBytes is included here precisely because it is excluded from ReadProgressCounters: it is the
+    // only counter that moves while an HLS stream is still fetching its playlists, which is the window
+    // the open budget judges. Summing them is safe for that question - the budget only ever tests the
+    // total against zero, never differences it - and no other caller may read it as a rate.
+    public long? ReadReceivedBytes()
+    {
+        if (_disposed)
+        {
+            return null;
+        }
+
+        using var media = _mediaPlayer.Media;
+        if (media is null)
+        {
+            return null;
+        }
+
+        var s = media.Statistics;
+        return (long)s.ReadBytes + (long)s.DemuxReadBytes;
+    }
+
     // Same Media-wrapper discipline as LogStats: the getter retains the native media on every call.
     public StreamTransmission? DescribeTransmission()
     {

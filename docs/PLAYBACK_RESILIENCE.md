@@ -21,7 +21,7 @@ distinct failures were measured on real channels, and each has its own layer:
 | Picture stops, audio stops, nothing arrives | source stopped sending | §3 freeze detection → §4 recovery |
 | Picture stops but bytes keep arriving | decoder/clock fault | §2 open-time settings |
 | Buffer empties every 10-60 s, forever | the chosen rendition is undeliverable | §5 quality ceiling |
-| Nothing plays at all, ever | the channel or the network is down | §4 recovery → verdict |
+| Nothing plays at all, ever | the channel or the network is down | §3a open budget → §4 recovery → verdict |
 | Live drifts further behind after every stall, and never returns | nothing was holding the distance to the edge | §2 live-edge controller (optional engine only) |
 
 Reconnecting to grow a buffer made things *worse* in every early measurement. The rule that follows from
@@ -31,13 +31,14 @@ that runs through the whole design: **decide from what was observed, not from wh
 
 ## 1. The measurement layer
 
-Everything below is driven by five observations the player already makes. No layer adds a timer or a poll
+Everything below is driven by six observations the player already makes. No layer adds a timer or a poll
 of its own; each hangs off signals that were already there.
 
 | Observation | Where it comes from |
 |---|---|
 | Buffering reached 100 % after playback was live → **stall**; buffering left → **resume** | `PlayerWindow.UpdateBuffering` |
 | Displayed pictures and demuxed input bytes, monotonic totals | `IVideoBackend.ReadProgressCounters()` |
+| Total bytes off the network, access layer and demuxer summed | `IVideoBackend.ReadReceivedBytes()` |
 | Lost / corrupted picture counters | `IVideoBackend.ReadLossCounters()` |
 | Media position, engine playing state | `IVideoBackend` |
 | The engine's own error and end-of-stream events | `PlayerWindow` handlers → `PlaybackFailureSignal` |
@@ -47,9 +48,12 @@ log line.
 
 Two conventions make these rules testable and are worth preserving:
 
-- **Time is a parameter, never ambient.** Every Core rule takes `now` from a monotonic session stopwatch
-  (`PlayerWindow.HealthNow` = `_sessionClock.Elapsed`). A wall-clock change can neither expire a threshold
-  early nor hang it forever, and a test can drive ten minutes in ten lines.
+- **Time is a parameter, never ambient.** Every Core rule takes `now` from a monotonic stopwatch, so a
+  wall-clock change can neither expire a threshold early nor hang it forever, and a test can drive ten
+  minutes in ten lines. **Which** stopwatch is part of each rule's contract and is not interchangeable:
+  rules that must span reconnects take `PlayerWindow.HealthNow` = `_sessionClock.Elapsed`, and the one
+  per-leg rule (§3a's open budget) takes `_playbackClock`, which restarts on every open. Feeding the
+  session clock to a per-leg rule would expire the second re-open the instant it began.
 - **Null means "no evidence", never "fine".** A backend that reports no counters must not silently disarm
   a watchdog; it falls back to a weaker signal and says so.
 
@@ -157,9 +161,63 @@ Second, cruder watchdog, still in `PlayerWindow`: buffering for **> 15 s** with 
 < 500 ms → `WATCHDOG kind=stuck_buffer`. Different failure (a buffer that never fills, rather than a
 picture that stopped), so it is a separate branch.
 
+**Both branches are gated on the stream having been live at least once** (SP-0070 acceptance 4). That
+gate is correct and stays, but it is also why §3a exists: for two years it left the entire pre-live
+window watched by nothing at all.
+
 ---
 
-## 4. Recovery - SP-0015, tightened by SP-0041
+## 3a. The open budget - SP-0096
+
+`src/StreamsPlayer.Core/PlaybackOpenBudget.cs`. The exact inverse of §3 in scope: §3 watches a stream
+that has played, this watches one that has not yet. Between them the session is covered with no overlap
+and no gap - `ObserveOpenBudget` returns once `_reachedLive`, `WatchdogTimer_Tick` returns until it.
+
+Why it was needed: measured on the owner's machine over 2026-09-06/08, **twelve sessions ended having
+never played**, at 9.8 s, 16 s, 17 s, 24 s, 38 s and 65 s of black screen, every one of them carrying
+`legs=1 | reconnects=0`. A source that raises neither an error nor an end-of-stream reached nothing in
+this document, so the application did nothing and the user closed the window by hand.
+
+Two branches, because "not answering" and "answering slowly" deserve different answers:
+
+| Branch | Threshold | What happens |
+|---|---|---|
+| `DeadSource` - nothing has arrived at all | `DeadSourceAfter` = **8 s** | straight to the verdict, no re-open, no status probe |
+| `Deadline` - answered, never reached the screen | `OpenDeadline` = **20 s** | `RecoveryTrigger.OpenTimeout`: one re-open, then the verdict |
+
+The dead branch skips `RecoverAsync` entirely. Re-opening a host that has delivered zero bytes repeats
+the silence, and `RecoverAsync` would first spend a `PlaybackStatusProbe` round trip on a host that has
+just proved it answers nothing - adding seconds to the wait this rule exists to cut.
+
+The input is `IVideoBackend.ReadReceivedBytes()`, and it is **both** byte counters summed - unlike §3,
+which reads the demuxer's alone. The two swap roles at exactly the moment this rule cares about: while
+an HLS stream is opening only the access-side count moves (the playlists come through it), and a logged
+healthy open sat at `read_bytes=3046 | demux_bytes=0` for four seconds *including one tick after it went
+live*. Once it plays, the access counter freezes instead. The budget only ever tests the total against
+zero, never differences it, which is what makes summing them safe here and wrong anywhere else.
+
+`null` counters (FlyleafLib, and `MediaElement` on the radio path) drop the dead branch and keep the
+deadline. An engine that reports nothing must never be read as reporting zero.
+
+Radio has the deadline only, as a `DispatcherTimer` in `MainWindow` (`AUDIO GIVEUP`), armed per leg in
+`StartAudioPlayback` and disarmed in `StopAudioPlayback` - the one funnel every stop, switch, pause and
+failure passes through. Before this a station whose URL never opened raised no `MediaOpened`, no
+`MediaFailed` and no `MediaEnded`: the line read "Connecting.." indefinitely and `_audioWake` forbade the
+machine to sleep for as long as it did.
+
+`NotifyLive()` disarms the budget rather than the caller testing for liveness, so a stream that reached
+the screen at 19.5 s cannot be taken off it by the observation at 20 s.
+
+**The numbers are measured, not chosen.** Over 311 timed openings in the owner's two archives the median
+first frame arrived at 2.4 s, p90 at 5.3 s, p99 at 11.2 s; only two channels exceeded 12 s (24 s and
+31 s). Twenty clears p99 with room and costs exactly those two. Eight is a fourfold margin over what a
+healthy open needs to move a byte counter at all. **Worst case for the user**: a source that answers and
+never plays costs 20 s + 1 s + 20 s = 41 s before the verdict - against the 65 s measured on 2026-09-06
+with no verdict at the end of it at all. A dead one costs 8 s.
+
+---
+
+## 4. Recovery - SP-0015, tightened by SP-0079
 
 `src/StreamsPlayer.Core/LivePlaybackRecoveryPolicy.cs` decides; `PlayerWindow.RecoverAsync` executes.
 `PlaybackRecoveryClassifier` turns an engine event into a `RecoveryTrigger` first. The budgets and the
@@ -172,6 +230,7 @@ Part D (and Part F for backend adaptation). Change the table below only by chang
 | `Transient` | **2** | 2ⁿ s (2, 4) |
 | `Stall` | 3 | 1 s |
 | `StreamEnded` | **2** | 1 s |
+| `OpenTimeout` | 1 | 1 s |
 | `HardFail` | - | no reconnect; straight to the verdict |
 
 The two budgets in bold are **2 here and 4 in Part D** - the one place this table deliberately departs
@@ -188,9 +247,18 @@ Budgets are **per trigger**, so a stream that stalls three times and then ends s
 stream-ended budget. Sustained live restores the whole budget (`_recovery.NotifyLive()` on first live).
 Exhausting a budget hands off to `PlaybackFailureDialog` - the terminal verdict, with Retry.
 
-Before spending the ladder on an unreachable host, SP-0041 establishes *what* is unreachable - the
-channel's host or the network itself - via `StreamTransmissionProbe`, so the app does not offer to delete
-a channel because the user's own Wi-Fi is down.
+`OpenTimeout` is the newest and the smallest, and it is the only trigger the *player* raises rather than
+the engine (SP-0096, §3a). One re-open, because it only ever fires after a full `OpenDeadline` has
+already been spent staring at black, so every extra attempt costs another twenty seconds of exactly the
+thing being fixed. Its backoff is a flat second rather than the transient ladder, for the same reason:
+the waiting has already happened.
+
+**SP-0041 is not implemented.** Earlier revisions of this document described a `StreamTransmissionProbe`
+call establishing *what* is unreachable - the channel's host or the network itself - before the ladder is
+spent. That is the ticket's intent, not the tree's behaviour: the probe has exactly one call site,
+`ChannelInfoWindow`, and nothing on the failure path calls it. SP-0096 bounds the wait from *inside* an
+open that has already begun rather than probing before one; distinguishing "this host is down" from "your
+Wi-Fi is down" is still open work.
 
 The backoff is cancellable and the "Reconnecting" label stays visible through it: ordinary buffering and
 reconnection must never look the same to the user.
@@ -368,6 +436,8 @@ look the same in an archive.
 | `PLAYBACK LIVE` | `ttff_ms=` - the black-screen cost of that leg |
 | `PLAYBACK STALL` / `RESUME` | buffer emptied / refilled after live |
 | `PLAYBACK WATCHDOG` | `kind=frozen` or `kind=stuck_buffer` |
+| `PLAYBACK GIVEUP` | `rule=dead_source\|deadline`, `at_ms=`, `leg=`, `bytes=` - §3a decided this leg is not going to open |
+| `AUDIO GIVEUP` | `rule=deadline`, `at_ms=` - the radio's half of §3a |
 | `PLAYBACK RECOVER` | `trigger=`, `action=`, `attempt=`, budget, delay |
 | `PLAYBACK QUALITY` | `action=recall\|ladder\|down\|up\|hold\|memory\|rendition`, `from=`, `to=`, `ceiling=`, `starvations=`, `memory=`, `within=`, `leg=` |
 | `PLAYBACK CLOSE` / `SESSION` | `legs=`, `reconnects=`, `stalls=`, `outcome=` |
@@ -377,6 +447,10 @@ look the same in an archive.
 **How to read a session in one pass:** sum `ttff_ms` over legs → total black screen; `legs` minus
 `reconnects` → how many interruptions were quality changes rather than failures; `memory=` on the ladder
 line → whether this session started knowing anything.
+
+Since SP-0096, `outcome=never_live` without a `GIVEUP` line above it means one thing only: **the user
+closed the window before the budget expired.** Every other way a session can fail to open now ends in a
+verdict of ours, which is what makes that outcome readable instead of ambiguous.
 
 Known noise: `direct3d11 | SetThumbNailClip failed: 0x800706f4`, about six lines per open. It is the video
 output adjusting the taskbar preview clip. It is not a freeze and not a re-captured thumbnail - `THUMB
@@ -403,7 +477,8 @@ TAKEN` appears once per session.
 
 ```
 Core (platform-neutral, all unit-tested)
-  PlaybackFreezeDetector.cs      §3  is this stream frozen
+  PlaybackFreezeDetector.cs      §3  is this stream frozen        (after first live)
+  PlaybackOpenBudget.cs          §3a is this stream ever going to open (before first live)
   LivePlaybackRecoveryPolicy.cs  §4  reconnect or give up, and after how long
   PlaybackRecoveryClassifier.cs  §4  engine event -> RecoveryTrigger
   PlaybackFailureSignal.cs           the input record
@@ -422,7 +497,8 @@ App (forwards observations, applies answers, owns all I/O)
   PlayerWindow.Notice.cs         §6  paints the caption over the video
   PlayerWindow.Quality.cs        §5  feeds the governor, logs it, re-opens
   StreamQualityLadderProbe.cs    §5  fetches the master playlist (5 s deadline)
-  StreamTransmissionProbe.cs     §4  is it the channel or the network
+  StreamTransmissionProbe.cs         is it the channel or the network - built for §4, wired only to
+                                     ChannelInfoWindow; SP-0041 is not implemented
   QualityMemoryFile.cs           §5  the one gate over the memory file
   LibVlcVideoBackend.cs          §2  engine options and the ceiling
   FlyleafVideoBackend.cs         §2  the opt-in engine, and the only home of the live-edge controller
@@ -439,7 +515,9 @@ App (forwards observations, applies answers, owns all I/O)
 | Freeze threshold | 9 s | `PlaybackFreezeDetector.FreezeAfter` |
 | Media-time progress | 500 ms | `PlaybackFreezeDetector.PositionProgressMilliseconds` |
 | Stuck-buffer threshold | 15 s | `PlayerWindow.StatsTimer_Tick` |
-| Recovery budgets | 3 / **2** / 3 / **2** | `LivePlaybackRecoveryPolicy` (SP-0079; Part D says 3 / 4 / 3 / 4) |
+| Dead-source threshold | 8 s | `PlaybackOpenBudget.DeadSourceAfter` (SP-0096) |
+| Open deadline | 20 s | `PlaybackOpenBudget.OpenDeadline` (SP-0096; the radio timer's interval too) |
+| Recovery budgets | 3 / **2** / 3 / **2** / 1 | `LivePlaybackRecoveryPolicy` (SP-0079; Part D says 3 / 4 / 3 / 4 and knows nothing of the fifth) |
 | Caption appear delay | 1 s | `PlaybackInterruptionTracker.AppearDelay` |
 | Health clean interval | 60 s | `SignalHealthMonitor.CleanInterval` |
 | Health loss threshold | 5 per sample | `SignalHealthMonitor.LossThreshold` |
@@ -461,7 +539,7 @@ App (forwards observations, applies answers, owns all I/O)
 | `DONE/SP-0012` | buffered video backend for unreliable live streams | Verified |
 | `DONE/SP-0015` | the bounded recovery ladder | Verified |
 | `DONE/SP-0026` | selectable media backend | Verified |
-| `DONE/SP-0041` | shorter recovery, connectivity-aware verdict | **Tactical** (in `DONE/`, header not updated) |
+| `DONE/SP-0041` | shorter recovery, connectivity-aware verdict | **Tactical** (in `DONE/`, header not updated; its own folder says `Draft`, and none of its decisions are in the tree) |
 | `DONE/SP-0045` | the signal-health stripe | **BlockNeedUserTest** (in `DONE/`, header not updated) |
 | `DONE/SP-0070` | silent freeze detection | Verified |
 | `DONE/SP-0071` | adaptive quality ceiling | **Implemented** (in `DONE/`, not yet audited) |
@@ -470,6 +548,7 @@ App (forwards observations, applies answers, owns all I/O)
 | `SP-0077` | which rung is actually playing | Verified |
 | `SP-0078` | holding the distance to the live edge | **Implemented** - the half-hour live run is not done |
 | `SP-0079` | shorter reconnect budget | **Implemented** |
+| `SP-0096` | a stream that never opens is given up on | **Implemented** - the run-and-observe phase is not done |
 
 Three of those headers disagree with the folder they sit in. Status comes from the header, never from the
 path - recorded here so the disagreement is visible rather than inherited.

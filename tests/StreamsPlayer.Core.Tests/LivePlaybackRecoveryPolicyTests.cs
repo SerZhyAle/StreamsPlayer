@@ -8,6 +8,7 @@ public sealed class LivePlaybackRecoveryPolicyTests
     private static PlaybackFailureSignal BehindLive() => new("behind live window", BehindLiveWindow: true);
     private static PlaybackFailureSignal Stall() => new("stall", Stall: true);
     private static PlaybackFailureSignal Ended() => new("end_reached", EndReached: true);
+    private static PlaybackFailureSignal OpenTimedOut() => new("open_timeout", OpenTimedOut: true);
 
     [Fact]
     public void Transient_FollowsExponentialBackoffThenHardFails()
@@ -169,5 +170,65 @@ public sealed class LivePlaybackRecoveryPolicyTests
     public void Classify_EmptyReasonDefaultsToTransient()
     {
         Assert.Equal(RecoveryTrigger.Transient, PlaybackRecoveryClassifier.Classify(new PlaybackFailureSignal(null)));
+    }
+
+    [Fact]
+    public void Classify_OpenTimedOutFlagWinsOverItsReasonText()
+    {
+        // SP-0096: the reason token carries the word "timeout", which the substring rules below would
+        // read as an ordinary transient network fault and hand the two-attempt budget. The flag is what
+        // keeps our own verdict from being re-interpreted as the engine's.
+        Assert.Equal(RecoveryTrigger.OpenTimeout, PlaybackRecoveryClassifier.Classify(
+            new PlaybackFailureSignal("open_timeout", OpenTimedOut: true)));
+    }
+
+    [Fact]
+    public void Classify_OpenTimedOutFlagWinsOverAHardFailReasonText()
+    {
+        // A leg that never played produced no engine text at all, so any word that happens to be in the
+        // reason string is ours, not the source's, and must not divert the verdict.
+        Assert.Equal(RecoveryTrigger.OpenTimeout, PlaybackRecoveryClassifier.Classify(
+            new PlaybackFailureSignal("unsupported container", OpenTimedOut: true)));
+    }
+
+    [Fact]
+    public void OpenTimeout_ReconnectsOnceThenHardFails()
+    {
+        // SP-0096, owner decision: one re-open. Each attempt costs another full PlaybackOpenBudget
+        // deadline of black screen, which is why this budget is the smallest of the five.
+        var policy = new LivePlaybackRecoveryPolicy();
+        var first = policy.Decide(OpenTimedOut());
+        Assert.Equal(RecoveryActionKind.Reconnect, first.Kind);
+        Assert.Equal(RecoveryTrigger.OpenTimeout, first.Trigger);
+        Assert.Equal(1, first.Attempt);
+        Assert.Equal(1, first.Budget);
+        Assert.Equal(TimeSpan.FromSeconds(1), first.Delay);
+
+        var second = policy.Decide(OpenTimedOut());
+        Assert.Equal(RecoveryActionKind.HardFail, second.Kind);
+        Assert.Equal(RecoveryTrigger.OpenTimeout, second.Trigger);
+    }
+
+    [Fact]
+    public void OpenTimeout_BudgetIsRearmedByReachingLive()
+    {
+        // A station that opens slowly, plays for an hour and then drops must not inherit the earlier
+        // leg's spent budget - the counters are consecutive-attempt counters, not lifetime ones.
+        var policy = new LivePlaybackRecoveryPolicy();
+        Assert.Equal(RecoveryActionKind.Reconnect, policy.Decide(OpenTimedOut()).Kind);
+        policy.NotifyLive();
+        Assert.Equal(RecoveryActionKind.Reconnect, policy.Decide(OpenTimedOut()).Kind);
+    }
+
+    [Fact]
+    public void OpenTimeout_DoesNotSpendTheTransientBudget()
+    {
+        // The two triggers are separate counters. A source that timed out opening and then failed for a
+        // reported reason gets both budgets in full, because they describe different failures.
+        var policy = new LivePlaybackRecoveryPolicy();
+        Assert.Equal(RecoveryActionKind.Reconnect, policy.Decide(OpenTimedOut()).Kind);
+        Assert.Equal(1, policy.Decide(Transient()).Attempt);
+        Assert.Equal(2, policy.Decide(Transient()).Attempt);
+        Assert.Equal(RecoveryActionKind.HardFail, policy.Decide(Transient()).Kind);
     }
 }
