@@ -1089,3 +1089,27 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   committed: green on the released build, and red - exit 1, both stations, the right diagnosis printed
   - on a deliberately unpinned build carrying the broken runtime. Do that for every new gate; the
   negative control is the cheap half and the only half that proves anything.
+
+- **`reference` - a WPF window's placement is verifiable without a human.** SP-0084's acceptance was
+  seven criteria about where a window lands, and the repo's rule is that a changed GUI action needs
+  run-and-observe evidence. The whole set was checked from PowerShell: launch the shipping binary with
+  `--url <stream>`, `EnumWindows` filtered by pid for the visible top-level windows (the player is the
+  one titled `<host> - STREAMS Player video`; the catalog is `STREAMS Player`), then `GetWindowRect` to
+  read the placement, `MoveWindow` to drag and resize it, and `WM_CLOSE` (0x0010) to close it *properly*
+  so `OnClosing` runs - `Stop-Process` does not, and a harness that kills the process proves nothing
+  about what closing records. `WM_SYSCOMMAND`/`SC_MAXIMIZE` (0x0112, 0xF030) covers the maximized case.
+  Seeding the state file by hand is what makes the untestable cases testable: a rectangle at 6400,-3000
+  is a monitor that does not exist, and no second screen has to be unplugged to check it (2026-09-09).
+
+- **`project` - `dotnet` is on PATH in the PowerShell tool and not in the Bash one.** `./scripts/check.ps1`
+  invoked through Bash dies with "The term 'dotnet' is not recognized" - which reads exactly like a
+  broken script or a missing SDK, and is neither. Run every build, test and gate through the PowerShell
+  tool. Unrelated to the canon's `guard-bash` rule about routing `.ps1` through an interpreter; this one
+  bites even when that rule is followed (2026-09-09).
+
+- **`project` - `PLAN/` is gitignored in this repository.** Tickets are working-tree state, never
+  committed, which is the mechanical reason `AGENTS.md` insists status comes from the tree and never
+  from git history - there is no history to consult. A `git add PLAN/...` is refused as an ignored path;
+  do not reach for `-f`. It also means a ticket's status edit is invisible to a reviewer reading the
+  diff, so a commit message has to carry the evidence a reader would otherwise look for in the ticket
+  (2026-09-09).
