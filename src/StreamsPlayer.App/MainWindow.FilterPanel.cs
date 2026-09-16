@@ -14,6 +14,10 @@ public partial class MainWindow
     private const string AudioFilterValue = "Audio";
     private const string VideoFilterValue = "Video";
 
+    // SP-0100: the third value narrows by origin rather than by kind - the rows the user added or
+    // imported, which are otherwise lost among the ~19 000 catalog rows. Same facet, same persistence.
+    private const string OwnFilterValue = "Own";
+
     /// <summary>
     /// How many facets are narrowing the catalog right now. <c>SortMode</c> is excluded on purpose: it
     /// reorders, it never narrows, and <c>ClearFiltersButton_Click</c> already leaves it alone - counting
@@ -54,6 +58,7 @@ public partial class MainWindow
         var media = SelectedOptionValue(MediaFilter) ?? AllValue;
         QuickVideoButton.Tag = media == VideoFilterValue ? FiltersActiveTag : null;
         QuickAudioButton.Tag = media == AudioFilterValue ? FiltersActiveTag : null;
+        QuickOwnButton.Tag = media == OwnFilterValue ? FiltersActiveTag : null;
     }
 
     /// <summary>
@@ -86,6 +91,8 @@ public partial class MainWindow
     private void QuickVideoButton_Click(object sender, RoutedEventArgs e) => ToggleQuickMediaFilter(VideoFilterValue);
 
     private void QuickAudioButton_Click(object sender, RoutedEventArgs e) => ToggleQuickMediaFilter(AudioFilterValue);
+
+    private void QuickOwnButton_Click(object sender, RoutedEventArgs e) => ToggleQuickMediaFilter(OwnFilterValue);
 
     /// <summary>
     /// Writes straight through <see cref="PersistAsync"/> rather than the debounced browsing-session

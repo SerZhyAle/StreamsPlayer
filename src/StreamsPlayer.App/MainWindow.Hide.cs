@@ -42,7 +42,7 @@ public partial class MainWindow
 
     private async Task DeleteUserChannelAsync(StreamChannel channel)
     {
-        if (channel.SourceOrigin is not (SourceOrigin.Manual or SourceOrigin.Imported))
+        if (channel.SourceOrigin is not (SourceOrigin.Manual or SourceOrigin.Imported or SourceOrigin.LocalCatalog))
         {
             return;
         }

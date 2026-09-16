@@ -17,7 +17,7 @@ public partial class SettingsWindow : Window
     // real path so the user can see where frames land either way, hence the separate field.
     private string? _frameFolder;
 
-    public SettingsWindow(AppTheme theme, StreamTileSize tileSize, bool updateStreamPreviews, bool keepAwakeDuringPlayback, bool systemMediaControls, bool resumePlaybackOnStartup, MediaBackend videoBackend, string? frameFolder, AppLanguage language, StreamChannel? selectedChannel, Func<SettingsAction, Window, Task> runSettingsAction)
+    public SettingsWindow(AppTheme theme, StreamTileSize tileSize, bool updateStreamPreviews, bool hideAdultContent, bool keepAwakeDuringPlayback, bool systemMediaControls, bool resumePlaybackOnStartup, MediaBackend videoBackend, string? frameFolder, AppLanguage language, StreamChannel? selectedChannel, Func<SettingsAction, Window, Task> runSettingsAction)
     {
         InitializeComponent();
         _language = language;
@@ -41,6 +41,7 @@ public partial class SettingsWindow : Window
         TileSizeBox.ItemsSource = sizes;
         TileSizeBox.SelectedItem = sizes.First(item => item.Value == tileSize.ToString());
         UpdatePreviewsCheckBox.IsChecked = updateStreamPreviews;
+        HideAdultContentCheckBox.IsChecked = hideAdultContent;
         KeepAwakeCheckBox.IsChecked = keepAwakeDuringPlayback;
         SystemMediaControlsCheckBox.IsChecked = systemMediaControls;
         ResumePlaybackCheckBox.IsChecked = resumePlaybackOnStartup;
@@ -94,6 +95,7 @@ public partial class SettingsWindow : Window
     public AppTheme SelectedTheme => Enum.Parse<AppTheme>(((UiOption)ThemeBox.SelectedItem).Value);
     public StreamTileSize SelectedTileSize => Enum.Parse<StreamTileSize>(((UiOption)TileSizeBox.SelectedItem).Value);
     public bool UpdateStreamPreviews => UpdatePreviewsCheckBox.IsChecked == true;
+    public bool HideAdultContent => HideAdultContentCheckBox.IsChecked == true;
     public bool KeepAwakeDuringPlayback => KeepAwakeCheckBox.IsChecked == true;
     public bool SystemMediaControls => SystemMediaControlsCheckBox.IsChecked == true;
     public bool ResumePlaybackOnStartup => ResumePlaybackCheckBox.IsChecked == true;
@@ -123,6 +125,27 @@ public partial class SettingsWindow : Window
     {
         _frameFolder = null;
         ShowFrameFolder();
+    }
+
+    private void FrameFolderOpen_Click(object sender, RoutedEventArgs e)
+    {
+        var folder = CapturedFrameWriter.ResolveFolder(_frameFolder);
+        if (!System.IO.Directory.Exists(folder))
+        {
+            try
+            {
+                System.IO.Directory.CreateDirectory(folder);
+            }
+            catch
+            {
+                // Let OpenFolder attempt or fail with dialog below
+            }
+        }
+
+        if (!LogReportMailer.OpenFolder(folder))
+        {
+            MessageBox.Show(this, LocalizationService.Format("LogArchiveOpenFolderFailed", folder), Title, MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     /// <summary>
@@ -215,6 +238,10 @@ public partial class SettingsWindow : Window
         await _runSettingsAction(SettingsAction.ManageHidden, this);
 
     // SP-0030: destructive and immediate - the confirmation inside the action is the commit point,
+    private async void ImportCatalogFromFile_Click(object sender, RoutedEventArgs e) =>
+        await _runSettingsAction(SettingsAction.ImportCatalogFromFile, this);
+
+    // SP-0030: destructive and immediate - the confirmation inside the action is the commit point,
     // so closing Settings with Cancel does not bring the downloaded rows back.
     // SP-0052: immediate like the two above - applying the bundled snapshot commits on its own, and
     // closing Settings with Cancel does not take the channels back out.
@@ -223,6 +250,9 @@ public partial class SettingsWindow : Window
 
     private async void DeleteDownloaded_Click(object sender, RoutedEventArgs e) =>
         await _runSettingsAction(SettingsAction.DeleteDownloaded, this);
+
+    private async void DeleteImportedCatalog_Click(object sender, RoutedEventArgs e) =>
+        await _runSettingsAction(SettingsAction.DeleteImportedCatalog, this);
 
     private void CopyLaunchCommand_Click(object sender, RoutedEventArgs e)
     {

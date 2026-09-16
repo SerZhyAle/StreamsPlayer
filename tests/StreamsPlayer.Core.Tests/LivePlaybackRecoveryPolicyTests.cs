@@ -140,6 +140,8 @@ public sealed class LivePlaybackRecoveryPolicyTests
     [InlineData("Connection reset by peer", RecoveryTrigger.Transient)]
     [InlineData("unsupported codec", RecoveryTrigger.HardFail)]
     [InlineData("malformed manifest", RecoveryTrigger.HardFail)]
+    [InlineData("InvalidOperationException", RecoveryTrigger.HardFail)]
+    [InlineData("COMException", RecoveryTrigger.HardFail)]
     public void Classify_MapsReasonTokens(string reason, RecoveryTrigger expected)
     {
         Assert.Equal(expected, PlaybackRecoveryClassifier.Classify(new PlaybackFailureSignal(reason)));

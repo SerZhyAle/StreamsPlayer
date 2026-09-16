@@ -9,6 +9,7 @@ public sealed class StreamCatalogStore
     private const string TemporaryFileExtension = ".tmp";
     private const string AtlasFilePrefix = "favicon-atlas-";
     private const string SnapshotAtlasFilePrefix = "snapshot-atlas-";
+    private const string ImportedAtlasFilePrefix = "imported-atlas-";
     private const string AtlasFileExtension = ".png";
 
     // A stranded temp file is only swept once it is far too old to belong to an in-flight save - including
@@ -81,12 +82,14 @@ public sealed class StreamCatalogStore
     private static string? FileNameOf(CatalogState state, AtlasSlot slot) => slot switch
     {
         AtlasSlot.Snapshot => state.SnapshotAtlasFileName,
+        AtlasSlot.Imported => state.ImportedAtlasFileName,
         _ => state.AtlasFileName
     };
 
     private static string PrefixOf(AtlasSlot slot) => slot switch
     {
         AtlasSlot.Snapshot => SnapshotAtlasFilePrefix,
+        AtlasSlot.Imported => ImportedAtlasFilePrefix,
         _ => AtlasFilePrefix
     };
 
@@ -152,11 +155,14 @@ public sealed class StreamCatalogStore
                     .ConfigureAwait(false);
             }
 
-            // SP-0052: a save writes exactly one slot. The other slot's file name is carried through
-            // untouched, so replacing the downloaded atlas never strands the bundled one, or the reverse.
-            committedState = slot == AtlasSlot.Snapshot
-                ? state with { SnapshotAtlasFileName = atlasFileName }
-                : state with { AtlasFileName = atlasFileName };
+            // SP-0052 & SP-0098: a save writes exactly one slot. The other slots' file names are carried through
+            // untouched, so replacing one atlas never strands or deletes the others.
+            committedState = slot switch
+            {
+                AtlasSlot.Snapshot => state with { SnapshotAtlasFileName = atlasFileName },
+                AtlasSlot.Imported => state with { ImportedAtlasFileName = atlasFileName },
+                _ => state with { AtlasFileName = atlasFileName }
+            };
         }
 
         var temporaryPath = Path.Combine(_directory, $"{TemporaryFilePrefix}{Guid.NewGuid():N}{TemporaryFileExtension}");
@@ -184,10 +190,9 @@ public sealed class StreamCatalogStore
         return committedState;
     }
 
-    // Runs on every save: drops every atlas the just-saved state no longer names in either slot, and any
-    // temp file an earlier crash, cancellation, or superseded save stranded. Both slots are checked on
-    // every save, whichever one was written - a save of the downloaded atlas must not sweep the bundled
-    // one away just because it was not the slot in hand.
+    // Runs on every save: drops every atlas the just-saved state no longer names in any slot, and any
+    // temp file an earlier crash, cancellation, or superseded save stranded. All slots are checked on
+    // every save, whichever one was written - a save of one slot must not sweep another.
     private void RemoveUnreferencedFiles(CatalogState committedState)
     {
         var staleBefore = DateTime.UtcNow - TemporaryFileRetention;
@@ -195,10 +200,12 @@ public sealed class StreamCatalogStore
         {
             var name = Path.GetFileName(path);
             if (IsNamed(name, AtlasFilePrefix, AtlasFileExtension) ||
-                IsNamed(name, SnapshotAtlasFilePrefix, AtlasFileExtension))
+                IsNamed(name, SnapshotAtlasFilePrefix, AtlasFileExtension) ||
+                IsNamed(name, ImportedAtlasFilePrefix, AtlasFileExtension))
             {
                 if (!name.Equals(committedState.AtlasFileName, StringComparison.OrdinalIgnoreCase) &&
-                    !name.Equals(committedState.SnapshotAtlasFileName, StringComparison.OrdinalIgnoreCase))
+                    !name.Equals(committedState.SnapshotAtlasFileName, StringComparison.OrdinalIgnoreCase) &&
+                    !name.Equals(committedState.ImportedAtlasFileName, StringComparison.OrdinalIgnoreCase))
                 {
                     TryDelete(path);
                 }

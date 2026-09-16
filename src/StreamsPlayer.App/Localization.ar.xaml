@@ -47,6 +47,7 @@
     <sys:String x:Key="HideFilters">إخفاء التصفية والترتيب</sys:String>
     <sys:String x:Key="QuickVideoTip">تصفية سريعة: الفيديو فقط</sys:String>
     <sys:String x:Key="QuickAudioTip">تصفية سريعة: الصوت فقط</sys:String>
+    <sys:String x:Key="QuickOwnTip">تصفية سريعة: قنواتي فقط (المضافة أو المستوردة)</sys:String>
     <sys:String x:Key="Media">الوسائط</sys:String>
     <sys:String x:Key="MediaKindTip">نوع الوسائط</sys:String>
     <sys:String x:Key="MediaFilterName">عامل تصفية الوسائط</sys:String>
@@ -93,6 +94,7 @@
     <sys:String x:Key="AllOption">الكل</sys:String>
     <sys:String x:Key="AudioOption">صوت</sys:String>
     <sys:String x:Key="VideoOption">فيديو</sys:String>
+    <sys:String x:Key="OwnOption">قنواتي</sys:String>
     <sys:String x:Key="SortName">الاسم</sys:String>
     <sys:String x:Key="SortTopic">الموضوع</sys:String>
     <sys:String x:Key="SortLanguage">اللغة</sys:String>
@@ -263,7 +265,9 @@
     <sys:String x:Key="HistoryTip">القنوات التي شغّلتها حديثًا</sys:String>
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">محطة عشوائية</sys:String>
-    <sys:String x:Key="RandomStationTip">تشغيل محطة إذاعية مختارة عشوائيًا من الكتالوج بأكمله</sys:String>
+    <sys:String x:Key="RandomStationTip">تشغيل محطة إذاعية مختارة عشوائيًا من الكتالوج بأكمله</sys:String>
+    <sys:String x:Key="PrevStationTip">المحطة السابقة</sys:String>
+    <sys:String x:Key="NextStationTip">المحطة التالية</sys:String>
     <sys:String x:Key="RandomStationTrying">جارٍ تجربة {0}… ({1} من {2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">تمت تجربة {0} محطة ولم تستجب أي منها</sys:String>
     <sys:String x:Key="RandomStationNone">لا توجد محطات إذاعية للاختيار منها</sys:String>
@@ -290,10 +294,18 @@
     <sys:String x:Key="SaveFrameTip">حفظ الإطار الحالي كملف صورة وكأيقونة لهذه القناة</sys:String>
     <sys:String x:Key="FrameSaved">تم حفظ الإطار: {0}</sys:String>
     <sys:String x:Key="FrameSaveFailed">تعذر حفظ الإطار</sys:String>
+    <sys:String x:Key="Record">تسجيل</sys:String>
+    <sys:String x:Key="RecordTip">تسجيل البث المباشر (R)</sys:String>
+    <sys:String x:Key="StopRecord">إيقاف التسجيل</sys:String>
+    <sys:String x:Key="StopRecordTip">إيقاف التسجيل وحفظ الملف</sys:String>
+    <sys:String x:Key="RecordSaved">تم حفظ التسجيل: {0}</sys:String>
+    <sys:String x:Key="RecordSaveFailed">تعذر حفظ التسجيل</sys:String>
+    <sys:String x:Key="Recording">جارٍ التسجيل...</sys:String>
     <sys:String x:Key="FrameFolderLabel">مجلد الملفات المحفوظة</sys:String>
     <sys:String x:Key="FrameFolderHint">هنا يحفظ STREAMS Player الإطارات وأرشيفات السجل. اتركه فارغًا لاستخدام مجلد التنزيلات.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">اختيار مجلد..</sys:String>
-    <sys:String x:Key="FrameFolderReset">استخدام التنزيلات</sys:String>
+    <sys:String x:Key="FrameFolderReset">استخدام التنزيلات</sys:String>
+    <sys:String x:Key="FrameFolderOpen">فتح المجلد</sys:String>
     <sys:String x:Key="VolumeTip">مستوى صوت الفيديو</sys:String>
     <sys:String x:Key="VolumeName">مستوى صوت الفيديو</sys:String>
     <sys:String x:Key="AudioVolumeTip">مستوى الصوت</sys:String>
@@ -318,6 +330,8 @@
     <sys:String x:Key="TileLarge">كبير</sys:String>
     <sys:String x:Key="UpdateStreamPreviews">تحديث الصور المصغرة للبث تلقائيًا</sys:String>
     <sys:String x:Key="UpdateStreamPreviewsTip">التقاط صور مصغرة جديدة لعمليات بث الفيديو الظاهرة أثناء تشغيل عرض الشبكة</sys:String>
+    <sys:String x:Key="HideAdultContent">إخفاء قنوات البالغين</sys:String>
+    <sys:String x:Key="HideAdultContentTip">عدم إظهار قنوات تصنيف «للبالغين» في الدليل أو عوامل التصفية</sys:String>
     <sys:String x:Key="PlaybackSettings">التشغيل</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">إبقاء الحاسوب مستيقظًا أثناء التشغيل</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">منع الجهاز من النوم بمؤقت الخمول أثناء تشغيل بث؛ ومع الفيديو تبقى الشاشة مضاءة أيضًا</sys:String>
@@ -529,5 +543,36 @@
     <sys:String x:Key="AboutCopied">تم نسخ تفاصيل القناة.</sys:String>
     <sys:String x:Key="AboutCopyFailed">تعذّر على Windows نسخ تفاصيل القناة.</sys:String>
     <sys:String x:Key="FrameRateValue">{0} إطار/ث</sys:String>
-    <sys:String x:Key="SampleRateValue">{0} هرتز</sys:String></ResourceDictionary>
-
+    <sys:String x:Key="SampleRateValue">{0} هرتز</sys:String>
+    <!-- SP-0099 FastMediaSorter live-broadcast import -->
+    <sys:String x:Key="ImportSourceFileFilter">بثوث وقوائم تشغيل (*.fmsbcast;*.m3u;*.m3u8)|*.fmsbcast;*.m3u;*.m3u8|بثوث مباشرة (*.fmsbcast)|*.fmsbcast|قوائم تشغيل (*.m3u;*.m3u8)|*.m3u;*.m3u8|كل الملفات (*.*)|*.*</sys:String>
+    <sys:String x:Key="FmsBroadcastTitle">استيراد بث مباشر</sys:String>
+    <sys:String x:Key="FmsBroadcastConfirm">هل تريد استيراد هذا البث المباشر؟&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="FmsBroadcastAdded">تم استيراد البث المباشر: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUpdated">تم تحديث البث المباشر: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedSchema">أُنشئ هذا البث بتطبيق أحدث. حدّث StreamsPlayer لاستيراده. لم تتغير قائمتك.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedMode">وضع البث هذا غير مدعوم بعد. لم تتغير قائمتك.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">هذا ليس وصف بث صالحًا من FastMediaSorter. لم تتغير قائمتك.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">وصف البث هذا أكبر من 64 KiB. لم تتغير قائمتك.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">وصل {0} بالفعل إلى الحد الأقصى لعدد المستمعين. أعد المحاولة عندما يغادر مستمع آخر.</sys:String>
+    <sys:String x:Key="FmsBroadcastStopped">توقف {0} عن البث أو لم يعد متاحًا على هذه الشبكة.</sys:String>
+    <!-- SP-0098 portable stream catalog import -->
+    <sys:String x:Key="StreamCatalogSettings">دليل البث</sys:String>
+    <sys:String x:Key="StreamCatalogSettingsHint">استيراد أرشيف دليل بث خارجي (stream-catalog.zip)، أو استعادة لقطة الدليل المضمنة، أو حذف بنوك الدليل المحملة والمستوردة.</sys:String>
+    <sys:String x:Key="ImportCatalogFromFile">استيراد أرشيف الدليل…</sys:String>
+    <sys:String x:Key="ImportCatalogFromFileTip">استيراد القنوات من أرشيف stream-catalog.zip</sys:String>
+    <sys:String x:Key="ImportCatalogFileFilter">أرشيفات دليل البث (*.zip)|*.zip|جميع الملفات (*.*)|*.*</sys:String>
+    <sys:String x:Key="ImportCatalogTitle">استيراد أرشيف الدليل</sys:String>
+    <sys:String x:Key="ImportCatalogResult">قنوات الدليل: تمت إضافة {0}، وتحديث {1}، وحذف {2}.</sys:String>
+    <sys:String x:Key="ImportCatalogNoChannels">لم يتم العثور على قنوات قابلة للاستيراد في أرشيف الدليل. لم يتم تغيير قائمتك.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidArchive">هذا ليس أرشيف دليل بث صالحاً. لم يتم تغيير قائمتك.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidCsv">يحتوي أرشيف الدليل على بيانات CSV غير صالحة أو ترميز UTF-8 غير صالح. لم يتم تغيير قائمتك.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">يتجاوز أرشيف الدليل أو بيانات CSV الخاصة به الحد الأقصى للحجم المسموح به. لم يتم تغيير قائمتك.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalog">حذف الدليل المستورد</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTip">إزالة كل بث وارد من أرشيف دليل مستورد</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogHint">إزالة البثوث الواردة من أرشيفات الدليل المستوردة. سيبقى البث الذي أضفته ودليلك الذي تم تنزيله.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTitle">حذف الدليل المستورد</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">هل تريد حذف جميع تدفقات الدليل المستوردة ({0:N0})؟ سيتم الاحتفاظ بالتدفقات التي أضفتها وتنزيلها. لا يمكن التراجع عن هذا الإجراء.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogNone">لا توجد تدفقات دليل مستوردة لحذفها.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogResult">تم حذف تدفقات الدليل المستوردة: {0:N0}.</sys:String>
+</ResourceDictionary>

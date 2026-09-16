@@ -35,9 +35,14 @@ public sealed class CatalogSnapshotService
             throw new InvalidDataException("The bundled catalog snapshot contains no valid channels.");
         }
 
+        var bankCarriedAtlas = snapshot.Bank.FaviconAtlas is { Length: > 0 };
+        var entries = bankCarriedAtlas
+            ? snapshot.Bank.Entries
+            : [.. snapshot.Bank.Entries.Select(entry => entry with { FaviconIndex = null })];
+
         var merge = CatalogMerger.Merge(
             currentState.Channels,
-            snapshot.Bank.Entries,
+            entries,
             DateTimeOffset.UtcNow,
             new CatalogMergeOptions(RemoveMissing: false, FaviconSource: FaviconSource.Snapshot));
 

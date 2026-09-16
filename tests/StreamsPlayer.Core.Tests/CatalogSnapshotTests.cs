@@ -10,13 +10,43 @@ public sealed class CatalogSnapshotTests
 {
     private static readonly DateTimeOffset SourceDate = new(2026, 8, 7, 9, 30, 0, TimeSpan.Zero);
 
+    private static readonly byte[] ValidAtlasA =
+    [
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+        0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52,
+        0x00, 0x00, 0x00, 0x20,
+        0x00, 0x00, 0x00, 0x20,
+        0x08, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ];
+
+    private static readonly byte[] ValidAtlasB =
+    [
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+        0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52,
+        0x00, 0x00, 0x00, 0x40,
+        0x00, 0x00, 0x00, 0x40,
+        0x08, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ];
+
+    private static readonly byte[] ValidAtlasC =
+    [
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+        0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52,
+        0x00, 0x00, 0x00, 0x80,
+        0x00, 0x00, 0x00, 0x80,
+        0x08, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ];
+
     [Fact]
     public void Read_ReturnsTheBankAndItsProvenance()
     {
-        var snapshot = BundledCatalogSnapshot.Read(CreateSnapshotZip(atlas: [1, 2, 3]));
+        var snapshot = BundledCatalogSnapshot.Read(CreateSnapshotZip(atlas: ValidAtlasA));
 
         Assert.Equal(2, snapshot.Bank.Entries.Count);
-        Assert.Equal([1, 2, 3], snapshot.Bank.FaviconAtlas);
+        Assert.Equal(ValidAtlasA, snapshot.Bank.FaviconAtlas);
         Assert.Equal(SourceDate, snapshot.SourceDate);
         Assert.Equal(StreamCatalogService.CatalogUrl, snapshot.SourceUrl);
     }
@@ -40,7 +70,7 @@ public sealed class CatalogSnapshotTests
         await InTemporaryStore(async (store, directory) =>
         {
             var result = await new CatalogSnapshotService(store)
-                .ApplyAsync(BundledCatalogSnapshot.Read(CreateSnapshotZip(atlas: [1, 2, 3])), new CatalogState());
+                .ApplyAsync(BundledCatalogSnapshot.Read(CreateSnapshotZip(atlas: ValidAtlasA)), new CatalogState());
 
             Assert.Equal(2, result.Added);
             Assert.Equal(0, result.Updated);
@@ -56,7 +86,7 @@ public sealed class CatalogSnapshotTests
             // The atlas is installed through the store's own slot, not dropped beside it.
             Assert.Null(result.State.AtlasFileName);
             Assert.NotNull(result.State.SnapshotAtlasFileName);
-            Assert.Equal([1, 2, 3], await File.ReadAllBytesAsync(store.ResolveAtlasPath(result.State, AtlasSlot.Snapshot)!));
+            Assert.Equal(ValidAtlasA, await File.ReadAllBytesAsync(store.ResolveAtlasPath(result.State, AtlasSlot.Snapshot)!));
             Assert.Equal(result.State.SnapshotAtlasFileName, (await store.LoadAsync()).SnapshotAtlasFileName);
         });
     }
@@ -87,11 +117,11 @@ public sealed class CatalogSnapshotTests
             var refreshed = DateTimeOffset.UtcNow.AddMinutes(-5);
             var seeded = await store.SaveAsync(
                 new CatalogState { Channels = [downloaded, manual], LastCatalogRefreshAt = refreshed },
-                [9, 9],
+                ValidAtlasB,
                 replaceAtlas: true);
 
             var result = await new CatalogSnapshotService(store)
-                .ApplyAsync(BundledCatalogSnapshot.Read(CreateSnapshotZip(atlas: [1, 2, 3])), seeded);
+                .ApplyAsync(BundledCatalogSnapshot.Read(CreateSnapshotZip(atlas: ValidAtlasA)), seeded);
 
             Assert.Equal(4, result.State.Channels.Count);
             Assert.Contains(result.State.Channels, channel => channel.Id == downloaded.Id);
@@ -99,8 +129,8 @@ public sealed class CatalogSnapshotTests
             Assert.Equal(refreshed, result.State.LastCatalogRefreshAt);
 
             Assert.Equal(seeded.AtlasFileName, result.State.AtlasFileName);
-            Assert.Equal([9, 9], await File.ReadAllBytesAsync(store.ResolveAtlasPath(result.State)!));
-            Assert.Equal([1, 2, 3], await File.ReadAllBytesAsync(store.ResolveAtlasPath(result.State, AtlasSlot.Snapshot)!));
+            Assert.Equal(ValidAtlasB, await File.ReadAllBytesAsync(store.ResolveAtlasPath(result.State)!));
+            Assert.Equal(ValidAtlasA, await File.ReadAllBytesAsync(store.ResolveAtlasPath(result.State, AtlasSlot.Snapshot)!));
 
             var byId = result.State.Channels.ToDictionary(channel => channel.Id);
             Assert.Equal(FaviconSource.Catalog, byId[downloaded.Id].FaviconSource);
@@ -119,18 +149,18 @@ public sealed class CatalogSnapshotTests
         await InTemporaryStore(async (store, directory) =>
         {
             var seeded = await new CatalogSnapshotService(store)
-                .ApplyAsync(BundledCatalogSnapshot.Read(CreateSnapshotZip(atlas: [1, 2, 3])), new CatalogState());
+                .ApplyAsync(BundledCatalogSnapshot.Read(CreateSnapshotZip(atlas: ValidAtlasA)), new CatalogState());
             var snapshotAtlasPath = store.ResolveAtlasPath(seeded.State, AtlasSlot.Snapshot)!;
             Assert.True(File.Exists(snapshotAtlasPath));
 
-            using var httpClient = new HttpClient(new SingleZipHandler(CreateSnapshotZip(atlas: [7, 7])));
+            using var httpClient = new HttpClient(new SingleZipHandler(CreateSnapshotZip(atlas: ValidAtlasC)));
             var refreshed = await new StreamCatalogService(httpClient, store).RefreshAsync(seeded.State);
 
             Assert.All(refreshed.State.Channels, channel => Assert.Equal(FaviconSource.Catalog, channel.FaviconSource));
             Assert.Null(refreshed.State.SnapshotAtlasFileName);
             Assert.Null(refreshed.State.AppliedSnapshotDate);
             Assert.False(File.Exists(snapshotAtlasPath));
-            Assert.Equal([7, 7], await File.ReadAllBytesAsync(store.ResolveAtlasPath(refreshed.State)!));
+            Assert.Equal(ValidAtlasC, await File.ReadAllBytesAsync(store.ResolveAtlasPath(refreshed.State)!));
         });
     }
 
@@ -140,7 +170,7 @@ public sealed class CatalogSnapshotTests
     {
         await InTemporaryStore(async (store, directory) =>
         {
-            await store.SaveAsync(new CatalogState { LastCatalogRefreshAt = DateTimeOffset.UtcNow }, [9], replaceAtlas: true);
+            await store.SaveAsync(new CatalogState { LastCatalogRefreshAt = DateTimeOffset.UtcNow }, ValidAtlasB, replaceAtlas: true);
             var statePath = Path.Combine(directory, "catalog-state.json");
             var before = await File.ReadAllBytesAsync(statePath);
 
@@ -202,10 +232,10 @@ public sealed class CatalogSnapshotTests
     private static byte[] Damaged(SnapshotDamage damage) => damage switch
     {
         SnapshotDamage.NotAZip => Encoding.UTF8.GetBytes("not a zip at all"),
-        SnapshotDamage.CsvNotFirst => CreateSnapshotZip(atlas: [1], csvFirst: false),
-        SnapshotDamage.NoMetadata => CreateSnapshotZip(atlas: [1], metadata: null),
-        SnapshotDamage.MetadataWithoutDate => CreateSnapshotZip(atlas: [1], metadata: """{"sourceUrl":"https://example.test"}"""),
-        _ => CreateSnapshotZip(atlas: [1], csv: "name,url,media_kind,favicon_index\n")
+        SnapshotDamage.CsvNotFirst => CreateSnapshotZip(atlas: ValidAtlasA, csvFirst: false),
+        SnapshotDamage.NoMetadata => CreateSnapshotZip(atlas: ValidAtlasA, metadata: null),
+        SnapshotDamage.MetadataWithoutDate => CreateSnapshotZip(atlas: ValidAtlasA, metadata: """{"sourceUrl":"https://example.test"}"""),
+        _ => CreateSnapshotZip(atlas: ValidAtlasA, csv: "name,url,media_kind,favicon_index\n")
     };
 
     private static byte[] CreateSnapshotZip(

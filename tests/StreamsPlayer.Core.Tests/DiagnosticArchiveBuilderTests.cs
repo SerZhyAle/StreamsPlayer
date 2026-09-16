@@ -132,26 +132,30 @@ public sealed class DiagnosticArchiveBuilderTests
     }
 
     [Fact]
-    public void Build_TruncatesAnOversizedLogToItsTailAndSaysSo()
+    public void Build_TruncatesAnOversizedLogToHeadAndTailAndSaysSo()
     {
         RunInTempDirectory(directory =>
         {
-            var line = new string('x', 1024) + "\r\n";
+            var headLine = "FIRST LINE: STARTUP OK\r\n";
             var text = new StringBuilder();
-            while (text.Length < DiagnosticArchiveBuilder.MaxLogBytes + 4096)
+            text.Append(headLine);
+            var chunk = new string('x', 64 * 1024);
+            while (text.Length < DiagnosticArchiveBuilder.MaxLogBytes + 128 * 1024)
             {
-                text.Append(line);
+                text.Append(chunk);
             }
 
-            text.Append("FINAL LINE\r\n");
+            text.Append("FINAL LINE: CRASH HERE\r\n");
             File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), text.ToString());
 
             using var archive = ZipFile.OpenRead(Build(directory, "summary\r\n", Stamp));
 
             var packed = ReadEntry(archive, DiagnosticLogFiles.CurrentLogName);
-            Assert.Equal(DiagnosticArchiveBuilder.MaxLogBytes, packed.Length);
-            Assert.EndsWith("FINAL LINE\r\n", packed, StringComparison.Ordinal);
+            Assert.StartsWith("FIRST LINE: STARTUP OK\r\n", packed, StringComparison.Ordinal);
+            Assert.EndsWith("FINAL LINE: CRASH HERE\r\n", packed, StringComparison.Ordinal);
+            Assert.Contains("[Diag] LOG TRUNCATED | dropped_middle_bytes=", packed, StringComparison.Ordinal);
             Assert.Contains("log_truncated=Current.log", ReadEntry(archive, DiagnosticArchiveBuilder.SummaryEntryName));
+            Assert.Contains("dropped_middle_bytes=", ReadEntry(archive, DiagnosticArchiveBuilder.SummaryEntryName));
         });
     }
 

@@ -1,0 +1,4 @@
+Version 26.0916.2054
+
+- Refreshed the built-in channel list snapshot (18 406 live streams as of 2026-09-15).
+- Improved stream playback stability, live broadcast contracts, and diagnostic reporting.

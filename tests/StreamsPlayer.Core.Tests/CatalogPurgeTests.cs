@@ -13,11 +13,12 @@ public sealed class CatalogPurgeTests
         var catalogTwo = Channel("https://example.test/catalog-two", SourceOrigin.Catalog) with { Pinned = true };
         var manual = Channel("rtsp://example.test/camera", SourceOrigin.Manual) with { Pinned = true };
         var imported = Channel("https://example.test/imported", SourceOrigin.Imported);
-        var state = new CatalogState { Channels = [catalogOne, manual, catalogTwo, imported] };
+        var localCatalog = Channel("https://example.test/local-catalog", SourceOrigin.LocalCatalog);
+        var state = new CatalogState { Channels = [catalogOne, manual, catalogTwo, imported, localCatalog] };
 
         var result = CatalogPurge.RemoveDownloaded(state);
 
-        Assert.Equal([manual, imported], result.State.Channels);
+        Assert.Equal([manual, imported, localCatalog], result.State.Channels);
         Assert.Equal([catalogOne.Id, catalogTwo.Id], result.RemovedChannelIds);
         Assert.True(result.State.Channels.Single(channel => channel.Id == manual.Id).Pinned);
     }
@@ -73,11 +74,66 @@ public sealed class CatalogPurgeTests
             Channel("https://example.test/one", SourceOrigin.Catalog),
             Channel("https://example.test/two", SourceOrigin.Catalog),
             Channel("rtsp://example.test/camera", SourceOrigin.Manual),
-            Channel("https://example.test/imported", SourceOrigin.Imported)
+            Channel("https://example.test/imported", SourceOrigin.Imported),
+            Channel("https://example.test/local-catalog", SourceOrigin.LocalCatalog)
         ];
 
         Assert.Equal(2, CatalogPurge.CountDownloaded(channels));
         Assert.Equal(0, CatalogPurge.CountDownloaded([]));
+    }
+
+    [Fact]
+    public void RemoveImportedBank_DropsLocalCatalogRowsAndCleansImportedAtlas()
+    {
+        var localOne = Channel("https://example.test/local-one", SourceOrigin.LocalCatalog);
+        var localTwo = Channel("https://example.test/local-two", SourceOrigin.LocalCatalog) with { Pinned = true };
+        var catalog = Channel("https://example.test/catalog", SourceOrigin.Catalog);
+        var manual = Channel("rtsp://example.test/camera", SourceOrigin.Manual) with { Pinned = true };
+        var imported = Channel("https://example.test/imported", SourceOrigin.Imported);
+        var state = new CatalogState
+        {
+            Channels = [localOne, catalog, manual, localTwo, imported],
+            ImportedAtlasFileName = "imported-atlas-123.png",
+            AtlasFileName = "favicon-atlas.png"
+        };
+
+        var result = CatalogPurge.RemoveImportedBank(state);
+
+        Assert.Equal([catalog, manual, imported], result.State.Channels);
+        Assert.Equal([localOne.Id, localTwo.Id], result.RemovedChannelIds);
+        Assert.Null(result.State.ImportedAtlasFileName);
+        Assert.Equal("favicon-atlas.png", result.State.AtlasFileName);
+    }
+
+    [Fact]
+    public void RemoveImportedBank_WithoutLocalCatalogRowsIsANoOp()
+    {
+        var state = new CatalogState
+        {
+            Channels = [Channel("https://example.test/catalog", SourceOrigin.Catalog)],
+            AtlasFileName = "favicon-atlas.png"
+        };
+
+        var result = CatalogPurge.RemoveImportedBank(state);
+
+        Assert.Same(state, result.State);
+        Assert.Empty(result.RemovedChannelIds);
+    }
+
+    [Fact]
+    public void CountImportedBank_CountsOnlyLocalCatalogRows()
+    {
+        StreamChannel[] channels =
+        [
+            Channel("https://example.test/one", SourceOrigin.Catalog),
+            Channel("https://example.test/two", SourceOrigin.LocalCatalog),
+            Channel("https://example.test/three", SourceOrigin.LocalCatalog),
+            Channel("rtsp://example.test/camera", SourceOrigin.Manual),
+            Channel("https://example.test/imported", SourceOrigin.Imported)
+        ];
+
+        Assert.Equal(2, CatalogPurge.CountImportedBank(channels));
+        Assert.Equal(0, CatalogPurge.CountImportedBank([]));
     }
 
     private static StreamChannel Channel(string url, SourceOrigin origin) => new()

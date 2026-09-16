@@ -48,9 +48,10 @@ public static class PlaybackRecoveryClassifier
             }
         }
 
-        // Malformed manifest / unsupported container -> non-retryable, unless the text is clearly a
+        // Malformed manifest / unsupported container / local engine failure -> non-retryable, unless the text is clearly a
         // network fault (a transport error naming a codec should still be treated as transient).
-        if (ContainsAny(reason, "unsupported", "not supported", "notsupported", "malformed", "codec", "container")
+        if (ContainsAny(reason, "unsupported", "not supported", "notsupported", "malformed", "codec", "container",
+                "invalidoperation", "comexception", "audiodevice", "directshow")
             && !ContainsAny(reason, "timeout", "connection", "network", "socket", "dns", "refused", "reset"))
         {
             return RecoveryTrigger.HardFail;

@@ -172,6 +172,13 @@ public partial class MainWindow
                 continue;
             }
 
+            // SP-0063: when HideAdultContent is enabled, adult rubric channels are hidden from the catalog
+            // list, grid, search, and reachable count.
+            if (_state.HideAdultContent && CatalogTopics.IsAdult(channel.Topic))
+            {
+                continue;
+            }
+
             // SP-0089: a retired row is kept, not offered. It stays exactly where the user put it - the
             // pinned strip, or the collection currently being browsed - and leaves the general list,
             // because a channel the bank has stopped publishing must not sit among current ones as if it
@@ -224,7 +231,8 @@ public partial class MainWindow
 
             if (media != AllValue &&
                 !(media == AudioFilterValue && channel.MediaKind == MediaKind.Audio) &&
-                !(media == VideoFilterValue && channel.MediaKind is MediaKind.Video or MediaKind.Rtsp))
+                !(media == VideoFilterValue && channel.MediaKind is MediaKind.Video or MediaKind.Rtsp) &&
+                !(media == OwnFilterValue && channel.SourceOrigin is SourceOrigin.Manual or SourceOrigin.Imported))
             {
                 continue;
             }
@@ -444,7 +452,7 @@ public partial class MainWindow
         }
 
         int? MaximumIndexOf(FaviconSource source) => _state.Channels
-            .Where(channel => channel.SourceOrigin == SourceOrigin.Catalog && channel.FaviconSource == source)
+            .Where(channel => channel.FaviconSource == source)
             .Select(channel => channel.FaviconIndex)
             .DefaultIfEmpty(null)
             .Max();
@@ -453,7 +461,9 @@ public partial class MainWindow
             _store.ResolveAtlasPath(_state),
             MaximumIndexOf(FaviconSource.Catalog),
             _store.ResolveAtlasPath(_state, AtlasSlot.Snapshot),
-            MaximumIndexOf(FaviconSource.Snapshot));
+            MaximumIndexOf(FaviconSource.Snapshot),
+            _store.ResolveAtlasPath(_state, AtlasSlot.Imported),
+            MaximumIndexOf(FaviconSource.Imported));
         _atlasSetSource = _state;
         _atlasSet = built;
         return built;

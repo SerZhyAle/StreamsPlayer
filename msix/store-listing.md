@@ -61,6 +61,31 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.0916.2054
+
+Refreshed built-in channel snapshot and improved stream playback resilience, broadcast contracts, and diagnostic reporting.
+
+```text
+Version 26.0916.2054
+
+- Refreshed the built-in channel list snapshot (18 406 live streams as of 2026-09-15).
+- Improved stream playback stability, live broadcast contracts, and diagnostic reporting.
+```
+
+```text
+Версия 26.0916.2054
+
+- Обновлён встроенный список каналов (18 406 активных потоков от 15.09.2026).
+- Улучшена стабильность воспроизведения потоков, контракты трансляций и диагностические отчеты.
+```
+
+```text
+Версія 26.0916.2054
+
+- Оновлено вбудований список каналів (18 406 активних потоків від 15.09.2026).
+- Поліпшено стабільність відтворення потоків, контракти трансляцій та діагностичні звіти.
+```
+
 ### Prepared for 26.0821.1208
 
 **Stamped and released on GitHub on 2026-08-21, and submitted to winget the same day** as

@@ -47,6 +47,7 @@
     <sys:String x:Key="HideFilters">Filter und Sortierung ausblenden</sys:String>
     <sys:String x:Key="QuickVideoTip">Schnellfilter: nur Video</sys:String>
     <sys:String x:Key="QuickAudioTip">Schnellfilter: nur Audio</sys:String>
+    <sys:String x:Key="QuickOwnTip">Schnellfilter: nur eigene (hinzugefügt oder importiert)</sys:String>
     <sys:String x:Key="Media">Medien</sys:String>
     <sys:String x:Key="MediaKindTip">Medienart</sys:String>
     <sys:String x:Key="MediaFilterName">Medienfilter</sys:String>
@@ -93,6 +94,7 @@
     <sys:String x:Key="AllOption">Alle</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Video</sys:String>
+    <sys:String x:Key="OwnOption">Eigene</sys:String>
     <sys:String x:Key="SortName">Name</sys:String>
     <sys:String x:Key="SortTopic">Thema</sys:String>
     <sys:String x:Key="SortLanguage">Sprache</sys:String>
@@ -263,7 +265,9 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="HistoryTip">Kanäle ansehen, die Sie zuletzt abgespielt haben</sys:String>
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">Zufällige Station</sys:String>
-    <sys:String x:Key="RandomStationTip">Eine zufällig aus dem gesamten Katalog gewählte Radiostation abspielen</sys:String>
+    <sys:String x:Key="RandomStationTip">Eine zufällig aus dem gesamten Katalog gewählte Radiostation abspielen</sys:String>
+    <sys:String x:Key="PrevStationTip">Vorherige Station</sys:String>
+    <sys:String x:Key="NextStationTip">Nächste Station</sys:String>
     <sys:String x:Key="RandomStationTrying">Versuche {0}… ({1} von {2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">{0} Stationen versucht, keine hat geantwortet</sys:String>
     <sys:String x:Key="RandomStationNone">Keine Radiostationen zur Auswahl</sys:String>
@@ -290,10 +294,18 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="SaveFrameTip">Das aktuelle Bild als Bilddatei und als Symbol dieses Kanals speichern</sys:String>
     <sys:String x:Key="FrameSaved">Bild gespeichert: {0}</sys:String>
     <sys:String x:Key="FrameSaveFailed">Das Bild konnte nicht gespeichert werden</sys:String>
+    <sys:String x:Key="Record">Aufnehmen</sys:String>
+    <sys:String x:Key="RecordTip">Live-Übertragung aufnehmen (R)</sys:String>
+    <sys:String x:Key="StopRecord">Aufnahme beenden</sys:String>
+    <sys:String x:Key="StopRecordTip">Aufnahme beenden und Datei speichern</sys:String>
+    <sys:String x:Key="RecordSaved">Aufnahme gespeichert: {0}</sys:String>
+    <sys:String x:Key="RecordSaveFailed">Aufnahme konnte nicht gespeichert werden</sys:String>
+    <sys:String x:Key="Recording">Aufnahme läuft...</sys:String>
     <sys:String x:Key="FrameFolderLabel">Ordner für gespeicherte Dateien</sys:String>
     <sys:String x:Key="FrameFolderHint">Hier speichert STREAMS Player Bilder und Protokollarchive. Leer lassen, um den Ordner „Downloads“ zu verwenden.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Ordner wählen..</sys:String>
-    <sys:String x:Key="FrameFolderReset">„Downloads“ verwenden</sys:String>
+    <sys:String x:Key="FrameFolderReset">„Downloads“ verwenden</sys:String>
+    <sys:String x:Key="FrameFolderOpen">Ordner öffnen</sys:String>
     <sys:String x:Key="VolumeTip">Videolautstärke</sys:String>
     <sys:String x:Key="VolumeName">Videolautstärke</sys:String>
     <sys:String x:Key="AudioVolumeTip">Audiolautstärke</sys:String>
@@ -318,6 +330,8 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="TileLarge">Groß</sys:String>
     <sys:String x:Key="UpdateStreamPreviews">Miniaturbilder der Streams automatisch aktualisieren</sys:String>
     <sys:String x:Key="UpdateStreamPreviewsTip">Neue Miniaturbilder sichtbarer Video-Streams aufnehmen, solange die Rasteransicht aktiv ist</sys:String>
+    <sys:String x:Key="HideAdultContent">Sender für Erwachsene ausblenden</sys:String>
+    <sys:String x:Key="HideAdultContentTip">Sender der Rubrik „Erwachsene“ nicht im Katalog oder in Filtern anzeigen</sys:String>
     <sys:String x:Key="PlaybackSettings">Wiedergabe</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">Computer während der Wiedergabe wach halten</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">Verhindert, dass der Rechner nach seiner Leerlaufzeit einschläft, solange ein Stream läuft; bei Video bleibt auch der Bildschirm an</sys:String>
@@ -529,5 +543,36 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="AboutCopied">Die Kanaldetails wurden kopiert.</sys:String>
     <sys:String x:Key="AboutCopyFailed">Windows konnte die Kanaldetails nicht kopieren.</sys:String>
     <sys:String x:Key="FrameRateValue">{0} fps</sys:String>
-    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String></ResourceDictionary>
-
+    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String>
+    <!-- SP-0099 FastMediaSorter live-broadcast import -->
+    <sys:String x:Key="ImportSourceFileFilter">Übertragungen und Wiedergabelisten (*.fmsbcast;*.m3u;*.m3u8)|*.fmsbcast;*.m3u;*.m3u8|Liveübertragungen (*.fmsbcast)|*.fmsbcast|Wiedergabelisten (*.m3u;*.m3u8)|*.m3u;*.m3u8|Alle Dateien (*.*)|*.*</sys:String>
+    <sys:String x:Key="FmsBroadcastTitle">Liveübertragung importieren</sys:String>
+    <sys:String x:Key="FmsBroadcastConfirm">Diese Liveübertragung importieren?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="FmsBroadcastAdded">Liveübertragung importiert: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUpdated">Liveübertragung aktualisiert: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedSchema">Diese Übertragung wurde von einer neueren Anwendung erstellt. Aktualisieren Sie StreamsPlayer, um sie zu importieren. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedMode">Dieser Übertragungsmodus wird noch nicht unterstützt. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">Dies ist keine gültige FastMediaSorter-Übertragungsbeschreibung. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">Diese Übertragungsbeschreibung ist größer als 64 KiB. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">„{0}“ hat bereits die maximale Anzahl an Zuhörern. Versuchen Sie es erneut, wenn sich ein anderer Zuhörer abmeldet.</sys:String>
+    <sys:String x:Key="FmsBroadcastStopped">„{0}“ sendet nicht mehr oder ist in diesem Netzwerk nicht mehr erreichbar.</sys:String>
+    <!-- SP-0098 portable stream catalog import -->
+    <sys:String x:Key="StreamCatalogSettings">Stream-Katalog</sys:String>
+    <sys:String x:Key="StreamCatalogSettingsHint">Importieren Sie ein externes Stream-Katalogarchiv (stream-catalog.zip), stellen Sie den integrierten Katalog-Snapshot wieder her oder löschen Sie heruntergeladene und importierte Katalogbanken.</sys:String>
+    <sys:String x:Key="ImportCatalogFromFile">Katalogarchiv importieren…</sys:String>
+    <sys:String x:Key="ImportCatalogFromFileTip">Kanäle aus einem stream-catalog.zip-Archiv importieren</sys:String>
+    <sys:String x:Key="ImportCatalogFileFilter">Stream-Katalogarchive (*.zip)|*.zip|Alle Dateien (*.*)|*.*</sys:String>
+    <sys:String x:Key="ImportCatalogTitle">Katalogarchiv importieren</sys:String>
+    <sys:String x:Key="ImportCatalogResult">Katalogkanäle: {0} hinzugefügt, {1} aktualisiert, {2} entfernt.</sys:String>
+    <sys:String x:Key="ImportCatalogNoChannels">Im Katalogarchiv wurden keine importierbaren Kanäle gefunden. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidArchive">Dies ist kein gültiges Stream-Katalogarchiv. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidCsv">Das Katalogarchiv enthält ungültige CSV-Daten oder eine ungültige UTF-8-Codierung. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">Das Katalogarchiv oder seine CSV-Daten überschreiten die maximal zulässige Größe. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalog">Importierten Katalog löschen</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTip">Alle Streams entfernen, die aus einem importierten Katalogarchiv stammen</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogHint">Entfernt Streams, die aus importierten Katalogarchiven stammen. Ihre hinzugefügten und heruntergeladenen Katalog-Streams bleiben erhalten.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTitle">Importierten Katalog löschen</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Alle importierten Katalog-Streams ({0:N0}) löschen? Ihre hinzugefügten und heruntergeladenen Streams bleiben erhalten. Dies kann nicht rückgängig gemacht werden.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogNone">Es sind keine importierten Katalog-Streams zum Löschen vorhanden.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogResult">Importierte Katalog-Streams gelöscht: {0:N0}.</sys:String>
+</ResourceDictionary>

@@ -101,6 +101,43 @@ public sealed class StreamCatalogStoreTests
         }
     }
 
+    // SP-0098: all three atlas slots (Catalog, Snapshot, Imported) coexist independently
+    [Fact]
+    public async Task Save_KeepsThreeAtlasSlotsAndSweepsOnlyTheReplacedOne()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            var store = new StreamCatalogStore(directory);
+            var state = await store.SaveAsync(new CatalogState(), [1, 2, 3], replaceAtlas: true, AtlasSlot.Catalog);
+            state = await store.SaveAsync(state, [4, 5], replaceAtlas: true, AtlasSlot.Snapshot);
+            state = await store.SaveAsync(state, [7, 8, 9], replaceAtlas: true, AtlasSlot.Imported);
+
+            Assert.NotNull(state.AtlasFileName);
+            Assert.NotNull(state.SnapshotAtlasFileName);
+            Assert.NotNull(state.ImportedAtlasFileName);
+
+            Assert.Equal([1, 2, 3], await File.ReadAllBytesAsync(store.ResolveAtlasPath(state, AtlasSlot.Catalog)!));
+            Assert.Equal([4, 5], await File.ReadAllBytesAsync(store.ResolveAtlasPath(state, AtlasSlot.Snapshot)!));
+            Assert.Equal([7, 8, 9], await File.ReadAllBytesAsync(store.ResolveAtlasPath(state, AtlasSlot.Imported)!));
+
+            // Replacing the imported atlas sweeps its old file and leaves catalog/snapshot intact
+            var replaced = await store.SaveAsync(state, [10, 11], replaceAtlas: true, AtlasSlot.Imported);
+            Assert.False(File.Exists(store.ResolveAtlasPath(state, AtlasSlot.Imported)!));
+            Assert.True(File.Exists(store.ResolveAtlasPath(replaced, AtlasSlot.Catalog)!));
+            Assert.True(File.Exists(store.ResolveAtlasPath(replaced, AtlasSlot.Snapshot)!));
+            Assert.True(File.Exists(store.ResolveAtlasPath(replaced, AtlasSlot.Imported)!));
+            Assert.Equal([10, 11], await File.ReadAllBytesAsync(store.ResolveAtlasPath(replaced, AtlasSlot.Imported)!));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
     // SP-0033 AC 7: the tag round-trips, and a state file written before the property existed must load
     // as Open with no migration step.
     [Fact]

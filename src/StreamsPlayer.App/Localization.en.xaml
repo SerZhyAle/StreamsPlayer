@@ -49,6 +49,7 @@
     <sys:String x:Key="HideFilters">Hide filters and sorting</sys:String>
     <sys:String x:Key="QuickVideoTip">Quick filter: video only</sys:String>
     <sys:String x:Key="QuickAudioTip">Quick filter: audio only</sys:String>
+    <sys:String x:Key="QuickOwnTip">Quick filter: my channels (added or imported)</sys:String>
     <sys:String x:Key="Media">Media</sys:String>
     <sys:String x:Key="MediaKindTip">Media kind</sys:String>
     <sys:String x:Key="MediaFilterName">Media filter</sys:String>
@@ -95,6 +96,7 @@
     <sys:String x:Key="AllOption">All</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Video</sys:String>
+    <sys:String x:Key="OwnOption">Own</sys:String>
     <sys:String x:Key="SortName">Name</sys:String>
     <sys:String x:Key="SortTopic">Topic</sys:String>
     <sys:String x:Key="SortLanguage">Language</sys:String>
@@ -280,6 +282,8 @@ Use the built-in copy of the channel list instead? It works without the internet
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">Random station</sys:String>
     <sys:String x:Key="RandomStationTip">Play a radio station picked at random from the whole catalog</sys:String>
+    <sys:String x:Key="PrevStationTip">Previous station</sys:String>
+    <sys:String x:Key="NextStationTip">Next station</sys:String>
     <sys:String x:Key="RandomStationTrying">Trying {0}… ({1} of {2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">Tried {0} stations, none responded</sys:String>
     <sys:String x:Key="RandomStationNone">No radio stations to pick from</sys:String>
@@ -306,10 +310,18 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="SaveFrameTip">Save the current frame as a picture file and as this channel's icon</sys:String>
     <sys:String x:Key="FrameSaved">Frame saved: {0}</sys:String>
     <sys:String x:Key="FrameSaveFailed">Could not save the frame</sys:String>
+    <sys:String x:Key="Record">Record</sys:String>
+    <sys:String x:Key="RecordTip">Record live broadcast (R)</sys:String>
+    <sys:String x:Key="StopRecord">Stop recording</sys:String>
+    <sys:String x:Key="StopRecordTip">Stop recording and save file</sys:String>
+    <sys:String x:Key="RecordSaved">Recording saved: {0}</sys:String>
+    <sys:String x:Key="RecordSaveFailed">Could not save recording</sys:String>
+    <sys:String x:Key="Recording">Recording...</sys:String>
     <sys:String x:Key="FrameFolderLabel">Saved files folder</sys:String>
     <sys:String x:Key="FrameFolderHint">Where STREAMS Player saves frames and log archives. Leave it empty to use the Downloads folder.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Choose folder..</sys:String>
     <sys:String x:Key="FrameFolderReset">Use Downloads</sys:String>
+    <sys:String x:Key="FrameFolderOpen">Open folder</sys:String>
     <sys:String x:Key="VolumeTip">Video volume</sys:String>
     <sys:String x:Key="VolumeName">Video volume</sys:String>
     <sys:String x:Key="AudioVolumeTip">Audio volume</sys:String>
@@ -334,6 +346,8 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="TileLarge">Large</sys:String>
     <sys:String x:Key="UpdateStreamPreviews">Update stream thumbnails automatically</sys:String>
     <sys:String x:Key="UpdateStreamPreviewsTip">Capture fresh thumbnails for visible video streams while Grid mode is active</sys:String>
+    <sys:String x:Key="HideAdultContent">Hide adult channels</sys:String>
+    <sys:String x:Key="HideAdultContentTip">Do not show channels under the Adult rubric in the catalog or filters</sys:String>
     <sys:String x:Key="PlaybackSettings">Playback</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">Keep the computer awake during playback</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">Prevent the machine from sleeping on its idle timer while a stream is playing; video also keeps the display on</sys:String>
@@ -545,5 +559,36 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="AboutCopied">The channel details were copied.</sys:String>
     <sys:String x:Key="AboutCopyFailed">Windows could not copy the channel details.</sys:String>
     <sys:String x:Key="FrameRateValue">{0} fps</sys:String>
-    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String></ResourceDictionary>
-
+    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String>
+    <!-- SP-0099 FastMediaSorter live-broadcast import -->
+    <sys:String x:Key="ImportSourceFileFilter">Broadcasts and playlists (*.fmsbcast;*.m3u;*.m3u8)|*.fmsbcast;*.m3u;*.m3u8|Live broadcasts (*.fmsbcast)|*.fmsbcast|Playlists (*.m3u;*.m3u8)|*.m3u;*.m3u8|All files (*.*)|*.*</sys:String>
+    <sys:String x:Key="FmsBroadcastTitle">Import live broadcast</sys:String>
+    <sys:String x:Key="FmsBroadcastConfirm">Import this live broadcast?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="FmsBroadcastAdded">Live broadcast imported: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUpdated">Live broadcast updated: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedSchema">This broadcast was created by a newer application. Update StreamsPlayer to import it. Your list was not changed.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedMode">This broadcast mode is not supported yet. Your list was not changed.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">This is not a valid FastMediaSorter broadcast description. Your list was not changed.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">This broadcast description is larger than 64 KiB. Your list was not changed.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0} already has the maximum number of listeners. Try again when another listener disconnects.</sys:String>
+    <sys:String x:Key="FmsBroadcastStopped">{0} stopped broadcasting or is no longer reachable on this network.</sys:String>
+    <!-- SP-0098 portable stream catalog import -->
+    <sys:String x:Key="StreamCatalogSettings">Stream catalog</sys:String>
+    <sys:String x:Key="StreamCatalogSettingsHint">Import an external stream catalog archive (stream-catalog.zip), restore the bundled catalog snapshot, or delete downloaded and imported catalog banks.</sys:String>
+    <sys:String x:Key="ImportCatalogFromFile">Import catalog archive…</sys:String>
+    <sys:String x:Key="ImportCatalogFromFileTip">Import channels from a stream-catalog.zip archive</sys:String>
+    <sys:String x:Key="ImportCatalogFileFilter">Stream catalog archives (*.zip)|*.zip|All files (*.*)|*.*</sys:String>
+    <sys:String x:Key="ImportCatalogTitle">Import catalog archive</sys:String>
+    <sys:String x:Key="ImportCatalogResult">Catalog channels: {0} added, {1} updated, {2} removed.</sys:String>
+    <sys:String x:Key="ImportCatalogNoChannels">No importable channels were found in the catalog archive. Your list was not changed.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidArchive">This is not a valid stream catalog archive. Your list was not changed.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidCsv">The catalog archive contains invalid CSV data or invalid UTF-8 encoding. Your list was not changed.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">The catalog archive or its CSV data exceeds the maximum allowed size. Your list was not changed.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalog">Delete imported catalog</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTip">Remove every stream that came from an imported catalog archive</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogHint">Remove streams that came from imported catalog archives. Your added and downloaded catalog streams stay.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTitle">Delete imported catalog</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Delete all imported catalog streams ({0:N0})? Your added and downloaded streams are kept. This cannot be undone.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogNone">There are no imported catalog streams to delete.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogResult">Deleted imported catalog streams: {0:N0}.</sys:String>
+</ResourceDictionary>

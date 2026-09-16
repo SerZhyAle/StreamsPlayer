@@ -14,11 +14,10 @@ public static class FaviconTileLoader
     // single-slot cache would reload both on every alternating row.
     private static readonly Dictionary<string, LoadedAtlas> Atlases = new(StringComparer.OrdinalIgnoreCase);
 
-    // At most two atlases are ever in play, but each refresh writes a new file name, so a long session
-    // would otherwise accumulate every atlas it ever saw - decoded sheets, several megabytes each.
-    // Clearing wholesale on the third distinct path costs one reload of the two live ones and bounds the
+    // SP-0098: up to three atlases can be alive at once (downloaded catalog, snapshot, imported bank).
+    // Clearing wholesale on the fourth distinct path costs one reload of the three live ones and bounds the
     // cache without tracking which paths the state still names.
-    private const int MaximumCachedAtlases = 2;
+    private const int MaximumCachedAtlases = 3;
 
     public static ImageSource? Load(string? atlasPath, int? index, int? maximumIndex)
     {

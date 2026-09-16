@@ -19,8 +19,11 @@ internal sealed class CurrentLog : IDisposable
     /// </remarks>
     private const long MaximumSessionBytes = 16L * 1024 * 1024;
 
-    /// <summary>How much of the tail survives a compaction. Half, so compaction is rare rather than continuous.</summary>
-    private const long RetainedOnCompactBytes = MaximumSessionBytes / 2;
+    /// <summary>Initial bytes (startup/configuration/first connects) retained across compaction (SP-0097).</summary>
+    private const long RetainedHeadBytes = 1L * 1024 * 1024;
+
+    /// <summary>Recent bytes (the tail leading up to the failure) retained across compaction (SP-0097).</summary>
+    private const long RetainedTailBytes = 7L * 1024 * 1024;
 
     private static readonly UTF8Encoding LogEncoding = new(encoderShouldEmitUTF8Identifier: false);
 
@@ -123,34 +126,42 @@ internal sealed class CurrentLog : IDisposable
         }
     }
 
-    /// <summary>Drop the oldest part of the session log, keeping its tail. Caller holds <see cref="_gate"/>.</summary>
+    /// <summary>Drop the middle part of the session log, keeping its head and tail (SP-0097). Caller holds <see cref="_gate"/>.</summary>
     private void Compact()
     {
+        byte[] head;
         byte[] tail;
+        long dropped;
         try
         {
             // Read before closing the writer: a failure here must leave logging exactly as it was, so the
             // ceiling degrades into "the file grows" rather than "the session stops being diagnosable".
             // FileShare.ReadWrite because this process still holds the file open for writing.
             using var source = new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            var start = Math.Max(0, source.Length - RetainedOnCompactBytes);
-            source.Seek(start, SeekOrigin.Begin);
-            tail = new byte[source.Length - start];
+            var headLen = (int)Math.Min(RetainedHeadBytes, source.Length);
+            head = new byte[headLen];
+            source.Seek(0, SeekOrigin.Begin);
+            source.ReadExactly(head);
+
+            var tailLen = (int)Math.Min(RetainedTailBytes, Math.Max(0, source.Length - headLen));
+            var tailStart = Math.Max(headLen, source.Length - tailLen);
+            tail = new byte[source.Length - tailStart];
+            source.Seek(tailStart, SeekOrigin.Begin);
             source.ReadExactly(tail);
+            dropped = source.Length - (head.Length + tail.Length);
         }
         catch (Exception)
         {
             return;
         }
 
-        var dropped = _writer?.BaseStream.Position - tail.Length ?? 0;
         _writer?.Dispose();
         _writer = null;
         var replacement = new FileStream(_path, FileMode.Create, FileAccess.Write, FileShare.Read);
         var writer = new StreamWriter(replacement, LogEncoding) { AutoFlush = true };
-        // The marker is what stops a reader from mistaking a compacted log for a session that began
-        // mid-sentence - the first surviving line is almost certainly a partial one.
-        writer.WriteLine($"{DateTimeOffset.UtcNow:O} [Diag] LOG COMPACTED | dropped_leading_bytes={dropped} | kept_bytes={tail.Length}");
+        writer.BaseStream.Write(head);
+        writer.WriteLine();
+        writer.WriteLine($"{DateTimeOffset.UtcNow:O} [Diag] LOG COMPACTED | dropped_middle_bytes={dropped} | kept_head_bytes={head.Length} | kept_tail_bytes={tail.Length}");
         writer.BaseStream.Write(tail);
         writer.BaseStream.Flush();
         _writer = writer;

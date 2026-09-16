@@ -47,6 +47,7 @@
     <sys:String x:Key="HideFilters">Ocultar filtros e ordenação</sys:String>
     <sys:String x:Key="QuickVideoTip">Filtro rápido: apenas vídeo</sys:String>
     <sys:String x:Key="QuickAudioTip">Filtro rápido: apenas áudio</sys:String>
+    <sys:String x:Key="QuickOwnTip">Filtro rápido: apenas os meus (adicionados ou importados)</sys:String>
     <sys:String x:Key="Media">Mídia</sys:String>
     <sys:String x:Key="MediaKindTip">Tipo de mídia</sys:String>
     <sys:String x:Key="MediaFilterName">Filtro de tipo de mídia</sys:String>
@@ -93,6 +94,7 @@
     <sys:String x:Key="AllOption">Todos</sys:String>
     <sys:String x:Key="AudioOption">Áudio</sys:String>
     <sys:String x:Key="VideoOption">Vídeo</sys:String>
+    <sys:String x:Key="OwnOption">Meus</sys:String>
     <sys:String x:Key="SortName">Nome</sys:String>
     <sys:String x:Key="SortTopic">Tema</sys:String>
     <sys:String x:Key="SortLanguage">Idioma</sys:String>
@@ -263,7 +265,9 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="HistoryTip">Ver os canais que você reproduziu recentemente</sys:String>
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">Estação aleatória</sys:String>
-    <sys:String x:Key="RandomStationTip">Reproduzir uma estação de rádio escolhida ao acaso em todo o catálogo</sys:String>
+    <sys:String x:Key="RandomStationTip">Reproduzir uma estação de rádio escolhida ao acaso em todo o catálogo</sys:String>
+    <sys:String x:Key="PrevStationTip">Estação anterior</sys:String>
+    <sys:String x:Key="NextStationTip">Próxima estação</sys:String>
     <sys:String x:Key="RandomStationTrying">A tentar {0}… ({1} de {2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">{0} estações testadas, nenhuma respondeu</sys:String>
     <sys:String x:Key="RandomStationNone">Não há estações de rádio para escolher</sys:String>
@@ -290,10 +294,18 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="SaveFrameTip">Salvar o quadro atual como arquivo de imagem e como ícone deste canal</sys:String>
     <sys:String x:Key="FrameSaved">Quadro salvo: {0}</sys:String>
     <sys:String x:Key="FrameSaveFailed">Não foi possível salvar o quadro</sys:String>
+    <sys:String x:Key="Record">Gravar</sys:String>
+    <sys:String x:Key="RecordTip">Gravar transmissão ao vivo (R)</sys:String>
+    <sys:String x:Key="StopRecord">Parar gravação</sys:String>
+    <sys:String x:Key="StopRecordTip">Parar gravação e salvar arquivo</sys:String>
+    <sys:String x:Key="RecordSaved">Gravação salva: {0}</sys:String>
+    <sys:String x:Key="RecordSaveFailed">Não foi possível salvar a gravação</sys:String>
+    <sys:String x:Key="Recording">Gravando...</sys:String>
     <sys:String x:Key="FrameFolderLabel">Pasta dos arquivos salvos</sys:String>
     <sys:String x:Key="FrameFolderHint">Onde o STREAMS Player salva quadros e arquivos de registros. Deixe vazio para usar a pasta Downloads.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Escolher pasta..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Usar Downloads</sys:String>
+    <sys:String x:Key="FrameFolderReset">Usar Downloads</sys:String>
+    <sys:String x:Key="FrameFolderOpen">Abrir pasta</sys:String>
     <sys:String x:Key="VolumeTip">Volume do vídeo</sys:String>
     <sys:String x:Key="VolumeName">Volume do vídeo</sys:String>
     <sys:String x:Key="AudioVolumeTip">Volume do áudio</sys:String>
@@ -318,6 +330,8 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="TileLarge">Grande</sys:String>
     <sys:String x:Key="UpdateStreamPreviews">Atualizar as miniaturas das transmissões automaticamente</sys:String>
     <sys:String x:Key="UpdateStreamPreviewsTip">Capturar miniaturas novas das transmissões de vídeo visíveis enquanto o modo de grade estiver ativo</sys:String>
+    <sys:String x:Key="HideAdultContent">Ocultar canais adultos</sys:String>
+    <sys:String x:Key="HideAdultContentTip">Não mostrar canais da categoria «Adulto» no catálogo ou nos filtros</sys:String>
     <sys:String x:Key="PlaybackSettings">Reprodução</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">Manter o computador ativo durante a reprodução</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">Impedir que a máquina entre em suspensão pelo temporizador de inatividade enquanto uma transmissão está tocando; no vídeo, a tela também permanece ligada</sys:String>
@@ -529,4 +543,36 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="AboutCopied">Os detalhes do canal foram copiados.</sys:String>
     <sys:String x:Key="AboutCopyFailed">O Windows não conseguiu copiar os detalhes do canal.</sys:String>
     <sys:String x:Key="FrameRateValue">{0} fps</sys:String>
-    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String></ResourceDictionary>
+    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String>
+    <!-- SP-0099 FastMediaSorter live-broadcast import -->
+    <sys:String x:Key="ImportSourceFileFilter">Transmissões e listas de reprodução (*.fmsbcast;*.m3u;*.m3u8)|*.fmsbcast;*.m3u;*.m3u8|Transmissões em direto (*.fmsbcast)|*.fmsbcast|Listas de reprodução (*.m3u;*.m3u8)|*.m3u;*.m3u8|Todos os ficheiros (*.*)|*.*</sys:String>
+    <sys:String x:Key="FmsBroadcastTitle">Importar transmissão em direto</sys:String>
+    <sys:String x:Key="FmsBroadcastConfirm">Importar esta transmissão em direto?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="FmsBroadcastAdded">Transmissão em direto importada: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUpdated">Transmissão em direto atualizada: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedSchema">Esta transmissão foi criada por uma aplicação mais recente. Atualize o StreamsPlayer para a importar. A sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedMode">Este modo de transmissão ainda não é suportado. A sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">Esta não é uma descrição válida de transmissão do FastMediaSorter. A sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">Esta descrição de transmissão é maior que 64 KiB. A sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0} já tem o número máximo de ouvintes. Tente novamente quando outro ouvinte se desligar.</sys:String>
+    <sys:String x:Key="FmsBroadcastStopped">{0} deixou de transmitir ou já não está acessível nesta rede.</sys:String>
+    <!-- SP-0098 portable stream catalog import -->
+    <sys:String x:Key="StreamCatalogSettings">Catálogo de transmissões</sys:String>
+    <sys:String x:Key="StreamCatalogSettingsHint">Importe um arquivo de catálogo de transmissões externo (stream-catalog.zip), restaure o instantâneo integrado do catálogo ou exclua bancos de catálogo baixados e importados.</sys:String>
+    <sys:String x:Key="ImportCatalogFromFile">Importar arquivo de catálogo…</sys:String>
+    <sys:String x:Key="ImportCatalogFromFileTip">Importar canais de um arquivo stream-catalog.zip</sys:String>
+    <sys:String x:Key="ImportCatalogFileFilter">Arquivos de catálogo de transmissões (*.zip)|*.zip|Todos os arquivos (*.*)|*.*</sys:String>
+    <sys:String x:Key="ImportCatalogTitle">Importar arquivo de catálogo</sys:String>
+    <sys:String x:Key="ImportCatalogResult">Canais do catálogo: {0} adicionados, {1} atualizados, {2} removidos.</sys:String>
+    <sys:String x:Key="ImportCatalogNoChannels">Nenhum canal importável foi encontrado no arquivo de catálogo. Sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidArchive">Este não é um arquivo de catálogo de transmissões válido. Sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidCsv">O arquivo de catálogo contém dados CSV inválidos ou codificação UTF-8 inválida. Sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">O arquivo de catálogo ou seus dados CSV excedem o tamanho máximo permitido. Sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalog">Excluir catálogo importado</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTip">Remover todas as transmissões originadas de um arquivo de catálogo importado</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogHint">Remova as transmissões provenientes de arquivos de catálogo importados. Suas transmissões adicionadas e baixadas permanecem.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTitle">Excluir catálogo importado</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Excluir todas as transmissões do catálogo importado ({0:N0})? Suas transmissões adicionadas e baixadas serão mantidas. Isso não pode ser desfeito.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogNone">Não há transmissões de catálogo importadas para excluir.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogResult">Transmissões de catálogo importadas excluídas: {0:N0}.</sys:String>
+</ResourceDictionary>

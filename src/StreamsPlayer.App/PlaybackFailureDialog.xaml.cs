@@ -22,12 +22,15 @@ public partial class PlaybackFailureDialog : Window
 
     internal PlaybackFailureChoice Choice { get; private set; } = PlaybackFailureChoice.None;
 
-    internal PlaybackFailureDialog(string channelTitle, SourceOrigin origin, string report, ChannelAccess access)
+    /// <param name="message">
+    /// SP-0099: a source that knows why it ended says so instead of the generic "could not be played".
+    /// </param>
+    internal PlaybackFailureDialog(string channelTitle, SourceOrigin origin, string report, ChannelAccess access, string? message = null)
     {
         InitializeComponent();
         _report = report;
         _origin = origin;
-        MessageText.Text = LocalizationService.Format("FailureDialogMessage", StreamTitleFormatter.Display(channelTitle));
+        MessageText.Text = message ?? LocalizationService.Format("FailureDialogMessage", StreamTitleFormatter.Display(channelTitle));
         RemoveButton.SetResourceReference(ContentControl.ContentProperty,
             origin == SourceOrigin.Catalog ? "FailureHide" : "FailureDelete");
         // SP-0033: the tag explains a failure, so it is only ever shown on this path - a region-locked

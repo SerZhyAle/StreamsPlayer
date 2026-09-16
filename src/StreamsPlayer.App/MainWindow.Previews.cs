@@ -62,10 +62,11 @@ public partial class MainWindow
 
     private void UpdateViewModeControls()
     {
-        // The two mode buttons share one slot: the header offers the mode you can switch to, never the
-        // one already active.
-        ListModeButton.Visibility = IsGridMode ? Visibility.Visible : Visibility.Collapsed;
-        GridModeButton.Visibility = IsGridMode ? Visibility.Collapsed : Visibility.Visible;
+        // SP-0102: both buttons remain visible in a segmented group; the active mode carries Tag="Active".
+        ListModeButton.Visibility = Visibility.Visible;
+        GridModeButton.Visibility = Visibility.Visible;
+        ListModeButton.Tag = !IsGridMode ? "Active" : null;
+        GridModeButton.Tag = IsGridMode ? "Active" : null;
     }
 
     /// <summary>
@@ -324,6 +325,8 @@ public partial class MainWindow
         // SP-0040: quitting while a station plays is a normal way to end a listening session, and the
         // stop funnel is not on this path - without this the session the user was listening to when they
         // gave up on it would be the one session missing its summary in the archived log.
+        _audioRecorder?.Dispose();
+        _audioRecorder = null;
         EndAudioSession();
         // SP-0067: a filter change still inside its debounce would otherwise be dropped, and the session
         // saved from the state before the user's last keystroke. Flush it, then save.
@@ -347,6 +350,7 @@ public partial class MainWindow
             await _previewCoordinator.DisposeAsync();
         }
         _audioRecoveryCts?.Cancel(); // abort any pending audio recovery so it never touches a disposing window
+        _standardAudioPlayback.Dispose();
         StopNowPlayingMetadata();
         DisposeSystemMediaControls(); // SP-0021: end the Windows media session with the window
         _httpClient.Dispose();

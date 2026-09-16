@@ -62,8 +62,11 @@ public partial class MainWindow
 
         var panel = new CompactPanelWindow();
         panel.ExpandRequested += CompactPanel_ExpandRequested;
+        panel.PreviousRequested += CompactPanel_PreviousRequested;
+        panel.NextRequested += CompactPanel_NextRequested;
         panel.TransportRequested += CompactPanel_TransportRequested;
         panel.RandomRequested += CompactPanel_RandomRequested;
+        panel.RecordRequested += CompactPanel_RecordRequested;
         panel.SleepTimerRequested += CompactPanel_SleepTimerRequested;
         panel.VolumeChanged += CompactPanel_VolumeChanged;
         panel.Moved += CompactPanel_Moved;
@@ -111,8 +114,11 @@ public partial class MainWindow
 
         _compactPanelPlacement = MonitorWorkArea.Placement(panel);
         panel.ExpandRequested -= CompactPanel_ExpandRequested;
+        panel.PreviousRequested -= CompactPanel_PreviousRequested;
+        panel.NextRequested -= CompactPanel_NextRequested;
         panel.TransportRequested -= CompactPanel_TransportRequested;
         panel.RandomRequested -= CompactPanel_RandomRequested;
+        panel.RecordRequested -= CompactPanel_RecordRequested;
         panel.SleepTimerRequested -= CompactPanel_SleepTimerRequested;
         panel.VolumeChanged -= CompactPanel_VolumeChanged;
         panel.Moved -= CompactPanel_Moved;
@@ -154,7 +160,13 @@ public partial class MainWindow
 
     private void CompactPanel_ExpandRequested(object? sender, EventArgs e) => ExpandFromCompactPanel();
 
+    private void CompactPanel_PreviousRequested(object? sender, EventArgs e) => NavigateAudio(forward: false);
+
+    private void CompactPanel_NextRequested(object? sender, EventArgs e) => NavigateAudio(forward: true);
+
     private void CompactPanel_TransportRequested(object? sender, EventArgs e) => ToggleAudioTransport();
+
+    private void CompactPanel_RecordRequested(object? sender, EventArgs e) => ToggleAudioRecording();
 
     private async void CompactPanel_RandomRequested(object? sender, EventArgs e) => await StartRandomStationHuntAsync();
 
@@ -220,7 +232,13 @@ public partial class MainWindow
         }
 
         panel.ShowLines(NowPlayingText.Text, StatusText.Text, Title);
-        panel.ShowTransport(_playingAudio is not null || _audioPausedChannel is not null, _playingAudio is not null);
+        var hasStation = _playingAudio is not null || _audioPausedChannel is not null;
+        panel.ShowTransport(hasStation, _playingAudio is not null);
+        panel.ShowRecording(hasStation, _audioRecorder is not null);
+        var (canPrevious, canNext) = AudioNavAvailability();
+        panel.ShowNavigation(hasStation, canPrevious, canNext);
+        var row = _playingAudio ?? (_audioPausedChannel is { } paused ? GetOrCreateRow(paused, BuildFaviconAtlasSet()) : null);
+        panel.ShowChannel(row, _playingAudio is not null);
         panel.ShowVolume(AudioVolumeSlider.Value);
         panel.ShowSleepTimer(
             SleepTimerButton.Visibility == Visibility.Visible,

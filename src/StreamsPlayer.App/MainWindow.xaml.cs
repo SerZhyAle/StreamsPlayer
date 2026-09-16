@@ -66,6 +66,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private CatalogState _state = new();
     private BrowsingSession _session = new();
     private ChannelRow? _playingAudio;
+    private StreamAudioRecorder? _audioRecorder;
     private LivePlaybackRecoveryPolicy? _audioRecovery;
     private CancellationTokenSource? _audioRecoveryCts;
     private IDisposable? _audioWake;
@@ -91,6 +92,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // collapses to its deadline and the dead-source branch has no input on this engine. The interval
     // still comes from Core so the radio and the player cannot drift apart.
     private readonly DispatcherTimer _audioOpenTimer;
+    // SP-0104: LibVLC-based audio playback engine for standard radio streams.
+    private readonly StandardAudioPlayback _standardAudioPlayback = new();
     private bool _restoringBrowsingSession;
     private bool _resettingFilters;
     // SP-0067: a pixel offset read off the scroll event, not a channel identity searched for among the
@@ -112,6 +115,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _browsingSessionSaveTimer.Tick += BrowsingSessionSaveTimer_Tick;
         _audioOpenTimer = new DispatcherTimer { Interval = PlaybackOpenBudget.OpenDeadline };
         _audioOpenTimer.Tick += AudioOpenTimer_Tick;
+        _standardAudioPlayback.Playing += StandardAudioPlayback_Playing;
+        _standardAudioPlayback.Ended += StandardAudioPlayback_Ended;
+        _standardAudioPlayback.Failed += StandardAudioPlayback_Failed;
         if (GridPreviewFeature.CaptureEnabled)
         {
             var memoryCache = new PreviewFrameCache(PreviewMemoryCacheCapacity, url =>
@@ -306,7 +312,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             _log.Information(
                 $"Catalog refresh completed: {result.Added} added, {result.Updated} updated, " +
                 $"{result.Removed} removed, {result.Retired} retired.");
-            if (!result.AtlasReplaced)
+            if (result.AtlasReplaced)
+            {
+                _log.Event("CATALOG ATLAS", "op=catalog_refresh", "bank_atlas=present", "installed=replaced");
+            }
+            else
             {
                 // SP-0087: the one refresh outcome that was invisible. The bank carried no usable icon
                 // atlas, so the installed one was kept. SP-0088 then made this build's favicon indices be
@@ -410,6 +420,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         PopulateFacets();
         ApplyFilter();
         SetStatus("AddedStream", title);
+
+        // The user just typed this address in order to listen to it - start it right away, through the
+        // same path a row click uses, so failure handling and history behave identically.
+        await PlayChannelAsync(channel, rememberSelection: true);
     }
 
     private void ClearSearchButton_Click(object sender, RoutedEventArgs e)
@@ -455,9 +469,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void PopulateFacets()
     {
         var hiddenIdentities = BuildHiddenIdentitySet();
-        IReadOnlyList<StreamChannel> universe = hiddenIdentities.Count == 0
-            ? _state.Channels
-            : _state.Channels.Where(channel => !IsHiddenBySet(hiddenIdentities, channel)).ToList();
+        IEnumerable<StreamChannel> channels = _state.Channels;
+        if (hiddenIdentities.Count > 0)
+        {
+            channels = channels.Where(channel => !IsHiddenBySet(hiddenIdentities, channel));
+        }
+        if (_state.HideAdultContent)
+        {
+            channels = channels.Where(channel => !CatalogTopics.IsAdult(channel.Topic));
+        }
+
+        IReadOnlyList<StreamChannel> universe = channels as IReadOnlyList<StreamChannel> ?? channels.ToList();
         SetFacet(CategoryFilter, universe.Select(channel => channel.Category));
         // SP-0061: built from the channels actually present, not from the registry, so a rubric with no
         // rows is not offered and a rubric this build has never heard of still is. Labels are translated;
@@ -894,7 +916,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
-    // Applies the audio-volume preference and starts (or, on a recovery reconnect, restarts) the MediaElement
+    // Applies the audio-volume preference and starts (or, on a recovery reconnect, restarts) the audio
     // session for the channel. The caller sets the Connecting/Reconnecting now-playing label.
     private void StartAudioPlayback(StreamChannel channel, bool reconnecting)
     {
@@ -911,10 +933,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _suppressAudioVolumeSave = true;
         AudioVolumeSlider.Value = _state.AudioVolume;
         _suppressAudioVolumeSave = false;
-        AudioPlayer.Volume = _state.AudioVolume / 100.0;
         AudioVolumeSlider.Visibility = Visibility.Visible;
-        AudioPlayer.Source = new Uri(channel.Url);
-        AudioPlayer.Play();
+        if (UsesFastMediaSorterAudioRoute(channel))
+        {
+            StartFastMediaSorterAudioPlayback(channel, reconnecting);
+            return;
+        }
+
+        StopFastMediaSorterAudioPlayback();
+        _standardAudioPlayback.Play(new Uri(channel.Url), _state.AudioVolume);
         // SP-0096: restarted on every leg, so the budget is a per-leg quantity exactly as it is for
         // video. Before this, a station whose URL never opened raised no MediaOpened, no MediaFailed and
         // no MediaEnded, so nothing in this window ever learned that it had not started - the line said
@@ -925,7 +952,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         StartNowPlayingMetadata(channel);
     }
 
-    private async void AudioPlayer_MediaOpened(object sender, RoutedEventArgs e)
+    private void StandardAudioPlayback_Playing(object? sender, EventArgs e)
+    {
+        Dispatcher.BeginInvoke(new Action(async () =>
+        {
+            await HandleAudioOpenedAsync();
+        }), DispatcherPriority.Normal);
+    }
+
+    private async Task HandleAudioOpenedAsync()
     {
         if (_playingAudio is null)
         {
@@ -951,25 +986,27 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         await RecordPlayOutcome(_playingAudio.Channel.Id, true);
     }
 
-    private async void AudioPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
+    private void StandardAudioPlayback_Failed(object? sender, StandardAudioFailedEventArgs e)
     {
-        var row = _playingAudio;
-        var reason = e.ErrorException?.GetType().Name ?? "unknown";
-        _log.Event("AUDIO FAIL", $"reason={reason}", $"url={row?.Channel.Url ?? "n/a"}");
-        if (row is null)
+        Dispatcher.BeginInvoke(new Action(async () =>
         {
-            return;
-        }
+            var row = _playingAudio;
+            var reason = e.Exception?.GetType().Name ?? "unknown";
+            _log.Event("AUDIO FAIL", $"reason={reason}", $"url={row?.Channel.Url ?? "n/a"}");
+            if (row is null)
+            {
+                return;
+            }
 
-        if (YieldToRandomStationHunt(row.Channel, reason))
-        {
-            return;
-        }
+            if (YieldToRandomStationHunt(row.Channel, reason))
+            {
+                return;
+            }
 
-        // Stop the failed session but keep the recovery policy/CTS alive so this channel can reconnect.
-        AudioPlayer.Stop();
-        AudioPlayer.Source = null;
-        await RecoverAudioAsync(row.Channel, reason);
+            // Stop the failed session but keep the recovery policy/CTS alive so this channel can reconnect.
+            _standardAudioPlayback.StopPlayback();
+            await RecoverAudioAsync(row.Channel, reason);
+        }), DispatcherPriority.Normal);
     }
 
     /// <remarks>
@@ -982,23 +1019,25 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     /// (<see cref="PlayerWindow"/>'s EndReached handler): reconnect within the StreamEnded budget, and
     /// once that budget is spent fail terminally - which is the funnel that finally releases the hold.
     /// </remarks>
-    private async void AudioPlayer_MediaEnded(object sender, RoutedEventArgs e)
+    private void StandardAudioPlayback_Ended(object? sender, EventArgs e)
     {
-        var row = _playingAudio;
-        _log.Event("AUDIO ENDED", $"url={row?.Channel.Url ?? "n/a"}");
-        if (row is null)
+        Dispatcher.BeginInvoke(new Action(async () =>
         {
-            return;
-        }
+            var row = _playingAudio;
+            _log.Event("AUDIO ENDED", $"url={row?.Channel.Url ?? "n/a"}");
+            if (row is null)
+            {
+                return;
+            }
 
-        if (YieldToRandomStationHunt(row.Channel, "end_reached"))
-        {
-            return;
-        }
+            if (YieldToRandomStationHunt(row.Channel, "end_reached"))
+            {
+                return;
+            }
 
-        AudioPlayer.Stop();
-        AudioPlayer.Source = null;
-        await RecoverAudioAsync(row.Channel, "end_reached", endReached: true);
+            _standardAudioPlayback.StopPlayback();
+            await RecoverAudioAsync(row.Channel, "end_reached", endReached: true);
+        }), DispatcherPriority.Normal);
     }
 
     /// <summary>
@@ -1027,15 +1066,23 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
-        AudioPlayer.Stop();
-        AudioPlayer.Source = null;
-        await RecoverAudioAsync(row.Channel, "open_timeout", openTimedOut: true);
+        _standardAudioPlayback.StopPlayback();
+        StopFastMediaSorterAudioPlayback(); // SP-0099: release the watch listener slot during the backoff
+        await RecoverAudioAsync(row.Channel, "open_timeout", openTimedOut: true,
+            fastMediaSorterFailure: UsesFastMediaSorterAudioRoute(row.Channel) ? FastMediaSorterPlaybackFailureKind.Recoverable : null);
     }
 
     // Bounded audio recovery (streams.txt Part D). Classifies the failure, then reconnects after a cancellable
     // backoff (showing a Reconnecting label) or, once the budget is spent or a hard failure is hit, shows the
     // terminal dialog. There is no position stall-watchdog for audio: MediaElement exposes no live telemetry.
-    private async Task RecoverAudioAsync(StreamChannel channel, string reason, bool endReached = false, bool openTimedOut = false)
+    private async Task RecoverAudioAsync(
+        StreamChannel channel,
+        string reason,
+        bool endReached = false,
+        bool openTimedOut = false,
+        int? firstResponseStatusCode = null,
+        bool hasFirstResponseStatus = false,
+        FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure = null)
     {
         var policy = _audioRecovery;
         var cts = _audioRecoveryCts;
@@ -1048,7 +1095,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // signal, and probing it would spend a request to learn nothing. Same rule the video path applies.
         // SP-0096 is the second such case: the source has just had the full open budget to answer, so
         // asking it again buys nothing but more of the wait that budget exists to end.
-        int? status = endReached || openTimedOut ? null : await PlaybackStatusProbe.TryGetStatusAsync(channel.Url, cts.Token);
+        int? status = hasFirstResponseStatus
+            ? firstResponseStatusCode
+            : endReached || openTimedOut ? null : await PlaybackStatusProbe.TryGetStatusAsync(channel.Url, cts.Token);
         if (cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
         {
             return; // stopped or switched while probing - do not relabel or restart
@@ -1067,7 +1116,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         if (decision.Kind == RecoveryActionKind.HardFail)
         {
-            await FailAudioTerminallyAsync(channel, reason);
+            await FailAudioTerminallyAsync(channel, reason, fastMediaSorterFailure);
             return;
         }
 
@@ -1090,7 +1139,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
 
     // Terminal audio failure: record the real failed play (red status) and offer Retry / Copy / Hide|Delete / Keep.
-    private async Task FailAudioTerminallyAsync(StreamChannel channel, string reason)
+    // SP-0099: a FastMediaSorter source names why it ended - the device stopped, or its listener slots are full.
+    private async Task FailAudioTerminallyAsync(StreamChannel channel, string reason, FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure = null)
     {
         NoteAudioTerminalFailure(); // before the stop, which is what closes and records the session
         var quiet = _audioQuiet; // StopAudio below reassigns nothing, but the next play would
@@ -1107,9 +1157,28 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // SP-0080: see IsCompact. The panel is the only surface on screen, and it is the surface the
         // ticket chose over a window that jumps in front of the listener's other work - so a station
         // that could not be brought back says so on the line the panel mirrors, and nothing pops up.
+        var displayTitle = StreamTitleFormatter.Display(channel.Title);
+        string? message = fastMediaSorterFailure switch
+        {
+            FastMediaSorterPlaybackFailureKind.ListenerLimit => LocalizationService.Format("FmsBroadcastListenerLimit", displayTitle),
+            FastMediaSorterPlaybackFailureKind.Recoverable => LocalizationService.Format("FmsBroadcastStopped", displayTitle),
+            _ => null
+        };
         if (IsCompact)
         {
-            SetStatus("CompactPanelStreamFailed", StreamTitleFormatter.Display(channel.Title));
+            switch (fastMediaSorterFailure)
+            {
+                case FastMediaSorterPlaybackFailureKind.ListenerLimit:
+                    SetStatus("FmsBroadcastListenerLimit", displayTitle);
+                    break;
+                case FastMediaSorterPlaybackFailureKind.Recoverable:
+                    SetStatus("FmsBroadcastStopped", displayTitle);
+                    break;
+                default:
+                    SetStatus("CompactPanelStreamFailed", displayTitle);
+                    break;
+            }
+
             return;
         }
 
@@ -1120,7 +1189,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             channel.Url,
             channel.MediaKind,
             PlaybackErrorClassifier.Classify(reason)));
-        var dialog = new PlaybackFailureDialog(channel.Title, channel.SourceOrigin, report, channel.Access) { Owner = this };
+        var dialog = new PlaybackFailureDialog(channel.Title, channel.SourceOrigin, report, channel.Access, message) { Owner = this };
         dialog.ShowDialog();
         switch (dialog.Choice)
         {
@@ -1137,13 +1206,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         // The slider's XAML Value="100" fires ValueChanged during InitializeComponent,
         // before the AudioPlayer element below it in the tree exists. Ignore that spurious fire.
-        if (AudioPlayer is null)
+        if (_standardAudioPlayback is null)
         {
             return;
         }
 
         var volume = (int)Math.Round(e.NewValue);
-        AudioPlayer.Volume = volume / 100.0;
+        _standardAudioPlayback.SetVolume(volume);
+        _fastMediaSorterAudioPlayback?.SetVolume(volume); // SP-0099: that route plays through LibVLC, not AudioPlayer
         UpdateCompactPanel(); // SP-0080: before the early returns below - the panel mirrors the position, not the save
         if (_suppressAudioVolumeSave)
         {
@@ -1164,6 +1234,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // Stop, and in starting another station.
     private void AudioTransportButton_Click(object sender, RoutedEventArgs e) => ToggleAudioTransport();
 
+    private void AudioRecordButton_Click(object sender, RoutedEventArgs e) => ToggleAudioRecording();
+
     // SP-0080: extracted from the handler so the compact panel's transport button reaches the same
     // decision rather than restating it. A second copy of "playing means pause" is exactly how the two
     // surfaces would come to disagree about what the button does.
@@ -1179,6 +1251,56 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
+    private void ToggleAudioRecording()
+    {
+        if (_audioRecorder is null)
+        {
+            if (_playingAudio is null)
+            {
+                return;
+            }
+
+            var channel = _playingAudio.Channel;
+            _audioRecorder = StreamAudioRecorder.Start(channel, _state.FrameFolder, _log);
+            if (_audioRecorder is not null)
+            {
+                ApplyAudioTransportState();
+                SetStatus("Recording");
+            }
+            else
+            {
+                SetStatus("RecordSaveFailed");
+            }
+        }
+        else
+        {
+            StopAudioRecording();
+        }
+    }
+
+    private void StopAudioRecording()
+    {
+        if (_audioRecorder is null)
+        {
+            return;
+        }
+
+        var recorder = _audioRecorder;
+        _audioRecorder = null;
+        var saved = recorder.Stop();
+        recorder.Dispose();
+        ApplyAudioTransportState();
+
+        if (!string.IsNullOrWhiteSpace(saved))
+        {
+            SetStatus("RecordSaved", Path.GetFileName(saved));
+        }
+        else
+        {
+            SetStatus("RecordSaveFailed");
+        }
+    }
+
     /// <summary>
     /// Puts the panel's transport button, volume and sleep timer into the state the audio session is
     /// actually in. Reading both fields here, rather than showing and hiding them at each call site, is
@@ -1189,8 +1311,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         var playing = _playingAudio is not null;
         var hasStation = playing || _audioPausedChannel is not null;
+        var isRecording = _audioRecorder is not null;
         AudioTransportButton.IsEnabled = hasStation;
         AudioTransportButton.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
+        AudioRecordButton.IsEnabled = playing;
+        AudioRecordButton.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
+        AudioRecordButton.Style = (Style)FindResource(isRecording ? "StopRecordGlyphOnlyButton" : "RecordGlyphOnlyButton");
+        var recordTip = isRecording ? "StopRecordTip" : "RecordTip";
+        var recordName = isRecording ? "StopRecord" : "Record";
+        AudioRecordButton.SetResourceReference(ToolTipProperty, recordTip);
+        AudioRecordButton.SetResourceReference(System.Windows.Automation.AutomationProperties.NameProperty, recordName);
         AudioVolumeSlider.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
         // SP-0080: the panel exists for an audio session, and after SP-0081 a stopped-but-remembered
         // station is still one - which is what keeps criterion 4's "stop while collapsed" from removing
@@ -1222,6 +1352,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // keeps the Windows media session visible as Paused so a later system Play can resume the channel.
     private void StopAudioPlayback(bool clearSystemSession)
     {
+        StopAudioRecording();
         EndAudioSession(); // SP-0040: this is the one funnel every stop, switch, pause and failure passes through
         // SP-0062: and therefore the one place a station leaves the resume record - including the SP-0021
         // pause, because a paused session is deliberately not something the next launch brings back.
@@ -1237,8 +1368,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         StopNowPlayingMetadata();
         _audioWake?.Dispose(); // release the idle-sleep hold on every stop/switch/toggle/terminal-fail path
         _audioWake = null;
-        AudioPlayer.Stop();
-        AudioPlayer.Source = null;
+        _standardAudioPlayback.StopPlayback();
+        StopFastMediaSorterAudioPlayback();
         _playingAudio?.SetPlayingAudio(false);
         _playingAudio = null;
         SetNowPlaying("NothingPlaying");

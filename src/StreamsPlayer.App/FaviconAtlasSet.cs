@@ -17,11 +17,14 @@ internal readonly record struct FaviconAtlasSet(
     string? CatalogPath,
     int? CatalogMaximumIndex,
     string? SnapshotPath,
-    int? SnapshotMaximumIndex)
+    int? SnapshotMaximumIndex,
+    string? ImportedPath,
+    int? ImportedMaximumIndex)
 {
     public (string? Path, int? MaximumIndex) Resolve(FaviconSource source) => source switch
     {
         FaviconSource.Snapshot => (SnapshotPath, SnapshotMaximumIndex),
+        FaviconSource.Imported => (ImportedPath, ImportedMaximumIndex),
         _ => (CatalogPath, CatalogMaximumIndex)
     };
 }

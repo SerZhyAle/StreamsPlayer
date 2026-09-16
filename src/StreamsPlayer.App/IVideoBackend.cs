@@ -149,6 +149,19 @@ internal interface IVideoBackend
     /// </summary>
     VideoRendition? ReadRendition();
 
+    /// <summary>SP-0101: True while recording of the live broadcast is actively in progress.</summary>
+    bool IsRecording { get; }
+
+    /// <summary>
+    /// SP-0101: Starts recording the active broadcast into the target directory. Returns true if started.
+    /// </summary>
+    bool StartRecording(string targetDirectory, string? channelTitle);
+
+    /// <summary>
+    /// SP-0101: Stops active recording and returns the full path of the saved file, or null if no recording was active or failed.
+    /// </summary>
+    string? StopRecording();
+
     /// <summary>Buffer fill percentage 0..100.</summary>
     event Action<float> BufferingChanged;
     event Action EndReached;

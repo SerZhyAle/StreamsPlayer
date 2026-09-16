@@ -47,6 +47,7 @@
     <sys:String x:Key="HideFilters">Masquer les filtres et le tri</sys:String>
     <sys:String x:Key="QuickVideoTip">Filtre rapide : vidéo uniquement</sys:String>
     <sys:String x:Key="QuickAudioTip">Filtre rapide : audio uniquement</sys:String>
+    <sys:String x:Key="QuickOwnTip">Filtre rapide : mes chaînes (ajoutées ou importées)</sys:String>
     <sys:String x:Key="Media">Média</sys:String>
     <sys:String x:Key="MediaKindTip">Type de média</sys:String>
     <sys:String x:Key="MediaFilterName">Filtre de média</sys:String>
@@ -93,6 +94,7 @@
     <sys:String x:Key="AllOption">Tous</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Vidéo</sys:String>
+    <sys:String x:Key="OwnOption">Les miens</sys:String>
     <sys:String x:Key="SortName">Nom</sys:String>
     <sys:String x:Key="SortTopic">Thème</sys:String>
     <sys:String x:Key="SortLanguage">Langue</sys:String>
@@ -263,7 +265,9 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="HistoryTip">Voir les chaînes que vous avez lues récemment</sys:String>
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">Station aléatoire</sys:String>
-    <sys:String x:Key="RandomStationTip">Lire une station de radio choisie au hasard dans tout le catalogue</sys:String>
+    <sys:String x:Key="RandomStationTip">Lire une station de radio choisie au hasard dans tout le catalogue</sys:String>
+    <sys:String x:Key="PrevStationTip">Station précédente</sys:String>
+    <sys:String x:Key="NextStationTip">Station suivante</sys:String>
     <sys:String x:Key="RandomStationTrying">Essai de {0}… ({1} sur {2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">{0} stations essayées, aucune n'a répondu</sys:String>
     <sys:String x:Key="RandomStationNone">Aucune station de radio à choisir</sys:String>
@@ -290,10 +294,18 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="SaveFrameTip">Enregistrer l'image actuelle comme fichier image et comme icône de cette chaîne</sys:String>
     <sys:String x:Key="FrameSaved">Image enregistrée : {0}</sys:String>
     <sys:String x:Key="FrameSaveFailed">Impossible d'enregistrer l'image</sys:String>
+    <sys:String x:Key="Record">Enregistrer</sys:String>
+    <sys:String x:Key="RecordTip">Enregistrer la diffusion en direct (R)</sys:String>
+    <sys:String x:Key="StopRecord">Arrêter l'enregistrement</sys:String>
+    <sys:String x:Key="StopRecordTip">Arrêter l'enregistrement et enregistrer le fichier</sys:String>
+    <sys:String x:Key="RecordSaved">Enregistrement enregistré : {0}</sys:String>
+    <sys:String x:Key="RecordSaveFailed">Impossible d'enregistrer l'enregistrement</sys:String>
+    <sys:String x:Key="Recording">Enregistrement en cours...</sys:String>
     <sys:String x:Key="FrameFolderLabel">Dossier des fichiers enregistrés</sys:String>
     <sys:String x:Key="FrameFolderHint">Emplacement où STREAMS Player enregistre les images et les archives de journaux. Laissez vide pour utiliser le dossier Téléchargements.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Choisir un dossier..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Utiliser Téléchargements</sys:String>
+    <sys:String x:Key="FrameFolderReset">Utiliser Téléchargements</sys:String>
+    <sys:String x:Key="FrameFolderOpen">Ouvrir le dossier</sys:String>
     <sys:String x:Key="VolumeTip">Volume de la vidéo</sys:String>
     <sys:String x:Key="VolumeName">Volume de la vidéo</sys:String>
     <sys:String x:Key="AudioVolumeTip">Volume audio</sys:String>
@@ -318,6 +330,8 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="TileLarge">Grande</sys:String>
     <sys:String x:Key="UpdateStreamPreviews">Actualiser automatiquement les vignettes des flux</sys:String>
     <sys:String x:Key="UpdateStreamPreviewsTip">Capturer de nouvelles vignettes pour les flux vidéo visibles tant que la vue en grille est active</sys:String>
+    <sys:String x:Key="HideAdultContent">Masquer les chaînes pour adultes</sys:String>
+    <sys:String x:Key="HideAdultContentTip">Ne pas afficher les chaînes de la rubrique « Adultes » dans le catalogue ou les filtres</sys:String>
     <sys:String x:Key="PlaybackSettings">Lecture</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">Empêcher l'ordinateur de se mettre en veille pendant la lecture</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">Empêcher la mise en veille par inactivité pendant la lecture d'un flux ; avec la vidéo, l'écran reste aussi allumé</sys:String>
@@ -529,5 +543,36 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="AboutCopied">Les détails de la chaîne ont été copiés.</sys:String>
     <sys:String x:Key="AboutCopyFailed">Windows n'a pas pu copier les détails de la chaîne.</sys:String>
     <sys:String x:Key="FrameRateValue">{0} ips</sys:String>
-    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String></ResourceDictionary>
-
+    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String>
+    <!-- SP-0099 FastMediaSorter live-broadcast import -->
+    <sys:String x:Key="ImportSourceFileFilter">Diffusions et listes de lecture (*.fmsbcast;*.m3u;*.m3u8)|*.fmsbcast;*.m3u;*.m3u8|Diffusions en direct (*.fmsbcast)|*.fmsbcast|Listes de lecture (*.m3u;*.m3u8)|*.m3u;*.m3u8|Tous les fichiers (*.*)|*.*</sys:String>
+    <sys:String x:Key="FmsBroadcastTitle">Importer une diffusion en direct</sys:String>
+    <sys:String x:Key="FmsBroadcastConfirm">Importer cette diffusion en direct ?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="FmsBroadcastAdded">Diffusion en direct importée : {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUpdated">Diffusion en direct mise à jour : {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedSchema">Cette diffusion a été créée par une application plus récente. Mettez StreamsPlayer à jour pour l'importer. Votre liste n'a pas changé.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedMode">Ce mode de diffusion n'est pas encore pris en charge. Votre liste n'a pas changé.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">Cette description de diffusion FastMediaSorter n'est pas valide. Votre liste n'a pas changé.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">Cette description de diffusion dépasse 64 Kio. Votre liste n'a pas changé.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0} a déjà atteint le nombre maximal d'auditeurs. Réessayez quand un autre auditeur se déconnecte.</sys:String>
+    <sys:String x:Key="FmsBroadcastStopped">{0} a cessé de diffuser ou n'est plus joignable sur ce réseau.</sys:String>
+    <!-- SP-0098 portable stream catalog import -->
+    <sys:String x:Key="StreamCatalogSettings">Catalogue de flux</sys:String>
+    <sys:String x:Key="StreamCatalogSettingsHint">Importez une archive externe de catalogue de flux (stream-catalog.zip), restaurez l'instantané intégré ou supprimez les banques de catalogues téléchargées et importées.</sys:String>
+    <sys:String x:Key="ImportCatalogFromFile">Importer une archive de catalogue…</sys:String>
+    <sys:String x:Key="ImportCatalogFromFileTip">Importer des chaînes depuis une archive stream-catalog.zip</sys:String>
+    <sys:String x:Key="ImportCatalogFileFilter">Archives de catalogue de flux (*.zip)|*.zip|Tous les fichiers (*.*)|*.*</sys:String>
+    <sys:String x:Key="ImportCatalogTitle">Importer l'archive du catalogue</sys:String>
+    <sys:String x:Key="ImportCatalogResult">Chaînes du catalogue : {0} ajoutées, {1} mises à jour, {2} supprimées.</sys:String>
+    <sys:String x:Key="ImportCatalogNoChannels">Aucune chaîne importable trouvée dans l'archive du catalogue. Votre liste n'a pas été modifiée.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidArchive">Ceci n'est pas une archive de catalogue de flux valide. Votre liste n'a pas été modifiée.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidCsv">L'archive du catalogue contient des données CSV non valides ou un encodage UTF-8 non valide. Votre liste n'a pas été modifiée.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">L'archive du catalogue ou ses données CSV dépassent la taille maximale autorisée. Votre liste n'a pas été modifiée.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalog">Supprimer le catalogue importé</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTip">Supprimer tous les flux provenant d'une archive de catalogue importée</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogHint">Supprime les flux provenant d'archives de catalogues importées. Vos flux ajoutés et téléchargés restent.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTitle">Supprimer le catalogue importé</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Supprimer tous les flux du catalogue importé ({0:N0}) ? Vos flux ajoutés et téléchargés sont conservés. Cette action est irréversible.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogNone">Il n'y a aucun flux de catalogue importé à supprimer.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogResult">Flux de catalogue importés supprimés : {0:N0}.</sys:String>
+</ResourceDictionary>

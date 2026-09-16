@@ -47,6 +47,7 @@
     <sys:String x:Key="HideFilters">Ocultar filtros y orden</sys:String>
     <sys:String x:Key="QuickVideoTip">Filtro rápido: solo vídeo</sys:String>
     <sys:String x:Key="QuickAudioTip">Filtro rápido: solo audio</sys:String>
+    <sys:String x:Key="QuickOwnTip">Filtro rápido: solo propios (añadidos o importados)</sys:String>
     <sys:String x:Key="Media">Medio</sys:String>
     <sys:String x:Key="MediaKindTip">Tipo de medio</sys:String>
     <sys:String x:Key="MediaFilterName">Filtro de tipo de medio</sys:String>
@@ -93,6 +94,7 @@
     <sys:String x:Key="AllOption">Todos</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Vídeo</sys:String>
+    <sys:String x:Key="OwnOption">Propios</sys:String>
     <sys:String x:Key="SortName">Nombre</sys:String>
     <sys:String x:Key="SortTopic">Tema</sys:String>
     <sys:String x:Key="SortLanguage">Idioma</sys:String>
@@ -263,7 +265,9 @@
     <sys:String x:Key="HistoryTip">Ver los canales que has reproducido recientemente</sys:String>
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">Emisora aleatoria</sys:String>
-    <sys:String x:Key="RandomStationTip">Reproducir una emisora de radio elegida al azar de todo el catálogo</sys:String>
+    <sys:String x:Key="RandomStationTip">Reproducir una emisora de radio elegida al azar de todo el catálogo</sys:String>
+    <sys:String x:Key="PrevStationTip">Emisora anterior</sys:String>
+    <sys:String x:Key="NextStationTip">Emisora siguiente</sys:String>
     <sys:String x:Key="RandomStationTrying">Probando {0}… ({1} de {2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">Se probaron {0} emisoras y ninguna respondió</sys:String>
     <sys:String x:Key="RandomStationNone">No hay emisoras de radio para elegir</sys:String>
@@ -290,10 +294,18 @@
     <sys:String x:Key="SaveFrameTip">Guardar el fotograma actual como archivo de imagen y como icono de este canal</sys:String>
     <sys:String x:Key="FrameSaved">Fotograma guardado: {0}</sys:String>
     <sys:String x:Key="FrameSaveFailed">No se ha podido guardar el fotograma</sys:String>
+    <sys:String x:Key="Record">Grabar</sys:String>
+    <sys:String x:Key="RecordTip">Grabar transmisión en directo (R)</sys:String>
+    <sys:String x:Key="StopRecord">Detener grabación</sys:String>
+    <sys:String x:Key="StopRecordTip">Detener la grabación y guardar el archivo</sys:String>
+    <sys:String x:Key="RecordSaved">Grabación guardada: {0}</sys:String>
+    <sys:String x:Key="RecordSaveFailed">No se pudo guardar la grabación</sys:String>
+    <sys:String x:Key="Recording">Grabando...</sys:String>
     <sys:String x:Key="FrameFolderLabel">Carpeta de archivos guardados</sys:String>
     <sys:String x:Key="FrameFolderHint">Donde STREAMS Player guarda fotogramas y archivos de registros. Déjalo vacío para usar la carpeta Descargas.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Elegir carpeta..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Usar Descargas</sys:String>
+    <sys:String x:Key="FrameFolderReset">Usar Descargas</sys:String>
+    <sys:String x:Key="FrameFolderOpen">Abrir carpeta</sys:String>
     <sys:String x:Key="VolumeTip">Volumen del vídeo</sys:String>
     <sys:String x:Key="VolumeName">Volumen del vídeo</sys:String>
     <sys:String x:Key="AudioVolumeTip">Volumen del audio</sys:String>
@@ -318,6 +330,8 @@
     <sys:String x:Key="TileLarge">Grande</sys:String>
     <sys:String x:Key="UpdateStreamPreviews">Actualizar las miniaturas de las transmisiones automáticamente</sys:String>
     <sys:String x:Key="UpdateStreamPreviewsTip">Capturar miniaturas nuevas de las transmisiones de vídeo visibles mientras la vista de cuadrícula está activa</sys:String>
+    <sys:String x:Key="HideAdultContent">Ocultar canales para adultos</sys:String>
+    <sys:String x:Key="HideAdultContentTip">No mostrar canales de la categoría «Para adultos» en el catálogo ni en los filtros</sys:String>
     <sys:String x:Key="PlaybackSettings">Reproducción</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">Impedir que el equipo se suspenda durante la reproducción</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">Impedir que el equipo se suspenda por su temporizador de inactividad mientras suena una transmisión; con vídeo también mantiene la pantalla encendida</sys:String>
@@ -529,5 +543,36 @@
     <sys:String x:Key="AboutCopied">Se copiaron los detalles del canal.</sys:String>
     <sys:String x:Key="AboutCopyFailed">Windows no pudo copiar los detalles del canal.</sys:String>
     <sys:String x:Key="FrameRateValue">{0} fps</sys:String>
-    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String></ResourceDictionary>
-
+    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String>
+    <!-- SP-0099 FastMediaSorter live-broadcast import -->
+    <sys:String x:Key="ImportSourceFileFilter">Emisiones y listas (*.fmsbcast;*.m3u;*.m3u8)|*.fmsbcast;*.m3u;*.m3u8|Emisiones en directo (*.fmsbcast)|*.fmsbcast|Listas (*.m3u;*.m3u8)|*.m3u;*.m3u8|Todos los archivos (*.*)|*.*</sys:String>
+    <sys:String x:Key="FmsBroadcastTitle">Importar emisión en directo</sys:String>
+    <sys:String x:Key="FmsBroadcastConfirm">¿Importar esta emisión en directo?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="FmsBroadcastAdded">Emisión en directo importada: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUpdated">Emisión en directo actualizada: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedSchema">Esta emisión fue creada por una aplicación más reciente. Actualice StreamsPlayer para importarla. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedMode">Este modo de emisión todavía no es compatible. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">Esta no es una descripción válida de emisión de FastMediaSorter. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">Esta descripción de emisión supera 64 KiB. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0} ya tiene el número máximo de oyentes. Vuelva a intentarlo cuando otro oyente se desconecte.</sys:String>
+    <sys:String x:Key="FmsBroadcastStopped">{0} dejó de emitir o ya no está accesible en esta red.</sys:String>
+    <!-- SP-0098 portable stream catalog import -->
+    <sys:String x:Key="StreamCatalogSettings">Catálogo de emisiones</sys:String>
+    <sys:String x:Key="StreamCatalogSettingsHint">Importe un archivo de catálogo de emisiones externo (stream-catalog.zip), restaure la instantánea del catálogo integrada o elimine los bancos de catálogo descargados e importados.</sys:String>
+    <sys:String x:Key="ImportCatalogFromFile">Importar archivo de catálogo…</sys:String>
+    <sys:String x:Key="ImportCatalogFromFileTip">Importar canales desde un archivo stream-catalog.zip</sys:String>
+    <sys:String x:Key="ImportCatalogFileFilter">Archivos de catálogo de emisiones (*.zip)|*.zip|Todos los archivos (*.*)|*.*</sys:String>
+    <sys:String x:Key="ImportCatalogTitle">Importar archivo de catálogo</sys:String>
+    <sys:String x:Key="ImportCatalogResult">Canales del catálogo: {0} añadidos, {1} actualizados, {2} eliminados.</sys:String>
+    <sys:String x:Key="ImportCatalogNoChannels">No se encontraron canales importables en el archivo del catálogo. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidArchive">Este no es un archivo de catálogo de emisiones válido. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidCsv">El archivo del catálogo contiene datos CSV no válidos o una codificación UTF-8 no válida. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">El archivo del catálogo o sus datos CSV superan el tamaño máximo permitido. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalog">Eliminar catálogo importado</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTip">Eliminar todas las emisiones que provienen de un archivo de catálogo importado</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogHint">Elimine las emisiones que provienen de archivos de catálogo importados. Sus emisiones añadidas y descargadas se mantendrán.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTitle">Eliminar catálogo importado</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">¿Eliminar todas las emisiones del catálogo importado ({0:N0})? Se conservarán las emisiones añadidas y descargadas. Esto no se puede deshacer.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogNone">No hay emisiones del catálogo importado para eliminar.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogResult">Emisiones del catálogo importado eliminadas: {0:N0}.</sys:String>
+</ResourceDictionary>

@@ -47,6 +47,7 @@
     <sys:String x:Key="HideFilters">فلٹر اور ترتیب چھپائیں</sys:String>
     <sys:String x:Key="QuickVideoTip">فوری فلٹر: صرف ویڈیو</sys:String>
     <sys:String x:Key="QuickAudioTip">فوری فلٹر: صرف آڈیو</sys:String>
+    <sys:String x:Key="QuickOwnTip">فوری فلٹر: صرف میرے چینل (شامل یا درآمد کردہ)</sys:String>
     <sys:String x:Key="Media">میڈیا</sys:String>
     <sys:String x:Key="MediaKindTip">میڈیا کی قسم</sys:String>
     <sys:String x:Key="MediaFilterName">میڈیا کا فلٹر</sys:String>
@@ -93,6 +94,7 @@
     <sys:String x:Key="AllOption">سب</sys:String>
     <sys:String x:Key="AudioOption">آڈیو</sys:String>
     <sys:String x:Key="VideoOption">ویڈیو</sys:String>
+    <sys:String x:Key="OwnOption">میرے</sys:String>
     <sys:String x:Key="SortName">نام</sys:String>
     <sys:String x:Key="SortTopic">موضوع</sys:String>
     <sys:String x:Key="SortLanguage">زبان</sys:String>
@@ -263,7 +265,9 @@
     <sys:String x:Key="HistoryTip">وہ چینلز دیکھیں جو آپ نے حال ہی میں چلائے</sys:String>
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">بے ترتیب اسٹیشن</sys:String>
-    <sys:String x:Key="RandomStationTip">پورے کیٹلاگ میں سے بے ترتیب چنا گیا ریڈیو اسٹیشن چلائیں</sys:String>
+    <sys:String x:Key="RandomStationTip">پورے کیٹلاگ میں سے بے ترتیب چنا گیا ریڈیو اسٹیشن چلائیں</sys:String>
+    <sys:String x:Key="PrevStationTip">پچھلا اسٹیشن</sys:String>
+    <sys:String x:Key="NextStationTip">اگلا اسٹیشن</sys:String>
     <sys:String x:Key="RandomStationTrying">{0} آزمایا جا رہا ہے… ({1}/{2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">{0} اسٹیشن آزمائے، کسی نے جواب نہیں دیا</sys:String>
     <sys:String x:Key="RandomStationNone">منتخب کرنے کے لیے کوئی ریڈیو اسٹیشن نہیں</sys:String>
@@ -290,10 +294,18 @@
     <sys:String x:Key="SaveFrameTip">موجودہ فریم کو تصویری فائل کے طور پر اور اس چینل کے آئیکن کے طور پر محفوظ کریں</sys:String>
     <sys:String x:Key="FrameSaved">فریم محفوظ ہو گیا: {0}</sys:String>
     <sys:String x:Key="FrameSaveFailed">فریم محفوظ نہیں ہو سکا</sys:String>
+    <sys:String x:Key="Record">ریکارڈ کریں</sys:String>
+    <sys:String x:Key="RecordTip">لائیو نشریات ریکارڈ کریں (R)</sys:String>
+    <sys:String x:Key="StopRecord">ریکارڈنگ روکیں</sys:String>
+    <sys:String x:Key="StopRecordTip">ریکارڈنگ روکیں اور فائل محفوظ کریں</sys:String>
+    <sys:String x:Key="RecordSaved">ریکارڈنگ محفوظ ہو گئی: {0}</sys:String>
+    <sys:String x:Key="RecordSaveFailed">ریکارڈنگ محفوظ نہیں کی جا سکی</sys:String>
+    <sys:String x:Key="Recording">ریکارڈنگ جاری ہے...</sys:String>
     <sys:String x:Key="FrameFolderLabel">محفوظ شدہ فائلوں کا فولڈر</sys:String>
     <sys:String x:Key="FrameFolderHint">STREAMS Player یہاں فریم اور لاگ آرکائیو محفوظ کرتا ہے۔ ڈاؤن لوڈز فولڈر استعمال کرنے کے لیے اسے خالی چھوڑ دیں۔</sys:String>
     <sys:String x:Key="FrameFolderBrowse">فولڈر منتخب کریں..</sys:String>
-    <sys:String x:Key="FrameFolderReset">ڈاؤن لوڈز استعمال کریں</sys:String>
+    <sys:String x:Key="FrameFolderReset">ڈاؤن لوڈز استعمال کریں</sys:String>
+    <sys:String x:Key="FrameFolderOpen">فولڈر کھولیں</sys:String>
     <sys:String x:Key="VolumeTip">ویڈیو کی آواز</sys:String>
     <sys:String x:Key="VolumeName">ویڈیو کی آواز</sys:String>
     <sys:String x:Key="AudioVolumeTip">آڈیو کی آواز</sys:String>
@@ -318,6 +330,8 @@
     <sys:String x:Key="TileLarge">بڑا</sys:String>
     <sys:String x:Key="UpdateStreamPreviews">نشریات کی تھمب نیل خودکار طور پر تازہ کریں</sys:String>
     <sys:String x:Key="UpdateStreamPreviewsTip">گرڈ منظر فعال ہونے پر نظر آنے والی ویڈیو نشریات کی نئی تھمب نیل حاصل کریں</sys:String>
+    <sys:String x:Key="HideAdultContent">بالغوں کے چینلز چھپائیں</sys:String>
+    <sys:String x:Key="HideAdultContentTip">کیٹلاگ یا فلٹرز میں 'بالغان' زمرے کے چینلز نہ دکھائیں</sys:String>
     <sys:String x:Key="PlaybackSettings">چلانا</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">چلانے کے دوران کمپیوٹر کو جاگتا رکھیں</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">نشریات چلنے کے دوران مشین کو بے کاری کے ٹائمر پر سونے سے روکیں؛ ویڈیو میں سکرین بھی روشن رہتی ہے</sys:String>
@@ -529,5 +543,36 @@
     <sys:String x:Key="AboutCopied">چینل کی تفصیلات کاپی ہو گئیں۔</sys:String>
     <sys:String x:Key="AboutCopyFailed">Windows چینل کی تفصیلات کاپی نہیں کر سکا۔</sys:String>
     <sys:String x:Key="FrameRateValue">{0} fps</sys:String>
-    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String></ResourceDictionary>
-
+    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String>
+    <!-- SP-0099 FastMediaSorter live-broadcast import -->
+    <sys:String x:Key="ImportSourceFileFilter">نشریات اور پلے لسٹس (*.fmsbcast;*.m3u;*.m3u8)|*.fmsbcast;*.m3u;*.m3u8|براہ راست نشریات (*.fmsbcast)|*.fmsbcast|پلے لسٹس (*.m3u;*.m3u8)|*.m3u;*.m3u8|تمام فائلیں (*.*)|*.*</sys:String>
+    <sys:String x:Key="FmsBroadcastTitle">براہ راست نشریات درآمد کریں</sys:String>
+    <sys:String x:Key="FmsBroadcastConfirm">کیا یہ براہ راست نشریات درآمد کریں؟&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="FmsBroadcastAdded">براہ راست نشریات درآمد ہو گئی: {0}۔</sys:String>
+    <sys:String x:Key="FmsBroadcastUpdated">براہ راست نشریات تازہ ہو گئی: {0}۔</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedSchema">یہ نشریات ایک نئی ایپ نے بنائی ہے۔ اسے درآمد کرنے کے لیے StreamsPlayer تازہ کریں۔ آپ کی فہرست نہیں بدلی۔</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedMode">یہ نشریاتی موڈ ابھی معاون نہیں ہے۔ آپ کی فہرست نہیں بدلی۔</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">یہ FastMediaSorter نشریات کی درست تفصیل نہیں ہے۔ آپ کی فہرست نہیں بدلی۔</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">یہ نشریاتی تفصیل 64 KiB سے بڑی ہے۔ آپ کی فہرست نہیں بدلی۔</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0} پر سامعین کی زیادہ سے زیادہ تعداد پہلے ہی پوری ہو چکی ہے۔ کسی دوسرے سامع کے منقطع ہونے پر دوبارہ کوشش کریں۔</sys:String>
+    <sys:String x:Key="FmsBroadcastStopped">{0} نے نشریات بند کر دی ہیں یا اب اس نیٹ ورک پر دستیاب نہیں ہے۔</sys:String>
+    <!-- SP-0098 portable stream catalog import -->
+    <sys:String x:Key="StreamCatalogSettings">اسٹریم کیٹلاگ</sys:String>
+    <sys:String x:Key="StreamCatalogSettingsHint">بیرونی اسٹریم کیٹلاگ آرکائیو (stream-catalog.zip) درآمد کریں، بنڈل شدہ کیٹلاگ سنیپ شاٹ بحال کریں، یا ڈاؤن لوڈ اور درآمد شدہ کیٹلاگ بینک حذف کریں۔</sys:String>
+    <sys:String x:Key="ImportCatalogFromFile">کیٹلاگ آرکائیو درآمد کریں…</sys:String>
+    <sys:String x:Key="ImportCatalogFromFileTip">stream-catalog.zip آرکائیو سے چینلز درآمد کریں</sys:String>
+    <sys:String x:Key="ImportCatalogFileFilter">اسٹریم کیٹلاگ آرکائیوز (*.zip)|*.zip|تمام فائلیں (*.*)|*.*</sys:String>
+    <sys:String x:Key="ImportCatalogTitle">کیٹلاگ آرکائیو درآمد کریں</sys:String>
+    <sys:String x:Key="ImportCatalogResult">کیٹلاگ چینلز: {0} شامل کیے گئے، {1} اپ ڈیٹ کیے گئے، {2} حذف کیے گئے۔</sys:String>
+    <sys:String x:Key="ImportCatalogNoChannels">کیٹلاگ آرکائیو میں کوئی درآمد کے قابل چینلز نہیں ملے۔ آپ کی فہرست تبدیل نہیں ہوئی۔</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidArchive">یہ ایک درست اسٹریم کیٹلاگ آرکائیو نہیں ہے۔ آپ کی فہرست تبدیل نہیں ہوئی۔</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidCsv">کیٹلاگ آرکائیو میں غلط CSV ڈیٹا یا غلط UTF-8 انکوڈنگ شامل ہے۔ آپ کی فہرست تبدیل نہیں ہوئی۔</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">کیٹلاگ آرکائیو یا اس کا CSV ڈیٹا زیادہ سے زیادہ اجازت شدہ سائز سے زیادہ ہے۔ آپ کی فہرست تبدیل نہیں ہوئی۔</sys:String>
+    <sys:String x:Key="DeleteImportedCatalog">درآمد شدہ کیٹلاگ حذف کریں</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTip">درآمد شدہ کیٹلاگ آرکائیو سے آنے والے تمام اسٹریمز کو ہٹا دیں</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogHint">درآمد شدہ کیٹلاگ آرکائیوز سے آنے والے اسٹریمز کو ہٹا دیں۔ آپ کے شامل کردہ اور ڈاؤن لوڈ کردہ کیٹلاگ اسٹریمز باقی رہیں گے۔</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTitle">درآمد شدہ کیٹلاگ حذف کریں</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">تمام درآمد شدہ کیٹلاگ اسٹریمز ({0:N0}) کو حذف کریں؟ آپ کے شامل کردہ اور ڈاؤن لوڈ کردہ اسٹریمز برقرار رہیں گے۔ اسے کالعدم نہیں کیا جا سکتا۔</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogNone">حذف کرنے کے لیے کوئی درآمد شدہ کیٹلاگ اسٹریمز نہیں ہیں۔</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogResult">درآمد شدہ کیٹلاگ اسٹریمز حذف کر دیے گئے: {0:N0}۔</sys:String>
+</ResourceDictionary>

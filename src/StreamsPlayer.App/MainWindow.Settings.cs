@@ -25,7 +25,7 @@ public partial class MainWindow
     /// </summary>
     private async void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SettingsWindow(_state.Theme, _state.TileSize, _state.UpdateStreamPreviews, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.ResumePlaybackOnStartup, _state.VideoBackend, _state.FrameFolder, LocalizationService.CurrentLanguage, _selectedRow?.Channel, RunSettingsActionAsync)
+        var dialog = new SettingsWindow(_state.Theme, _state.TileSize, _state.UpdateStreamPreviews, _state.HideAdultContent, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.ResumePlaybackOnStartup, _state.VideoBackend, _state.FrameFolder, LocalizationService.CurrentLanguage, _selectedRow?.Channel, RunSettingsActionAsync)
         {
             Owner = this
         };
@@ -36,6 +36,7 @@ public partial class MainWindow
 
         var tileSizeChanged = dialog.SelectedTileSize != _state.TileSize;
         var previewsChanged = dialog.UpdateStreamPreviews != _state.UpdateStreamPreviews;
+        var hideAdultContentChanged = dialog.HideAdultContent != _state.HideAdultContent;
         var systemMediaControlsChanged = dialog.SystemMediaControls != _state.SystemMediaControls;
         // SP-0062: the launch already gates on the preference, so clearing is not what makes the switch
         // work - it is that a list of what the user was listening to should not outlive their decision to
@@ -49,6 +50,7 @@ public partial class MainWindow
             Theme = dialog.SelectedTheme,
             TileSize = dialog.SelectedTileSize,
             UpdateStreamPreviews = dialog.UpdateStreamPreviews,
+            HideAdultContent = dialog.HideAdultContent,
             KeepAwakeDuringPlayback = dialog.KeepAwakeDuringPlayback,
             SystemMediaControls = dialog.SystemMediaControls,
             // Read at launch, so this needs no side effect applied below - it takes effect next time.
@@ -66,6 +68,11 @@ public partial class MainWindow
         {
             LocalizationService.Apply(language);
             RefreshLocalizedInterface();
+        }
+        else if (hideAdultContentChanged)
+        {
+            PopulateFacets();
+            ApplyFilter();
         }
 
         // Toggling off releases an active wake lock immediately; toggling on re-acquires it for any

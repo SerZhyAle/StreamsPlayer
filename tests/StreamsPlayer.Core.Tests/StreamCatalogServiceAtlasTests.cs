@@ -7,6 +7,26 @@ namespace StreamsPlayer.Core.Tests;
 
 public sealed class StreamCatalogServiceAtlasTests
 {
+    private static readonly byte[] ValidAtlasA =
+    [
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+        0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52,
+        0x00, 0x00, 0x00, 0x20,
+        0x00, 0x00, 0x00, 0x20,
+        0x08, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ];
+
+    private static readonly byte[] ValidAtlasB =
+    [
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+        0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52,
+        0x00, 0x00, 0x00, 0x40,
+        0x00, 0x00, 0x00, 0x40,
+        0x08, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    ];
+
     [Fact]
     public async Task Refresh_KeepsInstalledAtlasWhenTheBankCarriesNone()
     {
@@ -15,7 +35,7 @@ public sealed class StreamCatalogServiceAtlasTests
         {
             var store = new StreamCatalogStore(directory);
             var handler = new QueuedZipHandler(
-                CreateBankZip(atlas: [1, 2, 3]),
+                CreateBankZip(atlas: ValidAtlasA),
                 CreateBankZip(atlas: null));
             using var httpClient = new HttpClient(handler);
             var service = new StreamCatalogService(httpClient, store);
@@ -34,7 +54,7 @@ public sealed class StreamCatalogServiceAtlasTests
             // Refresh_DiscardsThisBuildsFaviconIndicesWhenTheBankCarriesNoAtlas.
             Assert.False(withoutAtlas.AtlasReplaced);
             Assert.Equal(withAtlas.State.AtlasFileName, withoutAtlas.State.AtlasFileName);
-            Assert.Equal([1, 2, 3], await File.ReadAllBytesAsync(store.ResolveAtlasPath(withoutAtlas.State)!));
+            Assert.Equal(ValidAtlasA, await File.ReadAllBytesAsync(store.ResolveAtlasPath(withoutAtlas.State)!));
             Assert.Equal(withAtlas.State.AtlasFileName, (await store.LoadAsync()).AtlasFileName);
         }
         finally
@@ -54,8 +74,8 @@ public sealed class StreamCatalogServiceAtlasTests
         {
             var store = new StreamCatalogStore(directory);
             var handler = new QueuedZipHandler(
-                CreateBankZip(atlas: [1, 2, 3]),
-                CreateBankZip(atlas: [4, 5]));
+                CreateBankZip(atlas: ValidAtlasA),
+                CreateBankZip(atlas: ValidAtlasB));
             using var httpClient = new HttpClient(handler);
             var service = new StreamCatalogService(httpClient, store);
 
@@ -65,7 +85,7 @@ public sealed class StreamCatalogServiceAtlasTests
             Assert.True(first.AtlasReplaced);
             Assert.True(second.AtlasReplaced);
             Assert.NotEqual(first.State.AtlasFileName, second.State.AtlasFileName);
-            Assert.Equal([4, 5], await File.ReadAllBytesAsync(store.ResolveAtlasPath(second.State)!));
+            Assert.Equal(ValidAtlasB, await File.ReadAllBytesAsync(store.ResolveAtlasPath(second.State)!));
             Assert.False(File.Exists(store.ResolveAtlasPath(first.State)!));
         }
         finally
@@ -88,7 +108,7 @@ public sealed class StreamCatalogServiceAtlasTests
         {
             var store = new StreamCatalogStore(directory);
             var handler = new QueuedZipHandler(
-                CreateBankZip(atlas: [1, 2, 3], faviconIndex: 0),
+                CreateBankZip(atlas: ValidAtlasA, faviconIndex: 0),
                 CreateBankZip(atlas: null, faviconIndex: 7));
             using var httpClient = new HttpClient(handler);
             var service = new StreamCatalogService(httpClient, store);
@@ -104,7 +124,7 @@ public sealed class StreamCatalogServiceAtlasTests
             // can re-point at it. Discarding indices must not become "delete the atlas".
             Assert.False(withoutAtlas.AtlasReplaced);
             Assert.True(File.Exists(store.ResolveAtlasPath(withoutAtlas.State)!));
-            Assert.Equal([1, 2, 3], await File.ReadAllBytesAsync(store.ResolveAtlasPath(withoutAtlas.State)!));
+            Assert.Equal(ValidAtlasA, await File.ReadAllBytesAsync(store.ResolveAtlasPath(withoutAtlas.State)!));
         }
         finally
         {

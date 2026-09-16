@@ -272,7 +272,10 @@ public sealed class ChannelRow : INotifyPropertyChanged
             : Channel.Bitrate.Trim();
     }
 
-    private string? LiveLabel() => Channel.IsLive switch
+    // SP-0099: a FastMediaSorter hand-off or phone/watch address is live by contract, whatever its row says.
+    private string? LiveLabel() => FastMediaSorterBroadcastImport.IsFastMediaSorterBroadcast(Channel)
+        ? LocalizationService.Get("LiveLabel")
+        : Channel.IsLive switch
     {
         true => LocalizationService.Get("LiveLabel"),
         false => LocalizationService.Get("OnDemandLabel"),

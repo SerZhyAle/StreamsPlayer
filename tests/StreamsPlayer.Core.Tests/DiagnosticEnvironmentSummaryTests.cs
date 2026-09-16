@@ -26,7 +26,8 @@ public sealed class DiagnosticEnvironmentSummaryTests
             Channel(SecretTitle, SecretUrl, SourceOrigin.Manual, pinned: true),
             Channel("Catalog one", "https://catalog.example.invalid/one", SourceOrigin.Catalog),
             Channel("Catalog two", "https://catalog.example.invalid/two", SourceOrigin.Catalog, pinned: true),
-            Channel("Imported", "https://imported.example.invalid/list", SourceOrigin.Imported)
+            Channel("Imported", "https://imported.example.invalid/list", SourceOrigin.Imported),
+            Channel("Local Catalog", "https://localcatalog.example.invalid/bank", SourceOrigin.LocalCatalog)
         ]
     };
 
@@ -35,8 +36,9 @@ public sealed class DiagnosticEnvironmentSummaryTests
     {
         var environment = DiagnosticEnvironmentSummary.From(MixedState(), "26.0730.0012", "Windows", "X64", Generated);
 
-        Assert.Equal(4, environment.TotalChannels);
+        Assert.Equal(5, environment.TotalChannels);
         Assert.Equal(2, environment.CatalogChannels);
+        Assert.Equal(1, environment.LocalCatalogChannels);
         Assert.Equal(1, environment.ManualChannels);
         Assert.Equal(1, environment.ImportedChannels);
         Assert.Equal(2, environment.PinnedChannels);
@@ -94,6 +96,7 @@ public sealed class DiagnosticEnvironmentSummaryTests
         var lines = text.Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
         Assert.NotEmpty(lines);
         Assert.All(lines, line => Assert.Matches(new Regex(@"^[a-z0-9_]+=\S.*$"), line));
+        Assert.Contains("channels_local_catalog=1\r\n", text);
     }
 
     private static StreamChannel Channel(string title, string url, SourceOrigin origin, bool pinned = false) => new()

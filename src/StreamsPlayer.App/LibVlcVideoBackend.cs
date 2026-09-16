@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using LibVLCSharp.Shared;
@@ -41,8 +42,31 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     private long _rateDisplayed;
     private long _rateTicks;
     private double _rateSeconds;
+    private readonly PlaybackStatsFilter _statsFilter = new();
     // Written under _mediaGate on the teardown thread, read without it by the audio setters below.
     private volatile bool _disposed;
+    private bool _isRecording;
+    private string? _recordingTargetDir;
+    private string? _recordingChannelTitle;
+    private DateTimeOffset _recordingStartTime;
+    private readonly HashSet<string> _stagingFilesBeforeRecord = new(StringComparer.OrdinalIgnoreCase);
+
+    [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr libvlc_get_input_thread(IntPtr p_mi);
+
+    [DllImport("libvlccore", CallingConvention = CallingConvention.Cdecl)]
+    private static extern void vlc_object_release(IntPtr p_obj);
+
+    [StructLayout(LayoutKind.Explicit, Size = 8)]
+    private struct VlcValue
+    {
+        [FieldOffset(0)] public long i_int;
+        [FieldOffset(0)] public bool b_bool;
+        [FieldOffset(0)] public IntPtr psz_string;
+    }
+
+    [DllImport("libvlccore", CallingConvention = CallingConvention.Cdecl)]
+    private static extern int var_Set(IntPtr p_obj, [MarshalAs(UnmanagedType.LPStr)] string psz_name, VlcValue val);
 
     public LibVlcVideoBackend(int volume, bool muted, CurrentLog log)
     {
@@ -58,7 +82,15 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         // evidence were discarded as *early*, not late, so --no-drop-late-frames cannot address them.
         // The freeze watchdog reconnects if the pipeline fully deadlocks. (--no-ts-trust-pcr was tried
         // and reverted: it removes the clock reference entirely and deadlocks the vout at 0 fps.)
-        _libVlc = new LibVLC("--no-video-title-show", "--no-osd", "--no-snapshot-preview", "--rtsp-tcp", $"--clock-jitter={ClockJitterMilliseconds}", "--avcodec-hw=none");
+        Directory.CreateDirectory(RecordedBroadcastWriter.StagingDirectory);
+        _libVlc = new LibVLC(
+            "--no-video-title-show",
+            "--no-osd",
+            "--no-snapshot-preview",
+            "--rtsp-tcp",
+            $"--clock-jitter={ClockJitterMilliseconds}",
+            "--avcodec-hw=none",
+            $"--input-record-path={RecordedBroadcastWriter.StagingDirectory}");
         _libVlc.Log += LibVlc_Log;
         _mediaPlayer = new MediaPlayer(_libVlc);
         _mediaPlayer.Volume = Math.Clamp(volume, 0, 100);
@@ -131,11 +163,17 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
                 return false; // backend is tearing down; do not touch the (soon) disposed player
             }
 
+            if (_isRecording)
+            {
+                StopRecording();
+            }
+
             _lastUrl = url.ToString();
             _rateBytes = 0;
             _rateDisplayed = 0;
             _rateTicks = 0;
             _rateSeconds = 0;
+            _statsFilter.Reset();
             _mediaPlayer.NetworkCaching = cacheMilliseconds;
             // SP-0069: the field takes ownership only once Play has returned. Assigning it first and
             // disposing the previous wrapper afterwards - which is what this did - strands one Media per
@@ -192,6 +230,11 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
     public async Task StopAndDisposeAsync()
     {
+        if (_isRecording)
+        {
+            StopRecording();
+        }
+
         _videoView.MediaPlayer = null; // detach from the WPF VideoView on the UI thread (fast, non-blocking)
         _mediaPlayer.Buffering -= MediaPlayer_Buffering;
         _mediaPlayer.EncounteredError -= MediaPlayer_EncounteredError;
@@ -304,15 +347,31 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
         var s = media.Statistics;
         OpenRateInterval();
+        var inKbps = Rate(ref _rateBytes, (long)s.DemuxReadBytes, 8d / 1000d);
+        var dispFps = Rate(ref _rateDisplayed, (long)s.DisplayedPictures, 1d);
+
+        if (!_statsFilter.ShouldLog(
+            tag,
+            s.LostPictures,
+            s.DemuxCorrupted,
+            s.DemuxDiscontinuity,
+            inKbps,
+            dispFps,
+            Stopwatch.GetTimestamp(),
+            Stopwatch.Frequency))
+        {
+            return;
+        }
+
         _log.Event(tag,
             $"read_bytes={s.ReadBytes}",
             $"in_bitrate={s.InputBitrate:F4}",
             $"demux_bytes={s.DemuxReadBytes}",
             $"demux_bitrate={s.DemuxBitrate:F4}",
-            $"in_kbps={Rate(ref _rateBytes, (long)s.DemuxReadBytes, 8d / 1000d)}",
+            $"in_kbps={inKbps}",
             $"decoded_v={s.DecodedVideo}",
             $"displayed={s.DisplayedPictures}",
-            $"disp_fps={Rate(ref _rateDisplayed, (long)s.DisplayedPictures, 1d)}",
+            $"disp_fps={dispFps}",
             $"lost_pics={s.LostPictures}",
             $"corrupted={s.DemuxCorrupted}",
             $"discont={s.DemuxDiscontinuity}",
@@ -502,6 +561,116 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         return playing;
     }
 
+    public bool IsRecording => _isRecording;
+
+    public bool StartRecording(string targetDirectory, string? channelTitle)
+    {
+        lock (_mediaGate)
+        {
+            if (_disposed || !_mediaPlayer.IsPlaying)
+            {
+                return false;
+            }
+
+            var pInput = libvlc_get_input_thread(_mediaPlayer.NativeReference);
+            if (pInput == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            try
+            {
+                _stagingFilesBeforeRecord.Clear();
+                if (Directory.Exists(RecordedBroadcastWriter.StagingDirectory))
+                {
+                    foreach (var file in Directory.GetFiles(RecordedBroadcastWriter.StagingDirectory))
+                    {
+                        _stagingFilesBeforeRecord.Add(file);
+                    }
+                }
+
+                _recordingStartTime = DateTimeOffset.Now;
+                _recordingTargetDir = targetDirectory;
+                _recordingChannelTitle = channelTitle;
+
+                var val = new VlcValue { b_bool = true };
+                var res = var_Set(pInput, "record", val);
+                _isRecording = res == 0;
+                _log.Event("RECORD START", "engine=libvlc", $"ok={_isRecording}", $"channel={channelTitle}", $"dir={targetDirectory}");
+                return _isRecording;
+            }
+            finally
+            {
+                vlc_object_release(pInput);
+            }
+        }
+    }
+
+    public string? StopRecording()
+    {
+        lock (_mediaGate)
+        {
+            if (!_isRecording)
+            {
+                return null;
+            }
+
+            _isRecording = false;
+            var pInput = libvlc_get_input_thread(_mediaPlayer.NativeReference);
+            if (pInput != IntPtr.Zero)
+            {
+                try
+                {
+                    var val = new VlcValue { b_bool = false };
+                    var_Set(pInput, "record", val);
+                }
+                finally
+                {
+                    vlc_object_release(pInput);
+                }
+            }
+
+            // Give VLC a moment to flush and close the file
+            Thread.Sleep(80);
+
+            try
+            {
+                if (!Directory.Exists(RecordedBroadcastWriter.StagingDirectory))
+                {
+                    return null;
+                }
+
+                var currentFiles = Directory.GetFiles(RecordedBroadcastWriter.StagingDirectory);
+                var newFile = currentFiles
+                    .Where(f => !_stagingFilesBeforeRecord.Contains(f))
+                    .OrderByDescending(File.GetLastWriteTimeUtc)
+                    .FirstOrDefault();
+
+                if (newFile is null)
+                {
+                    _log.Event("RECORD STOP", "engine=libvlc", "saved=none", "reason=no_staging_file");
+                    return null;
+                }
+
+                var targetDir = _recordingTargetDir ?? RecordedBroadcastWriter.ResolveFolder(null);
+                Directory.CreateDirectory(targetDir);
+
+                var ext = Path.GetExtension(newFile);
+                var fileName = RecordedBroadcastName.For(_recordingChannelTitle, _recordingStartTime, ext);
+                var destinationPath = RecordedBroadcastWriter.ReserveUniquePath(targetDir, fileName);
+
+                File.Move(newFile, destinationPath);
+                _log.Event("RECORD STOP", "engine=libvlc", $"saved={destinationPath}");
+                return destinationPath;
+            }
+            catch (Exception ex)
+            {
+                _log.Event("RECORD STOP", "engine=libvlc", "ok=false", $"err={ex.Message}");
+                return null;
+            }
+        }
+    }
+
     private static VideoTrack[] Describe(TrackDescription[]? tracks) =>
         tracks?.Where(track => track.Id >= 0).Select(track => new VideoTrack(track.Id, track.Name)).ToArray() ?? [];
 
@@ -589,6 +758,14 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     {
         if (e.Level is LogLevel.Warning or LogLevel.Error)
         {
+            // SP-0097: direct3d11 taskbar preview clip adjustment is known harmless noise; suppress it
+            // so hundreds of false Error lines do not pollute the session log or mask real engine failures.
+            if (string.Equals(e.Module, "direct3d11", StringComparison.OrdinalIgnoreCase) &&
+                e.Message?.Contains("SetThumbNailClip", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return;
+            }
+
             _log.Event("VLC", $"level={e.Level}", $"module={e.Module}", $"msg={e.Message}");
         }
     }

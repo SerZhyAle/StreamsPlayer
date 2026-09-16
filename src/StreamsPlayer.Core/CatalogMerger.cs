@@ -17,18 +17,30 @@ public static class CatalogMerger
     {
         options ??= CatalogMergeOptions.CatalogRefresh;
         var existing = existingChannels.ToList();
-        var byUrl = existing.ToDictionary(channel => channel.Url, StringComparer.Ordinal);
+        var byNormalizedUrl = new Dictionary<string, StreamChannel>(StringComparer.Ordinal);
+        foreach (var channel in existing)
+        {
+            var normalized = CatalogUrlIdentity.Normalize(channel.Url);
+            byNormalizedUrl.TryAdd(normalized, channel);
+        }
+
         var seenCatalogUrls = new HashSet<string>(StringComparer.Ordinal);
         var output = existing.ToDictionary(channel => channel.Id);
         var added = 0;
         var updated = 0;
 
-        foreach (var entry in catalogEntries.GroupBy(item => item.Url, StringComparer.Ordinal).Select(group => group.First()))
+        foreach (var entry in catalogEntries.GroupBy(item => CatalogUrlIdentity.Normalize(item.Url), StringComparer.Ordinal).Select(group => group.First()))
         {
-            seenCatalogUrls.Add(entry.Url);
-            if (byUrl.TryGetValue(entry.Url, out var current))
+            var normalizedUrl = CatalogUrlIdentity.Normalize(entry.Url);
+            seenCatalogUrls.Add(normalizedUrl);
+
+            if (byNormalizedUrl.TryGetValue(normalizedUrl, out var current))
             {
-                if (current.SourceOrigin != SourceOrigin.Catalog)
+                // SP-0098 Decision 5: Explicitly separate update rights by provenance:
+                // - Published catalog (Catalog) can update Catalog and LocalCatalog rows (published metadata wins, Decision 2 & 28).
+                // - Local bank import (LocalCatalog) can update LocalCatalog rows only; it never overwrites Catalog or user rows.
+                // - User-created rows (Manual / Imported) are never updated by either catalog path.
+                if (!CanUpdate(current.SourceOrigin, options.TargetOrigin))
                 {
                     continue;
                 }
@@ -37,31 +49,28 @@ public static class CatalogMerger
                 {
                     Title = entry.Title,
                     MediaKind = entry.MediaKind,
+                    SourceOrigin = options.TargetOrigin == SourceOrigin.Catalog ? SourceOrigin.Catalog : current.SourceOrigin,
                     Category = entry.Category,
                     Topic = entry.Topic,
                     Language = entry.Language,
                     Country = entry.Country,
                     Homepage = entry.Homepage,
                     FaviconIndex = entry.FaviconIndex,
-                    // SP-0052: the index and the atlas it indexes move together or not at all. A row a
-                    // download brought in and a snapshot then updated points at the snapshot's atlas.
+                    // SP-0052 & SP-0098: the index and the atlas it indexes move together or not at all.
                     FaviconSource = options.FaviconSource,
                     Protocol = entry.Protocol,
                     Format = entry.Format,
                     Bitrate = entry.Bitrate,
                     IsLive = entry.IsLive,
                     Access = entry.Access,
-                    // SP-0089: the bank lists this URL again, so the row is on offer again. Because the
-                    // row was kept rather than deleted, its id never changed and the pin, the collection
-                    // membership and the history entry that reference it are simply correct again - there
-                    // is nothing to reattach, which is the whole reason retiring beats tombstoning
-                    // somewhere else. Unconditional: a row that was never retired writes null over null.
+                    // SP-0089: the bank lists this URL again, so the row is on offer again.
                     RetiredAt = null
                 };
 
                 if (replacement != current)
                 {
                     output[current.Id] = replacement;
+                    byNormalizedUrl[normalizedUrl] = replacement;
                     updated++;
                 }
 
@@ -74,7 +83,7 @@ public static class CatalogMerger
                 Url = entry.Url,
                 Title = entry.Title,
                 MediaKind = entry.MediaKind,
-                SourceOrigin = SourceOrigin.Catalog,
+                SourceOrigin = options.TargetOrigin,
                 SortIndex = 0,
                 AddedAt = now,
                 Category = entry.Category,
@@ -91,25 +100,20 @@ public static class CatalogMerger
                 Access = entry.Access
             };
             output[channel.Id] = channel;
-            byUrl[channel.Url] = channel;
+            byNormalizedUrl[normalizedUrl] = channel;
             added++;
         }
 
         var removed = 0;
-        // SP-0052: the one branch the bundled snapshot takes differently. Pruning means "the bank no
-        // longer publishes this channel", which only the bank itself can assert; a snapshot is a copy of
-        // an older bank, so its silence about a URL says nothing about whether the channel still exists.
-        if (options.RemoveMissing)
+        // SP-0052 & SP-0098: Pruning applies only when requested (RemoveMissing: true) and only to
+        // published Catalog rows. LocalCatalog, Manual, and Imported rows are NEVER pruned by catalog refresh.
+        if (options.RemoveMissing && options.TargetOrigin == SourceOrigin.Catalog)
         {
             foreach (var stale in existing.Where(channel =>
-                         channel.SourceOrigin == SourceOrigin.Catalog && !seenCatalogUrls.Contains(channel.Url)))
+                         channel.SourceOrigin == SourceOrigin.Catalog && !seenCatalogUrls.Contains(CatalogUrlIdentity.Normalize(channel.Url))))
             {
                 // SP-0089, source contract item D: absence is authority to stop offering a channel, never
-                // authority to delete what the user made about it. A row nobody touched still goes - the
-                // catalog is not an archive - but one carrying a pin, a collection membership or a history
-                // entry is retired instead, keeping its id so those references stay valid. Deleting it
-                // would be unrecoverable even by the producer: a later bank republishing the identical URL
-                // mints a new row, so the pin does not come back when the channel does.
+                // authority to delete what the user made about it.
                 if (stale.Pinned || channelsWithUserData?.Contains(stale.Id) == true)
                 {
                     if (stale.RetiredAt is null)
@@ -133,4 +137,12 @@ public static class CatalogMerger
             removed,
             channels.Count(channel => channel.RetiredAt is not null));
     }
+
+    private static bool CanUpdate(SourceOrigin currentOrigin, SourceOrigin incomingOrigin) =>
+        incomingOrigin switch
+        {
+            SourceOrigin.Catalog => currentOrigin is SourceOrigin.Catalog or SourceOrigin.LocalCatalog,
+            SourceOrigin.LocalCatalog => currentOrigin == SourceOrigin.LocalCatalog,
+            _ => false
+        };
 }

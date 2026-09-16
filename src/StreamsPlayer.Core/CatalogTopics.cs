@@ -33,6 +33,11 @@ public static class CatalogTopics
     public const string General = "General";
 
     /// <summary>
+    /// The bank's adult content rubric (SP-0063).
+    /// </summary>
+    public const string Adult = "Adult";
+
+    /// <summary>
     /// Identifier to localization key. Ordered as the vocabulary was published, not alphabetically:
     /// the display order is a presentation decision and belongs to whatever renders the list.
     /// <para>
@@ -88,4 +93,10 @@ public static class CatalogTopics
     /// </summary>
     public static string? ResourceKey(string? topic) =>
         !string.IsNullOrWhiteSpace(topic) && Keys.TryGetValue(topic.Trim(), out var key) ? key : null;
+
+    /// <summary>
+    /// Whether <paramref name="topic"/> matches the <see cref="Adult"/> rubric identifier (SP-0063).
+    /// </summary>
+    public static bool IsAdult(string? topic) =>
+        string.Equals(topic?.Trim(), Adult, StringComparison.OrdinalIgnoreCase);
 }

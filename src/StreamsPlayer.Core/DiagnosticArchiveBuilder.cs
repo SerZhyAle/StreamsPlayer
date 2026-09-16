@@ -24,8 +24,11 @@ public static class DiagnosticArchiveBuilder
     public const string ArchivePrefix = "StreamsPlayer-logs-";
     private const int MaxNameAttempts = 100;
 
-    /// <summary>Per-log ceiling. The end of a log holds the failure, so an oversized log keeps its tail.</summary>
-    public const long MaxLogBytes = 2L * 1024 * 1024;
+    /// <summary>Per-log ceiling (SP-0040, SP-0097). Matches CurrentLog.MaximumSessionBytes so a healthy session is never truncated on export.</summary>
+    public const long MaxLogBytes = 16L * 1024 * 1024;
+
+    /// <summary>SP-0097: Initial bytes (startup/configuration) retained when an oversize log is truncated.</summary>
+    public const long HeadLogBytes = 1L * 1024 * 1024;
 
     /// <summary>
     /// Writes the archive and returns its full path. Failures propagate: the caller owns the
@@ -98,19 +101,46 @@ public static class DiagnosticArchiveBuilder
         // and a share mode that excludes it makes the current log unarchivable.
         using var source = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
         var name = Path.GetFileName(path);
-        var skipped = 0L;
         if (source.Length > MaxLogBytes)
         {
-            skipped = source.Length - MaxLogBytes;
-            source.Seek(skipped, SeekOrigin.Begin);
+            var headBytes = Math.Min(HeadLogBytes, source.Length);
+            var tailBytes = Math.Min(MaxLogBytes - headBytes, Math.Max(0, source.Length - headBytes));
+            var dropped = source.Length - (headBytes + tailBytes);
             notes.Append("log_truncated=").Append(name)
-                .Append(" | kept_bytes=").Append(MaxLogBytes.ToString(CultureInfo.InvariantCulture))
-                .Append(" | dropped_leading_bytes=").Append(skipped.ToString(CultureInfo.InvariantCulture))
+                .Append(" | kept_bytes=").Append((headBytes + tailBytes).ToString(CultureInfo.InvariantCulture))
+                .Append(" | dropped_middle_bytes=").Append(dropped.ToString(CultureInfo.InvariantCulture))
                 .Append("\r\n");
+
+            using var entry = archive.CreateEntry(name, CompressionLevel.Optimal).Open();
+            source.Seek(0, SeekOrigin.Begin);
+            CopyExact(source, entry, headBytes);
+            var marker = Encoding.UTF8.GetBytes($"\r\n[Diag] LOG TRUNCATED | dropped_middle_bytes={dropped} | kept_head_bytes={headBytes} | kept_tail_bytes={tailBytes}\r\n");
+            entry.Write(marker, 0, marker.Length);
+            source.Seek(source.Length - tailBytes, SeekOrigin.Begin);
+            CopyExact(source, entry, tailBytes);
+            return;
         }
 
-        using var entry = archive.CreateEntry(name, CompressionLevel.Optimal).Open();
-        source.CopyTo(entry);
+        using var normalEntry = archive.CreateEntry(name, CompressionLevel.Optimal).Open();
+        source.CopyTo(normalEntry);
+    }
+
+    private static void CopyExact(Stream source, Stream destination, long count)
+    {
+        var buffer = new byte[81920];
+        var remaining = count;
+        while (remaining > 0)
+        {
+            var toRead = (int)Math.Min(buffer.Length, remaining);
+            var read = source.Read(buffer, 0, toRead);
+            if (read == 0)
+            {
+                break;
+            }
+
+            destination.Write(buffer, 0, read);
+            remaining -= read;
+        }
     }
 
     private static void AddText(ZipArchive archive, string name, string text)

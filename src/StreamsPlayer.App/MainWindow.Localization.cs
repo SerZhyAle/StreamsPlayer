@@ -112,7 +112,8 @@ public partial class MainWindow
             {
                 new UiOption(AllValue, LocalizationService.Get("AllOption")),
                 new UiOption(AudioFilterValue, LocalizationService.Get("AudioOption")),
-                new UiOption(VideoFilterValue, LocalizationService.Get("VideoOption"))
+                new UiOption(VideoFilterValue, LocalizationService.Get("VideoOption")),
+                new UiOption(OwnFilterValue, LocalizationService.Get("OwnOption"))
             };
             var minBitrateItems = new[] { new UiOption(AllValue, LocalizationService.Get("AllOption")) }
                 .Concat(new[] { 64, 128, 192, 256, 320 }

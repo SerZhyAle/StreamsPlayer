@@ -22,6 +22,7 @@ public sealed record DiagnosticEnvironment(
     int SchemaVersion,
     int TotalChannels,
     int CatalogChannels,
+    int LocalCatalogChannels,
     int ManualChannels,
     int ImportedChannels,
     int PinnedChannels,
@@ -51,6 +52,7 @@ public static class DiagnosticEnvironmentSummary
             state.SchemaVersion,
             state.Channels.Count,
             state.Channels.Count(channel => channel.SourceOrigin == SourceOrigin.Catalog),
+            state.Channels.Count(channel => channel.SourceOrigin == SourceOrigin.LocalCatalog),
             state.Channels.Count(channel => channel.SourceOrigin == SourceOrigin.Manual),
             state.Channels.Count(channel => channel.SourceOrigin == SourceOrigin.Imported),
             state.Channels.Count(channel => channel.Pinned),
@@ -79,6 +81,7 @@ public static class DiagnosticEnvironmentSummary
         Append(text, "state_schema", environment.SchemaVersion.ToString(CultureInfo.InvariantCulture));
         Append(text, "channels_total", Count(environment.TotalChannels));
         Append(text, "channels_catalog", Count(environment.CatalogChannels));
+        Append(text, "channels_local_catalog", Count(environment.LocalCatalogChannels));
         Append(text, "channels_manual", Count(environment.ManualChannels));
         Append(text, "channels_imported", Count(environment.ImportedChannels));
         Append(text, "channels_pinned", Count(environment.PinnedChannels));

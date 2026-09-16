@@ -25,7 +25,7 @@ public partial class MainWindow
         _state.LastCatalogRefreshAt is null &&
         _state.AppliedSnapshotDate is null &&
         !_state.CatalogSnapshotOfferDeclined &&
-        !_state.Channels.Any(channel => channel.SourceOrigin == SourceOrigin.Catalog);
+        !_state.Channels.Any(channel => channel.SourceOrigin is SourceOrigin.Catalog or SourceOrigin.LocalCatalog);
 
     /// <summary>
     /// SP-0088: a modal question where an inline bar used to be. Nothing is applied unless the user

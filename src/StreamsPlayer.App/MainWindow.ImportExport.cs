@@ -21,6 +21,8 @@ public enum SettingsAction
     ManageHidden,
     ApplyCatalogSnapshot,
     DeleteDownloaded,
+    ImportCatalogFromFile,
+    DeleteImportedCatalog,
     SendLogsToAuthor,
     InstallVideoComponents,
     RemoveVideoComponents
@@ -28,7 +30,7 @@ public enum SettingsAction
 
 // SP-0016: M3U import/export portability. Import is additive and atomic - it only ever inserts Imported rows
 // and never overwrites or prunes existing rows (so CatalogMerger, which stamps Catalog and prunes, is not
-// reused). Export is limited to user-owned (Manual/Imported) rows, optionally the pinned subset.
+// reused). Export is limited to user-owned (Manual/Imported/LocalCatalog) rows, optionally the pinned subset.
 public partial class MainWindow
 {
     internal Task RunSettingsActionAsync(SettingsAction action, Window owner) => action switch
@@ -40,6 +42,8 @@ public partial class MainWindow
         SettingsAction.ManageHidden => ShowHiddenChannelsAsync(owner),
         SettingsAction.ApplyCatalogSnapshot => ApplyBundledSnapshotAsync(owner),
         SettingsAction.DeleteDownloaded => DeleteDownloadedChannelsAsync(owner),
+        SettingsAction.ImportCatalogFromFile => ImportCatalogFromFileAsync(owner),
+        SettingsAction.DeleteImportedCatalog => DeleteImportedCatalogAsync(owner),
         SettingsAction.SendLogsToAuthor => SendLogsToAuthorAsync(owner),
         SettingsAction.InstallVideoComponents => InstallVideoComponentsAsync(owner),
         SettingsAction.RemoveVideoComponents => RemoveVideoComponentsAsync(owner),
@@ -50,11 +54,17 @@ public partial class MainWindow
     {
         var dialog = new OpenFileDialog
         {
-            Filter = LocalizationService.Get("ImportFileFilter"),
+            Filter = LocalizationService.Get("ImportSourceFileFilter"),
             CheckFileExists = true
         };
         if (dialog.ShowDialog(owner) != true)
         {
+            return;
+        }
+
+        if (Path.GetExtension(dialog.FileName).Equals(".fmsbcast", StringComparison.OrdinalIgnoreCase))
+        {
+            await ImportFastMediaSorterBroadcastFileAsync(dialog.FileName, owner);
             return;
         }
 
@@ -162,10 +172,117 @@ public partial class MainWindow
         SetStatus("ImportResult", additions.Count);
     }
 
+    private async Task ImportCatalogFromFileAsync(Window owner)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = LocalizationService.Get("ImportCatalogFileFilter"),
+            CheckFileExists = true
+        };
+        if (dialog.ShowDialog(owner) != true)
+        {
+            return;
+        }
+
+        SetBusy(true);
+        SetStatus("CatalogApplying");
+        await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+
+        try
+        {
+            StreamBank bank;
+            using (var stream = new FileStream(dialog.FileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                if (stream.Length > StreamCatalogService.MaximumArchiveBytes)
+                {
+                    throw new InvalidDataException($"The catalog archive exceeds the maximum limit of {StreamCatalogService.MaximumArchiveBytes} bytes.");
+                }
+
+                bank = StreamBankReader.Read(stream);
+            }
+
+            if (bank.Entries.Count == 0)
+            {
+                _log.Event("CATALOG IMPORT REFUSE", "reason=no_channels");
+                MessageBox.Show(owner, LocalizationService.Get("ImportCatalogNoChannels"),
+                    LocalizationService.Get("ImportCatalogTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var bankCarriedAtlas = bank.FaviconAtlas is { Length: > 0 };
+            var entries = bankCarriedAtlas
+                ? bank.Entries
+                : [.. bank.Entries.Select(entry => entry with { FaviconIndex = null })];
+
+            _log.Event("CATALOG ATLAS", "op=catalog_file_import",
+                $"bank_atlas={(bankCarriedAtlas ? "present" : "absent")}",
+                $"installed={(bankCarriedAtlas ? "replaced" : "kept")}");
+
+            var now = DateTimeOffset.UtcNow;
+            var merge = CatalogMerger.Merge(
+                _state.Channels,
+                entries,
+                now,
+                new CatalogMergeOptions(
+                    RemoveMissing: false,
+                    FaviconSource: FaviconSource.Imported,
+                    TargetOrigin: SourceOrigin.LocalCatalog),
+                channelsWithUserData: UserAuthoredChannels.Identify(_state));
+
+            var channels = merge.Channels.ToList();
+            var state = _state with { Channels = channels };
+            _state = await _store.SaveAsync(
+                state,
+                bank.FaviconAtlas,
+                replaceAtlas: bankCarriedAtlas,
+                AtlasSlot.Imported);
+
+            _log.Event("CATALOG IMPORT APPLY",
+                $"added={merge.Added}",
+                $"updated={merge.Updated}",
+                $"removed={merge.Removed}",
+                $"retired={merge.Retired}");
+
+            await PruneCollectionsAsync();
+            PopulateFacets();
+            ApplyFilter();
+            SetStatus("ImportCatalogResult", merge.Added, merge.Updated, merge.Removed);
+            if (IsGridMode && _previewCoordinator is not null)
+            {
+                await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Loaded);
+                await QueueVisibleSafelyAsync(force: true);
+            }
+        }
+        catch (InvalidDataException exception)
+        {
+            _log.Event("CATALOG IMPORT FAIL", "reason=invalid_data", $"message={exception.Message}");
+            var key = exception.Message.Contains("UTF-8", StringComparison.OrdinalIgnoreCase) ||
+                      exception.Message.Contains("CSV", StringComparison.OrdinalIgnoreCase)
+                ? "ImportCatalogInvalidCsv"
+                : exception.Message.Contains("maximum", StringComparison.OrdinalIgnoreCase)
+                    ? "ImportCatalogExceededLimit"
+                    : "ImportCatalogInvalidArchive";
+            SetStatus("ImportFailedStatus");
+            MessageBox.Show(owner, LocalizationService.Get(key), LocalizationService.Get("ImportCatalogTitle"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _log.Event("CATALOG IMPORT FAIL", "reason=io", $"message={exception.Message}");
+            SetStatus("ImportFailedStatus");
+            MessageBox.Show(owner, LocalizationService.Get("ImportFileReadFailed"), LocalizationService.Get("ImportCatalogTitle"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
     private async Task ExportAsync(bool pinnedOnly, Window owner)
     {
         var rows = _state.Channels
-            .Where(channel => channel.SourceOrigin is SourceOrigin.Manual or SourceOrigin.Imported)
+            .Where(channel => channel.SourceOrigin is SourceOrigin.Manual or SourceOrigin.Imported or SourceOrigin.LocalCatalog)
             .Where(channel => !pinnedOnly || channel.Pinned)
             .OrderBy(channel => channel.SortIndex)
             .ToList();

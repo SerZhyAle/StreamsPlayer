@@ -47,6 +47,7 @@
     <sys:String x:Key="HideFilters">隐藏筛选与排序</sys:String>
     <sys:String x:Key="QuickVideoTip">快速筛选：仅视频</sys:String>
     <sys:String x:Key="QuickAudioTip">快速筛选：仅音频</sys:String>
+    <sys:String x:Key="QuickOwnTip">快速筛选：仅我的频道（手动添加或导入）</sys:String>
     <sys:String x:Key="Media">媒体</sys:String>
     <sys:String x:Key="MediaKindTip">媒体类型</sys:String>
     <sys:String x:Key="MediaFilterName">媒体类型筛选器</sys:String>
@@ -93,6 +94,7 @@
     <sys:String x:Key="AllOption">全部</sys:String>
     <sys:String x:Key="AudioOption">音频</sys:String>
     <sys:String x:Key="VideoOption">视频</sys:String>
+    <sys:String x:Key="OwnOption">我的</sys:String>
     <sys:String x:Key="SortName">名称</sys:String>
     <sys:String x:Key="SortTopic">主题</sys:String>
     <sys:String x:Key="SortLanguage">语言</sys:String>
@@ -263,7 +265,9 @@
     <sys:String x:Key="HistoryTip">查看您最近播放过的频道</sys:String>
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">随机电台</sys:String>
-    <sys:String x:Key="RandomStationTip">从整个目录中随机挑选一个广播电台播放</sys:String>
+    <sys:String x:Key="RandomStationTip">从整个目录中随机挑选一个广播电台播放</sys:String>
+    <sys:String x:Key="PrevStationTip">上一电台</sys:String>
+    <sys:String x:Key="NextStationTip">下一电台</sys:String>
     <sys:String x:Key="RandomStationTrying">正在尝试 {0}…（{1}/{2}）</sys:String>
     <sys:String x:Key="RandomStationExhausted">已尝试 {0} 个电台，没有一个有响应</sys:String>
     <sys:String x:Key="RandomStationNone">没有可供挑选的广播电台</sys:String>
@@ -290,10 +294,18 @@
     <sys:String x:Key="SaveFrameTip">将当前画面保存为图片文件，并作为此频道的图标</sys:String>
     <sys:String x:Key="FrameSaved">画面已保存：{0}</sys:String>
     <sys:String x:Key="FrameSaveFailed">无法保存画面</sys:String>
+    <sys:String x:Key="Record">录制</sys:String>
+    <sys:String x:Key="RecordTip">录制直播 (R)</sys:String>
+    <sys:String x:Key="StopRecord">停止录制</sys:String>
+    <sys:String x:Key="StopRecordTip">停止录制并保存文件</sys:String>
+    <sys:String x:Key="RecordSaved">录制已保存：{0}</sys:String>
+    <sys:String x:Key="RecordSaveFailed">无法保存录制</sys:String>
+    <sys:String x:Key="Recording">正在录制...</sys:String>
     <sys:String x:Key="FrameFolderLabel">已保存文件文件夹</sys:String>
     <sys:String x:Key="FrameFolderHint">STREAMS Player 在这里保存画面和日志压缩包。留空则使用“下载”文件夹。</sys:String>
     <sys:String x:Key="FrameFolderBrowse">选择文件夹..</sys:String>
-    <sys:String x:Key="FrameFolderReset">使用“下载”</sys:String>
+    <sys:String x:Key="FrameFolderReset">使用“下载”</sys:String>
+    <sys:String x:Key="FrameFolderOpen">打开文件夹</sys:String>
     <sys:String x:Key="VolumeTip">视频音量</sys:String>
     <sys:String x:Key="VolumeName">视频音量</sys:String>
     <sys:String x:Key="AudioVolumeTip">音频音量</sys:String>
@@ -318,6 +330,8 @@
     <sys:String x:Key="TileLarge">大</sys:String>
     <sys:String x:Key="UpdateStreamPreviews">自动更新流的缩略图</sys:String>
     <sys:String x:Key="UpdateStreamPreviewsTip">在网格模式下为可见的视频流抓取新的缩略图</sys:String>
+    <sys:String x:Key="HideAdultContent">隐藏成人频道</sys:String>
+    <sys:String x:Key="HideAdultContentTip">在目录和筛选器中不显示“成人”类别的频道</sys:String>
     <sys:String x:Key="PlaybackSettings">播放</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">播放期间保持计算机唤醒</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">播放流时阻止计算机按空闲计时器进入睡眠；播放视频时还会保持显示器开启</sys:String>
@@ -529,4 +543,36 @@
     <sys:String x:Key="AboutCopied">频道信息已复制。</sys:String>
     <sys:String x:Key="AboutCopyFailed">Windows 无法复制频道信息。</sys:String>
     <sys:String x:Key="FrameRateValue">{0} fps</sys:String>
-    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String></ResourceDictionary>
+    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String>
+    <!-- SP-0099 FastMediaSorter live-broadcast import -->
+    <sys:String x:Key="ImportSourceFileFilter">直播和播放列表 (*.fmsbcast;*.m3u;*.m3u8)|*.fmsbcast;*.m3u;*.m3u8|直播 (*.fmsbcast)|*.fmsbcast|播放列表 (*.m3u;*.m3u8)|*.m3u;*.m3u8|所有文件 (*.*)|*.*</sys:String>
+    <sys:String x:Key="FmsBroadcastTitle">导入直播</sys:String>
+    <sys:String x:Key="FmsBroadcastConfirm">要导入这场直播吗？&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="FmsBroadcastAdded">已导入直播：{0}。</sys:String>
+    <sys:String x:Key="FmsBroadcastUpdated">已更新直播：{0}。</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedSchema">此直播由较新的应用创建。请更新 StreamsPlayer 后再导入。您的列表未更改。</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedMode">尚不支持此直播模式。您的列表未更改。</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">这不是有效的 FastMediaSorter 直播描述。您的列表未更改。</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">此直播描述大于 64 KiB。您的列表未更改。</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0} 的收听人数已达上限。请在其他收听者断开后重试。</sys:String>
+    <sys:String x:Key="FmsBroadcastStopped">{0} 已停止直播，或在此网络中无法访问。</sys:String>
+    <!-- SP-0098 portable stream catalog import -->
+    <sys:String x:Key="StreamCatalogSettings">流媒体目录</sys:String>
+    <sys:String x:Key="StreamCatalogSettingsHint">导入外部流媒体目录归档（stream-catalog.zip），恢复内置目录快照，或删除已下载和已导入的数据库。</sys:String>
+    <sys:String x:Key="ImportCatalogFromFile">导入目录归档…</sys:String>
+    <sys:String x:Key="ImportCatalogFromFileTip">从 stream-catalog.zip 归档导入频道</sys:String>
+    <sys:String x:Key="ImportCatalogFileFilter">流媒体目录归档 (*.zip)|*.zip|所有文件 (*.*)|*.*</sys:String>
+    <sys:String x:Key="ImportCatalogTitle">导入目录归档</sys:String>
+    <sys:String x:Key="ImportCatalogResult">目录频道：已添加 {0} 个，已更新 {1} 个，已删除 {2} 个。</sys:String>
+    <sys:String x:Key="ImportCatalogNoChannels">目录归档中未找到可导入的频道。您的列表未更改。</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidArchive">这不是有效的流媒体目录归档。您的列表未更改。</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidCsv">目录归档包含无效的 CSV 数据或无效的 UTF-8 编码。您的列表未更改。</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">目录归档或其 CSV 数据超过了允许的最大大小。您的列表未更改。</sys:String>
+    <sys:String x:Key="DeleteImportedCatalog">删除已导入的目录</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTip">移除来自已导入目录归档的所有流媒体</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogHint">移除来自已导入目录归档的流媒体。您添加的和已下载的目录流媒体将保留。</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTitle">删除已导入的目录</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">删除所有已导入的目录流媒体（{0:N0}）？您添加的和已下载的流媒体将被保留。此操作无法撤消。</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogNone">没有要删除的已导入目录流媒体。</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogResult">已删除的导入目录流媒体：{0:N0}。</sys:String>
+</ResourceDictionary>

@@ -58,6 +58,19 @@ public sealed class CatalogTopicsTests
     public void AnythingElseResolvesToNull(string? topic) =>
         Assert.Null(CatalogTopics.ResourceKey(topic));
 
+    [Theory]
+    [InlineData("Adult", true)]
+    [InlineData("adult", true)]
+    [InlineData("  Adult  ", true)]
+    [InlineData("ADULT", true)]
+    [InlineData("General", false)]
+    [InlineData("Pop", false)]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    [InlineData("   ", false)]
+    public void IsAdultIdentifiesAdultRubric(string? topic, bool expected) =>
+        Assert.Equal(expected, CatalogTopics.IsAdult(topic));
+
     [Fact]
     public void EveryRubricKeyExistsInEveryDictionary()
     {

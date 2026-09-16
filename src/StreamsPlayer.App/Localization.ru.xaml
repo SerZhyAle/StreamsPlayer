@@ -47,6 +47,7 @@
     <sys:String x:Key="HideFilters">Скрыть фильтры и сортировку</sys:String>
     <sys:String x:Key="QuickVideoTip">Быстрый фильтр: только видео</sys:String>
     <sys:String x:Key="QuickAudioTip">Быстрый фильтр: только аудио</sys:String>
+    <sys:String x:Key="QuickOwnTip">Быстрый фильтр: только свои (добавленные и импортированные)</sys:String>
     <sys:String x:Key="Media">Медиа</sys:String>
     <sys:String x:Key="MediaKindTip">Тип медиа</sys:String>
     <sys:String x:Key="MediaFilterName">Фильтр типа медиа</sys:String>
@@ -93,6 +94,7 @@
     <sys:String x:Key="AllOption">Все</sys:String>
     <sys:String x:Key="AudioOption">Аудио</sys:String>
     <sys:String x:Key="VideoOption">Видео</sys:String>
+    <sys:String x:Key="OwnOption">Свои</sys:String>
     <sys:String x:Key="SortName">Название</sys:String>
     <sys:String x:Key="SortTopic">Тема</sys:String>
     <sys:String x:Key="SortLanguage">Язык</sys:String>
@@ -261,6 +263,8 @@
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">Случайная станция</sys:String>
     <sys:String x:Key="RandomStationTip">Включить радиостанцию, выбранную случайно из всего каталога</sys:String>
+    <sys:String x:Key="PrevStationTip">Предыдущая станция</sys:String>
+    <sys:String x:Key="NextStationTip">Следующая станция</sys:String>
     <sys:String x:Key="RandomStationTrying">Пробуем {0}… ({1} из {2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">Проверено станций: {0}, ни одна не ответила</sys:String>
     <sys:String x:Key="RandomStationNone">Нет радиостанций для выбора</sys:String>
@@ -287,10 +291,18 @@
     <sys:String x:Key="SaveFrameTip">Сохранить текущий кадр в файл и как значок канала</sys:String>
     <sys:String x:Key="FrameSaved">Кадр сохранён: {0}</sys:String>
     <sys:String x:Key="FrameSaveFailed">Не удалось сохранить кадр</sys:String>
+    <sys:String x:Key="Record">Запись</sys:String>
+    <sys:String x:Key="RecordTip">Записать прямой эфир (R)</sys:String>
+    <sys:String x:Key="StopRecord">Остановить запись</sys:String>
+    <sys:String x:Key="StopRecordTip">Остановить запись и сохранить файл</sys:String>
+    <sys:String x:Key="RecordSaved">Запись сохранена: {0}</sys:String>
+    <sys:String x:Key="RecordSaveFailed">Не удалось сохранить запись</sys:String>
+    <sys:String x:Key="Recording">Идет запись...</sys:String>
     <sys:String x:Key="FrameFolderLabel">Папка сохранённых файлов</sys:String>
     <sys:String x:Key="FrameFolderHint">Куда Трансляции сохраняют кадры и архивы журналов. Оставьте пустым, чтобы использовать папку «Загрузки».</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Выбрать папку..</sys:String>
     <sys:String x:Key="FrameFolderReset">Использовать «Загрузки»</sys:String>
+    <sys:String x:Key="FrameFolderOpen">Открыть папку</sys:String>
     <sys:String x:Key="VolumeTip">Громкость видео</sys:String>
     <sys:String x:Key="VolumeName">Громкость видео</sys:String>
     <sys:String x:Key="AudioVolumeTip">Громкость аудио</sys:String>
@@ -315,6 +327,8 @@
     <sys:String x:Key="TileLarge">Большой</sys:String>
     <sys:String x:Key="UpdateStreamPreviews">Обновлять миниатюры стримов автоматически</sys:String>
     <sys:String x:Key="UpdateStreamPreviewsTip">Получать свежие миниатюры видимых видеопотоков, пока открыт режим сетки</sys:String>
+    <sys:String x:Key="HideAdultContent">Скрывать каналы для взрослых</sys:String>
+    <sys:String x:Key="HideAdultContentTip">Не показывать каналы из рубрики «Для взрослых» в каталоге и фильтрах</sys:String>
     <sys:String x:Key="PlaybackSettings">Воспроизведение</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">Не давать компьютеру засыпать во время воспроизведения</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">Не давать системе засыпать по таймеру простоя, пока играет поток; для видео экран также остаётся включённым</sys:String>
@@ -518,5 +532,36 @@
     <sys:String x:Key="AboutCopied">Сведения о канале скопированы.</sys:String>
     <sys:String x:Key="AboutCopyFailed">Windows не удалось скопировать сведения о канале.</sys:String>
     <sys:String x:Key="FrameRateValue">{0} кадр/с</sys:String>
-    <sys:String x:Key="SampleRateValue">{0} Гц</sys:String></ResourceDictionary>
-
+    <sys:String x:Key="SampleRateValue">{0} Гц</sys:String>
+    <!-- SP-0099 FastMediaSorter live-broadcast import -->
+    <sys:String x:Key="ImportSourceFileFilter">Трансляции и плейлисты (*.fmsbcast;*.m3u;*.m3u8)|*.fmsbcast;*.m3u;*.m3u8|Прямые трансляции (*.fmsbcast)|*.fmsbcast|Плейлисты (*.m3u;*.m3u8)|*.m3u;*.m3u8|Все файлы (*.*)|*.*</sys:String>
+    <sys:String x:Key="FmsBroadcastTitle">Импорт прямой трансляции</sys:String>
+    <sys:String x:Key="FmsBroadcastConfirm">Импортировать эту прямую трансляцию?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="FmsBroadcastAdded">Прямая трансляция импортирована: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUpdated">Прямая трансляция обновлена: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedSchema">Эта трансляция создана более новой версией приложения. Обновите StreamsPlayer, чтобы импортировать её. Ваш список не изменён.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedMode">Этот режим трансляции пока не поддерживается. Ваш список не изменён.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">Это некорректное описание трансляции FastMediaSorter. Ваш список не изменён.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">Описание трансляции больше 64 КиБ. Ваш список не изменён.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">На устройстве «{0}» уже достигнуто максимальное число слушателей. Повторите, когда кто-нибудь отключится.</sys:String>
+    <sys:String x:Key="FmsBroadcastStopped">Устройство «{0}» перестало вещать или больше недоступно в этой сети.</sys:String>
+    <!-- SP-0098 portable stream catalog import -->
+    <sys:String x:Key="StreamCatalogSettings">Каталог трансляций</sys:String>
+    <sys:String x:Key="StreamCatalogSettingsHint">Импорт внешнего архива каталога (stream-catalog.zip), восстановление встроенного снимка каталога или удаление скачанных и импортированных банков.</sys:String>
+    <sys:String x:Key="ImportCatalogFromFile">Импортировать архив каталога…</sys:String>
+    <sys:String x:Key="ImportCatalogFromFileTip">Импортировать каналы из архива stream-catalog.zip</sys:String>
+    <sys:String x:Key="ImportCatalogFileFilter">Архивы каталога трансляций (*.zip)|*.zip|Все файлы (*.*)|*.*</sys:String>
+    <sys:String x:Key="ImportCatalogTitle">Импорт архива каталога</sys:String>
+    <sys:String x:Key="ImportCatalogResult">Каналы каталога: добавлено {0}, обновлено {1}, удалено {2}.</sys:String>
+    <sys:String x:Key="ImportCatalogNoChannels">В архиве каталога не найдено каналов для импорта. Ваш список не изменился.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidArchive">Этот файл не является корректным архивом каталога трансляций. Ваш список не изменился.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidCsv">Архив каталога содержит некорректные данные CSV или недопустимую кодировку UTF-8. Ваш список не изменился.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">Архив каталога или его данные CSV превышают максимально допустимый размер. Ваш список не изменился.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalog">Удалить импортированный каталог</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTip">Удалить все потоки, добавленные из импортированного архива каталога</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogHint">Удаление потоков, добавленных из импортированных архивов каталога. Ваши созданные каналы и скачанный каталог останутся.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTitle">Удалить импортированный каталог</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Удалить все импортированные потоки каталога ({0:N0})? Ваши созданные и скачанные потоки сохранятся. Это действие нельзя отменить.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogNone">Нет импортированных потоков каталога для удаления.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogResult">Удалено импортированных потоков каталога: {0:N0}.</sys:String>
+</ResourceDictionary>

@@ -20,7 +20,8 @@ public partial class PlayerWindow : Window
     // (short/looping playlists that hit EndReached every ~20s) would otherwise show the 15s buffering
     // spinner on every reconnect. A smaller reconnect buffer keeps re-opens quick.
     private const uint ReconnectCacheMilliseconds = 4_000;
-    private static readonly TimeSpan ControlsHideTimeout = TimeSpan.FromSeconds(10);
+    // SP-0102: reduced from 10s to 4s for responsive playback experience
+    private static readonly TimeSpan ControlsHideTimeout = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan StatsSampleInterval = TimeSpan.FromSeconds(2);
     // Volume is applied to the engine on every slider move but persisted only once the slider settles:
     // a drag raises ValueChanged per pixel and each save rewrites the entire catalog state.
@@ -116,6 +117,7 @@ public partial class PlayerWindow : Window
     private bool _settingsReady;
     private bool _isMuted;
     private bool _fullscreen;
+    private DateTimeOffset? _recordingStartTime;
     private WindowStyle _restoredWindowStyle;
     private ResizeMode _restoredResizeMode;
     private WindowState _restoredWindowState;
@@ -348,6 +350,68 @@ public partial class PlayerWindow : Window
         }
     }
 
+    private void RecordButton_Click(object sender, RoutedEventArgs e) => ToggleRecording();
+
+    private void ToggleRecording()
+    {
+        if (!_backend.IsRecording)
+        {
+            if (!_reachedLive)
+            {
+                return;
+            }
+
+            var folder = _frameFolder();
+            var targetDir = RecordedBroadcastWriter.ResolveFolder(folder);
+            var title = StreamTitleFormatter.Display(_channel.Title);
+            var started = _backend.StartRecording(targetDir, title);
+            if (started)
+            {
+                _recordingStartTime = DateTimeOffset.Now;
+                UpdateRecordingUi(isRecording: true);
+            }
+            else
+            {
+                ShowFrameToast(LocalizationService.Get("RecordSaveFailed"));
+            }
+        }
+        else
+        {
+            var savedPath = _backend.StopRecording();
+            _recordingStartTime = null;
+            UpdateRecordingUi(isRecording: false);
+            if (!string.IsNullOrWhiteSpace(savedPath))
+            {
+                ShowFrameToast(LocalizationService.Format("RecordSaved", Path.GetFileName(savedPath)));
+            }
+            else
+            {
+                ShowFrameToast(LocalizationService.Get("RecordSaveFailed"));
+            }
+        }
+    }
+
+    private void UpdateRecordingUi(bool isRecording)
+    {
+        RecordButton.Style = (Style)FindResource(isRecording ? "PlayerOverlayStopRecordGlyphButton" : "PlayerOverlayRecordGlyphButton");
+        RecordButton.ToolTip = LocalizationService.Get(isRecording ? "StopRecordTip" : "RecordTip");
+        System.Windows.Automation.AutomationProperties.SetName(RecordButton, LocalizationService.Get(isRecording ? "StopRecord" : "Record"));
+        RecordIndicator.Visibility = isRecording ? Visibility.Visible : Visibility.Collapsed;
+        if (isRecording)
+        {
+            UpdateRecordTimer();
+        }
+    }
+
+    private void UpdateRecordTimer()
+    {
+        if (_recordingStartTime.HasValue)
+        {
+            var elapsed = DateTimeOffset.Now - _recordingStartTime.Value;
+            RecordTimerText.Text = $"REC {(int)elapsed.TotalMinutes:00}:{elapsed.Seconds:00}";
+        }
+    }
+
     private void Backend_SnapshotReady(BitmapSource frame)
     {
         // Hand off on the UI thread; freezing here is what makes the image safe to encode from a worker.
@@ -451,6 +515,10 @@ public partial class PlayerWindow : Window
         // just put up, not be overwritten by it. This tick and not the watchdog's because 2 s divides
         // the 8 s threshold and 3 s does not - the watchdog would report a dead source a second late.
         ObserveOpenBudget();
+        if (_backend.IsRecording)
+        {
+            UpdateRecordTimer();
+        }
     }
 
     /// <summary>
@@ -1142,6 +1210,11 @@ public partial class PlayerWindow : Window
         else if (e.Key == Key.Escape && _fullscreen)
         {
             ExitFullscreen();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.R)
+        {
+            ToggleRecording();
             e.Handled = true;
         }
     }

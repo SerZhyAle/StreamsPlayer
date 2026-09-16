@@ -13,7 +13,8 @@ public enum SourceOrigin
 {
     Catalog,
     Manual,
-    Imported
+    Imported,
+    LocalCatalog
 }
 
 public enum PlayOutcome
@@ -27,18 +28,22 @@ public enum PlayOutcome
 // catalog, two atlases are installed at once and a row that does not name its own would render another
 // channel's icon - a wrong picture, not a missing one. `Catalog` is first so an older state file, and
 // any unreadable value, land on the source every row in such a file actually has.
+// SP-0098: Imported slot for stream-catalog.zip imported from file.
 public enum FaviconSource
 {
     Catalog,
-    Snapshot
+    Snapshot,
+    Imported
 }
 
 // SP-0052: the atlas slot a save writes into. The two are independent: a save that replaces one never
 // touches the other, and the store's cleanup keeps whichever files the saved state still names.
+// SP-0098: Imported slot for local stream bank archives.
 public enum AtlasSlot
 {
     Catalog,
-    Snapshot
+    Snapshot,
+    Imported
 }
 
 // SP-0033: the catalog's `access` column. `Open` is first so it is the value an older state file and
@@ -143,6 +148,20 @@ public enum MediaBackend
     Flyleaf
 }
 
+/// <summary>
+/// Persisted facts supplied by a FastMediaSorter broadcast hand-off. Its presence means the source came
+/// through that hand-off and is consequently live, even when a producer's optional marker is absent or
+/// false. All properties are optional-compatible with state files written before SP-0099.
+/// </summary>
+public sealed record FastMediaSorterBroadcastInfo
+{
+    public string? SourceId { get; init; }
+    public required string Mode { get; init; }
+    public string? SelectedTransport { get; init; }
+    public IReadOnlyList<FastMediaSorterBroadcastEndpoint> Endpoints { get; init; } = [];
+    public long? TargetLatencyMs { get; init; }
+}
+
 public sealed record StreamChannel
 {
     public required Guid Id { get; init; }
@@ -175,6 +194,11 @@ public sealed record StreamChannel
     public string? Format { get; init; }
     public string? Bitrate { get; init; }
     public bool? IsLive { get; init; }
+
+    // SP-0099: the descriptor is separate from generic catalog metadata. A manual live URL need not be
+    // FastMediaSorter, while a descriptor hand-off must remain recognisable after a restart so it can use
+    // the one-listener low-latency playback route.
+    public FastMediaSorterBroadcastInfo? FastMediaSorterBroadcast { get; init; }
 
     // SP-0033: region-restriction heuristic observed from the catalog maintainer's network only. A
     // GeoRestricted channel is deliberately kept and stays fully playable - never gate, reorder, or
@@ -311,6 +335,12 @@ public sealed record CatalogState
     public string? SnapshotAtlasFileName { get; init; }
 
     /// <summary>
+    /// SP-0098: The icon atlas installed by a local stream bank import, or <c>null</c> when none is installed.
+    /// Kept in its own slot to prevent index-space cross-talk between different stream banks.
+    /// </summary>
+    public string? ImportedAtlasFileName { get; init; }
+
+    /// <summary>
     /// Source date of the bundled snapshot whose rows are in this state (SP-0052), or <c>null</c> when
     /// none was ever applied. Deliberately the date of the <em>data</em> rather than the moment it was
     /// applied: the interface has to say how old the list is, and a user who applied one build's
@@ -408,6 +438,12 @@ public sealed record CatalogState
     public List<Guid> ResumeChannelIds { get; init; } = [];
     public StreamTileSize TileSize { get; init; } = StreamTileSize.Medium;
     public bool UpdateStreamPreviews { get; init; } = true;
+
+    /// <summary>
+    /// Whether channels under the Adult rubric are hidden from the catalog list, grid, and topic facet (SP-0063).
+    /// Defaults to false so existing catalogs and pre-feature state files preserve visibility.
+    /// </summary>
+    public bool HideAdultContent { get; init; }
 
     /// <summary>
     /// Which published artwork build seeded the local preview store, as
@@ -521,9 +557,13 @@ public sealed record CatalogState
 /// The atlas the entries' <c>favicon_index</c> values index, stamped on every row this merge adds or
 /// updates so an index and its own atlas always travel together.
 /// </param>
+/// <param name="TargetOrigin">
+/// SP-0098: The provenance stamped on newly added channels, and used to determine update and pruning rights.
+/// </param>
 public sealed record CatalogMergeOptions(
     bool RemoveMissing = true,
-    FaviconSource FaviconSource = FaviconSource.Catalog)
+    FaviconSource FaviconSource = FaviconSource.Catalog,
+    SourceOrigin TargetOrigin = SourceOrigin.Catalog)
 {
     public static readonly CatalogMergeOptions CatalogRefresh = new();
 }
@@ -575,3 +615,32 @@ public sealed record CatalogRefreshResult(
     int Removed,
     bool AtlasReplaced = true,
     int Retired = 0);
+
+/// <summary>
+/// Distinct failure and success codes for importing a portable stream bank archive (SP-0098).
+/// </summary>
+public enum StreamBankImportStatus
+{
+    Ok,
+    EmptyArchive,
+    InvalidFirstEntry,
+    MissingStreamsCsv,
+    CsvTooLarge,
+    InvalidEncoding,
+    MalformedCsv,
+    NoValidChannels,
+    ArchiveTooLarge,
+    FileReadError
+}
+
+/// <summary>
+/// Outcome of importing a local stream bank archive (SP-0098).
+/// </summary>
+public sealed record StreamBankImportResult(
+    StreamBankImportStatus Status,
+    CatalogState State,
+    int Added = 0,
+    int Updated = 0,
+    int Removed = 0,
+    bool AtlasReplaced = false,
+    string? ErrorMessage = null);

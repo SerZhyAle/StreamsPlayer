@@ -3,43 +3,89 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         FlowDirection="{DynamicResource UiFlowDirection}"
         Title="{DynamicResource ProductName}"
-        Width="470" Height="152"
+        Width="560" Height="116"
         SizeToContent="Manual" ResizeMode="NoResize" WindowStartupLocation="Manual"
         Topmost="True" ShowInTaskbar="True"
         Background="{DynamicResource WindowBackground}"
         Foreground="{DynamicResource TextBrush}"
         LocationChanged="Window_LocationChanged">
-    <!-- SP-0080: the width is fixed and SizeToContent is Manual on purpose. Every line below is
-         single-line and trimmed, so no broadcast string - however long, however malformed - can change
-         this window's size or push it off the screen. That is acceptance criterion 7, met by the shape
-         of the window rather than by a length check that would have to be kept correct. -->
-    <Border Padding="12,10" Background="{DynamicResource SurfaceBrush}" CornerRadius="6" Margin="6">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+    <!-- SP-0080 / SP-0102: Fixed width horizontal compact widget (~116px window height / ~76px client height).
+         Trimming and single-line elements protect layout from malformed or long stream strings. -->
+    <Border Padding="10,8" Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Margin="4">
+        <Grid VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-            <TextBlock x:Name="NowPlayingText" Grid.Row="0" FontSize="14"
-                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                       Foreground="{DynamicResource TextBrush}"
-                       Text="{DynamicResource NothingPlaying}" />
+            <!-- Column 0: Station Favicon plate with fallback monogram and animated audio indicator -->
+            <Grid Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
+                <Border Width="38" Height="38" Background="{DynamicResource FaviconPlateBrush}" CornerRadius="6" ClipToBounds="True">
+                    <Grid>
+                        <!-- Fallback monogram plate -->
+                        <Border x:Name="MonogramPlate" CornerRadius="6" Background="#FF336699" Visibility="Collapsed">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock x:Name="MonogramText" Grid.Row="0" Foreground="White" FontSize="14" FontWeight="SemiBold"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Border x:Name="CountryCodeBadge" Grid.Row="1" Background="#59000000" Visibility="Collapsed">
+                                    <TextBlock x:Name="CountryCodeText" Foreground="White" FontSize="8" LineHeight="10"
+                                               LineStackingStrategy="BlockLineHeight" HorizontalAlignment="Center" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <!-- Station Favicon Image -->
+                        <Image x:Name="FaviconImage" Width="38" Height="38" Stretch="UniformToFill" />
+                    </Grid>
+                </Border>
+                <!-- Playing animation badge -->
+                <Grid x:Name="PlayingIndicator" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+                    <Ellipse Fill="#CC2364AA" />
+                    <Path Data="M12,3 V13.55 C11.41,13.21 10.73,13 10,13 C7.79,13 6,14.79 6,17 C6,19.21 7.79,21 10,21 C12.21,21 14,19.21 14,17 V7 H18 V3 Z"
+                          Fill="White" Stretch="Uniform" Margin="4" RenderTransformOrigin="0.5,0.5">
+                        <Path.RenderTransform>
+                            <RotateTransform x:Name="CompactNoteRotate" />
+                        </Path.RenderTransform>
+                        <Path.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="(Path.RenderTransform).(RotateTransform.Angle)"
+                                                         From="0" To="360" Duration="0:0:1.8" RepeatBehavior="Forever" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Path.Triggers>
+                    </Path>
+                </Grid>
+            </Grid>
 
-            <TextBlock x:Name="StatusText" Grid.Row="1" FontSize="11" Margin="0,3,0,0"
-                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                       Foreground="{DynamicResource MutedBrush}"
-                       Text="{DynamicResource Ready}" />
+            <!-- Column 1: Station title + Now Playing track / status (trimmed) -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                <TextBlock x:Name="NowPlayingText" FontSize="13" FontWeight="SemiBold"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource TextBrush}"
+                           Text="{DynamicResource NothingPlaying}" />
+                <TextBlock x:Name="StatusText" FontSize="11" Margin="0,2,0,0"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource MutedBrush}"
+                           Text="{DynamicResource Ready}" />
+            </StackPanel>
 
-            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0" VerticalAlignment="Center">
-                <Slider x:Name="VolumeSlider" Width="120" Minimum="0" Maximum="100" Value="100"
+            <!-- Column 2: Controls (Volume + Sleep Timer + Prev + Next + Random + Record + Play/Stop + Expand) -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <Slider x:Name="VolumeSlider" Width="70" Minimum="0" Maximum="100" Value="100"
                         TickFrequency="10" IsMoveToPointEnabled="True" VerticalAlignment="Center"
                         ValueChanged="VolumeSlider_ValueChanged"
                         ToolTip="{DynamicResource AudioVolumeTip}"
                         AutomationProperties.Name="{DynamicResource AudioVolumeName}" />
 
                 <Button x:Name="SleepTimerButton" Style="{StaticResource SleepTimerGlyphButton}"
-                        Margin="8,0,0,0" Click="SleepTimerButton_Click"
+                        Margin="6,0,0,0" Click="SleepTimerButton_Click"
                         ToolTip="{DynamicResource SleepTimerTip}"
                         AutomationProperties.Name="{DynamicResource SleepTimer}">
                     <Button.ContextMenu>
@@ -47,18 +93,33 @@
                     </Button.ContextMenu>
                 </Button>
 
+                <Button x:Name="PrevStationButton" Style="{StaticResource PrevGlyphOnlyButton}"
+                        Margin="4,0,0,0" Click="PrevStationButton_Click"
+                        ToolTip="{DynamicResource PrevStationTip}"
+                        AutomationProperties.Name="{DynamicResource PrevStationTip}" />
+
+                <Button x:Name="NextStationButton" Style="{StaticResource NextGlyphOnlyButton}"
+                        Margin="4,0,0,0" Click="NextStationButton_Click"
+                        ToolTip="{DynamicResource NextStationTip}"
+                        AutomationProperties.Name="{DynamicResource NextStationTip}" />
+
                 <Button x:Name="RandomButton" Style="{StaticResource RandomGlyphOnlyButton}"
-                        Margin="6,0,0,0" Click="RandomButton_Click"
+                        Margin="4,0,0,0" Click="RandomButton_Click"
                         ToolTip="{DynamicResource RandomStationTip}"
                         AutomationProperties.Name="{DynamicResource RandomStation}" />
 
+                <Button x:Name="RecordButton" Style="{StaticResource RecordGlyphOnlyButton}"
+                        Margin="4,0,0,0" Click="RecordButton_Click"
+                        ToolTip="{DynamicResource RecordTip}"
+                        AutomationProperties.Name="{DynamicResource Record}" />
+
                 <Button x:Name="TransportButton" Style="{StaticResource StopGlyphOnlyButton}"
-                        Margin="6,0,0,0" Click="TransportButton_Click" IsEnabled="False"
+                        Margin="4,0,0,0" Click="TransportButton_Click" IsEnabled="False"
                         ToolTip="{DynamicResource StopAudio}"
                         AutomationProperties.Name="{DynamicResource StopAudio}" />
 
                 <Button x:Name="ExpandButton" Style="{StaticResource ExpandGlyphOnlyButton}"
-                        Margin="6,0,0,0" Click="ExpandButton_Click"
+                        Margin="4,0,0,0" Click="ExpandButton_Click"
                         ToolTip="{DynamicResource ExpandFromPanelTip}"
                         AutomationProperties.Name="{DynamicResource ExpandFromPanelName}" />
             </StackPanel>

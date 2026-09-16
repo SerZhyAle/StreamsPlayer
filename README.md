@@ -89,6 +89,8 @@ code or features.
   in another. A topic this version has not seen yet is shown as the catalog
   spells it rather than hidden. **General** covers about half the catalog, so it
   sits at the end of the list, below the topics that actually narrow it.
+- Hide adult channels from the catalog and filters at any time using the
+  **Hide adult channels** option in Settings.
 - Reach the actions you use rarely from one **Operations** menu in the header:
   always on top, refresh previews (in grid mode), **Random station**, history,
   add stream, and **Import channels from the internet**.
@@ -124,6 +126,9 @@ code or features.
 - Save the frame you are watching from the player's camera button: a JPEG named
   `Channel_YYYYMMDD-HHmmss` lands in the folder set on the **Playback** tab, or in
   Downloads when that is empty, and the same frame becomes the channel icon.
+- Record a live broadcast with the **Record** button (or press `R` in the video player):
+  losslessly captures the active live video or radio stream directly to a media file in the
+  saved files folder without interrupting playback, and shows the saved file name on stop.
 - Answer a failed stream from the failure dialog - **Retry**, **Copy report**,
   **Keep**, or remove it: a catalog channel is hidden and a channel of your own is
   deleted after a confirmation. Hidden catalog channels survive a refresh and come
@@ -156,6 +161,29 @@ code or features.
   address is visible to everyone who receives your message, and copying such a
   channel asks first. A channel you already have is not added twice - the app takes
   you to it, and offers to restore it if you had hidden it.
+- Listen to a live audio broadcast from a FastMediaSorter phone or watch. Import it
+  three ways: paste its barcode text (`FMSBCAST1:` ..) or its Android share link
+  with **Paste channel** - scan the barcode with any scanner app, since StreamsPlayer
+  has no camera and takes only the decoded text; open a `.fmsbcast` file from the
+  playlist import file dialog on the **Playlists (M3U)** tab in Settings; or drag
+  one `.fmsbcast` file onto the main window. The app shows the title and address
+  and asks before adding; files over 64 KiB are refused. The broadcast becomes an
+  `IMPORTED` row marked **Live**, and importing again from the same device updates
+  that row - address, port, title - instead of adding a duplicate, so pins,
+  collections and history stay; a catalog refresh never removes it. Only audio
+  broadcasts (`AUDIO_ONLY`) play today: a video mode is refused with an
+  explanation, and a descriptor from a newer FastMediaSorter asks you to update
+  StreamsPlayer. The connection is direct over the same local network (LAN) as
+  the device, never through a server. Playback takes a separate low-latency path
+  aimed at sound within about a second and no more than two seconds behind the
+  device; after a dropout it reconnects a bounded number of times and rejoins the
+  live moment instead of replaying what was missed. A watch allows only four
+  listeners, so the app opens exactly one connection per listening session and
+  never probes the address - **About channel** does not measure it either. A
+  watch that already has four listeners gets a message saying so, with no retry;
+  a device that stops broadcasting gets a message that it stopped or is no longer
+  reachable instead of an endless "Connecting". The app does not amplify a quiet
+  microphone: the volume is whatever the device sends.
 - Delete every downloaded catalog stream in one confirmed action from the
   **Playlists (M3U)** tab in Settings and keep only your own `MANUAL`/`IMPORTED`
   channels; **Import channels from the internet** downloads them again whenever

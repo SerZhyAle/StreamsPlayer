@@ -191,7 +191,7 @@ public static class ChannelFactSheet
     private static string OriginKey(SourceOrigin origin) => origin switch
     {
         SourceOrigin.Manual => "OriginManual",
-        SourceOrigin.Imported => "OriginImported",
+        SourceOrigin.Imported or SourceOrigin.LocalCatalog => "OriginImported",
         _ => "OriginCatalog"
     };
 

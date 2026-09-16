@@ -22,6 +22,13 @@
     <ProjectReference Include="..\..\src\StreamsPlayer.Core\StreamsPlayer.Core.csproj" />
   </ItemGroup>
 
+  <!-- SP-0099: transport code is compiled here without a WPF project reference so a local HTTP
+       listener can prove the one-request contract independently of an audio device. -->
+  <ItemGroup>
+    <Compile Include="..\..\src\StreamsPlayer.App\FastMediaSorterPlaybackTransport.cs"
+             Link="FastMediaSorterPlaybackTransport.cs" />
+  </ItemGroup>
+
   <!--
     SP-0034 criterion 2: the language parity gate has to run in CI, and CI runs dotnet test. The App's
     resource dictionaries are therefore copied in as test DATA and parsed as XML. This is deliberately
@@ -33,6 +40,9 @@
              Link="localization\%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
     <Content Include="localization-loanwords.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\specifications\fastmediasorter-live-broadcast-contract.md"
+             Link="contract\fastmediasorter-live-broadcast-contract.md"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!--

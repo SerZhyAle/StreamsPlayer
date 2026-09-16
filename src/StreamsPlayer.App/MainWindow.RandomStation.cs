@@ -173,8 +173,7 @@ public partial class MainWindow
         }
 
         _log.Event("RANDOM SKIP", $"reason={reason}", $"url={channel.Url}");
-        AudioPlayer.Stop();
-        AudioPlayer.Source = null;
+        _standardAudioPlayback.StopPlayback();
         hunt.Outcome.TrySetResult(false);
         return true;
     }

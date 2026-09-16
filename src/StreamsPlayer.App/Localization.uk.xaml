@@ -47,6 +47,7 @@
     <sys:String x:Key="HideFilters">Сховати фільтри та сортування</sys:String>
     <sys:String x:Key="QuickVideoTip">Швидкий фільтр: лише відео</sys:String>
     <sys:String x:Key="QuickAudioTip">Швидкий фільтр: лише аудіо</sys:String>
+    <sys:String x:Key="QuickOwnTip">Швидкий фільтр: лише свої (додані та імпортовані)</sys:String>
     <sys:String x:Key="Media">Медіа</sys:String>
     <sys:String x:Key="MediaKindTip">Тип медіа</sys:String>
     <sys:String x:Key="MediaFilterName">Фільтр медіа</sys:String>
@@ -93,6 +94,7 @@
     <sys:String x:Key="AllOption">Усі</sys:String>
     <sys:String x:Key="AudioOption">Аудіо</sys:String>
     <sys:String x:Key="VideoOption">Відео</sys:String>
+    <sys:String x:Key="OwnOption">Свої</sys:String>
     <sys:String x:Key="SortName">Назва</sys:String>
     <sys:String x:Key="SortTopic">Тема</sys:String>
     <sys:String x:Key="SortLanguage">Мова</sys:String>
@@ -263,7 +265,9 @@
     <sys:String x:Key="HistoryTip">Канали, які ви нещодавно відтворювали</sys:String>
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">Випадкова станція</sys:String>
-    <sys:String x:Key="RandomStationTip">Увімкнути радіостанцію, вибрану випадково з усього каталогу</sys:String>
+    <sys:String x:Key="RandomStationTip">Увімкнути радіостанцію, вибрану випадково з усього каталогу</sys:String>
+    <sys:String x:Key="PrevStationTip">Попередня станція</sys:String>
+    <sys:String x:Key="NextStationTip">Наступна станція</sys:String>
     <sys:String x:Key="RandomStationTrying">Пробуємо {0}… ({1} з {2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">Перевірено станцій: {0}, жодна не відповіла</sys:String>
     <sys:String x:Key="RandomStationNone">Немає радіостанцій для вибору</sys:String>
@@ -290,10 +294,18 @@
     <sys:String x:Key="SaveFrameTip">Зберегти поточний кадр у файл і як значок каналу</sys:String>
     <sys:String x:Key="FrameSaved">Кадр збережено: {0}</sys:String>
     <sys:String x:Key="FrameSaveFailed">Не вдалося зберегти кадр</sys:String>
+    <sys:String x:Key="Record">Запис</sys:String>
+    <sys:String x:Key="RecordTip">Записати прямий ефір (R)</sys:String>
+    <sys:String x:Key="StopRecord">Зупинити запис</sys:String>
+    <sys:String x:Key="StopRecordTip">Зупинити запис і зберегти файл</sys:String>
+    <sys:String x:Key="RecordSaved">Запис збережено: {0}</sys:String>
+    <sys:String x:Key="RecordSaveFailed">Не вдалося зберегти запис</sys:String>
+    <sys:String x:Key="Recording">Триває запис...</sys:String>
     <sys:String x:Key="FrameFolderLabel">Тека збережених файлів</sys:String>
     <sys:String x:Key="FrameFolderHint">Куди Трансляції зберігають кадри й архіви журналів. Залиште порожнім, щоб використовувати теку «Завантаження».</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Вибрати теку..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Використовувати «Завантаження»</sys:String>
+    <sys:String x:Key="FrameFolderReset">Використовувати «Завантаження»</sys:String>
+    <sys:String x:Key="FrameFolderOpen">Відкрити теку</sys:String>
     <sys:String x:Key="VolumeTip">Гучність відео</sys:String>
     <sys:String x:Key="VolumeName">Гучність відео</sys:String>
     <sys:String x:Key="AudioVolumeTip">Гучність аудіо</sys:String>
@@ -318,6 +330,8 @@
     <sys:String x:Key="TileLarge">Великий</sys:String>
     <sys:String x:Key="UpdateStreamPreviews">Автоматично оновлювати мініатюри потоків</sys:String>
     <sys:String x:Key="UpdateStreamPreviewsTip">Отримувати свіжі мініатюри видимих відеопотоків, доки активний режим сітки</sys:String>
+    <sys:String x:Key="HideAdultContent">Приховувати канали для дорослих</sys:String>
+    <sys:String x:Key="HideAdultContentTip">Не показувати канали з рубрики «Для дорослих» у каталозі та фільтрах</sys:String>
     <sys:String x:Key="PlaybackSettings">Відтворення</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">Не давати комп’ютеру засинати під час відтворення</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">Не давати системі засинати за таймером бездіяльності, доки грає потік; для відео екран також залишається увімкненим</sys:String>
@@ -529,5 +543,36 @@
     <sys:String x:Key="AboutCopied">Відомості про канал скопійовано.</sys:String>
     <sys:String x:Key="AboutCopyFailed">Windows не вдалося скопіювати відомості про канал.</sys:String>
     <sys:String x:Key="FrameRateValue">{0} кадр/с</sys:String>
-    <sys:String x:Key="SampleRateValue">{0} Гц</sys:String></ResourceDictionary>
-
+    <sys:String x:Key="SampleRateValue">{0} Гц</sys:String>
+    <!-- SP-0099 FastMediaSorter live-broadcast import -->
+    <sys:String x:Key="ImportSourceFileFilter">Трансляції та плейлисти (*.fmsbcast;*.m3u;*.m3u8)|*.fmsbcast;*.m3u;*.m3u8|Прямі трансляції (*.fmsbcast)|*.fmsbcast|Плейлисти (*.m3u;*.m3u8)|*.m3u;*.m3u8|Усі файли (*.*)|*.*</sys:String>
+    <sys:String x:Key="FmsBroadcastTitle">Імпорт прямої трансляції</sys:String>
+    <sys:String x:Key="FmsBroadcastConfirm">Імпортувати цю пряму трансляцію?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="FmsBroadcastAdded">Пряму трансляцію імпортовано: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUpdated">Пряму трансляцію оновлено: {0}.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedSchema">Цю трансляцію створено новішою версією програми. Оновіть StreamsPlayer, щоб її імпортувати. Ваш список не змінено.</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedMode">Цей режим трансляції ще не підтримується. Ваш список не змінено.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">Це некоректний опис трансляції FastMediaSorter. Ваш список не змінено.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">Опис трансляції більший за 64 КіБ. Ваш список не змінено.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">На пристрої «{0}» уже досягнуто максимальної кількості слухачів. Спробуйте знову, коли хтось від'єднається.</sys:String>
+    <sys:String x:Key="FmsBroadcastStopped">Пристрій «{0}» припинив трансляцію або більше недоступний у цій мережі.</sys:String>
+    <!-- SP-0098 portable stream catalog import -->
+    <sys:String x:Key="StreamCatalogSettings">Каталог трансляцій</sys:String>
+    <sys:String x:Key="StreamCatalogSettingsHint">Імпорт зовнішнього архіву каталогу (stream-catalog.zip), відновлення вбудованого знімка каталогу або видалення завантажених та імпортованих банків.</sys:String>
+    <sys:String x:Key="ImportCatalogFromFile">Імпортувати архів каталогу…</sys:String>
+    <sys:String x:Key="ImportCatalogFromFileTip">Імпортувати канали з архіву stream-catalog.zip</sys:String>
+    <sys:String x:Key="ImportCatalogFileFilter">Архіви каталогу трансляцій (*.zip)|*.zip|Усі файли (*.*)|*.*</sys:String>
+    <sys:String x:Key="ImportCatalogTitle">Імпорт архіву каталогу</sys:String>
+    <sys:String x:Key="ImportCatalogResult">Канали каталогу: додано {0}, оновлено {1}, видалено {2}.</sys:String>
+    <sys:String x:Key="ImportCatalogNoChannels">В архіві каталогу не знайдено каналів для імпорту. Ваш список не змінився.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidArchive">Цей файл не є коректним архівом каталогу трансляцій. Ваш список не змінився.</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidCsv">Архів каталогу містить некоректні дані CSV або неприпустиме кодування UTF-8. Ваш список не змінився.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">Архів каталогу або його дані CSV перевищують максимально допустимий розмір. Ваш список не змінився.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalog">Видалити імпортований каталог</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTip">Видалити всі потоки, додані з імпортованого архіву каталогу</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogHint">Видалення потоків, доданих з імпортованих архівів каталогу. Ваші створені канали та завантажений каталог залишаться.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTitle">Видалити імпортований каталог</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Видалити всі імпортовані потоки каталогу ({0:N0})? Ваші створені та завантажені потоки збережуться. Цю дію не можна скасувати.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogNone">Немає імпортованих потоків каталогу для видалення.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogResult">Видалено імпортованих потоків каталогу: {0:N0}.</sys:String>
+</ResourceDictionary>

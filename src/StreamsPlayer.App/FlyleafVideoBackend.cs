@@ -50,6 +50,8 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     private double _liveEdgeSpeed = 1d;
     private int _selectedAudioPos = -1;
     private int _selectedSubtitlePos = -1;
+    private bool _isRecording;
+    private string? _recordingFilePath;
 
     public FlyleafVideoBackend(int volume, bool muted, CurrentLog log)
     {
@@ -95,6 +97,58 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
 
     public bool Mute { set => _player.Audio.Mute = value; }
 
+    public bool IsRecording => _isRecording && _player.IsRecording;
+
+    public bool StartRecording(string targetDirectory, string? channelTitle)
+    {
+        if (_player.IsDisposed || !_player.IsPlaying)
+        {
+            return false;
+        }
+
+        try
+        {
+            var dir = string.IsNullOrWhiteSpace(targetDirectory) ? RecordedBroadcastWriter.ResolveFolder(null) : targetDirectory;
+            Directory.CreateDirectory(dir);
+
+            var fileName = RecordedBroadcastName.For(channelTitle, DateTimeOffset.Now, ".mp4");
+            _recordingFilePath = RecordedBroadcastWriter.ReserveUniquePath(dir, fileName);
+
+            _player.StartRecording(ref _recordingFilePath, false);
+            _isRecording = _player.IsRecording;
+            _log.Event("RECORD START", "engine=flyleaf", $"ok={_isRecording}", $"path={_recordingFilePath}");
+            return _isRecording;
+        }
+        catch (Exception ex)
+        {
+            _log.Event("RECORD START", "engine=flyleaf", "ok=false", $"err={ex.Message}");
+            return false;
+        }
+    }
+
+    public string? StopRecording()
+    {
+        if (!_isRecording)
+        {
+            return null;
+        }
+
+        _isRecording = false;
+        try
+        {
+            _player.StopRecording();
+            var saved = _recordingFilePath;
+            _recordingFilePath = null;
+            _log.Event("RECORD STOP", "engine=flyleaf", $"saved={saved}");
+            return File.Exists(saved) ? saved : null;
+        }
+        catch (Exception ex)
+        {
+            _log.Event("RECORD STOP", "engine=flyleaf", "ok=false", $"err={ex.Message}");
+            return null;
+        }
+    }
+
     public event Action<float>? BufferingChanged;
     public event Action? EndReached;
     public event Action? EncounteredError;
@@ -103,6 +157,11 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
 
     public bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling)
     {
+        if (_isRecording)
+        {
+            StopRecording();
+        }
+
         _reachedPlaying = false;
         _selectedAudioPos = -1;
         _selectedSubtitlePos = -1;
@@ -131,6 +190,11 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
 
     public Task StopAndDisposeAsync()
     {
+        if (_isRecording)
+        {
+            StopRecording();
+        }
+
         _player.BufferingStarted -= OnBufferingStarted;
         _player.BufferingCompleted -= OnBufferingCompleted;
         _player.OpenCompleted -= OnOpenCompleted;

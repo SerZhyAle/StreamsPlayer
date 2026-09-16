@@ -123,14 +123,36 @@
                 </Setter>
             </Style>
             <Style TargetType="ComboBoxItem">
-                <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-                <Setter Property="Padding" Value="7,4" />
-                <Style.Triggers>
-                    <Trigger Property="IsHighlighted" Value="True">
-                        <Setter Property="Background" Value="{DynamicResource ControlHoverBrush}" />
-                    </Trigger>
-                </Style.Triggers>
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Padding" Value="8,5" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ComboBoxItem">
+                            <Border x:Name="ItemBorder" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}" CornerRadius="4" Margin="1">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsHighlighted" Value="True">
+                                    <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource ControlHoverBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource CardSelectedBrush}" />
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.55" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
             <Style TargetType="ListBoxItem">
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
@@ -150,24 +172,41 @@
                 <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="3" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ContextMenu">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6"
+                                    Padding="{TemplateBinding Padding}"
+                                    SnapsToDevicePixels="True">
+                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
             <Style TargetType="MenuItem">
                 <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-                <Setter Property="Padding" Value="8,6" />
+                <Setter Property="Padding" Value="10,6" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="MenuItem">
                             <Grid>
-                                <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                <Border x:Name="ItemBorder" Background="{TemplateBinding Background}"
+                                        Padding="{TemplateBinding Padding}" CornerRadius="4" Margin="1">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="16" />
+                                            <ColumnDefinition Width="20" />
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="14" />
                                         </Grid.ColumnDefinitions>
                                         <Path x:Name="CheckMark" Data="M2,8 L6,12 L14,3" Stroke="{DynamicResource AccentBrush}"
-                                              StrokeThickness="2" StrokeLineJoin="Round" Visibility="Collapsed" />
+                                              StrokeThickness="2" StrokeLineJoin="Round" Visibility="Collapsed" VerticalAlignment="Center" />
                                         <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True"
                                                           VerticalAlignment="Center" />
                                         <Path x:Name="SubmenuArrow" Grid.Column="2" Data="M3,2 L8,7 L3,12" Stroke="{DynamicResource MutedBrush}"
@@ -178,7 +217,7 @@
                                 <Popup x:Name="PART_Popup" Placement="Right" AllowsTransparency="True" PopupAnimation="Fade"
                                        IsOpen="{TemplateBinding IsSubmenuOpen}">
                                     <Border Background="{DynamicResource ControlBrush}" BorderBrush="{DynamicResource BorderBrush}"
-                                            BorderThickness="1" Padding="2">
+                                            BorderThickness="1" Padding="3" CornerRadius="6">
                                         <StackPanel IsItemsHost="True" />
                                     </Border>
                                 </Popup>
@@ -373,6 +412,13 @@
             <Style x:Key="PlayerOverlayCameraGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphOnlyButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M3,7H7L9,5H15L17,7H21V19H3ZM12,10A3,3 0 1 0 12,16A3,3 0 1 0 12,10" /></Style.Resources>
             </Style>
+            <Style x:Key="PlayerOverlayRecordGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphOnlyButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M12,4A8,8 0 1 0 12,20A8,8 0 1 0 12,4" /></Style.Resources>
+            </Style>
+            <Style x:Key="PlayerOverlayStopRecordGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphOnlyButton}">
+                <Setter Property="Foreground" Value="#FFFF4D4D" />
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M6,6H18V18H6Z" /></Style.Resources>
+            </Style>
             <Style x:Key="PlayerOverlayFullscreenGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,10V4H10M14,4H20V10M20,14V20H14M10,20H4V14" /></Style.Resources>
             </Style>
@@ -500,6 +546,9 @@
             <Style x:Key="ClearFiltersGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M5,5L19,19M19,5L5,19" /></Style.Resources>
             </Style>
+            <Style x:Key="OpenFolderGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M2,4H9L11,7H22V20H2Z" /></Style.Resources>
+            </Style>
             <!-- SP-0050: the operations menu carries a word next to its glyph, so the three dots stay a
                  hint rather than the only thing distinguishing it from the gear beside it. -->
             <Style x:Key="OperationsGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
@@ -542,6 +591,10 @@
             <Style x:Key="QuickAudioFilterButton" TargetType="Button" BasedOn="{StaticResource QuickMediaFilterButton}">
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M4,10H8L13,6V18L8,14H4ZM16,9A4,4 0 0 1 16,15M18,7A7,7 0 0 1 18,17" /></Style.Resources>
             </Style>
+            <!-- SP-0100: a person - "the channels I brought", added by hand or imported. -->
+            <Style x:Key="QuickOwnFilterButton" TargetType="Button" BasedOn="{StaticResource QuickMediaFilterButton}">
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M12,3A4,4 0 1 0 12,11A4,4 0 1 0 12,3ZM4,21C4,16 8,14 12,14C16,14 20,16 20,21Z" /></Style.Resources>
+            </Style>
             <!-- SP-0034 decision 2: media transport glyphs are direction-independent by convention and
                  must not mirror with the layout. Left to inherit, WPF would flip this triangle to point
                  left under Arabic and Urdu, which reads as "rewind". Stop is a square and is pinned for
@@ -557,6 +610,10 @@
                 <Setter Property="FlowDirection" Value="LeftToRight" />
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M6,6H18V18H6Z" /></Style.Resources>
             </Style>
+            <Style x:Key="RecordGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M12,4A8,8 0 1 0 12,20A8,8 0 1 0 12,4" /></Style.Resources>
+            </Style>
             <!-- SP-0080: the compact panel's row has room for glyphs and nothing else, so the transport
                  pair gets caption-free variants. The shapes and the FlowDirection pin are the ones
                  above, restated here rather than shared, because a style cannot swap only its template
@@ -568,6 +625,24 @@
             <Style x:Key="StopGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
                 <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M6,6H18V18H6Z" /></Style.Resources>
+            </Style>
+            <Style x:Key="RecordGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M12,4A8,8 0 1 0 12,20A8,8 0 1 0 12,4" /></Style.Resources>
+            </Style>
+            <Style x:Key="StopRecordGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+                <Setter Property="Foreground" Value="#FFFF4D4D" />
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M6,6H18V18H6Z" /></Style.Resources>
+            </Style>
+            <!-- SP-0102: Compact panel previous/next station navigation glyph buttons, pinned to LeftToRight -->
+            <Style x:Key="PrevGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M6,6H8V18H6ZM9.5,12L18,18V6Z" /></Style.Resources>
+            </Style>
+            <Style x:Key="NextGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="FlowDirection" Value="LeftToRight" />
+                <Style.Resources><PathGeometry x:Key="GlyphGeometry" Figures="M16,6H18V18H16ZM6,18L14.5,12L6,6Z" /></Style.Resources>
             </Style>
             <!-- Two crossing arrows: the shuffle mark, and direction-independent for the same reason the
                  transport glyphs are - it says "any of them", not "forward". -->
@@ -607,7 +682,7 @@
             <Style TargetType="ComboBox">
                 <Setter Property="MinWidth" Value="120" />
                 <Setter Property="Margin" Value="3" />
-                <Setter Property="Padding" Value="5" />
+                <Setter Property="Padding" Value="7,5" />
                 <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
@@ -622,17 +697,17 @@
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
                                             <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3"
+                                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4"
                                                     Padding="{TemplateBinding Padding}">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="16" />
+                                                        <ColumnDefinition Width="18" />
                                                     </Grid.ColumnDefinitions>
                                                     <ContentPresenter VerticalAlignment="Center" Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                                                                       ContentTemplate="{Binding SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType=ComboBox}}" />
-                                                    <Path Grid.Column="1" Data="M2,5 L8,11 L14,5" Stroke="{DynamicResource TextBrush}"
-                                                          StrokeThickness="1.5" StrokeLineJoin="Round" />
+                                                    <Path Grid.Column="1" Data="M3,5 L8,10 L13,5" Stroke="{DynamicResource TextBrush}"
+                                                          StrokeThickness="1.5" StrokeLineJoin="Round" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,2,0" />
                                                 </Grid>
                                             </Border>
                                         </ControlTemplate>
@@ -640,9 +715,11 @@
                                 </ToggleButton>
                                 <Popup x:Name="PART_Popup" AllowsTransparency="True" Focusable="False" Placement="Bottom"
                                        IsOpen="{TemplateBinding IsDropDownOpen}" PopupAnimation="Slide">
-                                    <Border MinWidth="{Binding ActualWidth, ElementName=ToggleButton}" Background="{DynamicResource ControlBrush}"
-                                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="3">
-                                        <ScrollViewer Margin="2" SnapsToDevicePixels="True">
+                                    <Border MinWidth="{Binding ActualWidth, ElementName=ToggleButton}" MaxHeight="320"
+                                            Background="{DynamicResource ControlBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="6"
+                                            Padding="3" Margin="0,2,0,4">
+                                        <ScrollViewer MaxHeight="310" SnapsToDevicePixels="True" VerticalScrollBarVisibility="Auto">
                                             <ItemsPresenter />
                                         </ScrollViewer>
                                     </Border>

@@ -69,6 +69,13 @@ public partial class MainWindow
             return;
         }
 
+        var broadcast = FastMediaSorterBroadcastDescriptor.Read(text);
+        if (broadcast.Status != FastMediaSorterBroadcastReadStatus.NotBroadcast)
+        {
+            await ImportFastMediaSorterBroadcastAsync(broadcast, this);
+            return;
+        }
+
         var read = ChannelShareText.Read(text);
         if (read.Status != ChannelShareStatus.Ok)
         {

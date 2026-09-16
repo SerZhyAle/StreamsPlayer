@@ -47,6 +47,7 @@
     <sys:String x:Key="HideFilters">ফিল্টার ও সাজানো লুকান</sys:String>
     <sys:String x:Key="QuickVideoTip">দ্রুত ফিল্টার: শুধু ভিডিও</sys:String>
     <sys:String x:Key="QuickAudioTip">দ্রুত ফিল্টার: শুধু অডিও</sys:String>
+    <sys:String x:Key="QuickOwnTip">দ্রুত ফিল্টার: শুধু আমার চ্যানেল (যোগ করা বা আমদানি করা)</sys:String>
     <sys:String x:Key="Media">মিডিয়া</sys:String>
     <sys:String x:Key="MediaKindTip">মিডিয়ার ধরন</sys:String>
     <sys:String x:Key="MediaFilterName">মিডিয়া ফিল্টার</sys:String>
@@ -93,6 +94,7 @@
     <sys:String x:Key="AllOption">সব</sys:String>
     <sys:String x:Key="AudioOption">অডিও</sys:String>
     <sys:String x:Key="VideoOption">ভিডিও</sys:String>
+    <sys:String x:Key="OwnOption">আমার</sys:String>
     <sys:String x:Key="SortName">নাম</sys:String>
     <sys:String x:Key="SortTopic">বিষয়</sys:String>
     <sys:String x:Key="SortLanguage">ভাষা</sys:String>
@@ -263,7 +265,9 @@
     <sys:String x:Key="HistoryTip">সম্প্রতি চালানো চ্যানেল দেখুন</sys:String>
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">এলোমেলো স্টেশন</sys:String>
-    <sys:String x:Key="RandomStationTip">সম্পূর্ণ ক্যাটালগ থেকে এলোমেলোভাবে বেছে নেওয়া একটি রেডিও স্টেশন চালান</sys:String>
+    <sys:String x:Key="RandomStationTip">সম্পূর্ণ ক্যাটালগ থেকে এলোমেলোভাবে বেছে নেওয়া একটি রেডিও স্টেশন চালান</sys:String>
+    <sys:String x:Key="PrevStationTip">পূর্ববর্তী স্টেশন</sys:String>
+    <sys:String x:Key="NextStationTip">পরবর্তী স্টেশন</sys:String>
     <sys:String x:Key="RandomStationTrying">{0} চেষ্টা করা হচ্ছে… ({1}/{2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">{0}টি স্টেশন চেষ্টা করা হয়েছে, কোনোটিই সাড়া দেয়নি</sys:String>
     <sys:String x:Key="RandomStationNone">বেছে নেওয়ার মতো কোনো রেডিও স্টেশন নেই</sys:String>
@@ -290,10 +294,18 @@
     <sys:String x:Key="SaveFrameTip">বর্তমান ফ্রেমটি ছবির ফাইল হিসেবে এবং এই চ্যানেলের আইকন হিসেবে সংরক্ষণ করুন</sys:String>
     <sys:String x:Key="FrameSaved">ফ্রেম সংরক্ষিত হয়েছে: {0}</sys:String>
     <sys:String x:Key="FrameSaveFailed">ফ্রেম সংরক্ষণ করা যায়নি</sys:String>
+    <sys:String x:Key="Record">রেকর্ড করুন</sys:String>
+    <sys:String x:Key="RecordTip">লাইভ সম্প্রচার রেকর্ড করুন (R)</sys:String>
+    <sys:String x:Key="StopRecord">রেকর্ডিং বন্ধ করুন</sys:String>
+    <sys:String x:Key="StopRecordTip">রেকর্ডিং বন্ধ করুন এবং ফাইল সংরক্ষণ করুন</sys:String>
+    <sys:String x:Key="RecordSaved">রেকর্ডিং সংরক্ষিত হয়েছে: {0}</sys:String>
+    <sys:String x:Key="RecordSaveFailed">রেকর্ডিং সংরক্ষণ করা যায়নি</sys:String>
+    <sys:String x:Key="Recording">রেকর্ড হচ্ছে...</sys:String>
     <sys:String x:Key="FrameFolderLabel">সংরক্ষিত ফাইলের ফোল্ডার</sys:String>
     <sys:String x:Key="FrameFolderHint">STREAMS Player এখানে ফ্রেম ও লগ আর্কাইভ সংরক্ষণ করে। ডাউনলোড ফোল্ডার ব্যবহার করতে এটি খালি রাখুন।</sys:String>
     <sys:String x:Key="FrameFolderBrowse">ফোল্ডার বাছাই করুন..</sys:String>
-    <sys:String x:Key="FrameFolderReset">ডাউনলোড ব্যবহার করুন</sys:String>
+    <sys:String x:Key="FrameFolderReset">ডাউনলোড ব্যবহার করুন</sys:String>
+    <sys:String x:Key="FrameFolderOpen">ফোল্ডার খুলুন</sys:String>
     <sys:String x:Key="VolumeTip">ভিডিওর শব্দমাত্রা</sys:String>
     <sys:String x:Key="VolumeName">ভিডিওর শব্দমাত্রা</sys:String>
     <sys:String x:Key="AudioVolumeTip">অডিওর শব্দমাত্রা</sys:String>
@@ -318,6 +330,8 @@
     <sys:String x:Key="TileLarge">বড়</sys:String>
     <sys:String x:Key="UpdateStreamPreviews">স্ট্রিমের থাম্বনেইল স্বয়ংক্রিয়ভাবে হালনাগাদ করুন</sys:String>
     <sys:String x:Key="UpdateStreamPreviewsTip">গ্রিড মোড চালু থাকলে দৃশ্যমান ভিডিও স্ট্রিমের নতুন থাম্বনেইল নিন</sys:String>
+    <sys:String x:Key="HideAdultContent">প্রাপ্তবয়স্কদের চ্যানেল লুকান</sys:String>
+    <sys:String x:Key="HideAdultContentTip">ক্যাটালগ বা ফিল্টারে 'প্রাপ্তবয়স্ক' বিভাগের চ্যানেল দেখাবেন না</sys:String>
     <sys:String x:Key="PlaybackSettings">প্লেব্যাক</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">চলার সময় কম্পিউটার জাগিয়ে রাখুন</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">স্ট্রিম চলার সময় নিষ্ক্রিয়তার টাইমারে যন্ত্রটিকে ঘুমাতে দেবেন না; ভিডিওর ক্ষেত্রে পর্দাও চালু থাকে</sys:String>
@@ -529,5 +543,36 @@
     <sys:String x:Key="AboutCopied">চ্যানেলের বিবরণ কপি করা হয়েছে।</sys:String>
     <sys:String x:Key="AboutCopyFailed">Windows চ্যানেলের বিবরণ কপি করতে পারেনি।</sys:String>
     <sys:String x:Key="FrameRateValue">{0} fps</sys:String>
-    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String></ResourceDictionary>
-
+    <sys:String x:Key="SampleRateValue">{0} Hz</sys:String>
+    <!-- SP-0099 FastMediaSorter live-broadcast import -->
+    <sys:String x:Key="ImportSourceFileFilter">সম্প্রচার ও প্লেলিস্ট (*.fmsbcast;*.m3u;*.m3u8)|*.fmsbcast;*.m3u;*.m3u8|সরাসরি সম্প্রচার (*.fmsbcast)|*.fmsbcast|প্লেলিস্ট (*.m3u;*.m3u8)|*.m3u;*.m3u8|সব ফাইল (*.*)|*.*</sys:String>
+    <sys:String x:Key="FmsBroadcastTitle">সরাসরি সম্প্রচার আমদানি</sys:String>
+    <sys:String x:Key="FmsBroadcastConfirm">এই সরাসরি সম্প্রচার আমদানি করবেন?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
+    <sys:String x:Key="FmsBroadcastAdded">সরাসরি সম্প্রচার আমদানি করা হয়েছে: {0}।</sys:String>
+    <sys:String x:Key="FmsBroadcastUpdated">সরাসরি সম্প্রচার হালনাগাদ করা হয়েছে: {0}।</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedSchema">এই সম্প্রচারটি নতুন অ্যাপ দিয়ে তৈরি। আমদানি করতে StreamsPlayer হালনাগাদ করুন। আপনার তালিকা বদলানো হয়নি।</sys:String>
+    <sys:String x:Key="FmsBroadcastUnsupportedMode">এই সম্প্রচার মোড এখনও সমর্থিত নয়। আপনার তালিকা বদলানো হয়নি।</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">এটি বৈধ FastMediaSorter সম্প্রচার বর্ণনা নয়। আপনার তালিকা বদলানো হয়নি।</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">এই সম্প্রচার বর্ণনা 64 KiB-এর বেশি। আপনার তালিকা বদলানো হয়নি।</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0}-এ শ্রোতার সর্বোচ্চ সংখ্যা ইতিমধ্যে পূর্ণ। অন্য কোনো শ্রোতা সংযোগ বিচ্ছিন্ন করলে আবার চেষ্টা করুন।</sys:String>
+    <sys:String x:Key="FmsBroadcastStopped">{0} সম্প্রচার বন্ধ করেছে অথবা এই নেটওয়ার্কে আর পৌঁছানো যাচ্ছে না।</sys:String>
+    <!-- SP-0098 portable stream catalog import -->
+    <sys:String x:Key="StreamCatalogSettings">স্ট্রিম ক্যাটালগ</sys:String>
+    <sys:String x:Key="StreamCatalogSettingsHint">একটি বহিরাগত স্ট্রিম ক্যাটালগ আর্কাইভ (stream-catalog.zip) আমদানি করুন, বান্ডিলযুক্ত ক্যাটালগ স্ন্যাপশট পুনরুদ্ধার করুন, বা ডাউনলোড এবং আমদানি করা ক্যাটালগ ব্যাঙ্ক মুছুন।</sys:String>
+    <sys:String x:Key="ImportCatalogFromFile">ক্যাটালগ আর্কাইভ আমদানি করুন…</sys:String>
+    <sys:String x:Key="ImportCatalogFromFileTip">stream-catalog.zip আর্কাইভ থেকে চ্যানেল আমদানি করুন</sys:String>
+    <sys:String x:Key="ImportCatalogFileFilter">স্ট্রিম ক্যাটালগ আর্কাইভ (*.zip)|*.zip|সমস্ত ফাইল (*.*)|*.*</sys:String>
+    <sys:String x:Key="ImportCatalogTitle">ক্যাটালগ আর্কাইভ আমদানি</sys:String>
+    <sys:String x:Key="ImportCatalogResult">ক্যাটালগ চ্যানেল: {0} যোগ করা হয়েছে, {1} আপডেট করা হয়েছে, {2} সরানো হয়েছে।</sys:String>
+    <sys:String x:Key="ImportCatalogNoChannels">ক্যাটালগ আর্কাইভে কোনো আমদানিযোগ্য চ্যানেল পাওয়া যায়নি। আপনার তালিকা পরিবর্তন করা হয়নি।</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidArchive">এটি একটি বৈধ স্ট্রিম ক্যাটালগ আর্কাইভ নয়। আপনার তালিকা পরিবর্তন করা হয়নি।</sys:String>
+    <sys:String x:Key="ImportCatalogInvalidCsv">ক্যাটালগ আর্কাইভে অবৈধ CSV ডেটা বা অবৈধ UTF-8 এনকোডিং রয়েছে। আপনার তালিকা পরিবর্তন করা হয়নি।</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">ক্যাটালগ আর্কাইভ বা এর CSV ডেটা অনুমোদিত সর্বাধিক আকার অতিক্রম করেছে। আপনার তালিকা পরিবর্তন করা হয়নি।</sys:String>
+    <sys:String x:Key="DeleteImportedCatalog">আমদানি করা ক্যাটালগ মুছুন</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTip">আমদানি করা ক্যাটালগ আর্কাইভ থেকে আসা প্রতিটি স্ট্রিম সরান</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogHint">আমদানি করা ক্যাটালগ আর্কাইভ থেকে আসা স্ট্রিমগুলি সরান। আপনার যোগ করা এবং ডাউনলোড করা ক্যাটালগ স্ট্রিমগুলি থাকবে।</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogTitle">আমদানি করা ক্যাটালগ মুছুন</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">সমস্ত আমদানি করা ক্যাটালগ স্ট্রিম ({0:N0}) মুছবেন? আপনার যোগ করা এবং ডাউনলোড করা স্ট্রিমগুলি রাখা হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogNone">মুছার জন্য কোনো আমদানি করা ক্যাটালগ স্ট্রিম নেই।</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogResult">আমদানি করা ক্যাটালগ স্ট্রিম মোছা হয়েছে: {0:N0}।</sys:String>
+</ResourceDictionary>

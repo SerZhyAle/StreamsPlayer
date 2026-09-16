@@ -1,12 +1,10 @@
 namespace StreamsPlayer.Core;
 
 /// <summary>
-/// SP-0030: explicit, user-confirmed removal of every downloaded catalog row, so a user who only
-/// wants their own RTSP or hand-added channels is not left browsing the shared stream bank.
-/// The counterpart of the merge contract: <see cref="CatalogMerger"/> never touches user rows, and
-/// neither does this - only <see cref="SourceOrigin.Catalog"/> rows are dropped. Everything else in
-/// the state (hidden identities, favicon atlas, last refresh time, history, preferences) is left
-/// as-is; the purge is not an opt-out, and an explicit refresh legitimately downloads them again.
+/// SP-0030 & SP-0098: explicit, user-confirmed removal of catalog rows:
+/// - <see cref="RemoveDownloaded"/> removes only <see cref="SourceOrigin.Catalog"/> rows.
+/// - <see cref="RemoveImportedBank"/> removes only <see cref="SourceOrigin.LocalCatalog"/> rows.
+/// Neither touches user-authored rows (Manual/Imported).
 /// </summary>
 public static class CatalogPurge
 {
@@ -30,5 +28,33 @@ public static class CatalogPurge
             .ToList();
 
         return new CatalogPurgeResult(state with { Channels = kept }, removedIds);
+    }
+
+    public static int CountImportedBank(IEnumerable<StreamChannel> channels) =>
+        channels.Count(channel => channel.SourceOrigin == SourceOrigin.LocalCatalog);
+
+    public static CatalogPurgeResult RemoveImportedBank(CatalogState state)
+    {
+        var removedIds = state.Channels
+            .Where(channel => channel.SourceOrigin == SourceOrigin.LocalCatalog)
+            .Select(channel => channel.Id)
+            .ToList();
+
+        if (removedIds.Count == 0)
+        {
+            return new CatalogPurgeResult(state, []);
+        }
+
+        var kept = state.Channels
+            .Where(channel => channel.SourceOrigin != SourceOrigin.LocalCatalog)
+            .ToList();
+
+        var newState = state with { Channels = kept };
+        if (!kept.Any(channel => channel.FaviconSource == FaviconSource.Imported))
+        {
+            newState = newState with { ImportedAtlasFileName = null };
+        }
+
+        return new CatalogPurgeResult(newState, removedIds);
     }
 }

@@ -41,4 +41,37 @@ public partial class MainWindow
         ApplyFilter();
         SetStatus("DeleteDownloadedResult", purge.RemovedChannelIds.Count);
     }
+
+    private async Task DeleteImportedCatalogAsync(Window owner)
+    {
+        var count = CatalogPurge.CountImportedBank(_state.Channels);
+        if (count == 0)
+        {
+            MessageBox.Show(owner, LocalizationService.Get("DeleteImportedCatalogNone"),
+                LocalizationService.Get("DeleteImportedCatalogTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        if (MessageBox.Show(owner, LocalizationService.Format("DeleteImportedCatalogConfirm", count),
+                LocalizationService.Get("DeleteImportedCatalogTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning)
+            != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        var purge = CatalogPurge.RemoveImportedBank(_state);
+        var collections = purge.RemovedChannelIds.Aggregate(
+            (IReadOnlyList<ChannelCollection>)purge.State.Collections,
+            ChannelCollections.RemoveChannelEverywhere);
+        _state = await PersistAsync(purge.State with { Collections = [.. collections] });
+        foreach (var id in purge.RemovedChannelIds)
+        {
+            ForgetRow(id);
+        }
+
+        _log.Event("IMPORTED CATALOG PURGE", $"removed={purge.RemovedChannelIds.Count}");
+        PopulateFacets();
+        ApplyFilter();
+        SetStatus("DeleteImportedCatalogResult", purge.RemovedChannelIds.Count);
+    }
 }

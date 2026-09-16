@@ -30,9 +30,15 @@ public partial class CompactPanelWindow : Window
 
     public event EventHandler? ExpandRequested;
 
+    public event EventHandler? PreviousRequested;
+
+    public event EventHandler? NextRequested;
+
     public event EventHandler? TransportRequested;
 
     public event EventHandler? RandomRequested;
+
+    public event EventHandler? RecordRequested;
 
     public event EventHandler? SleepTimerRequested;
 
@@ -91,6 +97,57 @@ public partial class CompactPanelWindow : Window
         }
     }
 
+    public void ShowRecording(bool hasStation, bool isRecording)
+    {
+        RecordButton.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
+        RecordButton.Style = (Style)FindResource(isRecording ? "StopRecordGlyphOnlyButton" : "RecordGlyphOnlyButton");
+        var tip = isRecording ? "StopRecordTip" : "RecordTip";
+        var name = isRecording ? "StopRecord" : "Record";
+        RecordButton.SetResourceReference(ToolTipProperty, tip);
+        RecordButton.SetResourceReference(System.Windows.Automation.AutomationProperties.NameProperty, name);
+    }
+
+    public void ShowNavigation(bool hasStation, bool canPrevious, bool canNext)
+    {
+        PrevStationButton.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
+        NextStationButton.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
+        PrevStationButton.IsEnabled = canPrevious;
+        NextStationButton.IsEnabled = canNext;
+    }
+
+    public void ShowChannel(ChannelRow? row, bool playing)
+    {
+        if (row is null)
+        {
+            FaviconImage.Source = null;
+            FaviconImage.Visibility = Visibility.Collapsed;
+            MonogramPlate.Visibility = Visibility.Collapsed;
+            PlayingIndicator.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        if (row.Favicon is not null)
+        {
+            FaviconImage.Source = row.Favicon;
+            FaviconImage.Visibility = Visibility.Visible;
+            MonogramPlate.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            FaviconImage.Source = null;
+            FaviconImage.Visibility = Visibility.Collapsed;
+            MonogramPlate.Visibility = Visibility.Visible;
+            MonogramPlate.Background = row.MonogramBrush;
+            MonogramText.Text = row.MonogramText;
+            MonogramText.Foreground = row.MonogramForeground;
+            CountryCodeBadge.Visibility = row.CountryCodeVisibility;
+            CountryCodeText.Text = row.CountryCode;
+            CountryCodeText.Foreground = row.MonogramForeground;
+        }
+
+        PlayingIndicator.Visibility = playing ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     public void ShowSleepTimer(bool visible, object? content, object? tooltip)
     {
         SleepTimerButton.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
@@ -110,7 +167,13 @@ public partial class CompactPanelWindow : Window
 
     private void SleepTimerButton_Click(object sender, RoutedEventArgs e) => SleepTimerRequested?.Invoke(this, EventArgs.Empty);
 
+    private void PrevStationButton_Click(object sender, RoutedEventArgs e) => PreviousRequested?.Invoke(this, EventArgs.Empty);
+
+    private void NextStationButton_Click(object sender, RoutedEventArgs e) => NextRequested?.Invoke(this, EventArgs.Empty);
+
     private void RandomButton_Click(object sender, RoutedEventArgs e) => RandomRequested?.Invoke(this, EventArgs.Empty);
+
+    private void RecordButton_Click(object sender, RoutedEventArgs e) => RecordRequested?.Invoke(this, EventArgs.Empty);
 
     private void TransportButton_Click(object sender, RoutedEventArgs e) => TransportRequested?.Invoke(this, EventArgs.Empty);
 

@@ -165,6 +165,107 @@ public sealed class CatalogMergerTests
         Assert.Distinct(refreshed.Channels.Select(channel => channel.Url));
     }
 
+    // SP-0098: Local catalog import merges channels as SourceOrigin.LocalCatalog
+    [Fact]
+    public void Merge_LocalCatalogImport_StampsLocalCatalogOrigin()
+    {
+        var entry = Entry("Local Channel", "https://example.test/local", MediaKind.Video);
+        var options = new CatalogMergeOptions(
+            RemoveMissing: false,
+            FaviconSource: FaviconSource.Imported,
+            TargetOrigin: SourceOrigin.LocalCatalog);
+
+        var result = CatalogMerger.Merge([], [entry], Now, options);
+
+        var channel = Assert.Single(result.Channels);
+        Assert.Equal(SourceOrigin.LocalCatalog, channel.SourceOrigin);
+        Assert.Equal(FaviconSource.Imported, channel.FaviconSource);
+        Assert.Equal(1, result.Added);
+    }
+
+    // SP-0098: Local catalog import does not overwrite or duplicate existing SourceOrigin.Catalog rows
+    [Fact]
+    public void Merge_LocalCatalogImport_PreservesExistingCatalogRowOnCollision()
+    {
+        var existingCatalog = Channel("https://example.test/shared", SourceOrigin.Catalog) with
+        {
+            Title = "Published Catalog Station"
+        };
+        var incomingLocal = Entry("Local Bank Station", existingCatalog.Url, MediaKind.Video);
+        var options = new CatalogMergeOptions(
+            RemoveMissing: false,
+            FaviconSource: FaviconSource.Imported,
+            TargetOrigin: SourceOrigin.LocalCatalog);
+
+        var result = CatalogMerger.Merge([existingCatalog], [incomingLocal], Now, options);
+
+        var channel = Assert.Single(result.Channels);
+        Assert.Equal(existingCatalog.Id, channel.Id);
+        Assert.Equal("Published Catalog Station", channel.Title);
+        Assert.Equal(SourceOrigin.Catalog, channel.SourceOrigin);
+        Assert.Equal(0, result.Added);
+        Assert.Equal(0, result.Updated);
+    }
+
+    // SP-0098: Network refresh never prunes LocalCatalog rows
+    [Fact]
+    public void Merge_OnlineRefresh_NeverPrunesLocalCatalogRows()
+    {
+        var localChannel = Channel("https://example.test/local-exclusive", SourceOrigin.LocalCatalog) with
+        {
+            Title = "Local Exclusive"
+        };
+        var publishedChannel = Channel("https://example.test/published", SourceOrigin.Catalog) with
+        {
+            Title = "Published"
+        };
+        var networkEntry = Entry("Published Updated", publishedChannel.Url, MediaKind.Video);
+
+        var result = CatalogMerger.Merge([localChannel, publishedChannel], [networkEntry], Now);
+
+        Assert.Equal(2, result.Channels.Count);
+        Assert.Contains(result.Channels, c => c.Id == localChannel.Id && c.SourceOrigin == SourceOrigin.LocalCatalog);
+        var updatedPublished = Assert.Single(result.Channels, c => c.Id == publishedChannel.Id);
+        Assert.Equal("Published Updated", updatedPublished.Title);
+        Assert.Equal(0, result.Removed);
+    }
+
+    // SP-0098: Network refresh updates colliding LocalCatalog rows and promotes them to Catalog
+    [Fact]
+    public void Merge_OnlineRefresh_PromotesCollidingLocalCatalogRowToCatalog()
+    {
+        var localChannel = Channel("https://example.test/promoted", SourceOrigin.LocalCatalog) with
+        {
+            Title = "Local Old Title",
+            Pinned = true
+        };
+        var networkEntry = Entry("Published New Title", localChannel.Url, MediaKind.Video);
+
+        var result = CatalogMerger.Merge([localChannel], [networkEntry], Now);
+
+        var channel = Assert.Single(result.Channels);
+        Assert.Equal(localChannel.Id, channel.Id);
+        Assert.Equal("Published New Title", channel.Title);
+        Assert.Equal(SourceOrigin.Catalog, channel.SourceOrigin);
+        Assert.True(channel.Pinned);
+        Assert.Equal(0, result.Added);
+        Assert.Equal(1, result.Updated);
+    }
+
+    // SP-0098: URLs differing only by casing/normalization are treated as collisions
+    [Fact]
+    public void Merge_NormalizesUrlsForCollisionDetection()
+    {
+        var existing = Channel("https://example.test:443/Stream", SourceOrigin.Catalog);
+        var incoming = Entry("Case Normalized", "HTTPS://EXAMPLE.TEST/Stream", MediaKind.Audio);
+
+        var result = CatalogMerger.Merge([existing], [incoming], Now);
+
+        var channel = Assert.Single(result.Channels);
+        Assert.Equal(existing.Id, channel.Id);
+        Assert.Equal("Case Normalized", channel.Title);
+    }
+
     private static StreamChannel Channel(string url, SourceOrigin origin) => new()
     {
         Id = Guid.NewGuid(),

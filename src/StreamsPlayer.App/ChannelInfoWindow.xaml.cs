@@ -53,6 +53,14 @@ public partial class ChannelInfoWindow : Window
             return;
         }
 
+        // SP-0099: a FastMediaSorter watch serves four listeners, and a measurement is one of them - it
+        // can take the slot the person is about to listen with. Such a source is never opened from here.
+        if (FastMediaSorterBroadcastImport.IsFastMediaSorterBroadcast(_channel))
+        {
+            ShowTransmission(ChannelFactSheet.DescribeTransmission(null, measured: false));
+            return;
+        }
+
         var measured = await StreamTransmissionProbe.MeasureAsync(_channel.Url, _measurement.Token);
         if (_measurement.IsCancellationRequested)
         {
