@@ -99,6 +99,18 @@ public partial class MainWindow
         StreamsScroll?.ScrollToTop();
     }
 
+    /// <summary>
+    /// How often a save may be made that carries nothing but a new scroll position.
+    /// </summary>
+    /// <remarks>
+    /// The debounce below collapses a burst of scroll events, not a browse: each wheel notch lands more
+    /// than 350 ms after the last, so every one of them wrote the file. This is the second, coarser
+    /// limit that the scroll case alone is held to; a filter, a sort or a search still writes on the
+    /// debounce, and the close path writes unconditionally, so the position the user actually left the
+    /// list at is never the one that is lost.
+    /// </remarks>
+    private static readonly TimeSpan ScrollOnlySaveInterval = TimeSpan.FromSeconds(5);
+
     private void ScheduleBrowsingSessionSave()
     {
         if (!_preferencesLoaded || _restoringBrowsingSession)
@@ -107,6 +119,7 @@ public partial class MainWindow
         }
 
         _browsingSessionSaveTimer.Stop();
+        _browsingSessionSaveTimer.Interval = BrowsingSessionSaveDebounce;
         _browsingSessionSaveTimer.Start();
     }
 
@@ -116,7 +129,7 @@ public partial class MainWindow
         await SaveBrowsingSessionAsync();
     }
 
-    private async Task SaveBrowsingSessionAsync()
+    private async Task SaveBrowsingSessionAsync(bool force = false)
     {
         if (!_preferencesLoaded)
         {
@@ -148,6 +161,23 @@ public partial class MainWindow
             return;
         }
 
+        // A save that carries a new scroll position and nothing else is held to ScrollOnlySaveInterval.
+        // The timer is re-armed for exactly what is left of that interval rather than for the debounce,
+        // so the resting position still lands - once - without this branch being re-entered every 350 ms.
+        var now = DateTimeOffset.UtcNow;
+        if (!force && updated.DiffersOnlyByScrollOffset(_session))
+        {
+            var sinceLastWrite = now - _lastBrowsingSessionWriteUtc;
+            if (sinceLastWrite < ScrollOnlySaveInterval)
+            {
+                _browsingSessionSaveTimer.Stop();
+                _browsingSessionSaveTimer.Interval = ScrollOnlySaveInterval - sinceLastWrite;
+                _browsingSessionSaveTimer.Start();
+                return;
+            }
+        }
+
+        _lastBrowsingSessionWriteUtc = now;
         _session = updated;
         await PersistSessionAsync();
         CatalogPerf("SaveBrowsingSessionAsync", started, "wrote=true", $"bytes={SessionFileBytes()}");

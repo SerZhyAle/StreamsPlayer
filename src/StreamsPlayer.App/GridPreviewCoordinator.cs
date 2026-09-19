@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
@@ -32,6 +33,10 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
     private readonly HashSet<string> _pending = new(StringComparer.Ordinal);
     private readonly HashSet<string> _visibleUrls = new(StringComparer.Ordinal);
     private readonly Dictionary<string, DateTimeOffset> _lastHoverCapture = new(StringComparer.Ordinal);
+    // A source that just failed to yield a frame is not asked again on the next scroll; see
+    // PreviewCaptureCooldown for the evidence and for why only the automatic path is held back.
+    private readonly PreviewCaptureCooldown _failureCooldown = new();
+    private readonly object _failureGate = new();
     // Per-URL cancellation for captures that are already running, so a tile scrolled out of view aborts.
     private readonly Dictionary<string, CancellationTokenSource> _inflight = new(StringComparer.Ordinal);
     private readonly object _pendingGate = new();
@@ -127,6 +132,7 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         var rows = await _dispatcher.InvokeAsync(_visibleRows);
         var restoredFromStore = 0;
         var captureable = 0;
+        var cooledDown = 0;
         lock (_pendingGate)
         {
             _visibleUrls.Clear();
@@ -164,14 +170,18 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
 
             // Stored previews always show; auto-capture of a first-time blank only when the setting is on.
             // Explicit refresh always captures - but only while a capture session exists.
-            if (session is not null && (force || (!hasStored && _autoCaptureEnabled())))
+            if (session is not null && (force || (!hasStored && _autoCaptureEnabled())) &&
+                Enqueue(url, force) == PreviewEnqueueOutcome.UnderCooldown)
             {
-                Enqueue(url, force);
+                cooledDown++;
             }
         }
 
+        // cooledDown is why this pass queued fewer captures than it had blank tiles: without it a fix
+        // that stops retrying dead sources is indistinguishable in the log from one that stopped working.
         _diagnostics?.Invoke("PREVIEW VISIBLE",
-            [$"rows={rows.Count}", $"captureable={captureable}", $"restored={restoredFromStore}", $"force={force}"]);
+            [$"rows={rows.Count}", $"captureable={captureable}", $"restored={restoredFromStore}", $"force={force}",
+             $"cooldown={cooledDown}"]);
     }
 
     public async Task StopAsync()
@@ -314,18 +324,41 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         }
     }
 
-    private void Enqueue(string url, bool force)
+    /// <summary>Queues a capture, and says why when it does not.</summary>
+    private PreviewEnqueueOutcome Enqueue(string url, bool force)
     {
+        // An explicit request - a hover dwell or an explicit refresh - is the user asking for this tile
+        // now, and clears the cooldown instead of being stopped by it.
+        lock (_failureGate)
+        {
+            if (force)
+            {
+                _failureCooldown.Forget(url);
+            }
+            else if (_failureCooldown.IsSuppressed(url, DateTimeOffset.UtcNow))
+            {
+                return PreviewEnqueueOutcome.UnderCooldown;
+            }
+        }
+
         lock (_pendingGate)
         {
             if (!_pending.Add(url))
             {
-                return;
+                return PreviewEnqueueOutcome.AlreadyPending;
             }
         }
 
         _queue.Enqueue(new PreviewRequest(url, force));
         _signal.Release();
+        return PreviewEnqueueOutcome.Queued;
+    }
+
+    private enum PreviewEnqueueOutcome
+    {
+        Queued,
+        AlreadyPending,
+        UnderCooldown
     }
 
     private async Task RunWorkerAsync(CancellationToken cancellationToken)
@@ -364,9 +397,20 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
                 var frame = await _captureService.CaptureAsync(request.Url, captureCts.Token);
                 if (frame is null)
                 {
+                    lock (_failureGate)
+                    {
+                        _failureCooldown.RecordFailure(request.Url, DateTimeOffset.UtcNow);
+                    }
+
                     _reportCaptureFailure?.Invoke(request.Url);
                     await ApplyReachabilityAsync(request.Url, false);
                     continue;
+                }
+
+                lock (_failureGate)
+                {
+                    // A source that answers is not a source under cooldown, whatever it did before.
+                    _failureCooldown.Forget(request.Url);
                 }
 
                 _memoryCache.Put(request.Url, frame);

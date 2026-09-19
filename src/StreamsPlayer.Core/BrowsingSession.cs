@@ -46,4 +46,19 @@ public sealed record BrowsingSession
     /// nothing starts a stream from it, so it restores a highlight and nothing more.
     /// </summary>
     public Guid? LastSelectedChannelId { get; init; }
+
+    /// <summary>
+    /// True when this session and <paramref name="other"/> disagree about <see cref="ScrollOffset"/> and
+    /// about nothing else.
+    /// </summary>
+    /// <remarks>
+    /// The one field a user can change hundreds of times without meaning anything by it. Every other
+    /// field moves on a deliberate action - a keystroke, a facet, a sort - and is worth a write the
+    /// moment it moves; the scroll offset moves on the wheel. Measured in the owner's archive of
+    /// 2026-09-06: 541 session writes, one every ~0.75 s through a long browse, because the offset is
+    /// different on every debounce tick and so the equality check that exists to skip an unchanged save
+    /// never matches. The caller uses this to rate-limit the scroll case alone.
+    /// </remarks>
+    public bool DiffersOnlyByScrollOffset(BrowsingSession other) =>
+        !ScrollOffset.Equals(other.ScrollOffset) && (this with { ScrollOffset = other.ScrollOffset }) == other;
 }

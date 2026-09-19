@@ -527,6 +527,16 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   merged manifests are UTF-8 **with BOM** and **LF** - confirmed 2026-08-26 by fetching 26.0809.0022,
   26.0819.0156 and 26.0820.1828 raw from the contents API, all three 671 bytes, BOM present, zero CRLF.
 
+- **An agent can drive the WPF grid itself for a rung-7 observation, but only by posting the message.**
+  `SetForegroundWindow` + `mouse_event(MOUSEEVENTF_WHEEL)` from a background PowerShell does nothing
+  useful - Windows refuses the focus change, the wheel lands on whatever is focused, and the log shows
+  only `PREVIEW COORD state=stopping/started` from the activation churn. `PostMessage(hwnd,
+  WM_MOUSEWHEEL, delta << 16, (y << 16) | x)` with the cursor parked over the list works without focus
+  and produces real `ScrollChanged` events. Two traps beside it: `CloseMainWindow()` on a process whose
+  `MainWindowHandle` is a **player** window closes only that window and leaves the catalog running - and
+  that instance keeps holding `Current.log`, so the next launch takes the SP-0085 reserve path and the
+  evidence is in `Session-<stamp>.log`, not in the file you are tailing (2026-09-19).
+
 ## References
 
 - Toolbar glyph icons: `App.xaml`'s shared `GlyphButton` template applies **both**

@@ -86,6 +86,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // while it saves, so events keep arriving right through the teardown that disposes the two sources
     // above. Every preview entry point reads it; see MainWindow.Previews.cs.
     private bool _shuttingDown;
+    // SP-0067: collapses a burst of events into one save. The interval is also the value the scroll-only
+    // rate limit restores when it hands the timer back; see MainWindow.BrowsingSession.cs.
+    private static readonly TimeSpan BrowsingSessionSaveDebounce = TimeSpan.FromMilliseconds(350);
     private readonly DispatcherTimer _browsingSessionSaveTimer;
     // SP-0096: the radio's half of the open budget. A timer rather than PlaybackOpenBudget itself
     // because MediaElement publishes no counters at all - there is nothing to observe, so the rule
@@ -99,6 +102,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // SP-0067: a pixel offset read off the scroll event, not a channel identity searched for among the
     // rows. See RestoreScrollAnchorAsync for why approximate is the accepted answer here.
     private double _lastScrollOffset;
+    // When the session was last actually written. Read by SaveBrowsingSessionAsync to hold a save that
+    // carries nothing but a new scroll position to its own, coarser interval.
+    private DateTimeOffset _lastBrowsingSessionWriteUtc;
     private ScrollViewer? _streamsScroll;
 
     internal MainWindow(CurrentLog log, StreamLaunchRequest? launchRequest = null)
@@ -111,7 +117,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _sessionStore = new BrowsingSessionStore(_dataDirectory);
         _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("StreamsPlayer/0.1");
-        _browsingSessionSaveTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
+        _browsingSessionSaveTimer = new DispatcherTimer { Interval = BrowsingSessionSaveDebounce };
         _browsingSessionSaveTimer.Tick += BrowsingSessionSaveTimer_Tick;
         _audioOpenTimer = new DispatcherTimer { Interval = PlaybackOpenBudget.OpenDeadline };
         _audioOpenTimer.Tick += AudioOpenTimer_Tick;

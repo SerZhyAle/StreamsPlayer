@@ -336,7 +336,9 @@ public partial class MainWindow
         // window - alive. The sleep ticker repeats and stops itself only when its deadline arrives or the
         // user cancels it, so quitting with a sleep timer armed left one running against a closed window.
         StopSleepTicker();
-        await SaveBrowsingSessionAsync();
+        // force: the scroll-only rate limit must never be what decides whether the position the user
+        // left the list at survives the session.
+        await SaveBrowsingSessionAsync(force: true);
         _viewportDebounce?.Cancel();
         _viewportDebounce?.Dispose();
         _viewportDebounce = null;

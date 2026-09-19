@@ -43,6 +43,10 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     private long _rateTicks;
     private double _rateSeconds;
     private readonly PlaybackStatsFilter _statsFilter = new();
+    // Engine log records arrive on engine threads; the filter is single-threaded, so it gets its own gate.
+    // Deliberately not reset per leg: the repetition worth collapsing spans reconnects.
+    private readonly EngineLogNoiseFilter _logNoise = new();
+    private readonly object _logNoiseGate = new();
     // Written under _mediaGate on the teardown thread, read without it by the audio setters below.
     private volatile bool _disposed;
     private bool _isRecording;
@@ -756,17 +760,42 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
     private void LibVlc_Log(object? sender, LogEventArgs e)
     {
-        if (e.Level is LogLevel.Warning or LogLevel.Error)
+        if (e.Level is not (LogLevel.Warning or LogLevel.Error))
         {
-            // SP-0097: direct3d11 taskbar preview clip adjustment is known harmless noise; suppress it
-            // so hundreds of false Error lines do not pollute the session log or mask real engine failures.
-            if (string.Equals(e.Module, "direct3d11", StringComparison.OrdinalIgnoreCase) &&
-                e.Message?.Contains("SetThumbNailClip", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                return;
-            }
-
-            _log.Event("VLC", $"level={e.Level}", $"module={e.Module}", $"msg={e.Message}");
+            return;
         }
+
+        // SP-0097: direct3d11 taskbar preview clip adjustment is known harmless noise; suppress it
+        // so hundreds of false Error lines do not pollute the session log or mask real engine failures.
+        // Kept as a named case beneath the general filter below, because this one is worth nothing even
+        // once, while every other repeated shape is worth exactly once.
+        if (string.Equals(e.Module, "direct3d11", StringComparison.OrdinalIgnoreCase) &&
+            e.Message?.Contains("SetThumbNailClip", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return;
+        }
+
+        // The general rule the named case above could never be: one line per distinct message shape per
+        // window, then a line carrying how many of its kind were swallowed. Engine threads raise this
+        // callback, and EngineLogNoiseFilter is deliberately not thread-safe, so the gate is ours.
+        EngineLogSample sample;
+        lock (_logNoiseGate)
+        {
+            sample = _logNoise.Observe(e.Module ?? string.Empty, e.Message, Stopwatch.GetTimestamp(), Stopwatch.Frequency);
+        }
+
+        if (!sample.ShouldLog)
+        {
+            return;
+        }
+
+        if (sample.SuppressedRepeats > 0)
+        {
+            _log.Event("VLC", $"level={e.Level}", $"module={e.Module}", $"msg={e.Message}",
+                $"repeats={sample.SuppressedRepeats}");
+            return;
+        }
+
+        _log.Event("VLC", $"level={e.Level}", $"module={e.Module}", $"msg={e.Message}");
     }
 }
