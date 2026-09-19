@@ -61,6 +61,80 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.0919.1523
+
+Refreshed built-in channel snapshot, a grid that stops retrying channels whose preview never arrives,
+and diagnostic reports that stay readable through a long session.
+
+```text
+Version 26.0919.1523
+
+- Refreshed the built-in channel list snapshot (18 473 live streams as of 2026-09-19).
+- The grid no longer keeps retrying a channel whose preview cannot be captured, so the working ones fill in sooner.
+- Diagnostic reports are readable again: a repeated engine message is written once with a count instead of thousands of times.
+```
+
+```text
+Версия 26.0919.1523
+
+- Обновлён встроенный список каналов (18 473 активных потока от 19.09.2026).
+- Сетка больше не пытается снова и снова получить превью канала, который его не отдаёт, поэтому рабочие заполняются быстрее.
+- Диагностические отчёты снова читаемы: повторяющееся сообщение движка пишется один раз со счётчиком, а не тысячи раз.
+```
+
+```text
+Версія 26.0919.1523
+
+- Оновлено вбудований список каналів (18 473 активних потоки від 19.09.2026).
+- Сітка більше не намагається знову й знову отримати прев'ю каналу, який його не віддає, тож робочі заповнюються швидше.
+- Діагностичні звіти знову читабельні: повторюване повідомлення рушія пишеться один раз із лічильником, а не тисячі разів.
+```
+
+#### Store-only What's new for 26.0919.1523
+
+The Store still carries 26.0806.2225, so this block is the accumulated one described above: everything
+a Store user has not seen yet, not only what this stamp added. It inherits the 26.0916.2054 block and
+folds this release into its last line.
+
+```text
+Version 26.0919.1523
+
+- Channels the catalog gives no logo now carry a mark of their own - initials from the name, a colour drawn from that same name, and the country code where it is known.
+- A channel the catalog stops publishing keeps your pins, your collections and your history instead of vanishing, and returns on its own if the catalog lists it again.
+- The catalog can shrink to a compact radio panel while a station plays - always on top, carrying the station, the current track, the volume, the transport, the sleep timer and Random station.
+- Play a random station. One press picks from the whole catalog, ignoring the search and the facets, and skips hidden stations, video and RTSP.
+- A built-in channel list. A copy of the stream bank ships inside the app, so the catalog fills on a first launch with no network. It adds and updates, never removes, and says how old it is.
+- A topic filter, sharing a channel as one line of text, playback that resumes where the last session left off, and what is on air under the channel name.
+- The player says why the picture stopped, a stream that stalls while pretending to play is caught and re-opened, and video quality follows the connection and is remembered per channel.
+- Fixed - the grid no longer keeps retrying a channel whose preview never arrives, diagnostic reports stay readable, a long station name could take the desktop shortcut down, dark-theme glyph buttons were unreadable, and a radio stream that ended kept the machine awake.
+```
+
+```text
+Версия 26.0919.1523
+
+- Каналы, которым каталог не дал логотипа, теперь несут собственный знак - инициалы из названия, цвет, выведенный из того же названия, и код страны, если он известен.
+- Канал, который каталог перестал публиковать, сохраняет ваши закрепления, подборки и историю вместо того, чтобы исчезнуть, и возвращается сам, если каталог снова его перечислит.
+- Каталог умеет ужаться до компактной радиопанели, пока играет станция - поверх других окон, со станцией, текущим треком, громкостью, управлением, таймером сна и случайной станцией.
+- Включить случайную станцию. Одно нажатие выбирает из всего каталога, не глядя на поиск и фасеты, и пропускает скрытые станции, видео и RTSP.
+- Встроенный список каналов. Копия банка потоков лежит внутри программы, поэтому каталог заполняется при первом запуске без сети. Он добавляет и обновляет, ничего не удаляет.
+- Фильтр по темам, отправка канала одной строкой текста, продолжение воспроизведения с места прошлого сеанса и трек, который станция играет прямо сейчас, под названием канала.
+- Плеер объясняет, почему картинка остановилась, поток, который делает вид, что играет, переоткрывается, а качество видео следует за соединением и запоминается для канала.
+- Исправлено - сетка больше не пытается снова и снова получить превью канала, который его не отдаёт, диагностические отчёты остаются читаемыми, длинное название станции могло уронить ярлык, кнопки-глифы в тёмной теме были нечитаемы, а завершившееся радио держало компьютер без сна.
+```
+
+```text
+Версія 26.0919.1523
+
+- Канали, яким каталог не дав логотипа, тепер несуть власний знак - ініціали з назви, колір, виведений із тієї самої назви, і код країни, якщо він відомий.
+- Канал, який каталог перестав публікувати, зберігає ваші закріплення, добірки та історію замість того, щоб зникнути, і повертається сам, якщо каталог знову його перелічить.
+- Каталог уміє стиснутися до компактної радіопанелі, поки грає станція - поверх інших вікон, зі станцією, поточним треком, гучністю, керуванням, таймером сну та випадковою станцією.
+- Увімкнути випадкову станцію. Одне натискання обирає з усього каталогу, не зважаючи на пошук і фасети, і пропускає приховані станції, відео та RTSP.
+- Вбудований список каналів. Копія банку потоків лежить усередині програми, тож каталог заповнюється при першому запуску без мережі. Він додає та оновлює, нічого не видаляє.
+- Фільтр за темами, надсилання каналу одним рядком тексту, продовження відтворення з місця минулого сеансу і трек, який станція грає просто зараз, під назвою каналу.
+- Програвач пояснює, чому картинка зупинилася, потік, який вдає, що грає, перевідкривається, а якість відео йде за з'єднанням і запам'ятовується для каналу.
+- Виправлено - сітка більше не намагається знову й знову отримати прев'ю каналу, який його не віддає, діагностичні звіти лишаються читабельними, довга назва станції могла впустити програму під час винесення ярлика, кнопки-гліфи в темній темі були нечитабельні, а радіо, що завершилося, тримало комп'ютер без сну.
+```
+
 ### Prepared for 26.0916.2054
 
 Refreshed built-in channel snapshot and improved stream playback resilience, broadcast contracts, and diagnostic reporting.

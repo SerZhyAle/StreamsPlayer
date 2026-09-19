@@ -1,0 +1,5 @@
+Version 26.0919.1523
+
+- Refreshed the built-in channel list snapshot (18 473 live streams as of 2026-09-19).
+- The grid no longer keeps retrying a channel whose preview cannot be captured, so the working ones fill in sooner.
+- Diagnostic reports are readable again: a repeated engine message is written once with a count instead of thousands of times.
