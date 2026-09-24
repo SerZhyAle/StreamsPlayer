@@ -8,10 +8,10 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://serzhyale.github.io/StreamsPlayer/</PackageProjectUrl>
-    <Version>26.0919.1523</Version>
-    <AssemblyVersion>26.0919.1523</AssemblyVersion>
-    <FileVersion>26.0919.1523</FileVersion>
-    <InformationalVersion>26.0919.1523</InformationalVersion>
+    <Version>26.0924.1655</Version>
+    <AssemblyVersion>26.0924.1655</AssemblyVersion>
+    <FileVersion>26.0924.1655</FileVersion>
+    <InformationalVersion>26.0924.1655</InformationalVersion>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>

@@ -63,7 +63,103 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
-### Prepared for 26.0919.1523
+### Prepared for 26.0924.1655
+
+Supersedes 26.0919.1523, which was stamped and never tagged: its lines are carried here. An animated
+backdrop, the Tools window with plain-language failure causes, now-playing from the Icecast status page,
+a retried publish window, contract-aligned icons, dark scrollbars, the install-trust page and a
+refreshed snapshot. The three blocks below are the files `msix/listing/release-notes/26.0924.1655.*.txt`.
+
+```text
+Version 26.0924.1655
+
+- A calm animated background moves behind the station that is playing - on its card, its tile and the compact panel. Switch it off in Settings.
+- The "now playing" line appears on more radio stations: when a stream sends no track title, it is read from the station's status page.
+- A new Tools window (Operations menu) gathers catalog import and cleanup, playlists, hidden channels, video components and sending logs to the author. Settings now changes only settings, and only when you press Save.
+- When something fails, the message names the cause - network, damaged data or a file on this computer - and what to do, instead of a technical error.
+- Updating the catalog no longer fails in the short moment the channel list is being republished; it waits and tries again.
+- Clearer icons: every button draws one shape per meaning, the same in the app, the help and the site.
+- Scrollbars follow the dark theme.
+- A new page on the site explains the Windows "protected your PC" warning and how to install safely.
+- The grid stops retrying a channel whose preview never arrives, and diagnostic reports stay readable through a long session.
+- Refreshed the built-in channel list snapshot (18 506 live streams as of 2026-09-23).
+```
+
+```text
+Версия 26.0924.1655
+
+- За играющей станцией движется спокойный анимированный фон - на её карточке, плитке и в компактной панели. Отключается в настройках.
+- Строка «сейчас в эфире» появляется у большего числа радиостанций: если поток не передаёт название трека, оно берётся со страницы состояния станции.
+- Новое окно «Инструменты» (меню «Операции») собрало импорт и очистку каталога, плейлисты, скрытые каналы, видеокомпоненты и отправку журналов автору. Настройки теперь меняют только настройки и только по кнопке «Сохранить».
+- При сбое сообщение называет причину - сеть, повреждённые данные или файл на этом компьютере - и что делать, а не техническую ошибку.
+- Обновление каталога больше не падает в короткий момент, когда список каналов перепубликуется: оно ждёт и пробует снова.
+- Понятнее значки: у каждого значения одна форма, одинаковая в приложении, справке и на сайте.
+- Полосы прокрутки следуют тёмной теме.
+- Новая страница сайта объясняет предупреждение Windows «Система Windows защитила ваш компьютер» и как установить приложение безопасно.
+- Сетка больше не пытается снова и снова получить превью канала, который его не отдаёт, а диагностические отчёты остаются читаемыми в долгом сеансе.
+- Обновлён встроенный список каналов (18 506 активных потоков от 23.09.2026).
+```
+
+```text
+Версія 26.0924.1655
+
+- За станцією, що грає, рухається спокійне анімоване тло - на її картці, плитці та в компактній панелі. Вимикається в налаштуваннях.
+- Рядок «зараз в ефірі» з'являється в більшої кількості радіостанцій: якщо потік не передає назву треку, її беруть зі сторінки стану станції.
+- Нове вікно «Інструменти» (меню «Операції») зібрало імпорт і очищення каталогу, плейлисти, приховані канали, відеокомпоненти та надсилання журналів авторові. Налаштування тепер змінюють лише налаштування і лише кнопкою «Зберегти».
+- У разі збою повідомлення називає причину - мережа, пошкоджені дані чи файл на цьому комп'ютері - і що робити, а не технічну помилку.
+- Оновлення каталогу більше не падає в короткий момент, коли список каналів перепублікується: воно чекає і пробує знову.
+- Зрозуміліші значки: кожне значення має одну форму, однакову в програмі, довідці та на сайті.
+- Смуги прокрутки відповідають темній темі.
+- Нова сторінка сайту пояснює попередження Windows «Windows захистила ваш комп'ютер» і як безпечно встановити програму.
+- Сітка більше не намагається знову й знову отримати прев'ю каналу, який його не віддає, а діагностичні звіти лишаються читабельними в довгому сеансі.
+- Оновлено вбудований список каналів (18 506 активних потоків від 23.09.2026).
+```
+
+#### Store-only What's new for 26.0924.1655
+
+The Store still carries 26.0806.2225, so this block is the accumulated one: everything a Store user has
+not seen yet. It folds the 26.0919.1523 block into shorter lines to stay under 1 500 characters.
+
+```text
+Version 26.0924.1655
+
+- Record the video or radio you are playing to a file, and listen to a live audio broadcast from a FastMediaSorter phone or watch over your local network.
+- A calm animated background behind the playing station, and a compact radio panel with the track, volume, sleep timer and Random station.
+- The "now playing" line on more stations, a topic filter, sharing a channel as one line of text, and playback that resumes where the last session left off.
+- Channels without a logo carry initials and a colour from the name; a channel the catalog drops keeps your pins, collections and history.
+- A built-in channel list fills the catalog on a first launch with no network.
+- A Tools window for catalog, playlist and component work; Settings saves only on Save; errors name the cause and what to do.
+- The player says why the picture stopped, re-opens a stalled stream and remembers per channel the quality the connection holds.
+- Clearer icons, dark-theme scrollbars, and fixes to grid previews, diagnostic reports, desktop shortcuts and sleep.
+```
+
+```text
+Версия 26.0924.1655
+
+- Запись играющего видео или радио в файл и прямой звуковой эфир с телефона или часов с FastMediaSorter по локальной сети.
+- Спокойный анимированный фон за играющей станцией и компактная радиопанель с треком, громкостью, таймером сна и случайной станцией.
+- Строка «сейчас в эфире» у большего числа станций, фильтр по темам, отправка канала одной строкой текста и продолжение с места прошлого сеанса.
+- Каналы без логотипа несут инициалы и цвет из названия; канал, который каталог убрал, сохраняет закрепления, подборки и историю.
+- Встроенный список каналов заполняет каталог при первом запуске без сети.
+- Окно «Инструменты» для работы с каталогом, плейлистами и компонентами; настройки сохраняются только по кнопке «Сохранить»; ошибки называют причину и что делать.
+- Плеер объясняет, почему картинка остановилась, переоткрывает зависший поток и запоминает для канала качество, которое тянет соединение.
+- Понятнее значки, полосы прокрутки в тёмной теме и исправления превью сетки, диагностических отчётов, ярлыков и режима сна.
+```
+
+```text
+Версія 26.0924.1655
+
+- Запис відео чи радіо, що грає, у файл і прямий звуковий ефір із телефона чи годинника з FastMediaSorter через локальну мережу.
+- Спокійне анімоване тло за станцією, що грає, і компактна радіопанель із треком, гучністю, таймером сну та випадковою станцією.
+- Рядок «зараз в ефірі» в більшої кількості станцій, фільтр за темами, надсилання каналу одним рядком тексту і продовження з місця минулого сеансу.
+- Канали без логотипа несуть ініціали й колір із назви; канал, який каталог прибрав, зберігає закріплення, добірки та історію.
+- Вбудований список каналів заповнює каталог під час першого запуску без мережі.
+- Вікно «Інструменти» для роботи з каталогом, плейлистами та компонентами; налаштування зберігаються лише кнопкою «Зберегти»; помилки називають причину і що робити.
+- Програвач пояснює, чому картинка зупинилася, перевідкриває завислий потік і запам'ятовує для каналу якість, яку тримає з'єднання.
+- Зрозуміліші значки, смуги прокрутки в темній темі та виправлення прев'ю сітки, діагностичних звітів, ярликів і режиму сну.
+```
+
+### Prepared for 26.0919.1523 (stamped, never tagged - superseded by 26.0924.1655)
 
 Refreshed built-in channel snapshot, a grid that stops retrying channels whose preview never arrives,
 and diagnostic reports that stay readable through a long session.

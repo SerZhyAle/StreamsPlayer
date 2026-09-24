@@ -1,0 +1,12 @@
+Version 26.0924.1655
+
+- A calm animated background moves behind the station that is playing - on its card, its tile and the compact panel. Switch it off in Settings.
+- The "now playing" line appears on more radio stations: when a stream sends no track title, it is read from the station's status page.
+- A new Tools window (Operations menu) gathers catalog import and cleanup, playlists, hidden channels, video components and sending logs to the author. Settings now changes only settings, and only when you press Save.
+- When something fails, the message names the cause - network, damaged data or a file on this computer - and what to do, instead of a technical error.
+- Updating the catalog no longer fails in the short moment the channel list is being republished; it waits and tries again.
+- Clearer icons: every button draws one shape per meaning, the same in the app, the help and the site.
+- Scrollbars follow the dark theme.
+- A new page on the site explains the Windows "protected your PC" warning and how to install safely.
+- The grid stops retrying a channel whose preview never arrives, and diagnostic reports stay readable through a long session.
+- Refreshed the built-in channel list snapshot (18 506 live streams as of 2026-09-23).

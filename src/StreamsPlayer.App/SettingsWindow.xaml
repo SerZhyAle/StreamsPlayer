@@ -9,9 +9,15 @@
         <!-- Monochrome tab-strip icon: an ICON-SET glyph (Glyphs.xaml), filled, at the 20 tier, never
              mirrored (SP-0113). -->
         <Style x:Key="TabIcon" TargetType="Path">
-            <Setter Property="Width" Value="20" />
-            <Setter Property="Height" Value="20" />
-            <Setter Property="Stretch" Value="Uniform" />
+            <!-- The 24 grid drawn at the 20 tier: scaled as a whole, so every tab glyph keeps its own margin
+                 (ICON-RENDER 5) instead of being stretched to its ink. -->
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="LayoutTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="0.8333" ScaleY="0.8333" />
+                </Setter.Value>
+            </Setter>
             <Setter Property="Margin" Value="0,0,8,0" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Fill" Value="{DynamicResource TextBrush}" />
@@ -71,11 +77,12 @@
                                          picker adds no key to thirteen dictionaries, and it survives a screenshot
                                          and a high-contrast theme. Screen readers learn which entry is active from
                                          the selection pattern - the active language is selected when the tab
-                                         opens - so nothing is lost by the marker being a symbol. -->
-                                    <TextBlock Grid.Column="1" Text="&#x2713;"
-                                               Visibility="{Binding ActiveMarkerVisibility}"
-                                               Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center"
-                                               Margin="8,0" />
+                                         opens - so nothing is lost by the marker being a picture. SP-0113: the
+                                         same drawn tick as a checked menu item, not a font's text symbol. -->
+                                    <Path Grid.Column="1" Data="{StaticResource Chrome.menu-check}"
+                                          Visibility="{Binding ActiveMarkerVisibility}"
+                                          Stroke="{DynamicResource MutedBrush}" StrokeThickness="2" StrokeLineJoin="Round"
+                                          VerticalAlignment="Center" Margin="8,0" />
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
