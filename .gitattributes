@@ -20,6 +20,13 @@
 # round trip, so git must leave the bytes alone.
 msix/store-listing-export.sample.csv -text
 
+# SP-0113: the vendored ICON-SET glyphs are byte-for-byte copies of the contract catalog, pinned by
+# SHA-256 in assets/glyphs/PROVENANCE.txt and checked by IconographyConformanceTests. A Windows
+# checkout with core.autocrlf=true turned their LF into CRLF and broke every hash on the release
+# runner (v26.0924.1655), so git must leave these bytes alone.
+assets/glyphs/**/*.svg -text
+docs/assets/glyphs/*.svg -text
+
 *.ico binary
 *.png binary
 *.jpg binary
