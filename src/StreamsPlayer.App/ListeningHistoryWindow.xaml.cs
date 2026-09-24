@@ -48,8 +48,16 @@ public partial class ListeningHistoryWindow : Window
 
     private async void Clear_Click(object sender, RoutedEventArgs e)
     {
+        // APP-BEHAVIOUR rule 5 (SP-0114): nothing to clear is a message, never a silent no-op and never a
+        // confirmation of nothing - the same answer the catalog purge gives (MainWindow.CatalogPurge.cs).
         if (_rows.Count == 0)
         {
+            MessageBox.Show(
+                this,
+                LocalizationService.Get("HistoryClearNone"),
+                LocalizationService.Get("HistoryTitle"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
             return;
         }
 

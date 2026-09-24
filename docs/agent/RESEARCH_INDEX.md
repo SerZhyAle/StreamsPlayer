@@ -6,7 +6,7 @@ Start research with `README.md`, then the relevant `PLAN/` ticket, then locate s
 - `src/StreamsPlayer.App`: WPF windows, UI coordination, favicon loading, and presentation helpers.
 - `tests/StreamsPlayer.Core.Tests`: Core behavioural and contract tests.
 - `tools/StreamsPlayer.CatalogHarness`: live catalog-bank smoke/contract harness.
-- `docs/specifications/streams.txt`: standalone product specification.
+- `docs/contracts/`: one pointer per shared contract - id, version, home, role. Read the pointer first, then the contract itself in the store `CLAUDE.md` names; never reason about a contract from this repository's own code comments.
 
 For a ticket-bound investigation, save a concise cited dossier in its ticket directory or `temp/<ticket>/`, then link only durable findings from the ticket. Do not repeatedly grep a question already answered by a dossier.
 

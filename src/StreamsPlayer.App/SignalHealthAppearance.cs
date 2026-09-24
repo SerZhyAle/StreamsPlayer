@@ -7,7 +7,7 @@ namespace StreamsPlayer.App;
 /// SP-0045: how each signal-health state looks and what it is called. One place, so a colour can never
 /// ship without the word that goes with it - colour is never the only carrier of the state.
 ///
-/// <para>The colours are fixed rather than taken from the app theme: this stripe lives on the player's
+/// <para>Out of theme (APP-STYLE 5). The colours are fixed rather than taken from the app theme: this stripe lives on the player's
 /// own dark translucent panel, floating over arbitrary video, which the theme does not reach. They are
 /// picked to stay apart for the common colour-vision deficiencies by lightness as well as hue, and the
 /// tooltip carries the state in words regardless.</para>

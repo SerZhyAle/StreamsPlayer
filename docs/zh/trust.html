@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-Hans" dir="ltr" data-theme="dark" data-lang="zh" data-entry="false">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="为什么 STREAMS Player 首次运行前 Windows SmartScreen 会发出警告、具体该点哪里，以及这款应用绝不会做的事。">
+    <meta name="theme-color" content="#0a0f0a">
+    <title>Windows 已保护你的电脑 - 该点哪里 - STREAMS Player</title>
+    <link rel="canonical" href="https://serzhyale.github.io/StreamsPlayer/zh/trust.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/trust.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/trust.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/trust.html">
+    <link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/trust.html">
+    <link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/trust.html">
+    <link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/trust.html">
+    <link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/trust.html">
+    <link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/trust.html">
+    <link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/trust.html">
+    <link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/trust.html">
+    <link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/trust.html">
+    <link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/trust.html">
+    <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/trust.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/trust.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="STREAMS Player">
+    <meta property="og:title" content="Windows 已保护你的电脑 - 该点哪里 - STREAMS Player">
+    <meta property="og:description" content="为什么 STREAMS Player 首次运行前 Windows SmartScreen 会发出警告、具体该点哪里，以及这款应用绝不会做的事。">
+    <meta property="og:url" content="https://serzhyale.github.io/StreamsPlayer/zh/trust.html">
+    <meta property="og:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="STREAMS Player">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Windows 已保护你的电脑 - 该点哪里 - STREAMS Player">
+    <meta name="twitter:description" content="为什么 STREAMS Player 首次运行前 Windows SmartScreen 会发出警告、具体该点哪里，以及这款应用绝不会做的事。">
+    <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Windows 已保护你的电脑 - 该点哪里 - STREAMS Player","description":"为什么 STREAMS Player 首次运行前 Windows SmartScreen 会发出警告、具体该点哪里，以及这款应用绝不会做的事。","url":"https://serzhyale.github.io/StreamsPlayer/zh/trust.html","isPartOf":{"@type":"WebSite","name":"STREAMS Player","url":"https://serzhyale.github.io/StreamsPlayer/"}}</script>
+    <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <script type="application/json" id="language-urls">{"en":"../trust.html","ru":"../ru/trust.html","uk":"../uk/trust.html","de":"../de/trust.html","it":"../it/trust.html","es":"../es/trust.html","fr":"../fr/trust.html","pt":"../pt/trust.html","zh":"../zh/trust.html","hi":"../hi/trust.html","bn":"../bn/trust.html","ar":"../ar/trust.html","ur":"../ur/trust.html"}</script>
+    <script>
+      (function () {
+        var root = document.documentElement;
+        var systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        var theme = systemTheme;
+        var stored = null;
+        try {
+          theme = localStorage.getItem("streamsplayer-theme") || systemTheme;
+          stored = localStorage.getItem("streamsplayer-lang");
+        } catch (error) {
+          theme = systemTheme;
+        }
+        root.dataset.theme = theme;
+
+        // Language redirect. Only the canonical English root redirects: a visitor who asked for
+        // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
+        // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
+        if (root.dataset.entry !== "true") {
+          return;
+        }
+        var urls = {};
+        try {
+          urls = JSON.parse(document.getElementById("language-urls").textContent);
+        } catch (error) {
+          return;
+        }
+        var target = null;
+        if (stored && urls[stored]) {
+          target = stored;
+        } else if (!stored) {
+          // Walk the visitor's preference list in order and match on the base subtag, so de-AT
+          // reaches the German page. The table comes from the generated page, never from a list
+          // written here.
+          var preferred = navigator.languages && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language || "en"];
+          for (var i = 0; i < preferred.length && !target; i += 1) {
+            var base = String(preferred[i]).toLowerCase().split("-")[0];
+            if (urls[base]) {
+              target = base;
+            }
+          }
+        }
+        if (target && target !== root.dataset.lang) {
+          window.location.replace(urls[target]);
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../site.js" defer></script>
+  </head>
+  <body data-page="trust">
+    <a class="skip-link" href="#content">跳到正文</a>
+    <div class="background-glow" aria-hidden="true">
+      <div class="glow glow-one"></div>
+      <div class="glow glow-two"></div>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="../zh/">
+        <img src="../assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="主导航">
+        <a class="header-link" href="../zh/#features">功能</a>
+        <a class="header-link" href="trust.html" aria-current="page">安装帮助</a>
+        <a class="header-link" href="privacy.html">隐私</a>
+      </nav>
+      <div class="language-switcher">
+        <select id="languageSelect" aria-label="网站语言">
+          <option value="../trust.html" data-code="en" lang="en">English</option>
+          <option value="../ru/trust.html" data-code="ru" lang="ru">Русский</option>
+          <option value="../uk/trust.html" data-code="uk" lang="uk">Українська</option>
+          <option value="../de/trust.html" data-code="de" lang="de">Deutsch</option>
+          <option value="../it/trust.html" data-code="it" lang="it">Italiano</option>
+          <option value="../es/trust.html" data-code="es" lang="es">Español</option>
+          <option value="../fr/trust.html" data-code="fr" lang="fr">Français</option>
+          <option value="../pt/trust.html" data-code="pt" lang="pt">Português (Brasil)</option>
+          <option value="../zh/trust.html" data-code="zh" lang="zh-Hans" selected>简体中文</option>
+          <option value="../hi/trust.html" data-code="hi" lang="hi">हिन्दी</option>
+          <option value="../bn/trust.html" data-code="bn" lang="bn">বাংলা</option>
+          <option value="../ar/trust.html" data-code="ar" lang="ar">العربية</option>
+          <option value="../ur/trust.html" data-code="ur" lang="ur">اردو</option>
+        </select>
+        <noscript>
+          <ul class="language-list">
+            <li><a href="../trust.html" lang="en">English</a></li>
+            <li><a href="../ru/trust.html" lang="ru">Русский</a></li>
+            <li><a href="../uk/trust.html" lang="uk">Українська</a></li>
+            <li><a href="../de/trust.html" lang="de">Deutsch</a></li>
+            <li><a href="../it/trust.html" lang="it">Italiano</a></li>
+            <li><a href="../es/trust.html" lang="es">Español</a></li>
+            <li><a href="../fr/trust.html" lang="fr">Français</a></li>
+            <li><a href="../pt/trust.html" lang="pt">Português (Brasil)</a></li>
+            <li><a href="../zh/trust.html" lang="zh-Hans">简体中文</a></li>
+            <li><a href="../hi/trust.html" lang="hi">हिन्दी</a></li>
+            <li><a href="../bn/trust.html" lang="bn">বাংলা</a></li>
+            <li><a href="../ar/trust.html" lang="ar">العربية</a></li>
+            <li><a href="../ur/trust.html" lang="ur">اردو</a></li>
+          </ul>
+        </noscript>
+      </div>
+      <button class="theme-button" id="themeButton" type="button" aria-label="切换配色主题">◐</button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">GitHub</a>
+    </header>
+
+    <!-- SP-0105, contract INSTALL-TRUST rule 1: four sections, in this order - what the warning is, why
+         it appears, what to click, what the app never does. The order and the ids are pinned by
+         InstallTrustPageTests; a reader who lands on #trust-click alone must still be unblocked. -->
+    <main class="container privacy-main" id="content">
+      <span class="eyebrow">STREAMS Player · 安装</span>
+      <h1>Windows 发出了警告。这是它的含义。</h1>
+      <p class="privacy-intro">STREAMS Player 是一位独立开发者制作的免费应用。如果您第一次打开下载的文件时被 Windows 拦下，本页会说明那个界面是什么、为什么会出现、具体该点哪里，以及这款应用绝不会做的事。读完大约只需三十秒。</p>
+
+      <div class="privacy-card">
+        <section class="privacy-section" id="trust-what" aria-labelledby="trust-what-title">
+          <h2 id="trust-what-title">“Windows 已保护你的电脑”</h2>
+          <p>这个界面是 Microsoft Defender SmartScreen（在英文版 Windows 上，标题为“Windows protected your PC”）。标题下方写着它“阻止了无法识别的应用启动”，点击“更多信息”后，发布者显示为“未知发布者”。当您打开一个从互联网下载、没有数字签名、而且 Windows 还没有在许多电脑上见过其运行的文件时，就会出现这个界面。</p>
+          <p>这是针对一个 Windows 还不认识的文件的提醒，而不是说在文件里发现了什么 - 这也是 Windows 在尽职：它无法判断一个未签名的文件是谁制作的，所以在运行之前先问您。</p>
+        </section>
+
+        <section class="privacy-section" id="trust-why" aria-labelledby="trust-why-title">
+          <h2 id="trust-why-title">为什么这款应用会出现这个界面</h2>
+          <p>STREAMS Player 的安装程序、便携版 ZIP 和 winget 软件包都没有代码签名。代码签名证书每年要花费数百美元，对于一款没有任何收入的免费应用，我们目前选择不购买。这是一个决定，而不是疏忽 - 对于未签名的文件，发出警告正是 Windows 应该做的。</p>
+          <p>SmartScreen 还会参考信誉：运行同一个文件且没有出问题的人越多，Windows 就越早认出它，警告也就不再出现。每次发布都是一个从零开始的新文件，所以更新之后警告可能再次出现，并会随着该版本被更多人使用而逐渐消失。</p>
+          <p>Microsoft Store 版本由 Microsoft 签名，不会显示这个界面。每次 GitHub 发布也会在每个下载文件旁附上一个 .sha256 文件：在 PowerShell 中对您下载的文件运行 <code dir="ltr">Get-FileHash -Algorithm SHA256 &lt;file&gt;</code>，结果应与该文件中的值一致。</p>
+        </section>
+
+        <section class="privacy-section" id="trust-click" aria-labelledby="trust-click-title">
+          <h2 id="trust-click-title">该点哪里</h2>
+          <p>在“Windows 已保护你的电脑”界面上：</p>
+          <ol class="trust-list">
+            <li>点击消息下方的“更多信息”（More info）。</li>
+            <li>确认文件名是您下载的 STREAMS Player 文件，然后点击“仍要运行”（Run anyway）。</li>
+          </ol>
+          <p>就这些 - 安装程序，或 ZIP 中的应用，会正常启动。您永远不需要关闭 SmartScreen 或禁用杀毒软件，应用本身也从不需要管理员权限。</p>
+
+          <h3>“你要允许来自未知发布者的此应用对你的设备进行更改吗？”</h3>
+          <p>通常您不会看到这个提示。安装程序默认只为您一人安装到 <code dir="ltr">%LOCALAPPDATA%\Programs\StreamsPlayer</code>，为此不需要管理员权限。如果它询问安装方式，请选择“Install for me only (recommended)”（仅为我安装，推荐）。</p>
+          <p>只有当您选择“Install for all users”（为所有用户安装）时，Windows 才会显示这个提示。此时安装程序只把管理员权限用于以下三件事：</p>
+          <ul class="trust-list">
+            <li>把程序复制到 Program Files 文件夹，让这台电脑上的每个账户都能运行它；</li>
+            <li>把 STREAMS Player 添加到每个账户的“开始”菜单，如果您勾选了相应选项，还会添加到公用桌面；</li>
+            <li>在 Windows 中把它登记为已安装的应用，以便日后可以卸载。</li>
+          </ul>
+          <p>一个操作就能同时撤销这三项：设置 &gt; 应用 &gt; 已安装的应用（Windows 10 上为“应用和功能”）&gt; STREAMS Player &gt; 卸载。如果您不想授予管理员权限，请点击“否”（No），然后重新运行安装程序并选择“Install for me only”（仅为我安装）。</p>
+
+          <h3>如果杀毒软件拦下了文件</h3>
+          <p>有些杀毒软件对新的、未签名的文件比较谨慎。如果您的杀毒软件隔离了 STREAMS Player，请把它恢复，并只为它所在的文件夹添加例外 - 安装程序版为 <code dir="ltr">%LOCALAPPDATA%\Programs\StreamsPlayer</code>，ZIP 版则是您解压到的文件夹。只需为这一个文件夹添加例外即可，您随时可以删除它；不要关闭杀毒软件。</p>
+        </section>
+
+        <section class="privacy-section" id="trust-never" aria-labelledby="trust-never-title">
+          <h2 id="trust-never-title">STREAMS Player 绝不会做的事</h2>
+          <ul class="trust-list">
+            <li>它安装和运行都从不需要管理员权限，从不把自己加入 Windows 启动项，也不安装任何后台服务。</li>
+            <li>它没有账户、广告、分析统计或遥测，也没有任何由作者运营、会经手您数据的服务。</li>
+            <li>它只在您操作时联网，并且只连接该操作所需的地方：GitHub 上的公开流目录及其可选预览包；您播放、录制或预览的流的提供方；您自己网络中运行 FastMediaSorter 的手机或手表；以及您在“工具”中请求时才下载的可选 FFmpeg 库。</li>
+            <li>它从不自行下载目录 - 只有在您要求时才会更新。</li>
+            <li>它从不自行把您的数据或日志发往任何地方。“工具”中的“向作者发送日志”只会准备一个压缩包，并在您自己的邮件程序中写好一封邮件；在您于邮件程序中点击“发送”之前，什么都不会发出。</li>
+            <li>卸载它从不会删除您的频道、置顶或播放记录 - 它们会留在 <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>，直到您自己删除该文件夹。</li>
+          </ul>
+          <div class="button-group">
+            <a class="button button-ghost button-small" href="privacy.html">阅读隐私页面</a>
+            <a class="button button-ghost button-small" href="https://github.com/SerZhyAle/StreamsPlayer/issues">GitHub issues</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-row">
+        <span>© 2026 Serhii Zhyhunenko</span>
+        <span class="footer-links">
+          <a href="privacy.html">隐私</a>
+          <a href="trust.html">安装帮助</a>
+          <a href="https://sza.od.ua/">更多工具</a>
+          <a href="https://github.com/SerZhyAle">GitHub</a>
+          <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+        </span>
+      </div>
+      <div class="container machine-note">
+        <p>本页面由机器翻译，未经母语人士校对。</p>
+      </div>
+    </footer>
+    <button class="to-top" id="toTop" type="button" aria-label="返回顶部"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8,11h3v10h2V11h3l-4,-4 -4,4zM4,3v2h16V3H4z" fill="currentColor"/></svg></button>
+  </body>
+</html>

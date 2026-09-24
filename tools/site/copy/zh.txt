@@ -4,6 +4,8 @@
 #   [[command]] - the winget install command line
 #   [[appdata]] - the %LOCALAPPDATA%\StreamsPlayer path
 #   [[email]]   - the contact address
+#   [[hash]]    - the Get-FileHash command that checks a download against its .sha256 file
+#   [[installdir]] - the per-user install folder, %LOCALAPPDATA%\Programs\StreamsPlayer
 # machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
 # but the key is present in every file so the key sets stay comparable.
 
@@ -106,6 +108,9 @@ Microsoft Store
 @@status-plan
 获取方式
 
+@@shot-alt
+STREAMS Player：以视频频道网格显示的目录，每个图块显示其直播流的最新画面
+
 @@what-title
 它是什么，为什么做它
 
@@ -125,7 +130,7 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 找到频道
 
 @@cap-find-1
-首次启动即有精选目录 - 无需设置。目录没有给出图标的频道也有自己的样子 - 取自名称的首字母和配色，已知国家/地区时还带上其代码。
+精选目录，另附一份内置副本，首次启动时无需联网即可应用。目录没有给出图标的频道也有自己的样子 - 取自名称的首字母和配色，已知国家/地区时还带上其代码。
 
 @@cap-find-2
 按类别、主题、语言、国家/地区和媒体类型筛选 - 需要时再展开该行。
@@ -154,6 +159,12 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 @@cap-play-4
 约 15 秒的直播缓冲，视频会稳定在您的网络能承载的画质，下次直接从该画质打开。
 
+@@cap-play-5
+将正在播放的直播视频或广播直接录制为文件，保存到您的已保存文件文件夹，播放不会中断。
+
+@@cap-play-6
+通过您的本地网络，直接收听运行 FastMediaSorter 的手机或手表发出的音频直播 - 中间没有服务器。
+
 @@cap-window-title
 按您的习惯观看
 
@@ -173,7 +184,7 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 画面停住时，播放器会在视频上说明原因 - 并重新打开悄然卡死的流。
 
 @@cap-window-6
-电台播放时可把目录缩成一个总在最前的小面板 - 其中有电台、曲目、音量、播放控制和睡眠定时器。
+电台播放时可把目录缩成一个无标题栏的小面板 - 上方是电台和曲目，下方是音量、睡眠定时器、上一个和下一个电台、随机电台、“录制”，以及面板自己的总在最前、返回和最小化按钮。
 
 @@cap-grid-title
 可视网格
@@ -201,6 +212,15 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 
 @@cap-yours-4
 整个界面可在十三种语言之间切换，选择会被保留。
+
+@@cap-yours-5
+把频道归入您自己命名的收藏集，并一次浏览一个收藏集。
+
+@@cap-yours-6
+私人的“最近播放”历史记录，保存您最近 100 个频道以及当时正在播出的曲目 - 只保存在您的电脑上，您要求时即可清除。
+
+@@cap-yours-7
+从 M3U 文件或播放列表 URL 导入频道，添加任何内容之前都可先预览；也可把您自己的频道或已置顶的频道导出为 M3U。
 
 @@cap-local-title
 本地优先的设计
@@ -230,7 +250,7 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 选择并播放
 
 @@use-2-text
-浏览目录，筛选或搜索，然后选择一个频道。广播在主窗口开始播放；视频和 RTSP 在播放器窗口中打开。普通启动不会播放任何内容；在设置中开启「启动时继续播放」，启动便会恢复上次关闭时正在播放的内容。
+浏览目录，筛选或搜索，然后选择一个频道。广播在主窗口开始播放；视频和 RTSP 在播放器窗口中打开。普通启动不会播放任何内容；在[[glyph:app.settings]]设置中开启「启动时继续播放」，启动便会恢复上次关闭时正在播放的内容。
 
 @@use-3-title
 直接打开任意 URL
@@ -242,13 +262,13 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 把频道保存为快捷方式
 
 @@use-4-text
-选择一个已保存的频道，打开设置，使用“复制命令”或“创建桌面快捷方式”。两者都使用该频道保存的 id。
+打开已保存频道的[[glyph:nav.more]]三点菜单，使用“复制启动命令”或“创建桌面快捷方式”。两者都使用该频道保存的 id。
 
 @@use-5-title
 用日志报告问题
 
 @@use-5-text
-打开设置，进入“关于”，点击“向作者发送日志”。应用会把本次会话和上一次会话的诊断日志，连同您的版本、Windows 版本和设置的简要说明一起打包到已保存文件文件夹（默认“下载”），然后打开已写好邮件的邮件程序。确认窗口会显示完整路径，并可按您的要求打开该文件夹；由您自己附加压缩包并点击“发送”。
+从[[glyph:nav.more]]“操作”菜单打开“工具”，点击“向作者发送日志”。应用会把最近十次启动的诊断日志，连同您的版本、Windows 版本和设置的简要说明一起打包到已保存文件文件夹（默认“下载”），然后打开已写好邮件的邮件程序。确认窗口会显示完整路径，并可按您的要求打开该文件夹；由您自己附加压缩包并点击“发送”。
 
 @@distribution-title
 分发渠道
@@ -287,19 +307,127 @@ STREAMS Player 没有账户、广告、分析统计、遥测，也没有由作�
 网络访问
 
 @@privacy-network
-只有在您明确更新公开的流目录、播放所选的流，或在网格模式保持开启、可见视频预览正在刷新时，应用才会联网。这些请求会发往相应的目录或流提供方，并受该提供方的政策约束。 目录更新后提供的预览图包，只有在您接受时才会下载。
+应用只在您操作时联网，并且只连接该操作所需的地方：公开的流目录，以及随后提供的可选预览包 - 在您导入目录或接受预览包时从 GitHub 下载；您播放、录制或为其打开“关于此频道”的流的提供方，或在网格模式可见时正在刷新视频预览的流的提供方；您导入的运行 FastMediaSorter 的手机或手表 - 在您的本地网络中直接连接；以及，仅当您在“工具”中请求时，为实验性 FlyleafLib 引擎下载的可选 FFmpeg 库 - 来自 GitHub 上的第三方项目（BtbN/FFmpeg-Builds）。每个请求都直接发往该目标，并受其政策约束；没有任何请求经过作者运营的服务。
 
 @@privacy-local-title
 本地数据
 
 @@privacy-local
-STREAMS Player 会把目录状态、手动添加的条目、置顶、播放标记、缓存的预览画面（最多 150 MB），以及本次会话和上一次会话的诊断日志保存在 [[appdata]]。除非您自己选择复制或备份，或者使用设置中的“向作者发送日志”，这些数据都留在您的设备上；该功能会把两份诊断日志连同应用版本、Windows 版本和设置打包成压缩包，并打开您的邮件程序，让您附加后发送到 [[email]]。压缩包只在您按下该按钮时才会生成，其中的日志会记下播放过的流的名称，并且只有您在自己的邮件程序中点击“发送”，才会有任何内容被发出。
+STREAMS Player 会把目录状态、您添加和导入的频道、置顶、收藏集、已隐藏的频道、收听历史、播放标记、缓存的预览画面（上限 150 MB）、可选的 FFmpeg 库（如果您下载过），以及最近十次启动的诊断日志保存在 [[appdata]]。录制内容和保存的画面会存入您选择的已保存文件文件夹（默认“下载”）。除非您自己复制或备份这些数据，或者使用“工具”中的“向作者发送日志”，这些数据都留在您的设备上；该功能会把这些诊断日志连同应用版本、Windows 版本和设置打包成压缩包，并打开您的邮件程序，让您附加后发送到 [[email]]。压缩包只在您按下该按钮时才会生成，其中的日志会记下播放过的流的名称，并且只有您在自己的邮件程序中点击“发送”，才会有任何内容被发出。
 
 @@privacy-contact-title
 联系方式
 
 @@privacy-contact
 问题可以提交到 GitHub 的 issue tracker，或发送到 [[email]]。
+
+@@title-trust
+Windows 已保护你的电脑 - 该点哪里 - STREAMS Player
+
+@@description-trust
+为什么 STREAMS Player 首次运行前 Windows SmartScreen 会发出警告、具体该点哪里，以及这款应用绝不会做的事。
+
+@@nav-trust
+安装帮助
+
+@@trust-link
+Windows 发出了警告？该点哪里
+
+@@trust-eyebrow
+STREAMS Player · 安装
+
+@@trust-title
+Windows 发出了警告。这是它的含义。
+
+@@trust-intro
+STREAMS Player 是一位独立开发者制作的免费应用。如果您第一次打开下载的文件时被 Windows 拦下，本页会说明那个界面是什么、为什么会出现、具体该点哪里，以及这款应用绝不会做的事。读完大约只需三十秒。
+
+@@trust-what-title
+“Windows 已保护你的电脑”
+
+@@trust-what-1
+这个界面是 Microsoft Defender SmartScreen（在英文版 Windows 上，标题为“Windows protected your PC”）。标题下方写着它“阻止了无法识别的应用启动”，点击“更多信息”后，发布者显示为“未知发布者”。当您打开一个从互联网下载、没有数字签名、而且 Windows 还没有在许多电脑上见过其运行的文件时，就会出现这个界面。
+
+@@trust-what-2
+这是针对一个 Windows 还不认识的文件的提醒，而不是说在文件里发现了什么 - 这也是 Windows 在尽职：它无法判断一个未签名的文件是谁制作的，所以在运行之前先问您。
+
+@@trust-why-title
+为什么这款应用会出现这个界面
+
+@@trust-why-1
+STREAMS Player 的安装程序、便携版 ZIP 和 winget 软件包都没有代码签名。代码签名证书每年要花费数百美元，对于一款没有任何收入的免费应用，我们目前选择不购买。这是一个决定，而不是疏忽 - 对于未签名的文件，发出警告正是 Windows 应该做的。
+
+@@trust-why-2
+SmartScreen 还会参考信誉：运行同一个文件且没有出问题的人越多，Windows 就越早认出它，警告也就不再出现。每次发布都是一个从零开始的新文件，所以更新之后警告可能再次出现，并会随着该版本被更多人使用而逐渐消失。
+
+@@trust-why-3
+Microsoft Store 版本由 Microsoft 签名，不会显示这个界面。每次 GitHub 发布也会在每个下载文件旁附上一个 .sha256 文件：在 PowerShell 中对您下载的文件运行 [[hash]]，结果应与该文件中的值一致。
+
+@@trust-click-title
+该点哪里
+
+@@trust-click-intro
+在“Windows 已保护你的电脑”界面上：
+
+@@trust-click-1
+点击消息下方的“更多信息”（More info）。
+
+@@trust-click-2
+确认文件名是您下载的 STREAMS Player 文件，然后点击“仍要运行”（Run anyway）。
+
+@@trust-click-3
+就这些 - 安装程序，或 ZIP 中的应用，会正常启动。您永远不需要关闭 SmartScreen 或禁用杀毒软件，应用本身也从不需要管理员权限。
+
+@@trust-admin-title
+“你要允许来自未知发布者的此应用对你的设备进行更改吗？”
+
+@@trust-admin-1
+通常您不会看到这个提示。安装程序默认只为您一人安装到 [[installdir]]，为此不需要管理员权限。如果它询问安装方式，请选择“Install for me only (recommended)”（仅为我安装，推荐）。
+
+@@trust-admin-2
+只有当您选择“Install for all users”（为所有用户安装）时，Windows 才会显示这个提示。此时安装程序只把管理员权限用于以下三件事：
+
+@@trust-admin-item-1
+把程序复制到 Program Files 文件夹，让这台电脑上的每个账户都能运行它；
+
+@@trust-admin-item-2
+把 STREAMS Player 添加到每个账户的“开始”菜单，如果您勾选了相应选项，还会添加到公用桌面；
+
+@@trust-admin-item-3
+在 Windows 中把它登记为已安装的应用，以便日后可以卸载。
+
+@@trust-admin-3
+一个操作就能同时撤销这三项：设置 > 应用 > 已安装的应用（Windows 10 上为“应用和功能”）> STREAMS Player > 卸载。如果您不想授予管理员权限，请点击“否”（No），然后重新运行安装程序并选择“Install for me only”（仅为我安装）。
+
+@@trust-av-title
+如果杀毒软件拦下了文件
+
+@@trust-av
+有些杀毒软件对新的、未签名的文件比较谨慎。如果您的杀毒软件隔离了 STREAMS Player，请把它恢复，并只为它所在的文件夹添加例外 - 安装程序版为 [[installdir]]，ZIP 版则是您解压到的文件夹。只需为这一个文件夹添加例外即可，您随时可以删除它；不要关闭杀毒软件。
+
+@@trust-never-title
+STREAMS Player 绝不会做的事
+
+@@trust-never-1
+它安装和运行都从不需要管理员权限，从不把自己加入 Windows 启动项，也不安装任何后台服务。
+
+@@trust-never-2
+它没有账户、广告、分析统计或遥测，也没有任何由作者运营、会经手您数据的服务。
+
+@@trust-never-3
+它只在您操作时联网，并且只连接该操作所需的地方：GitHub 上的公开流目录及其可选预览包；您播放、录制或预览的流的提供方；您自己网络中运行 FastMediaSorter 的手机或手表；以及您在“工具”中请求时才下载的可选 FFmpeg 库。
+
+@@trust-never-4
+它从不自行下载目录 - 只有在您要求时才会更新。
+
+@@trust-never-5
+它从不自行把您的数据或日志发往任何地方。“工具”中的“向作者发送日志”只会准备一个压缩包，并在您自己的邮件程序中写好一封邮件；在您于邮件程序中点击“发送”之前，什么都不会发出。
+
+@@trust-never-6
+卸载它从不会删除您的频道、置顶或播放记录 - 它们会留在 [[appdata]]，直到您自己删除该文件夹。
+
+@@trust-privacy-link
+阅读隐私页面
 
 @@footer-rights
 © 2026 Serhii Zhyhunenko

@@ -14,9 +14,9 @@
   that can is the one nobody had run: start the thing that will actually be shipped, point it at a
   real station, and confirm media came out. That is all this script does.
 
-  Two rounds, because the product has two independent media stacks and a green one says nothing
+  Two rounds, because the product has two independent media paths and a green one says nothing
   about the other:
-    audio -> WPF MediaElement (the stack SP-0093 broke)
+    audio -> the audio-only LibVLC engine (SP-0104; it replaced WPF MediaElement, the stack SP-0093 broke)
     video -> LibVLC, loaded from native DLLs beside the executable (the stack a packaging mistake
              breaks - the natives are ~40% of the payload and have been mis-copied before)
 
@@ -146,7 +146,7 @@ try {
 
     $log = Join-Path $env:LOCALAPPDATA 'StreamsPlayer/Current.log'
     $rounds = @(
-        [pscustomobject]@{ Name = 'audio'; Marker = 'AUDIO'; Stack = 'WPF MediaElement'; Urls = $AudioUrl }
+        [pscustomobject]@{ Name = 'audio'; Marker = 'AUDIO'; Stack = 'LibVLC audio-only'; Urls = $AudioUrl }
     )
     if (-not $SkipVideo) {
         $rounds += [pscustomobject]@{ Name = 'video'; Marker = 'PLAYBACK'; Stack = 'LibVLC'; Urls = $VideoUrl }

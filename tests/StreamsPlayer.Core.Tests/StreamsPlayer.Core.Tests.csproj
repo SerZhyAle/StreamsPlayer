@@ -40,10 +40,16 @@
              Link="localization\%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
     <Content Include="localization-loanwords.txt" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\..\docs\specifications\fastmediasorter-live-broadcast-contract.md"
-             Link="contract\fastmediasorter-live-broadcast-contract.md"
-             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <!--
+    There used to be a third Content item here: a copy of the LIVE-BROADCAST contract document, copied to
+    the test output so one test could assert the repository was holding the real thing. Both are gone. The
+    contract has one home now - the shared contract store named in CLAUDE.md, pointed at by
+    docs/contracts/LIVE-BROADCAST.md - and a build that reads a file from outside the repository cannot
+    run on a clone, on CI, or on any machine that does not have that store mounted. What this suite may
+    depend on is the wire behaviour, which FastMediaSorterBroadcastDescriptorTests covers on its own.
+  -->
 
   <!--
     SP-0057: the arity gate compares those dictionaries against the code that formats them, so the App's
@@ -58,6 +64,34 @@
     <Content Include="..\..\src\StreamsPlayer.App\*.xaml"
              Exclude="..\..\src\StreamsPlayer.App\Localization.*.xaml"
              Link="app-source\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    SP-0105: the INSTALL-TRUST page is generated from a template and thirteen copy decks, and the
+    generator's own -Check does not run in CI. The shape the contract demands is therefore gated here,
+    with the site sources as test DATA on the same terms as above - read as text, nothing loaded.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\tools\site\copy\*.txt"
+             Link="site-copy\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\tools\site\templates\*.html"
+             Link="site-templates\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    SP-0113: the icon map, the vendored ICON-SET glyphs and their provenance, on the same terms - read as
+    text. The contract store they were copied from is not part of a clone; tools/Sync-IconGlyphs.ps1 -Check
+    compares against it where it is mounted, and these tests hold the copies against each other everywhere.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\src\StreamsPlayer.App\Glyphs.map.json"
+             Link="app-source\Glyphs.map.json"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\assets\glyphs\**\*.svg;..\..\assets\glyphs\PROVENANCE.txt"
+             Link="glyphs\%(RecursiveDir)%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

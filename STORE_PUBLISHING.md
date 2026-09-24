@@ -78,7 +78,7 @@ language, where the whole layout mirrors.
 | Copy deck, one file per listing language | `msix/listing/<listing-code>.txt` - see `msix/listing/README.md` |
 | Shared rows, search terms, forbidden terms | `msix/listing/shared.txt`, `search-terms.txt`, `forbidden-terms.txt` |
 | Import-ready listing CSV (all thirteen columns) | built by `tools/store/build-store-listing-csv.ps1` - see "Listing import via CSV" below |
-| Real in-app screenshots, one per language | `assets/store/app-<listing-code>.png` - regenerate with `tools/store/capture-store-screenshots.ps1` |
+| Real in-app screenshots, one per language - the lead image, the video-channel grid | `assets/store/app-<listing-code>.png` - regenerate with `tools/store/capture-store-screenshots.ps1`; the site's copy follows with `tools/site/export-site-screenshots.ps1` |
 | Screenshots (composed, 2732×1536) | `assets/store/screenshot-{en,ru}-2732x1536.png` - regenerate with `tools/store/make-store-images.ps1` |
 | Real in-app screenshots (recommended to add before submit) | `tools/store/capture-app.ps1 -Name <shot>` |
 | Banner / social preview | `assets/store/banner-1280x360.png`, `assets/store/social-preview-1280x640.png` |
@@ -86,11 +86,12 @@ language, where the whole layout mirrors.
 | Category | Primary **Entertainment**, secondary **Music** |
 | Price | Free (Retail price dropdown) |
 
-**Screenshots - do this before submitting:** the composed cards satisfy the
-minimum, but a media player is far stronger with genuine captures. Launch the app,
-refresh the catalog, and run `tools/store/capture-app.ps1` for: (1) catalog List
-mode, (2) Grid mode with thumbnails, (3) the video player with controls, (4)
-Settings. Upload the real shots; keep 1-2 composed cards only if you want a titled
+**Screenshots - do this before submitting:** the lead image in every language is the
+video-channel grid from `tools/store/capture-store-screenshots.ps1`, recaptured from the
+build being submitted. Extra genuine captures are stronger than composed cards; take them
+with `tools/store/capture-app.ps1` for: (1) catalog List mode, (2) the video player with
+controls, (3) the compact radio panel, (4) the Tools window. Upload the real shots; keep
+1-2 composed cards only if you want a titled
 lead image.
 
 ### Listing import via CSV

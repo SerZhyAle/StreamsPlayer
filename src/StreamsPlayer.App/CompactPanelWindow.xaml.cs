@@ -1,6 +1,11 @@
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Media3D;
 
 namespace StreamsPlayer.App;
 
@@ -14,10 +19,16 @@ namespace StreamsPlayer.App;
 /// risk - two surfaces cannot disagree about the volume, the sleep timer or what is playing, because
 /// only one of them knows any of it.
 /// <para>
-/// The two text lines are pushed as already-rendered strings rather than as a resource key and
+/// The header and its tooltip are pushed as already-rendered strings rather than as a resource key and
 /// arguments. It keeps this window out of the localized call-site gate entirely, and it makes the
-/// panel follow a language change for free: the main window re-renders both lines on a language
+/// panel follow a language change for free: the main window re-renders every line on a language
 /// change and pushes the result here in the same call.
+/// </para>
+/// <para>
+/// The window has no system caption, so it carries its own close, minimize and always-on-top buttons
+/// and is dragged by any spot outside a control. The pin state is the one thing it shows that the
+/// main window owns only for the panel's sake; it still lives there, so a collapse after an expand
+/// comes back pinned the way it was left.
 /// </para>
 /// </remarks>
 public partial class CompactPanelWindow : Window
@@ -42,6 +53,8 @@ public partial class CompactPanelWindow : Window
 
     public event EventHandler? SleepTimerRequested;
 
+    public event EventHandler? TopmostToggleRequested;
+
     public event EventHandler<double>? VolumeChanged;
 
     public event EventHandler? Moved;
@@ -61,11 +74,30 @@ public partial class CompactPanelWindow : Window
     /// <summary>The menu the main window fills, so the presets and the time parser have one home.</summary>
     public ContextMenu SleepTimerMenu => SleepTimerContextMenu;
 
-    public void ShowLines(string nowPlaying, string status, string title)
+    /// <summary>
+    /// The header line: the station and its tags. The now-playing and status lines have no room of
+    /// their own in a captionless strip, so they travel in the header's tooltip.
+    /// </summary>
+    /// <param name="station">The station title, or the full window's now-playing line when nothing is loaded.</param>
+    /// <param name="tags">The station's tags; empty hides the separator as well.</param>
+    public void ShowHeader(string station, string tags, string nowPlaying, string status, string title)
     {
-        NowPlayingText.Text = nowPlaying;
-        StatusText.Text = status;
+        StationTitleRun.Text = station;
+        TagsRun.Text = tags;
+        TagsSeparatorRun.Text = tags.Length == 0 ? string.Empty : "    ";
+        HeaderText.ToolTip = string.Join(Environment.NewLine,
+            new[] { nowPlaying, status }.Where(line => !string.IsNullOrWhiteSpace(line)));
         Title = title;
+    }
+
+    /// <summary>Applies the pin state the main window owns; the button only asks for a flip.</summary>
+    public void ShowTopmost(bool topmost)
+    {
+        Topmost = topmost;
+        TopmostButton.Style = (Style)FindResource(topmost ? "PinOnGlyphOnlyButton" : "PinOffGlyphOnlyButton");
+        var caption = topmost ? "CompactPanelOnTopOn" : "CompactPanelOnTopOff";
+        TopmostButton.SetResourceReference(ToolTipProperty, caption);
+        TopmostButton.SetResourceReference(System.Windows.Automation.AutomationProperties.NameProperty, caption);
     }
 
     /// <summary>
@@ -148,6 +180,9 @@ public partial class CompactPanelWindow : Window
         PlayingIndicator.Visibility = playing ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    /// <summary>SP-0110: the station's backdrop - running while it plays, frozen after Stop, null with no station.</summary>
+    public void ShowBackdrop(WaveParticlesBackdropSession? session) => Backdrop.Session = session;
+
     public void ShowSleepTimer(bool visible, object? content, object? tooltip)
     {
         SleepTimerButton.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
@@ -179,6 +214,45 @@ public partial class CompactPanelWindow : Window
 
     private void ExpandButton_Click(object sender, RoutedEventArgs e) => ExpandRequested?.Invoke(this, EventArgs.Empty);
 
+    private void TopmostButton_Click(object sender, RoutedEventArgs e) => TopmostToggleRequested?.Invoke(this, EventArgs.Empty);
+
+    private void MinimizeButton_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    // The same close the system caption used to perform: MainWindow reads a close it did not start
+    // as "quit" and routes it through its own Closing path.
+    private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
+
+    /// <summary>With no caption, any spot that is not a control is the handle the window moves by.</summary>
+    /// <remarks>
+    /// Buttons mark the press handled, so it never reaches here; the slider does not always, which is
+    /// what the ancestor walk is for. <see cref="Window.DragMove"/> runs the system move loop, so the
+    /// <c>WM_EXITSIZEMOVE</c> hook below still ends every drag with <see cref="MoveFinished"/>.
+    /// </remarks>
+    private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ButtonState != MouseButtonState.Pressed || IsInsideControl(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
+        DragMove();
+    }
+
+    private static bool IsInsideControl(DependencyObject? source)
+    {
+        for (var node = source; node is not null; node = node is Visual or Visual3D
+                 ? VisualTreeHelper.GetParent(node)
+                 : LogicalTreeHelper.GetParent(node))
+        {
+            if (node is ButtonBase or Slider)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void Window_LocationChanged(object? sender, EventArgs e) => Moved?.Invoke(this, EventArgs.Empty);
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -187,8 +261,22 @@ public partial class CompactPanelWindow : Window
         if (PresentationSource.FromVisual(this) is HwndSource source)
         {
             source.AddHook(ExitSizeMoveHook);
+            RoundCorners(source.Handle);
         }
     }
+
+    // Windows 11 rounds a captioned window itself but leaves a captionless one square; this asks DWM
+    // for the same rounding. Earlier Windows versions do not know the attribute and return an error
+    // that changes nothing, which is the right outcome there.
+    private static void RoundCorners(IntPtr hwnd)
+    {
+        const int DwmwaWindowCornerPreference = 33;
+        var preference = 2; // DWMWCP_ROUND
+        _ = DwmSetWindowAttribute(hwnd, DwmwaWindowCornerPreference, ref preference, sizeof(int));
+    }
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
 
     private IntPtr ExitSizeMoveHook(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
     {

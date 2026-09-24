@@ -244,9 +244,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         catch (Exception exception)
         {
+            // SP-0109: the catch spans the whole load, so the message cannot claim what was or was not read -
+            // only that loading did not finish, and what to do. The exception is in the log it points to.
             _log.Error("Catalog state load failed", exception);
             SetStatus("MainLoadFailed");
-            MessageBox.Show(this, exception.Message, LocalizationService.Get("ProductName"), MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(this, LocalizationService.Get("MainLoadFailedBody"), LocalizationService.Get("ProductName"), MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally
         {
@@ -310,7 +312,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         try
         {
             var service = new StreamCatalogService(_catalogHttpClient, _store);
-            var result = await service.RefreshAsync(_state, progress, _cancellableOperation.Token);
+            var retrying = OnDispatcher<PublishWindowRetryNotice>(notice =>
+                ShowPublishWindowRetry(notice, "catalog_refresh", "CatalogPublishWindowRetry"));
+            var result = await service.RefreshAsync(_state, progress, retrying, _cancellableOperation.Token);
             // The download is over and the outcome is about to be written, so no further report may touch
             // the status line.
             _reportingProgress = false;
@@ -367,7 +371,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             _log.Error("Catalog refresh failed", exception);
             SetStatus("CatalogUpdateFailedStatus");
-            failure = exception.Message;
+            failure = FailureCauseText.Describe(exception);
         }
         finally
         {
@@ -594,6 +598,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             Tag = row
         };
         shortcutItem.Click += CreateDesktopShortcutMenuItem_Click;
+        // SP-0109: the other half of the shortcut, moved here from Settings.
+        var launchCommandItem = new MenuItem
+        {
+            Header = LocalizationService.Get("MenuCopyLaunchCommand"),
+            Tag = row
+        };
+        launchCommandItem.Click += CopyLaunchCommandMenuItem_Click;
         // SP-0058: beside the shortcut item because both hand this channel to something outside the window.
         var shareItem = new MenuItem
         {
@@ -625,6 +636,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         menu.Items.Add(newWindowItem);
         menu.Items.Add(new Separator());
         menu.Items.Add(shortcutItem);
+        menu.Items.Add(launchCommandItem);
         menu.Items.Add(shareItem);
         menu.Items.Add(editItem);
         menu.Items.Add(aboutItem);
@@ -656,26 +668,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if ((sender as MenuItem)?.Tag is ChannelRow row && row.Channel.MediaKind != MediaKind.Audio)
         {
             OpenIndependentPlayerWindow(row.Channel);
-        }
-    }
-
-    private void CreateDesktopShortcutMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if ((sender as MenuItem)?.Tag is not ChannelRow row)
-        {
-            return;
-        }
-
-        try
-        {
-            var path = StreamShortcutService.CreateDesktopShortcut(row.Channel);
-            SetStatus("DesktopShortcutCreated", path);
-        }
-        // The shell writes the file through COM, so a desktop that rejects the path - too long, read-only,
-        // a name already held by a directory - arrives as an IOException rather than a COMException.
-        catch (Exception exception) when (exception is System.Runtime.InteropServices.COMException or InvalidOperationException or UnauthorizedAccessException or IOException)
-        {
-            SetStatus("DesktopShortcutFailed");
         }
     }
 
@@ -893,6 +885,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             // Assigned on every audio start, so an ordinary user play is what clears a resume's quiet
             // session - there is no separate path that has to remember to forget it.
             _audioQuiet = quiet;
+            // SP-0110: read before the stop below forgets which station was current or paused.
+            var resumesBackdrop = (_playingAudio?.Channel.Id ?? _audioPausedChannel?.Id) == channel.Id;
             StopAudioPlayback();
             _audioNavOrder = CaptureAudioNavOrder();
             _currentTrackText = null;
@@ -903,6 +897,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             // launched channel carries no favicon index to resolve in the first place.
             _playingAudio = GetOrCreateRow(channel, BuildFaviconAtlasSet());
             _playingAudio.SetPlayingAudio(true);
+            StartBackdrop(channel.Id, resumesBackdrop);
             // System-only wake: keep the machine awake while the radio plays, but let the display
             // turn off normally (Decision 3). Held across bounded reconnects; released in StopAudioPlayback.
             _audioWake = WakeGuard.Acquire(keepDisplayOn: false);
@@ -973,7 +968,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
-        SetNowPlaying("NowPlaying", _playingAudio.DisplayTitle);
+        // A bounded status document can arrive before MediaElement raises Playing. Preserve that early
+        // reading instead of overwriting it with the station name at the exact moment audio becomes live.
+        if (string.IsNullOrWhiteSpace(_currentTrackText))
+        {
+            SetNowPlaying("NowPlaying", _playingAudio.DisplayTitle);
+        }
+        else
+        {
+            SetNowPlaying("NowPlayingWithTrack", _playingAudio.DisplayTitle, _currentTrackText);
+        }
         _log.Event("AUDIO LIVE", $"url={_playingAudio.Channel.Url}");
         NoteAudioLive();
         // SP-0062: a resumed station that has been live once is an ordinary station, so its later failures
@@ -990,6 +994,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _audioOpenTimer.Stop(); // SP-0096: it opened, which is the only thing the budget was waiting for
         _audioRecovery?.NotifyLive(); // sustained live - restore the full recovery budget
         await RecordPlayOutcome(_playingAudio.Channel.Id, true);
+        if (_currentTrackText is { } track)
+        {
+            await PersistNowPlayingHistoryAsync(_playingAudio.Channel.Id, track);
+        }
     }
 
     private void StandardAudioPlayback_Failed(object? sender, StandardAudioFailedEventArgs e)
@@ -1078,7 +1086,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             fastMediaSorterFailure: UsesFastMediaSorterAudioRoute(row.Channel) ? FastMediaSorterPlaybackFailureKind.Recoverable : null);
     }
 
-    // Bounded audio recovery (streams.txt Part D). Classifies the failure, then reconnects after a cancellable
+    // Bounded audio recovery (DEVELOPER_PROMPT.md Part D). Classifies the failure, then reconnects after a cancellable
     // backoff (showing a Reconnecting label) or, once the budget is spent or a hard failure is hit, shows the
     // terminal dialog. There is no position stall-watchdog for audio: MediaElement exposes no live telemetry.
     private async Task RecoverAudioAsync(
@@ -1377,6 +1385,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _standardAudioPlayback.StopPlayback();
         StopFastMediaSorterAudioPlayback();
         _playingAudio?.SetPlayingAudio(false);
+        StopBackdrop();
         _playingAudio = null;
         SetNowPlaying("NothingPlaying");
         if (clearSystemSession)

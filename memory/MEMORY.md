@@ -151,8 +151,8 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   gated on `_reachedLive`) or buffering > 15 s with no position progress - genuine rebuffering is left
   in place. See `PLAN/SP-0015_resilient_live_recovery.md`.
 
-- **CyrFlip is the portfolio's 13-language precedent** (owner's machine:
-  `P:\WINDOWS\CyrFlip`). It already ships a 13-language UI, site, Store listing and one
+- **CyrFlip is the portfolio's 13-language precedent** (a sibling repository on the owner's machine,
+  beside this one). It already ships a 13-language UI, site, Store listing and one
   screenshot per language, using the set `en ru uk de it es fr pt-br zh-hans hi bn ar ur`.
   `msix/README.md` there records the Partner Center failures already paid for - the export
   must be re-taken before every import, additional languages must be added by hand or their
@@ -164,10 +164,12 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   before any Store-listing or multi-language work; do not re-derive it. See
   `PLAN/SP-0034_thirteen_language_interface.md`.
 
-- The upstream catalog contract is documented in the FastMediaSorter repo at
-  `delivery/stream-catalog/README.md` (owner's machine:
-  `P:\ANDROID\FastMediaSorter_mob_v2\delivery\stream-catalog\README.md`). It is the authority for the
-  bank we consume and it changes without an app release - re-read it before touching catalog parsing.
+- The upstream catalog contract is **`STREAM-BANK`, in the shared contract store** (`Contracts/stream-catalog/`,
+  located once in `CLAUDE.md`; pointer in `docs/contracts/STREAM-BANK.md`). Until 2026-09-22 this entry
+  named the producing repo's own `delivery/stream-catalog/README.md` as the authority; that is no longer
+  true - the producer's README now points at the store rather than restating it, which is what the store
+  exists for. It is the authority for the bank we consume and it changes without an app release - re-read
+  it before touching catalog parsing.
   Two consumer-side couplings it drives: (1) `StreamBankReader.MaximumAtlasBytes` must track the
   publisher-side ceiling (raised to 30 MiB on 2026-07-26; the live atlas was already 2.9 MB against
   the old 4 MB limit), and (2) columns are added upstream silently - `access` (values: empty or `geo`,
@@ -536,6 +538,23 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   `MainWindowHandle` is a **player** window closes only that window and leaves the catalog running - and
   that instance keeps holding `Current.log`, so the next launch takes the SP-0085 reserve path and the
   evidence is in `Session-<stamp>.log`, not in the file you are tailing (2026-09-19).
+
+- **Never rewrite a `Localization.*.xaml` with Git Bash `awk`/`sed`.** They run in text mode and drop
+  the CR of every CRLF, and eleven of the thirteen dictionaries also carry three committed `\r\r\n` lines
+  (`RandomStationTip`, `PrevStationTip`, `FrameFolderReset`). Those lone CRs are what keep git from
+  normalizing the file; lose them and `git diff` reports the whole file (591/578) for a one-line change.
+  Use the Edit tool, or PowerShell `ReadAllBytes`/`WriteAllBytes`, and check `git diff --numstat` after
+  (2026-09-24, SP-0114). **Recurred the same day in SP-0107** - a 13-locale insert done with `awk`
+  because Edit is one file per call. Read this entry before any bulk dictionary edit. Two more traps
+  found fixing it: `$'\r'` inside a Bash tool command does not reach `grep` as a CR, so CR counts made
+  that way are fiction - count in PowerShell (`[regex]::Matches($text, "\r\n")`); and the repair is to
+  diff against the HEAD blob exported with `git show HEAD:<path> > file`, then restore both the CRLF
+  and the three `\r\r\n` keys with a PowerShell `[IO.File]` read/replace/write (UTF-8, no BOM).
+- **UI Automation on this app, three traps** (2026-09-24, SP-0114): owned windows (History, Settings, a
+  MessageBox, a context menu) are top-level, so search the process's top-level windows, not the main
+  window's descendants; a Settings control on an unselected tab is not in the tree until the tab is
+  selected; and a label and its combo box share the name, so filter by `ControlType`. A WPF
+  `MessageBox`'s OK is a `Pane` without `InvokePattern` - dismiss it with Enter.
 
 ## References
 
@@ -927,16 +946,49 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   1.9 Mbps was arriving. Difference the demux byte counter instead (SP-0054, 2026-08-07).
 
 - **The stream-bank contract is authored outside this repo and is not in it.** The authoritative spec
-  set lives at `P:\ANDROID\FastMediaSorter_mob_v2\dev\handoff\streams-source-spec\` - files `01`, `03`,
-  `04` and `09` define the bank, the CSV, the favicon atlas and the artwork atlases, and a dated
-  `NN_contract_amendment_*.md` **amends** them, so read the highest-numbered amendment first and treat
-  the rest as the rules it edits. Its own words: "Where a consumer's current behaviour differs from a
+  set lives at `Contracts/stream-catalog/` (moved there from `Contracts/fastmediasorter/streams-catalog/`
+  on 2026-09-22, when the store was reorganized by function rather than by product) - its `README.md` is
+  the binding short form carrying the twelve rules, files `01`, `03`, `04` and `09` define the bank, the
+  CSV, the favicon atlas and the artwork atlases, and a dated `NN_contract_amendment_*.md` **amends**
+  them, so read the highest-numbered amendment first and treat the rest as the rules it edits. Its own words: "Where a consumer's current behaviour differs from a
   rule below, the consumer changes - not the rule." Nothing in `StreamsPlayer` mirrors these files, and
   `docs/specifications/` is unrelated - so when the owner says "the spec set", do not search this
   repository and do not infer the contract from our own code comments. The delivery artifacts themselves
   live on one GitHub release, tag `delivery-so-v1` of `SerZhyAle/FastMediaSorter_mob_v2`; the release
   asset list and `artwork-manifest.json` are the cheapest way to tell what is actually published from
   what a document says is published, and on 2026-08-20 those two disagreed.
+
+- **This repository is no longer only a consumer of contracts - it owns two.** On 2026-09-22 the
+  portfolio's desktop UX rules were authored from here: `APP-BEHAVIOUR` (twelve shared moments - the
+  no-action exit from a dialog, progress with cancellation, explicit consent, confirming the
+  irreversible, a failure offered as actions, localized rendering that cannot throw, layout direction as
+  a language property, an accessible name on a glyph-only control, window geometry, first run, and a
+  settings window that commits on its own button) and `APP-STYLE` (three themes, one palette table with
+  only dynamic references, the role vocabulary, a declared out-of-theme surface, one meaning per glyph).
+  Both are **0.9 draft**: every rule was read from this product's code, and the other six Windows
+  binaries in the portfolio are declared consumers who have not confirmed anything yet. Two consequences
+  that are easy to forget: a change to how a dialog, a long operation, a destructive action or the theme
+  behaves here is a **contract change first and code second**, and a defect found in another product's
+  interface is an amendment this repository has to write rather than that product's private fix. The
+  product's own two deviations - irreversible settings operations bypassing Save, and two sites printing
+  a raw exception - were declared as dated exceptions on 2026-09-22 and **closed on 2026-09-23 by
+  SP-0109**. The shape that closed them is now the rule for new UI: `SettingsWindow` holds values only
+  (an operation goes in the Close-only `ToolsWindow` behind Operations > Tools, a per-channel one in the
+  channel's menu), and a failure message is `FailureCauseText` over the exception's *type*, never
+  `exception.Message`. Both are CI gates in `DesktopUxConformanceTests`, so breaking either fails the
+  build with a message that says where the control belongs. The registry had undercounted rule 6 (two
+  leaks named, six real) - a declared exception is a lower bound, so re-search before closing one.
+
+- **A contract may never be a build input from outside this repository.** On 2026-09-22 an earlier,
+  unfinished alignment pass deleted the in-repo copy of the live-broadcast contract and pointed the test
+  project's `Content Include` at the shared store by absolute path instead. That left the tree unbuildable
+  on any machine without that drive - including CI - and it put a second drive-letter path in a tracked
+  file, which the store's own rules forbid precisely because a clone cannot resolve one. Both are gone: the
+  test that read the document was deleted with it, because what it was really asserting - the `FMSBCAST1`
+  prefix, the `schemaVersion` refusal, one connection per listener - is asserted against the code that
+  implements those shapes and not against a document nobody executes. The pattern to keep: contracts are
+  **cited**, never copied and never compiled against; `docs/contracts/*.md` holds the pointers, and
+  `CLAUDE.md` is the single place naming where the store is.
 
 - **`UserAuthoredChannels.Identify` is a list that has to grow, and nothing enforces it.** Since SP-0089
   a catalog refresh no longer deletes a row just because the bank stopped listing its URL - it deletes
@@ -1089,8 +1141,8 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
 
 - **`project` - the release gate that unit tests structurally cannot be: `scripts/smoke-playback.ps1`.**
   Added 2026-08-21, after SP-0093 shipped a release that built clean, passed 858 tests and played
-  nothing. It publishes the tree and plays a live radio station (WPF `MediaElement`) and a live video
-  stream (LibVLC) through the shipping binary; `release.ps1` step 2b, rung 8 of the validation ladder.
+  nothing. It publishes the tree and plays a live radio station (WPF `MediaElement` then; the audio-only LibVLC
+  engine since SP-0104) and a live video stream (LibVLC) through the shipping binary; `release.ps1` step 2b, rung 8 of the validation ladder.
   It is deliberately outside `check.ps1`, which must stay offline and deterministic for CI.
   **The reason is the generalizable part: tests cover the code you wrote, and the thing that broke was
   something the build merely consumes.** No amount of unit testing reaches it. When a product depends
@@ -1123,3 +1175,18 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   do not reach for `-f`. It also means a ticket's status edit is invisible to a reviewer reading the
   diff, so a commit message has to carry the evidence a reader would otherwise look for in the ticket
   (2026-09-09).
+
+- **Two tooling traps from SP-0109 (2026-09-23), each one debugging round.** (1) In a PowerShell
+  single-quoted string the typographic apostrophe `’` (U+2019) is a *closing quote* - PowerShell treats
+  `‘ ’ ‚ ‛` as single quotes - so a Ukrainian value like `прев’ю` in a translation table is a parser
+  error. Keep a placeholder in the script and substitute `[char]0x2019` at write time, or read the
+  strings from a data file. (2) Git Bash `grep -c $'\r'` does not count CRLF lines reliably on these
+  files; count `\r\n` against lone `\n` with `[regex]::Matches` in PowerShell before trusting a
+  line-ending diagnosis. The dictionaries are mixed today (en/ru LF in HEAD, the other eleven CRLF, and
+  peer sessions rewriting some to LF), so an insert script must take each file's dominant ending.
+- **Peer sessions share this working tree and the real `%LOCALAPPDATA%\StreamsPlayer`.** On 2026-09-23
+  three StreamsPlayer sessions ran at once; one edited `SettingsWindow` and `MainWindow.Settings.cs`
+  between this session's read and write, and one moves the data folder aside for its GUI runs. Before a
+  GUI run-and-observe, `ListAgents` and claim the slot by message; address the app by PID only; and
+  re-read any shared file immediately before editing it. `temp/SP-0109/observe.ps1` is a reusable
+  sandboxed run (copies the catalog state, forces list view, restores the real folder in `finally`).

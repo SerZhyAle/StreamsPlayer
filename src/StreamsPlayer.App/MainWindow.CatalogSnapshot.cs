@@ -6,7 +6,7 @@ namespace StreamsPlayer.App;
 
 /// <summary>
 /// SP-0052: the bundled catalog snapshot. Three entry points - the first launch, a failed or refused
-/// catalog update, and the settings - all lead to the same operation, and all three are refusable. The
+/// catalog update, and the Tools window - all lead to the same operation, and all three are refusable. The
 /// snapshot is never applied without the user asking for it in that moment.
 /// </summary>
 public partial class MainWindow
@@ -15,7 +15,7 @@ public partial class MainWindow
 
     /// <summary>
     /// The one first-launch offer. Eligible only while the catalog has never been downloaded and holds
-    /// no catalog rows at all: a user who already has a list does not need a seed, and the settings
+    /// no catalog rows at all: a user who already has a list does not need a seed, and the Tools
     /// action covers every other moment.
     /// </summary>
     private bool CatalogSnapshotOfferEligible =>
@@ -52,7 +52,7 @@ public partial class MainWindow
             return;
         }
 
-        // The settings action is the way back for a user who changes their mind.
+        // The Tools action is the way back for a user who changes their mind.
         _state = await PersistAsync(_state with { CatalogSnapshotOfferDeclined = true });
         _log.Event("CATALOG SNAPSHOT", "op=offer", "result=declined");
     }
@@ -96,18 +96,23 @@ public partial class MainWindow
     /// Offered instead of a bare transport error when an update cannot happen. Returns without applying
     /// anything unless the user says yes.
     /// </summary>
-    private async Task OfferSnapshotAfterFailedRefreshAsync(string reason)
+    /// <param name="cause">
+    /// The localized cause and action from <see cref="FailureCauseText"/> - never the exception's own text,
+    /// which the caller has already logged (SP-0109).
+    /// </param>
+    private async Task OfferSnapshotAfterFailedRefreshAsync(string cause)
     {
         if (!BundledCatalogSnapshot.Exists)
         {
-            MessageBox.Show(this, reason, LocalizationService.Get("CatalogUpdateFailedTitle"),
-                MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(this,
+                $"{LocalizationService.Get("CatalogUpdateFailedStatus")}{Environment.NewLine}{Environment.NewLine}{cause}",
+                LocalizationService.Get("CatalogUpdateFailedTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
         var answer = MessageBox.Show(
             this,
-            LocalizationService.Format("CatalogSnapshotAfterFailure", reason),
+            LocalizationService.Format("CatalogSnapshotAfterFailure", cause),
             LocalizationService.Get("CatalogUpdateFailedTitle"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
@@ -163,7 +168,8 @@ public partial class MainWindow
         {
             _log.Error("Bundled catalog snapshot could not be applied", exception);
             SetStatus("CatalogSnapshotFailed");
-            MessageBox.Show(owner, exception.Message, LocalizationService.Get("CatalogSnapshotTitle"),
+            MessageBox.Show(owner, FailureCauseText.Compose(LocalizationService.Get("CatalogSnapshotFailed"), exception),
+                LocalizationService.Get("CatalogSnapshotTitle"),
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally

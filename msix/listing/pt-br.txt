@@ -8,9 +8,11 @@ Explore um catálogo selecionado por categoria, idioma, país ou tipo de mídia.
 
 Escolha uma lista compacta ou uma grade visual. No modo de grade, o aplicativo pode capturar as miniaturas atuais das transmissões de vídeo HTTP(S) visíveis; o tamanho dos blocos e a atualização automática das miniaturas ficam em Configurações. A interface completa está disponível em treze idiomas, com layout espelhado da direita para a esquerda para árabe e urdu.
 
+Grave em um arquivo o vídeo ao vivo ou o rádio que está tocando, sem interrompê-lo. Reduza o catálogo a um painel de rádio compacto enquanto uma estação toca. Ouça uma transmissão de áudio ao vivo de um celular ou relógio com FastMediaSorter, direto pela sua rede local. Guarde canais nas suas próprias coleções, volte a eles por um histórico de audição privado e importe ou exporte listas de reprodução M3U.
+
 O catálogo só é baixado quando você escolhe Importar canais da internet. O STREAMS Player não tem conta, publicidade, análise de uso nem telemetria. O estado do catálogo, as entradas manuais, os canais fixados, as marcas de reprodução, as configurações e as miniaturas em cache ficam no seu perfil do Windows.
 
-A compatibilidade de reprodução depende do provedor da transmissão, da disponibilidade da rede, do protocolo e dos codecs de mídia suportados pelos componentes de mídia incluídos ou pelos do Windows. O STREAMS Player não hospeda nem controla o conteúdo de transmissões de terceiros.
+A compatibilidade de reprodução depende do provedor da transmissão, da disponibilidade da rede, do protocolo e dos codecs de mídia suportados pelos componentes LibVLC incluídos. O STREAMS Player não hospeda nem controla o conteúdo de transmissões de terceiros.
 
 O STREAMS Player é de código aberto sob a Licença MIT.
 
@@ -30,7 +32,7 @@ Modos de lista e de grade visual com tamanhos de bloco selecionáveis e miniatur
 Estação de rádio sorteada em todo o catálogo - se ficar muda, entra a próxima
 
 @@Feature6
-Painel de rádio compacto sempre visível com estação, faixa, volume, controles e temporizador de desligamento
+Painel de rádio compacto com estação, faixa, volume, temporizador de desligamento, estação anterior e próxima e gravação - na frente das outras janelas até você desativar isso
 
 @@Feature7
 Controles Sempre visível independentes para o aplicativo e para o player de vídeo, e tela cheia sem bordas com F11 e Escape
@@ -43,3 +45,12 @@ Catálogo atualizado só por sua ordem, sem downloads inesperados em segundo pla
 
 @@Feature10
 Sem conta, publicidade, análise de uso nem telemetria
+
+@@Feature11
+Grave em um arquivo o vídeo ao vivo ou o rádio que está tocando, sem interromper a reprodução
+
+@@Feature12
+Ouça uma transmissão de áudio ao vivo de um celular ou relógio com FastMediaSorter, direto pela sua rede local
+
+@@Feature13
+Suas próprias coleções de canais, um histórico de audição privado e importação e exportação de listas de reprodução M3U

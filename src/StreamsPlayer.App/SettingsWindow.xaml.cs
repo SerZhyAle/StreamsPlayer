@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -8,21 +7,27 @@ using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
+/// <summary>
+/// The preferences, committed together by Save and discarded together by Cancel.
+/// </summary>
+/// <remarks>
+/// SP-0109, <c>APP-BEHAVIOUR</c> rule 12: a window that offers Cancel may not have done anything by the time
+/// Cancel is pressed, so every control here either edits a pending value or opens something without changing
+/// it. That is why this window takes no action delegate: an operation that commits on its own belongs in
+/// <see cref="ToolsWindow"/>, and one that acts on a single channel belongs in that channel's menu.
+/// <c>DesktopUxConformanceTests</c> holds the list of handlers this markup may use.
+/// </remarks>
 public partial class SettingsWindow : Window
 {
     private readonly AppLanguage _language;
-    private readonly StreamChannel? _selectedChannel;
-    private readonly Func<SettingsAction, Window, Task> _runSettingsAction;
     // SP-0038: null means "unset", which resolves to Downloads at save time. The text box always shows a
     // real path so the user can see where frames land either way, hence the separate field.
     private string? _frameFolder;
 
-    public SettingsWindow(AppTheme theme, StreamTileSize tileSize, bool updateStreamPreviews, bool hideAdultContent, bool keepAwakeDuringPlayback, bool systemMediaControls, bool resumePlaybackOnStartup, MediaBackend videoBackend, string? frameFolder, AppLanguage language, StreamChannel? selectedChannel, Func<SettingsAction, Window, Task> runSettingsAction)
+    public SettingsWindow(AppTheme theme, StreamTileSize tileSize, bool updateStreamPreviews, bool hideAdultContent, bool animatedBackdrop, bool keepAwakeDuringPlayback, bool systemMediaControls, bool resumePlaybackOnStartup, MediaBackend videoBackend, string? frameFolder, AppLanguage language)
     {
         InitializeComponent();
         _language = language;
-        _selectedChannel = selectedChannel;
-        _runSettingsAction = runSettingsAction;
         var themes = new[]
         {
             new UiOption(nameof(AppTheme.System), LocalizationService.Get("ThemeSystem")),
@@ -42,6 +47,7 @@ public partial class SettingsWindow : Window
         TileSizeBox.SelectedItem = sizes.First(item => item.Value == tileSize.ToString());
         UpdatePreviewsCheckBox.IsChecked = updateStreamPreviews;
         HideAdultContentCheckBox.IsChecked = hideAdultContent;
+        AnimatedBackdropCheckBox.IsChecked = animatedBackdrop;
         KeepAwakeCheckBox.IsChecked = keepAwakeDuringPlayback;
         SystemMediaControlsCheckBox.IsChecked = systemMediaControls;
         ResumePlaybackCheckBox.IsChecked = resumePlaybackOnStartup;
@@ -57,20 +63,6 @@ public partial class SettingsWindow : Window
         ShowFrameFolder();
         VersionText.Text = ProductInfo.Version;
         AuthorText.Text = ProductInfo.Author;
-        SelectedStreamText.Text = selectedChannel is null
-            ? LocalizationService.Get("NoStreamSelected")
-            : StreamTitleFormatter.Display(selectedChannel.Title);
-        CopyLaunchCommandButton.IsEnabled = selectedChannel is not null;
-        CreateDesktopShortcutButton.IsEnabled = selectedChannel is not null;
-
-        // SP-0052: offered unconditionally when the build carries a snapshot - it works the same whether
-        // the catalog is empty, snapshot-filled or downloaded. A build without one says so rather than
-        // failing when pressed.
-        if (!BundledCatalogSnapshot.Exists)
-        {
-            ApplyCatalogSnapshotButton.IsEnabled = false;
-            ApplyCatalogSnapshotButton.ToolTip = LocalizationService.Get("CatalogSnapshotUnavailable");
-        }
 
         var choices = InterfaceLanguages.All
             .Select(entry => new LanguageChoice(
@@ -96,6 +88,7 @@ public partial class SettingsWindow : Window
     public StreamTileSize SelectedTileSize => Enum.Parse<StreamTileSize>(((UiOption)TileSizeBox.SelectedItem).Value);
     public bool UpdateStreamPreviews => UpdatePreviewsCheckBox.IsChecked == true;
     public bool HideAdultContent => HideAdultContentCheckBox.IsChecked == true;
+    public bool AnimatedBackdrop => AnimatedBackdropCheckBox.IsChecked == true;
     public bool KeepAwakeDuringPlayback => KeepAwakeCheckBox.IsChecked == true;
     public bool SystemMediaControls => SystemMediaControlsCheckBox.IsChecked == true;
     public bool ResumePlaybackOnStartup => ResumePlaybackCheckBox.IsChecked == true;
@@ -127,21 +120,12 @@ public partial class SettingsWindow : Window
         ShowFrameFolder();
     }
 
+    // Navigation only: opening the folder changes nothing, so it may live beside Cancel. It no longer creates
+    // a missing folder first - that was a write before Save, and the capture itself creates the folder when
+    // it is first needed.
     private void FrameFolderOpen_Click(object sender, RoutedEventArgs e)
     {
         var folder = CapturedFrameWriter.ResolveFolder(_frameFolder);
-        if (!System.IO.Directory.Exists(folder))
-        {
-            try
-            {
-                System.IO.Directory.CreateDirectory(folder);
-            }
-            catch
-            {
-                // Let OpenFolder attempt or fail with dialog below
-            }
-        }
-
         if (!LogReportMailer.OpenFolder(folder))
         {
             MessageBox.Show(this, LocalizationService.Format("LogArchiveOpenFolderFailed", folder), Title, MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -149,9 +133,9 @@ public partial class SettingsWindow : Window
     }
 
     /// <summary>
-    /// SP-0026 - restates the components state after every install or removal. The engine ComboBox on
-    /// its own would let the user select an engine that cannot start, so this line is what makes the
-    /// choice above mean something.
+    /// SP-0026 - states whether the FlyleafLib components are present. The engine ComboBox on its own would
+    /// let the user select an engine that cannot start, so this line is what makes the choice above mean
+    /// something. Installing and removing them is an operation, so it happens in the Tools window.
     /// </summary>
     private void ShowVideoComponents()
     {
@@ -160,43 +144,6 @@ public partial class SettingsWindow : Window
             ? LocalizationService.Get("VideoComponentsInstalled")
             : LocalizationService.Format(
                 "VideoComponentsMissing", FFmpegComponentsInstaller.ApproximateDownloadMegabytes);
-        VideoComponentsInstallButton.IsEnabled = !installed;
-        VideoComponentsRemoveButton.IsEnabled = installed;
-    }
-
-    /// <summary>
-    /// Replaces the status line with the running byte count. The archive is ~67 MB, so a dialog that
-    /// merely froze until it finished would be indistinguishable from a hang.
-    /// </summary>
-    internal void ShowInstallProgress(FFmpegInstallProgress progress)
-    {
-        VideoComponentsStatusText.Text = progress.Fraction is { } fraction
-            ? LocalizationService.Format("VideoComponentsProgress", (int)(fraction * 100))
-            : LocalizationService.Format("VideoComponentsProgressUnknown", progress.ReceivedBytes / (1024 * 1024));
-    }
-
-    internal void SetVideoComponentsBusy(bool busy)
-    {
-        VideoComponentsInstallButton.IsEnabled = !busy;
-        VideoComponentsRemoveButton.IsEnabled = false;
-        if (!busy)
-        {
-            ShowVideoComponents();
-        }
-    }
-
-    // The download commits on its own like the import and delete actions above: closing Settings with
-    // Cancel does not uninstall what was just fetched.
-    private async void VideoComponentsInstall_Click(object sender, RoutedEventArgs e)
-    {
-        await _runSettingsAction(SettingsAction.InstallVideoComponents, this);
-        ShowVideoComponents();
-    }
-
-    private async void VideoComponentsRemove_Click(object sender, RoutedEventArgs e)
-    {
-        await _runSettingsAction(SettingsAction.RemoveVideoComponents, this);
-        ShowVideoComponents();
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)
@@ -219,84 +166,6 @@ public partial class SettingsWindow : Window
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
-
-    private async void ImportFromFile_Click(object sender, RoutedEventArgs e) =>
-        await _runSettingsAction(SettingsAction.ImportFromFile, this);
-
-    private async void ImportFromUrl_Click(object sender, RoutedEventArgs e) =>
-        await _runSettingsAction(SettingsAction.ImportFromUrl, this);
-
-    private async void ExportAll_Click(object sender, RoutedEventArgs e) =>
-        await _runSettingsAction(SettingsAction.ExportAll, this);
-
-    private async void ExportPinned_Click(object sender, RoutedEventArgs e) =>
-        await _runSettingsAction(SettingsAction.ExportPinned, this);
-
-    // Immediate like the delete below: unhiding a channel commits on its own, so Cancel here does not
-    // undo it.
-    private async void ManageHidden_Click(object sender, RoutedEventArgs e) =>
-        await _runSettingsAction(SettingsAction.ManageHidden, this);
-
-    // SP-0030: destructive and immediate - the confirmation inside the action is the commit point,
-    private async void ImportCatalogFromFile_Click(object sender, RoutedEventArgs e) =>
-        await _runSettingsAction(SettingsAction.ImportCatalogFromFile, this);
-
-    // SP-0030: destructive and immediate - the confirmation inside the action is the commit point,
-    // so closing Settings with Cancel does not bring the downloaded rows back.
-    // SP-0052: immediate like the two above - applying the bundled snapshot commits on its own, and
-    // closing Settings with Cancel does not take the channels back out.
-    private async void ApplyCatalogSnapshot_Click(object sender, RoutedEventArgs e) =>
-        await _runSettingsAction(SettingsAction.ApplyCatalogSnapshot, this);
-
-    private async void DeleteDownloaded_Click(object sender, RoutedEventArgs e) =>
-        await _runSettingsAction(SettingsAction.DeleteDownloaded, this);
-
-    private async void DeleteImportedCatalog_Click(object sender, RoutedEventArgs e) =>
-        await _runSettingsAction(SettingsAction.DeleteImportedCatalog, this);
-
-    private void CopyLaunchCommand_Click(object sender, RoutedEventArgs e)
-    {
-        if (_selectedChannel is null)
-        {
-            return;
-        }
-
-        try
-        {
-            Clipboard.SetText(StreamShortcutService.BuildLaunchCommand(_selectedChannel.Id));
-            MessageBox.Show(this, LocalizationService.Get("LaunchCommandCopied"), Title, MessageBoxButton.OK,
-                MessageBoxImage.Information);
-        }
-        catch (COMException)
-        {
-            MessageBox.Show(this, LocalizationService.Get("LaunchCommandCopyFailed"), Title, MessageBoxButton.OK,
-                MessageBoxImage.Warning);
-        }
-    }
-
-    private void CreateDesktopShortcut_Click(object sender, RoutedEventArgs e)
-    {
-        if (_selectedChannel is null)
-        {
-            return;
-        }
-
-        try
-        {
-            var path = StreamShortcutService.CreateDesktopShortcut(_selectedChannel);
-            MessageBox.Show(this, LocalizationService.Format("DesktopShortcutCreated", path), Title, MessageBoxButton.OK,
-                MessageBoxImage.Information);
-        }
-        catch (Exception exception) when (exception is COMException or InvalidOperationException or UnauthorizedAccessException)
-        {
-            MessageBox.Show(this, LocalizationService.Get("DesktopShortcutFailed"), Title, MessageBoxButton.OK,
-                MessageBoxImage.Warning);
-        }
-    }
-
-    // SP-0040: the owning window holds the catalog state and the log, so it builds and sends the report.
-    private async void SendLogs_Click(object sender, RoutedEventArgs e) =>
-        await _runSettingsAction(SettingsAction.SendLogsToAuthor, this);
 
     private void OpenLink_Click(object sender, RoutedEventArgs e)
     {

@@ -394,8 +394,10 @@ public partial class PlayerWindow : Window
     private void UpdateRecordingUi(bool isRecording)
     {
         RecordButton.Style = (Style)FindResource(isRecording ? "PlayerOverlayStopRecordGlyphButton" : "PlayerOverlayRecordGlyphButton");
-        RecordButton.ToolTip = LocalizationService.Get(isRecording ? "StopRecordTip" : "RecordTip");
-        System.Windows.Automation.AutomationProperties.SetName(RecordButton, LocalizationService.Get(isRecording ? "StopRecord" : "Record"));
+        // Resource references, not assigned strings: the name follows the role here and must also follow a
+        // language change made while recording (APP-BEHAVIOUR rule 9, SP-0114).
+        RecordButton.SetResourceReference(ToolTipProperty, isRecording ? "StopRecordTip" : "RecordTip");
+        RecordButton.SetResourceReference(System.Windows.Automation.AutomationProperties.NameProperty, isRecording ? "StopRecord" : "Record");
         RecordIndicator.Visibility = isRecording ? Visibility.Visible : Visibility.Collapsed;
         if (isRecording)
         {
@@ -1033,8 +1035,13 @@ public partial class PlayerWindow : Window
         _ = _saveAudioPreferences((int)Math.Round(VolumeSlider.Value), _isMuted);
     }
 
-    private void UpdateMuteButton() =>
+    // SP-0113: the glyph shows the action a click performs, like the caption beside it - media.mute
+    // while sound plays, media.volume while muted (ICON-RENDER 4).
+    private void UpdateMuteButton()
+    {
+        MuteButton.Style = (Style)FindResource(_isMuted ? "PlayerOverlayUnmuteGlyphButton" : "PlayerOverlayMuteGlyphButton");
         MuteButton.SetResourceReference(ContentControl.ContentProperty, _isMuted ? "Unmute" : "Mute");
+    }
 
     private void ActionsButton_Click(object sender, RoutedEventArgs e)
     {
@@ -1235,6 +1242,7 @@ public partial class PlayerWindow : Window
         ResizeMode = ResizeMode.NoResize;
         WindowState = WindowState.Maximized;
         _fullscreen = true;
+        FullscreenButton.Style = (Style)FindResource("PlayerOverlayExitFullscreenGlyphButton");
         FullscreenButton.SetResourceReference(ContentControl.ContentProperty, "ExitFullscreen");
         ShowControls();
     }
@@ -1246,6 +1254,7 @@ public partial class PlayerWindow : Window
         ResizeMode = _restoredResizeMode;
         WindowState = _restoredWindowState;
         _fullscreen = false;
+        FullscreenButton.Style = (Style)FindResource("PlayerOverlayFullscreenGlyphButton");
         FullscreenButton.SetResourceReference(ContentControl.ContentProperty, "Fullscreen");
         ShowControls();
     }

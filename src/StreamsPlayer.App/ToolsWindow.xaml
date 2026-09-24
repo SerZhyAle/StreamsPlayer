@@ -1,0 +1,107 @@
+<Window x:Class="StreamsPlayer.App.ToolsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource ToolsWindowTitle}" Width="640" Height="640"
+        MinWidth="520" MinHeight="420"
+        ResizeMode="CanResize" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource WindowBackground}">
+    <!-- SP-0109: every operation that used to run from inside Settings lives here. Settings offers Save and
+         Cancel, so an operation there made Cancel a false promise (APP-BEHAVIOUR rule 12). This window
+         offers no Cancel at all: each operation commits on its own, behind its own confirmation where it
+         destroys something, and Close is the one exit that changes nothing (rule 1). -->
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="14">
+                    <!-- Stream catalog -->
+                    <TextBlock Text="{DynamicResource StreamCatalogSettings}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{DynamicResource StreamCatalogSettingsHint}" Foreground="{DynamicResource MutedBrush}"
+                               TextWrapping="Wrap" Margin="0,0,0,10" />
+                    <Button x:Name="ImportCatalogFromFileButton" Style="{StaticResource ImportGlyphButton}"
+                            HorizontalAlignment="Left"
+                            Content="{DynamicResource ImportCatalogFromFile}" Click="ImportCatalogFromFile_Click"
+                            ToolTip="{DynamicResource ImportCatalogFromFileTip}"
+                            AutomationProperties.Name="{DynamicResource ImportCatalogFromFile}" />
+                    <!-- SP-0052: the bundled snapshot is never destructive - it adds and updates but removes
+                         nothing - so it sits above the separator with the other safe catalog actions. -->
+                    <TextBlock Text="{DynamicResource CatalogSnapshotSettingsHint}" Foreground="{DynamicResource MutedBrush}"
+                               TextWrapping="Wrap" Margin="0,12,0,8" />
+                    <Button x:Name="ApplyCatalogSnapshotButton" Style="{StaticResource ImportGlyphButton}"
+                            HorizontalAlignment="Left" Content="{DynamicResource CatalogSnapshotSettings}"
+                            Click="ApplyCatalogSnapshot_Click" ToolTip="{DynamicResource CatalogSnapshotSettingsTip}"
+                            AutomationProperties.Name="{DynamicResource CatalogSnapshotSettings}" />
+                    <!-- SP-0030 and SP-0098: destructive cleanup, separate for downloaded and imported banks.
+                         The confirmation inside each action is its commit point. -->
+                    <TextBlock Text="{DynamicResource DeleteDownloadedHint}" Foreground="{DynamicResource MutedBrush}"
+                               TextWrapping="Wrap" Margin="0,12,0,8" />
+                    <WrapPanel>
+                        <Button x:Name="DeleteDownloadedButton" Style="{StaticResource DeleteGlyphButton}"
+                                Content="{DynamicResource DeleteDownloaded}"
+                                Click="DeleteDownloaded_Click" ToolTip="{DynamicResource DeleteDownloadedTip}"
+                                AutomationProperties.Name="{DynamicResource DeleteDownloaded}" Margin="0,0,10,0" />
+                        <Button x:Name="DeleteImportedCatalogButton" Style="{StaticResource DeleteGlyphButton}"
+                                Content="{DynamicResource DeleteImportedCatalog}"
+                                Click="DeleteImportedCatalog_Click" ToolTip="{DynamicResource DeleteImportedCatalogTip}"
+                                AutomationProperties.Name="{DynamicResource DeleteImportedCatalog}" />
+                    </WrapPanel>
+
+                    <!-- SP-0016: M3U playlist import and export, and the hidden-channel manager beside them -->
+                    <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
+                    <TextBlock Text="{DynamicResource PlaylistPortability}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{DynamicResource PlaylistPortabilityHint}" Foreground="{DynamicResource MutedBrush}"
+                               TextWrapping="Wrap" Margin="0,0,0,10" />
+                    <WrapPanel>
+                        <Button x:Name="ImportFromFileButton" Style="{StaticResource ImportGlyphButton}"
+                                Content="{DynamicResource ImportFromFile}" Click="ImportFromFile_Click"
+                                ToolTip="{DynamicResource ImportListTip}" Margin="0,0,8,0" />
+                        <Button x:Name="ImportFromUrlButton" Style="{StaticResource ImportGlyphButton}"
+                                Content="{DynamicResource ImportFromUrl}" Click="ImportFromUrl_Click"
+                                ToolTip="{DynamicResource ImportListTip}" Margin="0,0,8,0" />
+                        <Button x:Name="ExportAllButton" Style="{StaticResource ExportGlyphButton}"
+                                Content="{DynamicResource ExportAll}" Click="ExportAll_Click"
+                                ToolTip="{DynamicResource ExportListTip}" Margin="0,0,8,0" />
+                        <Button x:Name="ExportPinnedButton" Style="{StaticResource ExportGlyphButton}"
+                                Content="{DynamicResource ExportPinned}" Click="ExportPinned_Click"
+                                ToolTip="{DynamicResource ExportListTip}" />
+                    </WrapPanel>
+                    <Button x:Name="ManageHiddenButton" Style="{StaticResource HiddenGlyphButton}"
+                            HorizontalAlignment="Left" Margin="0,12,0,0"
+                            Content="{DynamicResource ManageHiddenOpen}" Click="ManageHidden_Click"
+                            ToolTip="{DynamicResource ManageHiddenTip}"
+                            AutomationProperties.Name="{DynamicResource ManageHiddenOpen}" />
+
+                    <!-- SP-0026: the FFmpeg natives the opt-in FlyleafLib engine needs, fetched only on an
+                         explicit click. The status line states whether they are present. -->
+                    <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
+                    <TextBlock Text="{DynamicResource VideoComponentsTitle}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock x:Name="VideoComponentsStatusText" TextWrapping="Wrap" />
+                    <WrapPanel Margin="0,6,0,0">
+                        <Button x:Name="VideoComponentsInstallButton" Style="{StaticResource DownloadGlyphButton}"
+                                Content="{DynamicResource VideoComponentsInstall}"
+                                Click="VideoComponentsInstall_Click" />
+                        <Button x:Name="VideoComponentsRemoveButton" Style="{StaticResource DeleteGlyphButton}"
+                                Content="{DynamicResource VideoComponentsRemove}"
+                                Click="VideoComponentsRemove_Click" />
+                    </WrapPanel>
+
+                    <!-- SP-0040: the user-initiated diagnostic report. Nothing is sent by the app itself. -->
+                    <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
+                    <TextBlock Text="{DynamicResource DiagnosticsHeading}" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <Button x:Name="SendLogsButton" HorizontalAlignment="Left" Margin="0,0,0,6"
+                            Content="{DynamicResource SendLogs}" Click="SendLogs_Click"
+                            ToolTip="{DynamicResource SendLogsTip}"
+                            AutomationProperties.Name="{DynamicResource SendLogs}" />
+                    <TextBlock Text="{DynamicResource SendLogsHint}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <Button Grid.Row="1" HorizontalAlignment="Right" Margin="0,14,0,0" Padding="14,6"
+                Content="{DynamicResource Close}" IsCancel="True" IsDefault="True" />
+    </Grid>
+</Window>

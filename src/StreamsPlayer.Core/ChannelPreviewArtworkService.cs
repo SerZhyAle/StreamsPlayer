@@ -14,8 +14,8 @@ public sealed record ChannelPreviewArtwork(
     byte[] TilePack);
 
 /// <summary>
-/// SP-0031 downloader for the published channel-preview artwork, rewritten for SP-0091 against source
-/// contract items F and G2: stable names, manifest-verified, tile pack rather than sprite sheet.
+/// SP-0031 downloader for the published channel-preview artwork, rewritten for SP-0091 against
+/// STREAM-BANK items F and G2: stable names, manifest-verified, tile pack rather than sprite sheet.
 /// </summary>
 /// <remarks>
 /// <para>These are release assets with their own lifecycle, deliberately not bundled into
@@ -69,18 +69,45 @@ public sealed class ChannelPreviewArtworkService
     private static readonly TimeSpan DownloadIdleTimeout = TimeSpan.FromSeconds(20);
 
     private readonly HttpClient _httpClient;
+    private readonly PublishWindowRetry _publishWindowRetry;
 
     public ChannelPreviewArtworkService(HttpClient httpClient)
+        : this(httpClient, PublishWindowRetry.Default)
     {
-        _httpClient = httpClient;
     }
 
-    public async Task<ChannelPreviewArtwork> DownloadAsync(
+    /// <summary>Tests substitute a schedule without real pauses; the product always uses the default.</summary>
+    internal ChannelPreviewArtworkService(HttpClient httpClient, PublishWindowRetry publishWindowRetry)
+    {
+        _httpClient = httpClient;
+        _publishWindowRetry = publishWindowRetry;
+    }
+
+    /// <param name="retrying">
+    /// SP-0107: told when a file is caught mid-publish and the download is about to start over.
+    /// </param>
+    /// <remarks>
+    /// The three files are published the same delete-then-upload way as the bank, so the same
+    /// publish-window outcomes are retried (<c>STREAM-BANK</c> rule 11). A retry restarts from the
+    /// manifest rather than re-fetching only the file that failed: the manifest may have moved on to the
+    /// new build in the meantime, and a pack from one build verified against the hashes of another is the
+    /// half-replaced publish this class refuses. A hash mismatch itself is not retried here - it stays the
+    /// error it was, and the user's own retry is the recovery.
+    /// </remarks>
+    public Task<ChannelPreviewArtwork> DownloadAsync(
         IProgress<DownloadProgress>? progress = null,
-        CancellationToken cancellationToken = default)
+        IProgress<PublishWindowRetryNotice>? retrying = null,
+        CancellationToken cancellationToken = default) =>
+        _publishWindowRetry.RunAsync(token => DownloadOnceAsync(progress, token), retrying, cancellationToken);
+
+    private async Task<ChannelPreviewArtwork> DownloadOnceAsync(
+        IProgress<DownloadProgress>? progress,
+        CancellationToken cancellationToken)
     {
         var manifest = ArtworkManifest.Parse(
             Encoding.UTF8.GetString(await GetSmallAsync(ManifestUrl, MaximumManifestBytes, cancellationToken)));
+        // SP-0106: refused here, before the sidecar and the pack - a newer shape is not ours to read.
+        manifest.EnsureSupported();
         var set = manifest.Set(ArtworkManifest.ChannelPreviewSet);
 
         // Verified against the manifest before it is parsed: an index map from a different build resolves

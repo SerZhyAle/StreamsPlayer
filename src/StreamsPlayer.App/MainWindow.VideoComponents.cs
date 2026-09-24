@@ -9,13 +9,13 @@ namespace StreamsPlayer.App;
 /// SP-0026: installs and removes the FFmpeg natives the opt-in FlyleafLib engine binds against. They
 /// are not shipped in any package - the natives published alongside FlyleafLib are GPLv3, and the set
 /// is ~143 MB - so they are fetched from an LGPL-3.0 build on an explicit user request. Nothing here
-/// runs on startup or in the background; the only call sites are the two Settings buttons.
+/// runs on startup or in the background; the only call sites are the two buttons in the Tools window.
 /// </summary>
 public partial class MainWindow
 {
     private async Task InstallVideoComponentsAsync(Window owner)
     {
-        var settings = owner as SettingsWindow;
+        var tools = owner as ToolsWindow;
         if (MessageBox.Show(
                 owner,
                 LocalizationService.Format(
@@ -31,8 +31,8 @@ public partial class MainWindow
         }
 
         var installer = new FFmpegComponentsInstaller(_httpClient);
-        var progress = new Progress<FFmpegInstallProgress>(report => settings?.ShowInstallProgress(report));
-        settings?.SetVideoComponentsBusy(true);
+        var progress = new Progress<FFmpegInstallProgress>(report => tools?.ShowInstallProgress(report));
+        tools?.SetVideoComponentsBusy(true);
         try
         {
             var folder = await installer.InstallAsync(_dataDirectory, progress);
@@ -44,12 +44,12 @@ public partial class MainWindow
                                               or UnauthorizedAccessException or TaskCanceledException)
         {
             _log.Event("FFMPEG INSTALL", "ok=false", $"err={exception.GetType().Name}", $"msg={exception.Message}");
-            MessageBox.Show(owner, LocalizationService.Format("VideoComponentsInstallFailed", exception.Message),
+            MessageBox.Show(owner, LocalizationService.Format("VideoComponentsInstallFailed", FailureCauseText.Describe(exception)),
                 LocalizationService.Get("VideoComponentsTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
         {
-            settings?.SetVideoComponentsBusy(false);
+            tools?.SetVideoComponentsBusy(false);
         }
     }
 
@@ -70,8 +70,9 @@ public partial class MainWindow
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             // Most often a library still mapped by a player window opened on FlyleafLib this session.
-            _log.Event("FFMPEG REMOVE", "ok=false", $"err={exception.GetType().Name}");
-            MessageBox.Show(owner, LocalizationService.Format("VideoComponentsRemoveFailed", exception.Message),
+            // The message already names that cause and its action, so the exception goes to the log only.
+            _log.Event("FFMPEG REMOVE", "ok=false", $"err={exception.GetType().Name}", $"msg={exception.Message}");
+            MessageBox.Show(owner, LocalizationService.Get("VideoComponentsRemoveFailed"),
                 LocalizationService.Get("VideoComponentsTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 

@@ -10,7 +10,9 @@ Index of this tree. Two very different things live here, and the split matters:
   language list is never written in the generator - it comes from `InterfaceLanguages` in
   `StreamsPlayer.Core`. Verify with `pwsh -NoProfile -File tools/site/build-site.ps1 -Check`, which
   writes nothing and fails if `docs/` is stale. The link-preview card `assets/og-card.png` is
-  generated separately by `tools/site/make-og-image.ps1`.
+  generated separately by `tools/site/make-og-image.ps1`, and the lead screenshot under the hero,
+  `assets/screens/grid-<code>.jpg` (the catalog as a grid of video channels, one per language), by
+  `tools/site/export-site-screenshots.ps1` from the Store captures in `assets/store/`.
 - **Hand-written documentation** - everything below. Edit these directly.
 
 ## Maintainer documentation
@@ -21,7 +23,7 @@ Index of this tree. Two very different things live here, and the split matters:
 | [stream-playback-recommendations.md](stream-playback-recommendations.md) | Recommendations aimed at the FastMediaSorter (Android) side, about the stream bank this app consumes. |
 | [fastmediasorter-playback-recommendations.md](fastmediasorter-playback-recommendations.md) | The reverse direction: what this player could adopt from FastMediaSorter's Media3 playback. |
 | [localization/glossary.md](localization/glossary.md) | Translation glossary for the shipped interface languages. |
-| [specifications/streams.txt](specifications/streams.txt) | The standalone product specification. |
+| [contracts/](contracts/README.md) | One pointer per shared contract this product consumes or owes. Pointers, never copies. |
 | [specifications/competitor-improvement-backlog.md](specifications/competitor-improvement-backlog.md) | Competitor review and the improvement ideas it produced. |
 
 ## Agent workflow

@@ -9,6 +9,7 @@ public partial class MainWindow
     // infinite because the read is long-lived and bounded only by _icyCts; the
     // streaming read must not be cut by the shared 30 s catalog-client timeout.
     private readonly HttpClient _icyHttpClient = CreateIcyHttpClient();
+    private readonly HttpClient _statusHttpClient = CreateStatusHttpClient();
     private CancellationTokenSource? _icyCts;
 
     // Bumped on every start/stop so a marshaled report from a superseded reader is
@@ -17,7 +18,19 @@ public partial class MainWindow
 
     private static HttpClient CreateIcyHttpClient()
     {
-        var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+        return CreateNowPlayingHttpClient();
+    }
+
+    private static HttpClient CreateStatusHttpClient()
+    {
+        // A redirect can leave the broadcaster's own origin, which this feature must never contact.
+        return CreateNowPlayingHttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+    }
+
+    private static HttpClient CreateNowPlayingHttpClient(HttpMessageHandler? handler = null)
+    {
+        var client = handler is null ? new HttpClient() : new HttpClient(handler);
+        client.Timeout = Timeout.InfiniteTimeSpan;
         client.DefaultRequestHeaders.UserAgent.ParseAdd("StreamsPlayer/0.1");
         return client;
     }
@@ -63,6 +76,18 @@ public partial class MainWindow
         IProgress<string?> progress,
         CancellationToken cancellationToken)
     {
+        var statusOutcome = await new IcecastStatusReader(_statusHttpClient).ReadAsync(uri, progress, cancellationToken);
+        _log.Event("STATUS METADATA", $"outcome={statusOutcome}", $"host={uri.Host}");
+
+        // A compatible status endpoint replaces the old full-stream metadata read for this session. Only
+        // an absent or malformed endpoint reaches ICY, so a normal Icecast server costs small status
+        // documents instead of a second continuous audio transfer.
+        if (statusOutcome is IcecastStatusReadOutcome.TitlesReported or IcecastStatusReadOutcome.Cancelled ||
+            cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
         var outcome = await new IcyMetadataReader(_icyHttpClient).ReadAsync(url, progress, cancellationToken);
         _log.Event("ICY METADATA", $"outcome={outcome}", $"host={uri.Host}");
     }

@@ -1,4 +1,5 @@
 Version 26.0916.2054
 
 - Refreshed the built-in channel list snapshot (18 406 live streams as of 2026-09-15).
+- Record the live video or radio you are playing to a file with the Record button (R in the player), and listen to a live audio broadcast from a FastMediaSorter phone or watch over your local network.
 - Improved stream playback stability, live broadcast contracts, and diagnostic reporting.

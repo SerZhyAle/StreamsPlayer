@@ -5,7 +5,7 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.Core.Tests;
 
 /// <summary>
-/// SP-0091, source contract item F. The manifest is what replaces a compiled-in asset revision, so what
+/// SP-0091, STREAM-BANK item F. The manifest is what replaces a compiled-in asset revision, so what
 /// is gated here is the two jobs it took over: naming the build that landed, and refusing a pair whose
 /// halves came from different builds.
 /// </summary>
@@ -85,17 +85,28 @@ public sealed class ArtworkManifestTests
         Assert.Throws<InvalidDataException>(() => manifest.Set(ArtworkManifest.StreamLogoSet));
     }
 
-    // An unknown schemaVersion is not a reason to refuse: rejecting one would rebuild, on a different
-    // field, exactly the pin this class exists to remove. The publisher bumps it for additions.
+    // SP-0106, STREAM-BANK item L: additions arrive as new sets, so a raised schemaVersion is a shape this
+    // reader cannot absorb. It is refused even when the set we consume still parses - that parse is the
+    // partial import the compatibility law forbids.
     [Fact]
-    public void Parse_DoesNotRefuseAnUnknownSchemaVersion()
+    public void EnsureSupported_RefusesANewerSchemaVersionEvenWhenItsSetStillParses()
     {
         var manifest = ArtworkManifest.Parse("""
         {"schemaVersion": 99, "sets": {"channelPreview": {"stamp": "s", "files": [{"name":"t.zip","size":1,"sha256":"aa"}]}}}
         """);
 
-        Assert.Equal(99, manifest.SchemaVersion);
         Assert.Equal("s", manifest.Set(ArtworkManifest.ChannelPreviewSet).Stamp);
+        var refusal = Assert.Throws<UnsupportedArtworkManifestException>(manifest.EnsureSupported);
+        Assert.Equal(99, refusal.SchemaVersion);
+    }
+
+    [Theory]
+    [InlineData("""{"schemaVersion": 1, "sets": {}}""")]
+    [InlineData("""{"sets": {}}""")]
+    [InlineData("""{"schemaVersion": "2", "sets": {}}""")]
+    public void EnsureSupported_AcceptsTheCurrentOrAnAbsentVersion(string json)
+    {
+        ArtworkManifest.Parse(json).EnsureSupported();
     }
 
     // A file entry without a hash is the one thing that is never tolerated - it would let an unverified

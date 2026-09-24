@@ -8,9 +8,11 @@ Esplora un catalogo curato per categoria, lingua, paese o tipo di media. Cerca e
 
 Scegli un elenco compatto o una griglia visiva. Nella vista griglia l'app può catturare le miniature attuali dei flussi video HTTP(S) visibili; la dimensione dei riquadri e l'aggiornamento automatico delle miniature si regolano nelle Impostazioni. L'interfaccia completa è disponibile in tredici lingue, con layout speculare da destra a sinistra per arabo e urdu.
 
+Registra in un file il video live o la radio che stai riproducendo, senza interromperli. Riduci il catalogo a un pannello radio compatto mentre una stazione suona. Ascolta una trasmissione audio in diretta da un telefono o da un orologio con FastMediaSorter, direttamente sulla tua rete locale. Tieni i canali in raccolte tue, ritrovali in una cronologia di ascolto privata e importa o esporta playlist M3U.
+
 Il catalogo viene scaricato solo quando scegli «Importa canali da internet». STREAMS Player non ha account, pubblicità, analisi o telemetria. Stato del catalogo, voci aggiunte a mano, preferiti, contrassegni di riproduzione, impostazioni e miniature nella cache restano nel tuo profilo Windows.
 
-La compatibilità di riproduzione dipende dal fornitore del flusso, dalla disponibilità della rete, dal protocollo e dai codec multimediali supportati dai componenti multimediali inclusi nell'app o da quelli di Windows. STREAMS Player non ospita né controlla i contenuti dei flussi di terze parti.
+La compatibilità di riproduzione dipende dal fornitore del flusso, dalla disponibilità della rete, dal protocollo e dai codec multimediali supportati dai componenti LibVLC inclusi. STREAMS Player non ospita né controlla i contenuti dei flussi di terze parti.
 
 STREAMS Player è open source con licenza MIT.
 
@@ -30,7 +32,7 @@ Viste a elenco e a griglia con dimensione dei riquadri selezionabile e miniature
 Stazione radio scelta a caso nell'intero catalogo - se resta muta, tocca alla successiva
 
 @@Feature6
-Pannello radio compatto sempre in primo piano con stazione, brano, volume, comandi e timer di spegnimento
+Pannello radio compatto con stazione, brano, volume, timer di spegnimento, stazione precedente e successiva e registrazione - sopra le altre finestre finché non lo disattivi
 
 @@Feature7
 «Sempre in primo piano» indipendente per l'app e per il lettore video, e schermo intero senza bordi con F11 ed Escape
@@ -43,3 +45,12 @@ Aggiornamento del catalogo solo su tua richiesta, senza download a sorpresa in b
 
 @@Feature10
 Nessun account, pubblicità, analisi o telemetria
+
+@@Feature11
+Registra in un file il video live o la radio che stai riproducendo, senza interrompere la riproduzione
+
+@@Feature12
+Ascolta una trasmissione audio in diretta da un telefono o da un orologio con FastMediaSorter, direttamente sulla tua rete locale
+
+@@Feature13
+Raccolte di canali tutte tue, una cronologia di ascolto privata e importazione ed esportazione di playlist M3U

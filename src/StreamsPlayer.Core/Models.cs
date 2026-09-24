@@ -206,7 +206,7 @@ public sealed record StreamChannel
     public ChannelAccess Access { get; init; } = ChannelAccess.Open;
 
     /// <summary>
-    /// SP-0089, source contract item D: when an explicit refresh found this row's URL missing from the
+    /// SP-0089, STREAM-BANK item D: when an explicit refresh found this row's URL missing from the
     /// bank while the user had authored something on it, or <c>null</c> while the bank still lists it.
     /// </summary>
     /// <remarks>
@@ -444,6 +444,13 @@ public sealed record CatalogState
     /// Defaults to false so existing catalogs and pre-feature state files preserve visibility.
     /// </summary>
     public bool HideAdultContent { get; init; }
+
+    /// <summary>
+    /// Whether the playing station carries the animated "particles and lines" backdrop on its catalog card
+    /// or tile and in the compact panel (SP-0110). Defaults on: an older state file lacking this key
+    /// deserializes to the initializer default. Off removes the backdrop entirely rather than freezing it.
+    /// </summary>
+    public bool AnimatedBackdrop { get; init; } = true;
 
     /// <summary>
     /// Which published artwork build seeded the local preview store, as

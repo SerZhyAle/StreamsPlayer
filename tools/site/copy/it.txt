@@ -4,6 +4,8 @@
 #   [[command]] - the winget install command line
 #   [[appdata]] - the %LOCALAPPDATA%\StreamsPlayer path
 #   [[email]]   - the contact address
+#   [[hash]]    - the Get-FileHash command that checks a download against its .sha256 file
+#   [[installdir]] - the per-user install folder, %LOCALAPPDATA%\Programs\StreamsPlayer
 # machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
 # but the key is present in every file so the key sets stay comparable.
 
@@ -106,6 +108,9 @@ Microsoft Store
 @@status-plan
 Dove ottenerlo
 
+@@shot-alt
+STREAMS Player: il catalogo come griglia di canali video, ogni riquadro con un fotogramma recente del suo stream
+
 @@what-title
 Cos'è e perché
 
@@ -125,7 +130,7 @@ Tutto il necessario per trovare, conservare e riprodurre un flusso - raggruppato
 Trovare un canale
 
 @@cap-find-1
-Catalogo già pronto al primo avvio - senza configurazione. Un canale a cui il catalogo non ha dato un'icona ha comunque un volto suo - iniziali e un colore ricavati dal nome, più la sigla del paese quando è nota.
+Un catalogo curato, più una sua copia integrata che puoi applicare al primo avvio anche senza rete. Un canale a cui il catalogo non ha dato un'icona ha comunque un volto suo - iniziali e un colore ricavati dal nome, più la sigla del paese quando è nota.
 
 @@cap-find-2
 Filtri per categoria, argomento, lingua, paese e tipo di media - la riga si apre quando serve.
@@ -154,6 +159,12 @@ Video live e RTSP si aprono in una finestra del lettore dedicata che mostra il b
 @@cap-play-4
 Buffer live di circa 15 secondi, e il video si assesta sulla qualità che la tua connessione regge e riparte da lì la volta dopo.
 
+@@cap-play-5
+Registra il video live o la radio che stai riproducendo direttamente in un file nella cartella dei file salvati, senza interrompere la riproduzione.
+
+@@cap-play-6
+Ascolta una trasmissione audio in diretta da un telefono o da un orologio con FastMediaSorter, direttamente sulla tua rete locale - senza server in mezzo.
+
 @@cap-window-title
 Guardare come vuoi
 
@@ -173,7 +184,7 @@ Salva il fotogramma corrente come JPEG.
 Quando l'immagine si ferma, il lettore ne dice il motivo sopra il video - e riapre un flusso bloccatosi in silenzio.
 
 @@cap-window-6
-Riduci il catalogo a un piccolo pannello sempre in primo piano mentre la radio suona - con stazione, brano, volume, comandi e timer di spegnimento.
+Riduci il catalogo a un piccolo pannello senza barra del titolo mentre la radio suona - in alto la stazione e il brano, sotto il volume, il timer di spegnimento, la stazione precedente e quella successiva, una stazione casuale, «Registra» e i pulsanti propri del pannello: sempre in primo piano, ritorno e riduci a icona.
 
 @@cap-grid-title
 Griglia visiva
@@ -201,6 +212,15 @@ Contrassegni di riproduzione locali: OK o errore.
 
 @@cap-yours-4
 Cambia l'intera interfaccia tra tredici lingue; la scelta viene ripristinata.
+
+@@cap-yours-5
+Raggruppa i canali in raccolte tue, con il nome che scegli, e sfogliale una alla volta.
+
+@@cap-yours-6
+Una cronologia privata «Riprodotti di recente» dei tuoi ultimi 100 canali, con il brano che era in onda - conservata sul tuo PC e cancellata quando lo chiedi.
+
+@@cap-yours-7
+Importa canali da un file M3U o da un URL di playlist, con un'anteprima prima che venga aggiunto qualcosa, ed esporta in M3U i tuoi canali o quelli fissati.
 
 @@cap-local-title
 Locale per scelta
@@ -230,7 +250,7 @@ Con .NET 10 SDK installato, esegui ripristino, build e avvio dalla radice del re
 Scegli e riproduci
 
 @@use-2-text
-Sfoglia il catalogo, filtra o cerca, poi seleziona un canale. La radio parte nella finestra principale; video e RTSP si aprono nella finestra del lettore. Un avvio normale non riproduce nulla; attiva «Riprendi la riproduzione all'avvio» nelle impostazioni e l'avvio riporta ciò che era in riproduzione alla chiusura precedente.
+Sfoglia il catalogo, filtra o cerca, poi seleziona un canale. La radio parte nella finestra principale; video e RTSP si aprono nella finestra del lettore. Un avvio normale non riproduce nulla; attiva «Riprendi la riproduzione all'avvio» nelle [[glyph:app.settings]] impostazioni e l'avvio riporta ciò che era in riproduzione alla chiusura precedente.
 
 @@use-3-title
 Aprire un URL qualsiasi
@@ -242,13 +262,13 @@ Riproduci un flusso senza toccare il catalogo.
 Salvare un canale in un collegamento
 
 @@use-4-text
-Seleziona un canale salvato, apri le Impostazioni e usa «Copia il comando» o «Crea collegamento sul desktop». Entrambi usano l'id del canale salvato.
+Apri il menu [[glyph:nav.more]] a tre punti di un canale salvato e usa «Copia comando di avvio» o «Crea collegamento sul desktop». Entrambi usano l'id del canale salvato.
 
 @@use-5-title
 Segnalare un problema con i registri
 
 @@use-5-text
-Apri le Impostazioni, vai su «Informazioni» e premi «Invia i registri all'autore». L'app comprime i registri diagnostici di questa sessione e di quella precedente con un breve riepilogo della versione, di Windows e delle impostazioni nella cartella dei file salvati (Download per impostazione predefinita), poi apre il programma di posta con il messaggio già pronto. La conferma mostra il percorso completo e può aprire la cartella su richiesta; alleghi l'archivio e premi Invia.
+Apri «Strumenti» dal menu [[glyph:nav.more]] «Azioni» e premi «Invia i registri all'autore». L'app comprime i registri diagnostici degli ultimi dieci avvii con un breve riepilogo della versione, di Windows e delle impostazioni nella cartella dei file salvati (Download per impostazione predefinita), poi apre il programma di posta con il messaggio già pronto. La conferma mostra il percorso completo e può aprire la cartella su richiesta; alleghi l'archivio e premi Invia.
 
 @@distribution-title
 Distribuzione
@@ -287,19 +307,127 @@ STREAMS Player non ha account, pubblicità, analisi, telemetria né servizi gest
 Accesso alla rete
 
 @@privacy-network
-L'applicazione si collega quando aggiorni esplicitamente il catalogo pubblico dei flussi, quando riproduci un flusso selezionato o quando tieni attiva la griglia mentre le anteprime video visibili vengono aggiornate. Queste richieste vanno al fornitore del catalogo o del flusso interessato e sono soggette alle sue politiche. Il pacchetto di anteprime proposto dopo un aggiornamento del catalogo viene scaricato solo se lo accetti.
+L'applicazione si collega solo su tua azione, e solo alla destinazione di cui quell'azione ha bisogno: al catalogo pubblico dei flussi e al pacchetto di anteprime facoltativo proposto dopo di esso, scaricati da GitHub quando importi il catalogo o accetti il pacchetto; al fornitore di un flusso che riproduci, registri o di cui apri «Informazioni sul canale», o la cui anteprima video si aggiorna mentre la vista griglia è visibile; a un telefono o a un orologio con FastMediaSorter che hai importato, raggiunto direttamente sulla tua rete locale; e, solo se le richiedi in «Strumenti», alle librerie FFmpeg facoltative per il motore sperimentale FlyleafLib, scaricate da un progetto GitHub di terze parti (BtbN/FFmpeg-Builds). Ogni richiesta va direttamente a quella destinazione ed è soggetta alle sue politiche; nessuna passa per un servizio gestito dall'autore.
 
 @@privacy-local-title
 Dati locali
 
 @@privacy-local
-STREAMS Player salva lo stato del catalogo, le voci aggiunte a mano, i canali fissati, i contrassegni di riproduzione, i fotogrammi di anteprima nella cache entro un limite di 150 MB e i registri diagnostici della sessione corrente e di quella precedente in [[appdata]]. Questi dati restano sul tuo dispositivo, a meno che tu non scelga di copiarli o di farne una copia di backup - oppure a meno che tu non usi «Invia i registri all'autore» nelle Impostazioni, che comprime i due registri diagnostici insieme alla versione dell'app, alla versione di Windows e alle impostazioni in un archivio e apre il tuo programma di posta perché tu lo alleghi e lo invii a [[email]]. Quell'archivio viene preparato solo quando premi quel pulsante, i registri al suo interno indicano i flussi che sono stati riprodotti e non viene mai inviato nulla senza che tu prema Invia nel tuo programma di posta.
+STREAMS Player salva in [[appdata]] lo stato del catalogo, i canali che hai aggiunto e importato, i canali fissati, le raccolte, i canali nascosti, la cronologia di ascolto, i contrassegni di riproduzione, i fotogrammi di anteprima nella cache entro un limite di 150 MB, le librerie FFmpeg facoltative se le hai scaricate e i registri diagnostici degli ultimi dieci avvii. Le registrazioni e i fotogrammi salvati finiscono nella cartella dei file salvati che scegli tu (Download per impostazione predefinita). Questi dati restano sul tuo dispositivo, a meno che tu non li copi o ne faccia un backup - oppure a meno che tu non usi «Invia i registri all'autore» in «Strumenti», che comprime quei registri diagnostici insieme alla versione dell'app, alla versione di Windows e alle impostazioni in un archivio e apre il tuo programma di posta perché tu lo alleghi e lo invii a [[email]]. Quell'archivio viene preparato solo quando premi quel pulsante, i registri al suo interno indicano i flussi che sono stati riprodotti e non viene mai inviato nulla senza che tu prema Invia nel tuo programma di posta.
 
 @@privacy-contact-title
 Contatti
 
 @@privacy-contact
 Le domande si possono aprire nell'issue tracker su GitHub o inviare a [[email]].
+
+@@title-trust
+PC protetto da Windows - cosa cliccare - STREAMS Player
+
+@@description-trust
+Perché Windows SmartScreen mostra un avviso prima che STREAMS Player venga eseguito per la prima volta, cosa cliccare esattamente e cosa l'app non fa mai.
+
+@@nav-trust
+Aiuto per l'installazione
+
+@@trust-link
+Windows ti ha avvisato? Cosa cliccare
+
+@@trust-eyebrow
+STREAMS Player · Installazione
+
+@@trust-title
+Windows ti ha avvisato. Ecco cosa significa.
+
+@@trust-intro
+STREAMS Player è un'app gratuita di uno sviluppatore indipendente. Se Windows l'ha fermata la prima volta che hai aperto il download, questa pagina spiega che cos'è quella schermata, perché compare, cosa cliccare esattamente e cosa l'app non fa mai. Si legge in circa trenta secondi.
+
+@@trust-what-title
+«PC protetto da Windows»
+
+@@trust-what-1
+Questa schermata è Microsoft Defender SmartScreen (su un Windows in inglese il titolo è «Windows protected your PC»). Sotto il titolo dice di aver «impedito l'avvio di un'app non riconosciuta» e, dopo il collegamento «More info» (Ulteriori informazioni), indica l'autore come «Autore sconosciuto». Compare quando apri un file scaricato da internet che non ha una firma digitale e che Windows non ha ancora visto eseguire su molti PC.
+
+@@trust-what-2
+È una cautela verso un file che Windows non conosce ancora, non la segnalazione di qualcosa trovato al suo interno - ed è Windows che fa il suo lavoro: non può sapere chi ha creato un file non firmato, quindi te lo chiede prima di eseguirlo.
+
+@@trust-why-title
+Perché compare per questa app
+
+@@trust-why-1
+L'installer, lo ZIP portatile e il pacchetto winget di STREAMS Player non hanno la firma del codice. Un certificato di firma del codice costa centinaia di dollari all'anno, e per un'app gratuita senza entrate abbiamo scelto di non acquistarne uno per ora. È una decisione, non una svista - e per un file non firmato un avviso è esattamente ciò che Windows deve mostrare.
+
+@@trust-why-2
+SmartScreen tiene conto anche della reputazione: più persone eseguono lo stesso file senza problemi, prima Windows lo riconosce e prima l'avviso smette di comparire. Ogni release è un file nuovo che parte da zero - per questo l'avviso può tornare dopo un aggiornamento, e per questo si attenua man mano che una release viene usata.
+
+@@trust-why-3
+La versione del Microsoft Store è firmata da Microsoft e non mostra questa schermata. Ogni release su GitHub pubblica inoltre un file .sha256 accanto a ogni download: esegui [[hash]] in PowerShell sul file che hai scaricato, e il risultato deve corrispondere al valore contenuto in quel file.
+
+@@trust-click-title
+Cosa cliccare
+
+@@trust-click-intro
+Nella schermata «PC protetto da Windows»:
+
+@@trust-click-1
+Fai clic sul collegamento «More info» (Ulteriori informazioni), sotto il messaggio.
+
+@@trust-click-2
+Controlla che il nome del file sia quello del file di STREAMS Player che hai scaricato, poi fai clic su «Esegui comunque» (Run anyway).
+
+@@trust-click-3
+È tutto - l'installer, o l'app dallo ZIP, si avvia normalmente. Non devi mai disattivare SmartScreen né il tuo antivirus, e l'app stessa non ha mai bisogno dei diritti di amministratore.
+
+@@trust-admin-title
+«Do you want to allow this app from an unknown publisher to make changes to your device?» (Vuoi consentire a questa app di un autore sconosciuto di apportare modifiche al dispositivo?)
+
+@@trust-admin-1
+Di norma non dovresti vedere questa richiesta. Per impostazione predefinita l'installer installa solo per te, in [[installdir]], e per farlo non ha bisogno dei diritti di amministratore. Se ti chiede come installare, scegli «Installa solo per l'utente attuale (suggerito)».
+
+@@trust-admin-2
+Windows mostra questa richiesta solo se scegli «Installa per tutti gli utenti». L'installer usa allora i diritti di amministratore per esattamente tre cose:
+
+@@trust-admin-item-1
+copiare il programma nella cartella Programmi (Program Files), così che ogni account di questo PC possa avviarlo;
+
+@@trust-admin-item-2
+aggiungere STREAMS Player al menu Start di ogni account, e al desktop condiviso se hai spuntato quell'opzione;
+
+@@trust-admin-item-3
+registrarlo in Windows come app installata, così che si possa rimuovere in seguito.
+
+@@trust-admin-3
+Un'unica azione rimuove tutte e tre le cose insieme: Impostazioni > App > App installate (App e funzionalità su Windows 10) > STREAMS Player > Disinstalla. Se preferisci non concedere i diritti di amministratore, fai clic su «No» e avvia di nuovo l'installer con «Installa solo per l'utente attuale».
+
+@@trust-av-title
+Se il tuo antivirus trattiene il file
+
+@@trust-av
+Alcuni antivirus sono prudenti con i file nuovi e non firmati. Se il tuo mette STREAMS Player in quarantena, ripristinalo e aggiungi un'eccezione solo per la sua cartella - [[installdir]] per l'installer, oppure la cartella in cui hai estratto lo ZIP. Basta un'eccezione per quell'unica cartella, e puoi rimuoverla in qualsiasi momento; non disattivare l'antivirus.
+
+@@trust-never-title
+Cosa STREAMS Player non fa mai
+
+@@trust-never-1
+Non ha mai bisogno dei diritti di amministratore per installarsi o funzionare, non si aggiunge mai all'avvio di Windows e non installa alcun servizio in background.
+
+@@trust-never-2
+Non ha account, pubblicità, analisi né telemetria, e nessun servizio gestito dall'autore attraverso cui passino i tuoi dati.
+
+@@trust-never-3
+Si collega solo su tua azione, e solo a ciò di cui quell'azione ha bisogno: il catalogo pubblico dei flussi e il suo pacchetto di anteprime facoltativo su GitHub, il fornitore di un flusso che riproduci, registri o visualizzi in anteprima, un telefono o un orologio con FastMediaSorter sulla tua rete, e le librerie FFmpeg facoltative se le richiedi in «Strumenti».
+
+@@trust-never-4
+Non scarica mai il catalogo di sua iniziativa - un aggiornamento avviene solo quando lo chiedi tu.
+
+@@trust-never-5
+Non invia mai i tuoi dati o i tuoi registri da nessuna parte di sua iniziativa. «Invia i registri all'autore» in «Strumenti» prepara solo un archivio e un messaggio nel tuo programma di posta; nulla parte finché non premi Invia lì.
+
+@@trust-never-6
+Disinstallarlo non cancella mai i tuoi canali, i canali fissati o la cronologia - restano in [[appdata]] finché non elimini tu stesso quella cartella.
+
+@@trust-privacy-link
+Leggi la pagina sulla privacy
 
 @@footer-rights
 © 2026 Serhii Zhyhunenko

@@ -13,7 +13,7 @@ Every language file holds exactly the same field set:
 | --- | --- |
 | `ShortDescription` | one sentence, at most 1,000 characters |
 | `Description` | the body, at most 10,000 characters, blank line between paragraphs |
-| `Feature1` .. `Feature10` | Partner Center adds the bullets - do not type them |
+| `Feature1` .. `Feature13` | Partner Center adds the bullets - do not type them; the export has rows up to `Feature20` |
 
 `release-notes/` is the fourth thing, and the only one that is **per submission** rather than durable:
 `<version>.en-us.txt`, `<version>.ru.txt`, `<version>.uk.txt` hold the "What's new" for one release,

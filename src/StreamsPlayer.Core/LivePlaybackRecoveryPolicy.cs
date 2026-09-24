@@ -1,7 +1,7 @@
 namespace StreamsPlayer.Core;
 
 /// <summary>
-/// The platform-neutral live-recovery state machine (<c>docs/specifications/streams.txt</c>, Part D).
+/// The platform-neutral live-recovery state machine (<c>DEVELOPER_PROMPT.md</c> Part D).
 /// Given a <see cref="PlaybackFailureSignal"/> it returns whether to reconnect (after a bounded backoff)
 /// or hard-fail, tracking a separate <em>consecutive</em>-attempt budget per <see cref="RecoveryTrigger"/>.
 /// Reaching sustained live playback (<see cref="NotifyLive"/>) resets every budget, so a stream that keeps

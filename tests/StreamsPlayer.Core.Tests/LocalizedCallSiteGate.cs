@@ -49,7 +49,9 @@ internal static class LocalizedCallSiteGate
         new("ShowDownloadProgress", 2, 1),
         new("ShowDownloadProgress", 3, 0),
         // ShowCountProgress passes processed and total.
-        new("ShowCountProgress", 2, 2)
+        new("ShowCountProgress", 2, 2),
+        // SP-0107: ShowPublishWindowRetry passes the delay, the next attempt and the attempt count.
+        new("ShowPublishWindowRetry", 2, 3)
     ];
 
     /// <summary>

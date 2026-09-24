@@ -33,7 +33,13 @@ public static class ThemeService
             ["InfoBrush"] = (Color.FromRgb(56, 108, 141), Color.FromRgb(134, 197, 244)),
             ["GeoHintBrush"] = (Color.FromArgb(34, 179, 107, 0), Color.FromArgb(51, 213, 128, 0)),
             ["GeoTextBrush"] = (Color.FromRgb(138, 83, 0), Color.FromRgb(255, 213, 128)),
-            ["LinkBrush"] = (Color.FromRgb(0, 103, 192), Color.FromRgb(120, 189, 255))
+            ["LinkBrush"] = (Color.FromRgb(0, 103, 192), Color.FromRgb(120, 189, 255)),
+            // SP-0114: the APP-STYLE roles success, warning and danger - a state mark on a themed surface
+            // (a channel's last play outcome, the stop-recording glyph). Each pair is darker on the light
+            // surfaces and lighter on the dark ones, so the mark keeps its contrast in both themes.
+            ["SuccessBrush"] = (Color.FromRgb(30, 126, 52), Color.FromRgb(86, 196, 110)),
+            ["WarningBrush"] = (Color.FromRgb(176, 122, 0), Color.FromRgb(230, 180, 60)),
+            ["DangerBrush"] = (Color.FromRgb(178, 34, 34), Color.FromRgb(255, 107, 107))
         };
 
     private static AppTheme _preference = AppTheme.System;

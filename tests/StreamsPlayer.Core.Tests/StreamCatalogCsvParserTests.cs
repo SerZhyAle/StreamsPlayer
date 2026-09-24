@@ -79,7 +79,7 @@ public sealed class StreamCatalogCsvParserTests
         Assert.Equal(expected, Assert.Single(StreamCatalogCsvParser.Parse(csv)).IsLive);
     }
 
-    // SP-0088, source contract item E: `access` is an opaque token, not a closed set. Blank means open;
+    // SP-0088, STREAM-BANK item E: `access` is an opaque token, not a closed set. Blank means open;
     // every non-empty value means a restriction this consumer does not model. SP-0033 had this inverted -
     // it recognised `geo` alone and folded every other token into Open, so a token the producer adds
     // later would read as the *absence* of a restriction, which is the one answer that cannot be right.

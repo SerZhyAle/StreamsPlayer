@@ -8,11 +8,12 @@ using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
-// SP-0016: the actions the Settings window delegates to the owning window, which is the one that holds the
-// catalog state (SP-0030 added DeleteDownloaded, SP-0040 SendLogsToAuthor - at which point "stream list" had
-// stopped describing the set, hence the rename). The owning window is passed in so every file picker, prompt,
-// preview, and message box is owned by whichever window triggered the action.
-public enum SettingsAction
+// SP-0016: the actions the Tools window delegates to the owning window, which is the one that holds the
+// catalog state (SP-0030 added DeleteDownloaded, SP-0040 SendLogsToAuthor). SP-0109 moved them out of the
+// Settings window, whose Cancel could not undo any of them, and renamed the set after the window that runs
+// it now. The owning window is passed in so every file picker, prompt, preview, and message box is owned by
+// whichever window triggered the action.
+public enum ToolsAction
 {
     ImportFromFile,
     ImportFromUrl,
@@ -33,20 +34,20 @@ public enum SettingsAction
 // reused). Export is limited to user-owned (Manual/Imported/LocalCatalog) rows, optionally the pinned subset.
 public partial class MainWindow
 {
-    internal Task RunSettingsActionAsync(SettingsAction action, Window owner) => action switch
+    internal Task RunToolsActionAsync(ToolsAction action, Window owner) => action switch
     {
-        SettingsAction.ImportFromFile => ImportFromFileAsync(owner),
-        SettingsAction.ImportFromUrl => ImportFromUrlAsync(owner),
-        SettingsAction.ExportAll => ExportAsync(pinnedOnly: false, owner),
-        SettingsAction.ExportPinned => ExportAsync(pinnedOnly: true, owner),
-        SettingsAction.ManageHidden => ShowHiddenChannelsAsync(owner),
-        SettingsAction.ApplyCatalogSnapshot => ApplyBundledSnapshotAsync(owner),
-        SettingsAction.DeleteDownloaded => DeleteDownloadedChannelsAsync(owner),
-        SettingsAction.ImportCatalogFromFile => ImportCatalogFromFileAsync(owner),
-        SettingsAction.DeleteImportedCatalog => DeleteImportedCatalogAsync(owner),
-        SettingsAction.SendLogsToAuthor => SendLogsToAuthorAsync(owner),
-        SettingsAction.InstallVideoComponents => InstallVideoComponentsAsync(owner),
-        SettingsAction.RemoveVideoComponents => RemoveVideoComponentsAsync(owner),
+        ToolsAction.ImportFromFile => ImportFromFileAsync(owner),
+        ToolsAction.ImportFromUrl => ImportFromUrlAsync(owner),
+        ToolsAction.ExportAll => ExportAsync(pinnedOnly: false, owner),
+        ToolsAction.ExportPinned => ExportAsync(pinnedOnly: true, owner),
+        ToolsAction.ManageHidden => ShowHiddenChannelsAsync(owner),
+        ToolsAction.ApplyCatalogSnapshot => ApplyBundledSnapshotAsync(owner),
+        ToolsAction.DeleteDownloaded => DeleteDownloadedChannelsAsync(owner),
+        ToolsAction.ImportCatalogFromFile => ImportCatalogFromFileAsync(owner),
+        ToolsAction.DeleteImportedCatalog => DeleteImportedCatalogAsync(owner),
+        ToolsAction.SendLogsToAuthor => SendLogsToAuthorAsync(owner),
+        ToolsAction.InstallVideoComponents => InstallVideoComponentsAsync(owner),
+        ToolsAction.RemoveVideoComponents => RemoveVideoComponentsAsync(owner),
         _ => Task.CompletedTask
     };
 

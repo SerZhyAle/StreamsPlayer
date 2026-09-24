@@ -49,6 +49,34 @@ dictionaries rather than retranslating it here.
 | Arabic (`ar`) | بث | كتالوج | قناة | تحديث | مثبَّت | مجموعة | معاينة | سمة الألوان |
 | Urdu (`ur`) | نشریات | فہرست | چینل | تازہ کاری | پن شدہ | مجموعہ | پیش منظر | رنگ تھیم |
 
+## Command and window names
+
+Names the interface gives to a place or an action, so prose on every surface (README, site, Store
+listing) calls it what the user sees. Copied from the shipped `Operations`, `ToolsOpen` and `Record`
+strings; the dictionaries win if the two ever disagree.
+
+| Term | Meaning in this product |
+|---|---|
+| **Operations** | The header menu that holds the rarely used actions, including Tools and the catalog import. |
+| **Tools** | The window, opened from Operations, for everything that acts at once (imports, deletions, M3U, FFmpeg download, Send logs). Settings holds preferences only. |
+| **Record** | Capture the live stream that is playing to a file, without interrupting playback. |
+
+| Language | Operations | Tools | Record |
+|---|---|---|---|
+| English (`en`) | Operations | Tools | Record |
+| Russian (`ru`) | Операции | Инструменты | Запись |
+| Ukrainian (`uk`) | Операції | Інструменти | Запис |
+| German (`de`) | Aktionen | Werkzeuge | Aufnehmen |
+| Italian (`it`) | Azioni | Strumenti | Registra |
+| Spanish (`es`) | Acciones | Herramientas | Grabar |
+| French (`fr`) | Actions | Outils | Enregistrer |
+| Portuguese (`pt`) | Ações | Ferramentas | Gravar |
+| Chinese (`zh`) | 操作 | 工具 | 录制 |
+| Hindi (`hi`) | कार्य | टूल | रिकॉर्ड करें |
+| Bengali (`bn`) | কাজ | টুল | রেকর্ড করুন |
+| Arabic (`ar`) | إجراءات | الأدوات | تسجيل |
+| Urdu (`ur`) | کارروائیاں | اوزار | ریکارڈ کریں |
+
 ## Terms left untranslated on purpose
 
 | Term | Reason |

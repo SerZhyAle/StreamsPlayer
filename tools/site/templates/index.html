@@ -69,6 +69,13 @@
         </aside>
       </section>
 
+      <!-- The lead screenshot: the catalog as a grid of video channels, in this page's language. The
+           same capture is the Store listing's DesktopScreenshot1; tools/site/export-site-screenshots.ps1
+           turns tools/store/capture-store-screenshots.ps1's PNGs into these JPEGs. -->
+      <figure class="hero-shot">
+        <img src="{{page.base}}assets/screens/grid-{{page.code}}.jpg" alt="{{t.shot-alt}}" width="1366" height="768" decoding="async">
+      </figure>
+
       <section class="section" id="what" aria-labelledby="what-title">
         <h2 class="section-heading" id="what-title"><span class="hash">#</span><span>{{t.what-title}}</span></h2>
         <p class="section-description">{{t.what-p1}}</p>
@@ -96,6 +103,8 @@
               <li>{{t.cap-play-2}}</li>
               <li>{{t.cap-play-3}}</li>
               <li>{{t.cap-play-4}}</li>
+              <li>{{t.cap-play-5}}</li>
+              <li>{{t.cap-play-6}}</li>
             </ul>
           </article>
           <article class="card cap">
@@ -124,6 +133,9 @@
               <li>{{t.cap-yours-2}}</li>
               <li>{{t.cap-yours-3}}</li>
               <li>{{t.cap-yours-4}}</li>
+              <li>{{t.cap-yours-5}}</li>
+              <li>{{t.cap-yours-6}}</li>
+              <li>{{t.cap-yours-7}}</li>
             </ul>
           </article>
           <article class="card cap">
@@ -199,6 +211,11 @@
           </a>
         </div>
         <p class="section-description">{{t.channel-setup-note}}</p>
+        <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
+             the download is, not only from the footer. -->
+        <div class="button-group">
+          <a class="button button-gold button-small" href="{{page.trust}}">{{t.trust-link}}</a>
+        </div>
       </section>
     </main>
 

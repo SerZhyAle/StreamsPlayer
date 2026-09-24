@@ -34,6 +34,10 @@ public partial class MainWindow
     // opens the full window with no memory of either.
     private ScreenRect? _compactPanelPlacement;
 
+    // Session-only for the same reason as the placement above. On by default: a panel that stays on
+    // top is what the mode was built for, and unpinning is the listener's explicit choice.
+    private bool _compactPanelTopmost = true;
+
     // Distinguishes the close this file performs on the way to the full window from the one the
     // listener performs with the panel's own close button, which ends the application.
     private bool _closingPanelToExpand;
@@ -46,8 +50,9 @@ public partial class MainWindow
     /// a dialog renders *behind* the always-on-top panel, where it cannot be reached and the application
     /// reads as frozen; and the ticket rules out the obvious alternative of expanding to show it, since
     /// a window jumping over someone else's full-screen work is exactly what the panel exists to avoid.
-    /// Both therefore report themselves on the status line the panel already mirrors - the same trade
-    /// the resume path has been making since SP-0062.
+    /// Both therefore report themselves on the status line the panel already mirrors (in the header's
+    /// tooltip since the panel lost its caption) - the same trade the resume path has been making since
+    /// SP-0062.
     /// </remarks>
     private bool IsCompact => _compactPanel is not null;
 
@@ -68,10 +73,12 @@ public partial class MainWindow
         panel.RandomRequested += CompactPanel_RandomRequested;
         panel.RecordRequested += CompactPanel_RecordRequested;
         panel.SleepTimerRequested += CompactPanel_SleepTimerRequested;
+        panel.TopmostToggleRequested += CompactPanel_TopmostToggleRequested;
         panel.VolumeChanged += CompactPanel_VolumeChanged;
         panel.Moved += CompactPanel_Moved;
         panel.MoveFinished += CompactPanel_MoveFinished;
         panel.Closed += CompactPanel_Closed;
+        panel.ShowTopmost(_compactPanelTopmost);
         _compactPanel = panel;
 
         // Placed twice on purpose. Before Show the panel has no window handle and therefore no DPI of
@@ -120,6 +127,7 @@ public partial class MainWindow
         panel.RandomRequested -= CompactPanel_RandomRequested;
         panel.RecordRequested -= CompactPanel_RecordRequested;
         panel.SleepTimerRequested -= CompactPanel_SleepTimerRequested;
+        panel.TopmostToggleRequested -= CompactPanel_TopmostToggleRequested;
         panel.VolumeChanged -= CompactPanel_VolumeChanged;
         panel.Moved -= CompactPanel_Moved;
         panel.MoveFinished -= CompactPanel_MoveFinished;
@@ -169,6 +177,13 @@ public partial class MainWindow
     private void CompactPanel_RecordRequested(object? sender, EventArgs e) => ToggleAudioRecording();
 
     private async void CompactPanel_RandomRequested(object? sender, EventArgs e) => await StartRandomStationHuntAsync();
+
+    private void CompactPanel_TopmostToggleRequested(object? sender, EventArgs e)
+    {
+        _compactPanelTopmost = !_compactPanelTopmost;
+        _compactPanel?.ShowTopmost(_compactPanelTopmost);
+        _log.Event("COMPACT PANEL", $"topmost={_compactPanelTopmost}");
+    }
 
     private void CompactPanel_SleepTimerRequested(object? sender, EventArgs e)
     {
@@ -231,14 +246,22 @@ public partial class MainWindow
             return;
         }
 
-        panel.ShowLines(NowPlayingText.Text, StatusText.Text, Title);
         var hasStation = _playingAudio is not null || _audioPausedChannel is not null;
+        var row = _playingAudio ?? (_audioPausedChannel is { } paused ? GetOrCreateRow(paused, BuildFaviconAtlasSet()) : null);
+        // With no station the header falls back to the full window's now-playing line ("Nothing
+        // playing"), so the strip never shows an empty title.
+        panel.ShowHeader(
+            row?.DisplayTitle ?? NowPlayingText.Text,
+            row?.Tags ?? string.Empty,
+            NowPlayingText.Text,
+            StatusText.Text,
+            Title);
         panel.ShowTransport(hasStation, _playingAudio is not null);
         panel.ShowRecording(hasStation, _audioRecorder is not null);
         var (canPrevious, canNext) = AudioNavAvailability();
         panel.ShowNavigation(hasStation, canPrevious, canNext);
-        var row = _playingAudio ?? (_audioPausedChannel is { } paused ? GetOrCreateRow(paused, BuildFaviconAtlasSet()) : null);
         panel.ShowChannel(row, _playingAudio is not null);
+        panel.ShowBackdrop(CompactPanelBackdrop(row));
         panel.ShowVolume(AudioVolumeSlider.Value);
         panel.ShowSleepTimer(
             SleepTimerButton.Visibility == Visibility.Visible,

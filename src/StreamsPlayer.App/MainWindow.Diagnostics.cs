@@ -50,8 +50,10 @@ public partial class MainWindow
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or NotSupportedException)
         {
-            _log.Event("LOG REPORT", "ok=false", $"err={exception.GetType().Name}");
-            MessageBox.Show(owner, LocalizationService.Format("SendLogsFailed", outputFolder, exception.Message),
+            // Every type caught here is the file system refusing the archive, so the cause is always storage;
+            // the exception's own words go to the log, which is what this report was trying to send.
+            _log.Event("LOG REPORT", "ok=false", $"err={exception.GetType().Name}", $"msg={exception.Message}");
+            MessageBox.Show(owner, LocalizationService.Format("SendLogsFailed", outputFolder, LocalizationService.Get("FailureCauseStorage")),
                 LocalizationService.Get("SendLogs"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;

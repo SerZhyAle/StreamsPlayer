@@ -426,9 +426,9 @@ FlyleafLib parity against this baseline (measured / expected):
 
 Deployment caveats (surface as the experimental label, never as a crash):
 
-- The **FFmpeg natives are not delivered by NuGet and are not shipped in any package**. Settings →
-  Playback downloads them on an explicit click, into `%LOCALAPPDATA%\StreamsPlayer\FFmpeg`, and
-  states there whether they are present. A complete set in an `FFmpeg` folder beside the executable
+- The **FFmpeg natives are not delivered by NuGet and are not shipped in any package**. Tools (the
+  Operations menu) downloads them on an explicit click, into `%LOCALAPPDATA%\StreamsPlayer\FFmpeg`,
+  and Settings → Playback states whether they are present. A complete set in an `FFmpeg` folder beside the executable
   still wins if one exists, which keeps a hand-deployed folder working; `FLYLEAF ENGINE` logs
   `source=app` or `source=user` accordingly.
 - The download is **LGPL-3.0** (`BtbN/FFmpeg-Builds`, `ffmpeg-n8.1-latest-win64-lgpl-shared`). The

@@ -191,6 +191,13 @@
         </aside>
       </section>
 
+      <!-- The lead screenshot: the catalog as a grid of video channels, in this page's language. The
+           same capture is the Store listing's DesktopScreenshot1; tools/site/export-site-screenshots.ps1
+           turns tools/store/capture-store-screenshots.ps1's PNGs into these JPEGs. -->
+      <figure class="hero-shot">
+        <img src="../assets/screens/grid-de.jpg" alt="STREAMS Player: der Katalog als Raster von Videokanälen, jede Kachel mit einem aktuellen Bild aus ihrem Stream" width="1366" height="768" decoding="async">
+      </figure>
+
       <section class="section" id="what" aria-labelledby="what-title">
         <h2 class="section-heading" id="what-title"><span class="hash">#</span><span>Was es ist und warum</span></h2>
         <p class="section-description">STREAMS Player ist eine unabhängige Windows-Desktop-App für Internetradio, Live-Video und RTSP-Netzwerkkameras. Sie liest einen gepflegten öffentlichen Stream-Katalog, sodass schon beim ersten Start eine funktionierende Kanalliste bereitsteht - danach suchen, sortieren und heften Sie Kanäle an oder fügen eigene hinzu, alles lokal auf Ihrem Rechner gespeichert.</p>
@@ -204,7 +211,7 @@
           <article class="card cap">
             <h3><span class="tag">01</span><span>Einen Kanal finden</span></h3>
             <ul>
-              <li>Fertiger Katalog beim ersten Start - ohne Einrichtung. Ein Kanal, dem der Katalog kein Symbol gegeben hat, bekommt trotzdem ein eigenes Gesicht - Initialen und eine Farbe aus seinem Namen, dazu das Länderkürzel, sofern bekannt.</li>
+              <li>Ein gepflegter Katalog, dazu eine eingebaute Kopie davon, die Sie beim ersten Start auch ohne Netzwerk übernehmen können. Ein Kanal, dem der Katalog kein Symbol gegeben hat, bekommt trotzdem ein eigenes Gesicht - Initialen und eine Farbe aus seinem Namen, dazu das Länderkürzel, sofern bekannt.</li>
               <li>Filter nach Kategorie, Thema, Sprache, Land und Medienart - Zeile bei Bedarf einblenden.</li>
               <li>Die Suche liegt immer in der Titelzeile.</li>
               <li>Kanäle anheften, zu denen Sie zurückkehren.</li>
@@ -218,6 +225,8 @@
               <li>Den Ton stoppen, ohne den Sender zu verlieren - Lautstärke und Sleeptimer bleiben und sind bereit zum Fortsetzen.</li>
               <li>Live-Video und RTSP öffnen sich in einem eigenen Playerfenster, das den laufenden Titel über dem Bild zeigt.</li>
               <li>Live-Puffer von etwa 15 Sekunden, und das Video pendelt sich auf der Qualität ein, die Ihre Verbindung trägt, und startet beim nächsten Mal gleich dort.</li>
+              <li>Nehmen Sie das laufende Live-Video oder Radio direkt in eine Datei in Ihrem Ordner für gespeicherte Dateien auf, ohne die Wiedergabe zu unterbrechen.</li>
+              <li>Hören Sie eine Live-Audioübertragung von einem Telefon oder einer Uhr mit FastMediaSorter, direkt über Ihr lokales Netzwerk - ohne Server dazwischen.</li>
             </ul>
           </article>
           <article class="card cap">
@@ -228,7 +237,7 @@
               <li>Kacheln von sehr klein bis groß, ein größenveränderbares Einstellungsfenster und ein helles, dunkles oder Windows-eigenes Farbschema.</li>
               <li>Aktuelles Bild als JPEG speichern.</li>
               <li>Wenn das Bild stehen bleibt, sagt der Player über dem Video warum - und öffnet einen still eingefrorenen Stream neu.</li>
-              <li>Verkleinern Sie den Katalog zu einem kleinen Fenster im Vordergrund, während Radio läuft - mit Sender, Titel, Lautstärke, Wiedergabe und Einschlaftimer.</li>
+              <li>Verkleinern Sie den Katalog zu einem kleinen Fenster ohne Titelleiste, während Radio läuft - oben Sender und Titel, darunter Lautstärke, Einschlaftimer, vorheriger und nächster Sender, ein zufälliger Sender, „Aufnehmen“ sowie die eigenen Schaltflächen des Fensters für „Immer im Vordergrund“, Zurück und Minimieren.</li>
             </ul>
           </article>
           <article class="card cap">
@@ -246,6 +255,9 @@
               <li>Ihre hinzugefügten und importierten Streams überleben Katalogaktualisierungen. Ein Katalogkanal, den Sie angeheftet oder gespielt haben, bleibt erhalten und wird nicht gelöscht, wenn der Katalog ihn nicht mehr führt.</li>
               <li>Lokale Wiedergabemarken: OK oder Fehler.</li>
               <li>Die gesamte Benutzeroberfläche zwischen dreizehn Sprachen umschalten; die Wahl wird wiederhergestellt.</li>
+              <li>Fassen Sie Kanäle in eigenen, selbst benannten Sammlungen zusammen und sehen Sie sie einzeln durch.</li>
+              <li>Ein privater Verlauf „Zuletzt abgespielt“ Ihrer letzten 100 Kanäle mit dem Titel, der gerade lief - auf Ihrem PC gespeichert und gelöscht, wenn Sie es wünschen.</li>
+              <li>Importieren Sie Kanäle aus einer M3U-Datei oder von einer Wiedergabelisten-URL, mit einer Vorschau, bevor etwas hinzugefügt wird, und exportieren Sie Ihre eigenen oder angehefteten Kanäle als M3U.</li>
             </ul>
           </article>
           <article class="card cap">
@@ -273,7 +285,7 @@
           <li class="step">
             <div>
               <h3>Wählen und abspielen</h3>
-              <p>Katalog durchsuchen, filtern oder suchen und dann einen Kanal auswählen. Radio startet im Hauptfenster; Video und RTSP öffnen sich im Playerfenster. Ein gewöhnlicher Start spielt nichts ab; aktivieren Sie in den Einstellungen „Wiedergabe beim Start fortsetzen“, und der Start holt zurück, was beim letzten Schließen lief.</p>
+              <p>Katalog durchsuchen, filtern oder suchen und dann einen Kanal auswählen. Radio startet im Hauptfenster; Video und RTSP öffnen sich im Playerfenster. Ein gewöhnlicher Start spielt nichts ab; aktivieren Sie in den <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg> Einstellungen „Wiedergabe beim Start fortsetzen“, und der Start holt zurück, was beim letzten Schließen lief.</p>
             </div>
           </li>
           <li class="step">
@@ -286,14 +298,14 @@
           <li class="step">
             <div>
               <h3>Einen Kanal als Verknüpfung speichern</h3>
-              <p>Wählen Sie einen gespeicherten Kanal, öffnen Sie die Einstellungen und verwenden Sie „Befehl kopieren“ oder „Desktop-Verknüpfung erstellen“. Beide nutzen die gespeicherte id des Kanals.</p>
+              <p>Öffnen Sie das <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> Drei-Punkte-Menü eines gespeicherten Kanals und verwenden Sie „Startbefehl kopieren“ oder „Desktop-Verknüpfung erstellen“. Beide nutzen die gespeicherte id des Kanals.</p>
               <pre dir="ltr"><code>StreamsPlayer.exe <span class="tok">--id</span> "channel-guid"</code></pre>
             </div>
           </li>
           <li class="step">
             <div>
               <h3>Ein Problem mithilfe der Protokolle melden</h3>
-              <p>Öffnen Sie die Einstellungen, gehen Sie zu „Über“ und drücken Sie auf „Protokolle an den Autor senden“. Die App packt die Diagnoseprotokolle dieser und der vorherigen Sitzung mit einer kurzen Übersicht über Version, Windows und Einstellungen in den Ordner für gespeicherte Dateien (standardmäßig Downloads) und öffnet dann Ihr E-Mail-Programm mit der vorbereiteten Nachricht. Die Bestätigung zeigt den vollständigen Pfad und kann den Ordner auf Wunsch öffnen; Sie hängen das Archiv selbst an und drücken auf Senden.</p>
+              <p>Öffnen Sie „Werkzeuge“ im Menü <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> „Aktionen“ und drücken Sie auf „Protokolle an den Autor senden“. Die App packt die Diagnoseprotokolle der letzten zehn Starts mit einer kurzen Übersicht über Version, Windows und Einstellungen in den Ordner für gespeicherte Dateien (standardmäßig Downloads) und öffnet dann Ihr E-Mail-Programm mit der vorbereiteten Nachricht. Die Bestätigung zeigt den vollständigen Pfad und kann den Ordner auf Wunsch öffnen; Sie hängen das Archiv selbst an und drücken auf Senden.</p>
             </div>
           </li>
         </ol>
@@ -321,6 +333,11 @@
           </a>
         </div>
         <p class="section-description">Das Installationsprogramm ist die Datei, die auf -windows-x64-setup.exe endet. Es installiert nur für das aktuelle Benutzerkonto und verlangt nie Administratorrechte, und beim Deinstallieren bleiben Ihre Kanäle, Ihre Anheftungen und der Verlauf unangetastet. Es ist nicht signiert, deshalb warnt Windows beim ersten Start; zu jeder Veröffentlichung erscheint neben jedem Download eine .sha256-Datei, mit der Sie prüfen können, dass Sie genau das erhalten haben, was veröffentlicht wurde.</p>
+        <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
+             the download is, not only from the footer. -->
+        <div class="button-group">
+          <a class="button button-gold button-small" href="trust.html">Windows hat gewarnt? Worauf Sie klicken</a>
+        </div>
       </section>
     </main>
 
@@ -329,6 +346,7 @@
         <span>© 2026 Serhii Zhyhunenko</span>
         <span class="footer-links">
           <a href="privacy.html">Datenschutz</a>
+          <a href="trust.html">Installationshilfe</a>
           <a href="https://sza.od.ua/">Weitere Werkzeuge</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
           <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
@@ -338,6 +356,6 @@
         <p>Diese Seite wurde maschinell übersetzt und nicht von einem Muttersprachler geprüft.</p>
       </div>
     </footer>
-    <button class="to-top" id="toTop" type="button" aria-label="Nach oben">↑</button>
+    <button class="to-top" id="toTop" type="button" aria-label="Nach oben"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8,11h3v10h2V11h3l-4,-4 -4,4zM4,3v2h16V3H4z" fill="currentColor"/></svg></button>
   </body>
 </html>

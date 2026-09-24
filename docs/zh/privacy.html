@@ -154,11 +154,11 @@
       <div class="privacy-card">
         <section class="privacy-section">
           <h2>网络访问</h2>
-          <p>只有在您明确更新公开的流目录、播放所选的流，或在网格模式保持开启、可见视频预览正在刷新时，应用才会联网。这些请求会发往相应的目录或流提供方，并受该提供方的政策约束。 目录更新后提供的预览图包，只有在您接受时才会下载。</p>
+          <p>应用只在您操作时联网，并且只连接该操作所需的地方：公开的流目录，以及随后提供的可选预览包 - 在您导入目录或接受预览包时从 GitHub 下载；您播放、录制或为其打开“关于此频道”的流的提供方，或在网格模式可见时正在刷新视频预览的流的提供方；您导入的运行 FastMediaSorter 的手机或手表 - 在您的本地网络中直接连接；以及，仅当您在“工具”中请求时，为实验性 FlyleafLib 引擎下载的可选 FFmpeg 库 - 来自 GitHub 上的第三方项目（BtbN/FFmpeg-Builds）。每个请求都直接发往该目标，并受其政策约束；没有任何请求经过作者运营的服务。</p>
         </section>
         <section class="privacy-section">
           <h2>本地数据</h2>
-          <p>STREAMS Player 会把目录状态、手动添加的条目、置顶、播放标记、缓存的预览画面（最多 150 MB），以及本次会话和上一次会话的诊断日志保存在 <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>。除非您自己选择复制或备份，或者使用设置中的“向作者发送日志”，这些数据都留在您的设备上；该功能会把两份诊断日志连同应用版本、Windows 版本和设置打包成压缩包，并打开您的邮件程序，让您附加后发送到 <span dir="ltr">serzhyale@gmail.com</span>。压缩包只在您按下该按钮时才会生成，其中的日志会记下播放过的流的名称，并且只有您在自己的邮件程序中点击“发送”，才会有任何内容被发出。</p>
+          <p>STREAMS Player 会把目录状态、您添加和导入的频道、置顶、收藏集、已隐藏的频道、收听历史、播放标记、缓存的预览画面（上限 150 MB）、可选的 FFmpeg 库（如果您下载过），以及最近十次启动的诊断日志保存在 <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>。录制内容和保存的画面会存入您选择的已保存文件文件夹（默认“下载”）。除非您自己复制或备份这些数据，或者使用“工具”中的“向作者发送日志”，这些数据都留在您的设备上；该功能会把这些诊断日志连同应用版本、Windows 版本和设置打包成压缩包，并打开您的邮件程序，让您附加后发送到 <span dir="ltr">serzhyale@gmail.com</span>。压缩包只在您按下该按钮时才会生成，其中的日志会记下播放过的流的名称，并且只有您在自己的邮件程序中点击“发送”，才会有任何内容被发出。</p>
         </section>
         <section class="privacy-section">
           <h2>联系方式</h2>
@@ -176,6 +176,7 @@
         <span>© 2026 Serhii Zhyhunenko</span>
         <span class="footer-links">
           <a href="privacy.html">隐私</a>
+          <a href="trust.html">安装帮助</a>
           <a href="https://sza.od.ua/">更多工具</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
           <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
@@ -185,6 +186,6 @@
         <p>本页面由机器翻译，未经母语人士校对。</p>
       </div>
     </footer>
-    <button class="to-top" id="toTop" type="button" aria-label="返回顶部">↑</button>
+    <button class="to-top" id="toTop" type="button" aria-label="返回顶部"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8,11h3v10h2V11h3l-4,-4 -4,4zM4,3v2h16V3H4z" fill="currentColor"/></svg></button>
   </body>
 </html>

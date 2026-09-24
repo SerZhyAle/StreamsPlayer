@@ -27,6 +27,10 @@
 > take the portable ZIP from the same release, or use
 > `winget install SerZhyAle.StreamsPlayer`. No account, no ads, no
 > telemetry; the source is MIT.
+>
+> The installer, the ZIP and the winget package are not code-signed, so Windows
+> may show **"Windows protected your PC"** the first time you run them -
+> [what that screen means and what to click](https://serzhyale.github.io/StreamsPlayer/trust.html).
 
 ## A calm player for the stream in front of you
 
@@ -49,7 +53,7 @@ code or features.
 - Fill the channel list without any internet from the copy of the catalog that
   ships inside the app. It is offered once on a first launch with an empty list,
   offered again whenever an update cannot go through, and available at any time
-  from the **Playlists (M3U)** tab in Settings. It only adds and updates channels
+  from **Tools** in the **Operations** menu. It only adds and updates channels
   - it never removes any - and the app always says the list came from the
   built-in copy and how old that copy is, so it is never mistaken for a fresh
   download. Applying it is always your choice; nothing happens on its own.
@@ -74,14 +78,15 @@ code or features.
   tooltip counts the filters still narrowing the catalog. The broadcast-language
   filter leads with your interface language and its regional variants, and still
   starts on **All**.
-- Switch between watching and listening from the title line itself: two small
+- Switch between watching and listening from the title line itself: three small
   buttons beside **Filters and sorting** are that same media filter in one
   click - press **video** to keep video and RTSP only, **audio** to keep radio
-  only, press the same button again for everything. A pressed button is lit and
-  an unpressed one is dimmed; the pair stays in the title line whether the
-  filter row is open or closed, narrows the pinned strip along with the list,
-  and is still in force after a restart. It is the row's own **Media** filter,
-  so the two can never disagree.
+  only, **my channels** to keep only the ones you added or imported, and press
+  the same button again for everything. A pressed button is lit and an
+  unpressed one is dimmed; the three stay in the title line whether the filter
+  row is open or closed, narrow the pinned strip along with the list, and are
+  still in force after a restart. They are the row's own **Media** filter, so
+  the two can never disagree.
 - Narrow the list to one **topic** - the catalog's own set of station topics,
   from News and Classical to Traffic cams. Topic names are shown in your
   interface language and sorted in its alphabet, while the catalog itself keeps
@@ -93,7 +98,8 @@ code or features.
   **Hide adult channels** option in Settings.
 - Reach the actions you use rarely from one **Operations** menu in the header:
   always on top, refresh previews (in grid mode), **Random station**, history,
-  add stream, and **Import channels from the internet**.
+  add stream, **Paste channel**, **Tools**, and, set apart at the end,
+  **Import channels from the internet**.
 - Keep the main window or video player independently always on top, and expand
   video to a borderless full screen with the button or `F11` (`Esc` exits). The
   player's three-dot actions menu keeps its own always-on-top switch alongside
@@ -117,12 +123,20 @@ code or features.
   light and the dark theme alike; where a captured preview frame exists, the
   frame is still what you see.
 - Open Settings to pick the interface language (**Language**, the first tab,
-  marked with a globe); choose Very Small, Small, Medium, or Large stream tiles and
-  disable automatic thumbnail updates (**Grid**); keep the computer awake, show system
-  media controls, pick the video backend, and choose the folder for saved frames
-  (**Playback**); and read the `YY.MMDD.HHmm` version and open the instruction,
+  marked with a globe); pick the colour theme, choose Very Small, Small, Medium, or
+  Large stream tiles, disable automatic thumbnail updates, hide adult channels, and
+  turn the animated background off (**Grid**); keep the computer awake, show system
+  media controls, resume playback on startup, pick the video backend, and choose the
+  folder for saved files (**Playback**); and read the `YY.MMDD.HHmm` version and open the instruction,
   project, website, privacy, and author pages (**About**). The Settings window
   can be resized, and a tab taller than the window scrolls instead of clipping.
+  Settings only holds preferences: nothing in it takes effect until you press
+  **Save**, and **Cancel** or Escape leaves everything as it was.
+- Open **Tools** from the **Operations** menu for everything that acts at once -
+  importing a catalog archive, the built-in channel list, deleting downloaded or
+  imported catalogs, M3U import and export, hidden channels, the FlyleafLib
+  components, and **Send logs to the author**. Each action asks before it destroys
+  anything, and **Close** is the only other button.
 - Save the frame you are watching from the player's camera button: a JPEG named
   `Channel_YYYYMMDD-HHmmss` lands in the folder set on the **Playback** tab, or in
   Downloads when that is empty, and the same frame becomes the channel icon.
@@ -132,7 +146,7 @@ code or features.
 - Answer a failed stream from the failure dialog - **Retry**, **Copy report**,
   **Keep**, or remove it: a catalog channel is hidden and a channel of your own is
   deleted after a confirmation. Hidden catalog channels survive a refresh and come
-  back from **Hidden** in Settings, on the **Playlists (M3U)** tab.
+  back from **Hidden** in **Tools**.
 - Add a stream manually and keep local playback outcome marks.
 - Ask **About channel**, from a channel's three-dot menu or from the player's
   actions menu, to see one page of everything known about it: what the channel is
@@ -165,7 +179,7 @@ code or features.
   three ways: paste its barcode text (`FMSBCAST1:` ..) or its Android share link
   with **Paste channel** - scan the barcode with any scanner app, since StreamsPlayer
   has no camera and takes only the decoded text; open a `.fmsbcast` file from the
-  playlist import file dialog on the **Playlists (M3U)** tab in Settings; or drag
+  playlist import file dialog in **Tools**; or drag
   one `.fmsbcast` file onto the main window. The app shows the title and address
   and asks before adding; files over 64 KiB are refused. The broadcast becomes an
   `IMPORTED` row marked **Live**, and importing again from the same device updates
@@ -185,7 +199,7 @@ code or features.
   reachable instead of an endless "Connecting". The app does not amplify a quiet
   microphone: the volume is whatever the device sends.
 - Delete every downloaded catalog stream in one confirmed action from the
-  **Playlists (M3U)** tab in Settings and keep only your own `MANUAL`/`IMPORTED`
+  **Tools** window and keep only your own `MANUAL`/`IMPORTED`
   channels; **Import channels from the internet** downloads them again whenever
   you want them back.
 - Switch the complete interface between thirteen languages from the **Language**
@@ -220,11 +234,21 @@ code or features.
   second one beside it. A station that does start plays like any other: history,
   the Windows media flyout, the sleep timer and resume on startup all apply. The
   same command sits on the compact radio panel below.
+- The playing station carries a quiet animated background - drifting lines and
+  particles, the same motion as FastMediaSorter's audio player - on its card in
+  the list, on its tile in the grid (the station picture moves to a plate in the
+  middle) and in the compact radio panel below. It is dimmed so the text stays
+  readable, follows the light and dark theme, freezes on its last frame when you
+  stop, draws nothing while it is out of sight, and pauses under Windows energy
+  saver. Turn it off in **Settings** with **Animated background behind the
+  playing station**.
 - Shrink the catalog to a compact radio panel while a station is on. The button
-  next to the transport hides the catalog and leaves a small window that stays
-  above other programs and carries the station, the current track, the volume,
-  the transport, the sleep timer with its countdown, and **Random station**. The
-  two views are one application - one taskbar button, one Alt+Tab entry, one
+  next to the transport hides the catalog and leaves a small captionless strip:
+  its top line names the station and the current track, and the line below
+  carries the volume, the sleep timer with its countdown, previous and next
+  station, **Random station**, **Record**, stop and resume, and the panel's own
+  buttons - always on top (on until you switch it off), back to the full window,
+  minimize, and close. Any empty spot drags it. The two views are one application - one taskbar button, one Alt+Tab entry, one
   sound - and everything you change in one is what the other shows. Stopping the
   radio leaves the panel where it is instead of throwing the catalog back over
   your work, and so does a station that drops out. Drag it where you like: a
@@ -237,8 +261,8 @@ code or features.
   logs of the last ten launches under `%LOCALAPPDATA%\StreamsPlayer` -
   `Current.log` for the running session, `Session-<date>-<time>.log` for the
   nine before it.
-- Report a problem with **Send logs to the author** in the **About** tab of
-  Settings: it packs those diagnostic logs plus a short summary of your app
+- Report a problem with **Send logs to the author** in **Tools** (the
+  **Operations** menu): it packs those diagnostic logs plus a short summary of your app
   version, Windows version and settings into one archive in the **Saved files
   folder** (Downloads by default, configurable in Playback settings), then opens
   your mail program with the message prepared. Its confirmation shows the complete
@@ -246,8 +270,9 @@ code or features.
   attach the archive and press Send. The logs name the streams that were played, so
   send them only if you are comfortable sharing that.
 
-Audio playback uses WPF `MediaElement`; video and RTSP use the bundled LibVLC
-runtime with a 15-second live buffer - 4 seconds when a stalled stream is
+Radio plays through the bundled LibVLC runtime in an audio-only engine, and a
+FastMediaSorter broadcast takes its own low-latency path; video and RTSP use
+LibVLC as well, with a 15-second live buffer - 4 seconds when a stalled stream is
 re-opened - and visible buffering progress. Grid preview capture also uses
 LibVLC. Live playback recovers from transient network failures and silent
 stalls - including a stream that stops sending while still reporting that it is
@@ -269,9 +294,31 @@ one.
 
 Video and RTSP can also run on a second, experimental engine, FlyleafLib, chosen
 in **Settings → Playback** as a fallback for a stream that misbehaves under VLC.
-It needs FFmpeg libraries that are not shipped with the application; the same
-screen states whether they are installed and downloads them on request, and VLC
+It needs FFmpeg libraries that are not shipped with the application; that tab
+states whether they are installed, **Tools** downloads them on request, and VLC
 stays the default until you change it.
+
+## Controls
+
+The same glyph and the same name everywhere in the portfolio - in the app, on the site and here (the shared `ICON-SET` vocabulary).
+
+| | Control |
+| --- | --- |
+| <img src="docs/assets/glyphs/media.play.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/media.stop.svg" width="16" height="16" alt=""> | **Play** / **Stop** - a channel row, the radio bar, the compact panel; the live button shows what a click will do |
+| <img src="docs/assets/glyphs/media.previous.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/media.next.svg" width="16" height="16" alt=""> | **Previous station** / **Next station** - the compact panel |
+| <img src="docs/assets/glyphs/media.random.svg" width="16" height="16" alt=""> | **Random station** - the **Operations** menu and the compact panel |
+| <img src="docs/assets/glyphs/media.record.svg" width="16" height="16" alt=""> | **Record** - the radio bar, the compact panel, the video player (`R`) |
+| <img src="docs/assets/glyphs/media.sleep-timer.svg" width="16" height="16" alt=""> | **Sleep timer** - next to **Stop audio** |
+| <img src="docs/assets/glyphs/media.picture-in-picture.svg" width="16" height="16" alt=""> | The compact panel - the radio bar; the panel has its own way back to the full window |
+| <img src="docs/assets/glyphs/media.fullscreen.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/media.exit-fullscreen.svg" width="16" height="16" alt=""> | **Fullscreen** / **Exit fullscreen** - the video player (`F11`) |
+| <img src="docs/assets/glyphs/media.mute.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/media.volume.svg" width="16" height="16" alt=""> | **Mute** / **Unmute** - the video player |
+| <img src="docs/assets/glyphs/nav.more.svg" width="16" height="16" alt=""> | **More actions** - a channel's menu; the **Operations** menu in the header |
+| <img src="docs/assets/glyphs/app.settings.svg" width="16" height="16" alt=""> | **Settings** |
+| <img src="docs/assets/glyphs/action.filter.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/action.clear-filter.svg" width="16" height="16" alt=""> | **Filters and sorting** / **Clear** the filters |
+| <img src="docs/assets/glyphs/view.list.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/view.grid.svg" width="16" height="16" alt=""> | List view / grid view of the catalog |
+| <img src="docs/assets/glyphs/action.pin.svg" width="16" height="16" alt=""> | **Pin** a channel to the top of the list |
+| <img src="docs/assets/glyphs/action.refresh.svg" width="16" height="16" alt=""> | **Import channels from the internet** - load the shared catalog again |
+| <img src="docs/assets/glyphs/action.import.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/action.export.svg" width="16" height="16" alt=""> | Import / export a playlist - **Tools** |
 
 ## Run from source
 
@@ -297,9 +344,8 @@ Use a direct URL without downloading the catalog:
 StreamsPlayer.exe --url "https://example.test/live"
 ```
 
-For a saved channel, select it in the catalog, open Settings, and use **Copy
-command** or **Create desktop shortcut**. These entries use the channel's
-persisted GUID:
+For a saved channel, open its <img src="docs/assets/glyphs/nav.more.svg" width="16" height="16" alt=""> three-dot menu and use **Copy launch command** or
+**Create desktop shortcut**. These entries use the channel's persisted GUID:
 
 ```powershell
 StreamsPlayer.exe --id "channel-guid"
@@ -338,10 +384,14 @@ a release. Use `-Deploy:$false` when only the ordinary solution build is needed.
 ## Privacy
 
 STREAMS Player does not require an account and includes no advertising, analytics,
-telemetry, or author-operated service. Network access happens when you explicitly
-refresh the public catalog, play a selected stream, keep Grid mode active while
-STREAMS Player refreshes visible video previews, or accept the optional preview
-pack it offers after a catalog update. Local data leaves your device only if you
+telemetry, or author-operated service. Network access happens only on your
+action: when you import the public catalog or accept the optional preview pack
+it offers afterwards (both from GitHub); when you play, record or ask **About
+channel** for a stream, or keep Grid mode active while visible video previews
+refresh (all to that stream's own provider); when you listen to a
+FastMediaSorter broadcast you imported (directly to that device on your local
+network); and when you download the optional FFmpeg libraries in **Tools**
+(from a third-party GitHub project, `BtbN/FFmpeg-Builds`). Local data leaves your device only if you
 send it yourself - **Send logs to the author** prepares an archive and a message in
 your own mail program, and never sends anything on its own. See the
 [privacy page](https://serzhyale.github.io/StreamsPlayer/privacy.html) for details.

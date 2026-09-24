@@ -191,6 +191,13 @@
         </aside>
       </section>
 
+      <!-- The lead screenshot: the catalog as a grid of video channels, in this page's language. The
+           same capture is the Store listing's DesktopScreenshot1; tools/site/export-site-screenshots.ps1
+           turns tools/store/capture-store-screenshots.ps1's PNGs into these JPEGs. -->
+      <figure class="hero-shot">
+        <img src="../assets/screens/grid-zh.jpg" alt="STREAMS Player：以视频频道网格显示的目录，每个图块显示其直播流的最新画面" width="1366" height="768" decoding="async">
+      </figure>
+
       <section class="section" id="what" aria-labelledby="what-title">
         <h2 class="section-heading" id="what-title"><span class="hash">#</span><span>它是什么，为什么做它</span></h2>
         <p class="section-description">STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、直播视频和 RTSP 网络摄像头。它会读取一份公开的精选流目录，因此首次运行就能得到一份可用的频道列表 - 之后您可以搜索、排序、置顶，也可以添加自己的频道，全部保存在您自己的机器上。</p>
@@ -204,7 +211,7 @@
           <article class="card cap">
             <h3><span class="tag">01</span><span>找到频道</span></h3>
             <ul>
-              <li>首次启动即有精选目录 - 无需设置。目录没有给出图标的频道也有自己的样子 - 取自名称的首字母和配色，已知国家/地区时还带上其代码。</li>
+              <li>精选目录，另附一份内置副本，首次启动时无需联网即可应用。目录没有给出图标的频道也有自己的样子 - 取自名称的首字母和配色，已知国家/地区时还带上其代码。</li>
               <li>按类别、主题、语言、国家/地区和媒体类型筛选 - 需要时再展开该行。</li>
               <li>搜索始终位于标题行。</li>
               <li>把常回访的频道置顶。</li>
@@ -218,6 +225,8 @@
               <li>停止声音而不丢失电台 - 音量和睡眠定时器仍留在栏上，随时可以继续。</li>
               <li>直播视频和 RTSP 在独立的播放器窗口中打开，正在播出的曲目显示在画面之上。</li>
               <li>约 15 秒的直播缓冲，视频会稳定在您的网络能承载的画质，下次直接从该画质打开。</li>
+              <li>将正在播放的直播视频或广播直接录制为文件，保存到您的已保存文件文件夹，播放不会中断。</li>
+              <li>通过您的本地网络，直接收听运行 FastMediaSorter 的手机或手表发出的音频直播 - 中间没有服务器。</li>
             </ul>
           </article>
           <article class="card cap">
@@ -228,7 +237,7 @@
               <li>流图块从超小到大，设置窗口可调整大小，主题可选浅色、深色或跟随 Windows。</li>
               <li>把当前画面保存为 JPEG 文件。</li>
               <li>画面停住时，播放器会在视频上说明原因 - 并重新打开悄然卡死的流。</li>
-              <li>电台播放时可把目录缩成一个总在最前的小面板 - 其中有电台、曲目、音量、播放控制和睡眠定时器。</li>
+              <li>电台播放时可把目录缩成一个无标题栏的小面板 - 上方是电台和曲目，下方是音量、睡眠定时器、上一个和下一个电台、随机电台、“录制”，以及面板自己的总在最前、返回和最小化按钮。</li>
             </ul>
           </article>
           <article class="card cap">
@@ -246,6 +255,9 @@
               <li>您添加和导入的流不会因目录更新而丢失。您置顶或播放过的目录频道，在目录不再收录它时会被保留，而不是删除。</li>
               <li>保留本地的播放标记：成功 / 失败。</li>
               <li>整个界面可在十三种语言之间切换，选择会被保留。</li>
+              <li>把频道归入您自己命名的收藏集，并一次浏览一个收藏集。</li>
+              <li>私人的“最近播放”历史记录，保存您最近 100 个频道以及当时正在播出的曲目 - 只保存在您的电脑上，您要求时即可清除。</li>
+              <li>从 M3U 文件或播放列表 URL 导入频道，添加任何内容之前都可先预览；也可把您自己的频道或已置顶的频道导出为 M3U。</li>
             </ul>
           </article>
           <article class="card cap">
@@ -273,7 +285,7 @@
           <li class="step">
             <div>
               <h3>选择并播放</h3>
-              <p>浏览目录，筛选或搜索，然后选择一个频道。广播在主窗口开始播放；视频和 RTSP 在播放器窗口中打开。普通启动不会播放任何内容；在设置中开启「启动时继续播放」，启动便会恢复上次关闭时正在播放的内容。</p>
+              <p>浏览目录，筛选或搜索，然后选择一个频道。广播在主窗口开始播放；视频和 RTSP 在播放器窗口中打开。普通启动不会播放任何内容；在<svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg>设置中开启「启动时继续播放」，启动便会恢复上次关闭时正在播放的内容。</p>
             </div>
           </li>
           <li class="step">
@@ -286,14 +298,14 @@
           <li class="step">
             <div>
               <h3>把频道保存为快捷方式</h3>
-              <p>选择一个已保存的频道，打开设置，使用“复制命令”或“创建桌面快捷方式”。两者都使用该频道保存的 id。</p>
+              <p>打开已保存频道的<svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg>三点菜单，使用“复制启动命令”或“创建桌面快捷方式”。两者都使用该频道保存的 id。</p>
               <pre dir="ltr"><code>StreamsPlayer.exe <span class="tok">--id</span> "channel-guid"</code></pre>
             </div>
           </li>
           <li class="step">
             <div>
               <h3>用日志报告问题</h3>
-              <p>打开设置，进入“关于”，点击“向作者发送日志”。应用会把本次会话和上一次会话的诊断日志，连同您的版本、Windows 版本和设置的简要说明一起打包到已保存文件文件夹（默认“下载”），然后打开已写好邮件的邮件程序。确认窗口会显示完整路径，并可按您的要求打开该文件夹；由您自己附加压缩包并点击“发送”。</p>
+              <p>从<svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg>“操作”菜单打开“工具”，点击“向作者发送日志”。应用会把最近十次启动的诊断日志，连同您的版本、Windows 版本和设置的简要说明一起打包到已保存文件文件夹（默认“下载”），然后打开已写好邮件的邮件程序。确认窗口会显示完整路径，并可按您的要求打开该文件夹；由您自己附加压缩包并点击“发送”。</p>
             </div>
           </li>
         </ol>
@@ -321,6 +333,11 @@
           </a>
         </div>
         <p class="section-description">安装程序就是文件名以 -windows-x64-setup.exe 结尾的那个文件。它只为当前用户安装，从不索取管理员权限；卸载它也不会影响您的频道、置顶和播放记录。它没有签名，因此首次运行时 Windows 会发出警告；每次发布都会在每个下载文件旁附上一个 .sha256 文件，您可以据此核对拿到的东西就是发布出来的东西。</p>
+        <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
+             the download is, not only from the footer. -->
+        <div class="button-group">
+          <a class="button button-gold button-small" href="trust.html">Windows 发出了警告？该点哪里</a>
+        </div>
       </section>
     </main>
 
@@ -329,6 +346,7 @@
         <span>© 2026 Serhii Zhyhunenko</span>
         <span class="footer-links">
           <a href="privacy.html">隐私</a>
+          <a href="trust.html">安装帮助</a>
           <a href="https://sza.od.ua/">更多工具</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
           <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
@@ -338,6 +356,6 @@
         <p>本页面由机器翻译，未经母语人士校对。</p>
       </div>
     </footer>
-    <button class="to-top" id="toTop" type="button" aria-label="返回顶部">↑</button>
+    <button class="to-top" id="toTop" type="button" aria-label="返回顶部"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8,11h3v10h2V11h3l-4,-4 -4,4zM4,3v2h16V3H4z" fill="currentColor"/></svg></button>
   </body>
 </html>

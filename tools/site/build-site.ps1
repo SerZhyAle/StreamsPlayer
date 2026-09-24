@@ -3,9 +3,8 @@
 
     Input : tools/site/templates/*.html + site.js, and one copy deck per language in
             tools/site/copy/<dictionary-code>.txt.
-    Output: docs/index.html and docs/privacy.html (English - the canonical root), plus
-            docs/<code>/index.html and docs/<code>/privacy.html for every other language, and
-            docs/site.js.
+    Output: docs/index.html, docs/privacy.html and docs/trust.html (English - the canonical root),
+            plus the same three files under docs/<code>/ for every other language, and docs/site.js.
 
     Why static pages rather than the previous client-side swap: hreflang needs one URL per language.
     GitHub Pages deploys docs/ verbatim with no build step, so the generated files are committed
@@ -39,6 +38,10 @@ $outputDirectory = Join-Path $root 'docs'
 $pages = @(
     [pscustomobject]@{ Name = 'home';    Template = 'index.html';   File = 'index.html' }
     [pscustomobject]@{ Name = 'privacy'; Template = 'privacy.html'; File = 'privacy.html' }
+    # SP-0105: the INSTALL-TRUST page - what the SmartScreen warning is, why it appears, what to click,
+    # and what the app never does. A page of its own rather than a home-page section, because it is the
+    # URL a warned user is sent to from the README and the Distribution section.
+    [pscustomobject]@{ Name = 'trust';   Template = 'trust.html';   File = 'trust.html' }
 )
 
 # Languages whose copy the owner wrote himself. Everything else is machine-produced and says so on
@@ -53,6 +56,39 @@ $inlineMarkup = [ordered]@{
     '[[command]]' = '<code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>'
     '[[appdata]]' = '<code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>'
     '[[email]]'   = '<span dir="ltr">serzhyale@gmail.com</span>'
+    '[[hash]]'    = '<code dir="ltr">Get-FileHash -Algorithm SHA256 &lt;file&gt;</code>'
+    '[[installdir]]' = '<code dir="ltr">%LOCALAPPDATA%\Programs\StreamsPlayer</code>'
+}
+
+# SP-0113 (ICON-SET rule 8): where a page names a control it shows the control's glyph - the vocabulary
+# drawing this product vendors under assets/glyphs/, inlined as a currentColor SVG so it takes the page's
+# text colour in both themes. A template writes {{glyph:<id>}}, a copy deck [[glyph:<id>]]; both come out
+# as the same markup. The glyph is decorative beside the name it accompanies, so it is hidden from
+# assistive technology; where a glyph is a button's only content, the button carries the aria-label.
+$glyphMarker = [regex] '(?:\{\{|\[\[)glyph:(?<id>[\w.\-]+)(?:\}\}|\]\])'
+$glyphCache = @{}
+
+function Get-GlyphSvg {
+    param([Parameter(Mandatory)] [string] $Id)
+
+    if ($glyphCache.ContainsKey($Id)) { return $glyphCache[$Id] }
+    $candidates = @((Join-Path $root "assets/glyphs/$Id.svg"), (Join-Path $root "assets/glyphs/pending/$Id.svg"))
+    $source = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+    if (-not $source) { throw "No vendored glyph for '$Id' (assets/glyphs/ - run tools/Sync-IconGlyphs.ps1)." }
+
+    $svg = [System.IO.File]::ReadAllText($source)
+    $viewBox = [regex]::Match($svg, 'viewBox="(?<v>[^"]+)"').Groups['v'].Value
+    $inner = [regex]::Match($svg, '(?s)<svg[^>]*>(?<i>.*)</svg>').Groups['i'].Value
+    $inner = [regex]::Replace($inner.Trim(), '>\s+<', '><')
+    $markup = '<svg class="glyph" viewBox="{0}" width="16" height="16" aria-hidden="true" focusable="false">{1}</svg>' -f $viewBox, $inner
+    $glyphCache[$Id] = $markup
+    return $markup
+}
+
+function Expand-Glyphs {
+    param([Parameter(Mandatory)] [AllowEmptyString()] [string] $Html)
+
+    return $glyphMarker.Replace($Html, { param($match) Get-GlyphSvg -Id $match.Groups['id'].Value })
 }
 
 function ConvertTo-HtmlText {
@@ -64,7 +100,7 @@ function ConvertTo-HtmlText {
     foreach ($entry in $inlineMarkup.GetEnumerator()) {
         $escaped = $escaped.Replace($entry.Key, $entry.Value)
     }
-    return $escaped
+    return Expand-Glyphs -Html $escaped
 }
 
 function Read-CopyDeck {
@@ -229,6 +265,13 @@ foreach ($code in $decks.Keys) {
             $problems.Add("[$code] $key is empty")
             continue
         }
+        # A glyph beside a control's name is part of what the sentence says, so every language carries
+        # the same glyphs, in the same order, as English (ICON-SET rule 8, SP-0113).
+        $expectedGlyphs = @($glyphMarker.Matches($english.Values[$key]) | ForEach-Object { $_.Groups['id'].Value }) -join ','
+        $actualGlyphs = @($glyphMarker.Matches($deck.Values[$key]) | ForEach-Object { $_.Groups['id'].Value }) -join ','
+        if ($expectedGlyphs -ne $actualGlyphs) {
+            $problems.Add("[$code] ${key}: expected glyph(s) '$expectedGlyphs', found '$actualGlyphs'")
+        }
         $expected = Get-Placeholder -Value $english.Values[$key]
         $actual = Get-Placeholder -Value $deck.Values[$key]
         if (($expected -join ',') -ne ($actual -join ',')) {
@@ -261,8 +304,8 @@ function Save-Generated {
     )
 
     # Every generated file lands either directly in docs/ or in docs/<code>/. docs/agent,
-    # docs/assets, docs/localization and docs/specifications are hand-written and must never be
-    # touched, so the target is checked rather than trusted.
+    # docs/assets, docs/contracts, docs/localization and docs/specifications are hand-written and
+    # must never be touched, so the target is checked rather than trusted.
     $relative = [System.IO.Path]::GetRelativePath($outputDirectory, $Path).Replace('\', '/')
     $depth = $relative.Split('/').Length
     if ($depth -gt 2 -or ($depth -eq 2 -and -not ($languages.DictionaryCode -contains $relative.Split('/')[0]))) {
@@ -295,6 +338,7 @@ foreach ($language in $languages) {
         foreach ($name in 'head', 'switcher', 'footer') {
             $template = $template.Replace("{{include:$name}}", $templates[$name])
         }
+        $template = Expand-Glyphs -Html $template
 
         $alternates = foreach ($other in $languages) {
             $otherUrl = if ($other.DictionaryCode -eq 'en') { '' } else { "$($other.DictionaryCode)/" }
@@ -337,6 +381,7 @@ foreach ($language in $languages) {
             '{{page.base}}'           = if ($isRoot) { '' } else { '../' }
             '{{page.home}}'           = Get-RelativeUrl -FromCode $urlCode -ToCode $urlCode -File 'index.html'
             '{{page.privacy}}'        = 'privacy.html'
+            '{{page.trust}}'          = 'trust.html'
             '{{page.canonical}}'      = $canonical
             '{{page.alternates}}'     = $alternates -join "`n"
             '{{page.languageUrls}}'   = ($languageUrls | ConvertTo-Json -Compress)
@@ -416,13 +461,13 @@ $robots = @(
 Save-Generated -Path (Join-Path $outputDirectory 'robots.txt') -Content ($robots + "`n")
 
 # A language dropped from the registry leaves its folder behind. Only two-letter folders are
-# considered, which is why docs/agent, docs/assets, docs/localization and docs/specifications cannot
-# be caught by this, and only the two files this generator writes may be present.
+# considered, which is why docs/agent, docs/assets, docs/contracts, docs/localization and
+# docs/specifications cannot be caught by this, and only the files this generator writes may be present.
 foreach ($directory in Get-ChildItem -LiteralPath $outputDirectory -Directory) {
     if ($directory.Name -notmatch '^[a-z]{2}$') { continue }
     if ($languages.DictionaryCode -contains $directory.Name) { continue }
     $contents = @(Get-ChildItem -LiteralPath $directory.FullName -Recurse -File | ForEach-Object { $_.Name })
-    if (@($contents | Where-Object { $_ -notin @('index.html', 'privacy.html') }).Count) {
+    if (@($contents | Where-Object { $_ -notin $pages.File }).Count) {
         Write-Warning "docs/$($directory.Name)/ is not a shipped language but holds files this generator did not write - leaving it alone."
         continue
     }

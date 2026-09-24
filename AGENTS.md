@@ -26,9 +26,10 @@ asks. The build-versus-release rule itself has one home in the canon
 - `tools/InterfaceLanguages.ps1` - the single shipped-language list, read from the built assembly and dot-sourced by the site and Store tooling.
 - `tools/site/` and `tools/store/` - generators for the GitHub Pages site and the Store listing/screenshot pipeline.
 - `scripts/` - the release-parity check, the release checklist, and the commit-and-build helper.
-- `docs/specifications/streams.txt` - standalone product specification.
+- `docs/contracts/` - one pointer per shared contract this product consumes or owes: id, version, home, role.
 - `docs/agent/` - agent workflow and validation guidance.
 - `docs/` and `assets/` - GitHub Pages and product documentation assets.
+- `DOCS_SURFACES.md` - the ship-together list of every documentation surface: source, generator, languages.
 - `memory/` - the committed agent memory index.
 - `.github/` - CI, release automation, and contribution templates.
 - `msix/` - Store-ready package template and package-build guidance.

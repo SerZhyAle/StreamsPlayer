@@ -14,19 +14,32 @@
       - the owner's real profile is renamed aside for the whole run and its hash is checked
         afterwards, so a capture can never write into the real catalog, pins or history.
 
+    What is captured is fixed here, not inherited from whatever the owner last looked at: the catalog
+    in Grid mode, filtered to video channels, with the cached preview frames copied into the sandbox.
+    That view is the product's lead screenshot on the Store (DesktopScreenshot1) and on the site. The
+    Media filter lives in browsing-session.json since SP-0067, and the frames in grid-previews/; a run
+    that copied only catalog-state.json captured an unfiltered grid of stretched favicons.
+
     This needs a real desktop, a stable screen and a populated catalog, so it cannot run in CI.
 
     Usage:
       pwsh -NoProfile -File tools/store/capture-store-screenshots.ps1
-      # pwsh -File takes array values space-separated, not comma-separated:
-      pwsh -NoProfile -File tools/store/capture-store-screenshots.ps1 -Languages de ar
+      # pwsh -File binds only the first of several values and hands the rest to the next positional
+      # parameter, so pass a list through -Command:
+      pwsh -NoProfile -Command "& ./tools/store/capture-store-screenshots.ps1 -Languages de,ar"
 #>
 [CmdletBinding()]
 param(
     # Listing codes (en-us, pt-br, zh-hans, ..). Defaults to every shipped language.
     [string[]] $Languages,
-    [int] $LoadWaitSeconds = 6,
-    [string] $OutputDirectory
+    # Grid mode decodes a preview frame per visible tile, so it needs longer than List mode did.
+    [int] $LoadWaitSeconds = 12,
+    [string] $OutputDirectory,
+    # StreamTileSize member name. The smallest size puts the most live frames in one shot.
+    [ValidateSet('VerySmall', 'Small', 'Medium', 'Large')] [string] $TileSize = 'VerySmall',
+    # By default the sandbox copy is unpinned, so the owner's personal pinned strip does not take half
+    # of a public screenshot. The real profile is never touched either way.
+    [switch] $KeepPins
 )
 
 Set-StrictMode -Version Latest
@@ -39,6 +52,7 @@ $root = Get-RepositoryRoot
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'assets/store' }
 
 Add-Type -AssemblyName System.Drawing
+Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 
@@ -52,11 +66,11 @@ public static class CaptureWin32 {
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT rect);
     [DllImport("user32.dll")] public static extern int GetWindowLong(IntPtr h, int index);
     [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr h, IntPtr hdc, uint flags);
+    [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int cx, int cy, uint flags);
 }
 '@
 
 $SW_RESTORE = 9
-$SW_MAXIMIZE = 3
 $GWL_EXSTYLE = -20
 $WS_EX_LAYOUTRTL = 0x00400000
 # PrintWindow copies the window's own content instead of whatever pixels happen to be on screen, so a
@@ -66,7 +80,9 @@ $PW_RENDERFULLCONTENT = 2
 
 # The automation name used to prove the window really is in the requested language. Its expected value
 # is read from that language's dictionary, never written here.
-$VerificationKey = 'LanguagePickerName'
+# SearchName, not LanguagePickerName: the language picker left the main window for Settings (SP-0050),
+# and the search box is the one named control that stays on the title line in every layout.
+$VerificationKey = 'SearchName'
 
 # --------------------------------------------------------------------------- resolve the languages
 
@@ -141,6 +157,7 @@ if (@(Get-Process -Name 'StreamsPlayer' -ErrorAction SilentlyContinue).Count) {
 $profileRoot = Join-Path $env:LOCALAPPDATA 'StreamsPlayer'
 $asideRoot = "$profileRoot.sp0034-aside"
 $statePath = Join-Path $profileRoot 'catalog-state.json'
+$sessionPath = Join-Path $profileRoot 'browsing-session.json'
 
 if (-not (Test-Path -LiteralPath $statePath)) {
     throw "No catalog-state.json under $profileRoot. Open the app and refresh the catalog once, so a capture has content to show."
@@ -152,31 +169,56 @@ if (Test-Path -LiteralPath $asideRoot) {
 $realStateHash = (Get-FileHash -LiteralPath $statePath -Algorithm SHA256).Hash
 Write-Host ("Real state: {0} (SHA256 {1})" -f $statePath, $realStateHash.Substring(0, 16))
 
-function Set-SandboxLanguage {
-    param([Parameter(Mandatory)] [string] $Language)
-
-    $text = [System.IO.File]::ReadAllText($statePath)
-
-    if ($text -match '"language"\s*:') {
-        $text = [regex]::Replace($text, '("language"\s*:\s*)(?:"[^"]*"|null)', ('${1}"' + $Language + '"'))
-    } else {
-        # A state file written by a build that never recorded a language has no property to replace.
-        $text = [regex]::Replace($text, '^\s*\{', ('{"language":"' + $Language + '",'), 1)
-    }
-    # Stop the app restoring and auto-playing the last channel, which would put the player window in
-    # front of the catalog.
-    $text = [regex]::Replace($text, '("lastSelectedChannelId"\s*:\s*)(?:"[^"]*"|null)', '${1}null')
+function Write-SandboxFile {
+    param(
+        [Parameter(Mandatory)] [string] $Path,
+        [Parameter(Mandatory)] [string] $Text
+    )
 
     # Atomic, matching StreamCatalogStore: write a temp file, then move it over the target.
-    $temp = "$statePath.capture-tmp"
-    [System.IO.File]::WriteAllText($temp, $text, (New-Object System.Text.UTF8Encoding($false)))
-    [System.IO.File]::Move($temp, $statePath, $true)
+    $temp = "$Path.capture-tmp"
+    [System.IO.File]::WriteAllText($temp, $Text, (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::Move($temp, $Path, $true)
+}
 
-    # Read it back. The predecessor of this script assumed its edit had landed; it had not, and every
+function Set-SandboxState {
+    param([Parameter(Mandatory)] [string] $Language)
+
+    # Edited as a JSON tree, not by regex: every channel row carries a "language" property of its own,
+    # and a pattern over the text rewrote all of them along with the interface language. Only the
+    # root's properties are touched here; everything else round-trips as the node it was read as.
+    $root = [System.Text.Json.Nodes.JsonNode]::Parse([System.IO.File]::ReadAllText($statePath))
+    $root['language'] = [System.Text.Json.Nodes.JsonValue]::Create($Language)
+    $root['viewMode'] = [System.Text.Json.Nodes.JsonValue]::Create('Grid')
+    $root['tileSize'] = [System.Text.Json.Nodes.JsonValue]::Create($TileSize)
+    if (-not $KeepPins) {
+        foreach ($channel in $root['channels'].AsArray()) {
+            if ($channel['pinned'] -and $channel['pinned'].GetValue[bool]()) { $channel['pinned'] = [System.Text.Json.Nodes.JsonValue]::Create($false) }
+        }
+    }
+    # A state file from before SP-0067 still carries the last selection; the session file below is
+    # what the current build reads, and both are cleared so nothing is highlighted or scrolled to.
+    if ($root.AsObject().ContainsKey('lastSelectedChannelId')) { $root['lastSelectedChannelId'] = $null }
+    Write-SandboxFile -Path $statePath -Text $root.ToJsonString()
+
+    # The Media filter moved out of catalog-state.json into browsing-session.json (SP-0067). Writing
+    # the whole session, rather than copying the owner's, is what makes the view the same on every run.
+    $session = [ordered] @{
+        schemaVersion = 1; searchQuery = ''; mediaFilter = 'Video'; categoryFilter = 'All'; topicFilter = 'All'
+        languageFilter = 'All'; countryFilter = 'All'; minBitrateFilter = 'All'; collectionFilter = 'All'
+        sortMode = 'Name'; scrollOffset = 0; lastSelectedChannelId = $null
+    }
+    Write-SandboxFile -Path $sessionPath -Text ($session | ConvertTo-Json -Compress)
+
+    # Read both back. The predecessor of this script assumed its edit had landed; it had not, and every
     # image it produced was wrong. An unverified write is the whole defect.
-    $stored = (Get-Content -LiteralPath $statePath -Raw -Encoding utf8 | ConvertFrom-Json).language
-    if ($stored -ne $Language) {
-        throw "The sandbox state still reports language '$stored' after asking for '$Language'. Refusing to capture."
+    $stored = [System.Text.Json.Nodes.JsonNode]::Parse([System.IO.File]::ReadAllText($statePath))
+    if ([string] $stored['language'] -ne $Language -or [string] $stored['viewMode'] -ne 'Grid') {
+        throw ("The sandbox state reports language '{0}', view '{1}' after asking for '{2}', 'Grid'. Refusing to capture." -f
+            [string] $stored['language'], [string] $stored['viewMode'], $Language)
+    }
+    if ((Get-Content -LiteralPath $sessionPath -Raw -Encoding utf8 | ConvertFrom-Json).mediaFilter -ne 'Video') {
+        throw 'The sandbox session does not filter to Video. Refusing to capture.'
     }
 }
 
@@ -204,7 +246,7 @@ function Get-WindowImage {
     # The window is found by process handle and validated by size; its title is localized and is not
     # a usable discriminator - the script it replaced hardcoded two locales into a title match.
     if ($width -lt 800 -or $height -lt 600) {
-        throw "The window is $width x $height, too small to be the maximized main window."
+        throw "The window is $width x $height, too small to be the sized main window."
     }
 
     $bitmap = New-Object System.Drawing.Bitmap($width, $height)
@@ -231,6 +273,24 @@ function Get-WindowImage {
     return $bitmap
 }
 
+function Test-BlankImage {
+    param([Parameter(Mandatory)] [System.Drawing.Bitmap] $Image)
+
+    # Samples a coarse grid below the title bar. A populated video grid measured 9-14% for its most
+    # common colour; a blank capture ~98%, and a window still opening its catalog 86%.
+    $counts = @{}
+    $total = 0
+    for ($x = 10; $x -lt $Image.Width - 10; $x += 25) {
+        for ($y = 60; $y -lt $Image.Height - 10; $y += 25) {
+            $key = $Image.GetPixel($x, $y).ToArgb()
+            $counts[$key] = 1 + [int] $counts[$key]
+            $total += 1
+        }
+    }
+    $largest = ($counts.Values | Measure-Object -Maximum).Maximum
+    return ($largest / $total) -gt 0.5
+}
+
 $results = [System.Collections.Generic.List[pscustomobject]]::new()
 
 Move-Item -LiteralPath $profileRoot -Destination $asideRoot
@@ -241,10 +301,16 @@ try {
     Copy-Item -LiteralPath (Join-Path $asideRoot 'catalog-state.json') -Destination $statePath
     Get-ChildItem -LiteralPath $asideRoot -Filter '*.png' -ErrorAction SilentlyContinue |
         ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $profileRoot $_.Name) }
+    # The preview frames the grid shows. Without them every video tile falls back to its favicon.
+    $previews = Join-Path $asideRoot 'grid-previews'
+    if (-not (Test-Path -LiteralPath $previews)) {
+        throw "No grid-previews folder under $asideRoot. Open the app in Grid mode on video channels once, so a capture has frames to show."
+    }
+    Copy-Item -LiteralPath $previews -Destination (Join-Path $profileRoot 'grid-previews') -Recurse
 
     foreach ($target in $targets) {
         Write-Host ("{0} ({1})" -f $target.ListingCode, $target.Language) -ForegroundColor Cyan
-        Set-SandboxLanguage -Language $target.Language
+        Set-SandboxState -Language $target.Language
 
         $process = Start-Process -FilePath $exe -PassThru
         try {
@@ -256,8 +322,14 @@ try {
             }
             if ($handle -eq [IntPtr]::Zero) { throw "The main window never appeared for $($target.ListingCode)." }
 
+            # Sized to the Store canvas's 16:9, not maximized: a maximized window takes the monitor's
+            # shape, and on anything but a 16:9 work area the canvas letterboxes it with black bars.
             [void] [CaptureWin32]::ShowWindow($handle, $SW_RESTORE)
-            [void] [CaptureWin32]::ShowWindow($handle, $SW_MAXIMIZE)
+            $work = [System.Windows.Forms.Screen]::FromHandle($handle).WorkingArea
+            $width = [Math]::Min($work.Width, [int]($work.Height * 16 / 9))
+            $height = [int]($width * 9 / 16)
+            $SWP_NOZORDER = 0x0004
+            [void] [CaptureWin32]::SetWindowPos($handle, [IntPtr]::Zero, $work.Left, $work.Top, $width, $height, $SWP_NOZORDER)
             [void] [CaptureWin32]::SetForegroundWindow($handle)
             Start-Sleep -Seconds $LoadWaitSeconds
 
@@ -267,7 +339,18 @@ try {
             }
             Write-Host ("    verified: a control is named '{0}'" -f $expected[$target.ListingCode])
 
-            $image = Get-WindowImage -Handle $handle
+            # PrintWindow returns an all-white client area when the display is off or the window has not
+            # composed yet, and reports success. A 2026-09-23 run wrote nine such images before this check.
+            $image = $null
+            for ($try = 1; $try -le 3; $try += 1) {
+                [void] [CaptureWin32]::SetForegroundWindow($handle)
+                $image = Get-WindowImage -Handle $handle
+                if (-not (Test-BlankImage -Image $image)) { break }
+                $image.Dispose(); $image = $null
+                Write-Host "    the capture came back blank - waiting and trying again" -ForegroundColor Yellow
+                Start-Sleep -Seconds 5
+            }
+            if (-not $image) { throw "Every capture of $($target.ListingCode) came back blank. Is the display on and unlocked?" }
             try {
                 $saved = Save-StoreCanvasImage -Image $image -Path (Join-Path $OutputDirectory "app-$($target.ListingCode).png")
             }

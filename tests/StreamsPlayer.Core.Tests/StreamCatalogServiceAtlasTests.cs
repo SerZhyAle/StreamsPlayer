@@ -97,7 +97,7 @@ public sealed class StreamCatalogServiceAtlasTests
         }
     }
 
-    // SP-0088, source contract item A: a build is atomic. The atlas that fails to arrive takes its own
+    // SP-0088, STREAM-BANK item A: a build is atomic. The atlas that fails to arrive takes its own
     // build's indices with it, because an index resolved against a different build's sheet does not
     // produce a missing icon - it produces a confidently wrong one, on a UI that looks healthy.
     [Fact]

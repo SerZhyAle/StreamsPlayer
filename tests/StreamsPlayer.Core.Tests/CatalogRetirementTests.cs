@@ -6,7 +6,7 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.Core.Tests;
 
 /// <summary>
-/// SP-0089, source contract item D: absence of a URL from a bank build is authority to stop offering a
+/// SP-0089, STREAM-BANK item D: absence of a URL from a bank build is authority to stop offering a
 /// channel and nothing more. It is not authority to delete the pin, the collection membership or the
 /// listening history the user built on top of it.
 /// </summary>

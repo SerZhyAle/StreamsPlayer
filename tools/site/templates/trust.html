@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="{{page.lang}}" dir="{{page.dir}}" data-theme="dark" data-lang="{{page.code}}" data-entry="{{page.entry}}">
+  <head>
+{{include:head}}
+  </head>
+  <body data-page="trust">
+    <a class="skip-link" href="#content">{{t.skip-content}}</a>
+    <div class="background-glow" aria-hidden="true">
+      <div class="glow glow-one"></div>
+      <div class="glow glow-two"></div>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="{{page.home}}">
+        <img src="{{page.base}}assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="{{t.nav-label}}">
+        <a class="header-link" href="{{page.home}}#features">{{t.nav-features}}</a>
+        <a class="header-link" href="{{page.trust}}" aria-current="page">{{t.nav-trust}}</a>
+        <a class="header-link" href="{{page.privacy}}">{{t.nav-privacy}}</a>
+      </nav>
+{{include:switcher}}
+      <button class="theme-button" id="themeButton" type="button" aria-label="{{t.theme-label}}">◐</button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">{{t.header-github}}</a>
+    </header>
+
+    <!-- SP-0105, contract INSTALL-TRUST rule 1: four sections, in this order - what the warning is, why
+         it appears, what to click, what the app never does. The order and the ids are pinned by
+         InstallTrustPageTests; a reader who lands on #trust-click alone must still be unblocked. -->
+    <main class="container privacy-main" id="content">
+      <span class="eyebrow">{{t.trust-eyebrow}}</span>
+      <h1>{{t.trust-title}}</h1>
+      <p class="privacy-intro">{{t.trust-intro}}</p>
+
+      <div class="privacy-card">
+        <section class="privacy-section" id="trust-what" aria-labelledby="trust-what-title">
+          <h2 id="trust-what-title">{{t.trust-what-title}}</h2>
+          <p>{{t.trust-what-1}}</p>
+          <p>{{t.trust-what-2}}</p>
+        </section>
+
+        <section class="privacy-section" id="trust-why" aria-labelledby="trust-why-title">
+          <h2 id="trust-why-title">{{t.trust-why-title}}</h2>
+          <p>{{t.trust-why-1}}</p>
+          <p>{{t.trust-why-2}}</p>
+          <p>{{t.trust-why-3}}</p>
+        </section>
+
+        <section class="privacy-section" id="trust-click" aria-labelledby="trust-click-title">
+          <h2 id="trust-click-title">{{t.trust-click-title}}</h2>
+          <p>{{t.trust-click-intro}}</p>
+          <ol class="trust-list">
+            <li>{{t.trust-click-1}}</li>
+            <li>{{t.trust-click-2}}</li>
+          </ol>
+          <p>{{t.trust-click-3}}</p>
+
+          <h3>{{t.trust-admin-title}}</h3>
+          <p>{{t.trust-admin-1}}</p>
+          <p>{{t.trust-admin-2}}</p>
+          <ul class="trust-list">
+            <li>{{t.trust-admin-item-1}}</li>
+            <li>{{t.trust-admin-item-2}}</li>
+            <li>{{t.trust-admin-item-3}}</li>
+          </ul>
+          <p>{{t.trust-admin-3}}</p>
+
+          <h3>{{t.trust-av-title}}</h3>
+          <p>{{t.trust-av}}</p>
+        </section>
+
+        <section class="privacy-section" id="trust-never" aria-labelledby="trust-never-title">
+          <h2 id="trust-never-title">{{t.trust-never-title}}</h2>
+          <ul class="trust-list">
+            <li>{{t.trust-never-1}}</li>
+            <li>{{t.trust-never-2}}</li>
+            <li>{{t.trust-never-3}}</li>
+            <li>{{t.trust-never-4}}</li>
+            <li>{{t.trust-never-5}}</li>
+            <li>{{t.trust-never-6}}</li>
+          </ul>
+          <div class="button-group">
+            <a class="button button-ghost button-small" href="{{page.privacy}}">{{t.trust-privacy-link}}</a>
+            <a class="button button-ghost button-small" href="https://github.com/SerZhyAle/StreamsPlayer/issues">GitHub issues</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+{{include:footer}}
+  </body>
+</html>

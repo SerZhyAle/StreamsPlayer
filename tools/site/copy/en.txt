@@ -4,6 +4,8 @@
 #   [[command]] - the winget install command line
 #   [[appdata]] - the %LOCALAPPDATA%\StreamsPlayer path
 #   [[email]]   - the contact address
+#   [[hash]]    - the Get-FileHash command that checks a download against its .sha256 file
+#   [[installdir]] - the per-user install folder, %LOCALAPPDATA%\Programs\StreamsPlayer
 # machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
 # but the key is present in every file so the key sets stay comparable.
 
@@ -106,6 +108,9 @@ Microsoft Store
 @@status-plan
 Where to get it
 
+@@shot-alt
+STREAMS Player showing its catalog as a grid of live video channels, each tile carrying a recent frame from its stream
+
 @@what-title
 What it is & why
 
@@ -125,7 +130,7 @@ Everything needed to find, keep, and play a stream - grouped by what you are act
 Find a channel
 
 @@cap-find-1
-Curated catalog on first launch - no setup. A channel the catalog gave no icon still gets a face of its own - initials and a colour taken from its name, plus its country code where known.
+A curated catalog, plus a built-in copy of it you can apply on first launch with no network. A channel the catalog gave no icon still gets a face of its own - initials and a colour taken from its name, plus its country code where known.
 
 @@cap-find-2
 Filter by category, topic, language, country, media type - open the row when you need it.
@@ -154,6 +159,12 @@ Live video and RTSP open in a focused player window that shows the track on air 
 @@cap-play-4
 A ~15-second live buffer, and video that settles at the quality your connection holds, then opens there next time.
 
+@@cap-play-5
+Record the live video or radio you are playing straight to a file in your Saved files folder, without interrupting playback.
+
+@@cap-play-6
+Listen to a live audio broadcast from a FastMediaSorter phone or watch, directly over your local network - no server in between.
+
 @@cap-window-title
 Watch your way
 
@@ -173,7 +184,7 @@ Save the frame you are watching as a JPEG.
 The player says why over the video whenever the picture stops - and re-opens a stream that froze silently.
 
 @@cap-window-6
-Shrink the catalog to a small always-on-top panel while radio plays - it carries the station, the track, the volume, the transport and the sleep timer.
+Shrink the catalog to a small captionless panel while radio plays - the station and track on top, and below them the volume, the sleep timer, previous and next station, a random station, Record, and the panel's own always-on-top, back and minimize buttons.
 
 @@cap-grid-title
 Visual grid
@@ -201,6 +212,15 @@ Keep local OK / fail playback marks.
 
 @@cap-yours-4
 Switch the whole interface between thirteen languages; the choice is restored.
+
+@@cap-yours-5
+Group channels into named collections of your own and browse one at a time.
+
+@@cap-yours-6
+A private Recently played history of your last 100 channels, with the track that was on air - kept on your PC and cleared when you ask.
+
+@@cap-yours-7
+Import channels from an M3U file or playlist URL, with a preview before anything is added, and export your own or pinned channels to M3U.
 
 @@cap-local-title
 Local by design
@@ -230,7 +250,7 @@ With the .NET 10 SDK installed, restore, build, and launch from the repository r
 Pick and play
 
 @@use-2-text
-Browse the catalog, filter or search, then select a channel. Radio starts in the main window; video and RTSP open in the player window. An ordinary launch starts nothing; turn on Resume playback on startup in Settings and it brings back whatever was playing when you last closed the app.
+Browse the catalog, filter or search, then select a channel. Radio starts in the main window; video and RTSP open in the player window. An ordinary launch starts nothing; turn on Resume playback on startup in [[glyph:app.settings]] Settings and it brings back whatever was playing when you last closed the app.
 
 @@use-3-title
 Open any URL directly
@@ -242,13 +262,13 @@ Play a stream without touching the catalog.
 Save a channel to a shortcut
 
 @@use-4-text
-Select a saved channel, open Settings, and use Copy command or Create desktop shortcut. Both use the channel's stored id.
+Open a saved channel's [[glyph:nav.more]] three-dot menu and use Copy launch command or Create desktop shortcut. Both use the channel's stored id.
 
 @@use-5-title
 Report a problem with the logs
 
 @@use-5-text
-Open Settings, go to About, and press Send logs to the author. The app packs the current and previous session's diagnostic logs with a short summary of your version, Windows and settings into the Saved files folder (Downloads by default), then opens your mail program with the message ready. The confirmation shows the complete path and can open that folder when you ask; you attach the archive and press Send.
+Open Tools from the [[glyph:nav.more]] Operations menu and press Send logs to the author. The app packs the diagnostic logs of the last ten launches with a short summary of your version, Windows and settings into the Saved files folder (Downloads by default), then opens your mail program with the message ready. The confirmation shows the complete path and can open that folder when you ask; you attach the archive and press Send.
 
 @@distribution-title
 Distribution
@@ -287,19 +307,127 @@ STREAMS Player has no account, advertising, analytics, telemetry, or service ope
 Network access
 
 @@privacy-network
-The application connects when you explicitly refresh the public stream catalog, play a selected stream, or keep Grid mode active while visible video previews refresh. Those requests go to the relevant catalog or stream provider and are subject to that provider's policies. The optional preview pack offered after a catalog update is downloaded only if you accept it.
+The application connects only on your action, and only to the place that action needs: the public stream catalog and the optional preview pack offered after it, downloaded from GitHub when you import the catalog or accept the pack; the provider of a stream you play, record or open About channel for, or whose video preview refreshes while Grid mode is visible; a FastMediaSorter phone or watch you imported, reached directly on your local network; and, only if you ask for them in Tools, the optional FFmpeg libraries for the experimental FlyleafLib engine, downloaded from a third-party GitHub project (BtbN/FFmpeg-Builds). Each request goes straight to that destination and is subject to its policies; none passes through a service run by the author.
 
 @@privacy-local-title
 Local data
 
 @@privacy-local
-STREAMS Player stores its catalog state, manual entries, pins, playback marks, cached preview frames within a 150 MB budget, and the diagnostic logs of the current and previous session under [[appdata]]. This data stays on your device unless you copy or back it up - or unless you use Send logs to the author in Settings, which packs the two diagnostic logs plus your app version, Windows version and settings into an archive and opens your mail program so you can attach and send it to [[email]]. That archive is prepared only when you press that button, the logs in it name the streams that were played, and nothing is ever sent without you pressing Send in your own mail program.
+STREAMS Player stores its catalog state, your added and imported channels, pins, collections, hidden channels, listening history, playback marks, cached preview frames within a 150 MB budget, the optional FFmpeg libraries if you downloaded them, and the diagnostic logs of the last ten launches under [[appdata]]. Recordings and saved frames go to the Saved files folder you choose (Downloads by default). This data stays on your device unless you copy or back it up - or unless you use Send logs to the author in Tools, which packs those diagnostic logs plus your app version, Windows version and settings into an archive and opens your mail program so you can attach and send it to [[email]]. That archive is prepared only when you press that button, the logs in it name the streams that were played, and nothing is ever sent without you pressing Send in your own mail program.
 
 @@privacy-contact-title
 Contact
 
 @@privacy-contact
 Questions can be filed in the GitHub issue tracker or sent to [[email]].
+
+@@title-trust
+Windows protected your PC - what to click - STREAMS Player
+
+@@description-trust
+Why Windows SmartScreen warns before STREAMS Player runs for the first time, exactly what to click, and what the app never does.
+
+@@nav-trust
+Install help
+
+@@trust-link
+Windows warned you? What to click
+
+@@trust-eyebrow
+STREAMS Player · Installing
+
+@@trust-title
+Windows warned you. Here is what it means.
+
+@@trust-intro
+STREAMS Player is a free app from an independent developer. If Windows stopped it the first time you opened the download, this page says what that screen is, why it appears, exactly what to click, and what the app never does. It takes about thirty seconds to read.
+
+@@trust-what-title
+“Windows protected your PC”
+
+@@trust-what-1
+This screen is Microsoft Defender SmartScreen. Under the heading it says it “prevented an unrecognized app from starting”, and after More info it names the publisher as “Unknown publisher”. It appears when you open a file downloaded from the internet that is not digitally signed and that Windows has not yet seen run on many PCs.
+
+@@trust-what-2
+It is a caution about a file Windows does not know yet, not a report of something found inside it - and it is Windows doing its job: it cannot tell who made an unsigned file, so it asks you before running it.
+
+@@trust-why-title
+Why it appears for this app
+
+@@trust-why-1
+The installer, the portable ZIP and the winget package of STREAMS Player are not code-signed. A code-signing certificate costs hundreds of dollars a year, and for a free app with no income we chose not to buy one for now. That is a decision, not an oversight - and for an unsigned file, a warning is exactly what Windows should show.
+
+@@trust-why-2
+SmartScreen also weighs reputation: the more people run the same file without trouble, the sooner Windows recognizes it and the warning stops. Every release is a new file that starts from zero, which is why the warning can come back after an update and why it fades as a release is used.
+
+@@trust-why-3
+The Microsoft Store version is signed by Microsoft and does not show this screen. Every GitHub release also publishes a .sha256 file beside each download: run [[hash]] in PowerShell on the file you downloaded, and the result should match the value in that file.
+
+@@trust-click-title
+What to click
+
+@@trust-click-intro
+On the “Windows protected your PC” screen:
+
+@@trust-click-1
+Click More info, under the message.
+
+@@trust-click-2
+Check that the file name is the STREAMS Player file you downloaded, then click Run anyway.
+
+@@trust-click-3
+That is all - the installer, or the app from the ZIP, starts normally. You never need to switch SmartScreen off or disable your antivirus, and the app itself never needs administrator rights.
+
+@@trust-admin-title
+“Do you want to allow this app from an unknown publisher to make changes to your device?”
+
+@@trust-admin-1
+You should not normally see this prompt. By default the installer installs for you alone, into [[installdir]], and needs no administrator rights for that. If it asks how to install, choose Install for me only (recommended).
+
+@@trust-admin-2
+Windows shows this prompt only if you choose Install for all users. The installer then uses administrator rights for exactly three things:
+
+@@trust-admin-item-1
+copying the program into the Program Files folder, so every account on this PC can run it;
+
+@@trust-admin-item-2
+adding STREAMS Player to the Start menu of every account, and to the shared desktop if you ticked that option;
+
+@@trust-admin-item-3
+registering it with Windows as an installed app, so it can be removed later.
+
+@@trust-admin-3
+One action removes all three together: Settings > Apps > Installed apps (Apps & features on Windows 10) > STREAMS Player > Uninstall. If you would rather not give administrator rights, click No and run the installer again with Install for me only.
+
+@@trust-av-title
+If your antivirus holds the file back
+
+@@trust-av
+Some antivirus programs are cautious with new, unsigned files. If yours quarantines STREAMS Player, restore it and add an exception for its folder only - [[installdir]] for the installer, or the folder you unpacked the ZIP into. An exception for that one folder is all it takes, and you can remove it at any time; do not turn your antivirus off.
+
+@@trust-never-title
+What STREAMS Player never does
+
+@@trust-never-1
+It never needs administrator rights to install or run, never adds itself to Windows startup, and installs no background service.
+
+@@trust-never-2
+It has no account, advertising, analytics or telemetry, and no service run by the author that your data passes through.
+
+@@trust-never-3
+It connects only when you act, and only to what that action needs: the public stream catalog and its optional preview pack on GitHub, the provider of a stream you play, record or preview, a FastMediaSorter phone or watch on your own network, and the optional FFmpeg libraries if you ask for them in Tools.
+
+@@trust-never-4
+It never downloads the catalog on its own - a refresh happens only when you ask for it.
+
+@@trust-never-5
+It never sends your data or logs anywhere by itself. Send logs to the author in Tools only prepares an archive and a message in your own mail program; nothing leaves until you press Send there.
+
+@@trust-never-6
+Uninstalling it never deletes your channels, pins or history - they stay in [[appdata]] until you remove that folder yourself.
+
+@@trust-privacy-link
+Read the privacy page
 
 @@footer-rights
 © 2026 Serhii Zhyhunenko

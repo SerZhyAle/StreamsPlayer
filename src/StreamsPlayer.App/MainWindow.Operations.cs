@@ -54,6 +54,8 @@ public partial class MainWindow
         menu.Items.Add(BuildEntry("HistoryOpen", "HistoryTip", "HistoryTip", HistoryButton_Click));
         menu.Items.Add(BuildEntry("AddStreamPlain", "AddStreamTip", "AddStreamTip", AddButton_Click));
         menu.Items.Add(BuildEntry("PasteChannelPlain", "PasteChannelTip", "PasteChannelTip", PasteChannelButton_Click));
+        // SP-0109: the operations that used to run from inside Settings, where Cancel could not undo them.
+        menu.Items.Add(BuildEntry("ToolsOpen", "ToolsTip", "ToolsTip", ToolsMenuItem_Click));
 
         // The catalog refresh keeps the emphasis it had as a header button: last, fenced off, and the
         // only entry allowed to carry the accent. It is the one action a first-time user is looking for.
@@ -62,6 +64,11 @@ public partial class MainWindow
         refresh.SetResourceReference(FrameworkElement.StyleProperty, "AccentMenuItem");
         menu.Items.Add(refresh);
     }
+
+    // Like Settings, not gated on the state load: PersistAsync already discards writes until the load has
+    // finished, and the log report inside is exactly what a user whose load failed is told to send.
+    private void ToolsMenuItem_Click(object sender, RoutedEventArgs e) =>
+        new ToolsWindow(RunToolsActionAsync) { Owner = this }.ShowDialog();
 
     private static MenuItem BuildEntry(string headerKey, string tooltipKey, string nameKey, RoutedEventHandler handler)
     {

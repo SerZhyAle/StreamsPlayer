@@ -25,7 +25,7 @@ public partial class MainWindow
     /// </summary>
     private async void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SettingsWindow(_state.Theme, _state.TileSize, _state.UpdateStreamPreviews, _state.HideAdultContent, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.ResumePlaybackOnStartup, _state.VideoBackend, _state.FrameFolder, LocalizationService.CurrentLanguage, _selectedRow?.Channel, RunSettingsActionAsync)
+        var dialog = new SettingsWindow(_state.Theme, _state.TileSize, _state.UpdateStreamPreviews, _state.HideAdultContent, _state.AnimatedBackdrop, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.ResumePlaybackOnStartup, _state.VideoBackend, _state.FrameFolder, LocalizationService.CurrentLanguage)
         {
             Owner = this
         };
@@ -38,6 +38,7 @@ public partial class MainWindow
         var previewsChanged = dialog.UpdateStreamPreviews != _state.UpdateStreamPreviews;
         var hideAdultContentChanged = dialog.HideAdultContent != _state.HideAdultContent;
         var systemMediaControlsChanged = dialog.SystemMediaControls != _state.SystemMediaControls;
+        var animatedBackdropChanged = dialog.AnimatedBackdrop != _state.AnimatedBackdrop;
         // SP-0062: the launch already gates on the preference, so clearing is not what makes the switch
         // work - it is that a list of what the user was listening to should not outlive their decision to
         // stop the feature from using it.
@@ -51,6 +52,7 @@ public partial class MainWindow
             TileSize = dialog.SelectedTileSize,
             UpdateStreamPreviews = dialog.UpdateStreamPreviews,
             HideAdultContent = dialog.HideAdultContent,
+            AnimatedBackdrop = dialog.AnimatedBackdrop,
             KeepAwakeDuringPlayback = dialog.KeepAwakeDuringPlayback,
             SystemMediaControls = dialog.SystemMediaControls,
             // Read at launch, so this needs no side effect applied below - it takes effect next time.
@@ -82,6 +84,11 @@ public partial class MainWindow
         if (systemMediaControlsChanged)
         {
             ApplySystemMediaControlsSetting();
+        }
+
+        if (animatedBackdropChanged)
+        {
+            ApplyBackdrop();
         }
 
         if (tileSizeChanged)

@@ -104,6 +104,14 @@ public partial class MainWindow
             _log.Event("CANCEL", "op=preview_artwork");
             SetStatus("ChannelPreviewsCancelled");
         }
+        // SP-0106, STREAM-BANK item L: a manifest from a newer schema is the nothing-case, not a failure.
+        // It throws before the sidecar or the pack is fetched, so the installed artwork is untouched and
+        // the stamp is not written; the one thing to tell the user is that an update would read it.
+        catch (UnsupportedArtworkManifestException exception)
+        {
+            _log.Event("CHANNEL PREVIEWS", "op=manifest_refused", $"schema={exception.SchemaVersion}");
+            SetStatus("ChannelPreviewsNewerVersion");
+        }
         // InvalidOperationException covers WPF imaging state/affinity faults: this handler is async void,
         // so anything escaping it takes the whole app down - AC 6 requires a message, never a crash.
         catch (Exception exception) when (exception is HttpRequestException or InvalidDataException
@@ -137,7 +145,10 @@ public partial class MainWindow
             // The completion line covers opening and verifying the pack: both happen before the first
             // tile report lands.
             "ChannelPreviewsDecoding"));
-        var artwork = await new ChannelPreviewArtworkService(_previewArtworkHttpClient).DownloadAsync(download, token);
+        var retrying = OnDispatcher<PublishWindowRetryNotice>(notice =>
+            ShowPublishWindowRetry(notice, "preview_artwork", "ChannelPreviewsPublishWindowRetry"));
+        var artwork = await new ChannelPreviewArtworkService(_previewArtworkHttpClient)
+            .DownloadAsync(download, retrying, token);
         var catalogUrls = _state.Channels.Select(channel => channel.Url).ToHashSet(StringComparer.Ordinal);
         var importer = new ChannelPreviewImporter(_previewFrameStore!, _log);
         var tiles = new Progress<(int Processed, int Total)>(report =>

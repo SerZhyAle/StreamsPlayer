@@ -154,11 +154,11 @@
       <div class="privacy-card">
         <section class="privacy-section">
           <h2>Network access</h2>
-          <p>The application connects when you explicitly refresh the public stream catalog, play a selected stream, or keep Grid mode active while visible video previews refresh. Those requests go to the relevant catalog or stream provider and are subject to that provider's policies. The optional preview pack offered after a catalog update is downloaded only if you accept it.</p>
+          <p>The application connects only on your action, and only to the place that action needs: the public stream catalog and the optional preview pack offered after it, downloaded from GitHub when you import the catalog or accept the pack; the provider of a stream you play, record or open About channel for, or whose video preview refreshes while Grid mode is visible; a FastMediaSorter phone or watch you imported, reached directly on your local network; and, only if you ask for them in Tools, the optional FFmpeg libraries for the experimental FlyleafLib engine, downloaded from a third-party GitHub project (BtbN/FFmpeg-Builds). Each request goes straight to that destination and is subject to its policies; none passes through a service run by the author.</p>
         </section>
         <section class="privacy-section">
           <h2>Local data</h2>
-          <p>STREAMS Player stores its catalog state, manual entries, pins, playback marks, cached preview frames within a 150 MB budget, and the diagnostic logs of the current and previous session under <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>. This data stays on your device unless you copy or back it up - or unless you use Send logs to the author in Settings, which packs the two diagnostic logs plus your app version, Windows version and settings into an archive and opens your mail program so you can attach and send it to <span dir="ltr">serzhyale@gmail.com</span>. That archive is prepared only when you press that button, the logs in it name the streams that were played, and nothing is ever sent without you pressing Send in your own mail program.</p>
+          <p>STREAMS Player stores its catalog state, your added and imported channels, pins, collections, hidden channels, listening history, playback marks, cached preview frames within a 150 MB budget, the optional FFmpeg libraries if you downloaded them, and the diagnostic logs of the last ten launches under <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>. Recordings and saved frames go to the Saved files folder you choose (Downloads by default). This data stays on your device unless you copy or back it up - or unless you use Send logs to the author in Tools, which packs those diagnostic logs plus your app version, Windows version and settings into an archive and opens your mail program so you can attach and send it to <span dir="ltr">serzhyale@gmail.com</span>. That archive is prepared only when you press that button, the logs in it name the streams that were played, and nothing is ever sent without you pressing Send in your own mail program.</p>
         </section>
         <section class="privacy-section">
           <h2>Contact</h2>
@@ -176,6 +176,7 @@
         <span>© 2026 Serhii Zhyhunenko</span>
         <span class="footer-links">
           <a href="privacy.html">Privacy</a>
+          <a href="trust.html">Install help</a>
           <a href="https://sza.od.ua/">More tools</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
           <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
@@ -183,6 +184,6 @@
       </div>
 
     </footer>
-    <button class="to-top" id="toTop" type="button" aria-label="Back to top">↑</button>
+    <button class="to-top" id="toTop" type="button" aria-label="Back to top"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8,11h3v10h2V11h3l-4,-4 -4,4zM4,3v2h16V3H4z" fill="currentColor"/></svg></button>
   </body>
 </html>

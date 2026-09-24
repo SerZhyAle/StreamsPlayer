@@ -13,11 +13,11 @@
                    TextWrapping="Wrap" />
         <TextBlock Text="{DynamicResource FirstRunIntro}" TextWrapping="Wrap" Margin="0,8,0,0" />
 
-        <Button x:Name="InternetButton" Content="{DynamicResource UpdateCatalogPlain}"
+        <Button x:Name="InternetButton" Content="{DynamicResource UpdateCatalogPlain}" ContentTemplate="{StaticResource ButtonOwnColourCaption}"
                 ToolTip="{DynamicResource UpdateCatalogTip}"
                 AutomationProperties.Name="{DynamicResource UpdateCatalogPlain}"
                 Click="Internet_Click" IsDefault="True"
-                Background="{DynamicResource AccentBrush}" Foreground="White"
+                Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource AccentTextBrush}"
                 Padding="14,8" Margin="0,18,0,0" />
 
         <!-- Collapsed, never disabled, on a build that carries no built-in copy: an unexplained dead

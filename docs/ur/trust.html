@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ur" dir="rtl" data-theme="dark" data-lang="ur" data-entry="false">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="STREAMS Player کے پہلی بار چلنے سے پہلے Windows SmartScreen کیوں تنبیہ کرتا ہے، ٹھیک کہاں کلک کرنا ہے، اور ایپ کیا کبھی نہیں کرتی۔">
+    <meta name="theme-color" content="#0a0f0a">
+    <title>Windows کی تنبیہ - کہاں کلک کریں - STREAMS Player</title>
+    <link rel="canonical" href="https://serzhyale.github.io/StreamsPlayer/ur/trust.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/trust.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/trust.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/trust.html">
+    <link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/trust.html">
+    <link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/trust.html">
+    <link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/trust.html">
+    <link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/trust.html">
+    <link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/trust.html">
+    <link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/trust.html">
+    <link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/trust.html">
+    <link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/trust.html">
+    <link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/trust.html">
+    <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/trust.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/trust.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="STREAMS Player">
+    <meta property="og:title" content="Windows کی تنبیہ - کہاں کلک کریں - STREAMS Player">
+    <meta property="og:description" content="STREAMS Player کے پہلی بار چلنے سے پہلے Windows SmartScreen کیوں تنبیہ کرتا ہے، ٹھیک کہاں کلک کرنا ہے، اور ایپ کیا کبھی نہیں کرتی۔">
+    <meta property="og:url" content="https://serzhyale.github.io/StreamsPlayer/ur/trust.html">
+    <meta property="og:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="STREAMS Player">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Windows کی تنبیہ - کہاں کلک کریں - STREAMS Player">
+    <meta name="twitter:description" content="STREAMS Player کے پہلی بار چلنے سے پہلے Windows SmartScreen کیوں تنبیہ کرتا ہے، ٹھیک کہاں کلک کرنا ہے، اور ایپ کیا کبھی نہیں کرتی۔">
+    <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Windows کی تنبیہ - کہاں کلک کریں - STREAMS Player","description":"STREAMS Player کے پہلی بار چلنے سے پہلے Windows SmartScreen کیوں تنبیہ کرتا ہے، ٹھیک کہاں کلک کرنا ہے، اور ایپ کیا کبھی نہیں کرتی۔","url":"https://serzhyale.github.io/StreamsPlayer/ur/trust.html","isPartOf":{"@type":"WebSite","name":"STREAMS Player","url":"https://serzhyale.github.io/StreamsPlayer/"}}</script>
+    <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <script type="application/json" id="language-urls">{"en":"../trust.html","ru":"../ru/trust.html","uk":"../uk/trust.html","de":"../de/trust.html","it":"../it/trust.html","es":"../es/trust.html","fr":"../fr/trust.html","pt":"../pt/trust.html","zh":"../zh/trust.html","hi":"../hi/trust.html","bn":"../bn/trust.html","ar":"../ar/trust.html","ur":"../ur/trust.html"}</script>
+    <script>
+      (function () {
+        var root = document.documentElement;
+        var systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        var theme = systemTheme;
+        var stored = null;
+        try {
+          theme = localStorage.getItem("streamsplayer-theme") || systemTheme;
+          stored = localStorage.getItem("streamsplayer-lang");
+        } catch (error) {
+          theme = systemTheme;
+        }
+        root.dataset.theme = theme;
+
+        // Language redirect. Only the canonical English root redirects: a visitor who asked for
+        // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
+        // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
+        if (root.dataset.entry !== "true") {
+          return;
+        }
+        var urls = {};
+        try {
+          urls = JSON.parse(document.getElementById("language-urls").textContent);
+        } catch (error) {
+          return;
+        }
+        var target = null;
+        if (stored && urls[stored]) {
+          target = stored;
+        } else if (!stored) {
+          // Walk the visitor's preference list in order and match on the base subtag, so de-AT
+          // reaches the German page. The table comes from the generated page, never from a list
+          // written here.
+          var preferred = navigator.languages && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language || "en"];
+          for (var i = 0; i < preferred.length && !target; i += 1) {
+            var base = String(preferred[i]).toLowerCase().split("-")[0];
+            if (urls[base]) {
+              target = base;
+            }
+          }
+        }
+        if (target && target !== root.dataset.lang) {
+          window.location.replace(urls[target]);
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../site.js" defer></script>
+  </head>
+  <body data-page="trust">
+    <a class="skip-link" href="#content">مواد پر جائیں</a>
+    <div class="background-glow" aria-hidden="true">
+      <div class="glow glow-one"></div>
+      <div class="glow glow-two"></div>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="../ur/">
+        <img src="../assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="بنیادی نیویگیشن">
+        <a class="header-link" href="../ur/#features">خصوصیات</a>
+        <a class="header-link" href="trust.html" aria-current="page">انسٹال میں مدد</a>
+        <a class="header-link" href="privacy.html">رازداری</a>
+      </nav>
+      <div class="language-switcher">
+        <select id="languageSelect" aria-label="سائٹ کی زبان">
+          <option value="../trust.html" data-code="en" lang="en">English</option>
+          <option value="../ru/trust.html" data-code="ru" lang="ru">Русский</option>
+          <option value="../uk/trust.html" data-code="uk" lang="uk">Українська</option>
+          <option value="../de/trust.html" data-code="de" lang="de">Deutsch</option>
+          <option value="../it/trust.html" data-code="it" lang="it">Italiano</option>
+          <option value="../es/trust.html" data-code="es" lang="es">Español</option>
+          <option value="../fr/trust.html" data-code="fr" lang="fr">Français</option>
+          <option value="../pt/trust.html" data-code="pt" lang="pt">Português (Brasil)</option>
+          <option value="../zh/trust.html" data-code="zh" lang="zh-Hans">简体中文</option>
+          <option value="../hi/trust.html" data-code="hi" lang="hi">हिन्दी</option>
+          <option value="../bn/trust.html" data-code="bn" lang="bn">বাংলা</option>
+          <option value="../ar/trust.html" data-code="ar" lang="ar">العربية</option>
+          <option value="../ur/trust.html" data-code="ur" lang="ur" selected>اردو</option>
+        </select>
+        <noscript>
+          <ul class="language-list">
+            <li><a href="../trust.html" lang="en">English</a></li>
+            <li><a href="../ru/trust.html" lang="ru">Русский</a></li>
+            <li><a href="../uk/trust.html" lang="uk">Українська</a></li>
+            <li><a href="../de/trust.html" lang="de">Deutsch</a></li>
+            <li><a href="../it/trust.html" lang="it">Italiano</a></li>
+            <li><a href="../es/trust.html" lang="es">Español</a></li>
+            <li><a href="../fr/trust.html" lang="fr">Français</a></li>
+            <li><a href="../pt/trust.html" lang="pt">Português (Brasil)</a></li>
+            <li><a href="../zh/trust.html" lang="zh-Hans">简体中文</a></li>
+            <li><a href="../hi/trust.html" lang="hi">हिन्दी</a></li>
+            <li><a href="../bn/trust.html" lang="bn">বাংলা</a></li>
+            <li><a href="../ar/trust.html" lang="ar">العربية</a></li>
+            <li><a href="../ur/trust.html" lang="ur">اردو</a></li>
+          </ul>
+        </noscript>
+      </div>
+      <button class="theme-button" id="themeButton" type="button" aria-label="رنگوں کا تھیم بدلیں">◐</button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">GitHub</a>
+    </header>
+
+    <!-- SP-0105, contract INSTALL-TRUST rule 1: four sections, in this order - what the warning is, why
+         it appears, what to click, what the app never does. The order and the ids are pinned by
+         InstallTrustPageTests; a reader who lands on #trust-click alone must still be unblocked. -->
+    <main class="container privacy-main" id="content">
+      <span class="eyebrow">STREAMS Player · انسٹال کرنا</span>
+      <h1>Windows نے آپ کو تنبیہ کی۔ اس کا مطلب یہ ہے۔</h1>
+      <p class="privacy-intro">STREAMS Player ایک آزاد ڈیولپر کی مفت ایپ ہے۔ اگر ڈاؤن لوڈ کی گئی فائل پہلی بار کھولتے وقت Windows نے اسے روک دیا، تو یہ صفحہ بتاتا ہے کہ وہ اسکرین کیا ہے، کیوں ظاہر ہوتی ہے، ٹھیک کہاں کلک کرنا ہے، اور ایپ کیا کبھی نہیں کرتی۔ اسے پڑھنے میں تقریباً تیس سیکنڈ لگتے ہیں۔</p>
+
+      <div class="privacy-card">
+        <section class="privacy-section" id="trust-what" aria-labelledby="trust-what-title">
+          <h2 id="trust-what-title">”Windows protected your PC“ (Windows نے آپ کے PC کو محفوظ رکھا)</h2>
+          <p>یہ اسکرین Microsoft Defender SmartScreen ہے؛ انگریزی Windows پر اس کا عنوان ”Windows protected your PC“ ہوتا ہے، اور اگر آپ کا Windows اردو میں ہو تو متن ترجمہ شدہ نظر آ سکتا ہے۔ عنوان کے نیچے لکھا ہوتا ہے کہ اس نے ”prevented an unrecognized app from starting“ (ایک غیر شناخت شدہ ایپ کو شروع ہونے سے روک دیا)، اور ”More info“ (مزید معلومات) کے بعد ناشر کا نام ”Unknown publisher“ (نامعلوم ناشر) بتایا جاتا ہے۔ یہ اس وقت ظاہر ہوتی ہے جب آپ انٹرنیٹ سے ڈاؤن لوڈ کی گئی ایسی فائل کھولتے ہیں جس پر ڈیجیٹل دستخط نہیں اور جسے Windows نے ابھی بہت سے PC پر چلتے نہیں دیکھا۔</p>
+          <p>یہ ایک ایسی فائل کے بارے میں احتیاط ہے جسے Windows ابھی نہیں جانتا، اس کے اندر کچھ ملنے کی اطلاع نہیں - اور یہ Windows کا اپنا کام کرنا ہے: وہ نہیں بتا سکتا کہ بغیر دستخط والی فائل کس نے بنائی، اس لیے چلانے سے پہلے آپ سے پوچھتا ہے۔</p>
+        </section>
+
+        <section class="privacy-section" id="trust-why" aria-labelledby="trust-why-title">
+          <h2 id="trust-why-title">یہ اس ایپ کے لیے کیوں ظاہر ہوتی ہے</h2>
+          <p>STREAMS Player کا انسٹالر، پورٹیبل ZIP اور winget پیکیج کوڈ پر دستخط شدہ نہیں ہیں۔ کوڈ سائننگ سرٹیفکیٹ پر ہر سال سینکڑوں ڈالر خرچ ہوتے ہیں، اور بغیر کسی آمدنی والی مفت ایپ کے لیے ہم نے فی الحال اسے نہ خریدنے کا فیصلہ کیا ہے۔ یہ ایک فیصلہ ہے، کوتاہی نہیں - اور بغیر دستخط والی فائل کے لیے تنبیہ بالکل وہی ہے جو Windows کو دکھانی چاہیے۔</p>
+          <p>SmartScreen ساکھ کو بھی دیکھتا ہے: جتنے زیادہ لوگ ایک ہی فائل کو بغیر کسی مسئلے کے چلاتے ہیں، Windows اتنی جلدی اسے پہچان لیتا ہے اور تنبیہ رک جاتی ہے۔ ہر ریلیز ایک نئی فائل ہے جو صفر سے شروع ہوتی ہے، اسی لیے اپ ڈیٹ کے بعد تنبیہ واپس آ سکتی ہے اور اسی لیے ریلیز کے استعمال کے ساتھ وہ مدھم پڑ جاتی ہے۔</p>
+          <p>Microsoft Store والا ورژن Microsoft کا دستخط شدہ ہے اور یہ اسکرین نہیں دکھاتا۔ ہر GitHub ریلیز میں ہر ڈاؤن لوڈ کے ساتھ ایک .sha256 فائل بھی شائع ہوتی ہے: ڈاؤن لوڈ کی گئی فائل پر PowerShell میں <code dir="ltr">Get-FileHash -Algorithm SHA256 &lt;file&gt;</code> چلائیں، اور نتیجہ اُس فائل میں موجود قدر سے ملنا چاہیے۔</p>
+        </section>
+
+        <section class="privacy-section" id="trust-click" aria-labelledby="trust-click-title">
+          <h2 id="trust-click-title">کہاں کلک کریں</h2>
+          <p>”Windows protected your PC“ (Windows نے آپ کے PC کو محفوظ رکھا) والی اسکرین پر:</p>
+          <ol class="trust-list">
+            <li>پیغام کے نیچے ”More info“ (مزید معلومات) پر کلک کریں۔</li>
+            <li>تسلی کر لیں کہ فائل کا نام وہی STREAMS Player فائل ہے جو آپ نے ڈاؤن لوڈ کی تھی، پھر ”Run anyway“ (پھر بھی چلائیں) پر کلک کریں۔</li>
+          </ol>
+          <p>بس اتنا ہی - انسٹالر، یا ZIP والی ایپ، معمول کے مطابق شروع ہو جاتی ہے۔ آپ کو کبھی SmartScreen بند کرنے یا اپنا اینٹی وائرس غیر فعال کرنے کی ضرورت نہیں، اور ایپ کو خود کبھی منتظم کے اختیارات کی ضرورت نہیں ہوتی۔</p>
+
+          <h3>”Do you want to allow this app from an unknown publisher to make changes to your device?“ (کیا آپ نامعلوم ناشر کی اس ایپ کو اپنے آلے میں تبدیلیاں کرنے کی اجازت دینا چاہتے ہیں؟)</h3>
+          <p>عام طور پر آپ کو یہ پیغام نظر نہیں آنا چاہیے۔ بطور ڈیفالٹ انسٹالر صرف آپ کے لیے، <code dir="ltr">%LOCALAPPDATA%\Programs\StreamsPlayer</code> میں انسٹال کرتا ہے، اور اس کے لیے اسے منتظم کے اختیارات کی ضرورت نہیں۔ اگر وہ پوچھے کہ کیسے انسٹال کرنا ہے، تو ”Install for me only (recommended)“ (صرف میرے لیے انسٹال کریں - تجویز کردہ) منتخب کریں۔</p>
+          <p>Windows یہ پیغام صرف اُس وقت دکھاتا ہے جب آپ ”Install for all users“ (تمام صارفین کے لیے انسٹال کریں) منتخب کریں۔ تب انسٹالر منتظم کے اختیارات صرف تین کاموں کے لیے استعمال کرتا ہے:</p>
+          <ul class="trust-list">
+            <li>پروگرام کو Program Files فولڈر میں کاپی کرنا، تاکہ اس PC کا ہر اکاؤنٹ اسے چلا سکے؛</li>
+            <li>STREAMS Player کو ہر اکاؤنٹ کے Start مینو میں شامل کرنا، اور مشترکہ ڈیسک ٹاپ پر بھی اگر آپ نے وہ اختیار منتخب کیا ہو؛</li>
+            <li>اسے Windows میں انسٹال شدہ ایپ کے طور پر درج کرنا، تاکہ بعد میں اسے ہٹایا جا سکے۔</li>
+          </ul>
+          <p>ایک ہی عمل تینوں کو ایک ساتھ ہٹا دیتا ہے: Settings &gt; Apps &gt; Installed apps (ترتیبات &gt; ایپس &gt; انسٹال شدہ ایپس؛ Windows 10 پر Apps &amp; features) کھولیں، STREAMS Player منتخب کریں اور Uninstall (ان انسٹال) دبائیں۔ اگر آپ منتظم کے اختیارات نہیں دینا چاہتے، تو ”No“ (نہیں) پر کلک کریں اور انسٹالر کو ”Install for me only“ کے ساتھ دوبارہ چلائیں۔</p>
+
+          <h3>اگر آپ کا اینٹی وائرس فائل کو روک لے</h3>
+          <p>کچھ اینٹی وائرس پروگرام نئی، بغیر دستخط والی فائلوں کے ساتھ محتاط ہوتے ہیں۔ اگر آپ کا اینٹی وائرس STREAMS Player کو قرنطینہ میں ڈال دے، تو اسے بحال کریں اور صرف اس کے فولڈر کے لیے استثنا شامل کریں - انسٹالر کے لیے <code dir="ltr">%LOCALAPPDATA%\Programs\StreamsPlayer</code>، یا وہ فولڈر جس میں آپ نے ZIP کھولا تھا۔ صرف اسی ایک فولڈر کا استثنا کافی ہے، اور آپ اسے کسی بھی وقت ہٹا سکتے ہیں؛ اپنا اینٹی وائرس بند نہ کریں۔</p>
+        </section>
+
+        <section class="privacy-section" id="trust-never" aria-labelledby="trust-never-title">
+          <h2 id="trust-never-title">STREAMS Player کیا کبھی نہیں کرتا</h2>
+          <ul class="trust-list">
+            <li>اسے انسٹال ہونے یا چلنے کے لیے کبھی منتظم کے اختیارات کی ضرورت نہیں ہوتی، یہ خود کو کبھی Windows کے آغاز (startup) میں شامل نہیں کرتا، اور کوئی پس منظر سروس انسٹال نہیں کرتا۔</li>
+            <li>اس میں کوئی اکاؤنٹ، اشتہار، تجزیات یا ٹیلی میٹری نہیں، اور مصنف کی چلائی ہوئی کوئی ایسی سروس نہیں جس سے ہو کر آپ کا ڈیٹا گزرے۔</li>
+            <li>یہ صرف آپ کے کسی عمل پر نیٹ ورک سے جڑتا ہے، اور صرف اُسی سے جس کی اس عمل کو ضرورت ہو: GitHub پر عوامی نشریاتی فہرست اور اس کا اختیاری پیش منظر پیکیج، اُن نشریات کا فراہم کنندہ جنہیں آپ چلاتے، ریکارڈ کرتے یا جن کا پیش منظر دیکھتے ہیں، آپ کے اپنے نیٹ ورک پر FastMediaSorter والا فون یا گھڑی، اور اختیاری FFmpeg لائبریریاں اگر آپ ”اوزار“ میں ان کی درخواست کریں۔</li>
+            <li>یہ فہرست کو کبھی خود سے ڈاؤن لوڈ نہیں کرتا - تازہ کاری صرف اُس وقت ہوتی ہے جب آپ کہیں۔</li>
+            <li>یہ آپ کا ڈیٹا یا لاگ کبھی خود سے کہیں نہیں بھیجتا۔ ”اوزار“ میں ”لاگ مصنف کو بھیجیں“ صرف ایک زپ فائل اور آپ کے اپنے میل پروگرام میں ایک پیغام تیار کرتا ہے؛ جب تک آپ وہاں بھیجیں نہ دبائیں، کچھ بھی باہر نہیں جاتا۔</li>
+            <li>اسے ان انسٹال کرنے سے آپ کے چینل، پن یا تاریخچہ کبھی حذف نہیں ہوتے - وہ <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code> میں رہتے ہیں جب تک آپ خود وہ فولڈر نہ ہٹائیں۔</li>
+          </ul>
+          <div class="button-group">
+            <a class="button button-ghost button-small" href="privacy.html">رازداری کا صفحہ پڑھیں</a>
+            <a class="button button-ghost button-small" href="https://github.com/SerZhyAle/StreamsPlayer/issues">GitHub issues</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-row">
+        <span>© 2026 Serhii Zhyhunenko</span>
+        <span class="footer-links">
+          <a href="privacy.html">رازداری</a>
+          <a href="trust.html">انسٹال میں مدد</a>
+          <a href="https://sza.od.ua/">مزید اوزار</a>
+          <a href="https://github.com/SerZhyAle">GitHub</a>
+          <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+        </span>
+      </div>
+      <div class="container machine-note">
+        <p>یہ صفحہ مشین سے ترجمہ کیا گیا ہے اور اہلِ زبان نے اس کی جانچ نہیں کی۔</p>
+      </div>
+    </footer>
+    <button class="to-top" id="toTop" type="button" aria-label="اوپر واپس"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8,11h3v10h2V11h3l-4,-4 -4,4zM4,3v2h16V3H4z" fill="currentColor"/></svg></button>
+  </body>
+</html>

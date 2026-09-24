@@ -36,6 +36,7 @@ public static class HttpDownload
     /// </param>
     /// <exception cref="InvalidDataException"><paramref name="ceilingBytes"/> was exceeded.</exception>
     /// <exception cref="TimeoutException">The transfer went silent for <paramref name="idleTimeout"/>.</exception>
+    /// <exception cref="HttpIOException">The body ended before its declared length.</exception>
     /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
     public static async Task<byte[]> ReadAllBytesAsync(
         HttpResponseMessage response,
@@ -97,6 +98,17 @@ public static class HttpDownload
             // is what keeps the second case out of the caller's "cancelled" branch.
             throw new TimeoutException(
                 $"The download delivered nothing for {idleTimeout.TotalSeconds:0} seconds.");
+        }
+
+        // SP-0107: a body that ends before its declared length is the "short read" STREAM-BANK rule 11
+        // names as part of the publish window. The socket handler usually raises this itself, but not every
+        // handler does, and returning the short buffer would hand the caller a truncated file to fail on for
+        // a less telling reason. Raised as the transport's own type so one classification covers both.
+        if (declared is not null && received < declared)
+        {
+            throw new HttpIOException(
+                HttpRequestError.ResponseEnded,
+                $"The download ended after {received} of the {declared} declared bytes.");
         }
 
         return buffer.ToArray();

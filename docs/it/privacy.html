@@ -154,11 +154,11 @@
       <div class="privacy-card">
         <section class="privacy-section">
           <h2>Accesso alla rete</h2>
-          <p>L'applicazione si collega quando aggiorni esplicitamente il catalogo pubblico dei flussi, quando riproduci un flusso selezionato o quando tieni attiva la griglia mentre le anteprime video visibili vengono aggiornate. Queste richieste vanno al fornitore del catalogo o del flusso interessato e sono soggette alle sue politiche. Il pacchetto di anteprime proposto dopo un aggiornamento del catalogo viene scaricato solo se lo accetti.</p>
+          <p>L'applicazione si collega solo su tua azione, e solo alla destinazione di cui quell'azione ha bisogno: al catalogo pubblico dei flussi e al pacchetto di anteprime facoltativo proposto dopo di esso, scaricati da GitHub quando importi il catalogo o accetti il pacchetto; al fornitore di un flusso che riproduci, registri o di cui apri «Informazioni sul canale», o la cui anteprima video si aggiorna mentre la vista griglia è visibile; a un telefono o a un orologio con FastMediaSorter che hai importato, raggiunto direttamente sulla tua rete locale; e, solo se le richiedi in «Strumenti», alle librerie FFmpeg facoltative per il motore sperimentale FlyleafLib, scaricate da un progetto GitHub di terze parti (BtbN/FFmpeg-Builds). Ogni richiesta va direttamente a quella destinazione ed è soggetta alle sue politiche; nessuna passa per un servizio gestito dall'autore.</p>
         </section>
         <section class="privacy-section">
           <h2>Dati locali</h2>
-          <p>STREAMS Player salva lo stato del catalogo, le voci aggiunte a mano, i canali fissati, i contrassegni di riproduzione, i fotogrammi di anteprima nella cache entro un limite di 150 MB e i registri diagnostici della sessione corrente e di quella precedente in <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>. Questi dati restano sul tuo dispositivo, a meno che tu non scelga di copiarli o di farne una copia di backup - oppure a meno che tu non usi «Invia i registri all'autore» nelle Impostazioni, che comprime i due registri diagnostici insieme alla versione dell'app, alla versione di Windows e alle impostazioni in un archivio e apre il tuo programma di posta perché tu lo alleghi e lo invii a <span dir="ltr">serzhyale@gmail.com</span>. Quell'archivio viene preparato solo quando premi quel pulsante, i registri al suo interno indicano i flussi che sono stati riprodotti e non viene mai inviato nulla senza che tu prema Invia nel tuo programma di posta.</p>
+          <p>STREAMS Player salva in <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code> lo stato del catalogo, i canali che hai aggiunto e importato, i canali fissati, le raccolte, i canali nascosti, la cronologia di ascolto, i contrassegni di riproduzione, i fotogrammi di anteprima nella cache entro un limite di 150 MB, le librerie FFmpeg facoltative se le hai scaricate e i registri diagnostici degli ultimi dieci avvii. Le registrazioni e i fotogrammi salvati finiscono nella cartella dei file salvati che scegli tu (Download per impostazione predefinita). Questi dati restano sul tuo dispositivo, a meno che tu non li copi o ne faccia un backup - oppure a meno che tu non usi «Invia i registri all'autore» in «Strumenti», che comprime quei registri diagnostici insieme alla versione dell'app, alla versione di Windows e alle impostazioni in un archivio e apre il tuo programma di posta perché tu lo alleghi e lo invii a <span dir="ltr">serzhyale@gmail.com</span>. Quell'archivio viene preparato solo quando premi quel pulsante, i registri al suo interno indicano i flussi che sono stati riprodotti e non viene mai inviato nulla senza che tu prema Invia nel tuo programma di posta.</p>
         </section>
         <section class="privacy-section">
           <h2>Contatti</h2>
@@ -176,6 +176,7 @@
         <span>© 2026 Serhii Zhyhunenko</span>
         <span class="footer-links">
           <a href="privacy.html">Privacy</a>
+          <a href="trust.html">Aiuto per l'installazione</a>
           <a href="https://sza.od.ua/">Altri strumenti</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
           <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
@@ -185,6 +186,6 @@
         <p>Questa pagina è stata tradotta automaticamente e non è stata riletta da un madrelingua.</p>
       </div>
     </footer>
-    <button class="to-top" id="toTop" type="button" aria-label="Torna su">↑</button>
+    <button class="to-top" id="toTop" type="button" aria-label="Torna su"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8,11h3v10h2V11h3l-4,-4 -4,4zM4,3v2h16V3H4z" fill="currentColor"/></svg></button>
   </body>
 </html>

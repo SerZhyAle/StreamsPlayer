@@ -31,7 +31,8 @@
         <TextBox x:Name="TitleBox" Grid.Row="1" Grid.Column="1" Margin="0,5" Padding="7" />
 
         <TextBlock Grid.Row="2" Grid.Column="0" Text="{DynamicResource FieldType}" VerticalAlignment="Center" Margin="0,0,10,0" />
-        <ComboBox x:Name="MediaKindBox" Grid.Row="2" Grid.Column="1" Margin="0,5" Padding="7" />
+        <ComboBox x:Name="MediaKindBox" Grid.Row="2" Grid.Column="1" Margin="0,5" Padding="7"
+                  AutomationProperties.Name="{DynamicResource FieldType}" />
 
         <TextBlock Grid.Row="3" Grid.Column="0" Text="{DynamicResource Category}" VerticalAlignment="Center" Margin="0,0,10,0" />
         <TextBox x:Name="CategoryBox" Grid.Row="3" Grid.Column="1" Margin="0,5" Padding="7" />
@@ -62,7 +63,7 @@
 
         <StackPanel Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
             <Button Style="{StaticResource CancelGlyphButton}" Content="{DynamicResource Cancel}" IsCancel="True" />
-            <Button x:Name="ConfirmButton" Style="{StaticResource ConfirmGlyphButton}" Content="{DynamicResource Add}" IsDefault="True" Click="Add_Click" Background="{DynamicResource AccentBrush}" Foreground="White" />
+            <Button x:Name="ConfirmButton" Style="{StaticResource AddGlyphButton}" Content="{DynamicResource Add}" IsDefault="True" Click="Add_Click" Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource AccentTextBrush}" />
         </StackPanel>
     </Grid>
 </Window>

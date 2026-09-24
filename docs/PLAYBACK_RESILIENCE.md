@@ -196,7 +196,7 @@ healthy open sat at `read_bytes=3046 | demux_bytes=0` for four seconds *includin
 live*. Once it plays, the access counter freezes instead. The budget only ever tests the total against
 zero, never differences it, which is what makes summing them safe here and wrong anywhere else.
 
-`null` counters (FlyleafLib, and `MediaElement` on the radio path) drop the dead branch and keep the
+`null` counters (FlyleafLib, and the audio-only LibVLC engine on the radio path, which reads none) drop the dead branch and keep the
 deadline. An engine that reports nothing must never be read as reporting zero.
 
 Radio has the deadline only, as a `DispatcherTimer` in `MainWindow` (`AUDIO GIVEUP`), armed per leg in
@@ -221,8 +221,10 @@ with no verdict at the end of it at all. A dead one costs 8 s.
 
 `src/StreamsPlayer.Core/LivePlaybackRecoveryPolicy.cs` decides; `PlayerWindow.RecoverAsync` executes.
 `PlaybackRecoveryClassifier` turns an engine event into a `RecoveryTrigger` first. The budgets and the
-backoff schedule are a written contract, not an implementation choice - `docs/specifications/streams.txt`,
-Part D (and Part F for backend adaptation). Change the table below only by changing that first.
+backoff schedule come from the handoff brief this product was built from, not from an implementation
+choice - `DEVELOPER_PROMPT.md` Part D (and Part F for backend adaptation), in the shared contract store
+(see [contracts/STREAM-BANK.md](contracts/STREAM-BANK.md) for where that store is named). Change the table
+below only after reading it.
 
 | Trigger | Budget | Backoff before attempt _n_ |
 |---|---|---|
@@ -234,8 +236,11 @@ Part D (and Part F for backend adaptation). Change the table below only by chang
 | `HardFail` | - | no reconnect; straight to the verdict |
 
 The two budgets in bold are **2 here and 4 in Part D** - the one place this table deliberately departs
-from the written contract, and the divergence is recorded in `streams.txt` itself (SP-0079, owner
-decision of 2026-08-08). Four transient attempts on that backoff, on top of the engine's own ~26 s open
+from the brief, on the owner's decision of 2026-08-08 (SP-0079). This paragraph is now the only record of
+that divergence: it used to be annotated into a repo-local fork of the brief, which was deleted when the
+brief's one home became the shared contract store. Part D binds nobody - it is the Android reference the
+handoff was written from, not a rule of `STREAM-BANK` - so the departure is a product decision and not a
+contract deviation. Four transient attempts on that backoff, on top of the engine's own ~26 s open
 timeout per leg, is about two minutes of black screen before the user is offered Retry. SP-0072 put that
 wait on screen where it can be read, which is what turned its length into the visible complaint. Nothing
 is lost by stopping at two: the verdict dialog offers Retry, so a source that would have come back on

@@ -2,7 +2,7 @@ namespace StreamsPlayer.Core;
 
 /// <summary>
 /// Maps a <see cref="PlaybackFailureSignal"/> to the <see cref="RecoveryTrigger"/> that selects its
-/// retry budget and backoff (<c>docs/specifications/streams.txt</c>, Part D). Deterministic and total.
+/// retry budget and backoff (<c>DEVELOPER_PROMPT.md</c> Part D). Deterministic and total.
 /// </summary>
 public static class PlaybackRecoveryClassifier
 {

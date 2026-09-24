@@ -113,6 +113,24 @@ public partial class MainWindow
     }
 
     /// <summary>
+    /// SP-0107: the download caught the asset mid-publish and will start over after a short pause. Said
+    /// on the status line so the pause reads as a retry rather than a hang, and the bar goes back to its
+    /// indeterminate state because the next attempt starts again from zero.
+    /// </summary>
+    private void ShowPublishWindowRetry(PublishWindowRetryNotice notice, string operation, string statusKey)
+    {
+        _log.Event("RETRY", $"op={operation}", "reason=publish_window", $"cause={notice.Cause}",
+            $"attempt={notice.NextAttempt}/{notice.MaximumAttempts}", $"delay_s={notice.Delay.TotalSeconds:0}");
+        if (!_reportingProgress)
+        {
+            return;
+        }
+
+        CatalogProgress.IsIndeterminate = true;
+        SetStatus(statusKey, (int)notice.Delay.TotalSeconds, notice.NextAttempt, notice.MaximumAttempts);
+    }
+
+    /// <summary>
     /// Shows a count of items processed against their total on the same bar. Used by the preview import's
     /// second phase, which is tile work rather than bytes.
     /// </summary>

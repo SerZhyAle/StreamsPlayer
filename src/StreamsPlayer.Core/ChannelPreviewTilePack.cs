@@ -4,7 +4,7 @@ using System.IO.Compression;
 namespace StreamsPlayer.Core;
 
 /// <summary>
-/// SP-0091, source contract item G2: the primary channel-preview read path - one ZIP whose entries are
+/// SP-0091, STREAM-BANK item G2: the primary channel-preview read path - one ZIP whose entries are
 /// the individual tile images, named by slot index.
 /// </summary>
 /// <remarks>

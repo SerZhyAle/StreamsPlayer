@@ -14,7 +14,7 @@ public sealed record ArtworkFile(string Name, long Size, string Sha256)
     /// </summary>
     /// <remarks>
     /// <para>SP-0091. This is not a paranoid checksum, it is the only defence against a torn pair. The
-    /// publisher replaces an asset by deleting and re-uploading it (source contract item H), so a
+    /// publisher replaces an asset by deleting and re-uploading it (STREAM-BANK item H), so a
     /// rebuild that lands between our coords fetch and our tile-pack fetch gives us two files that each
     /// answer 200 and each are internally valid - and whose index space disagrees. The result is not
     /// missing pictures, it is a still from another station on a channel that looks perfectly healthy:
@@ -59,7 +59,7 @@ public sealed record ArtworkSet(string Stamp, IReadOnlyList<ArtworkFile> Files)
 }
 
 /// <summary>
-/// SP-0091, source contract item F: the invalidation handle for the published artwork, and the reason
+/// SP-0091, STREAM-BANK item F: the invalidation handle for the published artwork, and the reason
 /// the stable names can be read at all.
 /// </summary>
 /// <remarks>
@@ -82,6 +82,29 @@ public sealed record ArtworkManifest(
     public const string ChannelPreviewSet = "channelPreview";
     public const string StreamLogoSet = "streamLogo";
 
+    /// <summary>The highest manifest <c>schemaVersion</c> this client understands.</summary>
+    public const int SupportedSchemaVersion = 1;
+
+    /// <summary>
+    /// SP-0106, STREAM-BANK item L: refuses a manifest written by a newer schema before anything it
+    /// describes is fetched.
+    /// </summary>
+    /// <remarks>
+    /// Additions to the manifest arrive as new <c>sets</c>, which a consumer ignores, so a raised
+    /// <c>schemaVersion</c> means what a raised MAJOR always means: a shape this reader cannot absorb.
+    /// Reading it as the current shape would be the partial import the compatibility law forbids - a
+    /// version-2 <c>channelPreview</c> set that still parses would seed pictures by indices whose meaning
+    /// may have changed. A missing or lower value is read as the current shape.
+    /// </remarks>
+    /// <exception cref="UnsupportedArtworkManifestException">The manifest is newer than this client.</exception>
+    public void EnsureSupported()
+    {
+        if (SchemaVersion > SupportedSchemaVersion)
+        {
+            throw new UnsupportedArtworkManifestException(SchemaVersion);
+        }
+    }
+
     /// <summary>The named set.</summary>
     /// <exception cref="InvalidDataException">The manifest does not carry it.</exception>
     public ArtworkSet Set(string name) =>
@@ -97,11 +120,11 @@ public sealed record ArtworkManifest(
     /// </summary>
     /// <remarks>
     /// Tolerant per set and per file, strict at the point of use. An entry we do not consume - the logo
-    /// set today - must not be able to break the set we do, and an unrecognised <c>schemaVersion</c> is
-    /// not by itself a reason to refuse: rejecting an unknown version would rebuild the pin this class
-    /// exists to remove, on a field the publisher will bump for additions. What is never tolerated is a
-    /// file entry without a hash, because that is the one thing the manifest is for; such an entry is
-    /// dropped here and then named by <see cref="ArtworkSet.File"/> when it is asked for.
+    /// set today - must not be able to break the set we do. Parsing never judges <c>schemaVersion</c>;
+    /// <see cref="EnsureSupported"/> does, so a newer manifest is refused as its own outcome rather than
+    /// as a malformed one. What is never tolerated is a file entry without a hash, because that is the
+    /// one thing the manifest is for; such an entry is dropped here and then named by
+    /// <see cref="ArtworkSet.File"/> when it is asked for.
     /// </remarks>
     public static ArtworkManifest Parse(string json)
     {
@@ -216,4 +239,20 @@ public sealed record ArtworkManifest(
         file = new ArtworkFile(nameValue, size, hashValue);
         return true;
     }
+}
+
+/// <summary>
+/// SP-0106: the published artwork manifest was written by a newer schema than this client reads.
+/// </summary>
+/// <remarks>
+/// The contract's nothing-case, not a failure: the installed artwork stays and no stamp is recorded.
+/// Deliberately not an <see cref="InvalidDataException"/>, so no caller mistakes it for a broken publish
+/// and nothing retries it - the only recovery is a newer application.
+/// </remarks>
+public sealed class UnsupportedArtworkManifestException(int schemaVersion)
+    : Exception(
+        $"The artwork manifest has schemaVersion {schemaVersion}; this client reads up to " +
+        $"{ArtworkManifest.SupportedSchemaVersion}.")
+{
+    public int SchemaVersion { get; } = schemaVersion;
 }

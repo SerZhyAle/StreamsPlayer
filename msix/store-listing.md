@@ -31,7 +31,9 @@ Thirteen, matching the interface: `en-us`, `ru`, `uk`, `de`, `it`, `es`, `fr`, `
 
 Each language needs a description **and** at least one screenshot to leave Incomplete.
 `assets/store/app-<listing-code>.png` holds one real capture per language, produced by
-`tools/store/capture-store-screenshots.ps1`.
+`tools/store/capture-store-screenshots.ps1`. It is the lead screenshot (`DesktopScreenshot1`): the
+catalog as a grid of video channels, each tile a recent frame from its stream. The same capture is the
+site's lead screenshot, via `tools/site/export-site-screenshots.ps1`.
 
 ## What's new
 
@@ -99,39 +101,42 @@ folds this release into its last line.
 ```text
 Version 26.0919.1523
 
-- Channels the catalog gives no logo now carry a mark of their own - initials from the name, a colour drawn from that same name, and the country code where it is known.
-- A channel the catalog stops publishing keeps your pins, your collections and your history instead of vanishing, and returns on its own if the catalog lists it again.
-- The catalog can shrink to a compact radio panel while a station plays - always on top, carrying the station, the current track, the volume, the transport, the sleep timer and Random station.
-- Play a random station. One press picks from the whole catalog, ignoring the search and the facets, and skips hidden stations, video and RTSP.
-- A built-in channel list. A copy of the stream bank ships inside the app, so the catalog fills on a first launch with no network. It adds and updates, never removes, and says how old it is.
+- Record the video or radio you are playing to a file (Record, or R in the player), and listen to a live audio broadcast from a FastMediaSorter phone or watch over your local network.
+- Channels without a logo carry a mark of their own - initials and a colour from the name, and the country code where known.
+- A channel the catalog stops publishing keeps your pins, collections and history, and returns if the catalog lists it again.
+- A compact radio panel while a station plays, with the station, the track, the volume, the transport, the sleep timer and Random station.
+- Play a random station from the whole catalog; hidden stations, video and RTSP are skipped.
+- A built-in channel list fills the catalog on a first launch with no network. It adds and updates, never removes, and says how old it is.
 - A topic filter, sharing a channel as one line of text, playback that resumes where the last session left off, and what is on air under the channel name.
-- The player says why the picture stopped, a stream that stalls while pretending to play is caught and re-opened, and video quality follows the connection and is remembered per channel.
+- The player says why the picture stopped, re-opens a stream that stalls while pretending to play, and remembers per channel the video quality the connection holds.
 - Fixed - the grid no longer keeps retrying a channel whose preview never arrives, diagnostic reports stay readable, a long station name could take the desktop shortcut down, dark-theme glyph buttons were unreadable, and a radio stream that ended kept the machine awake.
 ```
 
 ```text
 Версия 26.0919.1523
 
-- Каналы, которым каталог не дал логотипа, теперь несут собственный знак - инициалы из названия, цвет, выведенный из того же названия, и код страны, если он известен.
-- Канал, который каталог перестал публиковать, сохраняет ваши закрепления, подборки и историю вместо того, чтобы исчезнуть, и возвращается сам, если каталог снова его перечислит.
-- Каталог умеет ужаться до компактной радиопанели, пока играет станция - поверх других окон, со станцией, текущим треком, громкостью, управлением, таймером сна и случайной станцией.
-- Включить случайную станцию. Одно нажатие выбирает из всего каталога, не глядя на поиск и фасеты, и пропускает скрытые станции, видео и RTSP.
-- Встроенный список каналов. Копия банка потоков лежит внутри программы, поэтому каталог заполняется при первом запуске без сети. Он добавляет и обновляет, ничего не удаляет.
-- Фильтр по темам, отправка канала одной строкой текста, продолжение воспроизведения с места прошлого сеанса и трек, который станция играет прямо сейчас, под названием канала.
-- Плеер объясняет, почему картинка остановилась, поток, который делает вид, что играет, переоткрывается, а качество видео следует за соединением и запоминается для канала.
+- Запись играющего видео или радио в файл («Запись» или R в плеере) и прямой звуковой эфир с телефона или часов с FastMediaSorter по локальной сети.
+- Каналы без логотипа несут собственный знак - инициалы и цвет из названия и код страны, если он известен.
+- Канал, который каталог перестал публиковать, сохраняет закрепления, подборки и историю и возвращается, если каталог снова его перечислит.
+- Компактная радиопанель, пока играет станция: станция, трек, громкость, управление, таймер сна и случайная станция.
+- Случайная станция из всего каталога; скрытые станции, видео и RTSP пропускаются.
+- Встроенный список каналов заполняет каталог при первом запуске без сети. Он добавляет и обновляет, ничего не удаляет и называет свой возраст.
+- Фильтр по темам, отправка канала одной строкой текста, продолжение воспроизведения с места прошлого сеанса и трек, который сейчас в эфире, под названием канала.
+- Плеер объясняет, почему картинка остановилась, переоткрывает поток, который делает вид, что играет, и запоминает для канала качество видео, которое тянет соединение.
 - Исправлено - сетка больше не пытается снова и снова получить превью канала, который его не отдаёт, диагностические отчёты остаются читаемыми, длинное название станции могло уронить ярлык, кнопки-глифы в тёмной теме были нечитаемы, а завершившееся радио держало компьютер без сна.
 ```
 
 ```text
 Версія 26.0919.1523
 
-- Канали, яким каталог не дав логотипа, тепер несуть власний знак - ініціали з назви, колір, виведений із тієї самої назви, і код країни, якщо він відомий.
-- Канал, який каталог перестав публікувати, зберігає ваші закріплення, добірки та історію замість того, щоб зникнути, і повертається сам, якщо каталог знову його перелічить.
-- Каталог уміє стиснутися до компактної радіопанелі, поки грає станція - поверх інших вікон, зі станцією, поточним треком, гучністю, керуванням, таймером сну та випадковою станцією.
-- Увімкнути випадкову станцію. Одне натискання обирає з усього каталогу, не зважаючи на пошук і фасети, і пропускає приховані станції, відео та RTSP.
-- Вбудований список каналів. Копія банку потоків лежить усередині програми, тож каталог заповнюється при першому запуску без мережі. Він додає та оновлює, нічого не видаляє.
-- Фільтр за темами, надсилання каналу одним рядком тексту, продовження відтворення з місця минулого сеансу і трек, який станція грає просто зараз, під назвою каналу.
-- Програвач пояснює, чому картинка зупинилася, потік, який вдає, що грає, перевідкривається, а якість відео йде за з'єднанням і запам'ятовується для каналу.
+- Запис відео чи радіо, що грає, у файл («Запис» або R у програвачі) і прямий звуковий ефір із телефона чи годинника з FastMediaSorter через локальну мережу.
+- Канали без логотипа несуть власний знак - ініціали й колір із назви та код країни, якщо він відомий.
+- Канал, який каталог перестав публікувати, зберігає закріплення, добірки та історію й повертається, якщо каталог знову його перелічить.
+- Компактна радіопанель, поки грає станція: станція, трек, гучність, керування, таймер сну та випадкова станція.
+- Випадкова станція з усього каталогу; приховані станції, відео та RTSP пропускаються.
+- Вбудований список каналів заповнює каталог під час першого запуску без мережі. Він додає та оновлює, нічого не видаляє і називає свій вік.
+- Фільтр за темами, надсилання каналу одним рядком тексту, продовження відтворення з місця минулого сеансу і трек, що зараз в ефірі, під назвою каналу.
+- Програвач пояснює, чому картинка зупинилася, перевідкриває потік, який вдає, що грає, і запам'ятовує для каналу якість відео, яку тримає з'єднання.
 - Виправлено - сітка більше не намагається знову й знову отримати прев'ю каналу, який його не віддає, діагностичні звіти лишаються читабельними, довга назва станції могла впустити програму під час винесення ярлика, кнопки-гліфи в темній темі були нечитабельні, а радіо, що завершилося, тримало комп'ютер без сну.
 ```
 
@@ -143,6 +148,7 @@ Refreshed built-in channel snapshot and improved stream playback resilience, bro
 Version 26.0916.2054
 
 - Refreshed the built-in channel list snapshot (18 406 live streams as of 2026-09-15).
+- Record the live video or radio you are playing to a file with the Record button (R in the player), and listen to a live audio broadcast from a FastMediaSorter phone or watch over your local network.
 - Improved stream playback stability, live broadcast contracts, and diagnostic reporting.
 ```
 
@@ -150,6 +156,7 @@ Version 26.0916.2054
 Версия 26.0916.2054
 
 - Обновлён встроенный список каналов (18 406 активных потоков от 15.09.2026).
+- Запись играющего видео или радио в файл кнопкой «Запись» (R в плеере) и прямой звуковой эфир с телефона или часов с FastMediaSorter по локальной сети.
 - Улучшена стабильность воспроизведения потоков, контракты трансляций и диагностические отчеты.
 ```
 
@@ -157,6 +164,7 @@ Version 26.0916.2054
 Версія 26.0916.2054
 
 - Оновлено вбудований список каналів (18 406 активних потоків від 15.09.2026).
+- Запис відео чи радіо, що грає, у файл кнопкою «Запис» (R у програвачі) і прямий звуковий ефір із телефона чи годинника з FastMediaSorter через локальну мережу.
 - Поліпшено стабільність відтворення потоків, контракти трансляцій та діагностичні звіти.
 ```
 
@@ -911,8 +919,8 @@ Suggested test path:
 3. Switch to Grid mode to observe cached/live thumbnails for visible HTTP(S) video entries.
 4. Open Settings to change tile size and disable or re-enable automatic thumbnails.
 5. Open a video entry and exercise always-on-top, Fullscreen, F11, and Escape.
-6. Open the language picker in the toolbar and switch the interface; pick Arabic or Urdu to see the
-   whole layout mirror right-to-left, then switch back.
+6. Open Settings, choose the Language tab (the first one) and switch the interface; pick Arabic or
+   Urdu to see the whole layout mirror right-to-left, then switch back.
 
 Individual third-party streams can be offline or use formats unsupported by the current media backend. This is reported in the player and does not prevent catalog browsing or another stream from being selected.
 ```
@@ -920,7 +928,7 @@ Individual third-party streams can be offline or use formats unsupported by the 
 ## runFullTrust justification
 
 ```text
-StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. runFullTrust is required to launch the desktop executable and use its Windows and LibVLC-based media and thumbnail components. Network requests occur only for an explicit catalog refresh, selected stream playback, or enabled Grid thumbnail updates. The app has no account, advertising, analytics, telemetry, or personal-data collection. Source code: https://github.com/SerZhyAle/StreamsPlayer
+StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. runFullTrust is required to launch the desktop executable and use its Windows and LibVLC-based media and thumbnail components. Network requests occur only for an explicit catalog refresh and the optional preview artwork the user accepts after it, selected stream playback and recording, enabled Grid thumbnail updates, a FastMediaSorter broadcast the user imported (a device on the same local network), and the optional FFmpeg libraries the user downloads from Tools. The app has no account, advertising, analytics, telemetry, or personal-data collection. Source code: https://github.com/SerZhyAle/StreamsPlayer
 ```
 
 ## Privacy and age-rating declarations
@@ -928,16 +936,26 @@ StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. run
 - Declare the network capability and answer Partner Center privacy questions from actual package behavior. Provide the privacy URL even if Partner Center considers it optional.
 - Complete the IARC questionnaire accurately for an app that can open third-party live audio/video URLs. Do not copy a rating from this document.
 - The app does not provide user accounts, chat, purchases, advertising, location, or user-to-user content publishing.
+- Data-safety answers, kept identical to the privacy page (`tools/site/copy/<code>.txt`, keys
+  `privacy-network` and `privacy-local`) and to the install trust page's "never does" list (keys
+  `trust-never-*`, contract `INSTALL-TRUST` rule 6): no data is collected by the author or sent to an
+  author-run service. Network destinations, each on a user action only - the catalog and the optional
+  preview artwork (GitHub release assets); the stream provider of a channel the user plays, previews,
+  measures or records; a FastMediaSorter device on the local network the user imported; the FFmpeg
+  libraries from `github.com/BtbN` when requested in Tools. Stored locally only - catalog state,
+  added and imported channels, pins, collections, hidden channels, history, playback marks, cached
+  previews within 150 MB, and the diagnostic logs of the last ten launches. **Send logs to the author**
+  prepares an archive and a mail message; the user sends it, the app never does.
 
 ## Screenshot set
 
 At least one desktop screenshot is required per listing language, and a language without one stays
 Incomplete with nothing said about it. `tools/store/capture-store-screenshots.ps1` produces exactly
-that set. Beyond it, prepare a few composed cards or extra captures without unrelated windows or
-unsupported claims:
+that set, and it is the lead image: the video-channel grid, always first. Beyond it, prepare a few
+composed cards or extra captures without unrelated windows or unsupported claims:
 
-1. Catalog in List mode.
-2. Grid mode with representative thumbnails.
+1. Grid of video channels with live preview frames - the lead screenshot, `DesktopScreenshot1`.
+2. Catalog in List mode.
 3. Compact Settings window showing tile size, thumbnail preference, version, and links.
 4. Video player showing always-on-top and fullscreen controls.
 5. Optional Add stream dialog and filtering example.

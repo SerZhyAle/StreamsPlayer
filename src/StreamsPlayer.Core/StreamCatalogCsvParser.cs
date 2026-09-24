@@ -68,7 +68,7 @@ public static class StreamCatalogCsvParser
         _ => null
     };
 
-    // SP-0088, source contract item E: `access` is an opaque token, not a closed set. Blank - and an
+    // SP-0088, STREAM-BANK item E: `access` is an opaque token, not a closed set. Blank - and an
     // absent column, which reads as blank - means open; any non-empty value means a restriction this
     // consumer does not model. Switching on the single known token `geo` and folding everything else
     // into "open" was the inversion of that rule: a token the producer adds later would be read as the

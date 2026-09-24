@@ -2,7 +2,7 @@ namespace StreamsPlayer.Core;
 
 /// <summary>
 /// The classified cause of a live-playback interruption. It selects the retry budget and backoff
-/// schedule fixed in the recovery contract (<c>docs/specifications/streams.txt</c>, Part D).
+/// schedule fixed in the recovery contract (<c>DEVELOPER_PROMPT.md</c> Part D).
 /// </summary>
 public enum RecoveryTrigger
 {

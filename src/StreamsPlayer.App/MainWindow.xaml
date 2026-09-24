@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:core="clr-namespace:StreamsPlayer.Core;assembly=StreamsPlayer.Core"
+        xmlns:local="clr-namespace:StreamsPlayer.App"
         xmlns:PresentationOptions="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
         mc:Ignorable="PresentationOptions"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -47,7 +48,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <Viewbox Width="12" Height="12" Margin="6,0,2,0" VerticalAlignment="Center" IsHitTestVisible="False">
-                                    <Path Data="M9.5,3 A6.5,6.5 0 0 1 14.1,14.1 L19,19 L17.6,20.4 L12.7,15.5 A6.5,6.5 0 1 1 9.5,3 M9.5,5 A4.5,4.5 0 1 0 9.5,14 A4.5,4.5 0 0 0 9.5,5"
+                                    <Path Data="{StaticResource Icon.action.search}" Width="24" Height="24" FlowDirection="LeftToRight"
                                           Fill="{DynamicResource MutedBrush}" />
                                 </Viewbox>
                                 <ScrollViewer x:Name="PART_ContentHost" Grid.Column="1" VerticalAlignment="Center" Margin="0" />
@@ -113,7 +114,7 @@
                     <TextBox x:Name="SearchBox" Style="{StaticResource SearchTextBoxStyle}" Width="200"
                              ToolTip="{DynamicResource SearchTip}" TextChanged="FilterChanged"
                              VerticalAlignment="Center" AutomationProperties.Name="{DynamicResource SearchName}" />
-                    <Button Style="{StaticResource ClearGlyphButton}" Click="ClearSearchButton_Click"
+                    <Button Style="{StaticResource ClearInputGlyphButton}" Click="ClearSearchButton_Click"
                             VerticalAlignment="Center" ToolTip="{DynamicResource ClearTip}" AutomationProperties.Name="{DynamicResource ClearTip}" />
                     <Button x:Name="FiltersButton" Style="{StaticResource FiltersRevealButton}"
                             Content="{DynamicResource FiltersAndSorting}" Click="FiltersButton_Click"
@@ -205,11 +206,11 @@
                 <!-- Row 1: Technical & collection facets, sort order and actions -->
                 <DockPanel Grid.Row="1">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
-                        <Button x:Name="ClearFiltersButton" Style="{StaticResource ClearGlyphButton}"
+                        <Button x:Name="ClearFiltersButton" Style="{StaticResource ClearFilterGlyphButton}"
                                 Content="{DynamicResource Clear}" Click="ClearFiltersButton_Click"
                                 VerticalAlignment="Center" ToolTip="{DynamicResource ClearFiltersTip}"
                                 AutomationProperties.Name="{DynamicResource ClearFiltersName}" Margin="0,0,6,0" />
-                        <Button x:Name="HideFiltersButton" Style="{StaticResource ClearFiltersGlyphButton}" Click="HideFiltersButton_Click"
+                        <Button x:Name="HideFiltersButton" Style="{StaticResource CloseGlyphOnlyButton}" Click="HideFiltersButton_Click"
                                 VerticalAlignment="Center" ToolTip="{DynamicResource HideFilters}"
                                 AutomationProperties.Name="{DynamicResource HideFilters}" />
                     </StackPanel>
@@ -283,7 +284,22 @@
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                        <!-- SP-0067: one frozen brush shared by every tile, instead of one allocated per
+                        <!-- SP-0114: the play-outcome dot on a card and on a tile. The row names a palette
+                             role (ChannelRow.StatusTone) and the colour is looked up here by dynamic
+                             reference, so the dot follows a theme switch with everything around it. -->
+                        <Style x:Key="StatusDotStyle" TargetType="Ellipse">
+                            <Setter Property="Fill" Value="{DynamicResource WarningBrush}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding StatusTone}" Value="Success">
+                                    <Setter Property="Fill" Value="{DynamicResource SuccessBrush}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding StatusTone}" Value="Danger">
+                                    <Setter Property="Fill" Value="{DynamicResource DangerBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                        <!-- Out of theme (APP-STYLE 5): the scrim darkens the picture under a tile's title.
+                             SP-0067: one frozen brush shared by every tile, instead of one allocated per
                              realized tile. Deliberately StaticResource and deliberately not a palette
                              key: this is a fixed scrim over an image, ThemeService does not recolour it,
                              and the memory note about StaticResource is about palette keys. -->
@@ -292,6 +308,10 @@
                             <GradientStop Color="#00111827" Offset="0" />
                             <GradientStop Color="#E6111827" Offset="1" />
                         </LinearGradientBrush>
+                        <!-- Out of theme (APP-STYLE 5): a grid tile is a picture - the channel's preview
+                             frame or its monogram - on a fixed near-black backing, not a themed card. Its
+                             frame colour is the one a picture needs in either theme; selection still takes
+                             the theme's accent. -->
                         <Style x:Key="StreamGridTileBorderStyle" TargetType="Border">
                             <Setter Property="Background" Value="#FF111827" />
                             <Setter Property="BorderBrush" Value="#FFCBD5E1" />
@@ -331,8 +351,14 @@
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
+                                    <!-- SP-0110 (WAVE-PARTICLES): the playing station's backdrop, first so everything else
+                                         draws over it. The negative margin reaches over the card's padding to its border;
+                                         the wash is the card's own background, so selection and theme reach it. Dimmed
+                                         for the title it sits under (rule 16: dimmer is allowed, brighter never). -->
+                                    <local:WaveParticlesBackdrop Grid.RowSpan="3" Margin="-7" CornerRadius="4"
+                                                                 Session="{Binding Backdrop}" Intent="Decorative" Intensity="0.35"
+                                                                 WashBrush="{Binding Background, RelativeSource={RelativeSource AncestorType=Border}}" />
                                     <Grid Grid.Row="0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="38" />
@@ -340,12 +366,13 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <Border Width="32" Height="32" Background="{DynamicResource FaviconPlateBrush}" CornerRadius="4"
                                                 VerticalAlignment="Center" ClipToBounds="True">
                                             <Grid>
-                                                <!-- SP-0087: shown only when the bank gave this channel no icon, and drawn *under*
+                                                <!-- Out of theme (APP-STYLE 5): the plate is the channel's identity colour
+                                                     (MonogramPalette), with its own ink and its own dark strip for the country.
+                                                     SP-0087: shown only when the bank gave this channel no icon, and drawn *under*
                                                      the image rather than instead of it - a favicon with a transparent background
                                                      must still sit on the neutral plate and not on a colour. A collapsed Auto row
                                                      is zero high, so a channel with no country centres its monogram in the full
@@ -370,7 +397,9 @@
                                                 <Image Source="{Binding Favicon}" Width="32" Height="32" Stretch="None" />
                                             </Grid>
                                         </Border>
-                                        <!-- Now-playing indicator: spins over the favicon while this station's audio plays. -->
+                                        <!-- Now-playing indicator: spins over the favicon while this station's audio plays.
+                                             Out of theme (APP-STYLE 5): it is drawn over the favicon, a picture, so it
+                                             carries its own opaque disc and white note - the same one the grid tile uses. -->
                                         <Grid Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <Grid.Style>
                                                 <Style TargetType="Grid">
@@ -383,7 +412,7 @@
                                                 </Style>
                                             </Grid.Style>
                                             <Ellipse Fill="#CC2364AA" />
-                                            <Path Data="M12,3 V13.55 C11.41,13.21 10.73,13 10,13 C7.79,13 6,14.79 6,17 C6,19.21 7.79,21 10,21 C12.21,21 14,19.21 14,17 V7 H18 V3 Z"
+                                            <Path Data="{StaticResource Icon.content.audio}" FlowDirection="LeftToRight"
                                                   Fill="White" Stretch="Uniform" Margin="5" RenderTransformOrigin="0.5,0.5">
                                                 <Path.RenderTransform>
                                                     <RotateTransform x:Name="NoteRotateList" />
@@ -409,16 +438,55 @@
                                                 </Path.Style>
                                             </Path>
                                         </Grid>
-                                        <Ellipse Grid.Column="1" Width="10" Height="10" Fill="{Binding StatusBrush}"
+                                        <Ellipse Grid.Column="1" Width="10" Height="10" Style="{StaticResource StatusDotStyle}"
                                                  VerticalAlignment="Center" ToolTip="{Binding StatusLabel}"
                                                  AutomationProperties.Name="{Binding StatusLabel}" />
                                         <TextBlock Grid.Column="2" Text="{Binding DisplayTitle}" FontWeight="SemiBold" FontSize="14"
                                                    VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding DisplayTitle}" />
-                                        <Button Grid.Column="3" ToolTip="{DynamicResource PinTip}"
-                                                AutomationProperties.Name="{DynamicResource PinName}" Tag="{Binding}" Click="PinButton_Click" MinWidth="32" Padding="6,4">
-                                            <Grid Width="16" Height="16">
+                                        <Button Grid.Column="3" Content="" ToolTip="{DynamicResource PlayTip}"
+                                                AutomationProperties.Name="{DynamicResource PlayTip}" Tag="{Binding}" Click="PlayButton_Click" MinWidth="50" Padding="8,4">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource PlayGlyphButton}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Grid.Column="3" Content="{DynamicResource Stop}" ToolTip="{DynamicResource StopTip}"
+                                                AutomationProperties.Name="{DynamicResource StopTip}" Tag="{Binding}" Click="PlayButton_Click" MinWidth="50" Padding="8,4"
+                                                Visibility="Collapsed">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource StopGlyphButton}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                        <Button Grid.Column="4" Style="{StaticResource MoreGlyphButton}" Content="" Width="32" Padding="0"
+                                                Tag="{Binding}" Click="OverflowButton_Click" ToolTip="{DynamicResource MoreActionsTip}"
+                                                AutomationProperties.Name="{DynamicResource MoreActionsName}" />
+                                    </Grid>
+                                    <TextBlock Grid.Row="1" Margin="0,4,0,0" Text="{Binding Channel.Url}" Foreground="{DynamicResource MutedBrush}"
+                                               FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Channel.Url}" Visibility="Collapsed" />
+                                    <!-- One line under the title: tags on the left, stream parameters pushed right, and the
+                                         pin toggle under the overflow button so the title row keeps the width. A DockPanel,
+                                         not a Grid: the tags are measured first and win the space, the parameters fill what
+                                         is left and are the ones that trim when both do not fit. The pin sits in the same
+                                         32-wide slot, with the same 3-point side margins, as the overflow button above it. -->
+                                    <DockPanel Grid.Row="2" Margin="0,1,0,0" LastChildFill="True">
+                                        <Button DockPanel.Dock="Right" ToolTip="{DynamicResource PinTip}"
+                                                AutomationProperties.Name="{DynamicResource PinName}" Tag="{Binding}" Click="PinButton_Click"
+                                                Width="32" Height="22" Padding="0" Margin="3,0,3,0" VerticalAlignment="Center">
+                                            <Grid Width="14" Height="14">
                                                 <Viewbox>
-                                                    <Path Data="M8,4H16V10L19,13V15H5V13L8,10ZM12,15V21"
+                                                    <Path Data="{StaticResource Icon.action.pin}" Width="24" Height="24" FlowDirection="LeftToRight"
                                                           Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
                                                         <Path.Style>
                                                             <Style TargetType="Path">
@@ -433,8 +501,8 @@
                                                     </Path>
                                                 </Viewbox>
                                                 <Viewbox>
-                                                    <Path Data="M8,4H16V10L19,13V15H5V13L8,10ZM12,15V21"
-                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.6">
+                                                    <Path Data="{StaticResource Icon.action.pin--off}" Width="24" Height="24" FlowDirection="LeftToRight"
+                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
                                                         <Path.Style>
                                                             <Style TargetType="Path">
                                                                 <Setter Property="Visibility" Value="Visible" />
@@ -449,62 +517,38 @@
                                                 </Viewbox>
                                             </Grid>
                                         </Button>
-                                        <Button Grid.Column="4" Content="" ToolTip="{DynamicResource PlayTip}"
-                                                AutomationProperties.Name="{DynamicResource PlayTip}" Tag="{Binding}" Click="PlayButton_Click" MinWidth="50" Padding="8,4">
-                                            <Button.Style>
-                                                <Style TargetType="Button" BasedOn="{StaticResource PlayGlyphButton}">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
-                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                        <Button Grid.Column="4" Content="{DynamicResource Stop}" ToolTip="{DynamicResource StopTip}"
-                                                AutomationProperties.Name="{DynamicResource StopTip}" Tag="{Binding}" Click="PlayButton_Click" MinWidth="50" Padding="8,4"
-                                                Visibility="Collapsed">
-                                            <Button.Style>
-                                                <Style TargetType="Button" BasedOn="{StaticResource StopGlyphButton}">
-                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsPlayingAudio}" Value="True">
-                                                            <Setter Property="Visibility" Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                        <Button Grid.Column="5" Style="{StaticResource MoreGlyphButton}" Content="" Width="32" Padding="0"
-                                                Tag="{Binding}" Click="OverflowButton_Click" ToolTip="{DynamicResource MoreActionsTip}"
-                                                AutomationProperties.Name="{DynamicResource MoreActionsName}" />
-                                    </Grid>
-                                    <TextBlock Grid.Row="1" Margin="0,4,0,0" Text="{Binding Channel.Url}" Foreground="{DynamicResource MutedBrush}"
-                                               FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Channel.Url}" Visibility="Collapsed" />
-                                    <!-- SP-0033: a Grid, not a StackPanel, so the metadata text keeps trimming while the
-                                         region pill stays at its natural width and collapses to nothing when absent. -->
-                                    <Grid Grid.Row="2" Margin="0,2,0,0">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="{Binding Metadata}" Foreground="{DynamicResource InfoBrush}"
-                                                   VerticalAlignment="Center"
-                                                   FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Metadata}" />
-                                        <Border Grid.Column="1" Margin="7,0,0,0" Padding="7,2" CornerRadius="9"
-                                                Background="{DynamicResource GeoHintBrush}" VerticalAlignment="Center"
-                                                Visibility="{Binding RegionRestrictedVisibility}"
-                                                ToolTip="{Binding RegionRestrictedTip}"
-                                                AutomationProperties.Name="{Binding RegionRestrictedLabel}">
-                                            <TextBlock Text="{Binding RegionRestrictedLabel}" Foreground="{DynamicResource GeoTextBrush}" FontSize="10" />
-                                        </Border>
-                                    </Grid>
-                                    <TextBlock Grid.Row="3" Margin="0,2,0,0" Text="{Binding TechnicalDetails}"
-                                               Visibility="{Binding TechnicalDetailsVisibility}" Foreground="{DynamicResource MutedBrush}"
-                                               FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding TechnicalDetails}" />
+                                        <!-- SP-0033: the metadata text keeps trimming while the region pill stays at its
+                                             natural width and collapses to nothing when absent. -->
+                                        <Grid DockPanel.Dock="Left" VerticalAlignment="Center">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Metadata}" Foreground="{DynamicResource InfoBrush}"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Metadata}" />
+                                            <Border Grid.Column="1" Margin="7,0,0,0" Padding="7,2" CornerRadius="9"
+                                                    Background="{DynamicResource GeoHintBrush}" VerticalAlignment="Center"
+                                                    Visibility="{Binding RegionRestrictedVisibility}"
+                                                    ToolTip="{Binding RegionRestrictedTip}"
+                                                    AutomationProperties.Name="{Binding RegionRestrictedLabel}">
+                                                <TextBlock Text="{Binding RegionRestrictedLabel}" Foreground="{DynamicResource GeoTextBrush}" FontSize="10" />
+                                            </Border>
+                                        </Grid>
+                                        <TextBlock Margin="10,0,4,0" Text="{Binding TechnicalDetails}"
+                                                   Visibility="{Binding TechnicalDetailsVisibility}" Foreground="{DynamicResource MutedBrush}"
+                                                   HorizontalAlignment="Right" TextAlignment="Right" VerticalAlignment="Center"
+                                                   FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding TechnicalDetails}" />
+                                    </DockPanel>
                                 </Grid>
                             </Border>
                         </DataTemplate>
+                        <!-- Out of theme (APP-STYLE 5, the content-coloured case): everything a tile draws
+                             sits over its picture - title, kind, badges, the now-playing disc and the play,
+                             stop and overflow plates - so each carries its own backing and white ink rather
+                             than a themed text colour that would vanish over half the pictures. The status
+                             dot is the exception on purpose: it takes the palette's status roles, so an
+                             outcome reads as the same colour in the list and in the grid. -->
                         <DataTemplate x:Key="StreamGridTileTemplate">
                             <!-- SP-0067 considered removing this Viewbox as a per-tile measure pass and
                                  kept it deliberately. It is not decoration: the UniformGrid divides the
@@ -525,7 +569,22 @@
                                         <!-- SP-0087: the same fallback as the list card, sized by the tile. Its visibility reads
                                              TileImage, so a captured preview frame wins over the monogram with no second rule. The
                                              Viewbox is what makes one markup serve every StreamTileSize. -->
-                                        <Border Background="{Binding MonogramBrush}" Visibility="{Binding TileFallbackVisibility}">
+                                        <!-- SP-0110 decision 1a: while the station plays, its picture steps back to a centred
+                                             plate (below) and the backdrop fills the tile. The tile is dark in both themes, so
+                                             its fixed background is the wash and the contract's dark values apply (rule 7). -->
+                                        <local:WaveParticlesBackdrop Session="{Binding Backdrop}" Intent="Decorative" Intensity="0.55"
+                                                                     WashBrush="{Binding Background, ElementName=TileBorder}" />
+                                        <Border Background="{Binding MonogramBrush}">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="{Binding TileFallbackVisibility}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasBackdrop}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
                                             <Grid>
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="*" />
@@ -557,7 +616,60 @@
                                                 </Border>
                                             </Grid>
                                         </Border>
-                                        <Image Source="{Binding TileImage}" Stretch="UniformToFill" />
+                                        <Image Source="{Binding TileImage}" Stretch="UniformToFill">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasBackdrop}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                        <!-- SP-0110: the playing station's picture as a plate over the backdrop, laid out above
+                                             the title band the same way the monogram fallback is. -->
+                                        <Grid>
+                                            <Grid.Style>
+                                                <Style TargetType="Grid">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasBackdrop}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Grid.Style>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <Viewbox Grid.Row="0" Stretch="Uniform" Margin="10" MaxWidth="110" MaxHeight="110">
+                                                <Border Width="64" Height="64" CornerRadius="8" ClipToBounds="True"
+                                                        Background="{DynamicResource FaviconPlateBrush}">
+                                                    <Grid>
+                                                        <Border Background="{Binding MonogramBrush}" CornerRadius="8"
+                                                                Visibility="{Binding TileFallbackVisibility}">
+                                                            <TextBlock Text="{Binding MonogramText}" Foreground="{Binding MonogramForeground}"
+                                                                       FontSize="26" FontWeight="SemiBold"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                        </Border>
+                                                        <Image Source="{Binding TileImage}" Stretch="Uniform" />
+                                                    </Grid>
+                                                </Border>
+                                            </Viewbox>
+                                            <Border Grid.Row="1" Height="70">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding DataContext.IsVerySmallTile, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
+                                        </Grid>
                                         <Border VerticalAlignment="Bottom" Height="70">
                                             <Border.Style>
                                                 <Style TargetType="Border">
@@ -604,7 +716,7 @@
                                                     </Style>
                                                 </Grid.Style>
                                                 <Ellipse Fill="#CC2364AA" />
-                                                <Path Data="M12,3 V13.55 C11.41,13.21 10.73,13 10,13 C7.79,13 6,14.79 6,17 C6,19.21 7.79,21 10,21 C12.21,21 14,19.21 14,17 V7 H18 V3 Z"
+                                                <Path Data="{StaticResource Icon.content.audio}" FlowDirection="LeftToRight"
                                                       Fill="White" Stretch="Uniform" RenderTransformOrigin="0.5,0.5">
                                                     <Path.RenderTransform>
                                                         <RotateTransform x:Name="NoteRotateGrid" />
@@ -650,10 +762,9 @@
                                             </StackPanel>
                                         </StackPanel>
                                         <Ellipse Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                                                 Fill="{Binding StatusBrush}"
                                                  ToolTip="{Binding StatusLabel}">
                                             <Ellipse.Style>
-                                                <Style TargetType="Ellipse">
+                                                <Style TargetType="Ellipse" BasedOn="{StaticResource StatusDotStyle}">
                                                     <Setter Property="Margin" Value="12,0,0,47" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding DataContext.IsVerySmallTile, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
@@ -830,9 +941,10 @@
                         Visibility="{Binding PinnedHeaderVisibility}" MouseLeftButtonUp="PinnedHeader_Click"
                         ToolTip="{DynamicResource CollapseSectionTip}">
                     <StackPanel Orientation="Horizontal">
-                        <Grid Width="12" Height="12" VerticalAlignment="Center" Margin="0,0,8,0">
-                            <Path Data="M3,4.5 L6,8 L9,4.5" Stroke="{DynamicResource TextBrush}" StrokeThickness="1.6"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                        <!-- SP-0113: nav.collapse while open, nav.expand while collapsed - the action a click takes. -->
+                        <Viewbox Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0" FlowDirection="LeftToRight">
+                        <Grid Width="24" Height="24">
+                            <Path Data="{StaticResource Icon.nav.collapse}" Width="24" Height="24" Fill="{DynamicResource TextBrush}">
                                 <Path.Style>
                                     <Style TargetType="Path">
                                         <Setter Property="Visibility" Value="Visible" />
@@ -844,8 +956,7 @@
                                     </Style>
                                 </Path.Style>
                             </Path>
-                            <Path Data="M4.5,3 L8,6 L4.5,9" Stroke="{DynamicResource TextBrush}" StrokeThickness="1.6"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                            <Path Data="{StaticResource Icon.nav.expand}" Width="24" Height="24" Fill="{DynamicResource TextBrush}">
                                 <Path.Style>
                                     <Style TargetType="Path">
                                         <Setter Property="Visibility" Value="Collapsed" />
@@ -858,6 +969,7 @@
                                 </Path.Style>
                             </Path>
                         </Grid>
+                        </Viewbox>
                         <TextBlock Text="{DynamicResource PinnedSectionHeader}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" />
                     </StackPanel>
@@ -930,9 +1042,10 @@
                         Visibility="{Binding MainHeaderVisibility}" MouseLeftButtonUp="MainHeader_Click"
                         ToolTip="{DynamicResource CollapseSectionTip}">
                     <StackPanel Orientation="Horizontal">
-                        <Grid Width="12" Height="12" VerticalAlignment="Center" Margin="0,0,8,0">
-                            <Path Data="M3,4.5 L6,8 L9,4.5" Stroke="{DynamicResource TextBrush}" StrokeThickness="1.6"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                        <!-- SP-0113: nav.collapse while open, nav.expand while collapsed - the action a click takes. -->
+                        <Viewbox Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0" FlowDirection="LeftToRight">
+                        <Grid Width="24" Height="24">
+                            <Path Data="{StaticResource Icon.nav.collapse}" Width="24" Height="24" Fill="{DynamicResource TextBrush}">
                                 <Path.Style>
                                     <Style TargetType="Path">
                                         <Setter Property="Visibility" Value="Visible" />
@@ -944,8 +1057,7 @@
                                     </Style>
                                 </Path.Style>
                             </Path>
-                            <Path Data="M4.5,3 L8,6 L4.5,9" Stroke="{DynamicResource TextBrush}" StrokeThickness="1.6"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                            <Path Data="{StaticResource Icon.nav.expand}" Width="24" Height="24" Fill="{DynamicResource TextBrush}">
                                 <Path.Style>
                                     <Style TargetType="Path">
                                         <Setter Property="Visibility" Value="Collapsed" />
@@ -958,6 +1070,7 @@
                                 </Path.Style>
                             </Path>
                         </Grid>
+                        </Viewbox>
                         <TextBlock Text="{DynamicResource MainSectionHeader}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" />
                     </StackPanel>
@@ -1007,7 +1120,7 @@
 
                 <StackPanel x:Name="EmptyPanel" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
                     <Viewbox Width="48" Height="48" HorizontalAlignment="Center">
-                        <Path Data="M4,4H20V20H4ZM8,8H16V16H8Z" Fill="{DynamicResource MutedBrush}" />
+                        <Path Data="{StaticResource Illustration.empty-catalog}" Fill="{DynamicResource MutedBrush}" />
                     </Viewbox>
                     <TextBlock Text="{DynamicResource EmptyCatalog}" Margin="0,10" TextWrapping="Wrap"
                                TextAlignment="Center" MaxWidth="420" />
@@ -1064,7 +1177,7 @@
                     <!-- SP-0080: one action, next to the controls it takes with it. Glyph only - the bar
                          has no width left for a fifth caption, and the tooltip and the accessible name
                          carry the words. -->
-                    <Button x:Name="CompactPanelButton" Style="{StaticResource CollapseGlyphOnlyButton}"
+                    <Button x:Name="CompactPanelButton" Style="{StaticResource PictureInPictureGlyphOnlyButton}"
                             Click="CompactPanelButton_Click" Visibility="Collapsed" Margin="0,0,12,0"
                             ToolTip="{DynamicResource CompactPanelTip}"
                             AutomationProperties.Name="{DynamicResource CompactPanelName}" />

@@ -112,7 +112,7 @@ public static class CatalogMerger
             foreach (var stale in existing.Where(channel =>
                          channel.SourceOrigin == SourceOrigin.Catalog && !seenCatalogUrls.Contains(CatalogUrlIdentity.Normalize(channel.Url))))
             {
-                // SP-0089, source contract item D: absence is authority to stop offering a channel, never
+                // SP-0089, STREAM-BANK item D: absence is authority to stop offering a channel, never
                 // authority to delete what the user made about it.
                 if (stale.Pinned || channelsWithUserData?.Contains(stale.Id) == true)
                 {

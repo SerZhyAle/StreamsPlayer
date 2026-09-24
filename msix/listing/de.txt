@@ -8,9 +8,11 @@ Durchsuchen Sie einen gepflegten Katalog nach Kategorie, Sprache, Land oder Medi
 
 Wählen Sie eine kompakte Liste oder ein visuelles Raster. Im Raster kann die App aktuelle Miniaturbilder sichtbarer HTTP(S)-Video-Streams aufnehmen; Kachelgröße und automatische Aktualisierung der Miniaturbilder werden in den Einstellungen gesteuert. Die vollständige Benutzeroberfläche gibt es in dreizehn Sprachen, mit gespiegeltem Layout von rechts nach links für Arabisch und Urdu.
 
+Nehmen Sie das laufende Live-Video oder Radio in eine Datei auf, ohne es zu unterbrechen. Verkleinern Sie den Katalog zu einem kompakten Radiofenster, während ein Sender läuft. Hören Sie eine Live-Audioübertragung von einem Telefon oder einer Uhr mit FastMediaSorter, direkt über Ihr lokales Netzwerk. Ordnen Sie Kanäle in eigenen Sammlungen, kehren Sie über einen privaten Hörverlauf zu ihnen zurück, und importieren oder exportieren Sie M3U-Wiedergabelisten.
+
 Der Katalog wird nur geladen, wenn Sie „Kanäle aus dem Internet importieren“ wählen. STREAMS Player hat kein Konto, keine Werbung, keine Analyse und keine Telemetrie. Katalogzustand, manuelle Einträge, Favoriten, Wiedergabemarken, Einstellungen und zwischengespeicherte Miniaturbilder bleiben in Ihrem Windows-Profil.
 
-Die Wiedergabefähigkeit hängt vom Stream-Anbieter, der Netzwerkverfügbarkeit, dem Protokoll und den Mediencodecs ab, die von den mitgelieferten oder von den Windows-Medienkomponenten unterstützt werden. STREAMS Player hostet oder kontrolliert keine Stream-Inhalte Dritter.
+Die Wiedergabefähigkeit hängt vom Stream-Anbieter, der Netzwerkverfügbarkeit, dem Protokoll und den Mediencodecs ab, die von den mitgelieferten LibVLC-Komponenten unterstützt werden. STREAMS Player hostet oder kontrolliert keine Stream-Inhalte Dritter.
 
 STREAMS Player ist Open Source unter der MIT-Lizenz.
 
@@ -30,7 +32,7 @@ Listen- und Rasteransicht mit wählbaren Kachelgrößen und abschaltbaren Live-M
 Zufälliger Radiosender aus dem gesamten Katalog - bleibt er stumm, folgt der nächste
 
 @@Feature6
-Kompaktes Radiofenster im Vordergrund mit Sender, Titel, Lautstärke, Wiedergabe und Einschlaftimer
+Kompaktes Radiofenster mit Sender, Titel, Lautstärke, Einschlaftimer, vorherigem und nächstem Sender sowie Aufnahme - über anderen Fenstern, bis Sie das ausschalten
 
 @@Feature7
 Unabhängige Bedienelemente „Immer im Vordergrund“ für App und Videoplayer sowie randloses Video-Vollbild mit F11 und Escape
@@ -43,3 +45,12 @@ Katalogaktualisierung nur auf Ihren Befehl, ohne überraschende Downloads im Hin
 
 @@Feature10
 Kein Konto, keine Werbung, keine Analyse, keine Telemetrie
+
+@@Feature11
+Das laufende Live-Video oder Radio in eine Datei aufnehmen, ohne die Wiedergabe zu unterbrechen
+
+@@Feature12
+Eine Live-Audioübertragung von einem Telefon oder einer Uhr mit FastMediaSorter hören, direkt über Ihr lokales Netzwerk
+
+@@Feature13
+Eigene Kanalsammlungen, ein privater Hörverlauf sowie Import und Export von M3U-Wiedergabelisten

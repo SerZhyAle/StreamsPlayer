@@ -126,17 +126,12 @@ public sealed class FastMediaSorterBroadcastDescriptorTests
         Assert.Equal(FastMediaSorterBroadcastReadStatus.NotBroadcast, read.Status);
     }
 
-    [Fact]
-    public void ContractCopyNamesItsAuthorityAndMandatoryWireShapes()
-    {
-        var contract = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "contract", "fastmediasorter-live-broadcast-contract.md"));
-
-        Assert.Contains("Live Broadcast Contract", contract, StringComparison.Ordinal);
-        Assert.Contains("2026-09-12", contract, StringComparison.Ordinal);
-        Assert.Contains("FMSBCAST1:", contract, StringComparison.Ordinal);
-        Assert.Contains("schemaVersion", contract, StringComparison.Ordinal);
-        Assert.Contains("Open one connection per listener", contract, StringComparison.Ordinal);
-    }
+    // A test used to read a copy of the LIVE-BROADCAST document out of this repository and assert it
+    // carried the wire shapes above. The copy is gone: the contract has one home, the shared store that
+    // CLAUDE.md names and docs/contracts/LIVE-BROADCAST.md points at, and a repository that keeps its own
+    // copy is how two readings of one contract start to disagree. Everything the copy was asked to prove
+    // - the FMSBCAST1 prefix, the schemaVersion refusal, one connection per listener - is asserted here
+    // against the code that implements it instead of against a document nobody executes.
 
     private static string Compress(string json)
     {

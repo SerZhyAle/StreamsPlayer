@@ -191,6 +191,13 @@
         </aside>
       </section>
 
+      <!-- The lead screenshot: the catalog as a grid of video channels, in this page's language. The
+           same capture is the Store listing's DesktopScreenshot1; tools/site/export-site-screenshots.ps1
+           turns tools/store/capture-store-screenshots.ps1's PNGs into these JPEGs. -->
+      <figure class="hero-shot">
+        <img src="../assets/screens/grid-es.jpg" alt="STREAMS Player: el catálogo como cuadrícula de canales de vídeo, cada mosaico con un fotograma reciente de su emisión" width="1366" height="768" decoding="async">
+      </figure>
+
       <section class="section" id="what" aria-labelledby="what-title">
         <h2 class="section-heading" id="what-title"><span class="hash">#</span><span>Qué es y por qué</span></h2>
         <p class="section-description">STREAMS Player es una aplicación independiente de escritorio para Windows dedicada a la radio por internet, el vídeo en directo y las cámaras de red RTSP. Lee un catálogo público de transmisiones ya preparado, así que en el primer arranque ya tienes una lista de canales que funciona; a partir de ahí puedes buscar, ordenar, fijar y añadir los tuyos - todo se guarda localmente en tu equipo.</p>
@@ -204,7 +211,7 @@
           <article class="card cap">
             <h3><span class="tag">01</span><span>Encontrar un canal</span></h3>
             <ul>
-              <li>Catálogo ya preparado en el primer arranque - sin configuración. Un canal al que el catálogo no dio icono también tiene una cara propia - las iniciales y un color sacados de su nombre, más el código de país cuando se conoce.</li>
+              <li>Un catálogo ya preparado, más una copia integrada que puedes aplicar en el primer arranque sin red. Un canal al que el catálogo no dio icono también tiene una cara propia - las iniciales y un color sacados de su nombre, más el código de país cuando se conoce.</li>
               <li>Filtra por categoría, tema, idioma, país y tipo de medio: la fila se abre cuando la necesitas.</li>
               <li>La búsqueda está siempre en la línea del título.</li>
               <li>Fija los canales a los que vuelves.</li>
@@ -218,6 +225,8 @@
               <li>Detén el sonido sin perder la emisora - el volumen y el temporizador de apagado se quedan, listos para reanudar.</li>
               <li>El vídeo en directo y RTSP se abren en una ventana de reproductor aparte que muestra la pista en antena sobre la imagen.</li>
               <li>Búfer de directo de unos 15 segundos, y el vídeo se asienta en la calidad que aguanta tu conexión y abre ahí la próxima vez.</li>
+              <li>Graba el vídeo en directo o la radio que estás reproduciendo directamente en un archivo de tu carpeta de archivos guardados, sin interrumpir la reproducción.</li>
+              <li>Escucha una emisión de audio en directo desde un teléfono o un reloj con FastMediaSorter, directamente por tu red local - sin ningún servidor de por medio.</li>
             </ul>
           </article>
           <article class="card cap">
@@ -228,7 +237,7 @@
               <li>Mosaicos de transmisión de muy pequeños a grandes, una ventana de ajustes redimensionable y un tema claro, oscuro o el de Windows.</li>
               <li>Guarda el fotograma actual como JPEG.</li>
               <li>Cuando la imagen se detiene, el reproductor dice por qué sobre el vídeo - y vuelve a abrir una transmisión que se congeló en silencio.</li>
-              <li>Reduce el catálogo a un panel pequeño siempre visible mientras suena la radio - con la emisora, la pista, el volumen, los controles y el temporizador de apagado.</li>
+              <li>Reduce el catálogo a un panel pequeño sin barra de título mientras suena la radio - arriba la emisora y la pista, y debajo el volumen, el temporizador de apagado, la emisora anterior y la siguiente, una emisora aleatoria, «Grabar» y los botones propios del panel: siempre visible, volver y minimizar.</li>
             </ul>
           </article>
           <article class="card cap">
@@ -246,6 +255,9 @@
               <li>Tus transmisiones añadidas e importadas sobreviven a las actualizaciones del catálogo. Un canal del catálogo que hayas fijado o reproducido se conserva, no se borra, cuando el catálogo deja de incluirlo.</li>
               <li>Conserva marcas locales de reproducción: correcta o fallida.</li>
               <li>Cambia toda la interfaz entre trece idiomas; la elección se restaura.</li>
+              <li>Agrupa canales en colecciones propias con el nombre que elijas y recórrelas de una en una.</li>
+              <li>Un historial privado «Reproducidos recientemente» de tus últimos 100 canales, con la pista que sonaba en antena - guardado en tu PC y borrado cuando lo pides.</li>
+              <li>Importa canales desde un archivo M3U o la URL de una lista de reproducción, con una vista previa antes de añadir nada, y exporta a M3U tus propios canales o los fijados.</li>
             </ul>
           </article>
           <article class="card cap">
@@ -273,7 +285,7 @@
           <li class="step">
             <div>
               <h3>Elegir y reproducir</h3>
-              <p>Explora el catálogo, filtra o busca y luego selecciona un canal. La radio empieza en la ventana principal; el vídeo y RTSP se abren en la ventana del reproductor. Un inicio normal no reproduce nada; activa «Reanudar la reproducción al iniciar» en los ajustes y el inicio recupera lo que estaba sonando en el último cierre.</p>
+              <p>Explora el catálogo, filtra o busca y luego selecciona un canal. La radio empieza en la ventana principal; el vídeo y RTSP se abren en la ventana del reproductor. Un inicio normal no reproduce nada; activa «Reanudar la reproducción al iniciar» en los <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg> ajustes y el inicio recupera lo que estaba sonando en el último cierre.</p>
             </div>
           </li>
           <li class="step">
@@ -286,14 +298,14 @@
           <li class="step">
             <div>
               <h3>Guardar un canal en un acceso directo</h3>
-              <p>Selecciona un canal guardado, abre Ajustes y usa «Copiar comando» o «Crear acceso directo en el escritorio». Ambos usan el id guardado del canal.</p>
+              <p>Abre el menú <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> de tres puntos de un canal guardado y usa «Copiar comando de inicio» o «Crear acceso directo en el escritorio». Ambos usan el id guardado del canal.</p>
               <pre dir="ltr"><code>StreamsPlayer.exe <span class="tok">--id</span> "channel-guid"</code></pre>
             </div>
           </li>
           <li class="step">
             <div>
               <h3>Informar de un problema con los registros</h3>
-              <p>Abre Ajustes, ve a «Acerca de» y pulsa «Enviar los registros al autor». La aplicación empaqueta los registros de diagnóstico de esta sesión y de la anterior con un breve resumen de tu versión, Windows y ajustes en la carpeta de archivos guardados (Descargas de forma predeterminada), y luego abre tu programa de correo con el mensaje ya preparado. La confirmación muestra la ruta completa y puede abrir la carpeta si lo pides; tú adjuntas el archivo comprimido y pulsas Enviar.</p>
+              <p>Abre «Herramientas» en el menú <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> «Acciones» y pulsa «Enviar los registros al autor». La aplicación empaqueta los registros de diagnóstico de los diez últimos arranques con un breve resumen de tu versión, Windows y ajustes en la carpeta de archivos guardados (Descargas de forma predeterminada), y luego abre tu programa de correo con el mensaje ya preparado. La confirmación muestra la ruta completa y puede abrir la carpeta si lo pides; tú adjuntas el archivo comprimido y pulsas Enviar.</p>
             </div>
           </li>
         </ol>
@@ -321,6 +333,11 @@
           </a>
         </div>
         <p class="section-description">El instalador es el archivo que termina en -windows-x64-setup.exe. Se instala solo para el usuario actual y nunca pide permisos de administrador, y al desinstalarlo tus canales, tus anclados y tu historial quedan intactos. No está firmado, así que Windows avisa la primera vez que lo ejecutas; cada versión publica un archivo .sha256 junto a cada descarga, para que compruebes que lo que recibiste es lo que se publicó.</p>
+        <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
+             the download is, not only from the footer. -->
+        <div class="button-group">
+          <a class="button button-gold button-small" href="trust.html">¿Windows te ha avisado? En qué hacer clic</a>
+        </div>
       </section>
     </main>
 
@@ -329,6 +346,7 @@
         <span>© 2026 Serhii Zhyhunenko</span>
         <span class="footer-links">
           <a href="privacy.html">Privacidad</a>
+          <a href="trust.html">Ayuda de instalación</a>
           <a href="https://sza.od.ua/">Más herramientas</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
           <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
@@ -338,6 +356,6 @@
         <p>Esta página se ha traducido automáticamente y no la ha revisado un hablante nativo.</p>
       </div>
     </footer>
-    <button class="to-top" id="toTop" type="button" aria-label="Volver arriba">↑</button>
+    <button class="to-top" id="toTop" type="button" aria-label="Volver arriba"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8,11h3v10h2V11h3l-4,-4 -4,4zM4,3v2h16V3H4z" fill="currentColor"/></svg></button>
   </body>
 </html>

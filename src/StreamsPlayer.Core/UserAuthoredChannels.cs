@@ -1,7 +1,7 @@
 namespace StreamsPlayer.Core;
 
 /// <summary>
-/// SP-0089, source contract item D: which channels carry something the user made, and may therefore not
+/// SP-0089, STREAM-BANK item D: which channels carry something the user made, and may therefore not
 /// be deleted merely because a bank build stopped listing their URL.
 /// </summary>
 /// <remarks>

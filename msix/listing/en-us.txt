@@ -8,9 +8,11 @@ Explore a curated catalog by category, language, country, or media type. Search 
 
 Choose a compact list or a visual grid. Grid mode can capture current thumbnails for visible HTTP(S) video streams; tile size and automatic thumbnail updates are controlled in Settings. The complete interface is available in thirteen languages, with mirrored right-to-left layout for Arabic and Urdu.
 
+Record the live video or radio you are playing to a file without interrupting it. Shrink the catalog to a compact radio panel while a station plays. Listen to a live audio broadcast from a FastMediaSorter phone or watch, directly over your local network. Keep channels in your own collections, return to them from a private listening history, and import or export M3U playlists.
+
 Catalog downloads happen only when you choose Import channels from the internet. STREAMS Player has no account, advertising, analytics, or telemetry. Catalog state, manual entries, favorites, playback marks, settings, and cached thumbnails stay in your Windows profile.
 
-Playback compatibility depends on the stream provider, network availability, protocol, and media codecs supported by the included or Windows media components. STREAMS Player does not host or control third-party stream content.
+Playback compatibility depends on the stream provider, network availability, protocol, and the media codecs supported by the included LibVLC components. STREAMS Player does not host or control third-party stream content.
 
 STREAMS Player is open source under the MIT License.
 
@@ -30,7 +32,7 @@ List and visual grid layouts with selectable tile sizes and optional live thumbn
 Play a radio station drawn at random from the whole catalog - one that stays silent gives way to the next draw
 
 @@Feature6
-Compact always-on-top radio panel with the station, the track, the volume, the transport, and the sleep timer
+Compact radio panel with the station, the track, the volume, the sleep timer, previous and next station, and recording - on top of other windows until you turn that off
 
 @@Feature7
 Independent always-on-top controls for the app and video player, and borderless video fullscreen with F11 and Escape
@@ -43,3 +45,12 @@ Explicit catalog refresh with no surprise background catalog downloads
 
 @@Feature10
 No account, advertising, analytics, or telemetry
+
+@@Feature11
+Record the live video or radio you are playing to a file, without interrupting playback
+
+@@Feature12
+Listen to a live audio broadcast from a FastMediaSorter phone or watch, directly over your local network
+
+@@Feature13
+Your own channel collections, a private listening history, and M3U playlist import and export

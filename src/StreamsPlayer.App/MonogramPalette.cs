@@ -7,11 +7,15 @@ namespace StreamsPlayer.App;
 /// SP-0087: the colours a channel's monogram plate can take when the bank gave it no icon.
 /// </summary>
 /// <remarks>
+/// Out of theme (APP-STYLE 5): a plate is the channel's identity, not a surface of the interface, and it
+/// carries its own text colour (<see cref="Foreground"/>).
+/// <para>
 /// Twelve mid-tone, deliberately desaturated colours. Desaturated because a saturated set of twelve
 /// reads as a toy next to real station logos; mid-tone because the same plate has to hold white text
 /// against both the light card (<c>#FFF8FAFC</c>) and the dark one (<c>#FF1A2535</c>) - there is one
 /// plate colour per channel, not one per theme, so the channel keeps its identity when the theme
 /// changes.
+/// </para>
 /// <para>
 /// Every brush is frozen and shared. One brush per realized card would be an allocation on every
 /// scrolled row over a catalog of 19 534 - the same reason <c>TileScrimBrush</c> in

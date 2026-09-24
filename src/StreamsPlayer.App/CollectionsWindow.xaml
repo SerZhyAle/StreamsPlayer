@@ -35,7 +35,7 @@
                                      Padding="6,3" AutomationProperties.Name="{DynamicResource CollectionRename}" />
                             <TextBlock Text="{Binding CountText}" Opacity="0.65" Margin="2,3,0,0" />
                         </StackPanel>
-                        <Button Grid.Column="2" Style="{StaticResource TrashGlyphButton}" Content="{DynamicResource CollectionDelete}"
+                        <Button Grid.Column="2" Style="{StaticResource DeleteGlyphButton}" Content="{DynamicResource CollectionDelete}"
                                 Tag="{Binding}" Click="Delete_Click" VerticalAlignment="Center" Margin="10,0,0,0" />
                     </Grid>
                 </DataTemplate>

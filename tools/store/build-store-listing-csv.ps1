@@ -466,7 +466,7 @@ $screenshotRows = @($fieldIndex.Keys | Where-Object { $_ -like 'DesktopScreensho
 foreach ($target in $targets) {
     $description = [bool] $rows[$fieldIndex['Description']][$target.Index]
     $short = [bool] $rows[$fieldIndex['ShortDescription']][$target.Index]
-    $features = @(1..10 | Where-Object { $fieldIndex.ContainsKey("Feature$_") -and $rows[$fieldIndex["Feature$_"]][$target.Index] }).Count
+    $features = @(1..20 | Where-Object { $fieldIndex.ContainsKey("Feature$_") -and $rows[$fieldIndex["Feature$_"]][$target.Index] }).Count
     $terms = @(1..7 | Where-Object { $fieldIndex.ContainsKey("SearchTerm$_") -and $rows[$fieldIndex["SearchTerm$_"]][$target.Index] }).Count
     $shots = @($screenshotRows | Where-Object { $rows[$fieldIndex[$_]][$target.Index] }).Count
     $complete = $description -and $shots -gt 0

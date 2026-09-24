@@ -8,9 +8,11 @@ Explorez un catalogue prêt à l'emploi par catégorie, langue, pays ou type de 
 
 Choisissez une liste compacte ou une grille visuelle. En vue en grille, l'application peut capturer les vignettes actuelles des flux vidéo HTTP(S) visibles ; la taille des vignettes et leur actualisation automatique se règlent dans les Paramètres. L'interface complète est disponible en treize langues, avec une mise en page miroir de droite à gauche pour l'arabe et l'ourdou.
 
+Enregistrez dans un fichier la vidéo en direct ou la radio en cours de lecture, sans l'interrompre. Réduisez le catalogue à un panneau radio compact pendant qu'une station joue. Écoutez une diffusion audio en direct depuis un téléphone ou une montre équipés de FastMediaSorter, directement sur votre réseau local. Rangez vos chaînes dans vos propres collections, retrouvez-les grâce à un historique d'écoute privé, et importez ou exportez des listes de lecture M3U.
+
 Le catalogue ne se télécharge que lorsque vous choisissez « Importer des chaînes depuis internet ». STREAMS Player n'a ni compte, ni publicité, ni analyse d'usage, ni télémétrie. L'état du catalogue, les entrées ajoutées à la main, les favoris, les marques de lecture, les paramètres et les vignettes en cache restent dans votre profil Windows.
 
-La compatibilité de lecture dépend du fournisseur du flux, de la disponibilité du réseau, du protocole et des codecs pris en charge par les composants multimédias inclus ou par ceux de Windows. STREAMS Player n'héberge pas et ne contrôle pas le contenu des flux tiers.
+La compatibilité de lecture dépend du fournisseur du flux, de la disponibilité du réseau, du protocole et des codecs pris en charge par les composants LibVLC inclus. STREAMS Player n'héberge pas et ne contrôle pas le contenu des flux tiers.
 
 STREAMS Player est un logiciel open source sous licence MIT.
 
@@ -30,7 +32,7 @@ Vues en liste et en grille visuelle, avec tailles de vignettes au choix et vigne
 Station de radio tirée au hasard dans tout le catalogue - si elle reste muette, la suivante prend le relais
 
 @@Feature6
-Panneau radio compact au premier plan, avec station, titre, volume, lecture et minuterie de veille
+Panneau radio compact avec la station, le titre, le volume, la minuterie de veille, les stations précédente et suivante et l'enregistrement - au-dessus des autres fenêtres jusqu'à ce que vous le désactiviez
 
 @@Feature7
 Mode « toujours au premier plan » indépendant pour l'application et le lecteur vidéo, et plein écran sans bordure avec F11 et Escape
@@ -43,3 +45,12 @@ Actualisation du catalogue à votre demande uniquement, sans téléchargement su
 
 @@Feature10
 Ni compte, ni publicité, ni analyse d'usage, ni télémétrie
+
+@@Feature11
+Enregistrez dans un fichier la vidéo en direct ou la radio en cours de lecture, sans interrompre la lecture
+
+@@Feature12
+Écoutez une diffusion audio en direct depuis un téléphone ou une montre équipés de FastMediaSorter, directement sur votre réseau local
+
+@@Feature13
+Vos propres collections de chaînes, un historique d'écoute privé, et l'import et l'export de listes de lecture M3U

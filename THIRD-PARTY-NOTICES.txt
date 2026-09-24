@@ -40,8 +40,9 @@ Source: https://github.com/SuRGeoNix/Flyleaf
 
 The native FFmpeg libraries are NOT bundled in this package and no GPL-licensed
 binary is distributed with this application. They are downloaded only when the
-user explicitly asks for them in Settings, into that user's own application data
-folder, and only when the optional FlyleafLib engine is being used. The default
+user explicitly asks for them in Tools (the Operations menu), into that user's
+own application data folder, and only when the optional FlyleafLib engine is
+being used. The default
 VLC engine needs none of them.
 
 The build fetched is LGPL-3.0-or-later - FFmpeg n8.1, win64, shared, configured

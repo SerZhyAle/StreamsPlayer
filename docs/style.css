@@ -495,6 +495,21 @@ code {
   width: 100%;
 }
 
+.hero-shot {
+  margin: 0 0 0.6rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  box-shadow: var(--glow);
+}
+
+.hero-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .section {
   padding: 2.4rem 0;
   scroll-margin-top: 90px;
@@ -822,6 +837,27 @@ code {
   font-size: 0.92rem;
 }
 
+/* SP-0105: the install trust page reuses the privacy card and adds sub-headings and lists to it. */
+.privacy-section p + p {
+  margin-top: 0.7rem;
+}
+
+.privacy-section h3 {
+  margin: 1.6rem 0 0.5rem;
+  font-size: 1.02rem;
+}
+
+.trust-list {
+  margin: 0.7rem 0;
+  padding-inline-start: 1.4rem;
+  color: var(--text-2);
+  font-size: 0.92rem;
+}
+
+.trust-list li + li {
+  margin-top: 0.4rem;
+}
+
 .site-footer {
   margin-top: 3rem;
   border-top: 1px solid var(--border);
@@ -871,6 +907,22 @@ code {
 
 .to-top.show {
   display: grid;
+}
+
+/* SP-0113: an ICON-SET glyph inlined beside the name of the control it stands for - one text line
+   high, in the text's own colour, so it follows both themes (ICON-RENDER 2, 5). */
+.glyph {
+  display: inline-block;
+  width: 1.05em;
+  height: 1.05em;
+  vertical-align: -0.17em;
+  fill: currentColor;
+  flex: none;
+}
+
+.to-top .glyph {
+  width: 24px;
+  height: 24px;
 }
 
 @media (max-width: 860px) {

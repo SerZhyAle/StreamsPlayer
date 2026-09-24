@@ -15,6 +15,7 @@ public sealed class ChannelRow : INotifyPropertyChanged
     private bool _isSelected;
     private bool _isTileHovered;
     private bool _isPlayingAudio;
+    private WaveParticlesBackdropSession? _backdrop;
 
     internal ChannelRow(StreamChannel channel, FaviconAtlasSet atlases)
     {
@@ -125,6 +126,30 @@ public sealed class ChannelRow : INotifyPropertyChanged
 
     public void SetPlayingAudio(bool playing) => IsPlayingAudio = playing;
 
+    /// <summary>
+    /// SP-0110: the animated backdrop of the playing station, or null. Set only while the station plays
+    /// and the setting allows it, so the card and tile templates need no second condition.
+    /// </summary>
+    public WaveParticlesBackdropSession? Backdrop
+    {
+        get => _backdrop;
+        private set
+        {
+            if (ReferenceEquals(_backdrop, value))
+            {
+                return;
+            }
+
+            _backdrop = value;
+            OnPropertyChanged(nameof(Backdrop));
+            OnPropertyChanged(nameof(HasBackdrop));
+        }
+    }
+
+    public bool HasBackdrop => _backdrop is not null;
+
+    public void SetBackdrop(WaveParticlesBackdropSession? backdrop) => Backdrop = backdrop;
+
     internal void UpdatePresentation(FaviconAtlasSet atlases)
     {
         if (_atlases == atlases)
@@ -181,7 +206,6 @@ public sealed class ChannelRow : INotifyPropertyChanged
         }
         OnPropertyChanged(nameof(TileImage));
         OnPropertyChanged(nameof(TileFallbackVisibility));
-        OnPropertyChanged(nameof(PreviewStatusBrush));
         OnPropertyChanged(nameof(PreviewStatusLabel));
     }
 
@@ -191,7 +215,6 @@ public sealed class ChannelRow : INotifyPropertyChanged
         _previewReachable = null;
         OnPropertyChanged(nameof(TileImage));
         OnPropertyChanged(nameof(TileFallbackVisibility));
-        OnPropertyChanged(nameof(PreviewStatusBrush));
         OnPropertyChanged(nameof(PreviewStatusLabel));
     }
 
@@ -224,6 +247,7 @@ public sealed class ChannelRow : INotifyPropertyChanged
     // that already exist to say "this row now renders differently": UpdateChannel and
     // RefreshLocalization. There is no third invalidation point to remember.
     private string? _metadata;
+    private string? _tags;
     private string? _technicalDetails;
     // SP-0087: the monogram and the country code are derived from Channel in exactly the same way, so
     // they live in the same cache and are dropped at the same point. There is no third invalidation
@@ -235,7 +259,12 @@ public sealed class ChannelRow : INotifyPropertyChanged
     // SP-0061: the rubric is shown translated; an identifier outside the bank's closed set falls through
     // as written. RefreshLocalization re-renders the row when the interface language changes.
     public string Metadata => _metadata ??= string.Join("  ·  ",
-        new[] { KindLabel, TopicLabels.Text(Channel.Topic), Channel.Country, Channel.Language }
+        new[] { KindLabel, Tags }.Where(value => !string.IsNullOrWhiteSpace(value)));
+
+    // The station's own descriptors without the media kind. The compact panel shows only radio, so the
+    // kind would be the same word on every station; the card prefixes it through Metadata above.
+    public string Tags => _tags ??= string.Join("  ·  ",
+        new[] { TopicLabels.Text(Channel.Topic), Channel.Country, Channel.Language }
             .Where(value => !string.IsNullOrWhiteSpace(value)));
 
     // SP-0018: compact, present-only technical claims. Absent when the catalog supplied none, so the
@@ -254,6 +283,7 @@ public sealed class ChannelRow : INotifyPropertyChanged
     private void InvalidateDerivedText()
     {
         _metadata = null;
+        _tags = null;
         _technicalDetails = null;
         _monogram = null;
         _countryCode = null;
@@ -287,13 +317,15 @@ public sealed class ChannelRow : INotifyPropertyChanged
         PlayOutcome.Fail => LocalizationService.Get("StatusFailed"),
         _ => LocalizationService.Get("StatusNotPlayed")
     };
-    public Brush StatusBrush => Channel.LastPlayOutcome switch
+    // SP-0114: the status dot's palette role, not its colour. A brush chosen here would be a literal the
+    // theme cannot reach; the templates map the role to SuccessBrush / DangerBrush / WarningBrush by
+    // dynamic reference, so the dot follows a theme switch like everything around it (APP-STYLE 3).
+    public string StatusTone => Channel.LastPlayOutcome switch
     {
-        PlayOutcome.Ok => Brushes.ForestGreen,
-        PlayOutcome.Fail => Brushes.Firebrick,
-        _ => Brushes.DarkGoldenrod
+        PlayOutcome.Ok => "Success",
+        PlayOutcome.Fail => "Danger",
+        _ => "Warning"
     };
-    public Brush PreviewStatusBrush => _previewReachable == true ? Brushes.LimeGreen : Brushes.Goldenrod;
     public string PreviewStatusLabel => LocalizationService.Get(_previewReachable == true ? "PreviewCaptured" : "PreviewNotCaptured");
 
     private void OnPropertyChanged(string propertyName) =>

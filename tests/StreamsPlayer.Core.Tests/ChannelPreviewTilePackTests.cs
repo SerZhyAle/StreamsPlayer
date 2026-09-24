@@ -5,7 +5,7 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.Core.Tests;
 
 /// <summary>
-/// SP-0091, source contract item G2. The pack replaced a sprite sheet whose row count now changes on
+/// SP-0091, STREAM-BANK item G2. The pack replaced a sprite sheet whose row count now changes on
 /// every rebuild, so these fix the two properties that make it safer: a slot either exists or it does
 /// not, and a name that is not a slot is not treated as one.
 /// </summary>

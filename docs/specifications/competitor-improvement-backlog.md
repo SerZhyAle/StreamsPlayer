@@ -114,7 +114,7 @@ StreamsPlayer уже закрывает базовый сценарий лучш
 
 ## Проверенные источники
 
-- [StreamsPlayer README](../../README.md) и [исходная спецификация потоков](streams.txt) - фактический текущий scope и уже принятые ограничения.
+- [StreamsPlayer README](../../README.md) и исходная спецификация потоков - фактический текущий scope и уже принятые ограничения. Эта спецификация (`streams.txt`, копия handoff-брифа) удалена из репозитория 2026-09-22: её единственный дом - `DEVELOPER_PROMPT.md` в общем хранилище контрактов, которое называет `CLAUDE.md`. Ссылки на `streams.txt` ниже по тексту читать как ссылки на него.
 - [Audials Play for Windows](https://audials.com/en/apps/audials-play-windows) - фильтр качества, история треков, радио/TV.
 - [Audials Radio tutorial](https://audials.com/en/one/tutorial/radio) - несколько списков избранного, поиск и запись по расписанию.
 - [Audials API](https://audials.com/en/company-audials-ag/audials-api) - текущая композиция и история треков как конкурентная функция.

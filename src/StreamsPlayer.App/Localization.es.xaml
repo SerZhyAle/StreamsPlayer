@@ -22,7 +22,9 @@
     <sys:String x:Key="ChannelPreviewsDone">Imágenes de vista previa añadidas: {0}</sys:String>
     <sys:String x:Key="ChannelPreviewsUnavailable">Este equipo no puede abrir el paquete de imágenes. Las vistas previas siguen funcionando como antes.</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">No se han podido descargar las imágenes de vista previa.</sys:String>
+    <sys:String x:Key="ChannelPreviewsNewerVersion">Estas imágenes de vista previa se publicaron para una versión más reciente de StreamsPlayer. Actualice la aplicación para obtenerlas. Se han conservado sus imágenes actuales.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgress">Descargando imágenes.. {0}% ({1} de {2} MB)</sys:String>
+    <sys:String x:Key="ChannelPreviewsPublishWindowRetry">Las imágenes se están volviendo a publicar. Reintento en {0} s (intento {1} de {2})..</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Descargando imágenes.. {0} MB</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">Descarga de imágenes cancelada.</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">Leyendo el paquete de imágenes..</sys:String>
@@ -36,15 +38,17 @@
     <sys:String x:Key="Clear">Borrar</sys:String>
     <sys:String x:Key="ClearTip">Borrar la búsqueda</sys:String>
     <sys:String x:Key="ClearFiltersTip">Restablecer todos los filtros a Todos (se mantiene la búsqueda)</sys:String>
-    <sys:String x:Key="ClearFiltersName">Restablecer todos los filtros del catálogo</sys:String>
+    <sys:String x:Key="ClearFiltersName">Borrar todos los filtros del catálogo</sys:String>
     <sys:String x:Key="Operations">Acciones</sys:String>
-    <sys:String x:Key="OperationsTip">Opciones de ventana, vistas previas, historial, añadir transmisión, importar canales de internet</sys:String>
+    <sys:String x:Key="OperationsTip">Opciones de ventana, vistas previas, historial, añadir transmisión, herramientas, importar canales de internet</sys:String>
+    <sys:String x:Key="ToolsOpen">Herramientas</sys:String>
+    <sys:String x:Key="ToolsTip">Importar y limpiar el catálogo, listas de reproducción, canales ocultos, componentes de FlyleafLib, registros para el autor</sys:String>
     <sys:String x:Key="AddStreamTip">Añadir una transmisión por su dirección</sys:String>
     <sys:String x:Key="UpdateCatalogTip">Descargar el catálogo más reciente desde internet</sys:String>
     <sys:String x:Key="FiltersAndSorting">Filtros y orden</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">Mostrar la fila de filtros y orden</sys:String>
     <sys:String x:Key="FiltersActiveTip">Mostrar la fila de filtros y orden. Filtros activos: {0}</sys:String>
-    <sys:String x:Key="HideFilters">Ocultar filtros y orden</sys:String>
+    <sys:String x:Key="HideFilters">Cerrar filtros y orden</sys:String>
     <sys:String x:Key="QuickVideoTip">Filtro rápido: solo vídeo</sys:String>
     <sys:String x:Key="QuickAudioTip">Filtro rápido: solo audio</sys:String>
     <sys:String x:Key="QuickOwnTip">Filtro rápido: solo propios (añadidos o importados)</sys:String>
@@ -91,6 +95,10 @@
     <sys:String x:Key="CompactPanelName">Reducir la aplicación a un panel de radio compacto</sys:String>
     <sys:String x:Key="ExpandFromPanelTip">Volver a la ventana completa</sys:String>
     <sys:String x:Key="ExpandFromPanelName">Volver a la ventana completa del catálogo</sys:String>
+    <sys:String x:Key="CompactPanelMinimizeTip">Minimizar</sys:String>
+    <sys:String x:Key="CompactPanelCloseTip">Cerrar la aplicación</sys:String>
+    <sys:String x:Key="CompactPanelOnTopOn">Fijar en primer plano: activado</sys:String>
+    <sys:String x:Key="CompactPanelOnTopOff">Fijar en primer plano: desactivado</sys:String>
     <sys:String x:Key="AllOption">Todos</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Vídeo</sys:String>
@@ -154,6 +162,11 @@
     <sys:String x:Key="MainReadyNoRefresh">Listo - los canales se descargan solo cuando eliges «Importar canales de internet»</sys:String>
     <sys:String x:Key="MainLastUpdated">Catálogo actualizado por última vez el {0:g}</sys:String>
     <sys:String x:Key="MainLoadFailed">No se han podido cargar los datos locales.</sys:String>
+    <sys:String x:Key="MainLoadFailedBody">STREAMS Player no ha podido terminar de cargar tu lista de canales guardada y tus ajustes. Reinicia la aplicación para volver a intentarlo; si vuelve a ocurrir, envía el registro de diagnóstico al autor desde «Herramientas», en el menú «Acciones».</sys:String>
+    <sys:String x:Key="FailureCauseNetwork">La descarga no se ha completado. Comprueba la conexión a internet e inténtalo de nuevo.</sys:String>
+    <sys:String x:Key="FailureCauseDamagedData">Los datos estaban dañados o en un formato que esta versión no puede leer. Inténtalo más tarde; si sigue fallando, envía el registro de diagnóstico al autor desde «Herramientas», en el menú «Acciones».</sys:String>
+    <sys:String x:Key="FailureCauseStorage">Windows no ha podido leer ni escribir un archivo en este equipo. Comprueba el espacio libre en disco y tu acceso a la carpeta, y vuelve a intentarlo.</sys:String>
+    <sys:String x:Key="FailureCauseUnknown">Inténtalo de nuevo; si sigue fallando, envía el registro de diagnóstico al autor desde «Herramientas», en el menú «Acciones».</sys:String>
     <sys:String x:Key="OfflineCatalog">No hay conexión. No se ha solicitado el catálogo.</sys:String>
     <sys:String x:Key="DownloadingCatalog">Descargando y aplicando el catálogo de transmisiones compartido…</sys:String>
     <sys:String x:Key="CatalogResult">Catálogo: +{0} nuevas, {1} actualizadas, {2} eliminadas</sys:String>
@@ -161,6 +174,7 @@
     <sys:String x:Key="CatalogDownloadProgress">Descargando el catálogo.. {0}% ({1} de {2} MB)</sys:String>
     <sys:String x:Key="CatalogDownloadProgressUnknown">Descargando el catálogo.. {0} MB</sys:String>
     <sys:String x:Key="CatalogApplying">Aplicando el catálogo..</sys:String>
+    <sys:String x:Key="CatalogPublishWindowRetry">El catálogo se está volviendo a publicar. Reintento en {0} s (intento {1} de {2})..</sys:String>
     <sys:String x:Key="CatalogUpdateCancelled">Importación cancelada - tu lista de canales no ha cambiado.</sys:String>
     <sys:String x:Key="CatalogUpdateFailedTitle">Error al importar de internet</sys:String>
     <sys:String x:Key="MainSnapshotApplied">Lista de canales de la copia integrada del {0:d} - el catálogo no se ha descargado nunca</sys:String>
@@ -265,8 +279,8 @@
     <sys:String x:Key="HistoryTip">Ver los canales que has reproducido recientemente</sys:String>
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">Emisora aleatoria</sys:String>
-    <sys:String x:Key="RandomStationTip">Reproducir una emisora de radio elegida al azar de todo el catálogo</sys:String>
-    <sys:String x:Key="PrevStationTip">Emisora anterior</sys:String>
+    <sys:String x:Key="RandomStationTip">Reproducir una emisora de radio elegida al azar de todo el catálogo</sys:String>
+    <sys:String x:Key="PrevStationTip">Emisora anterior</sys:String>
     <sys:String x:Key="NextStationTip">Emisora siguiente</sys:String>
     <sys:String x:Key="RandomStationTrying">Probando {0}… ({1} de {2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">Se probaron {0} emisoras y ninguna respondió</sys:String>
@@ -274,12 +288,13 @@
     <sys:String x:Key="HistoryEmpty">El historial está vacío.</sys:String>
     <sys:String x:Key="HistoryClear">Borrar el historial</sys:String>
     <sys:String x:Key="HistoryClearConfirm">¿Borrar todo el historial de escucha? No se puede deshacer.</sys:String>
+    <sys:String x:Key="HistoryClearNone">El historial de escucha ya está vacío. No hay nada que borrar.</sys:String>
     <sys:String x:Key="HistoryPlayedAt">Reproducido el {0:g}</sys:String>
     <sys:String x:Key="HistoryUnavailable">Este canal ya no está en tu lista.</sys:String>
     <sys:String x:Key="PlayerAlwaysOnTopName">Mantener el reproductor de vídeo siempre visible</sys:String>
     <sys:String x:Key="PlayerActions">Acciones del reproductor</sys:String>
     <sys:String x:Key="PlayerActionsTip">Abrir las acciones del reproductor</sys:String>
-    <sys:String x:Key="PlayerActionsName">Acciones del reproductor</sys:String>
+    <sys:String x:Key="PlayerActionsName">Más acciones del reproductor</sys:String>
     <sys:String x:Key="PlayerAlwaysOnTopOn">Siempre encima - ACTIVAR</sys:String>
     <sys:String x:Key="PlayerAlwaysOnTopOff">Siempre encima - DESACTIVAR</sys:String>
     <sys:String x:Key="PlayerCollectionsEmpty">Aún no hay colecciones.</sys:String>
@@ -304,7 +319,7 @@
     <sys:String x:Key="FrameFolderLabel">Carpeta de archivos guardados</sys:String>
     <sys:String x:Key="FrameFolderHint">Donde STREAMS Player guarda fotogramas y archivos de registros. Déjalo vacío para usar la carpeta Descargas.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Elegir carpeta..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Usar Descargas</sys:String>
+    <sys:String x:Key="FrameFolderReset">Usar Descargas</sys:String>
     <sys:String x:Key="FrameFolderOpen">Abrir carpeta</sys:String>
     <sys:String x:Key="VolumeTip">Volumen del vídeo</sys:String>
     <sys:String x:Key="VolumeName">Volumen del vídeo</sys:String>
@@ -318,6 +333,8 @@
     <sys:String x:Key="SettingsTip">Abrir las preferencias que cambian poco y la información de la aplicación</sys:String>
     <sys:String x:Key="SettingsName">Abrir los ajustes</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Ajustes de STREAMS Player</sys:String>
+    <sys:String x:Key="ToolsWindowTitle">Herramientas de STREAMS Player</sys:String>
+    <sys:String x:Key="DiagnosticsHeading">Diagnóstico</sys:String>
     <sys:String x:Key="GridSettings">Cuadrícula</sys:String>
     <sys:String x:Key="ThemeLabel">Tema de color</sys:String>
     <sys:String x:Key="ThemeSystem">Seguir la configuración del sistema</sys:String>
@@ -332,6 +349,8 @@
     <sys:String x:Key="UpdateStreamPreviewsTip">Capturar miniaturas nuevas de las transmisiones de vídeo visibles mientras la vista de cuadrícula está activa</sys:String>
     <sys:String x:Key="HideAdultContent">Ocultar canales para adultos</sys:String>
     <sys:String x:Key="HideAdultContentTip">No mostrar canales de la categoría «Para adultos» en el catálogo ni en los filtros</sys:String>
+    <sys:String x:Key="AnimatedBackdrop">Fondo animado detrás de la emisora en reproducción</sys:String>
+    <sys:String x:Key="AnimatedBackdropTip">Dibuja líneas y partículas en movimiento detrás de la tarjeta o el mosaico de la emisora que suena y en el panel compacto. Los efectos de animación y el ahorro de energía de Windows lo siguen pausando. Activado de forma predeterminada</sys:String>
     <sys:String x:Key="PlaybackSettings">Reproducción</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">Impedir que el equipo se suspenda durante la reproducción</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">Impedir que el equipo se suspenda por su temporizador de inactividad mientras suena una transmisión; con vídeo también mantiene la pantalla encendida</sys:String>
@@ -354,9 +373,10 @@
     <sys:String x:Key="VideoComponentsInstallDone">Componentes instalados en {0}. FlyleafLib está disponible para el siguiente reproductor que abras.</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">No se han podido descargar los componentes. No se ha instalado nada. {0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">¿Eliminar los componentes de FlyleafLib? FlyleafLib dejará de funcionar hasta que se descarguen de nuevo; VLC no se ve afectado.</sys:String>
-    <sys:String x:Key="VideoComponentsRemoveFailed">No se han podido eliminar los componentes. Cierra las ventanas del reproductor que estén abiertas e inténtalo de nuevo. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRemoveFailed">No se han podido eliminar los componentes. Cierra las ventanas del reproductor que estén abiertas e inténtalo de nuevo.</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib no está listo</sys:String>
-    <sys:String x:Key="VideoComponentsRequiredBody">FlyleafLib está seleccionado, pero sus componentes no están instalados, así que los reproductores se seguirán abriendo con VLC. Descarga los componentes para usar FlyleafLib.</sys:String>
+    <sys:String x:Key="VideoComponentsRequiredBody">FlyleafLib está seleccionado, pero sus componentes no están instalados, así que los reproductores se seguirán abriendo con VLC. Descarga los componentes desde «Herramientas», en el menú «Acciones», para usar FlyleafLib.</sys:String>
+    <sys:String x:Key="VideoComponentsWhere">Los componentes se descargan y se eliminan en «Herramientas», dentro del menú «Acciones».</sys:String>
     <sys:String x:Key="About">Acerca de</sys:String>
     <sys:String x:Key="VersionLabel">Versión</sys:String>
     <sys:String x:Key="AuthorLabel">Autor</sys:String>
@@ -387,16 +407,12 @@
     <sys:String x:Key="SettingsApplied">Ajustes guardados</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows no ha podido abrir este enlace.</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">No se ha podido abrir el enlace</sys:String>
-    <sys:String x:Key="LaunchShortcuts">Accesos directos de inicio</sys:String>
-    <sys:String x:Key="NoStreamSelected">Selecciona una transmisión en el catálogo para crear su entrada de inicio.</sys:String>
-    <sys:String x:Key="CopyLaunchCommand">Copiar comando</sys:String>
-    <sys:String x:Key="CopyLaunchCommandTip">Copiar un comando que inicia la transmisión seleccionada</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">Crear acceso directo en el escritorio</sys:String>
-    <sys:String x:Key="CreateDesktopShortcutTip">Crear un acceso directo de Windows en el escritorio para la transmisión seleccionada</sys:String>
     <sys:String x:Key="LaunchCommandCopied">El comando de inicio se ha copiado al portapapeles.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows no ha podido copiar el comando de inicio.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Copiar texto para compartir</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">Copiar comando de inicio</sys:String>
     <sys:String x:Key="ShareTextCopied">El texto para compartir se ha copiado al portapapeles. Péguelo en un mensaje; el destinatario añade el canal con «Pegar canal».</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows no ha podido copiar el texto para compartir.</sys:String>
     <sys:String x:Key="ShareCredentialWarning">La dirección de este canal contiene una contraseña o un token. El texto para compartir lo lleva en claro y lo verá cualquiera que reciba su mensaje. ¿Copiar de todos modos?</sys:String>

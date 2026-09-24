@@ -37,10 +37,11 @@ public sealed class TabAutomationNameTests
     public void TheGateActuallyFoundTheTabs()
     {
         // A parse that silently matched nothing would pass this gate loudest exactly when it had stopped
-        // working. The floor is the tabs the Settings window ships today (SP-0102).
+        // working. The floor is the tabs the Settings window ships today: SP-0102 left five, and SP-0109 moved
+        // the stream-catalog tab's operations into the Tools window, which has no tabs.
         Inspect(out var tabs);
 
-        Assert.True(tabs >= 5, $"Only {tabs} TabItem elements were found in the application markup.");
+        Assert.True(tabs >= 4, $"Only {tabs} TabItem elements were found in the application markup.");
     }
 
     /// <summary>Reads the linked application markup and reports every tab that cannot announce itself.</summary>

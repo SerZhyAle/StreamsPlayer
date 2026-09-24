@@ -1,3 +1,5 @@
+using System.IO.Compression;
+
 namespace StreamsPlayer.Core;
 
 public sealed class StreamCatalogService
@@ -32,41 +34,44 @@ public sealed class StreamCatalogService
 
     private readonly HttpClient _httpClient;
     private readonly StreamCatalogStore _store;
+    private readonly PublishWindowRetry _publishWindowRetry;
 
     public StreamCatalogService(HttpClient httpClient, StreamCatalogStore store)
+        : this(httpClient, store, PublishWindowRetry.Default)
+    {
+    }
+
+    /// <summary>Tests substitute a schedule without real pauses; the product always uses the default.</summary>
+    internal StreamCatalogService(HttpClient httpClient, StreamCatalogStore store, PublishWindowRetry publishWindowRetry)
     {
         _httpClient = httpClient;
         _store = store;
+        _publishWindowRetry = publishWindowRetry;
     }
 
+    /// <param name="retrying">
+    /// SP-0107: told when the bank is caught mid-publish and the fetch is about to be repeated, so the
+    /// caller can say so instead of leaving a stalled progress line.
+    /// </param>
     public async Task<CatalogRefreshResult> RefreshAsync(
         CatalogState currentState,
         IProgress<DownloadProgress>? progress = null,
+        IProgress<PublishWindowRetryNotice>? retrying = null,
         CancellationToken cancellationToken = default)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, CatalogUrl);
-        using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        // SP-0069 closed the omission that SP-0056 recorded here: bounding the archive is a behaviour
-        // change, which is why it did not belong in a reporting ticket, and it belongs in a resilience one.
-        var bytes = await HttpDownload.ReadAllBytesAsync(
-            response, progress, MaximumArchiveBytes, DownloadIdleTimeout, cancellationToken);
+        // SP-0107, STREAM-BANK rule 11: the retry covers the fetch and the read of the archive and nothing
+        // after them. Everything that could touch the user's catalog - the merge, item D's absence
+        // handling, the save - runs only on a bank that arrived whole, so a publish window can at worst
+        // cost the user a few seconds of waiting, never a row.
+        var bank = await _publishWindowRetry.RunAsync(
+            token => FetchBankAsync(progress, token), retrying, cancellationToken);
 
         // Nothing below writes to the store until SaveAsync, so an abandoned refresh already left the
         // catalog untouched - but checking here makes that an asserted property instead of a coincidence,
-        // and it stops a cancelled refresh from spending a second of the caller's thread on the parse.
+        // and it stops a cancelled refresh from spending a second of the caller's thread on the merge.
         cancellationToken.ThrowIfCancellationRequested();
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(ApplyDeadline);
-        // SP-0069: scoped rather than a method-wide `using var`. The stream holds the archive array, so a
-        // method-scoped one kept several megabytes on the large-object heap rooted through the merge, the
-        // save and the serialization - the most allocation-heavy stretch of the refresh - although its
-        // last use is the read on the next line.
-        StreamBank bank;
-        using (var stream = new MemoryStream(bytes, writable: false))
-        {
-            bank = StreamBankReader.Read(stream);
-        }
 
         if (bank.Entries.Count == 0)
         {
@@ -74,7 +79,7 @@ public sealed class StreamCatalogService
         }
 
         var now = DateTimeOffset.UtcNow;
-        // SP-0088, source contract item A: a build is atomic - `favicon_index` is an offset into the
+        // SP-0088, STREAM-BANK item A: a build is atomic - `favicon_index` is an offset into the
         // atlas that arrived in the same ZIP and carries no meaning against any other one. When this
         // build brought no usable atlas (absent, over the ceiling, unreadable) its indices are discarded
         // here, before the merge can stamp them onto rows that still point at the previously installed
@@ -88,7 +93,7 @@ public sealed class StreamCatalogService
             ? bank.Entries
             : [.. bank.Entries.Select(entry => entry with { FaviconIndex = null })];
 
-        // SP-0089, source contract item D: the merge is told which rows carry user-authored data before it
+        // SP-0089, STREAM-BANK item D: the merge is told which rows carry user-authored data before it
         // is allowed to prune, because absence from this build is not authority to delete a pin, a
         // collection membership or a history entry. Computed from the state that is about to be replaced -
         // the only moment both the old rows and their references are still in hand.
@@ -132,5 +137,52 @@ public sealed class StreamCatalogService
             merge.Removed,
             bankCarriedAtlas,
             merge.Retired);
+    }
+
+    /// <summary>One attempt at the archive: request, bounded download, and the read of the ZIP.</summary>
+    private async Task<StreamBank> FetchBankAsync(
+        IProgress<DownloadProgress>? progress,
+        CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, CatalogUrl);
+        using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        // SP-0069 closed the omission that SP-0056 recorded here: bounding the archive is a behaviour
+        // change, which is why it did not belong in a reporting ticket, and it belongs in a resilience one.
+        var bytes = await HttpDownload.ReadAllBytesAsync(
+            response, progress, MaximumArchiveBytes, DownloadIdleTimeout, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // SP-0069: the stream holds the archive array, so it is scoped to the read - a longer-lived one
+        // kept several megabytes on the large-object heap rooted through the merge, the save and the
+        // serialization, the most allocation-heavy stretch of the refresh. SP-0107 made the scope a method
+        // so the read of the ZIP sits inside the retry: a truncated archive is one of the outcomes the
+        // publish window produces.
+        using var stream = new MemoryStream(bytes, writable: false);
+        EnsureArchiveIsWhole(stream);
+        return StreamBankReader.Read(stream);
+    }
+
+    /// <summary>
+    /// SP-0107: a ZIP whose directory cannot be read at all is what a body cut off mid-publish looks like
+    /// when HTTP itself did not notice - the central directory sits at the end, so it is the first thing
+    /// truncation destroys. Checked here rather than inside <see cref="StreamBankReader"/>, whose other
+    /// callers (the bundled snapshot, a file the user imports) read local bytes no publish can cut short
+    /// and rely on its single <see cref="InvalidDataException"/>. Every refusal after this point - an
+    /// empty archive, a misplaced or malformed CSV - describes a bank that arrived whole and is wrong, and
+    /// stays an error on the first attempt.
+    /// </summary>
+    private static void EnsureArchiveIsWhole(MemoryStream stream)
+    {
+        try
+        {
+            using var _ = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+        }
+        catch (InvalidDataException exception)
+        {
+            throw new TruncatedArchiveException("The downloaded catalog ZIP is truncated or unreadable.", exception);
+        }
+
+        stream.Position = 0;
     }
 }

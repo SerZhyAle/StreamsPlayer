@@ -154,11 +154,11 @@
       <div class="privacy-card">
         <section class="privacy-section">
           <h2>Accès au réseau</h2>
-          <p>L'application se connecte quand vous actualisez explicitement le catalogue public de flux, quand vous lisez un flux sélectionné, ou quand vous laissez la vue en grille active pendant que les aperçus vidéo visibles s'actualisent. Ces requêtes vont au fournisseur du catalogue ou du flux concerné et relèvent des politiques de ce fournisseur. Le pack d'aperçus proposé après une mise à jour du catalogue n'est téléchargé que si vous l'acceptez.</p>
+          <p>L'application ne se connecte que sur votre action, et uniquement à la destination dont cette action a besoin : au catalogue public de flux et au pack d'aperçus facultatif proposé ensuite, téléchargés depuis GitHub quand vous importez le catalogue ou acceptez le pack ; au fournisseur d'un flux que vous lisez, enregistrez ou dont vous ouvrez « À propos de la chaîne », ou dont l'aperçu vidéo s'actualise pendant que la vue en grille est visible ; à un téléphone ou une montre équipés de FastMediaSorter que vous avez importés, joints directement sur votre réseau local ; et, uniquement si vous les demandez dans « Outils », aux bibliothèques FFmpeg facultatives pour le moteur expérimental FlyleafLib, téléchargées depuis un projet GitHub tiers (BtbN/FFmpeg-Builds). Chaque requête va directement à cette destination et relève de ses politiques ; aucune ne passe par un service exploité par l'auteur.</p>
         </section>
         <section class="privacy-section">
           <h2>Données locales</h2>
-          <p>STREAMS Player enregistre dans <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code> l'état de son catalogue, les entrées ajoutées à la main, les épinglages, les marques de lecture, les images d'aperçu en cache dans une limite de 150 Mo et les journaux de diagnostic de la session en cours et de la précédente. Ces données restent sur votre appareil, sauf si vous choisissez de les copier ou de les sauvegarder - ou sauf si vous utilisez « Envoyer les journaux à l'auteur » dans les Paramètres, qui compresse les deux journaux de diagnostic ainsi que la version de l'application, la version de Windows et vos réglages dans une archive et ouvre votre logiciel de messagerie pour que vous puissiez la joindre et l'envoyer à <span dir="ltr">serzhyale@gmail.com</span>. Cette archive n'est préparée que lorsque vous appuyez sur ce bouton, les journaux qu'elle contient nomment les flux qui ont été lus, et rien n'est jamais envoyé sans que vous appuyiez sur Envoyer dans votre propre logiciel de messagerie.</p>
+          <p>STREAMS Player enregistre dans <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code> l'état de son catalogue, les chaînes que vous avez ajoutées et importées, les épinglages, les collections, les chaînes masquées, l'historique d'écoute, les marques de lecture, les images d'aperçu en cache dans une limite de 150 Mo, les bibliothèques FFmpeg facultatives si vous les avez téléchargées et les journaux de diagnostic des dix derniers lancements. Les enregistrements et les images sauvegardées vont dans le dossier des fichiers enregistrés que vous choisissez (Téléchargements par défaut). Ces données restent sur votre appareil, sauf si vous les copiez ou les sauvegardez - ou sauf si vous utilisez « Envoyer les journaux à l'auteur » dans « Outils », qui compresse ces journaux de diagnostic ainsi que la version de l'application, la version de Windows et vos réglages dans une archive et ouvre votre logiciel de messagerie pour que vous puissiez la joindre et l'envoyer à <span dir="ltr">serzhyale@gmail.com</span>. Cette archive n'est préparée que lorsque vous appuyez sur ce bouton, les journaux qu'elle contient nomment les flux qui ont été lus, et rien n'est jamais envoyé sans que vous appuyiez sur Envoyer dans votre propre logiciel de messagerie.</p>
         </section>
         <section class="privacy-section">
           <h2>Contact</h2>
@@ -176,6 +176,7 @@
         <span>© 2026 Serhii Zhyhunenko</span>
         <span class="footer-links">
           <a href="privacy.html">Confidentialité</a>
+          <a href="trust.html">Aide à l'installation</a>
           <a href="https://sza.od.ua/">Autres outils</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
           <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
@@ -185,6 +186,6 @@
         <p>Cette page a été traduite automatiquement et n'a pas été relue par un locuteur natif.</p>
       </div>
     </footer>
-    <button class="to-top" id="toTop" type="button" aria-label="Retour en haut">↑</button>
+    <button class="to-top" id="toTop" type="button" aria-label="Retour en haut"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8,11h3v10h2V11h3l-4,-4 -4,4zM4,3v2h16V3H4z" fill="currentColor"/></svg></button>
   </body>
 </html>

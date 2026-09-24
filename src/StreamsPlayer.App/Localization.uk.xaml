@@ -22,7 +22,9 @@
     <sys:String x:Key="ChannelPreviewsDone">Додано картинок прев’ю: {0}</sys:String>
     <sys:String x:Key="ChannelPreviewsUnavailable">Цей комп’ютер не може відкрити набір картинок. Прев’ю працюють як раніше.</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">Не вдалося завантажити картинки прев’ю.</sys:String>
+    <sys:String x:Key="ChannelPreviewsNewerVersion">Ці картинки прев’ю опубліковано для новішої версії StreamsPlayer. Оновіть програму, щоб отримати їх. Поточні картинки збережено.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgress">Завантаження картинок.. {0}% ({1} з {2} МБ)</sys:String>
+    <sys:String x:Key="ChannelPreviewsPublishWindowRetry">Картинки саме зараз перепубліковуються. Повтор через {0} с (спроба {1} з {2})..</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Завантаження картинок.. {0} МБ</sys:String>
     <sys:String x:Key="ChannelPreviewsCancelled">Завантаження картинок скасовано.</sys:String>
     <sys:String x:Key="ChannelPreviewsDecoding">Читаємо набір картинок..</sys:String>
@@ -38,13 +40,15 @@
     <sys:String x:Key="ClearFiltersTip">Скинути всі фільтри до «Усі» (пошук зберігається)</sys:String>
     <sys:String x:Key="ClearFiltersName">Скинути всі фільтри каталогу</sys:String>
     <sys:String x:Key="Operations">Операції</sys:String>
-    <sys:String x:Key="OperationsTip">Параметри вікна, прев’ю, історія, додати потік, імпортувати канали з інтернету</sys:String>
+    <sys:String x:Key="OperationsTip">Параметри вікна, прев’ю, історія, додати потік, інструменти, імпортувати канали з інтернету</sys:String>
+    <sys:String x:Key="ToolsOpen">Інструменти</sys:String>
+    <sys:String x:Key="ToolsTip">Імпорт і очищення каталогу, плейлисти, приховані канали, компоненти FlyleafLib, журнали для автора</sys:String>
     <sys:String x:Key="AddStreamTip">Додати потік за адресою</sys:String>
     <sys:String x:Key="UpdateCatalogTip">Завантажити свіжий каталог з інтернету</sys:String>
     <sys:String x:Key="FiltersAndSorting">Фільтри та сортування</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">Показати рядок фільтрів і сортування</sys:String>
     <sys:String x:Key="FiltersActiveTip">Показати рядок фільтрів і сортування. Активних фільтрів: {0}</sys:String>
-    <sys:String x:Key="HideFilters">Сховати фільтри та сортування</sys:String>
+    <sys:String x:Key="HideFilters">Закрити фільтри та сортування</sys:String>
     <sys:String x:Key="QuickVideoTip">Швидкий фільтр: лише відео</sys:String>
     <sys:String x:Key="QuickAudioTip">Швидкий фільтр: лише аудіо</sys:String>
     <sys:String x:Key="QuickOwnTip">Швидкий фільтр: лише свої (додані та імпортовані)</sys:String>
@@ -91,6 +95,10 @@
     <sys:String x:Key="CompactPanelName">Згорнути застосунок у компактну панель радіо</sys:String>
     <sys:String x:Key="ExpandFromPanelTip">Повернутися до повного вікна</sys:String>
     <sys:String x:Key="ExpandFromPanelName">Повернутися до повного вікна каталогу</sys:String>
+    <sys:String x:Key="CompactPanelMinimizeTip">Згорнути</sys:String>
+    <sys:String x:Key="CompactPanelCloseTip">Закрити застосунок</sys:String>
+    <sys:String x:Key="CompactPanelOnTopOn">Закріпити поверх вікон: увімк.</sys:String>
+    <sys:String x:Key="CompactPanelOnTopOff">Закріпити поверх вікон: вимк.</sys:String>
     <sys:String x:Key="AllOption">Усі</sys:String>
     <sys:String x:Key="AudioOption">Аудіо</sys:String>
     <sys:String x:Key="VideoOption">Відео</sys:String>
@@ -154,6 +162,11 @@
     <sys:String x:Key="MainReadyNoRefresh">Готово - канали завантажуються лише за командою «Імпортувати канали з інтернету»</sys:String>
     <sys:String x:Key="MainLastUpdated">Каталог оновлено {0:g}</sys:String>
     <sys:String x:Key="MainLoadFailed">Не вдалося завантажити локальні дані.</sys:String>
+    <sys:String x:Key="MainLoadFailedBody">«Трансляції» не змогли до кінця завантажити збережений список каналів і налаштування. Перезапустіть застосунок, щоб спробувати ще раз; якщо це повторюється, надішліть журнал діагностики авторові з вікна «Інструменти» в меню «Операції».</sys:String>
+    <sys:String x:Key="FailureCauseNetwork">Завантаження не завершилося. Перевірте підключення до інтернету й спробуйте ще раз.</sys:String>
+    <sys:String x:Key="FailureCauseDamagedData">Дані пошкоджені або записані у форматі, який ця версія не вміє читати. Спробуйте пізніше; якщо помилка повторюється, надішліть журнал діагностики авторові з вікна «Інструменти» в меню «Операції».</sys:String>
+    <sys:String x:Key="FailureCauseStorage">Windows не вдалося прочитати або записати файл на цьому комп’ютері. Перевірте вільне місце на диску й доступ до теки, потім спробуйте ще раз.</sys:String>
+    <sys:String x:Key="FailureCauseUnknown">Спробуйте ще раз; якщо помилка повторюється, надішліть журнал діагностики авторові з вікна «Інструменти» в меню «Операції».</sys:String>
     <sys:String x:Key="OfflineCatalog">Немає підключення до мережі. Каталог не запитувався.</sys:String>
     <sys:String x:Key="DownloadingCatalog">Завантаження та застосування спільного каталогу потоків…</sys:String>
     <sys:String x:Key="CatalogResult">Каталог: +{0} нових, {1} оновлено, {2} видалено</sys:String>
@@ -161,6 +174,7 @@
     <sys:String x:Key="CatalogDownloadProgress">Завантаження каталогу.. {0}% ({1} з {2} МБ)</sys:String>
     <sys:String x:Key="CatalogDownloadProgressUnknown">Завантаження каталогу.. {0} МБ</sys:String>
     <sys:String x:Key="CatalogApplying">Застосування каталогу..</sys:String>
+    <sys:String x:Key="CatalogPublishWindowRetry">Каталог саме зараз перепубліковується. Повтор через {0} с (спроба {1} з {2})..</sys:String>
     <sys:String x:Key="CatalogUpdateCancelled">Імпорт скасовано - ваш список каналів не змінено.</sys:String>
     <sys:String x:Key="CatalogUpdateFailedTitle">Помилка імпорту з інтернету</sys:String>
     <sys:String x:Key="MainSnapshotApplied">Список каналів із вбудованої копії від {0:d} - каталог жодного разу не завантажувався</sys:String>
@@ -265,8 +279,8 @@
     <sys:String x:Key="HistoryTip">Канали, які ви нещодавно відтворювали</sys:String>
     <!-- SP-0086 random radio station -->
     <sys:String x:Key="RandomStation">Випадкова станція</sys:String>
-    <sys:String x:Key="RandomStationTip">Увімкнути радіостанцію, вибрану випадково з усього каталогу</sys:String>
-    <sys:String x:Key="PrevStationTip">Попередня станція</sys:String>
+    <sys:String x:Key="RandomStationTip">Увімкнути радіостанцію, вибрану випадково з усього каталогу</sys:String>
+    <sys:String x:Key="PrevStationTip">Попередня станція</sys:String>
     <sys:String x:Key="NextStationTip">Наступна станція</sys:String>
     <sys:String x:Key="RandomStationTrying">Пробуємо {0}… ({1} з {2})</sys:String>
     <sys:String x:Key="RandomStationExhausted">Перевірено станцій: {0}, жодна не відповіла</sys:String>
@@ -274,12 +288,13 @@
     <sys:String x:Key="HistoryEmpty">Історія порожня.</sys:String>
     <sys:String x:Key="HistoryClear">Очистити історію</sys:String>
     <sys:String x:Key="HistoryClearConfirm">Очистити всю історію прослуховування? Цю дію не можна скасувати.</sys:String>
+    <sys:String x:Key="HistoryClearNone">Історія прослуховування вже порожня. Очищати нічого.</sys:String>
     <sys:String x:Key="HistoryPlayedAt">Відтворено {0:g}</sys:String>
     <sys:String x:Key="HistoryUnavailable">Цього каналу більше немає у вашому списку.</sys:String>
     <sys:String x:Key="PlayerAlwaysOnTopName">Тримати відеопрогравач поверх усіх вікон</sys:String>
     <sys:String x:Key="PlayerActions">Дії програвача</sys:String>
     <sys:String x:Key="PlayerActionsTip">Відкрити дії програвача</sys:String>
-    <sys:String x:Key="PlayerActionsName">Дії програвача</sys:String>
+    <sys:String x:Key="PlayerActionsName">Інші дії програвача</sys:String>
     <sys:String x:Key="PlayerAlwaysOnTopOn">Завжди зверху — УВІМК.</sys:String>
     <sys:String x:Key="PlayerAlwaysOnTopOff">Завжди зверху — ВИМК.</sys:String>
     <sys:String x:Key="PlayerCollectionsEmpty">Колекцій ще немає.</sys:String>
@@ -304,7 +319,7 @@
     <sys:String x:Key="FrameFolderLabel">Тека збережених файлів</sys:String>
     <sys:String x:Key="FrameFolderHint">Куди Трансляції зберігають кадри й архіви журналів. Залиште порожнім, щоб використовувати теку «Завантаження».</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Вибрати теку..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Використовувати «Завантаження»</sys:String>
+    <sys:String x:Key="FrameFolderReset">Використовувати «Завантаження»</sys:String>
     <sys:String x:Key="FrameFolderOpen">Відкрити теку</sys:String>
     <sys:String x:Key="VolumeTip">Гучність відео</sys:String>
     <sys:String x:Key="VolumeName">Гучність відео</sys:String>
@@ -318,6 +333,8 @@
     <sys:String x:Key="SettingsTip">Відкрити рідко змінювані параметри та відомості про застосунок</sys:String>
     <sys:String x:Key="SettingsName">Відкрити налаштування</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Налаштування «Трансляцій»</sys:String>
+    <sys:String x:Key="ToolsWindowTitle">Інструменти «Трансляцій»</sys:String>
+    <sys:String x:Key="DiagnosticsHeading">Діагностика</sys:String>
     <sys:String x:Key="GridSettings">Сітка</sys:String>
     <sys:String x:Key="ThemeLabel">Колірна тема</sys:String>
     <sys:String x:Key="ThemeSystem">Слідувати системним налаштуванням</sys:String>
@@ -332,6 +349,8 @@
     <sys:String x:Key="UpdateStreamPreviewsTip">Отримувати свіжі мініатюри видимих відеопотоків, доки активний режим сітки</sys:String>
     <sys:String x:Key="HideAdultContent">Приховувати канали для дорослих</sys:String>
     <sys:String x:Key="HideAdultContentTip">Не показувати канали з рубрики «Для дорослих» у каталозі та фільтрах</sys:String>
+    <sys:String x:Key="AnimatedBackdrop">Анімований фон у станції, що грає</sys:String>
+    <sys:String x:Key="AnimatedBackdropTip">Рухомі лінії та частинки за карткою або плиткою станції, що грає, і в компактній панелі. Ефекти анімації та енергозбереження Windows і далі його зупиняють. Типово увімкнено</sys:String>
     <sys:String x:Key="PlaybackSettings">Відтворення</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlayback">Не давати комп’ютеру засинати під час відтворення</sys:String>
     <sys:String x:Key="KeepAwakeDuringPlaybackTip">Не давати системі засинати за таймером бездіяльності, доки грає потік; для відео екран також залишається увімкненим</sys:String>
@@ -354,9 +373,10 @@
     <sys:String x:Key="VideoComponentsInstallDone">Компоненти встановлено в теку {0}. FlyleafLib буде доступний для наступного відкритого програвача.</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">Не вдалося завантажити компоненти. Нічого не встановлено. {0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">Видалити компоненти FlyleafLib? FlyleafLib не працюватиме, доки їх не буде завантажено знову; на VLC це не вплине.</sys:String>
-    <sys:String x:Key="VideoComponentsRemoveFailed">Не вдалося видалити компоненти. Закрийте відкриті вікна програвача й спробуйте ще раз. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRemoveFailed">Не вдалося видалити компоненти. Закрийте відкриті вікна програвача й спробуйте ще раз.</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib не готовий</sys:String>
-    <sys:String x:Key="VideoComponentsRequiredBody">Вибрано FlyleafLib, але його компоненти не встановлено, тому програвачі й далі відкриватимуться на VLC. Завантажте компоненти, щоб користуватися FlyleafLib.</sys:String>
+    <sys:String x:Key="VideoComponentsRequiredBody">Вибрано FlyleafLib, але його компоненти не встановлено, тому програвачі й далі відкриватимуться на VLC. Завантажте компоненти у вікні «Інструменти» з меню «Операції», щоб користуватися FlyleafLib.</sys:String>
+    <sys:String x:Key="VideoComponentsWhere">Компоненти завантажуються й видаляються у вікні «Інструменти» з меню «Операції».</sys:String>
     <sys:String x:Key="About">Про програму</sys:String>
     <sys:String x:Key="VersionLabel">Версія</sys:String>
     <sys:String x:Key="AuthorLabel">Автор</sys:String>
@@ -387,16 +407,12 @@
     <sys:String x:Key="SettingsApplied">Налаштування збережено</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailed">Windows не вдалося відкрити це посилання.</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">Не вдалося відкрити посилання</sys:String>
-    <sys:String x:Key="LaunchShortcuts">Ярлики запуску</sys:String>
-    <sys:String x:Key="NoStreamSelected">Виберіть потік у каталозі, щоб створити для нього ярлик запуску.</sys:String>
-    <sys:String x:Key="CopyLaunchCommand">Копіювати команду</sys:String>
-    <sys:String x:Key="CopyLaunchCommandTip">Скопіювати команду запуску вибраного потоку</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">Створити ярлик на робочому столі</sys:String>
-    <sys:String x:Key="CreateDesktopShortcutTip">Створити ярлик Windows на робочому столі для вибраного потоку</sys:String>
     <sys:String x:Key="LaunchCommandCopied">Команду запуску скопійовано до буфера обміну.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows не вдалося скопіювати команду запуску.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Копіювати текст для надсилання</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">Копіювати команду запуску</sys:String>
     <sys:String x:Key="ShareTextCopied">Текст скопійовано до буфера обміну. Вставте його в повідомлення; отримувач додасть канал командою «Вставити канал».</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows не вдалося скопіювати текст.</sys:String>
     <sys:String x:Key="ShareCredentialWarning">В адресі цього каналу є пароль чи токен. Текст передає його у відкритому вигляді, і його побачить кожен, хто отримає ваше повідомлення. Усе одно скопіювати?</sys:String>
