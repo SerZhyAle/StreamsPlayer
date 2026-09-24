@@ -1,4 +1,4 @@
-Version 26.0924.1655
+Version 26.0924.1704
 
 - A calm animated background moves behind the station that is playing - on its card, its tile and the compact panel. Switch it off in Settings.
 - The "now playing" line appears on more radio stations: when a stream sends no track title, it is read from the station's status page.

@@ -63,15 +63,16 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
-### Prepared for 26.0924.1655
+### Prepared for 26.0924.1704
 
-Supersedes 26.0919.1523, which was stamped and never tagged: its lines are carried here. An animated
+Supersedes 26.0919.1523, which was stamped and never tagged, and 26.0924.1655, whose tag failed its
+release job on a CRLF checkout of the vendored glyphs and published nothing: their lines are carried here. An animated
 backdrop, the Tools window with plain-language failure causes, now-playing from the Icecast status page,
 a retried publish window, contract-aligned icons, dark scrollbars, the install-trust page and a
-refreshed snapshot. The three blocks below are the files `msix/listing/release-notes/26.0924.1655.*.txt`.
+refreshed snapshot. The three blocks below are the files `msix/listing/release-notes/26.0924.1704.*.txt`.
 
 ```text
-Version 26.0924.1655
+Version 26.0924.1704
 
 - A calm animated background moves behind the station that is playing - on its card, its tile and the compact panel. Switch it off in Settings.
 - The "now playing" line appears on more radio stations: when a stream sends no track title, it is read from the station's status page.
@@ -86,7 +87,7 @@ Version 26.0924.1655
 ```
 
 ```text
-Версия 26.0924.1655
+Версия 26.0924.1704
 
 - За играющей станцией движется спокойный анимированный фон - на её карточке, плитке и в компактной панели. Отключается в настройках.
 - Строка «сейчас в эфире» появляется у большего числа радиостанций: если поток не передаёт название трека, оно берётся со страницы состояния станции.
@@ -101,7 +102,7 @@ Version 26.0924.1655
 ```
 
 ```text
-Версія 26.0924.1655
+Версія 26.0924.1704
 
 - За станцією, що грає, рухається спокійне анімоване тло - на її картці, плитці та в компактній панелі. Вимикається в налаштуваннях.
 - Рядок «зараз в ефірі» з'являється в більшої кількості радіостанцій: якщо потік не передає назву треку, її беруть зі сторінки стану станції.
@@ -115,13 +116,13 @@ Version 26.0924.1655
 - Оновлено вбудований список каналів (18 506 активних потоків від 23.09.2026).
 ```
 
-#### Store-only What's new for 26.0924.1655
+#### Store-only What's new for 26.0924.1704
 
 The Store still carries 26.0806.2225, so this block is the accumulated one: everything a Store user has
 not seen yet. It folds the 26.0919.1523 block into shorter lines to stay under 1 500 characters.
 
 ```text
-Version 26.0924.1655
+Version 26.0924.1704
 
 - Record the video or radio you are playing to a file, and listen to a live audio broadcast from a FastMediaSorter phone or watch over your local network.
 - A calm animated background behind the playing station, and a compact radio panel with the track, volume, sleep timer and Random station.
@@ -134,7 +135,7 @@ Version 26.0924.1655
 ```
 
 ```text
-Версия 26.0924.1655
+Версия 26.0924.1704
 
 - Запись играющего видео или радио в файл и прямой звуковой эфир с телефона или часов с FastMediaSorter по локальной сети.
 - Спокойный анимированный фон за играющей станцией и компактная радиопанель с треком, громкостью, таймером сна и случайной станцией.
@@ -147,7 +148,7 @@ Version 26.0924.1655
 ```
 
 ```text
-Версія 26.0924.1655
+Версія 26.0924.1704
 
 - Запис відео чи радіо, що грає, у файл і прямий звуковий ефір із телефона чи годинника з FastMediaSorter через локальну мережу.
 - Спокійне анімоване тло за станцією, що грає, і компактна радіопанель із треком, гучністю, таймером сну та випадковою станцією.
@@ -159,7 +160,7 @@ Version 26.0924.1655
 - Зрозуміліші значки, смуги прокрутки в темній темі та виправлення прев'ю сітки, діагностичних звітів, ярликів і режиму сну.
 ```
 
-### Prepared for 26.0919.1523 (stamped, never tagged - superseded by 26.0924.1655)
+### Prepared for 26.0919.1523 (stamped, never tagged - superseded by 26.0924.1704)
 
 Refreshed built-in channel snapshot, a grid that stops retrying channels whose preview never arrives,
 and diagnostic reports that stay readable through a long session.
