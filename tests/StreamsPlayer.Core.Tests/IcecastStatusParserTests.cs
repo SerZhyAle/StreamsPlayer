@@ -59,6 +59,47 @@ public sealed class IcecastStatusParserTests
     }
 
     [Fact]
+    public void MatchesTheOnlySourceOnThePlayingPathWhenTheServerReportsLocalhost()
+    {
+        const string payload = """
+            { "icestats": { "source": [
+              { "listenurl": "http://localhost:8000/other.mp3", "title": "Other" },
+              { "listenurl": "http://localhost:8000/live/main.mp3", "title": "Artist - Track" }
+            ] } }
+            """;
+
+        Assert.True(IcecastStatusParser.TryExtractTitle(payload, StreamUri, out var title));
+        Assert.Equal("Artist - Track", title);
+    }
+
+    [Fact]
+    public void AnExactMatchWinsOverAnotherSourceOnTheSamePath()
+    {
+        const string payload = """
+            { "icestats": { "source": [
+              { "listenurl": "http://localhost:8000/live/main.mp3", "title": "Wrong" },
+              { "listenurl": "https://radio.example.test:8443/live/main.mp3", "title": "Right" }
+            ] } }
+            """;
+
+        Assert.True(IcecastStatusParser.TryExtractTitle(payload, StreamUri, out var title));
+        Assert.Equal("Right", title);
+    }
+
+    [Fact]
+    public void TwoInexactSourcesOnThePlayingPathStayUnmatched()
+    {
+        const string payload = """
+            { "icestats": { "source": [
+              { "listenurl": "http://localhost:8000/live/main.mp3", "title": "One" },
+              { "listenurl": "http://relay.example.test:8001/live/main.mp3", "title": "Two" }
+            ] } }
+            """;
+
+        Assert.False(IcecastStatusParser.TryExtractTitle(payload, StreamUri, out _));
+    }
+
+    [Fact]
     public void SanitizesAndBoundsUntrustedStatusText()
     {
         var tooLong = new string('x', IcyMetadataParser.MaxTitleLength + 50);

@@ -23,6 +23,11 @@ $msix = $PSScriptRoot
 $root = Split-Path $msix -Parent
 $stage = Join-Path $msix 'stage'
 $dist = Join-Path $msix 'dist'
+# SP-0133: the package is built from a publish folder of its own, emptied first. It used to publish into the
+# shared bin\Release\<tfm>\win-x64\publish folder, which no publish ever cleans, and then pack whichever such
+# folder sorted newest - so a file dropped by an earlier build, or a folder left by an older target framework,
+# could ship to the Store.
+$publish = Join-Path $root 'artifacts\msix-publish'
 
 function Find-SdkTool([string] $Name) {
     # Enumerate versioned SDK bin dirs and probe <version>\x64\<tool>. A single
@@ -59,21 +64,16 @@ foreach ($part in $msixVersion.Split('.')) { if ([int]$part -gt 65535) { throw "
 $makeappx = Find-SdkTool 'makeappx.exe'
 if ($SelfSign) { $signtool = Find-SdkTool 'signtool.exe' }
 
+if (Test-Path -LiteralPath $publish) { Remove-Item -LiteralPath $publish -Recurse -Force }
 Push-Location $root
 try {
     dotnet publish .\src\StreamsPlayer.App\StreamsPlayer.App.csproj -c Release -r win-x64 --self-contained true --nologo `
+        -o $publish `
         -p:Version=$appVersion -p:AssemblyVersion=$appVersion -p:FileVersion=$appVersion -p:InformationalVersion=$appVersion
     if ($LASTEXITCODE -ne 0) { throw "Publish failed (exit $LASTEXITCODE)." }
 }
 finally { Pop-Location }
-
-# The App targets a versioned Windows TFM (net10.0-windows10.0.19041.0), so resolve the
-# publish dir instead of hardcoding the moniker - robust to TFM changes.
-$publish = Get-ChildItem (Join-Path $root 'src\StreamsPlayer.App\bin\Release') -Directory -ErrorAction SilentlyContinue |
-    ForEach-Object { Join-Path $_.FullName 'win-x64\publish' } |
-    Where-Object { Test-Path (Join-Path $_ 'StreamsPlayer.exe') } |
-    Sort-Object -Descending | Select-Object -First 1
-if (-not $publish) { throw "Published StreamsPlayer.exe not found under src\StreamsPlayer.App\bin\Release\*\win-x64\publish." }
+if (-not (Test-Path -LiteralPath (Join-Path $publish 'StreamsPlayer.exe'))) { throw "Published StreamsPlayer.exe not found in $publish." }
 
 Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path (Join-Path $stage 'Assets'), $dist -Force | Out-Null

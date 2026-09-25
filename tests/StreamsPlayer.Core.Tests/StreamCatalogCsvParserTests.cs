@@ -69,14 +69,41 @@ public sealed class StreamCatalogCsvParserTests
         Assert.Null(entry.IsLive);
     }
 
+    // SP-0108, STREAM-BANK `03_catalog_format.md` §2.3: "true" (trimmed, any case) is the only true.
+    // "1" and "yes" were read as true before - the inverse of the contract - and are pinned here as false.
+    // Blank stays null: the tri-state half is a proposal to the contract owner, not yet the contract.
     [Theory]
+    [InlineData("true", true)]
+    [InlineData("TRUE", true)]
+    [InlineData("  true  ", true)]
+    [InlineData("\"True\"", true)]
+    [InlineData("false", false)]
+    [InlineData("1", false)]
+    [InlineData("yes", false)]
+    [InlineData("0", false)]
+    [InlineData("no", false)]
+    [InlineData("live", false)]
     [InlineData("vod", false)]
-    [InlineData("maybe", null)]
+    [InlineData("maybe", false)]
     [InlineData("", null)]
-    public void Parse_TolerantIsLiveClaim(string value, bool? expected)
+    [InlineData("   ", null)]
+    public void Parse_IsLiveFollowsContractBooleanRule(string value, bool? expected)
     {
         var csv = $"name,url,is_live\r\nTest,https://radio.test/live,{value}\r\n";
         Assert.Equal(expected, Assert.Single(StreamCatalogCsvParser.Parse(csv)).IsLive);
+    }
+
+    // STREAM-BANK 2.1 item M: an unrecognised non-empty media_kind takes the blank cell's path - the URL
+    // classifier - and never becomes a kind of its own.
+    [Theory]
+    [InlineData("PODCAST", "https://example.test/live.m3u8", MediaKind.Video)]
+    [InlineData("audoi", "rtsp://camera.test/live", MediaKind.Rtsp)]
+    [InlineData("TV", "https://example.test/radio.mp3", MediaKind.Audio)]
+    [InlineData("", "https://example.test/live.mpd", MediaKind.Video)]
+    public void Parse_UnrecognisedMediaKindFallsBackToUrlClassifier(string value, string url, MediaKind expected)
+    {
+        var csv = $"name,url,media_kind\r\nTest,{url},{value}\r\n";
+        Assert.Equal(expected, Assert.Single(StreamCatalogCsvParser.Parse(csv)).MediaKind);
     }
 
     // SP-0088, STREAM-BANK item E: `access` is an opaque token, not a closed set. Blank means open;

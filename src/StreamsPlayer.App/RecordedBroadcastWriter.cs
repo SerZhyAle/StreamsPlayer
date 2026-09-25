@@ -5,17 +5,11 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// SP-0101: manages target folders, staging paths, and unique file naming for recorded broadcasts.
+/// SP-0101: the recordings folder and unique file naming for recorded broadcasts. Staging is SP-0121's <see cref="RecordingStaging"/>.
 /// </summary>
 internal static class RecordedBroadcastWriter
 {
     private const int MaxNameAttempts = 100;
-
-    /// <summary>
-    /// Staging directory used by LibVLC/recorders before moving the finalized file to the destination folder.
-    /// </summary>
-    internal static string StagingDirectory =>
-        Path.Combine(AppPaths.DataDirectory, "RecordingsStaging");
 
     /// <summary>
     /// The folder recordings are written to: what the user chose, or the Downloads known folder when unset.

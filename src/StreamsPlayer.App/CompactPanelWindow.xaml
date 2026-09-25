@@ -130,6 +130,7 @@
                 <Button x:Name="RecordButton" Style="{StaticResource RecordGlyphOnlyButton}"
                         Margin="4,0,0,0" Padding="9,7" Click="RecordButton_Click"
                         ToolTip="{DynamicResource RecordTip}"
+                        ToolTipService.ShowOnDisabled="True"
                         AutomationProperties.Name="{DynamicResource Record}" />
 
                 <Button x:Name="TransportButton" Style="{StaticResource StopGlyphOnlyButton}"

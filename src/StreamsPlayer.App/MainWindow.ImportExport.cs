@@ -26,7 +26,9 @@ public enum ToolsAction
     DeleteImportedCatalog,
     SendLogsToAuthor,
     InstallVideoComponents,
-    RemoveVideoComponents
+    RemoveVideoComponents,
+    DownloadTvSchedule,
+    RemoveTvSchedule
 }
 
 // SP-0016: M3U import/export portability. Import is additive and atomic - it only ever inserts Imported rows
@@ -34,22 +36,67 @@ public enum ToolsAction
 // reused). Export is limited to user-owned (Manual/Imported/LocalCatalog) rows, optionally the pinned subset.
 public partial class MainWindow
 {
-    internal Task RunToolsActionAsync(ToolsAction action, Window owner) => action switch
+    internal async Task RunToolsActionAsync(ToolsAction action, Window owner)
     {
-        ToolsAction.ImportFromFile => ImportFromFileAsync(owner),
-        ToolsAction.ImportFromUrl => ImportFromUrlAsync(owner),
-        ToolsAction.ExportAll => ExportAsync(pinnedOnly: false, owner),
-        ToolsAction.ExportPinned => ExportAsync(pinnedOnly: true, owner),
-        ToolsAction.ManageHidden => ShowHiddenChannelsAsync(owner),
-        ToolsAction.ApplyCatalogSnapshot => ApplyBundledSnapshotAsync(owner),
-        ToolsAction.DeleteDownloaded => DeleteDownloadedChannelsAsync(owner),
-        ToolsAction.ImportCatalogFromFile => ImportCatalogFromFileAsync(owner),
-        ToolsAction.DeleteImportedCatalog => DeleteImportedCatalogAsync(owner),
-        ToolsAction.SendLogsToAuthor => SendLogsToAuthorAsync(owner),
-        ToolsAction.InstallVideoComponents => InstallVideoComponentsAsync(owner),
-        ToolsAction.RemoveVideoComponents => RemoveVideoComponentsAsync(owner),
-        _ => Task.CompletedTask
-    };
+        if (_toolsActionActive || _busy)
+        {
+            return;
+        }
+
+        _toolsActionActive = true;
+        try
+        {
+            switch (action)
+            {
+                case ToolsAction.ImportFromFile:
+                    await ImportFromFileAsync(owner);
+                    break;
+                case ToolsAction.ImportFromUrl:
+                    await ImportFromUrlAsync(owner);
+                    break;
+                case ToolsAction.ExportAll:
+                    await ExportAsync(pinnedOnly: false, owner);
+                    break;
+                case ToolsAction.ExportPinned:
+                    await ExportAsync(pinnedOnly: true, owner);
+                    break;
+                case ToolsAction.ManageHidden:
+                    await ShowHiddenChannelsAsync(owner);
+                    break;
+                case ToolsAction.ApplyCatalogSnapshot:
+                    await ApplyBundledSnapshotAsync(owner);
+                    break;
+                case ToolsAction.DeleteDownloaded:
+                    await DeleteDownloadedChannelsAsync(owner);
+                    break;
+                case ToolsAction.ImportCatalogFromFile:
+                    await ImportCatalogFromFileAsync(owner);
+                    break;
+                case ToolsAction.DeleteImportedCatalog:
+                    await DeleteImportedCatalogAsync(owner);
+                    break;
+                case ToolsAction.SendLogsToAuthor:
+                    await SendLogsToAuthorAsync(owner);
+                    break;
+                case ToolsAction.InstallVideoComponents:
+                    await InstallVideoComponentsAsync(owner);
+                    break;
+                case ToolsAction.RemoveVideoComponents:
+                    await RemoveVideoComponentsAsync(owner);
+                    break;
+                case ToolsAction.DownloadTvSchedule:
+                    await DownloadTvScheduleAsync(owner);
+                    break;
+                case ToolsAction.RemoveTvSchedule:
+                    await RemoveTvScheduleAsync(owner);
+                    break;
+            }
+        }
+        finally
+        {
+            _toolsActionActive = false;
+        }
+    }
 
     private async Task ImportFromFileAsync(Window owner)
     {
@@ -89,6 +136,11 @@ public partial class MainWindow
 
     private async Task ImportFromUrlAsync(Window owner)
     {
+        if (_busy)
+        {
+            return;
+        }
+
         var prompt = new ImportUrlWindow { Owner = owner };
         if (prompt.ShowDialog() != true)
         {
@@ -110,8 +162,10 @@ public partial class MainWindow
             var service = new M3uImportService(_httpClient);
             text = await service.FetchAsync(prompt.PlaylistUrl);
         }
+        // SP-0129: TimeoutException (no head, or a silent body) and InvalidDataException (media rather than a
+        // playlist, or over the ceiling) are the service's bounded failures; both read as "could not import".
         catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException
-            or DecoderFallbackException or InvalidOperationException)
+            or DecoderFallbackException or InvalidOperationException or TimeoutException or InvalidDataException)
         {
             _log.Event("IMPORT FAIL", "source=url", $"reason={exception.GetType().Name}");
             var key = exception is DecoderFallbackException ? "ImportInvalidEncoding" : "ImportUrlFailed";
@@ -166,7 +220,7 @@ public partial class MainWindow
             AddedAt = now
         }).ToList();
 
-        _state = await PersistAsync(_state with { Channels = [.. _state.Channels, .. additions] });
+        _state = await PersistAsync(state => state with { Channels = [.. state.Channels, .. additions] });
         _log.Event("IMPORT APPLY", $"count={additions.Count}");
         PopulateFacets();
         ApplyFilter();
@@ -175,6 +229,11 @@ public partial class MainWindow
 
     private async Task ImportCatalogFromFileAsync(Window owner)
     {
+        if (_busy)
+        {
+            return;
+        }
+
         var dialog = new OpenFileDialog
         {
             Filter = LocalizationService.Get("ImportCatalogFileFilter"),
@@ -219,24 +278,33 @@ public partial class MainWindow
                 $"bank_atlas={(bankCarriedAtlas ? "present" : "absent")}",
                 $"installed={(bankCarriedAtlas ? "replaced" : "kept")}");
 
-            var now = DateTimeOffset.UtcNow;
-            var merge = CatalogMerger.Merge(
-                _state.Channels,
-                entries,
-                now,
-                new CatalogMergeOptions(
-                    RemoveMissing: false,
-                    FaviconSource: FaviconSource.Imported,
-                    TargetOrigin: SourceOrigin.LocalCatalog),
-                channelsWithUserData: UserAuthoredChannels.Identify(_state));
-
-            var channels = merge.Channels.ToList();
-            var state = _state with { Channels = channels };
-            _state = await _store.SaveAsync(
-                state,
-                bank.FaviconAtlas,
-                replaceAtlas: bankCarriedAtlas,
-                AtlasSlot.Imported);
+            MergeResult? merge = null;
+            _state = await PersistAsync(
+                state =>
+                {
+                    merge = CatalogMerger.Merge(
+                        state.Channels,
+                        entries,
+                        DateTimeOffset.UtcNow,
+                        new CatalogMergeOptions(
+                            RemoveMissing: false,
+                            FaviconSource: FaviconSource.Imported,
+                            TargetOrigin: SourceOrigin.LocalCatalog,
+                            ReplacesAtlas: bankCarriedAtlas),
+                        channelsWithUserData: UserAuthoredChannels.Identify(state));
+                    return FaviconAtlasReferences.ReleaseUnreferenced(
+                        state with { Channels = merge.Channels.ToList() }, AtlasSlot.Imported);
+                },
+                (state, cancellationToken) => _store.SaveAsync(
+                    state,
+                    bank.FaviconAtlas,
+                    bankCarriedAtlas,
+                    AtlasSlot.Imported,
+                    cancellationToken));
+            if (merge is null)
+            {
+                return;
+            }
 
             _log.Event("CATALOG IMPORT APPLY",
                 $"added={merge.Added}",

@@ -53,4 +53,29 @@ public sealed class CatalogUrlIdentityTests
     {
         Assert.Equal("not a url", CatalogUrlIdentity.Redact("  not a url  "));
     }
+
+    // SP-0123: the log sink's redactor. A clean line must come back byte-identical - SP-0040 keeps full
+    // addresses for measurement - and only the secret itself may change in a dirty one.
+    [Theory]
+    [InlineData("STATS | fps=25 | buffer=15000", "STATS | fps=25 | buffer=15000")]
+    [InlineData("PLAY | url=https://CDN.Example/Live%20TV/a.m3u8?region=eu | ok",
+                "PLAY | url=https://CDN.Example/Live%20TV/a.m3u8?region=eu | ok")]
+    [InlineData("PLAY | url=rtsp://user:pass@host:554/x | ok", "PLAY | url=rtsp://host:554/x | ok")]
+    [InlineData("PLAY | url=rtsp://admin@cam/x", "PLAY | url=rtsp://cam/x")]
+    [InlineData("url=https://host/s?token=abc&id=1", "url=https://host/s?token=[REDACTED]&id=1")]
+    [InlineData("url=https://host/s?id=1&API_KEY=z&ApiKey=q#frag", "url=https://host/s?id=1&API_KEY=z&ApiKey=[REDACTED]#frag")]
+    [InlineData("open failed: 'http://u:p@h/a' then \"rtmp://v:q@g/b\"", "open failed: 'http://h/a' then \"rtmp://g/b\"")]
+    [InlineData("url=http://[::1]:8080/x", "url=http://[::1]:8080/x")]
+    [InlineData("file:///C:/Users/me/list.m3u", "file:///C:/Users/me/list.m3u")]
+    public void RedactText_RemovesOnlyTheCredentials(string input, string expected)
+    {
+        Assert.Equal(expected, CatalogUrlIdentity.RedactText(input));
+    }
+
+    // A compacted or truncated log can cut a line inside "user:pass@host"; the fragment must not survive.
+    [Fact]
+    public void RedactText_RedactsAnAuthorityCutInsideItsUserInfo()
+    {
+        Assert.Equal("tail of rtsp://[REDACTED]", CatalogUrlIdentity.RedactText("tail of rtsp://user:hunter"));
+    }
 }

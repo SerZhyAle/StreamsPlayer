@@ -10,7 +10,6 @@ namespace StreamsPlayer.Core;
 public static class RecordedBroadcastName
 {
     public const string DefaultVideoExtension = ".mp4";
-    public const string DefaultAudioExtension = ".mp3";
 
     /// <summary>Time part of the name; sorts chronologically inside one channel and carries no separator
     /// that Windows or a shell would treat specially.</summary>

@@ -25,12 +25,20 @@ public partial class MainWindow
             return;
         }
 
-        var purge = CatalogPurge.RemoveDownloaded(_state);
-        // SP-0017: the removed rows also leave every collection; empty collections stay for the user.
-        var collections = purge.RemovedChannelIds.Aggregate(
-            (IReadOnlyList<ChannelCollection>)purge.State.Collections,
-            ChannelCollections.RemoveChannelEverywhere);
-        _state = await PersistAsync(purge.State with { Collections = [.. collections] });
+        CatalogPurgeResult? purge = null;
+        _state = await PersistAsync(state =>
+        {
+            purge = CatalogPurge.RemoveDownloaded(state);
+            var collections = purge.RemovedChannelIds.Aggregate(
+                (IReadOnlyList<ChannelCollection>)purge.State.Collections,
+                ChannelCollections.RemoveChannelEverywhere);
+            return purge.State with { Collections = [.. collections] };
+        });
+        if (purge is null)
+        {
+            return;
+        }
+
         foreach (var id in purge.RemovedChannelIds)
         {
             ForgetRow(id);
@@ -59,11 +67,20 @@ public partial class MainWindow
             return;
         }
 
-        var purge = CatalogPurge.RemoveImportedBank(_state);
-        var collections = purge.RemovedChannelIds.Aggregate(
-            (IReadOnlyList<ChannelCollection>)purge.State.Collections,
-            ChannelCollections.RemoveChannelEverywhere);
-        _state = await PersistAsync(purge.State with { Collections = [.. collections] });
+        CatalogPurgeResult? purge = null;
+        _state = await PersistAsync(state =>
+        {
+            purge = CatalogPurge.RemoveImportedBank(state);
+            var collections = purge.RemovedChannelIds.Aggregate(
+                (IReadOnlyList<ChannelCollection>)purge.State.Collections,
+                ChannelCollections.RemoveChannelEverywhere);
+            return purge.State with { Collections = [.. collections] };
+        });
+        if (purge is null)
+        {
+            return;
+        }
+
         foreach (var id in purge.RemovedChannelIds)
         {
             ForgetRow(id);

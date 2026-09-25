@@ -134,7 +134,8 @@ public sealed record ArtworkManifest(
             return empty;
         }
 
-        using var document = JsonDocument.Parse(json);
+        // SP-0126: a publisher that writes a UTF-8 byte-order mark must not make the manifest unreadable.
+        using var document = JsonDocument.Parse(json.TrimStart('﻿'));
         var root = document.RootElement;
         if (root.ValueKind != JsonValueKind.Object)
         {

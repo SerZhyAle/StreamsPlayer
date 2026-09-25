@@ -1,5 +1,9 @@
 name: Release
 
+# A release builds, stamps and publishes exactly the commit its tag points to, and only a tag on the main
+# line (SP-0122). A manual run names an existing tag; it never creates one and never builds the branch it
+# was dispatched from.
+
 on:
   push:
     tags: ['v*']
@@ -11,69 +15,125 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      version: ${{ steps.tag.outputs.version }}
+    steps:
+      - name: Resolve and validate tag
+        id: tag
+        shell: pwsh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          if ($env:EVENT_NAME -eq 'workflow_dispatch') {
+            $tag = $env:INPUT_TAG
+          } elseif ($env:GITHUB_REF_TYPE -eq 'tag') {
+            $tag = $env:GITHUB_REF_NAME
+          } else {
+            throw "Release must be triggered by a tag push or a manual run naming a tag (ref type '$env:GITHUB_REF_TYPE')."
+          }
+          if ($tag -cnotmatch '^v\d{2}\.\d{4}\.\d{4}$') { throw 'Tag must use vYY.MMDD.HHmm.' }
+          $version = $tag.Substring(1)
+          [DateTime]::ParseExact($version, 'yy.MMdd.HHmm', [Globalization.CultureInfo]::InvariantCulture) | Out-Null
+          "tag=$tag" | Out-File $env:GITHUB_OUTPUT -Append
+          "version=$version" | Out-File $env:GITHUB_OUTPUT -Append
+
   release:
+    needs: resolve
     runs-on: windows-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
+      RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
     defaults:
       run:
         shell: pwsh
     steps:
+      # Checks out the tag itself. A tag that does not exist fails here, before anything is built.
       - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ needs.resolve.outputs.tag }}
+          fetch-depth: 0
+      - name: Verify tagged commit is on main
+        run: |
+          $tagged = git rev-parse --verify "refs/tags/$env:RELEASE_TAG^{commit}"
+          if ($LASTEXITCODE -ne 0) { throw "Tag $env:RELEASE_TAG does not exist." }
+          $head = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'git rev-parse HEAD failed.' }
+          if ($head -ne $tagged) { throw "Checked-out commit $head is not the tagged commit $tagged." }
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          if ($LASTEXITCODE -ne 0) { throw "Fetching main failed (exit $LASTEXITCODE)." }
+          git merge-base --is-ancestor $tagged refs/remotes/origin/main
+          if ($LASTEXITCODE -ne 0) { throw "Tagged commit $tagged is not reachable from main." }
+          Write-Host "Releasing $env:RELEASE_TAG at $tagged (on main)."
+      - name: Verify version exceeds every published version
+        run: |
+          ./scripts/assert-release-version.ps1 -Version $env:RELEASE_VERSION
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Resolve tag and version
-        id: version
-        run: |
-          $tag = if ($env:GITHUB_REF -like 'refs/tags/*') { $env:GITHUB_REF -replace '^refs/tags/','' } else { '${{ inputs.tag }}' }
-          if ($tag -notmatch '^v\d{2}\.\d{4}\.\d{4}$') { throw "Tag '$tag' must use vYY.MMDD.HHmm." }
-          $version = $tag -replace '^v',''
-          [DateTime]::ParseExact($version, 'yy.MMdd.HHmm', [Globalization.CultureInfo]::InvariantCulture) | Out-Null
-          "tag=$tag" | Out-File $env:GITHUB_OUTPUT -Append
-          "version=$version" | Out-File $env:GITHUB_OUTPUT -Append
-      - name: Restore, build and test
+      - name: Restore
         run: |
           dotnet restore StreamsPlayer.sln
-          dotnet build StreamsPlayer.sln -c Release --no-restore -p:Version=${{ steps.version.outputs.version }} -p:AssemblyVersion=${{ steps.version.outputs.version }} -p:FileVersion=${{ steps.version.outputs.version }} -p:InformationalVersion=${{ steps.version.outputs.version }}
+          if ($LASTEXITCODE -ne 0) { throw "Restore failed (exit $LASTEXITCODE)." }
+      - name: Build
+        run: |
+          $v = $env:RELEASE_VERSION
+          dotnet build StreamsPlayer.sln -c Release --no-restore "-p:Version=$v" "-p:AssemblyVersion=$v" "-p:FileVersion=$v" "-p:InformationalVersion=$v"
+          if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
+      - name: Test
+        run: |
           dotnet test StreamsPlayer.sln -c Release --no-build
+          if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
       - name: Publish portable package
         run: |
-          dotnet publish src/StreamsPlayer.App/StreamsPlayer.App.csproj -c Release -r win-x64 --self-contained true -p:Version=${{ steps.version.outputs.version }} -p:AssemblyVersion=${{ steps.version.outputs.version }} -p:FileVersion=${{ steps.version.outputs.version }} -p:InformationalVersion=${{ steps.version.outputs.version }} -o stage/StreamsPlayer
+          $v = $env:RELEASE_VERSION
+          dotnet publish src/StreamsPlayer.App/StreamsPlayer.App.csproj -c Release -r win-x64 --self-contained true "-p:Version=$v" "-p:AssemblyVersion=$v" "-p:FileVersion=$v" "-p:InformationalVersion=$v" -o stage/StreamsPlayer
+          if ($LASTEXITCODE -ne 0) { throw "Publish failed (exit $LASTEXITCODE)." }
           Copy-Item README.md, LICENSE, THIRD-PARTY-NOTICES.txt stage/StreamsPlayer
           New-Item -ItemType Directory dist -Force | Out-Null
-          $name = "StreamsPlayer-${{ steps.version.outputs.version }}-windows-x64.zip"
+          $name = "StreamsPlayer-$v-windows-x64.zip"
           Compress-Archive -Path stage/StreamsPlayer/* -DestinationPath "dist/$name" -Force
           $hash = (Get-FileHash "dist/$name" -Algorithm SHA256).Hash
           "$hash  $name" | Out-File "dist/$name.sha256" -Encoding ascii
       - name: Install Inno Setup
-        run: choco install innosetup --no-progress -y
-      - name: Build installer
-        id: setup
         run: |
+          choco install innosetup --no-progress -y
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup install failed (exit $LASTEXITCODE)." }
+      - name: Build installer
+        run: |
+          $v = $env:RELEASE_VERSION
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $iscc)) { throw "ISCC.exe not found at $iscc" }
           $stageAbs = (Resolve-Path stage/StreamsPlayer).Path
           $distAbs = (Resolve-Path dist).Path
-          & $iscc "/DVersion=${{ steps.version.outputs.version }}" "/DSourceDir=$stageAbs" "/O$distAbs" installer\StreamsPlayer.iss
+          & $iscc "/DVersion=$v" "/DSourceDir=$stageAbs" "/O$distAbs" installer\StreamsPlayer.iss
           if ($LASTEXITCODE -ne 0) { throw "ISCC failed (exit $LASTEXITCODE)" }
-          $name = "StreamsPlayer-${{ steps.version.outputs.version }}-windows-x64-setup.exe"
+          $name = "StreamsPlayer-$v-windows-x64-setup.exe"
           if (-not (Test-Path "dist/$name")) { throw "Installer not produced at dist/$name" }
           $hash = (Get-FileHash "dist/$name" -Algorithm SHA256).Hash
           "$hash  $name" | Out-File "dist/$name.sha256" -Encoding ascii
-          "name=$name" | Out-File $env:GITHUB_OUTPUT -Append
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: StreamsPlayer ${{ steps.version.outputs.version }}
+          tag_name: ${{ needs.resolve.outputs.tag }}
+          name: StreamsPlayer ${{ needs.resolve.outputs.version }}
           generate_release_notes: true
+          fail_on_unmatched_files: true
           files: |
             dist/*.zip
             dist/*.exe

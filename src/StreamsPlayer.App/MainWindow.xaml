@@ -206,6 +206,10 @@
                 <!-- Row 1: Technical & collection facets, sort order and actions -->
                 <DockPanel Grid.Row="1">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <!-- SP-0138: the shown / total count is filter feedback, so it sits beside the control
+                             that undoes the filters rather than in the status bar. Written by ApplyFilter. -->
+                        <TextBlock x:Name="ChannelCountText" Foreground="{DynamicResource MutedBrush}"
+                                   VerticalAlignment="Center" Margin="0,0,10,0" />
                         <Button x:Name="ClearFiltersButton" Style="{StaticResource ClearFilterGlyphButton}"
                                 Content="{DynamicResource Clear}" Click="ClearFiltersButton_Click"
                                 VerticalAlignment="Center" ToolTip="{DynamicResource ClearFiltersTip}"
@@ -475,6 +479,12 @@
                                     </Grid>
                                     <TextBlock Grid.Row="1" Margin="0,4,0,0" Text="{Binding Channel.Url}" Foreground="{DynamicResource MutedBrush}"
                                                FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Channel.Url}" Visibility="Collapsed" />
+                                    <!-- SP-0075: the programme on air from the user's TV schedule. It shares row 1 with
+                                         the collapsed URL and is itself collapsed for every channel without a schedule,
+                                         so an unmatched card keeps the height and look it had before. -->
+                                    <TextBlock Grid.Row="1" Margin="0,3,0,0" Text="{Binding ScheduleNowText}"
+                                               Visibility="{Binding ScheduleNowVisibility}" Foreground="{DynamicResource TextBrush}"
+                                               FontSize="12" TextTrimming="CharacterEllipsis" ToolTip="{Binding ScheduleNowText}" />
                                     <!-- One line under the title: tags on the left, stream parameters pushed right, and the
                                          pin toggle under the overflow button so the title row keeps the width. A DockPanel,
                                          not a Grid: the tags are measured first and win the space, the parameters fill what
@@ -1158,7 +1168,8 @@
                             Click="AudioTransportButton_Click" IsEnabled="False" Visibility="Collapsed" Margin="0,0,8,0" />
                     <Button x:Name="AudioRecordButton" Style="{StaticResource RecordGlyphOnlyButton}"
                             Click="AudioRecordButton_Click" Visibility="Collapsed" Margin="0,0,8,0"
-                            ToolTip="{DynamicResource RecordTip}" AutomationProperties.Name="{DynamicResource Record}" />
+                            ToolTip="{DynamicResource RecordTip}" AutomationProperties.Name="{DynamicResource Record}"
+                            ToolTipService.ShowOnDisabled="True" />
                     <!-- IsMoveToPointEnabled: a click jumps the volume straight to the clicked level instead of stepping toward it. -->
                     <Slider x:Name="AudioVolumeSlider" Width="110" Minimum="0" Maximum="100" Value="100" TickFrequency="10"
                             IsMoveToPointEnabled="True"
@@ -1183,7 +1194,11 @@
                             AutomationProperties.Name="{DynamicResource CompactPanelName}" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock x:Name="StatusText" Text="{DynamicResource Ready}" Foreground="{DynamicResource TextBrush}"
+                    <!-- SP-0138: what is on air is the headline; the operation status is secondary and sits
+                         below it, directly above the progress row it captions. -->
+                    <TextBlock x:Name="NowPlayingText" Text="{DynamicResource NothingPlaying}" Foreground="{DynamicResource TextBrush}"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="StatusText" Text="{DynamicResource Ready}" Foreground="{DynamicResource MutedBrush}" FontSize="11"
                                TextTrimming="CharacterEllipsis" />
                     <!-- SP-0056: the bar and its cancel button share a row so the status area's height does
                          not shift when a cancellable download starts. Maximum is static; only IsIndeterminate
@@ -1198,8 +1213,6 @@
                                 ToolTip="{DynamicResource CancelDownloadTip}"
                                 AutomationProperties.Name="{DynamicResource CancelDownloadName}" />
                     </StackPanel>
-                    <TextBlock x:Name="NowPlayingText" Text="{DynamicResource NothingPlaying}" Foreground="{DynamicResource MutedBrush}" FontSize="11"
-                               TextTrimming="CharacterEllipsis" />
                 </StackPanel>
             </Grid>
         </Border>

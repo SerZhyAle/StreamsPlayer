@@ -150,6 +150,29 @@ public sealed class ChannelRow : INotifyPropertyChanged
 
     public void SetBackdrop(WaveParticlesBackdropSession? backdrop) => Backdrop = backdrop;
 
+    // SP-0075: the title of the programme on air, from the user's downloaded TV schedule. Null for every
+    // channel without a schedule, which collapses the line and leaves the card exactly as it was.
+    private string? _scheduleNow;
+
+    public void SetScheduleNow(string? title)
+    {
+        if (string.Equals(_scheduleNow, title, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _scheduleNow = title;
+        OnPropertyChanged(nameof(ScheduleNowText));
+        OnPropertyChanged(nameof(ScheduleNowVisibility));
+    }
+
+    // Formatted on read so a language change (RefreshLocalization) re-renders it with no cache to drop.
+    // The title itself is the source's text and is never translated.
+    public string ScheduleNowText =>
+        _scheduleNow is null ? string.Empty : LocalizationService.Format("TvScheduleNowLine", _scheduleNow);
+
+    public Visibility ScheduleNowVisibility => _scheduleNow is null ? Visibility.Collapsed : Visibility.Visible;
+
     internal void UpdatePresentation(FaviconAtlasSet atlases)
     {
         if (_atlases == atlases)
@@ -159,6 +182,18 @@ public sealed class ChannelRow : INotifyPropertyChanged
 
         _atlases = atlases;
         InvalidateFavicon();
+    }
+
+    /// <summary>
+    /// SP-0125: a row read while its sheet was still decoding cached "no icon"; once a sheet is ready it
+    /// asks again. Rows that already have an icon, or never had an index, have nothing to gain.
+    /// </summary>
+    internal void RefreshPendingFavicon()
+    {
+        if (_faviconLoaded && _favicon is null && Channel.FaviconIndex is not null)
+        {
+            InvalidateFavicon();
+        }
     }
 
     public void UpdateChannel(StreamChannel channel)
@@ -311,21 +346,19 @@ public sealed class ChannelRow : INotifyPropertyChanged
         false => LocalizationService.Get("OnDemandLabel"),
         _ => null
     };
-    public string StatusLabel => Channel.LastPlayOutcome switch
-    {
-        PlayOutcome.Ok => LocalizationService.Get("StatusVerified"),
-        PlayOutcome.Fail => LocalizationService.Get("StatusFailed"),
-        _ => LocalizationService.Get("StatusNotPlayed")
-    };
+    public string StatusLabel => LocalizationService.Get(ChannelFactSheet.OutcomeKey(Channel));
     // SP-0114: the status dot's palette role, not its colour. A brush chosen here would be a literal the
     // theme cannot reach; the templates map the role to SuccessBrush / DangerBrush / WarningBrush by
     // dynamic reference, so the dot follows a theme switch like everything around it (APP-STYLE 3).
-    public string StatusTone => Channel.LastPlayOutcome switch
-    {
-        PlayOutcome.Ok => "Success",
-        PlayOutcome.Fail => "Danger",
-        _ => "Warning"
-    };
+    // SP-0124: an address that is never launched reads as a failure before it is ever tried.
+    public string StatusTone => !LaunchableAddress.IsLaunchable(Channel.Url)
+        ? "Danger"
+        : Channel.LastPlayOutcome switch
+        {
+            PlayOutcome.Ok => "Success",
+            PlayOutcome.Fail => "Danger",
+            _ => "Warning"
+        };
     public string PreviewStatusLabel => LocalizationService.Get(_previewReachable == true ? "PreviewCaptured" : "PreviewNotCaptured");
 
     private void OnPropertyChanged(string propertyName) =>

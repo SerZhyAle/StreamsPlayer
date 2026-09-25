@@ -32,6 +32,14 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     private static readonly object EngineLock = new();
 
     /// <summary>
+    /// SP-0128: the folder the engine was pointed at in this process, or <c>null</c> before the first
+    /// start attempt. FFmpeg's libraries stay mapped until the process exits, so replacing the set in
+    /// this folder has to wait for a restart. Set before <c>Engine.Start</c>: a start that throws may
+    /// still have loaded some of them.
+    /// </summary>
+    internal static string? LoadedFFmpegPath { get; private set; }
+
+    /// <summary>
     /// SP-0078: how often the live-edge distance is recorded when nothing about it changed. A session
     /// that never needed a correction must still prove the distance stayed in the corridor, or it cannot
     /// be told apart from a session where the rule never ran.
@@ -50,8 +58,16 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     private double _liveEdgeSpeed = 1d;
     private int _selectedAudioPos = -1;
     private int _selectedSubtitlePos = -1;
-    private bool _isRecording;
-    private string? _recordingFilePath;
+    // SP-0121: the segment being written. Touched only under _mediaGate.
+    private RecordingSegment? _segment;
+    // SP-0120: the same Play/teardown protection LibVlcVideoBackend has always had. A recovery or quality re-open
+    // calls Play on a worker thread, and teardown disposes the player on another; the gate orders the two, and
+    // _disposed - written under it - is what a Play that lost the race finds.
+    private readonly object _mediaGate = new();
+    private volatile bool _disposed;
+    // Set on the UI thread as the first act of StopAndDisposeAsync, so every UI-thread reading after that point
+    // returns its neutral value instead of reaching a player that a pool thread is disposing.
+    private volatile bool _released;
 
     public FlyleafVideoBackend(int volume, bool muted, CurrentLog log)
     {
@@ -89,63 +105,154 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
 
     public string EngineName => "flyleaf";
 
-    public long PositionMs => _player.CurTime / TimeSpan.TicksPerMillisecond;
+    public long PositionMs => IsReleased ? -1 : _player.CurTime / TimeSpan.TicksPerMillisecond;
 
-    public bool IsPlaying => _player.IsPlaying;
+    public bool IsPlaying => !IsReleased && _player.IsPlaying;
 
-    public int Volume { set => _player.Audio.Volume = Math.Clamp(value, 0, 100); }
-
-    public bool Mute { set => _player.Audio.Mute = value; }
-
-    public bool IsRecording => _isRecording && _player.IsRecording;
-
-    public bool StartRecording(string targetDirectory, string? channelTitle)
+    public int Volume
     {
-        if (_player.IsDisposed || !_player.IsPlaying)
+        set
         {
-            return false;
-        }
-
-        try
-        {
-            var dir = string.IsNullOrWhiteSpace(targetDirectory) ? RecordedBroadcastWriter.ResolveFolder(null) : targetDirectory;
-            Directory.CreateDirectory(dir);
-
-            var fileName = RecordedBroadcastName.For(channelTitle, DateTimeOffset.Now, ".mp4");
-            _recordingFilePath = RecordedBroadcastWriter.ReserveUniquePath(dir, fileName);
-
-            _player.StartRecording(ref _recordingFilePath, false);
-            _isRecording = _player.IsRecording;
-            _log.Event("RECORD START", "engine=flyleaf", $"ok={_isRecording}", $"path={_recordingFilePath}");
-            return _isRecording;
-        }
-        catch (Exception ex)
-        {
-            _log.Event("RECORD START", "engine=flyleaf", "ok=false", $"err={ex.Message}");
-            return false;
+            if (!IsReleased)
+            {
+                _player.Audio.Volume = Math.Clamp(value, 0, 100);
+            }
         }
     }
 
-    public string? StopRecording()
+    public bool Mute
     {
-        if (!_isRecording)
+        set
+        {
+            if (!IsReleased)
+            {
+                _player.Audio.Mute = value;
+            }
+        }
+    }
+
+    public string? RecordUnavailableReason => null;
+
+    // Both halves: the segment says a recording was asked for, the player says it is still being written. The
+    // library can stop writing on its own, and the player's tick reads this to notice (SP-0121 R1).
+    public bool IsRecording => !IsReleased && _segment is not null && _player.IsRecording;
+
+    private bool IsReleased => _released || _disposed;
+
+    public event Action<RecordingSegment>? RecordingInterrupted;
+
+    public Task<bool> StartRecordingAsync(RecordingTarget target)
+    {
+        if (IsReleased)
+        {
+            return Task.FromResult(false);
+        }
+
+        return Task.Run(() =>
+        {
+            lock (_mediaGate)
+            {
+                if (IsReleased || _player.IsDisposed || !_player.IsPlaying)
+                {
+                    return false;
+                }
+
+                if (_segment is not null)
+                {
+                    return true;
+                }
+
+                try
+                {
+                    // This engine writes the file itself, straight into the recordings folder - no staging to leave
+                    // anything in - so the segment carries the file's name rather than a directory to search.
+                    Directory.CreateDirectory(target.Folder);
+                    var startedAt = DateTimeOffset.Now;
+                    var path = RecordedBroadcastWriter.ReserveUniquePath(
+                        target.Folder,
+                        RecordedBroadcastName.For(target.ChannelTitle, startedAt, RecordedBroadcastName.DefaultVideoExtension));
+                    _player.StartRecording(ref path, false);
+                    var started = _player.IsRecording;
+                    _log.Event("RECORD START", "engine=flyleaf", $"ok={started}", $"path={path}");
+                    if (started)
+                    {
+                        _segment = new RecordingSegment
+                        {
+                            Engine = "flyleaf",
+                            Target = target,
+                            StartedAt = startedAt,
+                            KnownFile = path
+                        };
+                    }
+
+                    return started;
+                }
+                catch (Exception exception)
+                {
+                    _log.Event("RECORD START", "engine=flyleaf", "ok=false", $"err={exception.Message}");
+                    return false;
+                }
+            }
+        });
+    }
+
+    public Task<RecordingSegment?> StopRecordingAsync()
+    {
+        if (IsReleased)
+        {
+            return Task.FromResult<RecordingSegment?>(null);
+        }
+
+        return Task.Run(() =>
+        {
+            lock (_mediaGate)
+            {
+                return _disposed ? null : EndSegmentUnderGate("user");
+            }
+        });
+    }
+
+    /// <summary>Ends the segment being written, if any. Call under <see cref="_mediaGate"/>.</summary>
+    private RecordingSegment? EndSegmentUnderGate(string reason)
+    {
+        if (_segment is not { } segment)
         {
             return null;
         }
 
-        _isRecording = false;
+        _segment = null;
         try
         {
-            _player.StopRecording();
-            var saved = _recordingFilePath;
-            _recordingFilePath = null;
-            _log.Event("RECORD STOP", "engine=flyleaf", $"saved={saved}");
-            return File.Exists(saved) ? saved : null;
+            if (_player.IsRecording)
+            {
+                _player.StopRecording();
+            }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _log.Event("RECORD STOP", "engine=flyleaf", "ok=false", $"err={ex.Message}");
-            return null;
+            _log.Event("RECORD SEGMENT END", "engine=flyleaf", "ok=false", $"err={exception.Message}");
+        }
+
+        segment.EndedAt = DateTimeOffset.Now;
+        _log.Event("RECORD SEGMENT END", "engine=flyleaf", $"reason={reason}", $"length_s={(int)segment.Length.TotalSeconds}");
+        return segment;
+    }
+
+    /// <summary>Hands an engine-ended segment to the player; a handler fault must not break the open or teardown it rode on.</summary>
+    private void RaiseInterrupted(RecordingSegment? segment)
+    {
+        if (segment is null)
+        {
+            return;
+        }
+
+        try
+        {
+            RecordingInterrupted?.Invoke(segment);
+        }
+        catch (Exception exception)
+        {
+            _log.Event("RECORD SEGMENT END", "engine=flyleaf", "handed_over=false", $"err={exception.Message}");
         }
     }
 
@@ -157,10 +264,22 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
 
     public bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling)
     {
-        if (_isRecording)
+        lock (_mediaGate)
         {
-            StopRecording();
+            if (IsReleased)
+            {
+                return false; // tearing down; the player is being disposed on another thread
+            }
+
+            return PlayUnderGate(url, cacheMilliseconds, rtspOverTcp, softwareDecode, qualityCeiling);
         }
+    }
+
+    private bool PlayUnderGate(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling)
+    {
+        // SP-0121: a re-open ends the segment - the library would stop writing it anyway - and the player gets it
+        // rather than losing its path (C-03). The next segment starts once the new leg is live.
+        RaiseInterrupted(EndSegmentUnderGate("reopen"));
 
         _reachedPlaying = false;
         _selectedAudioPos = -1;
@@ -188,29 +307,74 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         return true;
     }
 
-    public Task StopAndDisposeAsync()
+    public async Task StopAndDisposeAsync()
     {
-        if (_isRecording)
+        if (_released)
         {
-            StopRecording();
+            return;
         }
 
+        _released = true;
         _player.BufferingStarted -= OnBufferingStarted;
         _player.BufferingCompleted -= OnBufferingCompleted;
         _player.OpenCompleted -= OnOpenCompleted;
         _player.PlaybackStopped -= OnPlaybackStopped;
         _player.PropertyChanged -= OnPlayerPropertyChanged;
-        _host.Player = null;
-        // FlyleafLib disposal is internally marshaled; the caller (PlayerWindow_Closed) is on the UI thread.
-        _player.Dispose();
-        // Player = null only disposes the swap chain. FlyleafHost.Dispose is what closes the Surface and
-        // Overlay windows it owns and unhooks the DpiChanged/SizeChanged handlers it put on the parent window.
-        _host.Dispose();
-        return Task.CompletedTask;
+        _host.Player = null; // UI-thread work: detaching the host releases its swap chain
+        // SP-0120: the seam promises the blocking native teardown off the UI thread, and this engine used to do it
+        // on the UI thread. Player.Dispose stops the demuxer and decoder threads and waits for them; the gate
+        // keeps a re-open that is already inside Play from racing it. Detaching the host above is what keeps
+        // Player.Dispose from calling back into the host (FlyleafLib 3.10: DisposeInternal -> Host?.Player_Disposed).
+        var player = _player;
+        try
+        {
+            await Task.Run(() =>
+            {
+                lock (_mediaGate)
+                {
+                    _disposed = true;
+                    RaiseInterrupted(EndSegmentUnderGate("teardown")); // SP-0121: the trailer is written before the player goes
+                    player.Dispose();
+                }
+            });
+        }
+        finally
+        {
+            // Back on the UI thread. Player = null only disposes the swap chain; FlyleafHost.Dispose is what
+            // closes the Surface and Overlay windows it owns and unhooks the DpiChanged/SizeChanged handlers it
+            // put on the parent window - window work, so it stays here, and runs even if the engine's did not.
+            _host.Dispose();
+        }
+    }
+
+    public Task StopPlaybackAsync()
+    {
+        if (IsReleased)
+        {
+            return Task.CompletedTask;
+        }
+
+        var player = _player;
+        return Task.Run(() =>
+        {
+            lock (_mediaGate)
+            {
+                if (!_disposed)
+                {
+                    RaiseInterrupted(EndSegmentUnderGate("stop"));
+                    player.Stop();
+                }
+            }
+        });
     }
 
     public bool RequestSnapshot(int width)
     {
+        if (IsReleased)
+        {
+            return false;
+        }
+
         try
         {
             var frame = _player.TakeSnapshotToBitmapSource((uint)width);
@@ -231,17 +395,17 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         }
     }
 
-    public IReadOnlyList<VideoTrack> AudioTracks => Map(_player.Audio.Streams);
+    public IReadOnlyList<VideoTrack> AudioTracks => IsReleased ? [] : Map(_player.Audio.Streams);
 
-    public IReadOnlyList<VideoTrack> SubtitleTracks => Map(_player.Subtitles.Streams);
+    public IReadOnlyList<VideoTrack> SubtitleTracks => IsReleased ? [] : Map(_player.Subtitles.Streams);
 
-    public int SelectedAudioTrackId => _selectedAudioPos;
+    public int SelectedAudioTrackId => IsReleased ? -1 : _selectedAudioPos;
 
-    public int SelectedSubtitleTrackId => _selectedSubtitlePos;
+    public int SelectedSubtitleTrackId => IsReleased ? -1 : _selectedSubtitlePos;
 
     public void SelectAudioTrack(int id)
     {
-        if (id >= 0 && id < _player.Audio.Streams.Count)
+        if (!IsReleased && id >= 0 && id < _player.Audio.Streams.Count)
         {
             _selectedAudioPos = id;
             _player.OpenAsync(_player.Audio.Streams[id]);
@@ -250,7 +414,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
 
     public void SelectSubtitleTrack(int id)
     {
-        if (id >= 0 && id < _player.Subtitles.Streams.Count)
+        if (!IsReleased && id >= 0 && id < _player.Subtitles.Streams.Count)
         {
             _selectedSubtitlePos = id;
             _player.OpenAsync(_player.Subtitles.Streams[id]);
@@ -262,6 +426,11 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     // reports no statistics" and "this session had no trouble" are otherwise indistinguishable.
     public void LogStats(string tag)
     {
+        if (IsReleased)
+        {
+            return;
+        }
+
         LogLiveEdge(); // SP-0078 rides this existing tick rather than adding one of its own
         if (_statsGapReported)
         {
@@ -303,7 +472,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     // ceiling (MaxVerticalResolutionCustom) is an open-time setting. A constant reading on this engine is
     // therefore a fact about it, not a gap in it.
     public VideoRendition? ReadRendition() =>
-        _player.Video is { IsOpened: true, Width: > 0, Height: > 0 } video
+        !IsReleased && _player.Video is { IsOpened: true, Width: > 0, Height: > 0 } video
             ? new VideoRendition(video.Width, video.Height)
             : null;
 
@@ -329,6 +498,11 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     /// </remarks>
     public unsafe string? ReadNowPlaying()
     {
+        if (IsReleased)
+        {
+            return null;
+        }
+
         var demuxer = _player.MainDemuxer;
         if (demuxer is null)
         {
@@ -551,6 +725,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
 
             var ffmpegPath = ResolveFFmpegPath(out var source);
             log.Event("FLYLEAF ENGINE", "action=start", $"ffmpeg_path={ffmpegPath}", $"source={source}");
+            LoadedFFmpegPath = ffmpegPath;
             Engine.Start(new EngineConfig
             {
                 FFmpegPath = ffmpegPath,

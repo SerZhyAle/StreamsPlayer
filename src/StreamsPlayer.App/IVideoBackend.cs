@@ -9,6 +9,11 @@ namespace StreamsPlayer.App;
 /// FlyleafLib as an opt-in fallback) from <see cref="PlayerWindow"/>, which keeps the
 /// engine-agnostic orchestration: recovery policy, stall watchdog, fullscreen, controls,
 /// failure dialog, and thumbnail hand-off. Units are engine-neutral (milliseconds, cache %).
+/// <para>SP-0120: from the moment <see cref="StopAndDisposeAsync"/> is called, every other member is safe to call
+/// and does nothing native: a reading returns its neutral value (a negative position, not playing, no tracks, a
+/// <c>-1</c> selection, false, null) and a command is ignored. The player's UI thread still has queued work for a
+/// closing window when teardown starts, and a native call on a released engine ends the process without a
+/// managed exception.</para>
 /// </summary>
 internal interface IVideoBackend
 {
@@ -63,6 +68,14 @@ internal interface IVideoBackend
     /// release that follows it is UI-thread work, so call this from the UI thread. Safe to call once during teardown.
     /// </summary>
     Task StopAndDisposeAsync();
+
+    /// <summary>
+    /// SP-0120: stops the media currently open without releasing the engine, so a later <see cref="Play"/> can
+    /// start again - what a player that has failed for good does instead of leaving a dead stream running. The
+    /// blocking native stop runs off the UI thread and is serialized against <see cref="Play"/> and teardown;
+    /// a stop the engine reports as failed is logged, not thrown. Call from the UI thread.
+    /// </summary>
+    Task StopPlaybackAsync();
 
     /// <summary>Requests a snapshot of the current frame; the result arrives via <see cref="SnapshotReady"/>.</summary>
     bool RequestSnapshot(int width);
@@ -149,18 +162,34 @@ internal interface IVideoBackend
     /// </summary>
     VideoRendition? ReadRendition();
 
-    /// <summary>SP-0101: True while recording of the live broadcast is actively in progress.</summary>
+    /// <summary>
+    /// SP-0121: null when this engine can record; otherwise the localization key of the reason it cannot, which the
+    /// player shows instead of offering Record. Decided once per engine, before Record is ever offered.
+    /// </summary>
+    string? RecordUnavailableReason { get; }
+
+    /// <summary>SP-0101: true while the engine is actually writing a recording segment.</summary>
     bool IsRecording { get; }
 
     /// <summary>
-    /// SP-0101: Starts recording the active broadcast into the target directory. Returns true if started.
+    /// SP-0121: starts a recording segment of the media currently playing. The native work runs off the UI thread
+    /// and is serialized against <see cref="Play"/> and teardown. False when the engine could not start one.
     /// </summary>
-    bool StartRecording(string targetDirectory, string? channelTitle);
+    Task<bool> StartRecordingAsync(RecordingTarget target);
 
     /// <summary>
-    /// SP-0101: Stops active recording and returns the full path of the saved file, or null if no recording was active or failed.
+    /// SP-0121: ends the segment being written and returns it for finishing, or null when none was being written.
+    /// It does not wait for the file or move it - that is <see cref="RecordingFinisher"/>'s job - and it never
+    /// blocks the UI thread.
     /// </summary>
-    string? StopRecording();
+    Task<RecordingSegment?> StopRecordingAsync();
+
+    /// <summary>
+    /// SP-0121: raised when something other than <see cref="StopRecordingAsync"/> ended a segment - a re-open, a
+    /// stop, teardown. Raised on the thread that ended it, inside the engine's gate, so a handler must only take
+    /// the segment and return; it is never raised twice for one segment and never lost to a silent stop (C-03).
+    /// </summary>
+    event Action<RecordingSegment> RecordingInterrupted;
 
     /// <summary>Buffer fill percentage 0..100.</summary>
     event Action<float> BufferingChanged;

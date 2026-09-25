@@ -11,10 +11,9 @@ namespace StreamsPlayer.App;
 /// </summary>
 public partial class MainWindow
 {
-    // Dedicated client: the tile pack is ~15 MB and HttpClient.Timeout severs the body read even under
-    // ResponseHeadersRead, so a shared 30 s timeout would cut a slow link mid-download. The infinite
-    // timeout here is load-bearing rather than a workaround - SP-0056 made the service's idle bound the
-    // real limit, and it can only act if nothing above it is counting wall-clock time.
+    // Dedicated client with no timeout of its own: the service bounds the head explicitly and the ~15 MB
+    // body by silence (SP-0056, SP-0129). HttpClient.Timeout would cover only the head anyway - it never
+    // applies to a body read after it (HttpClientTimeoutPremiseTests).
     private readonly HttpClient _previewArtworkHttpClient = CreatePreviewArtworkHttpClient();
 
     private bool _previewArtworkImporting;
@@ -163,7 +162,7 @@ public partial class MainWindow
         // about - the honest end of the operation is now its result line.
         if (!result.CodecUnavailable)
         {
-            _state = await PersistAsync(_state with { ChannelPreviewArtworkStamp = artwork.Stamp });
+            _state = await PersistAsync(state => state with { ChannelPreviewArtworkStamp = artwork.Stamp });
         }
 
         return result;

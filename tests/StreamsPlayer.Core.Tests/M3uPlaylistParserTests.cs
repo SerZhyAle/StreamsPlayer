@@ -47,6 +47,18 @@ public sealed class M3uPlaylistParserTests
         Assert.Equal(M3uImportStatus.Empty, preview.Status);
     }
 
+    // SP-0126: the title starts after the first comma outside a quoted attribute value.
+    [Theory]
+    [InlineData("#EXTINF:-1 group-title=\"News, Sport\",BBC", "BBC")]
+    [InlineData("#EXTINF:-1 tvg-name=\"a,b\" group-title=\"c,d\",Radio, One", "Radio, One")]
+    [InlineData("#EXTINF:-1,Plain", "Plain")]
+    public void Analyze_TitleIgnoresCommasInsideQuotedAttributes(string extinf, string expected)
+    {
+        var preview = M3uPlaylistParser.Analyze($"#EXTM3U\n{extinf}\nhttps://a.test/live\n", Existing());
+
+        Assert.Equal(expected, Assert.Single(preview.NewEntries).Title);
+    }
+
     [Fact]
     public void Analyze_CategorisesNewDuplicateInvalidAndSkipped()
     {

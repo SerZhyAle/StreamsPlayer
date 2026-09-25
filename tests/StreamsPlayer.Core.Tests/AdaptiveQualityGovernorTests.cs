@@ -342,7 +342,7 @@ public sealed class AdaptiveQualityGovernorTests
         Assert.NotNull(governor.Observe(At(390)));
         StepDown(governor, 400, 440);
 
-        Assert.Equal(1, governor.MemoryRevision);
+        Assert.Equal(2, governor.MemoryRevision); // SP-0130: both step-downs moved the settled ceiling
         var recorded = Assert.Single(governor.Failures);
         Assert.Equal(High.BandwidthBps, recorded.BandwidthBps);
         Assert.Equal(1, recorded.Failures);
@@ -370,13 +370,96 @@ public sealed class AdaptiveQualityGovernorTests
     {
         var governor = OnTheReferenceLadder();
         StepDown(governor, 30, 90);
+        var settled = governor.MemoryRevision;
 
         for (var second = 100; second < 380; second += 2)
         {
             Assert.Null(governor.Observe(At(second)));
         }
 
-        Assert.Equal(0, governor.MemoryRevision);
+        Assert.Equal(settled, governor.MemoryRevision);
+    }
+
+    // ---- SP-0130: a step changes what is remembered, and a probe that never plays is only a probe ----
+
+    // Question 2: a ceiling reached by a plain step-down is worth the next session knowing.
+    [Fact]
+    public void APlainStepDown_BumpsTheRevisionWithNoFailureToRecord()
+    {
+        var governor = OnTheReferenceLadder();
+
+        StepDown(governor, 30, 90);
+
+        Assert.Equal(1, governor.MemoryRevision);
+        Assert.Equal(Mid, governor.Ceiling);
+        Assert.Empty(governor.Failures);
+    }
+
+    [Fact]
+    public void RaisingAProbe_DoesNotBumpTheRevision_ButSettlingItDoes()
+    {
+        var governor = OnTheReferenceLadder();
+        StepDown(governor, 30, 90);
+        var settled = governor.MemoryRevision;
+
+        Assert.NotNull(governor.Observe(At(390))); // on trial: not yet a ceiling to open at
+        Assert.Equal(settled, governor.MemoryRevision);
+
+        Assert.Null(governor.Observe(At(510)));    // survived the window with nothing to forgive
+        Assert.Equal(settled + 1, governor.MemoryRevision);
+    }
+
+    // Question 1: any starvation restarts the clean interval, including one too isolated to step down.
+    [Fact]
+    public void ALoneStarvation_RestartsTheCleanIntervalBeforeAProbe()
+    {
+        var governor = OnTheReferenceLadder();
+        StepDown(governor, 30, 90);                 // on Mid, clean since 90
+
+        Assert.Null(governor.NotifyStarvation(At(300)));
+
+        Assert.Null(governor.Observe(At(390)));    // five minutes after the step, but not after the starvation
+        Assert.Null(governor.Observe(At(599)));
+        Assert.NotNull(governor.Observe(At(600)));
+    }
+
+    [Fact]
+    public void AProbeThatNeverGoesLive_ReturnsToTheRungItLeftAndCountsAsAFailure()
+    {
+        var governor = OnTheReferenceLadder();
+        StepDown(governor, 30, 90);
+        Assert.NotNull(governor.Observe(At(390))); // probe to High
+        Assert.True(governor.IsProbing);
+        var before = governor.MemoryRevision;
+
+        var back = governor.NotifyProbeNeverLive(At(410));
+
+        Assert.NotNull(back);
+        Assert.Equal(Mid, back.Value.Rung);
+        Assert.Equal(QualityChangeKind.ProbeFailed, back.Value.Kind);
+        Assert.Equal(Mid, governor.Ceiling);
+        Assert.False(governor.IsProbing);
+        Assert.Equal(before + 1, governor.MemoryRevision);
+        var recorded = Assert.Single(governor.Failures);
+        Assert.Equal(High.BandwidthBps, recorded.BandwidthBps);
+        Assert.Equal(1, recorded.Failures);
+        Assert.Null(governor.Observe(At(1009)));   // that rung's wait doubled, from the return
+        Assert.NotNull(governor.Observe(At(1010)));
+    }
+
+    [Fact]
+    public void NeverLiveWithNoProbeOnTrial_DecidesNothing()
+    {
+        var governor = OnTheReferenceLadder();
+        Assert.Null(governor.NotifyProbeNeverLive(At(10)));
+
+        StepDown(governor, 30, 90);
+        Assert.Null(governor.NotifyProbeNeverLive(At(100)));
+
+        Assert.NotNull(governor.Observe(At(390)));
+        Assert.Null(governor.Observe(At(510)));    // the trial settled
+        Assert.Null(governor.NotifyProbeNeverLive(At(520)));
+        Assert.Null(governor.Ceiling);
     }
 
     [Fact]

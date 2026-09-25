@@ -36,8 +36,8 @@ public partial class MainWindow
     // is the classic way to get a correlated sequence out of a clock-seeded generator.
     private readonly Random _randomStationRoll = new();
 
-    private async void PlayRandomStationMenuItem_Click(object sender, RoutedEventArgs e) =>
-        await StartRandomStationHuntAsync();
+    private void PlayRandomStationMenuItem_Click(object sender, RoutedEventArgs e) =>
+        HandlerBoundary.Run(nameof(PlayRandomStationMenuItem_Click), () => StartRandomStationHuntAsync());
 
     private async Task StartRandomStationHuntAsync()
     {
@@ -45,7 +45,7 @@ public partial class MainWindow
 
         // Built once per press, not once per attempt: this walks the whole catalog, and the owner's is
         // about 20 000 rows.
-        var eligible = RandomStationSelection.Eligible(_state.Channels, _state.HiddenCatalogUrls);
+        var eligible = RandomStationSelection.Eligible(_state.Channels, _state.HiddenCatalogUrls, _state.HideAdultContent);
         if (eligible.Count == 0)
         {
             SetStatus("RandomStationNone");

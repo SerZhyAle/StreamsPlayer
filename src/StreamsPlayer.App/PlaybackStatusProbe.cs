@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
@@ -16,8 +17,7 @@ internal static class PlaybackStatusProbe
 
     public static async Task<int?> TryGetStatusAsync(string url, CancellationToken token)
     {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
-            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        if (!LaunchableAddress.TryParseHttp(url, out var uri))
         {
             return null;
         }

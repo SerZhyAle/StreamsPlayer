@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Microsoft.Win32;
 using StreamsPlayer.Core;
 
@@ -41,6 +42,10 @@ public partial class MainWindow
     // Distinguishes the close this file performs on the way to the full window from the one the
     // listener performs with the panel's own close button, which ends the application.
     private bool _closingPanelToExpand;
+
+    // SP-0132: dialogs that came due while the catalog was hidden behind the panel, oldest first.
+    private readonly Queue<Func<Task>> _dialogsAwaitingCatalog = new();
+    private bool _showingDeferredDialogs;
 
     /// <summary>
     /// Whether the catalog window is hidden behind the panel right now.
@@ -110,6 +115,58 @@ public partial class MainWindow
         Show();
         Activate();
         _log.Event("COMPACT PANEL", "state=expanded");
+        if (_dialogsAwaitingCatalog.Count > 0)
+        {
+            HandlerBoundary.Run(nameof(ShowDeferredDialogsAsync), ShowDeferredDialogsAsync);
+        }
+    }
+
+    /// <summary>Raises a dialog owned by the catalog now, or when the listener next expands it.</summary>
+    /// <remarks>
+    /// SP-0132: a catalog refresh keeps running when the listener collapses to the panel, and the questions
+    /// it asks at the end were owned by this window regardless - hidden, so they rendered below the topmost
+    /// panel with no taskbar button: the trap <see cref="IsCompact"/> describes, reached from the other side.
+    /// Re-owning them to the panel is ruled out for the reason recorded there - a window jumping over someone's
+    /// full-screen work. So they wait: the outcome is already on the status line the panel mirrors, and the
+    /// question appears on expand. Only for dialogs raised after an <c>await</c>; a dialog answering a click in
+    /// the visible window cannot find it hidden.
+    /// </remarks>
+    private Task WhenCatalogShownAsync(Func<Task> dialog)
+    {
+        if (!IsCompact)
+        {
+            return dialog();
+        }
+
+        _dialogsAwaitingCatalog.Enqueue(dialog);
+        _log.Event("DIALOG DEFERRED", "reason=catalog_collapsed", $"pending={_dialogsAwaitingCatalog.Count}");
+        return Task.CompletedTask;
+    }
+
+    private async Task ShowDeferredDialogsAsync()
+    {
+        // One drain at a time: accepting a dialog can start an operation, and an expand during it must not
+        // start a second drain that shows the next question over the first one's progress.
+        if (_showingDeferredDialogs)
+        {
+            return;
+        }
+
+        _showingDeferredDialogs = true;
+        try
+        {
+            // ContextIdle sits below layout and render, so the dialog centres on a window already drawn.
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);
+            // Re-checked per dialog, because the listener may collapse again while an accepted one runs.
+            while (!IsCompact && _dialogsAwaitingCatalog.TryDequeue(out var dialog))
+            {
+                await dialog();
+            }
+        }
+        finally
+        {
+            _showingDeferredDialogs = false;
+        }
     }
 
     private void CompactPanel_Closed(object? sender, EventArgs e)
@@ -151,9 +208,9 @@ public partial class MainWindow
 
     /// <summary>Closes the panel during teardown, without letting that close read as "quit".</summary>
     /// <remarks>
-    /// Called from <c>MainWindow_Closing</c> beside <c>CloseOpenPlayerWindows</c>, and for the reason
-    /// recorded there: the catalog must still be open when its last companion window goes, or the
-    /// default <c>OnLastWindowClose</c> shutdown fires before the state has been saved.
+    /// Called from <c>MainWindow_Closing</c> beside <c>CloseOpenPlayerWindows</c>, while the catalog is still
+    /// open. (Under the old <c>OnLastWindowClose</c> shutdown that order was what saved the state; since SP-0120
+    /// the process ends only once the catalog's close work is done.)
     /// </remarks>
     private void CloseCompactPanel()
     {
@@ -176,7 +233,7 @@ public partial class MainWindow
 
     private void CompactPanel_RecordRequested(object? sender, EventArgs e) => ToggleAudioRecording();
 
-    private async void CompactPanel_RandomRequested(object? sender, EventArgs e) => await StartRandomStationHuntAsync();
+    private void CompactPanel_RandomRequested(object? sender, EventArgs e) => HandlerBoundary.Run(nameof(CompactPanel_RandomRequested), () => StartRandomStationHuntAsync());
 
     private void CompactPanel_TopmostToggleRequested(object? sender, EventArgs e)
     {
@@ -246,8 +303,8 @@ public partial class MainWindow
             return;
         }
 
-        var hasStation = _playingAudio is not null || _audioPausedChannel is not null;
-        var row = _playingAudio ?? (_audioPausedChannel is { } paused ? GetOrCreateRow(paused, BuildFaviconAtlasSet()) : null);
+        var hasStation = _playingAudio is not null || _audioPausedChannelId is not null;
+        var row = _playingAudio ?? (PausedAudioChannel is { } paused ? GetOrCreateRow(paused, BuildFaviconAtlasSet()) : null);
         // With no station the header falls back to the full window's now-playing line ("Nothing
         // playing"), so the strip never shows an empty title.
         panel.ShowHeader(
@@ -257,7 +314,7 @@ public partial class MainWindow
             StatusText.Text,
             Title);
         panel.ShowTransport(hasStation, _playingAudio is not null);
-        panel.ShowRecording(hasStation, _audioRecorder is not null);
+        panel.ShowRecording(hasStation, _audioRecorder is not null, AudioRecordUnavailableReason());
         var (canPrevious, canNext) = AudioNavAvailability();
         panel.ShowNavigation(hasStation, canPrevious, canNext);
         panel.ShowChannel(row, _playingAudio is not null);

@@ -6,25 +6,27 @@ using StreamsPlayer.Core;
 
 var outputPath = Path.GetFullPath(args.FirstOrDefault() ?? "favicon-sample.png");
 Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-// SP-0087: the diagnostic now downloads the way the application does. A 30 s HttpClient.Timeout severs
-// the body read even under ResponseHeadersRead, so on a link slower than about 250 KB/s this harness
-// failed where the product - whose catalog client bounds silence rather than duration since SP-0056 -
-// succeeds. A diagnostic that fails differently from the thing it diagnoses is worse than none.
+// SP-0133: the diagnostic fetches the bank through the product's own download - StreamCatalogService's
+// DownloadAsync - so it inherits every rule the product applies: the head bound and the body's silence bound
+// (SP-0087, SP-0129), the whole-archive ceiling (SP-0069), the truncated-ZIP check and the publish-window retry
+// (SP-0107, STREAM-BANK rule 11), and the refusal of an empty bank. A diagnostic that fails differently from the
+// thing it diagnoses is worse than none, and a hand-rolled copy of that sequence had already drifted from it once.
+// DownloadAsync reads and writes no local state; the store is required by the constructor only, so it is given a
+// directory that is never created.
 using var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
 client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("StreamsPlayer-CatalogHarness", "0.1"));
+var unusedStore = new StreamCatalogStore(Path.Combine(Path.GetTempPath(), "StreamsPlayer.CatalogHarness.unused"));
+var service = new StreamCatalogService(client, unusedStore);
 
 Console.WriteLine($"Downloading {StreamCatalogService.CatalogUrl}");
-using var response = await client.GetAsync(StreamCatalogService.CatalogUrl, HttpCompletionOption.ResponseHeadersRead);
-response.EnsureSuccessStatusCode();
-var archive = await HttpDownload.ReadAllBytesAsync(
-    response,
-    progress: null,
-    StreamCatalogService.MaximumArchiveBytes,
-    TimeSpan.FromSeconds(20),
+long archiveBytes = 0;
+var outcome = await service.DownloadAsync(
+    progress: new SynchronousProgress<DownloadProgress>(value => archiveBytes = value.ReceivedBytes),
+    retrying: new SynchronousProgress<PublishWindowRetryNotice>(notice => Console.WriteLine(
+        $"Publish window ({notice.Cause}): attempt {notice.NextAttempt} of {notice.MaximumAttempts} in {notice.Delay.TotalSeconds:0} s")),
     CancellationToken.None);
-Console.WriteLine($"Archive bytes: {archive.Length:N0}");
-using var zipStream = new MemoryStream(archive, writable: false);
-var bank = StreamBankReader.Read(zipStream);
+Console.WriteLine($"Archive bytes: {archiveBytes:N0}");
+var bank = outcome.Bank;
 
 Console.WriteLine($"Valid channels: {bank.Entries.Count:N0}");
 Console.WriteLine($"streams.csv is entry 0: {bank.CsvWasFirstEntry}");
@@ -61,3 +63,12 @@ await using (var file = File.Create(outputPath))
 }
 
 Console.WriteLine($"Wrote tile {index} for '{sample.Title}' to {outputPath}");
+
+/// <summary>
+/// Reports on the calling thread. <see cref="Progress{T}"/> posts to the thread pool in a console process, so a
+/// retry line could print after the result it preceded and the byte count could be read before its last report.
+/// </summary>
+internal sealed class SynchronousProgress<T>(Action<T> report) : IProgress<T>
+{
+    public void Report(T value) => report(value);
+}

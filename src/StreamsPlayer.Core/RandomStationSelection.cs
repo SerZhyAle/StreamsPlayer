@@ -12,15 +12,27 @@ namespace StreamsPlayer.Core;
 public static class RandomStationSelection
 {
     /// <summary>
-    /// Every channel the random command is allowed to offer: audio, launchable, and not hidden.
+    /// Every channel the random command is allowed to offer: audio, launchable, not hidden, and not in the
+    /// adult rubric while the user hides it.
     /// </summary>
     /// <remarks>
-    /// Hiding is catalog-only, matching the rule the list view applies: a <see cref="SourceOrigin.Manual"/>
-    /// or <see cref="SourceOrigin.Imported"/> row that happens to share a URL with a hidden catalog row is
+    /// Hiding applies to bank rows only, matching the rule the list view applies
+    /// (<see cref="ChannelOwnership.IsHidden"/>): a <see cref="SourceOrigin.Manual"/> or
+    /// <see cref="SourceOrigin.Imported"/> row that happens to share a URL with a hidden bank row is
     /// the user's own row and stays eligible. Ordering is the caller's ordering, preserved - the draw is
     /// what introduces randomness, and a selection step that also shuffled would make both untestable.
     /// </remarks>
-    public static List<StreamChannel> Eligible(IReadOnlyList<StreamChannel> channels, IReadOnlyCollection<string> hiddenCatalogUrls)
+    /// <param name="channels">The catalog, in the caller's order.</param>
+    /// <param name="hiddenCatalogUrls">The user's hidden bank addresses.</param>
+    /// <param name="hideAdultContent">
+    /// SP-0132: the "Hide adult channels" setting. Unlike hiding, it has no origin exception - the list drops
+    /// every adult-rubric row while it is on, and a draw that could still start one would be the application
+    /// volunteering exactly what the user asked not to be shown.
+    /// </param>
+    public static List<StreamChannel> Eligible(
+        IReadOnlyList<StreamChannel> channels,
+        IReadOnlyCollection<string> hiddenCatalogUrls,
+        bool hideAdultContent)
     {
         ArgumentNullException.ThrowIfNull(channels);
         ArgumentNullException.ThrowIfNull(hiddenCatalogUrls);
@@ -38,9 +50,12 @@ public static class RandomStationSelection
                 continue;
             }
 
-            if (hidden is not null &&
-                channel.SourceOrigin == SourceOrigin.Catalog &&
-                hidden.Contains(CatalogUrlIdentity.Normalize(channel.Url)))
+            if (hidden is not null && ChannelOwnership.IsHidden(hidden, channel))
+            {
+                continue;
+            }
+
+            if (hideAdultContent && CatalogTopics.IsAdult(channel.Topic))
             {
                 continue;
             }

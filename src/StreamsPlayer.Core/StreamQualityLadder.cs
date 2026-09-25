@@ -38,7 +38,8 @@ public static class StreamQualityLadder
 
     /// <summary>
     /// The rungs of <paramref name="playlistText"/>, ascending by bandwidth; empty when this is not a
-    /// master playlist, when any variant is under-declared, or when fewer than two distinct rungs remain.
+    /// master playlist, when any variant is under-declared, or when fewer than two steppable rungs remain
+    /// (see <see cref="Steppable"/>).
     /// </summary>
     public static IReadOnlyList<StreamQualityRung> Read(string playlistText)
     {
@@ -73,15 +74,43 @@ public static class StreamQualityLadder
             rungs.Add(rung);
         }
 
-        // Distinct by bandwidth: two renditions offered at the same rate are one rung to choose between,
-        // and keeping both would make a "step down one rung" do nothing at all.
-        var ladder = rungs
+        var ladder = Steppable(rungs);
+        return ladder.Count >= 2 ? ladder : [];
+    }
+
+    /// <summary>
+    /// SP-0130: the rungs a ceiling can actually tell apart, ascending by bandwidth.
+    /// <para>The engines cap by <em>resolution</em> and then play the richest rendition that fits: LibVLC
+    /// takes width and height, Flyleaf height alone. A rung is therefore steppable only when no richer
+    /// rendition fits under its own height - otherwise a ceiling set to it plays that richer one instead,
+    /// and a "step" to it re-opens the stream (seconds of black) onto the very rendition it left. Measured
+    /// by height, the one dimension both engines honour, so the rule holds whichever engine is selected;
+    /// what remains is strictly ascending in height as well as in bandwidth.</para>
+    /// <para>Two renditions at the same rate are one rung as well, and the first one listed is kept - the
+    /// order the source offers them in.</para>
+    /// </summary>
+    private static List<StreamQualityRung> Steppable(List<StreamQualityRung> rungs)
+    {
+        var byRate = rungs
             .GroupBy(rung => rung.BandwidthBps)
             .Select(group => group.First())
-            .OrderBy(rung => rung.BandwidthBps)
-            .ToArray();
+            .OrderByDescending(rung => rung.BandwidthBps);
 
-        return ladder.Length >= 2 ? ladder : [];
+        var kept = new List<StreamQualityRung>();
+        var lowestKeptHeight = int.MaxValue;
+        foreach (var rung in byRate)
+        {
+            // Richest first: a rung survives only when it is shorter than every richer one kept so far,
+            // which is exactly "no richer rendition fits under this rung's cap".
+            if (rung.Height < lowestKeptHeight)
+            {
+                kept.Add(rung);
+                lowestKeptHeight = rung.Height;
+            }
+        }
+
+        kept.Reverse();
+        return kept;
     }
 
     /// <summary>The index just past <c>#EXTM3U</c>, or -1 when this text is not an HLS playlist.</summary>

@@ -25,12 +25,22 @@ public partial class PlaybackFailureDialog : Window
     /// <param name="message">
     /// SP-0099: a source that knows why it ended says so instead of the generic "could not be played".
     /// </param>
-    internal PlaybackFailureDialog(string channelTitle, SourceOrigin origin, string report, ChannelAccess access, string? message = null)
+    /// <param name="canRetry">
+    /// SP-0124: false when a retry cannot change the answer - an address that is never launched stays so.
+    /// </param>
+    internal PlaybackFailureDialog(string channelTitle, SourceOrigin origin, string report, ChannelAccess access, string? message = null, bool canRetry = true)
     {
         InitializeComponent();
         _report = report;
         _origin = origin;
         MessageText.Text = message ?? LocalizationService.Format("FailureDialogMessage", StreamTitleFormatter.Display(channelTitle));
+        if (!canRetry)
+        {
+            RetryButton.IsDefault = false;
+            RetryButton.Visibility = Visibility.Collapsed;
+            KeepButton.IsDefault = true; // never the destructive Remove
+        }
+
         RemoveButton.SetResourceReference(ContentControl.ContentProperty,
             origin == SourceOrigin.Catalog ? "FailureHide" : "FailureDelete");
         // SP-0033: the tag explains a failure, so it is only ever shown on this path - a region-locked

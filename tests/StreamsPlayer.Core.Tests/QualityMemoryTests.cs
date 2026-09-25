@@ -174,7 +174,7 @@ public sealed class QualityMemoryTests
     {
         var before = new[] { Entry(Url, Now - TimeSpan.FromHours(1), (2_096_000, 4)) };
 
-        Assert.Empty(QualityMemory.Record(before, Url, [], Middle, Now));
+        Assert.Empty(QualityMemory.Record(before, Url, [], null, Now));
     }
 
     [Fact]
@@ -182,7 +182,52 @@ public sealed class QualityMemoryTests
     {
         var after = QualityMemory.Record([], Url, [new QualityRungMemory(796_000, 0)], Middle, Now);
 
-        Assert.Empty(after);
+        Assert.Empty(Assert.Single(after).Rungs);
+    }
+
+    // SP-0130 question 2: a plain step-down fails no rung, and its ceiling is still worth the next session.
+    [Fact]
+    public void ACeilingAlone_IsRecordedAndRecalled()
+    {
+        var after = QualityMemory.Record([], Url, [], Middle, Now);
+
+        var entry = Assert.Single(after);
+        Assert.Equal(Middle, entry.Ceiling);
+        var recalled = QualityMemory.Recall(after, Url, Now + TimeSpan.FromHours(1));
+        Assert.Equal(QualityCeilingRecall.Applied, recalled.CeilingRecall);
+        Assert.Equal(Middle, recalled.Ceiling);
+        Assert.Empty(recalled.Failures);
+    }
+
+    // SP-0130: a record dated ahead of the clock was written while the clock was wrong. It must not cap every
+    // open, rank first and outlive its retention until real time catches up.
+    [Fact]
+    public void ARecordFromTheFuture_IsNoEvidence()
+    {
+        var entries = new[] { Capped(Now + TimeSpan.FromHours(3), Middle, (2_096_000, 2)) };
+
+        Assert.Equal(QualityRecollection.Nothing.CeilingRecall, QualityMemory.Recall(entries, Url, Now).CeilingRecall);
+        Assert.Empty(QualityMemory.Recall(entries, Url, Now).Failures);
+    }
+
+    [Fact]
+    public void ARecordSlightlyAhead_StillCounts()
+    {
+        var entries = new[] { Capped(Now + TimeSpan.FromMinutes(1), Middle, (2_096_000, 2)) };
+
+        var recalled = QualityMemory.Recall(entries, Url, Now);
+        Assert.Equal(QualityCeilingRecall.Applied, recalled.CeilingRecall);
+        Assert.Equal(2, recalled.Failures[2_096_000]);
+    }
+
+    [Fact]
+    public void RecordingPrunesARecordFromTheFuture()
+    {
+        var future = Entry("https://example.test/other.m3u8", Now + TimeSpan.FromDays(2), (2_096_000, 1));
+
+        var after = QualityMemory.Record([future], Url, [new QualityRungMemory(2_096_000, 1)], Middle, Now);
+
+        Assert.Equal(Now, Assert.Single(after).UpdatedAt);
     }
 
     [Fact]

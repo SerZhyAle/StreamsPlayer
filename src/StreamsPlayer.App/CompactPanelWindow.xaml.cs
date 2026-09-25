@@ -129,13 +129,15 @@ public partial class CompactPanelWindow : Window
         }
     }
 
-    public void ShowRecording(bool hasStation, bool isRecording)
+    /// <param name="unavailableReason">SP-0121: the localization key saying why this station cannot be recorded, or null.</param>
+    public void ShowRecording(bool hasStation, bool isRecording, string? unavailableReason)
     {
         RecordButton.Visibility = hasStation ? Visibility.Visible : Visibility.Collapsed;
+        RecordButton.IsEnabled = unavailableReason is null;
         RecordButton.Style = (Style)FindResource(isRecording ? "StopRecordGlyphOnlyButton" : "RecordGlyphOnlyButton");
         var tip = isRecording ? "StopRecordTip" : "RecordTip";
         var name = isRecording ? "StopRecord" : "Record";
-        RecordButton.SetResourceReference(ToolTipProperty, tip);
+        RecordButton.SetResourceReference(ToolTipProperty, unavailableReason ?? tip);
         RecordButton.SetResourceReference(System.Windows.Automation.AutomationProperties.NameProperty, name);
     }
 

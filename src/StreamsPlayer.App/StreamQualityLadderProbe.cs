@@ -38,8 +38,7 @@ internal static class StreamQualityLadderProbe
 
     public static async Task<StreamQualityLadderReading> ReadAsync(string url, CancellationToken token)
     {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
-            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) ||
+        if (!LaunchableAddress.TryParseHttp(url, out var uri) ||
             !uri.AbsolutePath.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase))
         {
             // DASH, RTSP and progressive sources are deliberately out of scope: the ceiling is only ever

@@ -44,7 +44,7 @@ public partial class MainWindow
         }
     }
 
-    private async void PasteChannelButton_Click(object sender, RoutedEventArgs e) => await PasteChannelAsync();
+    private void PasteChannelButton_Click(object sender, RoutedEventArgs e) => HandlerBoundary.Run(nameof(PasteChannelButton_Click), () => PasteChannelAsync());
 
     /// <summary>
     /// Reads the clipboard, explains whatever it found, and applies only on confirmation. Nothing here
@@ -137,7 +137,7 @@ public partial class MainWindow
     /// </summary>
     private async Task AddSharedChannelAsync(string url)
     {
-        var title = new Uri(url).Host;
+        var title = LaunchableAddress.HostOf(url);
         var kind = StreamMediaKindClassifier.Classify(url);
 
         // A message box rather than ImportPreviewWindow: the payload is one title and one address, and a
@@ -164,7 +164,7 @@ public partial class MainWindow
             AddedAt = DateTimeOffset.UtcNow
         };
 
-        _state = await PersistAsync(_state with { Channels = [.. _state.Channels, channel] });
+        _state = await PersistAsync(state => state with { Channels = [.. state.Channels, channel] });
         _log.Event("SHARE PASTE APPLY", $"url={CatalogUrlIdentity.Redact(url)}");
         PopulateFacets();
         ApplyFilter();

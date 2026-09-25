@@ -23,14 +23,21 @@ public partial class HiddenChannelsWindow : Window
 
     private async void Unhide_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.Tag is not HiddenChannelView view)
+        try
         {
-            return;
-        }
+            if ((sender as FrameworkElement)?.Tag is not HiddenChannelView view)
+            {
+                return;
+            }
 
-        await _unhide(view.Url);
-        _rows.Remove(view);
-        UpdateEmptyState();
+            await _unhide(view.Url);
+            _rows.Remove(view);
+            UpdateEmptyState();
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(Unhide_Click), exception);
+        }
     }
 
     private void UpdateEmptyState()

@@ -42,14 +42,22 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
     private readonly object _pendingGate = new();
     private readonly object _hoverGate = new();
     private readonly object _inflightGate = new();
+    // SP-0120: how long stopping waits for the capture workers. Each one is bounded already - a capture's
+    // native stop is abandoned after VideoFrameCaptureService.NativeStopTimeout - so this is the margin that
+    // keeps any other hang from holding _lifecycle, which the next start and the window's disposal both need.
+    private static readonly TimeSpan WorkerStopTimeout = TimeSpan.FromSeconds(3);
+    // Deliberately never disposed (SP-0120). A late caller - MainWindow_Deactivated, the Closed callback of a
+    // PlayerWindow - can already be queued on _lifecycle when the window disposes this coordinator; disposing
+    // the semaphore left that caller waiting for ever, and a Release on it threw. Neither holds a kernel handle
+    // unless AvailableWaitHandle is read, which nothing here does.
     private readonly SemaphoreSlim _signal = new(0);
     private readonly SemaphoreSlim _lifecycle = new(1, 1);
     private CancellationTokenSource? _session;
     private Task[]? _workers;
-    // SP-0065: _signal and _lifecycle are gone once this is set, so every entry point that waits on one
-    // has to read it first. Shutdown legitimately calls in late - MainWindow_Deactivated, and the Closed
-    // callback of each PlayerWindow this window owns - and an ObjectDisposedException raised inside those
-    // async void handlers takes the process down instead of merely failing a preview.
+    // SP-0065: set once, under _lifecycle, by DisposeAsync. Every entry point reads it before waiting and again
+    // after it has the lock (SP-0120): a caller that passed the first read can be granted the lock after the
+    // disposal released it, and starting a session then would leave capture workers running against a disposed
+    // capture engine. An ObjectDisposedException inside those async void handlers takes the process down.
     private bool _disposed;
 
     public GridPreviewCoordinator(
@@ -86,7 +94,7 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         await _lifecycle.WaitAsync();
         try
         {
-            if (!GridPreviewFeature.CaptureEnabled || _session is not null)
+            if (_disposed || !GridPreviewFeature.CaptureEnabled || _session is not null)
             {
                 return;
             }
@@ -194,60 +202,81 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         await _lifecycle.WaitAsync();
         try
         {
-            if (_session is null)
+            if (!_disposed)
             {
-                _diagnostics?.Invoke("PREVIEW COORD", ["state=stop_noop"]);
-                return;
-            }
-
-            _diagnostics?.Invoke("PREVIEW COORD", ["state=stopping"]);
-
-            var session = _session;
-            var workers = _workers ?? [];
-            _session = null;
-            _workers = null;
-            session.Cancel(); // wakes every worker: WaitAsync(token) and in-flight CaptureAsync both throw
-            try
-            {
-                await Task.WhenAll(workers);
-            }
-            catch (OperationCanceledException)
-            {
-                // Cancellation is the normal grid-exit path.
-            }
-            finally
-            {
-                session.Dispose();
-                while (_queue.TryDequeue(out _))
-                {
-                }
-
-                // The queue and the signal count must fall together: a dropped request that left its
-                // release behind would wake a worker of the next session with nothing to dequeue.
-                while (_signal.Wait(0))
-                {
-                }
-
-                lock (_pendingGate)
-                {
-                    _pending.Clear();
-                    _visibleUrls.Clear();
-                }
-
-                lock (_inflightGate)
-                {
-                    _inflight.Clear();
-                }
-
-                lock (_hoverGate)
-                {
-                    _lastHoverCapture.Clear(); // otherwise it grows with every distinct tile hovered, for the session
-                }
+                await StopSessionAsync();
             }
         }
         finally
         {
             _lifecycle.Release();
+        }
+    }
+
+    /// <summary>Ends the capture session. The caller holds <see cref="_lifecycle"/>.</summary>
+    private async Task StopSessionAsync()
+    {
+        if (_session is null)
+        {
+            _diagnostics?.Invoke("PREVIEW COORD", ["state=stop_noop"]);
+            return;
+        }
+
+        _diagnostics?.Invoke("PREVIEW COORD", ["state=stopping"]);
+
+        var session = _session;
+        var workers = _workers ?? [];
+        _session = null;
+        _workers = null;
+        session.Cancel(); // wakes every worker: WaitAsync(token) and in-flight CaptureAsync both throw
+        var stopped = Task.WhenAll(workers);
+        try
+        {
+            if (await Task.WhenAny(stopped, Task.Delay(WorkerStopTimeout)) == stopped)
+            {
+                await stopped;
+            }
+            else
+            {
+                // A worker is still inside a capture. Its session is cancelled, so it leaves the loop when
+                // the capture returns; waiting for it here would hold the lock the whole time. Its fault, if
+                // it ends in one, is observed here so it is not reported later as an unobserved task.
+                _diagnostics?.Invoke("PREVIEW COORD", ["state=stop_timeout", $"after_ms={WorkerStopTimeout.TotalMilliseconds:F0}"]);
+                _ = stopped.ContinueWith(static task => _ = task.Exception, TaskContinuationOptions.OnlyOnFaulted);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancellation is the normal grid-exit path.
+        }
+        finally
+        {
+            session.Dispose();
+            while (_queue.TryDequeue(out _))
+            {
+            }
+
+            // The queue and the signal count must fall together: a dropped request that left its
+            // release behind would wake a worker of the next session with nothing to dequeue.
+            while (_signal.Wait(0))
+            {
+            }
+
+            lock (_pendingGate)
+            {
+                _pending.Clear();
+                _visibleUrls.Clear();
+            }
+
+            lock (_inflightGate)
+            {
+                _inflight.Clear();
+            }
+
+            lock (_hoverGate)
+            {
+                _lastHoverCapture.Clear(); // otherwise it grows with every distinct tile hovered, for the session
+            }
         }
     }
 
@@ -258,13 +287,26 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
             return;
         }
 
-        // Ordered, not incidental: StopAsync itself returns early on the flag, so it has to run while the
-        // flag is still clear or the workers are never woken and never awaited.
-        await StopAsync();
-        _disposed = true;
+        // SP-0120: the flag is set and the session ended under the same hold of the lock, so no caller can slip
+        // a new session in between them - a caller already queued on the lock is granted it afterwards and
+        // finds the flag. The semaphores stay undisposed for that caller's sake (see their declaration).
+        await _lifecycle.WaitAsync();
+        try
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            await StopSessionAsync();
+        }
+        finally
+        {
+            _lifecycle.Release();
+        }
+
         await _captureService.DisposeAsync();
-        _signal.Dispose();
-        _lifecycle.Dispose();
     }
 
     // On-demand refresh of a single tile after a hover dwell, rate-limited per channel.

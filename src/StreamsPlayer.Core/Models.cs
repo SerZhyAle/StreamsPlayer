@@ -100,11 +100,21 @@ public enum StreamLaunchTargetKind
     Invalid
 }
 
+/// <param name="Url">
+/// For <see cref="StreamLaunchTargetKind.Url"/>, the address to play. For
+/// <see cref="StreamLaunchTargetKind.ChannelId"/>, the optional fallback address (SP-0127) that finds the
+/// channel again once a refresh has replaced its row, and with it the id.
+/// </param>
 public sealed record StreamLaunchRequest(
     StreamLaunchTargetKind Kind,
     string? Url = null,
     Guid? ChannelId = null)
 {
+    /// <summary>
+    /// Accepts <c>--url ADDRESS</c>, <c>--id GUID</c>, or both together in either order (SP-0127: what a
+    /// shortcut carries). Anything else - a repeated or unknown option, a missing value, an address that
+    /// is not launchable - is <see cref="StreamLaunchTargetKind.Invalid"/>.
+    /// </summary>
     public static StreamLaunchRequest Parse(IReadOnlyList<string> arguments)
     {
         if (arguments.Count == 0)
@@ -112,25 +122,36 @@ public sealed record StreamLaunchRequest(
             return new(StreamLaunchTargetKind.None);
         }
 
-        if (arguments.Count != 2)
+        if (arguments.Count is not (2 or 4))
         {
             return new(StreamLaunchTargetKind.Invalid);
         }
 
-        var option = arguments[0];
-        var value = arguments[1].Trim();
-        if (option.Equals("--url", StringComparison.OrdinalIgnoreCase) &&
-            StreamMediaKindClassifier.IsLaunchable(value))
+        string? url = null;
+        Guid? channelId = null;
+        for (var index = 0; index < arguments.Count; index += 2)
         {
-            return new(StreamLaunchTargetKind.Url, Url: value);
+            var option = arguments[index];
+            var value = arguments[index + 1].Trim();
+            if (option.Equals("--url", StringComparison.OrdinalIgnoreCase) && url is null &&
+                StreamMediaKindClassifier.IsLaunchable(value))
+            {
+                url = value;
+            }
+            else if (option.Equals("--id", StringComparison.OrdinalIgnoreCase) && channelId is null &&
+                     Guid.TryParse(value, out var parsed))
+            {
+                channelId = parsed;
+            }
+            else
+            {
+                return new(StreamLaunchTargetKind.Invalid);
+            }
         }
 
-        if (option.Equals("--id", StringComparison.OrdinalIgnoreCase) && Guid.TryParse(value, out var channelId))
-        {
-            return new(StreamLaunchTargetKind.ChannelId, ChannelId: channelId);
-        }
-
-        return new(StreamLaunchTargetKind.Invalid);
+        return channelId is { } id
+            ? new(StreamLaunchTargetKind.ChannelId, Url: url, ChannelId: id)
+            : new(StreamLaunchTargetKind.Url, Url: url);
     }
 }
 
@@ -567,10 +588,23 @@ public sealed record CatalogState
 /// <param name="TargetOrigin">
 /// SP-0098: The provenance stamped on newly added channels, and used to determine update and pruning rights.
 /// </param>
+/// <param name="ReplacesAtlas">
+/// SP-0125: whether the entries arrive with their own atlas, which replaces the one stored for
+/// <paramref name="FaviconSource"/>. Every row that still points into that slot and was not re-indexed by
+/// these entries - a retired row, a row the bank stopped listing, a user row - then loses its index,
+/// because its old offset would land on whichever channel the new sheet put there.
+/// </param>
+/// <param name="RevivesRetired">
+/// SP-0126: whether a retired row these entries list is put back on offer. True for the live bank, which
+/// speaks for the present. False for the bundled snapshot: it is always older than the download that
+/// retired the row, so listing the URL is no evidence the channel came back.
+/// </param>
 public sealed record CatalogMergeOptions(
     bool RemoveMissing = true,
     FaviconSource FaviconSource = FaviconSource.Catalog,
-    SourceOrigin TargetOrigin = SourceOrigin.Catalog)
+    SourceOrigin TargetOrigin = SourceOrigin.Catalog,
+    bool ReplacesAtlas = false,
+    bool RevivesRetired = true)
 {
     public static readonly CatalogMergeOptions CatalogRefresh = new();
 }

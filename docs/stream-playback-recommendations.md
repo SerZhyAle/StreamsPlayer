@@ -431,7 +431,10 @@ Deployment caveats (surface as the experimental label, never as a crash):
   and Settings → Playback states whether they are present. A complete set in an `FFmpeg` folder beside the executable
   still wins if one exists, which keeps a hand-deployed folder working; `FLYLEAF ENGINE` logs
   `source=app` or `source=user` accordingly.
-- The download is **LGPL-3.0** (`BtbN/FFmpeg-Builds`, `ffmpeg-n8.1-latest-win64-lgpl-shared`). The
+- The download is **LGPL-3.0** (`BtbN/FFmpeg-Builds`, an n8.1 `win64-lgpl-shared` build pinned to a
+  month-end `autobuild-*` tag). SP-0128: it is verified against a pinned length and SHA-256 before
+  anything is extracted, bounded by inactivity rather than total time, cancellable from Tools, and
+  swapped in as a whole set or not at all. The
   natives published alongside FlyleafLib itself are built `--enable-gpl --enable-version3`, so they
   are deliberately not used: shipping or fetching them by default would impose GPLv3 terms the
   product does not carry. Both builds export the same sonames, so the bindings bind to either.

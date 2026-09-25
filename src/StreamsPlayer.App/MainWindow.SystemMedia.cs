@@ -8,13 +8,27 @@ public partial class MainWindow
     // (the default), so the app behaves exactly as before.
     private SystemMediaControls? _systemMediaControls;
 
-    // The saved channel a system Pause left behind, so a later system Play restarts it at the
-    // live edge. Non-null only while paused; cleared on any real stop or channel switch.
-    private StreamChannel? _audioPausedChannel;
+    // The id a system Pause left behind. The row is always resolved from current state before it is
+    // displayed or restarted, so a pause cannot later write or show a stale channel snapshot.
+    private Guid? _audioPausedChannelId;
+
+    private StreamChannel? PausedAudioChannel => _audioPausedChannelId is { } id ? ChannelById(id) : null;
 
     // The ordered audio launch context captured when playback started: the filtered view's
     // stable order at that moment. Previous/Next moves through this list, not the live view.
     private List<Guid> _audioNavOrder = [];
+
+    // SP-0132: where each captured id sits in the order above, first occurrence winning as IndexOf did.
+    // Built with the order, so finding the current station is a lookup rather than a scan of it.
+    private Dictionary<Guid, int> _audioNavPositions = [];
+
+    // SP-0132: the catalog by id, rebuilt only when _state.Channels is a different list. The list is always
+    // replaced, never edited in place, so its identity is a sound cache key - the reasoning
+    // BuildFaviconAtlasSet keys on. The compact panel asks on every status, now-playing and volume change;
+    // scanning the catalog for each captured entry there was ~10^8 comparisons with the full bank, on the
+    // UI thread, per volume tick.
+    private Dictionary<Guid, StreamChannel>? _channelsById;
+    private List<StreamChannel>? _channelsByIdSource;
 
     // Latest ICY track text for the playing channel, mirrored into the system session title.
     private string? _currentTrackText;
@@ -30,7 +44,15 @@ public partial class MainWindow
         if (_systemMediaControls is not null)
         {
             _systemMediaControls.CommandRequested += OnSystemMediaCommand;
+            _systemMediaControls.Failed += OnSystemMediaFailed;
         }
+    }
+
+    // SP-0119: the instance stays, inert, so nothing re-creates it - the integration is off for this session.
+    private void OnSystemMediaFailed(Exception exception)
+    {
+        _log.Event("SMTC OFF", $"type={exception.GetType().Name}", $"hresult=0x{exception.HResult:X8}");
+        _log.Error("Windows media controls stopped responding; switched off for this session", exception);
     }
 
     private void DisposeSystemMediaControls()
@@ -41,6 +63,7 @@ public partial class MainWindow
         }
 
         _systemMediaControls.CommandRequested -= OnSystemMediaCommand;
+        _systemMediaControls.Failed -= OnSystemMediaFailed;
         _systemMediaControls.Dispose();
         _systemMediaControls = null;
     }
@@ -56,23 +79,58 @@ public partial class MainWindow
             {
                 PublishAudioSession(playing: true);
             }
-            else if (_audioPausedChannel is not null)
+            else if (_audioPausedChannelId is not null)
             {
                 PublishAudioSession(playing: false);
             }
         }
         else
         {
-            _audioPausedChannel = null;
+            _audioPausedChannelId = null;
             DisposeSystemMediaControls();
         }
     }
 
-    private List<Guid> CaptureAudioNavOrder() =>
-        PinnedRows.Concat(Rows)
+    private void CaptureAudioNavOrder()
+    {
+        _audioNavOrder = PinnedRows.Concat(Rows)
             .Where(row => row.Channel.MediaKind == MediaKind.Audio)
             .Select(row => row.Channel.Id)
             .ToList();
+        _audioNavPositions = new Dictionary<Guid, int>(_audioNavOrder.Count);
+        for (var index = 0; index < _audioNavOrder.Count; index++)
+        {
+            _audioNavPositions.TryAdd(_audioNavOrder[index], index);
+        }
+    }
+
+    private StreamChannel? ChannelById(Guid id)
+    {
+        if (_channelsById is null || !ReferenceEquals(_channelsByIdSource, _state.Channels))
+        {
+            var channels = _state.Channels;
+            var index = new Dictionary<Guid, StreamChannel>(channels.Count);
+            foreach (var channel in channels)
+            {
+                // First occurrence wins, matching the FirstOrDefault this replaces.
+                index.TryAdd(channel.Id, channel);
+            }
+
+            _channelsById = index;
+            _channelsByIdSource = channels;
+        }
+
+        return _channelsById.GetValueOrDefault(id);
+    }
+
+    private int CurrentAudioNavIndex() =>
+        (_playingAudio?.Channel.Id ?? _audioPausedChannelId) is Guid id &&
+        _audioNavPositions.TryGetValue(id, out var index)
+            ? index
+            : -1;
+
+    // An entry stops being available when its row has since been deleted from the catalog.
+    private bool IsAudioNavEntryAvailable(int index) => ChannelById(_audioNavOrder[index]) is not null;
 
     private void PublishAudioSession(bool playing)
     {
@@ -81,7 +139,7 @@ public partial class MainWindow
             return;
         }
 
-        var channel = playing ? _playingAudio?.Channel : _audioPausedChannel;
+        var channel = playing ? _playingAudio?.Channel : PausedAudioChannel;
         if (channel is null)
         {
             return;
@@ -112,13 +170,9 @@ public partial class MainWindow
             return (false, false);
         }
 
-        var currentId = _playingAudio?.Channel.Id ?? _audioPausedChannel?.Id;
-        var current = currentId is Guid id ? _audioNavOrder.IndexOf(id) : -1;
-        var available = _audioNavOrder
-            .Select(channelId => _state.Channels.Any(channel => channel.Id == channelId))
-            .ToList();
-        return (LivePlaybackNavigation.PreviousAvailable(current, available) is not null,
-            LivePlaybackNavigation.NextAvailable(current, available) is not null);
+        var current = CurrentAudioNavIndex();
+        return (LivePlaybackNavigation.PreviousAvailable(current, IsAudioNavEntryAvailable) is not null,
+            LivePlaybackNavigation.NextAvailable(current, _audioNavOrder.Count, IsAudioNavEntryAvailable) is not null);
     }
 
     private void OnSystemMediaCommand(SystemMediaControls.Command command)
@@ -167,7 +221,7 @@ public partial class MainWindow
         // Live has no paused position, so pausing stops the session; the saved channel lets a later
         // Play restart it at the live edge. Keep the system session visible as Paused.
         StopAudioPlayback(clearSystemSession: false);
-        _audioPausedChannel = channel;
+        _audioPausedChannelId = channel.Id;
         // SP-0081: after the field above - this is what turns the panel's controls back on and flips the
         // button to Resume, for a session that is silent but not finished.
         ApplyAudioTransportState();
@@ -178,13 +232,13 @@ public partial class MainWindow
 
     private void ResumeAudio()
     {
-        var channel = _audioPausedChannel;
+        var channel = PausedAudioChannel;
         if (channel is null)
         {
             return;
         }
 
-        _audioPausedChannel = null;
+        _audioPausedChannelId = null;
         _ = PlayChannelAsync(channel, rememberSelection: true);
     }
 
@@ -195,21 +249,16 @@ public partial class MainWindow
             return;
         }
 
-        var currentId = _playingAudio?.Channel.Id ?? _audioPausedChannel?.Id;
-        var current = currentId is Guid id ? _audioNavOrder.IndexOf(id) : -1;
-        var available = _audioNavOrder
-            .Select(channelId => _state.Channels.Any(channel => channel.Id == channelId))
-            .ToList();
+        var current = CurrentAudioNavIndex();
         var target = forward
-            ? LivePlaybackNavigation.NextAvailable(current, available)
-            : LivePlaybackNavigation.PreviousAvailable(current, available);
+            ? LivePlaybackNavigation.NextAvailable(current, _audioNavOrder.Count, IsAudioNavEntryAvailable)
+            : LivePlaybackNavigation.PreviousAvailable(current, IsAudioNavEntryAvailable);
         if (target is not int index)
         {
             return; // no wrap: stop cleanly at either end
         }
 
-        var nextId = _audioNavOrder[index];
-        var channel = _state.Channels.FirstOrDefault(candidate => candidate.Id == nextId);
+        var channel = ChannelById(_audioNavOrder[index]);
         if (channel is null)
         {
             return;

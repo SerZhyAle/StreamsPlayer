@@ -81,31 +81,52 @@ public partial class CollectionsWindow : Window
 
     private async void Create_Click(object sender, RoutedEventArgs e)
     {
-        if (!await _create(NewNameBox.Text))
+        try
         {
-            MessageBox.Show(this, LocalizationService.Get("CollectionNameInvalid"), Title,
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
+            if (!await _create(NewNameBox.Text))
+            {
+                MessageBox.Show(this, LocalizationService.Get("CollectionNameInvalid"), Title,
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-        NewNameBox.Clear();
-        Reload();
+            NewNameBox.Clear();
+            Reload();
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(Create_Click), exception);
+        }
     }
 
     private async void Rename_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter && sender is TextBox box)
+        try
         {
-            e.Handled = true;
-            await ApplyRenameAsync(box);
+            if (e.Key == Key.Enter && sender is TextBox box)
+            {
+                e.Handled = true;
+                await ApplyRenameAsync(box);
+            }
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(Rename_KeyDown), exception);
         }
     }
 
     private async void Rename_LostFocus(object sender, RoutedEventArgs e)
     {
-        if (sender is TextBox box)
+        try
         {
-            await ApplyRenameAsync(box);
+            if (sender is TextBox box)
+            {
+                await ApplyRenameAsync(box);
+            }
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(Rename_LostFocus), exception);
         }
     }
 
@@ -133,18 +154,25 @@ public partial class CollectionsWindow : Window
 
     private async void Delete_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.Tag is not CollectionRowView row)
+        try
         {
-            return;
-        }
+            if ((sender as FrameworkElement)?.Tag is not CollectionRowView row)
+            {
+                return;
+            }
 
-        if (MessageBox.Show(this, LocalizationService.Format("CollectionDeleteConfirm", row.Name), Title,
-                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            if (MessageBox.Show(this, LocalizationService.Format("CollectionDeleteConfirm", row.Name), Title,
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            await _delete(row.Id);
+            Reload();
+        }
+        catch (Exception exception)
         {
-            return;
+            HandlerBoundary.Report(nameof(Delete_Click), exception);
         }
-
-        await _delete(row.Id);
-        Reload();
     }
 }

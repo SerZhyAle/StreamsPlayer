@@ -1,4 +1,6 @@
 using System.IO.Compression;
+using System.Net.Http;
+using System.Security.Cryptography;
 
 namespace StreamsPlayer.Core;
 
@@ -10,10 +12,39 @@ public readonly record struct FFmpegInstallProgress(long ReceivedBytes, long? To
 }
 
 /// <summary>
+/// SP-0128: exactly which archive the installer accepts - an address that never moves, and the length and
+/// SHA-256 digest of the bytes behind it. The digest is pinned in the application (SP-0128 open question 1,
+/// option a): the trust chain is the signed app release itself, and a new FFmpeg build needs a new app
+/// release, which is acceptable for a set that changes rarely.
+/// </summary>
+public sealed record FFmpegComponentsSource(string Url, long Length, string Sha256);
+
+/// <summary>
+/// The downloaded archive is not the pinned build - its length or its SHA-256 digest differs. Nothing
+/// was extracted. A distinct type so the message can say "not the expected file" rather than "damaged".
+/// </summary>
+public sealed class FFmpegArchiveMismatchException(string message) : Exception(message);
+
+/// <summary>
+/// The installed set could not be replaced as a whole, and restoring the previous set failed as well.
+/// The previous libraries were kept in <see cref="PreservedFolder"/> rather than deleted.
+/// </summary>
+public sealed class FFmpegComponentsRollbackException(string message, string preservedFolder, Exception inner)
+    : IOException(message, inner)
+{
+    public string PreservedFolder { get; } = preservedFolder;
+}
+
+/// <summary>
 /// SP-0026 downloader for the FFmpeg native libraries the opt-in FlyleafLib engine needs. Called only
 /// from an explicitly accepted user offer - there is no automatic, startup or background fetch, the
 /// same rule the stream catalog and the channel-preview atlas follow.
 /// </summary>
+/// <remarks>
+/// SP-0128: the archive is native code that will run inside the process, so it is fetched from a fixed
+/// build, verified against a pinned length and digest before anything is extracted, bounded by
+/// inactivity rather than by total duration, cancellable, and published as a whole set or not at all.
+/// </remarks>
 public sealed class FFmpegComponentsInstaller
 {
     /// <summary>
@@ -24,61 +55,95 @@ public sealed class FFmpegComponentsInstaller
     /// same sonames, so <c>Flyleaf.FFmpeg.Bindings</c> binds against it unchanged.
     /// </summary>
     /// <remarks>
-    /// The <c>latest</c> tag is republished continuously, so the bytes behind this URL move. The
-    /// <c>n8.1</c> in the asset name is what actually matters - it pins the ABI generation the
-    /// bindings were generated for. A version-pinned tag would go stale and 404 instead.
+    /// A dated <c>autobuild-*</c> tag, never <c>latest</c>: <c>latest</c> is republished daily, so no
+    /// digest could be pinned against it. BtbN prunes its daily tags after a few weeks but keeps the
+    /// month-end ones (they reach back to 2024-10 at the time of writing), which is why the pin is a
+    /// month-end build. The <c>n8.1</c> ABI generation must match the bindings. To move the pin: pick a
+    /// newer month-end tag, download its <c>win64-lgpl-shared-8.1</c> asset, and update all three values
+    /// from the file itself - its byte length and <c>Get-FileHash -Algorithm SHA256</c>.
     /// </remarks>
-    public const string SourceUrl =
-        "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-lgpl-shared-8.1.zip";
+    public static readonly FFmpegComponentsSource PinnedSource = new(
+        "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-08-31-13-27/ffmpeg-n8.1.2-50-g1a748fe2cd-win64-lgpl-shared-8.1.zip",
+        70_835_150,
+        "e9712ffbdb03ef71bbab660c75b835bfe698ef6fad0247c76d8d394a39a3db63");
+
+    /// <summary>The pinned address, kept as a constant for the licence guard and the log.</summary>
+    public static string SourceUrl => PinnedSource.Url;
 
     /// <summary>Human-readable source, shown in the confirmation so the user can see what is fetched.</summary>
-    public const string SourceDescription = "BtbN/FFmpeg-Builds - FFmpeg n8.1 win64 shared (LGPL-3.0)";
+    public const string SourceDescription = "BtbN/FFmpeg-Builds - FFmpeg n8.1.2 win64 shared (LGPL-3.0), build 2026-08-31";
 
-    /// <summary>The archive is ~67 MB today; this refuses a mispublished or redirected asset.</summary>
-    public const long MaximumArchiveBytes = 256L * 1024 * 1024;
+    /// <summary>Download size in MiB, for the confirmation copy. Not a gate - the pinned length is.</summary>
+    public const int ApproximateDownloadMegabytes = 68;
 
-    /// <summary>Approximate download size, for the confirmation copy. Not a gate.</summary>
-    public const int ApproximateDownloadMegabytes = 67;
+    /// <summary>Installed size of the seven libraries in MiB, for the confirmation copy. Not a gate.</summary>
+    public const int ApproximateInstalledMegabytes = 137;
 
-    /// <summary>Approximate installed size, for the confirmation copy. Not a gate.</summary>
-    public const int ApproximateInstalledMegabytes = 143;
+    /// <summary>
+    /// How long the transfer may deliver nothing - before the headers arrive or between two chunks of the
+    /// body - before it is abandoned. A slow link that keeps sending finishes however long it takes.
+    /// </summary>
+    public static readonly TimeSpan DefaultIdleTimeout = TimeSpan.FromSeconds(30);
 
-    // Sized for a slow link on a payload an order of magnitude larger than the preview atlas.
-    private static readonly TimeSpan Deadline = TimeSpan.FromMinutes(30);
+    private const string StagingMarker = ".incoming-";
+    private const string DownloadMarker = ".download-";
+    private const string PreviousMarker = ".previous-";
 
     private readonly HttpClient _httpClient;
+    private readonly FFmpegComponentsSource _source;
+    private readonly TimeSpan _idleTimeout;
 
-    public FFmpegComponentsInstaller(HttpClient httpClient)
+    /// <param name="httpClient">
+    /// Its <c>HttpClient.Timeout</c> is irrelevant past the head - it never applies to a body read after
+    /// the head has arrived (SP-0129, <c>HttpClientTimeoutPremiseTests</c>) - and this installer bounds the
+    /// head and the body's silence itself.
+    /// </param>
+    /// <param name="source">The archive to accept; <see cref="PinnedSource"/> unless a test says otherwise.</param>
+    /// <param name="idleTimeout">The silence bound; <see cref="DefaultIdleTimeout"/> unless a test says otherwise.</param>
+    public FFmpegComponentsInstaller(
+        HttpClient httpClient,
+        FFmpegComponentsSource? source = null,
+        TimeSpan? idleTimeout = null)
     {
         _httpClient = httpClient;
+        _source = source ?? PinnedSource;
+        _idleTimeout = idleTimeout ?? DefaultIdleTimeout;
     }
 
     /// <summary>
-    /// Downloads the archive and extracts the required libraries into
+    /// Downloads and verifies the archive, then installs the required libraries into
     /// <see cref="FFmpegComponents.ResolveFolder"/> for <paramref name="dataDirectory"/>.
     /// </summary>
     /// <remarks>
-    /// Staged through temporary paths and moved into place only once every required library has been
-    /// extracted, so a failure or a cancellation never leaves a partial set that
-    /// <see cref="FFmpegComponents.IsInstalled"/> would accept and the engine would then fail to load.
+    /// Every intermediate file lives beside the target, inside <paramref name="dataDirectory"/>, and is
+    /// removed on every exit path - success, failure or cancellation. The installed set changes only in
+    /// the final step, which replaces it as a whole or restores the previous one.
     /// </remarks>
     /// <returns>The folder the components were installed into.</returns>
+    /// <exception cref="FFmpegArchiveMismatchException">The archive is not the pinned one.</exception>
+    /// <exception cref="InvalidDataException">The archive lacks a library, or overran the pinned length.</exception>
+    /// <exception cref="TimeoutException">The transfer delivered nothing for the idle bound.</exception>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
     public async Task<string> InstallAsync(
         string dataDirectory,
         IProgress<FFmpegInstallProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        deadline.CancelAfter(Deadline);
-
         var target = FFmpegComponents.ResolveFolder(dataDirectory);
-        var staging = $"{target}.incoming-{Guid.NewGuid():N}";
-        var archivePath = Path.Combine(Path.GetTempPath(), $"streamsplayer-ffmpeg-{Guid.NewGuid():N}.zip");
+        Directory.CreateDirectory(dataDirectory);
+        SweepLeftovers(dataDirectory, target);
+
+        var suffix = Guid.NewGuid().ToString("N");
+        var staging = $"{target}{StagingMarker}{suffix}";
+        var archivePath = $"{target}{DownloadMarker}{suffix}.zip";
 
         try
         {
-            await DownloadArchiveAsync(archivePath, progress, deadline.Token);
+            await DownloadArchiveAsync(archivePath, progress, cancellationToken);
+            await VerifyArchiveAsync(archivePath, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
             ExtractRequiredLibraries(archivePath, staging);
+            // Past this point a cancel no longer applies: the swap is short and must not be interrupted.
             PublishStaging(staging, target);
             return target;
         }
@@ -94,39 +159,62 @@ public sealed class FFmpegComponentsInstaller
         IProgress<FFmpegInstallProgress>? progress,
         CancellationToken cancellationToken)
     {
-        using var response = await _httpClient.GetAsync(
-            SourceUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
-
-        var declared = response.Content.Headers.ContentLength;
-        if (declared > MaximumArchiveBytes)
+        // The silence bound also covers the wait for headers: a TLS or proxy stall before the response
+        // is as much "nothing arriving" as a body that stops mid-way.
+        HttpResponseMessage response;
+        using (var headers = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
         {
-            throw new InvalidDataException(
-                $"The FFmpeg archive is larger than the {MaximumArchiveBytes} byte ceiling.");
+            headers.CancelAfter(_idleTimeout);
+            try
+            {
+                response = await _httpClient.GetAsync(
+                    _source.Url, HttpCompletionOption.ResponseHeadersRead, headers.Token);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new TimeoutException(
+                    $"The server sent no response for {_idleTimeout.TotalSeconds:0} seconds.");
+            }
         }
 
-        await using var source = await response.Content.ReadAsStreamAsync(cancellationToken);
-        await using var destination = new FileStream(
-            archivePath, FileMode.Create, FileAccess.Write, FileShare.None, 128 * 1024, useAsync: true);
-
-        var buffer = new byte[128 * 1024];
-        long received = 0;
-        progress?.Report(new FFmpegInstallProgress(0, declared));
-
-        int read;
-        while ((read = await source.ReadAsync(buffer, cancellationToken)) > 0)
+        using (response)
         {
-            received += read;
-            // A server may under-declare or omit Content-Length, so the ceiling is enforced on the
-            // bytes actually arriving, not only on the header.
-            if (received > MaximumArchiveBytes)
+            response.EnsureSuccessStatusCode();
+
+            var declared = response.Content.Headers.ContentLength;
+            if (declared is not null && declared != _source.Length)
             {
-                throw new InvalidDataException(
-                    $"The FFmpeg archive is larger than the {MaximumArchiveBytes} byte ceiling.");
+                throw new FFmpegArchiveMismatchException(
+                    $"The FFmpeg archive declares {declared} bytes; the pinned build is {_source.Length}.");
             }
 
-            await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
-            progress?.Report(new FFmpegInstallProgress(received, declared));
+            await using var destination = new FileStream(
+                archivePath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 128 * 1024, useAsync: true);
+            var relay = progress is null
+                ? null
+                : new ProgressRelay(report => progress.Report(new FFmpegInstallProgress(report.ReceivedBytes, report.TotalBytes)));
+
+            // The ceiling is the pinned length itself: one byte more is already not the pinned file.
+            await HttpDownload.CopyToAsync(
+                response, destination, relay, _source.Length, _idleTimeout, cancellationToken);
+        }
+    }
+
+    private async Task VerifyArchiveAsync(string archivePath, CancellationToken cancellationToken)
+    {
+        await using var stream = new FileStream(
+            archivePath, FileMode.Open, FileAccess.Read, FileShare.Read, 128 * 1024, useAsync: true);
+        if (stream.Length != _source.Length)
+        {
+            throw new FFmpegArchiveMismatchException(
+                $"The FFmpeg archive is {stream.Length} bytes; the pinned build is {_source.Length}.");
+        }
+
+        var digest = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream, cancellationToken));
+        if (!string.Equals(digest, _source.Sha256, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new FFmpegArchiveMismatchException(
+                $"The FFmpeg archive digest {digest} does not match the pinned {_source.Sha256}.");
         }
     }
 
@@ -151,16 +239,138 @@ public sealed class FFmpegComponentsInstaller
         }
     }
 
-    private static void PublishStaging(string staging, string target)
+    /// <summary>
+    /// Replaces the required libraries in <paramref name="target"/> as a set. The current ones are first
+    /// moved aside into a sibling folder, then the new ones moved in; if any single move fails, every
+    /// completed move is reversed, so the target ends up holding either the whole new set or exactly what
+    /// it held before. Other files in the target (a licence copy, extra plugins) are never touched.
+    /// </summary>
+    internal static void PublishStaging(string staging, string target)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-
-        // Move each library rather than the folder: the target may already hold an older or partial set,
-        // and a directory move onto an existing directory fails.
         Directory.CreateDirectory(target);
-        foreach (var library in FFmpegComponents.RequiredLibraries)
+        var previous = $"{target}{PreviousMarker}{Guid.NewGuid():N}";
+        var movedAside = new List<string>();
+        var movedIn = new List<string>();
+
+        try
         {
-            File.Move(Path.Combine(staging, library), Path.Combine(target, library), overwrite: true);
+            foreach (var library in FFmpegComponents.RequiredLibraries)
+            {
+                var current = Path.Combine(target, library);
+                if (File.Exists(current))
+                {
+                    Directory.CreateDirectory(previous);
+                    File.Move(current, Path.Combine(previous, library));
+                    movedAside.Add(library);
+                }
+            }
+
+            foreach (var library in FFmpegComponents.RequiredLibraries)
+            {
+                File.Move(Path.Combine(staging, library), Path.Combine(target, library));
+                movedIn.Add(library);
+            }
+        }
+        catch (Exception failure) when (failure is IOException or UnauthorizedAccessException)
+        {
+            if (!TryRollBack(staging, target, previous, movedIn, movedAside))
+            {
+                throw new FFmpegComponentsRollbackException(
+                    "The FFmpeg components could not be replaced, and the previous set could not be fully " +
+                    $"restored; its libraries were kept in {previous}.",
+                    previous,
+                    failure);
+            }
+
+            DiscardFolder(previous);
+            RemoveIfEmpty(target);
+            throw;
+        }
+
+        // Best effort: the old set is no longer needed. A file that cannot be deleted now is swept by the
+        // next install once a complete set is in place.
+        DiscardFolder(previous);
+    }
+
+    private static bool TryRollBack(
+        string staging,
+        string target,
+        string previous,
+        IEnumerable<string> movedIn,
+        IEnumerable<string> movedAside)
+    {
+        var restored = true;
+        foreach (var library in movedIn)
+        {
+            restored &= TryMove(Path.Combine(target, library), Path.Combine(staging, library));
+        }
+
+        foreach (var library in movedAside)
+        {
+            restored &= TryMove(Path.Combine(previous, library), Path.Combine(target, library));
+        }
+
+        return restored;
+    }
+
+    private static bool TryMove(string from, string to)
+    {
+        try
+        {
+            File.Move(from, to);
+            return true;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Removes what an interrupted earlier run (a crash, a killed process) left beside the target. A
+    /// moved-aside previous set is only removed once a complete set is installed - until then it may be
+    /// the only copy of the user's libraries.
+    /// </summary>
+    private static void SweepLeftovers(string dataDirectory, string target)
+    {
+        var name = Path.GetFileName(target);
+        IEnumerable<string> entries;
+        try
+        {
+            entries = Directory.EnumerateFileSystemEntries(dataDirectory, $"{name}.*").ToList();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return;
+        }
+
+        var complete = FFmpegComponents.IsInstalled(target);
+        foreach (var entry in entries)
+        {
+            var leaf = Path.GetFileName(entry);
+            if (leaf.StartsWith(name + StagingMarker, StringComparison.OrdinalIgnoreCase)
+                || (complete && leaf.StartsWith(name + PreviousMarker, StringComparison.OrdinalIgnoreCase)))
+            {
+                DiscardFolder(entry);
+            }
+            else if (leaf.StartsWith(name + DownloadMarker, StringComparison.OrdinalIgnoreCase))
+            {
+                Discard(entry);
+            }
+        }
+    }
+
+    private static void RemoveIfEmpty(string folder)
+    {
+        try
+        {
+            if (Directory.Exists(folder) && !Directory.EnumerateFileSystemEntries(folder).Any())
+            {
+                Directory.Delete(folder);
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
         }
     }
 
@@ -175,7 +385,8 @@ public sealed class FFmpegComponentsInstaller
         }
         catch (IOException)
         {
-            // A leftover temp file is not worth failing an otherwise complete install over.
+            // A leftover temp file is not worth failing an otherwise complete install over; the next
+            // install sweeps it.
         }
         catch (UnauthorizedAccessException)
         {
@@ -197,5 +408,11 @@ public sealed class FFmpegComponentsInstaller
         catch (UnauthorizedAccessException)
         {
         }
+    }
+
+    /// <summary>Synchronous forwarding: <see cref="Progress{T}"/> would post, and reorder, the reports.</summary>
+    private sealed class ProgressRelay(Action<DownloadProgress> report) : IProgress<DownloadProgress>
+    {
+        public void Report(DownloadProgress value) => report(value);
     }
 }

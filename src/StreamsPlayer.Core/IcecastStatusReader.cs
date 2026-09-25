@@ -17,10 +17,18 @@ public sealed class IcecastStatusReader
     public static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
 
     private readonly HttpClient _httpClient;
+    private readonly TimeSpan _requestTimeout;
 
     public IcecastStatusReader(HttpClient httpClient)
+        : this(httpClient, RequestTimeout)
+    {
+    }
+
+    /// <summary>Tests shorten the deadline; the product always uses <see cref="RequestTimeout"/>.</summary>
+    internal IcecastStatusReader(HttpClient httpClient, TimeSpan requestTimeout)
     {
         _httpClient = httpClient;
+        _requestTimeout = requestTimeout;
     }
 
     public async Task<IcecastStatusReadOutcome> ReadAsync(
@@ -40,14 +48,17 @@ public sealed class IcecastStatusReader
             while (true)
             {
                 using var requestDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                requestDeadline.CancelAfter(RequestTimeout);
+                requestDeadline.CancelAfter(_requestTimeout);
                 using var response = await _httpClient.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead, requestDeadline.Token);
                 if (!response.IsSuccessStatusCode)
                 {
                     return IcecastStatusReadOutcome.EndpointUnavailable;
                 }
 
-                var payload = await ReadDocumentAsync(response, cancellationToken);
+                // SP-0129: the body is read under the same request deadline as the head. It used to be read
+                // under the caller's token only, on a client with no timeout, so a server that answered and
+                // then held the body open blocked the now-playing fallback for the whole session.
+                var payload = await ReadDocumentAsync(response, _requestTimeout, requestDeadline.Token);
                 if (payload is null || !IcecastStatusParser.TryExtractTitle(payload, streamUri, out var title))
                 {
                     return IcecastStatusReadOutcome.Malformed;
@@ -79,30 +90,27 @@ public sealed class IcecastStatusReader
         {
             return IcecastStatusReadOutcome.EndpointUnavailable;
         }
+        catch (TimeoutException)
+        {
+            return IcecastStatusReadOutcome.EndpointUnavailable;
+        }
     }
 
-    private static async Task<string?> ReadDocumentAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    /// <returns>The document, or <c>null</c> when it is larger than <see cref="MaximumDocumentBytes"/>.</returns>
+    private static async Task<string?> ReadDocumentAsync(
+        HttpResponseMessage response, TimeSpan requestTimeout, CancellationToken requestDeadline)
     {
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        var buffer = new byte[8192];
-        await using var body = new MemoryStream();
-
-        while (true)
+        try
         {
-            var read = await stream.ReadAsync(buffer, cancellationToken);
-            if (read == 0)
-            {
-                break;
-            }
-
-            if (body.Length + read > MaximumDocumentBytes)
-            {
-                return null;
-            }
-
-            await body.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+            // The deadline token already bounds the whole read; the silence bound equal to it only lets the
+            // shared loop do the ceiling and the short-read check.
+            var bytes = await HttpDownload.ReadAllBytesAsync(
+                response, progress: null, MaximumDocumentBytes, requestTimeout, requestDeadline);
+            return Encoding.UTF8.GetString(bytes);
         }
-
-        return Encoding.UTF8.GetString(body.GetBuffer(), 0, checked((int)body.Length));
+        catch (InvalidDataException)
+        {
+            return null;
+        }
     }
 }

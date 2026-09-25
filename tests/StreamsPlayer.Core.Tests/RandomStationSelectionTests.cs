@@ -14,7 +14,7 @@ public sealed class RandomStationSelectionTests
             Channel("rtsp://example.com/cam", MediaKind.Rtsp)
         };
 
-        var eligible = RandomStationSelection.Eligible(channels, []);
+        var eligible = RandomStationSelection.Eligible(channels, [], hideAdultContent: false);
 
         Assert.Equal(["https://example.com/radio"], eligible.Select(channel => channel.Url));
     }
@@ -24,7 +24,7 @@ public sealed class RandomStationSelectionTests
     {
         var channels = new[] { Channel("https://Example.COM/radio", MediaKind.Audio) };
 
-        var eligible = RandomStationSelection.Eligible(channels, ["https://example.com/radio"]);
+        var eligible = RandomStationSelection.Eligible(channels, ["https://example.com/radio"], hideAdultContent: false);
 
         Assert.Empty(eligible);
     }
@@ -40,7 +40,7 @@ public sealed class RandomStationSelectionTests
             Channel("https://example.com/radio", MediaKind.Audio, SourceOrigin.Imported)
         };
 
-        var eligible = RandomStationSelection.Eligible(channels, ["https://example.com/radio"]);
+        var eligible = RandomStationSelection.Eligible(channels, ["https://example.com/radio"], hideAdultContent: false);
 
         Assert.Equal(2, eligible.Count);
     }
@@ -55,7 +55,7 @@ public sealed class RandomStationSelectionTests
             Channel("https://example.com/radio", MediaKind.Audio)
         };
 
-        var eligible = RandomStationSelection.Eligible(channels, []);
+        var eligible = RandomStationSelection.Eligible(channels, [], hideAdultContent: false);
 
         Assert.Equal(["https://example.com/radio"], eligible.Select(channel => channel.Url));
     }
@@ -67,7 +67,7 @@ public sealed class RandomStationSelectionTests
             .Select(index => Channel($"https://example.com/{index}", MediaKind.Audio))
             .ToArray();
 
-        var eligible = RandomStationSelection.Eligible(channels, []);
+        var eligible = RandomStationSelection.Eligible(channels, [], hideAdultContent: false);
 
         Assert.Equal(channels.Select(channel => channel.Url), eligible.Select(channel => channel.Url));
     }
@@ -87,9 +87,41 @@ public sealed class RandomStationSelectionTests
             Channel("https://example.com/offered", MediaKind.Audio)
         };
 
-        var eligible = RandomStationSelection.Eligible(channels, []);
+        var eligible = RandomStationSelection.Eligible(channels, [], hideAdultContent: false);
 
         Assert.Equal(["https://example.com/offered"], eligible.Select(channel => channel.Url));
+    }
+
+    // SP-0132: the list and the facets already drop the adult rubric while "Hide adult channels" is on;
+    // the draw did not, so "surprise me" could start exactly what the user asked not to be shown. No origin
+    // exception, because the list has none either.
+    [Fact]
+    public void Eligible_DropsAdultRowsOfEveryOriginWhileTheyAreHidden()
+    {
+        var channels = new[]
+        {
+            Channel("https://example.com/adult", MediaKind.Audio) with { Topic = CatalogTopics.Adult },
+            Channel("https://example.com/own-adult", MediaKind.Audio, SourceOrigin.Manual) with { Topic = " adult " },
+            Channel("https://example.com/news", MediaKind.Audio) with { Topic = "News" }
+        };
+
+        var eligible = RandomStationSelection.Eligible(channels, [], hideAdultContent: true);
+
+        Assert.Equal(["https://example.com/news"], eligible.Select(channel => channel.Url));
+    }
+
+    [Fact]
+    public void Eligible_KeepsAdultRowsWhenTheSettingIsOff()
+    {
+        var channels = new[]
+        {
+            Channel("https://example.com/adult", MediaKind.Audio) with { Topic = CatalogTopics.Adult },
+            Channel("https://example.com/news", MediaKind.Audio) with { Topic = "News" }
+        };
+
+        var eligible = RandomStationSelection.Eligible(channels, [], hideAdultContent: false);
+
+        Assert.Equal(2, eligible.Count);
     }
 
     [Fact]

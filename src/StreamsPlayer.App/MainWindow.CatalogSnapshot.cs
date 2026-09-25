@@ -53,7 +53,7 @@ public partial class MainWindow
         }
 
         // The Tools action is the way back for a user who changes their mind.
-        _state = await PersistAsync(_state with { CatalogSnapshotOfferDeclined = true });
+        _state = await PersistAsync(state => state with { CatalogSnapshotOfferDeclined = true });
         _log.Event("CATALOG SNAPSHOT", "op=offer", "result=declined");
     }
 
@@ -87,7 +87,7 @@ public partial class MainWindow
                 // The built-in copy was this dialog's second button, so refusing the dialog refuses it
                 // too. Without this write the inline bar would re-offer on the next launch exactly what
                 // the user just declined.
-                _state = await PersistAsync(_state with { CatalogSnapshotOfferDeclined = true });
+                _state = await PersistAsync(state => state with { CatalogSnapshotOfferDeclined = true });
                 break;
         }
     }
@@ -130,7 +130,7 @@ public partial class MainWindow
     /// </summary>
     private async Task ApplyBundledSnapshotAsync(Window owner)
     {
-        if (!_preferencesLoaded || _applyingCatalogSnapshot)
+        if (!_preferencesLoaded || _applyingCatalogSnapshot || _busy)
         {
             return;
         }
@@ -148,11 +148,20 @@ public partial class MainWindow
         await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render);
         try
         {
-            // Not routed through PersistAsync: that helper saves state alone, and the snapshot has to
-            // install its atlas in the same write. The Core service is the only writer here, exactly as
-            // it is for an online refresh.
-            var result = await new CatalogSnapshotService(_store).ApplyBundledAsync(_state);
-            _state = result.State;
+            var outcome = CatalogSnapshotService.Prepare(BundledCatalogSnapshot.Read());
+            CatalogSnapshotApplyResult? result = null;
+            _state = await PersistAsync(
+                state => (result = outcome.Apply(state)).State,
+                (state, cancellationToken) => _store.SaveAsync(
+                    state,
+                    outcome.Snapshot.Bank.FaviconAtlas,
+                    outcome.ReplacesAtlas,
+                    AtlasSlot.Snapshot,
+                    cancellationToken));
+            if (result is null)
+            {
+                return;
+            }
             _log.Event("CATALOG SNAPSHOT", $"added={result.Added}", $"updated={result.Updated}",
                 $"date={result.SourceDate:yyyy-MM-dd}");
             PopulateFacets();
@@ -168,9 +177,16 @@ public partial class MainWindow
         {
             _log.Error("Bundled catalog snapshot could not be applied", exception);
             SetStatus("CatalogSnapshotFailed");
-            MessageBox.Show(owner, FailureCauseText.Compose(LocalizationService.Get("CatalogSnapshotFailed"), exception),
-                LocalizationService.Get("CatalogSnapshotTitle"),
-                MessageBoxButton.OK, MessageBoxImage.Error);
+            var message = FailureCauseText.Compose(LocalizationService.Get("CatalogSnapshotFailed"), exception);
+            // SP-0132: the apply awaits a 15 MB write, long enough to collapse to the panel when it was started
+            // from an offer on this window. Started from the modal Tools window, the catalog cannot be collapsed
+            // and this shows at once, on that owner.
+            await WhenCatalogShownAsync(() =>
+            {
+                MessageBox.Show(owner, message, LocalizationService.Get("CatalogSnapshotTitle"),
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return Task.CompletedTask;
+            });
         }
         finally
         {

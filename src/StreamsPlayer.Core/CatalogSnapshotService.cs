@@ -25,44 +25,31 @@ public sealed class CatalogSnapshotService
         CancellationToken cancellationToken = default) =>
         ApplyAsync(BundledCatalogSnapshot.Read(), currentState, cancellationToken);
 
-    public async Task<CatalogSnapshotApplyResult> ApplyAsync(
-        CatalogSnapshot snapshot,
-        CatalogState currentState,
-        CancellationToken cancellationToken = default)
+    /// <summary>Validates a snapshot and returns an outcome that can be applied to the latest state.</summary>
+    public static CatalogSnapshotOutcome Prepare(CatalogSnapshot snapshot)
     {
+        ArgumentNullException.ThrowIfNull(snapshot);
         if (snapshot.Bank.Entries.Count == 0)
         {
             throw new InvalidDataException("The bundled catalog snapshot contains no valid channels.");
         }
 
-        var bankCarriedAtlas = snapshot.Bank.FaviconAtlas is { Length: > 0 };
-        var entries = bankCarriedAtlas
-            ? snapshot.Bank.Entries
-            : [.. snapshot.Bank.Entries.Select(entry => entry with { FaviconIndex = null })];
+        return new CatalogSnapshotOutcome(snapshot);
+    }
 
-        var merge = CatalogMerger.Merge(
-            currentState.Channels,
-            entries,
-            DateTimeOffset.UtcNow,
-            new CatalogMergeOptions(RemoveMissing: false, FaviconSource: FaviconSource.Snapshot));
-
-        // LastCatalogRefreshAt is deliberately left alone: bundled data must not claim to be a download,
-        // and the interface keeps inviting the user to update precisely because that field is still unset.
-        var state = currentState with
-        {
-            Channels = merge.Channels.ToList(),
-            AppliedSnapshotDate = snapshot.SourceDate
-        };
-
-        // The same conditional the online refresh uses, for the same reason: a bank whose atlas is absent
-        // - or one this reader rejected for size - must not delete the atlas already installed in its slot.
-        state = await _store.SaveAsync(
-            state,
-            snapshot.Bank.FaviconAtlas,
-            replaceAtlas: snapshot.Bank.FaviconAtlas is { Length: > 0 },
+    public async Task<CatalogSnapshotApplyResult> ApplyAsync(
+        CatalogSnapshot snapshot,
+        CatalogState currentState,
+        CancellationToken cancellationToken = default)
+    {
+        var outcome = Prepare(snapshot);
+        var result = outcome.Apply(currentState);
+        var state = await _store.SaveAsync(
+            result.State,
+            outcome.Snapshot.Bank.FaviconAtlas,
+            outcome.ReplacesAtlas,
             AtlasSlot.Snapshot,
             cancellationToken);
-
-        return new CatalogSnapshotApplyResult(state, merge.Added, merge.Updated, snapshot.SourceDate);
+        return result with { State = state };
     }
 }

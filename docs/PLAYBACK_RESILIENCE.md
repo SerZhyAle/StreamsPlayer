@@ -309,13 +309,24 @@ interval, whatever any number claims.
 - **Down:** two starvations inside `StarvationWindow` = **120 s** → step down exactly one rung. A
   starvation is a `PLAYBACK STALL` after live, or a caught freeze from §3. Two, not one, so a single
   hiccup never costs quality - which is also what keeps a healthy stream from ever reaching the rule.
+- **A rung is what a cap can tell apart (SP-0130).** The engines cap by resolution - LibVLC by width and
+  height, Flyleaf by height alone - and play the richest rendition that fits. The ladder therefore keeps a
+  rendition only when no richer one fits under its height: same-resolution bitrates collapse to the
+  richest, so no step re-opens onto the picture it left. Apple's bipbop sample: 24 variants, 6 rungs.
+- **Clean means clean (SP-0130).** Any starvation restarts the interval a probe waits for, including one
+  too isolated to step down.
 - **Up is a trial, not a deduction.** On a lower rung the player is not saturating the link, so nothing it
   can measure proves the higher rung is deliverable now. The probe is a real switch.
+- **A probe that never goes live is only a failed probe (SP-0130).** If the probed rendition errors, ends
+  or hits the open budget before live, the player records the failure against that rung and re-opens
+  the rung it left (`reason=probe_never_live_<trigger>`) - no open verdict, no recovery budget, no dialog.
 - **The wait belongs to the rung, not to the player.** Base `FirstProbeAfter` = **5 min**, doubled once
   per recorded failure *of that rung*, capped at `MaximumProbeWait` = **1 h**. A probe is a success once
   it survives one full starvation window, and success forgives **only its own** rung.
 - **A rung's record outlives the window.** `quality-memory.json`, keyed by normalized URL and by rung
   **bandwidth** (a source may re-encode), expires after **7 days**, capped at **200** sources.
+  A record dated more than `FutureTolerance` = **5 min** ahead of the clock is expired too (SP-0130): it
+  was written under a wrong clock and would otherwise never age.
 - Every change is a re-open, because libvlc fixes adaptive options at media-open time. A downgrade
   triggered by a freeze rides the recovery re-open that was coming anyway and costs nothing extra.
 
@@ -327,7 +338,9 @@ The record therefore also carries **the ceiling that was in effect**, as a full 
 take a ceiling as a *resolution* and the bandwidth key cannot be turned into one without a ladder.
 
 - **Where the session opens** is what the last session settled on - `AdaptiveQualityGovernor.Ceiling`,
-  which is null on the top rung, so an unrestricted session hands on no cap.
+  which is null on the top rung, so an unrestricted session hands on no cap. SP-0130: written on every
+  settled move - a plain step-down, a failed probe, a probe that survives its window - so a ceiling reached
+  without any failed rung is remembered too; a probe still on trial is not.
 - **Two lifetimes in one record.** Failure counts keep the 7 days; the ceiling is applied for
   `BlindCeilingRetention` = **24 h**. A count only changes how eagerly a rung is retried; a cap applied
   before a single observation decides what the user sees and he cannot know it happened. The day is also
@@ -439,6 +452,8 @@ look the same in an archive.
 |---|---|
 | `PLAYBACK OPEN` | `reason=` (initial/quality/recover/retry), `cache_ms=`, `engine=`, `ceiling=` |
 | `PLAYBACK LIVE` | `ttff_ms=` - the black-screen cost of that leg |
+| `PLAYBACK SHOWN` | `frames=`, `at_ms=` - once per window, the first time the engine's displayed-picture counter moved; LIVE is only a full buffer (SP-0133) |
+| `AUDIO HEARD` / `AUDIO SILENT` | `played_buffers=`, `decoded_blocks=`, `lost_buffers=`, `after_live_ms=` - radio's output after `AUDIO LIVE`: a played buffer, or none within 20 s (SP-0133) |
 | `PLAYBACK STALL` / `RESUME` | buffer emptied / refilled after live |
 | `PLAYBACK WATCHDOG` | `kind=frozen` or `kind=stuck_buffer` |
 | `PLAYBACK GIVEUP` | `rule=dead_source\|deadline`, `at_ms=`, `leg=`, `bytes=` - §3a decided this leg is not going to open |

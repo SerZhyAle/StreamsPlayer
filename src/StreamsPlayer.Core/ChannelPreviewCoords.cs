@@ -22,7 +22,8 @@ public static class ChannelPreviewCoords
             return new Dictionary<string, int>(StringComparer.Ordinal);
         }
 
-        using var document = JsonDocument.Parse(json);
+        // SP-0126: a publisher that writes a UTF-8 byte-order mark must not make the sidecar unreadable.
+        using var document = JsonDocument.Parse(json.TrimStart('﻿'));
         if (document.RootElement.ValueKind != JsonValueKind.Object)
         {
             return new Dictionary<string, int>(StringComparer.Ordinal);

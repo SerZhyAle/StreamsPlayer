@@ -1,4 +1,5 @@
 using System.Windows;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
@@ -12,8 +13,7 @@ public partial class ImportUrlWindow : Window
 
     private void Confirm_Click(object sender, RoutedEventArgs e)
     {
-        if (!Uri.TryCreate(PlaylistUrl, UriKind.Absolute, out var uri) ||
-            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        if (!LaunchableAddress.TryParseHttp(PlaylistUrl, out _))
         {
             MessageBox.Show(this, LocalizationService.Get("ImportUrlInvalid"),
                 LocalizationService.Get("InvalidUrlTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);

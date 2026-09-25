@@ -12,6 +12,11 @@ public sealed class StreamCatalogStore
     private const string ImportedAtlasFilePrefix = "imported-atlas-";
     private const string AtlasFileExtension = ".png";
 
+    // SP-0125: what the FaviconSource converter reads a value it does not know as. Deliberately not a
+    // member of the enum - it exists only between deserialization and NormalizeUnreadableFaviconSources,
+    // so no other code can ever see it and it is never written back.
+    private const FaviconSource UnreadableFaviconSource = (FaviconSource)(-1);
+
     // A stranded temp file is only swept once it is far too old to belong to an in-flight save - including
     // one made by a second running instance, which this process cannot see.
     private static readonly TimeSpan TemporaryFileRetention = TimeSpan.FromHours(1);
@@ -45,10 +50,10 @@ public sealed class StreamCatalogStore
             new TolerantEnumConverter<ChannelAccess>(ChannelAccess.Open),
             new TolerantEnumConverter<MediaKind>(MediaKind.Video),
             new TolerantEnumConverter<SourceOrigin>(SourceOrigin.Manual),
-            // SP-0052: an unreadable atlas ownership reads as Catalog, whose worst case is an icon that
-            // does not render. The alternative failure - resolving an index against the wrong atlas -
-            // shows another channel's icon, which is a wrong answer rather than a missing one.
-            new TolerantEnumConverter<FaviconSource>(FaviconSource.Catalog),
+            // SP-0052 / SP-0125: an unreadable atlas ownership says nothing about which sheet the row's
+            // index belongs to, and resolved against any installed sheet it would show another channel's
+            // icon. It reads as a sentinel that the load turns into Catalog with no index - the monogram.
+            new TolerantEnumConverter<FaviconSource>(UnreadableFaviconSource),
             new TolerantNullableEnumConverter<PlayOutcome>(),
             new JsonStringEnumConverter()
         }
@@ -105,9 +110,25 @@ public sealed class StreamCatalogStore
         // Dispatcher put that continuation in front of the user's next keystroke for no reason - none of
         // this touches UI state.
         await using var stream = File.OpenRead(_statePath);
-        return await JsonSerializer
+        var state = await JsonSerializer
             .DeserializeAsync<CatalogState>(stream, _jsonOptions, cancellationToken)
             .ConfigureAwait(false) ?? new CatalogState();
+        return NormalizeUnreadableFaviconSources(state);
+    }
+
+    private static CatalogState NormalizeUnreadableFaviconSources(CatalogState state)
+    {
+        if (!state.Channels.Any(channel => channel.FaviconSource == UnreadableFaviconSource))
+        {
+            return state;
+        }
+
+        return state with
+        {
+            Channels = [.. state.Channels.Select(channel => channel.FaviconSource == UnreadableFaviconSource
+                ? channel with { FaviconSource = FaviconSource.Catalog, FaviconIndex = null }
+                : channel)]
+        };
     }
 
     public async Task<CatalogState> SaveAsync(

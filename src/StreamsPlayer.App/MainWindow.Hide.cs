@@ -14,9 +14,7 @@ public partial class MainWindow
             : new HashSet<string>(_state.HiddenCatalogUrls.Select(CatalogUrlIdentity.Normalize), StringComparer.Ordinal);
 
     private static bool IsHiddenBySet(HashSet<string> hiddenIdentities, StreamChannel channel) =>
-        hiddenIdentities.Count > 0 &&
-        channel.SourceOrigin == SourceOrigin.Catalog &&
-        hiddenIdentities.Contains(CatalogUrlIdentity.Normalize(channel.Url));
+        ChannelOwnership.IsHidden(hiddenIdentities, channel);
 
     /// <summary>User-confirmed removal. Catalog rows are hidden; Manual/Imported rows are deleted.</summary>
     private Task RemoveChannelAsync(StreamChannel channel) =>
@@ -32,7 +30,7 @@ public partial class MainWindow
             return;
         }
 
-        _state = await PersistAsync(_state with { HiddenCatalogUrls = [.. _state.HiddenCatalogUrls, channel.Url] });
+        _state = await PersistAsync(state => state with { HiddenCatalogUrls = [.. state.HiddenCatalogUrls, channel.Url] });
         ForgetRow(channel.Id);
         _log.Event("CHANNEL HIDE", $"url={channel.Url}");
         PopulateFacets();
@@ -49,10 +47,10 @@ public partial class MainWindow
 
         // Rebuild the list without this row, matching strictly by Id so a colliding-URL row is never touched.
         // SP-0017: the same save drops its collection memberships; the collections themselves stay.
-        _state = await PersistAsync(_state with
+        _state = await PersistAsync(state => state with
         {
-            Channels = _state.Channels.Where(item => item.Id != channel.Id).ToList(),
-            Collections = [.. ChannelCollections.RemoveChannelEverywhere(_state.Collections, channel.Id)]
+            Channels = state.Channels.Where(item => item.Id != channel.Id).ToList(),
+            Collections = [.. ChannelCollections.RemoveChannelEverywhere(state.Collections, channel.Id)]
         });
         ForgetRow(channel.Id);
         _log.Event("CHANNEL DELETE", $"url={channel.Url}");
@@ -71,7 +69,7 @@ public partial class MainWindow
     {
         var hiddenIdentities = BuildHiddenIdentitySet();
         var rows = _state.Channels
-            .Where(channel => channel.SourceOrigin == SourceOrigin.Catalog && IsHiddenBySet(hiddenIdentities, channel))
+            .Where(channel => IsHiddenBySet(hiddenIdentities, channel))
             .Select(channel => new HiddenChannelView(
                 StreamTitleFormatter.Display(channel.Title),
                 CatalogUrlIdentity.Redact(channel.Url),
@@ -85,9 +83,9 @@ public partial class MainWindow
     /// <summary>Restore a hidden catalog channel. Only the hidden set changes; the channel record is untouched.</summary>
     private async Task UnhideAsync(string url)
     {
-        _state = await PersistAsync(_state with
+        _state = await PersistAsync(state => state with
         {
-            HiddenCatalogUrls = _state.HiddenCatalogUrls.Where(hidden => !CatalogUrlIdentity.SameIdentity(hidden, url)).ToList()
+            HiddenCatalogUrls = state.HiddenCatalogUrls.Where(hidden => !CatalogUrlIdentity.SameIdentity(hidden, url)).ToList()
         });
         _log.Event("CHANNEL UNHIDE", $"url={url}");
         PopulateFacets();

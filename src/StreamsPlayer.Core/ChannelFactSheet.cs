@@ -77,7 +77,7 @@ public static class ChannelFactSheet
             new ChannelFact(ChannelFactGroup.Channel, "FieldOrigin", ValueKey: OriginKey(channel.SourceOrigin)),
             new ChannelFact(ChannelFactGroup.Channel, "FieldAdded", Timestamp(channel.AddedAt, culture)),
             new ChannelFact(ChannelFactGroup.Channel, "FieldLastPlayed", Timestamp(channel.LastPlayedAt, culture)),
-            new ChannelFact(ChannelFactGroup.Channel, "FieldLastOutcome", ValueKey: OutcomeKey(channel.LastPlayOutcome)),
+            new ChannelFact(ChannelFactGroup.Channel, "FieldLastOutcome", ValueKey: OutcomeKey(channel)),
             new ChannelFact(ChannelFactGroup.Channel, "Pinned", ValueKey: channel.Pinned ? "AboutValueYes" : "AboutValueNo"),
             new ChannelFact(ChannelFactGroup.Channel, "FieldCollections", Join(collectionNames)),
 
@@ -147,7 +147,7 @@ public static class ChannelFactSheet
 
         return fact.ValueFormatKey is null
             ? fact.Text
-            : string.Format(CultureInfo.CurrentCulture, localize(fact.ValueFormatKey), fact.Text);
+            : LocalizedFormat.Apply(CultureInfo.CurrentCulture, localize(fact.ValueFormatKey), fact.Text);
     }
 
     /// <summary>
@@ -195,12 +195,24 @@ public static class ChannelFactSheet
         _ => "OriginCatalog"
     };
 
-    private static string OutcomeKey(PlayOutcome? outcome) => outcome switch
+    /// <summary>
+    /// The playability wording the catalog card and the About window share. SP-0124: an address that is
+    /// never launched outranks any recorded outcome - it says why the row cannot play, which no outcome can.
+    /// </summary>
+    public static string OutcomeKey(StreamChannel channel)
     {
-        PlayOutcome.Ok => "StatusVerified",
-        PlayOutcome.Fail => "StatusFailed",
-        _ => "StatusNotPlayed"
-    };
+        if (!LaunchableAddress.IsLaunchable(channel.Url))
+        {
+            return "StatusNotLaunchable";
+        }
+
+        return channel.LastPlayOutcome switch
+        {
+            PlayOutcome.Ok => "StatusVerified",
+            PlayOutcome.Fail => "StatusFailed",
+            _ => "StatusNotPlayed"
+        };
+    }
 
     // Null stays null rather than becoming a word: the catalog's live column is genuinely three-valued,
     // and calling an unstated stream "on demand" would invent a claim the maintainer never made.

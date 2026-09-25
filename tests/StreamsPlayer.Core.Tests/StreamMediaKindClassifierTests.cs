@@ -19,6 +19,17 @@ public sealed class StreamMediaKindClassifierTests
             MediaKind.Audio,
             StreamMediaKindClassifier.FromCatalogValue("AUDIO", "https://example.test/live.m3u8"));
 
+    // STREAM-BANK 2.1 item M: an unrecognised value is treated exactly as a blank one.
+    [Theory]
+    [InlineData("PODCAST", "https://example.test/live.m3u8")]
+    [InlineData("  radio  ", "rtsp://camera.test/live")]
+    [InlineData("VIDEOS", "https://example.test/radio.mp3")]
+    [InlineData(null, "https://example.test/MOVIE.MP4")]
+    public void UnrecognisedCatalogKindDegradesToUrlClassifier(string? declaredKind, string url) =>
+        Assert.Equal(
+            StreamMediaKindClassifier.Classify(url),
+            StreamMediaKindClassifier.FromCatalogValue(declaredKind, url));
+
     [Theory]
     [InlineData("http://example.test/live")]
     [InlineData("https://example.test/live")]

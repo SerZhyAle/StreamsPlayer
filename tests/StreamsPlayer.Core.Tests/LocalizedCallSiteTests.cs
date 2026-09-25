@@ -53,7 +53,7 @@ public sealed class LocalizedCallSiteTests
         Assert.True(report.CallSites >= 150, $"Only {report.CallSites} literal-key call sites were found.");
         Assert.True(report.Keys.Count >= 120, $"Only {report.Keys.Count} distinct keys were gated.");
 
-        // Named call sites, one per shape the reader has to handle: a direct two-argument status line, a
+        // Named call sites, one per shape the reader has to handle: a direct two-argument format call, a
         // key reached through a wrapper that supplies the arguments itself, and a conditional key.
         Assert.Contains("ChannelCount", report.Keys);
         Assert.Contains("ChannelPreviewsWorking", report.Keys);

@@ -1,4 +1,5 @@
 using System.Windows.Threading;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
@@ -64,6 +65,24 @@ public partial class MainWindow
     /// <remarks>A pinned channel yields no grid row and needs no scroll: the pinned band sits at the top.</remarks>
     private async Task RevealChannelAsync(Guid channelId)
     {
+        // SP-0132: clearing the search and every facet cannot bring back a channel the list keeps out on its
+        // own terms - retired and not pinned, or adult while adult channels are hidden. Asked with no
+        // collection scope, because the clear drops the collection filter too. The user keeps their filters
+        // and is told why the channel is not on screen, instead of losing the filters and still not seeing it.
+        if (!IsChannelVisible(channelId) && ChannelById(channelId) is { } excluded)
+        {
+            var title = StreamTitleFormatter.Display(excluded.Title);
+            switch (CatalogOffer.Exclusion(excluded, _state.HideAdultContent, browsingCollection: false))
+            {
+                case CatalogExclusion.Retired:
+                    SetStatus("RevealUnavailableRetired", title);
+                    return;
+                case CatalogExclusion.AdultHidden:
+                    SetStatus("RevealUnavailableAdult", title);
+                    return;
+            }
+        }
+
         var cleared = ClearWhatHidesTheRow(channelId);
         if (_rowCache.TryGetValue(channelId, out var row))
         {

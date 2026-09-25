@@ -49,6 +49,20 @@ public sealed class ArtworkManifestTests
     }
     """;
 
+    // SP-0126: the service decodes the downloaded bytes with Encoding.UTF8, which keeps a byte-order mark.
+    [Fact]
+    public void Parse_ReadsAManifestWrittenWithAByteOrderMark()
+    {
+        var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(Published)).ToArray();
+
+        var manifest = ArtworkManifest.Parse(Encoding.UTF8.GetString(bytes));
+
+        Assert.Equal(1, manifest.SchemaVersion);
+        Assert.Equal(
+            "f954f493b7b3c07470787bb2798def420a1eeecf3ed2aed62cba2b14359f4905",
+            manifest.Set(ArtworkManifest.ChannelPreviewSet).Stamp);
+    }
+
     [Fact]
     public void Parse_ReadsThePublishedManifest()
     {

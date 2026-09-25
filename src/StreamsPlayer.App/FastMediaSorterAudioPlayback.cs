@@ -21,6 +21,10 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
     });
 
     private readonly FastMediaSorterPlaybackTransport _transport = new();
+    // SP-0120: this leg's own lifetime. The caller's token is the whole listening session's, so an abandoned leg
+    // - superseded by a reconnect, or stopped while its request was out - used to leave that request open, with
+    // no timeout, until the session ended. Dispose cancels it; StartAsync links it into the request.
+    private readonly CancellationTokenSource _lifetime = new();
     private readonly Stopwatch _openStopwatch = new();
     private MediaPlayer? _player;
     private Media? _media;
@@ -39,7 +43,12 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         ThrowIfDisposed();
         StopPlayback();
         _openStopwatch.Restart();
-        var connection = await _transport.OpenAsync(endpoint, cancellationToken);
+        FastMediaSorterPlaybackConnection connection;
+        using (var request = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token))
+        {
+            connection = await _transport.OpenAsync(endpoint, request.Token);
+        }
+
         // Disposed while the request was out: the owner has already moved on, and starting an engine
         // here would leave sound playing that nothing can stop.
         if (_disposed || cancellationToken.IsCancellationRequested)
@@ -131,6 +140,8 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         }
 
         _disposed = true;
+        _lifetime.Cancel(); // ends a request still out; StartAsync then reports the leg as cancelled
+        _lifetime.Dispose(); // StartAsync links it before its first await, on this same thread, so nothing links it later
         StopPlayback();
     }
 

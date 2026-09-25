@@ -39,7 +39,7 @@ param(
     [switch] $Check,
     # Skip the freshness comparison, the only part of -Check that needs a network.
     [switch] $Offline,
-    # Which build of StreamsPlayer.Core to read the contract from. Release first, then Debug.
+    # Which build of StreamsPlayer.Core to read the contract from. Unpinned, the most recently built one (SP-0133).
     [ValidateSet('Release', 'Debug')] [string] $Configuration
 )
 
@@ -50,23 +50,16 @@ Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+# Resolve-CoreAssemblyPath: the one rule for which built Core a tool reads (SP-0133).
+. (Join-Path $PSScriptRoot 'InterfaceLanguages.ps1')
 $artifactPath = Join-Path $root 'src/StreamsPlayer.Core/Resources/catalog-snapshot.zip'
 
 function Get-CoreContract {
     param([string] $Configuration)
 
-    $configurations = if ($Configuration) { @($Configuration) } else { @('Release', 'Debug') }
-    $assemblyPath = $null
-    foreach ($candidate in $configurations) {
-        $path = Join-Path $root "src/StreamsPlayer.Core/bin/$candidate/net10.0/StreamsPlayer.Core.dll"
-        if (Test-Path -LiteralPath $path) { $assemblyPath = $path; break }
-    }
-
-    if (-not $assemblyPath) {
-        throw "StreamsPlayer.Core.dll not found under src/StreamsPlayer.Core/bin ($($configurations -join ', ')). " +
-              'The catalog address and the size ceiling are read from the built assembly, so build first: ' +
-              'dotnet build StreamsPlayer.sln -c Release'
-    }
+    $pinned = if ($Configuration) { @{ Configuration = $Configuration } } else { @{} }
+    $assemblyPath = Resolve-CoreAssemblyPath @pinned `
+        -Purpose 'The catalog address and the size ceiling are read from the built assembly'
 
     # Load from bytes, not LoadFrom: LoadFrom locks the file and a later dotnet build in the same
     # session would fail with the assembly still held open.
@@ -98,9 +91,11 @@ function Read-ZipEntryBytes {
     }
 }
 
-# The bank's is_live column is untrusted maintainer metadata, so only an explicit false is dropped.
-# Excluding rows whose value is absent or unparsable would silently shrink the snapshot on a column the
-# publisher is free to leave empty; what has to go is the 881 traffic cameras, which say false outright.
+# The bank's is_live column is untrusted maintainer metadata, so only a row the app itself reads as not
+# live is dropped - the same rule as StreamCatalogCsvParser (SP-0108, STREAM-BANK 03 section 2.3): "true"
+# is the only true, any other non-empty value is false, and a blank cell says nothing. Excluding blank rows
+# would silently shrink the snapshot on a column the publisher is free to leave empty; what has to go is
+# the 881 traffic cameras, which say false outright.
 function Test-RowIsLive {
     param([string] $Line, [int] $IsLiveColumn)
 
@@ -108,8 +103,8 @@ function Test-RowIsLive {
     $fields = Split-CsvLine -Line $Line
     if ($fields.Count -le $IsLiveColumn) { return $true }
 
-    $value = $fields[$IsLiveColumn].Trim().ToLowerInvariant()
-    return -not ($value -in @('false', '0', 'no'))
+    $value = $fields[$IsLiveColumn].Trim()
+    return ($value.Length -eq 0) -or ($value -eq 'true')
 }
 
 # RFC 4180 enough for this one job: the bank quotes fields containing commas and doubles inner quotes.

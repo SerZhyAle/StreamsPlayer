@@ -6,6 +6,12 @@ namespace StreamsPlayer.Core;
 /// since been hidden or deleted), it finds the nearest still-available neighbour. It never
 /// wraps: reaching either end returns <c>null</c> so the caller stops cleanly.
 /// </summary>
+/// <remarks>
+/// SP-0132: the predicate overloads are the ones the application uses. A materialized mask costs one
+/// availability check per captured entry, and the compact panel asks on every status, now-playing and
+/// volume change - with the full bank that was a whole-catalog scan per entry. The predicate is consulted
+/// only for the indices the scan actually visits, which is normally one.
+/// </remarks>
 public static class LivePlaybackNavigation
 {
     /// <summary>
@@ -16,9 +22,19 @@ public static class LivePlaybackNavigation
     public static int? NextAvailable(int current, IReadOnlyList<bool> available)
     {
         ArgumentNullException.ThrowIfNull(available);
-        for (var index = current + 1; index < available.Count; index++)
+        return NextAvailable(current, available.Count, index => available[index]);
+    }
+
+    /// <inheritdoc cref="NextAvailable(int, IReadOnlyList{bool})"/>
+    /// <param name="current">The current index, or -1.</param>
+    /// <param name="count">The length of the captured order.</param>
+    /// <param name="isAvailable">Asked once per visited index, never for an index the scan does not reach.</param>
+    public static int? NextAvailable(int current, int count, Func<int, bool> isAvailable)
+    {
+        ArgumentNullException.ThrowIfNull(isAvailable);
+        for (var index = current + 1; index < count; index++)
         {
-            if (available[index])
+            if (isAvailable(index))
             {
                 return index;
             }
@@ -35,10 +51,19 @@ public static class LivePlaybackNavigation
     public static int? PreviousAvailable(int current, IReadOnlyList<bool> available)
     {
         ArgumentNullException.ThrowIfNull(available);
+        return PreviousAvailable(current, index => available[index]);
+    }
+
+    /// <inheritdoc cref="PreviousAvailable(int, IReadOnlyList{bool})"/>
+    /// <param name="current">The current index, or -1.</param>
+    /// <param name="isAvailable">Asked once per visited index, never for an index the scan does not reach.</param>
+    public static int? PreviousAvailable(int current, Func<int, bool> isAvailable)
+    {
+        ArgumentNullException.ThrowIfNull(isAvailable);
         var start = current < 0 ? -1 : current - 1;
         for (var index = start; index >= 0; index--)
         {
-            if (available[index])
+            if (isAvailable(index))
             {
                 return index;
             }

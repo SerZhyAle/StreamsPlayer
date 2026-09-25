@@ -126,4 +126,25 @@ public sealed class LocalizedFormatTests
         // the two degradations compose instead of interfering.
         Assert.Equal("ChannelPreviewsWorking", LocalizedFormat.Apply(Invariant, "ChannelPreviewsWorking", 1, 2));
     }
+
+    /// <summary>
+    /// SP-0119: padding up to an absurd index allocated one slot per index before the runtime rejected it,
+    /// which is an out-of-memory failure rather than the format failure this helper absorbs.
+    /// </summary>
+    [Theory]
+    [InlineData("Track {999999999}")]
+    [InlineData("Track {1000000}")]
+    [InlineData("Track {2147483647}")]
+    [InlineData("Track {0} and {99999999999}")]
+    public void AnIndexBeyondTheRuntimeLimitReturnsAString(string template)
+    {
+        var rendered = LocalizedFormat.Apply(Invariant, template, "x");
+
+        Assert.NotNull(rendered);
+        Assert.Equal(template, rendered);
+    }
+
+    [Fact]
+    public void TheHighestIndexTheRuntimeAcceptsStillFormats() =>
+        Assert.Equal("a", LocalizedFormat.Apply(Invariant, $"{{{LocalizedFormat.RuntimeArgumentIndexLimit - 1}}}a"));
 }

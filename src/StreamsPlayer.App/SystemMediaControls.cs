@@ -27,8 +27,12 @@ internal sealed class SystemMediaControls : IDisposable
     private readonly SystemMediaTransportControls _controls;
     private readonly SynchronizationContext? _uiContext;
     private bool _disposed;
+    private bool _failed;
 
     internal event Action<Command>? CommandRequested;
+
+    /// <summary>Raised once, on the calling thread, when the media session stops accepting calls.</summary>
+    internal event Action<Exception>? Failed;
 
     private SystemMediaControls(MediaPlayer mediaPlayer, SynchronizationContext? uiContext)
     {
@@ -64,43 +68,56 @@ internal sealed class SystemMediaControls : IDisposable
         }
     }
 
-    internal void Publish(string station, string? track, bool playing, bool canPrevious, bool canNext)
-    {
-        if (_disposed)
+    internal void Publish(string station, string? track, bool playing, bool canPrevious, bool canNext) =>
+        Drive(() =>
         {
-            return;
-        }
+            _controls.IsEnabled = true;
+            _controls.PlaybackStatus = playing ? MediaPlaybackStatus.Playing : MediaPlaybackStatus.Paused;
+            _controls.IsNextEnabled = canNext;
+            _controls.IsPreviousEnabled = canPrevious;
+            UpdateDisplay(station, track);
+        });
 
-        _controls.IsEnabled = true;
-        _controls.PlaybackStatus = playing ? MediaPlaybackStatus.Playing : MediaPlaybackStatus.Paused;
-        _controls.IsNextEnabled = canNext;
-        _controls.IsPreviousEnabled = canPrevious;
-        UpdateDisplay(station, track);
-    }
-
-    internal void UpdateMetadata(string station, string? track)
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        UpdateDisplay(station, track);
-    }
+    internal void UpdateMetadata(string station, string? track) => Drive(() => UpdateDisplay(station, track));
 
     /// <summary>Ends the published session and clears its metadata from the flyout.</summary>
-    internal void Clear()
+    internal void Clear() =>
+        Drive(() =>
+        {
+            _controls.PlaybackStatus = MediaPlaybackStatus.Closed;
+            _controls.IsNextEnabled = false;
+            _controls.IsPreviousEnabled = false;
+            _controls.DisplayUpdater.ClearAll();
+            _controls.DisplayUpdater.Update();
+        });
+
+    /// <summary>
+    /// Runs one call into the media session, and switches the integration off for the rest of the session
+    /// if the call fails (SP-0119).
+    /// </summary>
+    /// <remarks>
+    /// These calls cross into a Windows service. A restarted or unavailable media-session service answers
+    /// with a COM failure, and that used to reach the dispatcher and end the process over what is an
+    /// optional convenience. The first failure is reported once through <see cref="Failed"/>; every later
+    /// call is a no-op, the same as after <see cref="Dispose"/>.
+    /// </remarks>
+    private void Drive(Action call)
     {
-        if (_disposed)
+        if (_disposed || _failed)
         {
             return;
         }
 
-        _controls.PlaybackStatus = MediaPlaybackStatus.Closed;
-        _controls.IsNextEnabled = false;
-        _controls.IsPreviousEnabled = false;
-        _controls.DisplayUpdater.ClearAll();
-        _controls.DisplayUpdater.Update();
+        try
+        {
+            call();
+        }
+        catch (Exception exception) when (exception is COMException or InvalidOperationException
+            or ObjectDisposedException or UnauthorizedAccessException)
+        {
+            _failed = true;
+            Failed?.Invoke(exception);
+        }
     }
 
     private void UpdateDisplay(string station, string? track)
@@ -156,18 +173,26 @@ internal sealed class SystemMediaControls : IDisposable
         }
 
         _disposed = true;
-        _controls.ButtonPressed -= OnButtonPressed;
-        _controls.IsEnabled = false;
         try
         {
+            _controls.ButtonPressed -= OnButtonPressed;
+            _controls.IsEnabled = false;
             _controls.DisplayUpdater.ClearAll();
             _controls.DisplayUpdater.Update();
         }
-        catch (COMException)
+        catch (Exception exception) when (exception is COMException or InvalidOperationException
+            or ObjectDisposedException or UnauthorizedAccessException)
         {
-            // The session is already tearing down; nothing left to clear.
+            // The session is already tearing down, or its service is gone (SP-0119); nothing left to clear.
         }
 
-        _mediaPlayer.Dispose();
+        try
+        {
+            _mediaPlayer.Dispose();
+        }
+        catch (COMException)
+        {
+            // Same: releasing a player whose service restarted must not fail the caller's teardown.
+        }
     }
 }

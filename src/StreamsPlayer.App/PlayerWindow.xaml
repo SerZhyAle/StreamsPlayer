@@ -46,6 +46,12 @@
                          line - the column beside it is Auto, so untrimmed text would push the buttons. -->
                     <TextBlock x:Name="OnAirText" Foreground="#FFD4DCE8" TextTrimming="CharacterEllipsis"
                                Visibility="Collapsed" />
+                    <!-- SP-0075: now and next from the user's TV schedule. Collapsed without one, so a channel
+                         with no schedule leaves this panel as it was; trimmed for the same reason as above. -->
+                    <TextBlock x:Name="ScheduleNowText" Foreground="#FFD4DCE8" TextTrimming="CharacterEllipsis"
+                               Visibility="Collapsed" />
+                    <TextBlock x:Name="ScheduleNextText" Foreground="#FFA9B4C4" FontSize="11" TextTrimming="CharacterEllipsis"
+                               Visibility="Collapsed" />
                     <TextBlock x:Name="WaitText" Text="{DynamicResource Buffering}" Foreground="#FFD4DCE8" FontSize="11" Margin="0,2,0,0" />
                     <!-- SP-0045: still the buffer gauge (0..100); its colour now reports signal health,
                          and both brushes plus the tooltip are assigned from code so the colour and the

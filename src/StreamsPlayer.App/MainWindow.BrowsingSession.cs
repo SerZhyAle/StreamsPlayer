@@ -125,8 +125,15 @@ public partial class MainWindow
 
     private async void BrowsingSessionSaveTimer_Tick(object? sender, EventArgs e)
     {
-        _browsingSessionSaveTimer.Stop();
-        await SaveBrowsingSessionAsync();
+        try
+        {
+            _browsingSessionSaveTimer.Stop();
+            await SaveBrowsingSessionAsync();
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(BrowsingSessionSaveTimer_Tick), exception);
+        }
     }
 
     private async Task SaveBrowsingSessionAsync(bool force = false)

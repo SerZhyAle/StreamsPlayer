@@ -1,12 +1,18 @@
+using System.Text.RegularExpressions;
+
 namespace StreamsPlayer.Core;
 
 /// <summary>
 /// Deterministic stream-URL identity used to decide whether a catalog channel is hidden, and to redact
-/// credentials before a URL appears in a shareable failure report. Matching is applied to both the stored
-/// hidden identity and the live channel URL, so a catalog refresh that re-adds the exact URL still matches.
+/// credentials before a URL appears in a shareable failure report or in the diagnostic log. Matching is
+/// applied to both the stored hidden identity and the live channel URL, so a catalog refresh that re-adds
+/// the exact URL still matches.
 /// </summary>
-public static class CatalogUrlIdentity
+public static partial class CatalogUrlIdentity
 {
+    /// <summary>What replaces a credential in free text (<c>DIAGNOSTIC-REPORT</c> rule 3).</summary>
+    public const string RedactedMarker = "[REDACTED]";
+
     private static readonly string[] CredentialQueryKeys =
         ["token", "auth", "authorization", "password", "pass", "pwd", "key", "secret", "sig", "signature", "apikey", "access_token"];
 
@@ -116,6 +122,85 @@ public static class CatalogUrlIdentity
 
         return false;
     }
+
+    /// <summary>
+    /// Redacts every URL found inside free text - a log line, an exception message, a whole log file -
+    /// and leaves every other character exactly as it was (SP-0123, <c>DIAGNOSTIC-REPORT</c> rule 3).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Unlike <see cref="Redact"/> this never parses and never re-renders a URL: the diagnostic log keeps
+    /// full addresses for measurement (SP-0040), so a URL without credentials must come out byte-identical,
+    /// and a URL that a compacted or truncated log cut in half must still lose its secret. Per URL, the
+    /// userinfo part of the authority is dropped and the value of every credential-bearing query key is
+    /// replaced with <see cref="RedactedMarker"/>; scheme, host, port, path and the other query values stay.
+    /// </para>
+    /// <para>
+    /// A URL ends at whitespace, a quote, an angle bracket or <c>|</c> - the log's field separator. An
+    /// authority with a non-numeric port and no <c>@</c> is what <c>scheme://user:pass@host</c> looks like
+    /// when a cut lands inside it, so such an authority is redacted whole rather than trusted.
+    /// </para>
+    /// </remarks>
+    public static string RedactText(string text)
+    {
+        if (string.IsNullOrEmpty(text) || !text.Contains("://", StringComparison.Ordinal))
+        {
+            return text ?? string.Empty;
+        }
+
+        return UrlInText().Replace(text, match => RedactUrlToken(match.Value));
+    }
+
+    private static string RedactUrlToken(string token)
+    {
+        var authorityStart = token.IndexOf("://", StringComparison.Ordinal) + 3;
+        var authorityEnd = token.IndexOfAny(['/', '?', '#'], authorityStart);
+        if (authorityEnd < 0)
+        {
+            authorityEnd = token.Length;
+        }
+
+        var authority = token[authorityStart..authorityEnd];
+        var at = authority.LastIndexOf('@');
+        if (at >= 0)
+        {
+            authority = authority[(at + 1)..];
+        }
+        else if (LooksLikeCutUserInfo(authority))
+        {
+            authority = RedactedMarker;
+        }
+
+        var rest = token[authorityEnd..];
+        var queryStart = rest.IndexOf('?');
+        if (queryStart >= 0)
+        {
+            rest = rest[..queryStart] + QueryPair().Replace(
+                rest[queryStart..],
+                pair => CredentialQueryKeys.Contains(pair.Groups["name"].Value, StringComparer.OrdinalIgnoreCase)
+                    ? pair.Groups["lead"].Value + RedactedMarker
+                    : pair.Value);
+        }
+
+        return token[..authorityStart] + authority + rest;
+    }
+
+    private static bool LooksLikeCutUserInfo(string authority)
+    {
+        if (authority.StartsWith('['))
+        {
+            return false; // An IPv6 literal: its colons are the address, not a password.
+        }
+
+        var colon = authority.LastIndexOf(':');
+        return colon >= 0 && !authority[(colon + 1)..].All(char.IsAsciiDigit);
+    }
+
+    [GeneratedRegex(@"(?<![A-Za-z0-9+.\-])[A-Za-z][A-Za-z0-9+.\-]*://[^\s|""'<>]*", RegexOptions.CultureInvariant)]
+    private static partial Regex UrlInText();
+
+    [GeneratedRegex(@"(?<lead>[?&](?<name>[^=&#]*)=)[^&#]*", RegexOptions.CultureInvariant)]
+    private static partial Regex QueryPair();
 
     private static string RedactQuery(string query)
     {

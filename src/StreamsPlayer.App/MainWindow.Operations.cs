@@ -68,7 +68,7 @@ public partial class MainWindow
     // Like Settings, not gated on the state load: PersistAsync already discards writes until the load has
     // finished, and the log report inside is exactly what a user whose load failed is told to send.
     private void ToolsMenuItem_Click(object sender, RoutedEventArgs e) =>
-        new ToolsWindow(RunToolsActionAsync) { Owner = this }.ShowDialog();
+        new ToolsWindow(RunToolsActionAsync, () => _tvSchedule) { Owner = this }.ShowDialog();
 
     private static MenuItem BuildEntry(string headerKey, string tooltipKey, string nameKey, RoutedEventHandler handler)
     {
@@ -90,18 +90,25 @@ public partial class MainWindow
     /// </summary>
     private async void AlwaysOnTopMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem item)
+        try
         {
-            return;
-        }
+            if (sender is not MenuItem item)
+            {
+                return;
+            }
 
-        if (!_preferencesLoaded)
+            if (!_preferencesLoaded)
+            {
+                item.IsChecked = Topmost;
+                return;
+            }
+
+            Topmost = item.IsChecked;
+            _state = await PersistAsync(state => state with { MainWindowTopmost = Topmost });
+        }
+        catch (Exception exception)
         {
-            item.IsChecked = Topmost;
-            return;
+            HandlerBoundary.Report(nameof(AlwaysOnTopMenuItem_Click), exception);
         }
-
-        Topmost = item.IsChecked;
-        _state = await PersistAsync(_state with { MainWindowTopmost = Topmost });
     }
 }

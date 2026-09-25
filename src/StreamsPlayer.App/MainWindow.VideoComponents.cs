@@ -16,6 +16,20 @@ public partial class MainWindow
     private async Task InstallVideoComponentsAsync(Window owner)
     {
         var tools = owner as ToolsWindow;
+        var target = FFmpegComponents.ResolveFolder(_dataDirectory);
+
+        // SP-0128: FFmpeg's libraries stay mapped until the process exits, so a set the engine already
+        // loaded cannot be swapped under it; the new one would only half-replace it.
+        if (FlyleafVideoBackend.LoadedFFmpegPath is { } loaded
+            && string.Equals(Path.GetFullPath(loaded).TrimEnd(Path.DirectorySeparatorChar),
+                Path.GetFullPath(target).TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
+        {
+            _log.Event("FFMPEG INSTALL", "ok=false", "err=InUse", $"folder={target}");
+            MessageBox.Show(owner, LocalizationService.Get("VideoComponentsInUse"),
+                LocalizationService.Get("VideoComponentsTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
         if (MessageBox.Show(
                 owner,
                 LocalizationService.Format(
@@ -30,26 +44,38 @@ public partial class MainWindow
             return;
         }
 
-        var installer = new FFmpegComponentsInstaller(_httpClient);
+        // SP-0128: the catalog client, whose requests carry explicit bounds rather than a client timeout.
+        // The installer bounds the head and the body's silence itself, and the user can cancel.
+        var installer = new FFmpegComponentsInstaller(_catalogHttpClient);
         var progress = new Progress<FFmpegInstallProgress>(report => tools?.ShowInstallProgress(report));
-        tools?.SetVideoComponentsBusy(true);
+        var cancellation = tools?.BeginVideoComponentsInstall() ?? CancellationToken.None;
+        _log.Event("FFMPEG INSTALL", "action=start", $"url={FFmpegComponentsInstaller.SourceUrl}");
         try
         {
-            var folder = await installer.InstallAsync(_dataDirectory, progress);
+            var folder = await installer.InstallAsync(_dataDirectory, progress, cancellation);
             _log.Event("FFMPEG INSTALL", "ok=true", $"folder={folder}");
             MessageBox.Show(owner, LocalizationService.Format("VideoComponentsInstallDone", folder),
                 LocalizationService.Get("VideoComponentsTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
         }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+            // The user's own choice; the status line already restates what is installed.
+            _log.Event("FFMPEG INSTALL", "ok=false", "err=Cancelled");
+        }
         catch (Exception exception) when (exception is HttpRequestException or IOException or InvalidDataException
-                                              or UnauthorizedAccessException or TaskCanceledException)
+                                              or UnauthorizedAccessException or TimeoutException
+                                              or TaskCanceledException or FFmpegArchiveMismatchException)
         {
             _log.Event("FFMPEG INSTALL", "ok=false", $"err={exception.GetType().Name}", $"msg={exception.Message}");
-            MessageBox.Show(owner, LocalizationService.Format("VideoComponentsInstallFailed", FailureCauseText.Describe(exception)),
+            var cause = exception is FFmpegArchiveMismatchException
+                ? LocalizationService.Get("VideoComponentsVerifyFailed")
+                : FailureCauseText.Describe(exception);
+            MessageBox.Show(owner, LocalizationService.Format("VideoComponentsInstallFailed", cause),
                 LocalizationService.Get("VideoComponentsTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
         {
-            tools?.SetVideoComponentsBusy(false);
+            tools?.EndVideoComponentsInstall();
         }
     }
 

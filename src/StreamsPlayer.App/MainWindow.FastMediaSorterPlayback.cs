@@ -42,7 +42,15 @@ public partial class MainWindow
         bool reconnecting,
         CancellationToken cancellationToken)
     {
-        var result = await playback.StartAsync(new Uri(channel.Url), _state.AudioVolume, cancellationToken);
+        // SP-0124: a FastMediaSorter row is http by construction, and PlayChannelAsync has refused anything
+        // unlaunchable already. Should one get here, nothing is opened and the open budget started above
+        // ends the session by the ordinary route, which is also what releases this playback.
+        if (!LaunchableAddress.TryParseHttp(channel.Url, out var endpoint))
+        {
+            return;
+        }
+
+        var result = await playback.StartAsync(endpoint, _state.AudioVolume, cancellationToken);
         if (!IsCurrentFastMediaSorterPlayback(playback, generation, channel) || result.Cancelled)
         {
             playback.Dispose();
@@ -67,7 +75,7 @@ public partial class MainWindow
 
     private void FastMediaSorterAudioPlayback_Playing(object? sender, FastMediaSorterAudioPlaybackEventArgs e)
     {
-        Dispatcher.BeginInvoke(new Action(async () =>
+        Dispatcher.BeginInvoke(new Action(() => HandlerBoundary.Run(nameof(FastMediaSorterAudioPlayback_Playing), async () =>
         {
             if (sender is not FastMediaSorterAudioPlayback playback || !IsCurrentFastMediaSorterPlayback(playback))
             {
@@ -80,26 +88,26 @@ public partial class MainWindow
                 $"buffer_ms={FastMediaSorterAudioPlayback.BufferTargetMilliseconds}",
                 $"url={_playingAudio?.Channel.Url ?? "n/a"}");
             await HandleAudioOpenedAsync();
-        }), DispatcherPriority.Normal);
+        })), DispatcherPriority.Normal);
     }
 
     private void FastMediaSorterAudioPlayback_Ended(object? sender, FastMediaSorterAudioPlaybackEventArgs e) =>
-        Dispatcher.BeginInvoke(new Action(async () =>
+        Dispatcher.BeginInvoke(new Action(() => HandlerBoundary.Run(nameof(FastMediaSorterAudioPlayback_Ended), async () =>
         {
             if (sender is FastMediaSorterAudioPlayback playback && IsCurrentFastMediaSorterPlayback(playback) && _playingAudio is { } row)
             {
                 await HandleFastMediaSorterAudioEndedAsync(row.Channel, e.StatusCode);
             }
-        }), DispatcherPriority.Normal);
+        })), DispatcherPriority.Normal);
 
     private void FastMediaSorterAudioPlayback_Failed(object? sender, FastMediaSorterAudioPlaybackEventArgs e) =>
-        Dispatcher.BeginInvoke(new Action(async () =>
+        Dispatcher.BeginInvoke(new Action(() => HandlerBoundary.Run(nameof(FastMediaSorterAudioPlayback_Failed), async () =>
         {
             if (sender is FastMediaSorterAudioPlayback playback && IsCurrentFastMediaSorterPlayback(playback) && _playingAudio is { } row)
             {
                 await HandleFastMediaSorterAudioFailureAsync(row.Channel, e.TransportError?.GetType().Name ?? "decoder_error", e.StatusCode);
             }
-        }), DispatcherPriority.Normal);
+        })), DispatcherPriority.Normal);
 
     private async Task HandleFastMediaSorterAudioEndedAsync(StreamChannel channel, int? responseStatusCode)
     {

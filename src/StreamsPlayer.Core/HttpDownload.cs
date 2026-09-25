@@ -24,6 +24,53 @@ public static class HttpDownload
 {
     private const int BufferBytes = 128 * 1024;
 
+    /// <summary>
+    /// SP-0129: sends <paramref name="request"/> and waits for the response head for at most
+    /// <paramref name="headerTimeout"/>, whatever the client's own <see cref="HttpClient.Timeout"/> is.
+    /// </summary>
+    /// <remarks>
+    /// The body is deliberately not covered: <see cref="HttpClient.Timeout"/> stops applying once the head
+    /// has arrived (proved by <c>HttpClientTimeoutPremiseTests</c>), so every body read has to carry its own
+    /// bound - <see cref="ReadAllBytesAsync"/> and <see cref="CopyToAsync"/> give it a silence bound. The
+    /// clients the long downloads use have an infinite timeout, which left a TLS or proxy stall before the
+    /// head bounded only by the user's Cancel.
+    /// </remarks>
+    /// <exception cref="TimeoutException">No response head arrived within <paramref name="headerTimeout"/>.</exception>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
+    public static async Task<HttpResponseMessage> SendForHeadersAsync(
+        HttpClient client,
+        HttpRequestMessage request,
+        TimeSpan headerTimeout,
+        CancellationToken cancellationToken)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(headerTimeout);
+        try
+        {
+            return await client
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Same split as the body loop: the user's Cancel stays a cancellation, our own deadline is a
+            // failure. The client's own timeout lands here too, which is the same fact reported the same way.
+            throw new TimeoutException(
+                $"The server sent no response for {headerTimeout.TotalSeconds:0} seconds.");
+        }
+    }
+
+    /// <summary>Convenience GET form of <see cref="SendForHeadersAsync(HttpClient, HttpRequestMessage, TimeSpan, CancellationToken)"/>.</summary>
+    public static async Task<HttpResponseMessage> GetForHeadersAsync(
+        HttpClient client,
+        Uri url,
+        TimeSpan headerTimeout,
+        CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        return await SendForHeadersAsync(client, request, headerTimeout, cancellationToken).ConfigureAwait(false);
+    }
+
     /// <summary>Reads the whole body, reporting as it goes.</summary>
     /// <param name="ceilingBytes">
     /// Refuse a body larger than this, checked against both the declared length and the bytes that
@@ -45,6 +92,25 @@ public static class HttpDownload
         TimeSpan idleTimeout,
         CancellationToken cancellationToken)
     {
+        using var buffer = new MemoryStream(PreSize(response.Content.Headers.ContentLength));
+        await CopyToAsync(response, buffer, progress, ceilingBytes, idleTimeout, cancellationToken);
+        return buffer.ToArray();
+    }
+
+    /// <summary>
+    /// SP-0128: the same loop as <see cref="ReadAllBytesAsync"/>, streaming into
+    /// <paramref name="destination"/> for a body too large to hold in memory. Same ceiling, silence bound,
+    /// short-read check and exceptions.
+    /// </summary>
+    /// <returns>The number of bytes written.</returns>
+    public static async Task<long> CopyToAsync(
+        HttpResponseMessage response,
+        Stream destination,
+        IProgress<DownloadProgress>? progress,
+        long? ceilingBytes,
+        TimeSpan idleTimeout,
+        CancellationToken cancellationToken)
+    {
         var declared = response.Content.Headers.ContentLength;
         if (ceilingBytes is not null && declared > ceilingBytes)
         {
@@ -56,7 +122,6 @@ public static class HttpDownload
         // immediately rather than after the first buffer's worth has arrived.
         progress?.Report(new DownloadProgress(0, declared));
 
-        using var buffer = new MemoryStream(PreSize(declared));
         await using var source = await response.Content.ReadAsStreamAsync(cancellationToken);
 
         using var idle = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -86,7 +151,7 @@ public static class HttpDownload
                         $"The download exceeded the {ceilingBytes} byte ceiling.");
                 }
 
-                buffer.Write(chunk, 0, read);
+                await destination.WriteAsync(chunk.AsMemory(0, read), cancellationToken);
                 progress?.Report(new DownloadProgress(received, declared));
             }
         }
@@ -111,7 +176,7 @@ public static class HttpDownload
                 $"The download ended after {received} of the {declared} declared bytes.");
         }
 
-        return buffer.ToArray();
+        return received;
     }
 
     /// <summary>

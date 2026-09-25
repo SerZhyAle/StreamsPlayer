@@ -110,8 +110,7 @@ internal sealed class CurrentLog : IDisposable
                     return;
                 }
 
-                _writer.WriteLine($"{DateTimeOffset.UtcNow:O} [{severity}] {Flatten(message)}");
-                // AutoFlush is on, so the stream position is the file's real byte count - no estimate,
+                _writer.WriteLine($"{DateTimeOffset.UtcNow:O} [{severity}] {Flatten(message)}");                // AutoFlush is on, so the stream position is the file's real byte count - no estimate,
                 // and no second syscall to ask for it.
                 if (_writer.BaseStream.Position >= MaximumSessionBytes)
                 {
@@ -159,14 +158,19 @@ internal sealed class CurrentLog : IDisposable
         _writer = null;
         var replacement = new FileStream(_path, FileMode.Create, FileAccess.Write, FileShare.Read);
         var writer = new StreamWriter(replacement, LogEncoding) { AutoFlush = true };
+        // Head and tail are bytes Write already redacted; they are copied, not written anew.
         writer.BaseStream.Write(head);
         writer.WriteLine();
-        writer.WriteLine($"{DateTimeOffset.UtcNow:O} [Diag] LOG COMPACTED | dropped_middle_bytes={dropped} | kept_head_bytes={head.Length} | kept_tail_bytes={tail.Length}");
+        writer.WriteLine($"{DateTimeOffset.UtcNow:O} [Diag] {Flatten($"LOG COMPACTED | dropped_middle_bytes={dropped} | kept_head_bytes={head.Length} | kept_tail_bytes={tail.Length}")}");
         writer.BaseStream.Write(tail);
         writer.BaseStream.Flush();
         _writer = writer;
     }
 
-    // Full URLs are retained for measurement; only line breaks are flattened so each record stays on one line.
-    private static string Flatten(string message) => message.ReplaceLineEndings(" | ");
+    // Full URLs are retained for measurement (SP-0040), minus the credentials they carry (SP-0123,
+    // DIAGNOSTIC-REPORT rule 3): this is the one sink every line passes through, so redacting here covers
+    // every call site, including ones not written yet. Line breaks are flattened so each record stays on
+    // one line. LogSinkRedactionSourceTests fails a WriteLine in this file that skips this method.
+    private static string Flatten(string message) =>
+        CatalogUrlIdentity.RedactText(message).ReplaceLineEndings(" | ");
 }

@@ -15,7 +15,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+        <Border x:Name="ToolsContent" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Margin="14">
                     <!-- Stream catalog -->
@@ -75,6 +75,27 @@
                             ToolTip="{DynamicResource ManageHiddenTip}"
                             AutomationProperties.Name="{DynamicResource ManageHiddenOpen}" />
 
+                    <!-- SP-0075: the TV schedule. The address is the user's, nothing is fetched until Download is
+                         pressed and confirmed, and Remove deletes both schedule files. -->
+                    <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
+                    <TextBlock Text="{DynamicResource TvScheduleTitle}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="{DynamicResource TvScheduleHint}" Foreground="{DynamicResource MutedBrush}"
+                               TextWrapping="Wrap" Margin="0,0,0,8" />
+                    <TextBox x:Name="TvScheduleAddressBox" Padding="6,4"
+                             AutomationProperties.Name="{DynamicResource TvScheduleAddressName}"
+                             ToolTip="{DynamicResource TvScheduleAddressName}" />
+                    <TextBlock x:Name="TvScheduleStatusText" TextWrapping="Wrap" Margin="0,6,0,0" />
+                    <WrapPanel Margin="0,6,0,0">
+                        <Button x:Name="TvScheduleDownloadButton" Style="{StaticResource DownloadGlyphButton}"
+                                Content="{DynamicResource TvScheduleDownload}" Click="TvScheduleDownload_Click"
+                                ToolTip="{DynamicResource TvScheduleDownloadTip}"
+                                AutomationProperties.Name="{DynamicResource TvScheduleDownload}" Margin="0,0,8,0" />
+                        <Button x:Name="TvScheduleRemoveButton" Style="{StaticResource DeleteGlyphButton}"
+                                Content="{DynamicResource TvScheduleRemove}" Click="TvScheduleRemove_Click"
+                                ToolTip="{DynamicResource TvScheduleRemoveTip}"
+                                AutomationProperties.Name="{DynamicResource TvScheduleRemove}" />
+                    </WrapPanel>
+
                     <!-- SP-0026: the FFmpeg natives the opt-in FlyleafLib engine needs, fetched only on an
                          explicit click. The status line states whether they are present. -->
                     <Separator Margin="0,16,0,12" Background="{DynamicResource BorderBrush}" />
@@ -101,6 +122,12 @@
             </ScrollViewer>
         </Border>
 
+        <!-- SP-0128: the components download is the one long operation here, so it alone gets a way out.
+             It sits outside the content, which is disabled while the download runs; Close cancels it too. -->
+        <Button x:Name="VideoComponentsCancelButton" Grid.Row="1" HorizontalAlignment="Left" Margin="0,14,0,0"
+                Padding="14,6" Visibility="Collapsed"
+                Content="{DynamicResource VideoComponentsCancel}" Click="VideoComponentsCancel_Click"
+                AutomationProperties.Name="{DynamicResource VideoComponentsCancel}" />
         <Button Grid.Row="1" HorizontalAlignment="Right" Margin="0,14,0,0" Padding="14,6"
                 Content="{DynamicResource Close}" IsCancel="True" IsDefault="True" />
     </Grid>

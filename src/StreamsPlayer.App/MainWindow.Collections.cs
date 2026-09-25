@@ -87,38 +87,55 @@ public partial class MainWindow
 
     private async void CollectionMembership_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { Tag: ValueTuple<Guid, Guid> pair } item)
+        try
         {
-            return;
-        }
+            if (sender is not MenuItem { Tag: ValueTuple<Guid, Guid> pair } item)
+            {
+                return;
+            }
 
-        var (collectionId, channelId) = pair;
-        var collections = item.IsChecked
-            ? ChannelCollections.AddChannel(_state.Collections, collectionId, channelId)
-            : ChannelCollections.RemoveChannel(_state.Collections, collectionId, channelId);
-        await SaveCollectionsAsync(collections);
-        _log.Event(item.IsChecked ? "COLLECTION ADD" : "COLLECTION REMOVE", $"collection={collectionId}");
+            var (collectionId, channelId) = pair;
+            await SaveCollectionsAsync(collections => item.IsChecked
+                ? ChannelCollections.AddChannel(collections, collectionId, channelId)
+                : ChannelCollections.RemoveChannel(collections, collectionId, channelId));
+            _log.Event(item.IsChecked ? "COLLECTION ADD" : "COLLECTION REMOVE", $"collection={collectionId}");
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(CollectionMembership_Click), exception);
+        }
     }
 
     private async void NewCollectionBox_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter || sender is not TextBox { Tag: Guid channelId } box)
+        try
         {
-            return;
-        }
+            if (e.Key != Key.Enter || sender is not TextBox { Tag: Guid channelId } box)
+            {
+                return;
+            }
 
-        e.Handled = true;
-        var created = Guid.NewGuid();
-        var collections = ChannelCollections.Create(_state.Collections, box.Text, created);
-        if (collections is null)
+            e.Handled = true;
+            var created = Guid.NewGuid();
+            var createdCollection = ChannelCollections.Create(_state.Collections, box.Text, created);
+            if (createdCollection is null)
+            {
+                SetStatus("CollectionNameInvalid");
+                return;
+            }
+
+            await SaveCollectionsAsync(collections =>
+            {
+                var createdNow = ChannelCollections.Create(collections, box.Text, created);
+                return createdNow is null ? collections : ChannelCollections.AddChannel(createdNow, created, channelId);
+            });
+            _log.Event("COLLECTION CREATE", $"collection={created}");
+            SetStatus("CollectionCreated", ChannelCollections.NormalizeName(box.Text)!);
+        }
+        catch (Exception exception)
         {
-            SetStatus("CollectionNameInvalid");
-            return;
+            HandlerBoundary.Report(nameof(NewCollectionBox_KeyDown), exception);
         }
-
-        await SaveCollectionsAsync(ChannelCollections.AddChannel(collections, created, channelId));
-        _log.Event("COLLECTION CREATE", $"collection={created}");
-        SetStatus("CollectionCreated", ChannelCollections.NormalizeName(box.Text)!);
     }
 
     internal void OpenCollectionsWindow()
@@ -136,63 +153,65 @@ public partial class MainWindow
 
     private async Task<bool> CreateCollectionAsync(string name)
     {
-        var collections = ChannelCollections.Create(_state.Collections, name, Guid.NewGuid());
-        if (collections is null)
+        var id = Guid.NewGuid();
+        if (ChannelCollections.Create(_state.Collections, name, id) is null)
         {
             return false;
         }
 
-        await SaveCollectionsAsync(collections);
-        _log.Event("COLLECTION CREATE", $"count={collections.Count}");
+        await SaveCollectionsAsync(collections => ChannelCollections.Create(collections, name, id) ?? collections);
+        _log.Event("COLLECTION CREATE", $"id={id}");
         return true;
     }
 
     private async Task SetCollectionMembershipAsync(Guid collectionId, Guid channelId, bool member)
     {
-        var collections = member
-            ? ChannelCollections.AddChannel(_state.Collections, collectionId, channelId)
-            : ChannelCollections.RemoveChannel(_state.Collections, collectionId, channelId);
-        await SaveCollectionsAsync(collections);
+        await SaveCollectionsAsync(collections => member
+            ? ChannelCollections.AddChannel(collections, collectionId, channelId)
+            : ChannelCollections.RemoveChannel(collections, collectionId, channelId));
         _log.Event(member ? "COLLECTION ADD" : "COLLECTION REMOVE", $"collection={collectionId}");
     }
 
     private async Task<bool> CreateCollectionWithChannelAsync(string name, Guid channelId)
     {
         var created = Guid.NewGuid();
-        var collections = ChannelCollections.Create(_state.Collections, name, created);
-        if (collections is null)
+        if (ChannelCollections.Create(_state.Collections, name, created) is null)
         {
             return false;
         }
 
-        await SaveCollectionsAsync(ChannelCollections.AddChannel(collections, created, channelId));
+        await SaveCollectionsAsync(collections =>
+        {
+            var createdNow = ChannelCollections.Create(collections, name, created);
+            return createdNow is null ? collections : ChannelCollections.AddChannel(createdNow, created, channelId);
+        });
         _log.Event("COLLECTION CREATE", $"collection={created}");
         return true;
     }
 
     private async Task<bool> RenameCollectionAsync(Guid id, string name)
     {
-        var collections = ChannelCollections.Rename(_state.Collections, id, name);
-        if (collections is null)
+        if (ChannelCollections.Rename(_state.Collections, id, name) is null)
         {
             return false;
         }
 
-        await SaveCollectionsAsync(collections);
+        await SaveCollectionsAsync(collections => ChannelCollections.Rename(collections, id, name) ?? collections);
         _log.Event("COLLECTION RENAME", $"collection={id}");
         return true;
     }
 
     private async Task DeleteCollectionAsync(Guid id)
     {
-        await SaveCollectionsAsync(ChannelCollections.Delete(_state.Collections, id));
+        await SaveCollectionsAsync(collections => ChannelCollections.Delete(collections, id));
         _log.Event("COLLECTION DELETE", $"collection={id}");
     }
 
     /// <summary>Persists a new collection set and repaints everything that shows collections.</summary>
-    private async Task SaveCollectionsAsync(IReadOnlyList<ChannelCollection> collections)
+    private async Task SaveCollectionsAsync(
+        Func<IReadOnlyList<ChannelCollection>, IReadOnlyList<ChannelCollection>> mutation)
     {
-        _state = await PersistAsync(_state with { Collections = [.. collections] });
+        _state = await PersistAsync(state => state with { Collections = [.. mutation(state.Collections)] });
         PopulateCollectionFilter();
         ApplyFilter();
     }
@@ -214,7 +233,10 @@ public partial class MainWindow
             return;
         }
 
-        _state = await PersistAsync(_state with { Collections = [.. pruned] });
+        _state = await PersistAsync(state => state with
+        {
+            Collections = [.. ChannelCollections.Prune(state.Collections, state.Channels.Select(channel => channel.Id))]
+        });
         PopulateCollectionFilter();
     }
 }

@@ -42,7 +42,7 @@ public partial class MainWindow
 
         try
         {
-            Clipboard.SetText(StreamShortcutService.BuildLaunchCommand(row.Channel.Id));
+            Clipboard.SetText(StreamShortcutService.BuildLaunchCommand(row.Channel));
             SetStatus("LaunchCommandCopied");
         }
         catch (COMException)

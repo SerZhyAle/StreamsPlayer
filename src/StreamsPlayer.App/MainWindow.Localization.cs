@@ -9,8 +9,10 @@ public partial class MainWindow
 {
     private bool _preferencesLoaded;
     private bool _updatingLocalizedOptions;
+    private bool _stateSavePending;
 
-    private string _statusResourceKey = "Ready";
+    // Null means the status line is deliberately empty (ClearStatus), not that it was never set.
+    private string? _statusResourceKey = "Ready";
     private object?[] _statusArguments = [];
     private string _nowPlayingResourceKey = "NothingPlaying";
     private object?[] _nowPlayingArguments = [];
@@ -18,35 +20,58 @@ public partial class MainWindow
     /// <summary>
     /// The only way this window writes state.
     /// <para>
-    /// SP-0034: when a load fails, <c>_state</c> is left at its empty field initialiser. Committing
-    /// that would replace the user's real catalog, collections, history and pins with nothing, and
-    /// <c>StreamCatalogStore</c> would then delete the favicon atlas the empty state does not name.
-    /// Most save paths already checked <c>_preferencesLoaded</c>; the ones that did not - volume,
-    /// add stream, catalog refresh, import, history - turned a failed load into permanent data loss.
-    /// Routing every save through here makes the guard structural instead of remembered.
+    /// Persistence begins only after startup has either loaded state or deliberately chosen a fresh one after
+    /// a load failure. That keeps event handlers from writing while initialization is incomplete without
+    /// turning a recoverable failed load into a read-only session.
     /// </para>
     /// </summary>
-    private async Task<CatalogState> PersistAsync(CatalogState updated)
+    private CatalogStateCommitter CreateStateCommitter(CatalogState initialState) =>
+        new(initialState, (state, cancellationToken) => _store.SaveAsync(state, cancellationToken: cancellationToken));
+
+    private async Task<CatalogState> PersistAsync(Func<CatalogState, CatalogState> mutation)
+        => await PersistAsync(mutation, (state, cancellationToken) => _store.SaveAsync(state, cancellationToken: cancellationToken));
+
+    /// <summary>Commits one mutation with an associated atlas write, still under the window's one state gate.</summary>
+    private async Task<CatalogState> PersistAsync(
+        Func<CatalogState, CatalogState> mutation,
+        Func<CatalogState, CancellationToken, Task<CatalogState>> save)
     {
-        if (!_preferencesLoaded)
+        if (!_preferencesLoaded || _stateCommitter is null)
         {
             return _state;
         }
 
-        try
+        var result = await _stateCommitter.CommitAsync(mutation, save);
+        _state = _stateCommitter.Current;
+        if (!result.Saved && result.Failure is not null)
         {
-            return await _store.SaveAsync(updated);
+            _stateSavePending = true;
+            _log.Error("Catalog state save failed", result.Failure);
+            // The calling action normally sets its success status after this await. Queue the failure
+            // after that continuation so an Add or Import cannot claim success when its disk write failed.
+            _ = Dispatcher.BeginInvoke(() => SetStatus("StateSaveFailed"));
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        else
         {
-            // A locked, full, or redirected state folder is an environment failure, not a defect: an
-            // on-access scanner or the MSIX write redirector can hold the temp file the atomic save
-            // moves into place. Every caller is an `async void` event handler, so letting it escape
-            // reaches DispatcherUnhandledException, which logs but does not handle - the process dies
-            // and the window vanishes. Losing one preference write is the honest cost; keep the
-            // previous state so the next save still starts from what the user actually has.
-            _log.Error("Catalog state save failed", exception);
-            return _state;
+            _stateSavePending = false;
+        }
+
+        return _state;
+    }
+
+    private async Task RetryPendingStateSaveAsync()
+    {
+        if (!_stateSavePending || _stateCommitter is null)
+        {
+            return;
+        }
+
+        var result = await _stateCommitter.RetryAsync();
+        _state = _stateCommitter.Current;
+        _stateSavePending = !result.Saved;
+        if (!result.Saved && result.Failure is not null)
+        {
+            _log.Error("Catalog state save retry failed", result.Failure);
         }
     }
 
@@ -59,7 +84,7 @@ public partial class MainWindow
 
         if (_state.PlayerWindowTopmost != topmost)
         {
-            _state = await PersistAsync(_state with { PlayerWindowTopmost = topmost });
+            _state = await PersistAsync(state => state with { PlayerWindowTopmost = topmost });
         }
     }
 
@@ -70,7 +95,7 @@ public partial class MainWindow
             return;
         }
 
-        _state = await PersistAsync(_state with { VideoVolume = volume, VideoMuted = muted });
+        _state = await PersistAsync(state => state with { VideoVolume = volume, VideoMuted = muted });
     }
 
     private void RefreshLocalizedInterface()
@@ -154,6 +179,14 @@ public partial class MainWindow
         UpdateCompactPanel();
     }
 
+    private void ClearStatus()
+    {
+        _statusResourceKey = null;
+        _statusArguments = [];
+        StatusText.Text = string.Empty;
+        UpdateCompactPanel();
+    }
+
     private void SetNowPlaying(string resourceKey, params object?[] arguments)
     {
         _nowPlayingResourceKey = resourceKey;
@@ -170,7 +203,7 @@ public partial class MainWindow
     {
         var product = LocalizationService.Get("ProductName");
         var station = _playingAudio?.DisplayTitle
-            ?? (_audioPausedChannel is { } paused ? StreamTitleFormatter.Display(paused.Title) : null);
+            ?? (PausedAudioChannel is { } paused ? StreamTitleFormatter.Display(paused.Title) : null);
         Title = string.IsNullOrWhiteSpace(station)
             ? product
             : LocalizationService.Format("WindowTitleWithSubject", station, product);
@@ -178,7 +211,9 @@ public partial class MainWindow
 
     private void RefreshLocalizedStateText()
     {
-        StatusText.Text = LocalizationService.Format(_statusResourceKey, _statusArguments);
+        StatusText.Text = _statusResourceKey is null
+            ? string.Empty
+            : LocalizationService.Format(_statusResourceKey, _statusArguments);
         NowPlayingText.Text = LocalizationService.Format(_nowPlayingResourceKey, _nowPlayingArguments);
         RefreshWindowTitle();
         // SP-0080: the panel is a copy of these two lines, so a language change reaches it here and

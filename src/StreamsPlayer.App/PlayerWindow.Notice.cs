@@ -22,8 +22,8 @@ public partial class PlayerWindow
     private PlaybackInterruptionNotice _shownNotice = PlaybackInterruptionNotice.Silent;
 
     /// <summary>
-    /// The picture is gone, for this reason. Marshals like <see cref="NotifySignalHealthOpening"/> does:
-    /// the tracker is single-threaded and two of the window's re-open paths run off the UI thread.
+    /// The picture is gone, for this reason. Marshals because the tracker is single-threaded and this is
+    /// reachable from engine-event paths; every caller today is already on the UI thread.
     /// </summary>
     private void NotifyInterrupted(PlaybackInterruptionKind kind, int attempt = 0, int budget = 0)
     {

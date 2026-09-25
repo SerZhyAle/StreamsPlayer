@@ -59,7 +59,9 @@ internal static class StreamTransmissionProbe
 
     private static async Task<StreamTransmission?> MeasureCoreAsync(string url, CancellationToken cancellationToken)
     {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var address))
+        // SP-0124: this opens the stream in an engine, so it takes the launch rule - an About window on a
+        // file:// or network-share row must not be the path that opens it.
+        if (!LaunchableAddress.TryParse(url, out var address))
         {
             return null;
         }

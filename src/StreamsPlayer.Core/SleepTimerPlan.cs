@@ -14,26 +14,58 @@ public static class SleepTimerPlan
     /// <summary>Presets offered next to the now-playing bar, in minutes.</summary>
     public static readonly IReadOnlyList<int> PresetMinutes = [15, 30, 45, 60];
 
-    /// <summary>Longest deadline a clock-time choice may resolve to.</summary>
-    public static readonly TimeSpan ClockHorizon = TimeSpan.FromHours(24);
+    /// <summary>
+    /// Longest deadline a clock-time choice may resolve to: one wall-clock day, which is 25 hours of real
+    /// time on the day an autumn clock change repeats an hour.
+    /// </summary>
+    public static readonly TimeSpan ClockHorizon = TimeSpan.FromHours(25);
 
     /// <summary>Deadline for a preset duration. Non-positive durations are rejected.</summary>
     public static DateTimeOffset? FromDuration(DateTimeOffset now, TimeSpan duration) =>
         duration <= TimeSpan.Zero ? null : now + duration;
 
     /// <summary>
-    /// Deadline for a wall-clock choice, resolved to the next occurrence of that local time within
-    /// the next 24 hours. A time that already passed today (or is exactly now) means tomorrow, so
-    /// the user never gets a timer that fires instantly or in the past.
+    /// Deadline for a wall-clock choice: the next moment the clock in <paramref name="zone"/> reads
+    /// <paramref name="localTime"/>. A time that already passed today (or is exactly now) means tomorrow,
+    /// so the user never gets a timer that fires instantly or in the past.
     /// </summary>
-    public static DateTimeOffset FromLocalTime(DateTimeOffset now, TimeOnly localTime)
+    /// <remarks>
+    /// SP-0132: the offset is the zone's on the target date, not the one in force now. Taking
+    /// <c>now.Offset</c> made "stop at 07:00" set the evening before a daylight-saving change fire at
+    /// 06:00 or 08:00 by the clock on the wall. Two edge readings follow from "the next moment the clock
+    /// reads it": a time inside a spring-forward gap is never read, so the timer stops at the first minute
+    /// after the gap - the moment the clock jumps past it; a time the autumn change repeats is read twice,
+    /// and the first reading still ahead wins.
+    /// </remarks>
+    public static DateTimeOffset FromLocalTime(DateTimeOffset now, TimeOnly localTime, TimeZoneInfo zone)
     {
-        var candidate = new DateTimeOffset(
-            now.Year, now.Month, now.Day,
-            localTime.Hour, localTime.Minute, 0,
-            now.Offset);
+        ArgumentNullException.ThrowIfNull(zone);
 
-        return candidate > now ? candidate : candidate.AddDays(1);
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(now, zone).DateTime);
+        // Two days always suffice: every reading tomorrow lies after the midnight that ends today.
+        return Occurrences(today.ToDateTime(localTime), zone)
+            .Concat(Occurrences(today.AddDays(1).ToDateTime(localTime), zone))
+            .First(candidate => candidate > now);
+    }
+
+    /// <summary>Every instant at which the clock in <paramref name="zone"/> reads <paramref name="local"/>, earliest first.</summary>
+    private static IEnumerable<DateTimeOffset> Occurrences(DateTime local, TimeZoneInfo zone)
+    {
+        if (zone.IsAmbiguousTime(local))
+        {
+            return zone.GetAmbiguousTimeOffsets(local)
+                .Select(offset => new DateTimeOffset(local, offset))
+                .Order();
+        }
+
+        // A skipped time is replaced by the first minute the clock does show after it. Gaps are whole
+        // minutes in every zone .NET carries, so the walk ends on the gap's far edge.
+        while (zone.IsInvalidTime(local))
+        {
+            local = local.AddMinutes(1);
+        }
+
+        return [new DateTimeOffset(local, zone.GetUtcOffset(local))];
     }
 
     /// <summary>Time left, clamped at zero so an overdue deadline never shows a negative countdown.</summary>

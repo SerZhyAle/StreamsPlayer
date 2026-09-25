@@ -7,11 +7,7 @@ public static class StreamMediaKindClassifier
         ".m3u8", ".mpd", ".mp4", ".mkv", ".webm", ".ts", ".mov"
     };
 
-    public static bool IsLaunchable(string? value) =>
-        Uri.TryCreate(value?.Trim(), UriKind.Absolute, out var uri) &&
-        (uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
-         uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
-         uri.Scheme.Equals("rtsp", StringComparison.OrdinalIgnoreCase));
+    public static bool IsLaunchable(string? value) => LaunchableAddress.IsLaunchable(value);
 
     public static MediaKind Classify(string url)
     {

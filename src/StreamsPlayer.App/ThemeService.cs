@@ -45,6 +45,11 @@ public static class ThemeService
     private static AppTheme _preference = AppTheme.System;
     private static bool _listening;
 
+    // SP-0132: what the palette currently holds. UserPreferenceChanged fires for wallpaper, power, locale and
+    // a dozen other categories, and each used to re-create every palette brush and re-resolve every
+    // DynamicResource in every window; only a change of this value is worth that.
+    private static bool? _appliedDark;
+
     public static AppTheme Preference => _preference;
 
     public static void Initialize()
@@ -102,6 +107,12 @@ public static class ThemeService
             _ => !SystemUsesLightTheme()
         };
 
+        if (_appliedDark == isDark)
+        {
+            return;
+        }
+
+        _appliedDark = isDark;
         var resources = Application.Current.Resources;
         foreach (var (key, colors) in Palette)
         {

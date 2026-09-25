@@ -21,10 +21,15 @@ $ErrorActionPreference = 'Stop'
 
 $solutionPath = Join-Path $PSScriptRoot 'StreamsPlayer.sln'
 $appProjectPath = Join-Path $PSScriptRoot 'src\StreamsPlayer.App\StreamsPlayer.App.csproj'
-$localDeployPaths = @(
+# SP-0133: these folders are shared with other tools - FastMediaSorter LITE keeps its own LibVLCSharp.dll and
+# libvlc\ tree in their roots - so StreamsPlayer is installed into a StreamsPlayer\ folder of its own under each
+# and never writes to the shared root. Before SP-0133 only a single-file StreamsPlayer.exe was copied into the
+# root, where it ran on whatever libvlc\ the other tool had left there instead of the version this repo pins.
+$localDeployRoots = @(
     'C:\GD\i',
     'C:\GD\tc\SZA\_APP'
 )
+$localDeployFolderName = 'StreamsPlayer'
 
 if ($Deploy) {
     if ($PSBoundParameters.ContainsKey('Configuration') -and $Configuration -ne 'Release') {
@@ -47,6 +52,48 @@ function Invoke-DotNet {
     & dotnet @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet exited with code $LASTEXITCODE."
+    }
+}
+
+# SP-0133: proves a published or deployed folder runs the native engine this repo pins. The pin is the
+# VideoLAN.LibVLC.Windows package version in the App project; the evidence is byte equality with that package's
+# own x64 natives, with the file version printed beside it (the DLL says 3.0.23 for package 3.0.23.1, the last
+# part being the package's own revision).
+function Assert-PinnedNatives {
+    param(
+        [Parameter(Mandatory)] [string] $Folder,
+        [Parameter(Mandatory)] [string] $ProjectPath
+    )
+
+    $project = [xml] (Get-Content -LiteralPath $ProjectPath -Raw)
+    $pinned = @($project.SelectNodes("//PackageReference[@Include='VideoLAN.LibVLC.Windows']") |
+        ForEach-Object { $_.GetAttribute('Version') })
+    if ($pinned.Count -ne 1) { throw "Could not read the pinned VideoLAN.LibVLC.Windows version from $ProjectPath." }
+    $pinned = $pinned[0]
+
+    $packages = if ($env:NUGET_PACKAGES) { $env:NUGET_PACKAGES } else { Join-Path $HOME '.nuget\packages' }
+    $packageNatives = Join-Path $packages "videolan.libvlc.windows\$pinned\build\x64"
+    $expectedFileVersion = ($pinned.Split('.') | Select-Object -First 3) -join '.'
+
+    foreach ($name in 'libvlc.dll', 'libvlccore.dll') {
+        $deployed = Join-Path $Folder "libvlc\win-x64\$name"
+        if (-not (Test-Path -LiteralPath $deployed)) { throw "expected: $deployed | actual: missing" }
+        $version = (Get-Item -LiteralPath $deployed).VersionInfo
+        $actualFileVersion = "$($version.FileMajorPart).$($version.FileMinorPart).$($version.FileBuildPart)"
+        if ($actualFileVersion -ne $expectedFileVersion) {
+            throw "expected: $name $expectedFileVersion (package $pinned) | actual: $actualFileVersion in $Folder"
+        }
+
+        $reference = Join-Path $packageNatives $name
+        if (Test-Path -LiteralPath $reference) {
+            if ((Get-FileHash -LiteralPath $deployed).Hash -ne (Get-FileHash -LiteralPath $reference).Hash) {
+                throw "expected: $name identical to package $pinned | actual: different bytes in $Folder"
+            }
+        }
+        else {
+            Write-Host "    (package cache has no $reference; file version checked, bytes not compared)" -ForegroundColor Yellow
+        }
+        Write-Host "    expected: $name $expectedFileVersion (package $pinned) | actual: $actualFileVersion" -ForegroundColor Green
     }
 }
 
@@ -119,15 +166,24 @@ try {
     }
 
     if ($Deploy) {
+        # SP-0133: the local install is the release's payload - the same self-contained folder publish that
+        # release.yml ships, the native LibVLC tree included - mirrored into a folder of its own. A single-file
+        # executable carries no libvlc\ (the natives are content files, not bundled), so it ran on whatever
+        # native tree the target folder happened to hold, and died at startup in a clean one (SP-0119).
         $localOutputPath = Join-Path $PSScriptRoot "artifacts\local\$Runtime"
-        $targetExePaths = @(
-            (Join-Path $localOutputPath 'StreamsPlayer.exe')
-            $localDeployPaths | ForEach-Object { Join-Path $_ 'StreamsPlayer.exe' }
-        )
+        $deployTargets = @($localDeployRoots | ForEach-Object { Join-Path $_ $localDeployFolderName })
+        $legacyExePaths = @($localDeployRoots | ForEach-Object { Join-Path $_ 'StreamsPlayer.exe' })
 
+        # Only the copies this deploy replaces are closed: one running from the publish folder, from a target
+        # folder, or from a pre-SP-0133 root executable this deploy removes. Any other StreamsPlayer is left alone.
+        $replacedFolders = @($localOutputPath) + $deployTargets
         foreach ($process in @(Get-Process -Name 'StreamsPlayer' -ErrorAction SilentlyContinue)) {
             $processPath = try { $process.Path } catch { $null }
-            if ($processPath -and $targetExePaths -contains $processPath) {
+            if (-not $processPath) { continue }
+            $insideReplaced = @($replacedFolders | Where-Object {
+                $processPath.StartsWith($_.TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase)
+            }).Count -gt 0
+            if ($insideReplaced -or $legacyExePaths -contains $processPath) {
                 Write-Host "Stopping local StreamsPlayer: $processPath" -ForegroundColor Cyan
                 Stop-Process -Id $process.Id -Force
                 $process.WaitForExit(5000) | Out-Null
@@ -142,6 +198,9 @@ try {
             )
         }
 
+        # Emptied first, so nothing an earlier publish left behind can be mirrored out.
+        if (Test-Path -LiteralPath $localOutputPath) { Remove-Item -LiteralPath $localOutputPath -Recurse -Force }
+        # The release.yml publish, minus the version stamp only a tag supplies.
         Invoke-DotNet @(
             'publish',
             $appProjectPath,
@@ -149,23 +208,33 @@ try {
             '--runtime', $Runtime,
             '--self-contained', 'true',
             '--output', $localOutputPath,
-            '--no-restore',
-            '-p:PublishSingleFile=true',
-            '-p:IncludeNativeLibrariesForSelfExtract=true',
-            '-p:DebugType=None',
-            '-p:DebugSymbols=false'
+            '--no-restore'
         )
 
         $localExePath = Join-Path $localOutputPath 'StreamsPlayer.exe'
         if (-not (Test-Path -LiteralPath $localExePath -PathType Leaf)) {
-            throw "Local single-file executable was not created: $localExePath"
+            throw "Published executable was not created: $localExePath"
+        }
+        Assert-PinnedNatives -Folder $localOutputPath -ProjectPath $appProjectPath
+
+        foreach ($target in $deployTargets) {
+            # /MIR deletes whatever the source lacks, so it is only ever pointed at a folder of our own name.
+            if ((Split-Path $target -Leaf) -ne $localDeployFolderName) { throw "Refusing to mirror into $target." }
+            New-Item -ItemType Directory -Path $target -Force | Out-Null
+            & robocopy $localOutputPath $target /MIR /R:2 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
+            if ($LASTEXITCODE -ge 8) { throw "robocopy failed (exit $LASTEXITCODE) mirroring into $target." }
+            $global:LASTEXITCODE = 0 # robocopy's 1-7 are success codes; do not let one become this script's exit code
+            Assert-PinnedNatives -Folder $target -ProjectPath $appProjectPath
+            Write-Host "Local build deployed: $(Join-Path $target 'StreamsPlayer.exe')" -ForegroundColor Green
         }
 
-        foreach ($deployPath in $localDeployPaths) {
-            New-Item -ItemType Directory -Path $deployPath -Force | Out-Null
-            $targetExePath = Join-Path $deployPath 'StreamsPlayer.exe'
-            Copy-Item -LiteralPath $localExePath -Destination $targetExePath -Force
-            Write-Host "Local build deployed: $targetExePath" -ForegroundColor Green
+        # The owner's decision (SP-0133): the pre-SP-0133 root executable is removed rather than left to run on
+        # the other tool's natives. Only that one file - nothing else in the shared root is ours.
+        foreach ($legacy in $legacyExePaths) {
+            if (Test-Path -LiteralPath $legacy -PathType Leaf) {
+                Remove-Item -LiteralPath $legacy -Force
+                Write-Host "Removed the old single-file copy: $legacy (shortcuts to it must point into $localDeployFolderName\)" -ForegroundColor Yellow
+            }
         }
     }
 

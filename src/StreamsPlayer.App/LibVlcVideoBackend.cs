@@ -35,13 +35,16 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     private readonly object _mediaGate = new();
     private Media? _media;
     private string _lastUrl = string.Empty;
-    // Baselines for the per-second rates published by LogStats; reset per open so a reconnect does not
-    // report the previous leg's counters as a spike. Written on the UI thread under _mediaGate (Play) and
-    // on the stats tick (LogStats), which is the same UI thread - no cross-thread sharing.
+    // Baselines for the per-second rates published by LogStats, reset per open so a reconnect does not report
+    // the previous leg's counters as a spike. UI-thread state only: Play runs on a worker for every re-open, so
+    // it merely counts the leg (_openedLegs) and LogStats, on the stats tick, notices the new count and resets
+    // them itself (SP-0120). Resetting them from Play raced the tick that reads them.
     private long _rateBytes;
     private long _rateDisplayed;
     private long _rateTicks;
     private double _rateSeconds;
+    private int _openedLegs;
+    private int _statsLeg;
     private readonly PlaybackStatsFilter _statsFilter = new();
     // Engine log records arrive on engine threads; the filter is single-threaded, so it gets its own gate.
     // Deliberately not reset per leg: the repetition worth collapsing spans reconnects.
@@ -49,28 +52,14 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     private readonly object _logNoiseGate = new();
     // Written under _mediaGate on the teardown thread, read without it by the audio setters below.
     private volatile bool _disposed;
-    private bool _isRecording;
-    private string? _recordingTargetDir;
-    private string? _recordingChannelTitle;
-    private DateTimeOffset _recordingStartTime;
-    private readonly HashSet<string> _stagingFilesBeforeRecord = new(StringComparer.OrdinalIgnoreCase);
-
-    [DllImport("libvlc", CallingConvention = CallingConvention.Cdecl)]
-    private static extern IntPtr libvlc_get_input_thread(IntPtr p_mi);
-
-    [DllImport("libvlccore", CallingConvention = CallingConvention.Cdecl)]
-    private static extern void vlc_object_release(IntPtr p_obj);
-
-    [StructLayout(LayoutKind.Explicit, Size = 8)]
-    private struct VlcValue
-    {
-        [FieldOffset(0)] public long i_int;
-        [FieldOffset(0)] public bool b_bool;
-        [FieldOffset(0)] public IntPtr psz_string;
-    }
-
-    [DllImport("libvlccore", CallingConvention = CallingConvention.Cdecl)]
-    private static extern int var_Set(IntPtr p_obj, [MarshalAs(UnmanagedType.LPStr)] string psz_name, VlcValue val);
+    // SP-0120: set on the UI thread as the first act of StopAndDisposeAsync. _disposed alone left a window: a
+    // UI-thread reading that tested it just before the pool thread took the gate went on to call into a player
+    // being freed. Every UI-thread caller runs on the thread that sets this, so once teardown has begun none of
+    // them can reach native code - and the worker callers take _mediaGate, where _disposed covers them.
+    private volatile bool _released;
+    // SP-0121: the recording state and its native calls. Touched only under _mediaGate.
+    private readonly LibVlcRecording _recording;
+    private readonly string? _recordUnavailableReason;
 
     public LibVlcVideoBackend(int volume, bool muted, CurrentLog log)
     {
@@ -86,7 +75,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         // evidence were discarded as *early*, not late, so --no-drop-late-frames cannot address them.
         // The freeze watchdog reconnects if the pipeline fully deadlocks. (--no-ts-trust-pcr was tried
         // and reverted: it removes the clock reference entirely and deadlocks the vout at 0 fps.)
-        Directory.CreateDirectory(RecordedBroadcastWriter.StagingDirectory);
+        _recording = new LibVlcRecording(log);
         _libVlc = new LibVLC(
             "--no-video-title-show",
             "--no-osd",
@@ -94,7 +83,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             "--rtsp-tcp",
             $"--clock-jitter={ClockJitterMilliseconds}",
             "--avcodec-hw=none",
-            $"--input-record-path={RecordedBroadcastWriter.StagingDirectory}");
+            $"--input-record-path={_recording.InstanceDirectory}");
         _libVlc.Log += LibVlc_Log;
         _mediaPlayer = new MediaPlayer(_libVlc);
         _mediaPlayer.Volume = Math.Clamp(volume, 0, 100);
@@ -110,6 +99,10 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         _mediaPlayer.ESSelected += MediaPlayer_TracksChanged;
         _mediaPlayer.SnapshotTaken += MediaPlayer_SnapshotTaken;
         _videoView = new LibVLCSharp.WPF.VideoView { MediaPlayer = _mediaPlayer };
+        // SP-0121: decided before Record is ever offered, from the engine that was actually loaded.
+        var probeFailure = LibVlcRecording.Probe(_libVlc.Version);
+        _recordUnavailableReason = probeFailure is null ? null : "RecordUnavailableEngine";
+        _log.Event("RECORD PROBE", "engine=libvlc", $"ok={probeFailure is null}", $"version={_libVlc.Version}", $"detail={probeFailure ?? "none"}");
     }
 
     public FrameworkElement View => _videoView;
@@ -120,9 +113,11 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
     public string EngineName => "libvlc";
 
-    public long PositionMs => _mediaPlayer.Time;
+    public long PositionMs => IsReleased ? -1 : _mediaPlayer.Time;
 
-    public bool IsPlaying => _mediaPlayer.State == VLCState.Playing;
+    public bool IsPlaying => !IsReleased && _mediaPlayer.State == VLCState.Playing;
+
+    private bool IsReleased => _released || _disposed;
 
     public int Volume { set => ApplyAudio(player => player.Volume = Math.Clamp(value, 0, 100), "volume"); }
 
@@ -133,7 +128,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     // exception for the log to carry. An unwritten audio setting is worth far less than the session.
     private void ApplyAudio(Action<MediaPlayer> change, string what)
     {
-        if (_disposed)
+        if (IsReleased)
         {
             return;
         }
@@ -162,22 +157,17 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     {
         lock (_mediaGate)
         {
-            if (_disposed)
+            if (IsReleased)
             {
                 return false; // backend is tearing down; do not touch the (soon) disposed player
             }
 
-            if (_isRecording)
-            {
-                StopRecording();
-            }
+            // SP-0121: the open closes the input the recording was writing, so the segment ends here - and is handed
+            // to the player rather than dropped with its path (C-03). The player starts the next one once live.
+            var endedSegment = _recording.End(null, "reopen");
 
             _lastUrl = url.ToString();
-            _rateBytes = 0;
-            _rateDisplayed = 0;
-            _rateTicks = 0;
-            _rateSeconds = 0;
-            _statsFilter.Reset();
+            var leg = Interlocked.Increment(ref _openedLegs);
             _mediaPlayer.NetworkCaching = cacheMilliseconds;
             // SP-0069: the field takes ownership only once Play has returned. Assigning it first and
             // disposing the previous wrapper afterwards - which is what this did - strands one Media per
@@ -190,6 +180,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             {
                 next.AddOption($":network-caching={cacheMilliseconds}");
                 next.AddOption($":live-caching={cacheMilliseconds}");
+                _recording.PrepareLeg(next, leg);
                 if (rtspOverTcp)
                 {
                     next.AddOption(":rtsp-tcp");
@@ -223,6 +214,9 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             }
             finally
             {
+                // Handed over only now: the open above is what closed the file, so the finisher never waits on a
+                // file the engine has not yet let go of.
+                RaiseInterrupted(endedSegment);
                 // Reached with the field still naming `previous` only when Play threw past the assignment.
                 if (!ReferenceEquals(_media, next))
                 {
@@ -234,11 +228,12 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
     public async Task StopAndDisposeAsync()
     {
-        if (_isRecording)
+        if (_released)
         {
-            StopRecording();
+            return;
         }
 
+        _released = true;
         _videoView.MediaPlayer = null; // detach from the WPF VideoView on the UI thread (fast, non-blocking)
         _mediaPlayer.Buffering -= MediaPlayer_Buffering;
         _mediaPlayer.EncounteredError -= MediaPlayer_EncounteredError;
@@ -267,7 +262,10 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             lock (_mediaGate)
             {
                 _disposed = true;
+                // SP-0121: the stop below closes the recording's file; the segment is handed over once it has.
+                var endedSegment = _recording.End(null, "teardown");
                 ReleaseStage("stop", mediaPlayer.Stop);
+                RaiseInterrupted(endedSegment);
                 ReleaseStage("media", () =>
                 {
                     _media?.Dispose();
@@ -284,6 +282,31 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         // overlay. Runs after the native stop so no vout is still rendering into that HWND; Dispose is
         // idempotent and Window.Close on an already-closed overlay is a no-op.
         ReleaseStage("view", _videoView.Dispose);
+    }
+
+    public Task StopPlaybackAsync()
+    {
+        if (IsReleased)
+        {
+            return Task.CompletedTask;
+        }
+
+        // Same reason as teardown: Stop() blocks until the native worker threads settle, which on a source that
+        // has stopped answering is exactly the case this is called for. _mediaGate orders it against a Retry's
+        // Play and against teardown, so neither can meet a half-stopped player.
+        var mediaPlayer = _mediaPlayer;
+        return Task.Run(() =>
+        {
+            lock (_mediaGate)
+            {
+                if (!_disposed)
+                {
+                    var endedSegment = _recording.End(null, "stop");
+                    ReleaseStage("stop_keep_engine", mediaPlayer.Stop);
+                    RaiseInterrupted(endedSegment);
+                }
+            }
+        });
     }
 
     /// <summary>Run one native release so a fault in it cannot skip the releases that follow.</summary>
@@ -308,6 +331,11 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
     public bool RequestSnapshot(int width)
     {
+        if (IsReleased)
+        {
+            return false;
+        }
+
         try
         {
             var path = Path.Combine(Path.GetTempPath(), $"streamsplayer_thumb_{Guid.NewGuid():N}.png");
@@ -322,17 +350,29 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         }
     }
 
-    public IReadOnlyList<VideoTrack> AudioTracks => Describe(_mediaPlayer.AudioTrackDescription);
+    public IReadOnlyList<VideoTrack> AudioTracks => IsReleased ? [] : Describe(_mediaPlayer.AudioTrackDescription);
 
-    public IReadOnlyList<VideoTrack> SubtitleTracks => Describe(_mediaPlayer.SpuDescription);
+    public IReadOnlyList<VideoTrack> SubtitleTracks => IsReleased ? [] : Describe(_mediaPlayer.SpuDescription);
 
-    public int SelectedAudioTrackId => _mediaPlayer.AudioTrack;
+    public int SelectedAudioTrackId => IsReleased ? -1 : _mediaPlayer.AudioTrack;
 
-    public int SelectedSubtitleTrackId => _mediaPlayer.Spu;
+    public int SelectedSubtitleTrackId => IsReleased ? -1 : _mediaPlayer.Spu;
 
-    public void SelectAudioTrack(int id) => _mediaPlayer.SetAudioTrack(id);
+    public void SelectAudioTrack(int id)
+    {
+        if (!IsReleased)
+        {
+            _mediaPlayer.SetAudioTrack(id);
+        }
+    }
 
-    public void SelectSubtitleTrack(int id) => _mediaPlayer.SetSpu(id);
+    public void SelectSubtitleTrack(int id)
+    {
+        if (!IsReleased)
+        {
+            _mediaPlayer.SetSpu(id);
+        }
+    }
 
     // The two derived rates carry the diagnosis: in_kbps separates real network starvation from a stream
     // that is arriving fine, and disp_fps says whether the screen is actually getting frames. The totals
@@ -340,6 +380,22 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     // discont are what SP-0045's health stripe differences - but see Rate for why they mislead on their own.
     public void LogStats(string tag)
     {
+        if (IsReleased)
+        {
+            return;
+        }
+
+        var leg = Volatile.Read(ref _openedLegs);
+        if (leg != _statsLeg)
+        {
+            _statsLeg = leg;
+            _rateBytes = 0;
+            _rateDisplayed = 0;
+            _rateTicks = 0;
+            _rateSeconds = 0;
+            _statsFilter.Reset();
+        }
+
         // The Media getter retains the native media on every call and LibVLCSharp has no finalizer, so the
         // wrapper must be disposed here: the stats timer ticks every 2 s and an undisposed wrapper would
         // leave each played media unfreeable for the life of the process.
@@ -429,7 +485,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     // and this runs on the same 2 s tick, so an undisposed wrapper would leak a media per sample.
     public DecoderLossCounters? ReadLossCounters()
     {
-        if (_disposed)
+        if (IsReleased)
         {
             return null;
         }
@@ -452,7 +508,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     // whole healthy .m3u8 session and would read as "no data arriving" on every adaptive stream.
     public PlaybackProgressCounters? ReadProgressCounters()
     {
-        if (_disposed)
+        if (IsReleased)
         {
             return null;
         }
@@ -474,7 +530,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     // total against zero, never differences it - and no other caller may read it as a rate.
     public long? ReadReceivedBytes()
     {
-        if (_disposed)
+        if (IsReleased)
         {
             return null;
         }
@@ -492,7 +548,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     // Same Media-wrapper discipline as LogStats: the getter retains the native media on every call.
     public StreamTransmission? DescribeTransmission()
     {
-        if (_disposed)
+        if (IsReleased)
         {
             return null;
         }
@@ -512,7 +568,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     // that announces one, which is exactly the two cases the ticket names.
     public string? ReadNowPlaying()
     {
-        if (_disposed)
+        if (IsReleased)
         {
             return null;
         }
@@ -538,7 +594,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     /// </remarks>
     public VideoRendition? ReadRendition()
     {
-        if (_disposed)
+        if (IsReleased)
         {
             return null;
         }
@@ -565,113 +621,74 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         return playing;
     }
 
-    public bool IsRecording => _isRecording;
+    public string? RecordUnavailableReason => _recordUnavailableReason;
 
-    public bool StartRecording(string targetDirectory, string? channelTitle)
+    // Read without the gate by the UI thread: a reference read, and a stale answer is corrected on the next tick.
+    public bool IsRecording => !IsReleased && _recording.IsRecording;
+
+    public event Action<RecordingSegment>? RecordingInterrupted;
+
+    public Task<bool> StartRecordingAsync(RecordingTarget target)
     {
-        lock (_mediaGate)
+        if (IsReleased || _recordUnavailableReason is not null)
         {
-            if (_disposed || !_mediaPlayer.IsPlaying)
-            {
-                return false;
-            }
+            return Task.FromResult(false);
+        }
 
-            var pInput = libvlc_get_input_thread(_mediaPlayer.NativeReference);
-            if (pInput == IntPtr.Zero)
+        // SP-0121: off the UI thread - the gate may be held by a re-open that takes seconds on a flapping stream.
+        return Task.Run(() =>
+        {
+            lock (_mediaGate)
             {
-                return false;
-            }
-
-            try
-            {
-                _stagingFilesBeforeRecord.Clear();
-                if (Directory.Exists(RecordedBroadcastWriter.StagingDirectory))
+                if (IsReleased || !_mediaPlayer.IsPlaying)
                 {
-                    foreach (var file in Directory.GetFiles(RecordedBroadcastWriter.StagingDirectory))
-                    {
-                        _stagingFilesBeforeRecord.Add(file);
-                    }
+                    return false;
                 }
 
-                _recordingStartTime = DateTimeOffset.Now;
-                _recordingTargetDir = targetDirectory;
-                _recordingChannelTitle = channelTitle;
-
-                var val = new VlcValue { b_bool = true };
-                var res = var_Set(pInput, "record", val);
-                _isRecording = res == 0;
-                _log.Event("RECORD START", "engine=libvlc", $"ok={_isRecording}", $"channel={channelTitle}", $"dir={targetDirectory}");
-                return _isRecording;
-            }
-            finally
-            {
-                vlc_object_release(pInput);
-            }
-        }
-    }
-
-    public string? StopRecording()
-    {
-        lock (_mediaGate)
-        {
-            if (!_isRecording)
-            {
-                return null;
-            }
-
-            _isRecording = false;
-            var pInput = libvlc_get_input_thread(_mediaPlayer.NativeReference);
-            if (pInput != IntPtr.Zero)
-            {
                 try
                 {
-                    var val = new VlcValue { b_bool = false };
-                    var_Set(pInput, "record", val);
+                    return _recording.Start(_mediaPlayer, target);
                 }
-                finally
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
                 {
-                    vlc_object_release(pInput);
+                    _log.Event("RECORD START", "engine=libvlc", "ok=false", $"err={exception.Message}");
+                    return false;
                 }
             }
+        });
+    }
 
-            // Give VLC a moment to flush and close the file
-            Thread.Sleep(80);
+    public Task<RecordingSegment?> StopRecordingAsync()
+    {
+        if (IsReleased)
+        {
+            return Task.FromResult<RecordingSegment?>(null);
+        }
 
-            try
+        return Task.Run(() =>
+        {
+            lock (_mediaGate)
             {
-                if (!Directory.Exists(RecordedBroadcastWriter.StagingDirectory))
-                {
-                    return null;
-                }
-
-                var currentFiles = Directory.GetFiles(RecordedBroadcastWriter.StagingDirectory);
-                var newFile = currentFiles
-                    .Where(f => !_stagingFilesBeforeRecord.Contains(f))
-                    .OrderByDescending(File.GetLastWriteTimeUtc)
-                    .FirstOrDefault();
-
-                if (newFile is null)
-                {
-                    _log.Event("RECORD STOP", "engine=libvlc", "saved=none", "reason=no_staging_file");
-                    return null;
-                }
-
-                var targetDir = _recordingTargetDir ?? RecordedBroadcastWriter.ResolveFolder(null);
-                Directory.CreateDirectory(targetDir);
-
-                var ext = Path.GetExtension(newFile);
-                var fileName = RecordedBroadcastName.For(_recordingChannelTitle, _recordingStartTime, ext);
-                var destinationPath = RecordedBroadcastWriter.ReserveUniquePath(targetDir, fileName);
-
-                File.Move(newFile, destinationPath);
-                _log.Event("RECORD STOP", "engine=libvlc", $"saved={destinationPath}");
-                return destinationPath;
+                return _disposed ? null : _recording.End(_mediaPlayer, "user");
             }
-            catch (Exception ex)
-            {
-                _log.Event("RECORD STOP", "engine=libvlc", "ok=false", $"err={ex.Message}");
-                return null;
-            }
+        });
+    }
+
+    /// <summary>Hands an engine-ended segment to the player; a handler fault must not break the open or teardown it rode on.</summary>
+    private void RaiseInterrupted(RecordingSegment? segment)
+    {
+        if (segment is null)
+        {
+            return;
+        }
+
+        try
+        {
+            RecordingInterrupted?.Invoke(segment);
+        }
+        catch (Exception exception)
+        {
+            _log.Event("RECORD SEGMENT END", "engine=libvlc", "handed_over=false", $"err={exception.Message}");
         }
     }
 

@@ -159,6 +159,56 @@ public sealed class DiagnosticArchiveBuilderTests
         });
     }
 
+    // SP-0123 done-when 1: a log written before the sink redacted - an earlier version's session kept on
+    // disk - loses its credentials on the way into the archive, and keeps what makes it diagnosable.
+    [Fact]
+    public void Build_RedactsCredentialsInEveryPackedLog()
+    {
+        RunInTempDirectory(directory =>
+        {
+            File.WriteAllText(
+                Path.Combine(directory, "Session-20260730-0100.log"),
+                "2026-07-30T01:00:00Z [Diag] PLAYER OPEN | url=rtsp://user:pass@host/x | backend=libvlc\r\n" +
+                "2026-07-30T01:00:01Z [Error] open: failed 'https://host/s?token=abc&id=1'\r\n");
+            File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), "clean");
+
+            using var archive = ZipFile.OpenRead(Build(directory, "summary", Stamp));
+
+            var packed = string.Concat(archive.Entries.Select(entry => ReadEntry(archive, entry.FullName)));
+            Assert.DoesNotContain("user:pass", packed, StringComparison.Ordinal);
+            Assert.DoesNotContain("abc", packed, StringComparison.Ordinal);
+            Assert.Contains("rtsp://host/x | backend=libvlc", packed, StringComparison.Ordinal);
+            Assert.Contains("id=1", packed, StringComparison.Ordinal);
+        });
+    }
+
+    // A truncation cut that lands inside a URL must not hand the redactor half an address it cannot read.
+    [Fact]
+    public void Build_TruncationCutsOnLineBoundariesSoASplitUrlCannotLeak()
+    {
+        RunInTempDirectory(directory =>
+        {
+            var line = "[Diag] PLAYER OPEN | url=rtsp://admin:hunter2@camera.local/stream1 | n=";
+            var text = new StringBuilder();
+            for (var index = 0; text.Length < DiagnosticArchiveBuilder.MaxLogBytes + 256 * 1024; index++)
+            {
+                text.Append(line).Append(index).Append("\r\n");
+            }
+
+            File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), text.ToString());
+
+            using var archive = ZipFile.OpenRead(Build(directory, "summary", Stamp));
+
+            var packed = ReadEntry(archive, DiagnosticLogFiles.CurrentLogName);
+            Assert.Contains("LOG TRUNCATED", packed, StringComparison.Ordinal);
+            Assert.DoesNotContain("hunter2", packed, StringComparison.Ordinal);
+            Assert.DoesNotContain("admin", packed, StringComparison.Ordinal);
+            Assert.All(
+                packed.Split("\r\n", StringSplitOptions.RemoveEmptyEntries).Where(entry => !entry.Contains("LOG TRUNCATED")),
+                entry => Assert.StartsWith("[Diag] PLAYER OPEN | url=rtsp://camera.local/stream1 | n=", entry, StringComparison.Ordinal));
+        });
+    }
+
     private static string ReadEntry(ZipArchive archive, string name)
     {
         using var stream = archive.GetEntry(name)!.Open();

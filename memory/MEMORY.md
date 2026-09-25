@@ -52,7 +52,9 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   its `avutil` reports `GPL version 3 or later`. FlyleafLib *itself* is LGPL-3.0, which is what made
   SP-0026's original "ship both native stacks" decision look safe - the licence trap is one layer
   down, in the binaries upstream tells you to fetch. StreamsPlayer therefore downloads an **LGPL**
-  build instead (`BtbN/FFmpeg-Builds`, `ffmpeg-n8.1-latest-win64-lgpl-shared`), on explicit user
+  build instead (`BtbN/FFmpeg-Builds`, `win64-lgpl-shared-8.1`, pinned to a month-end `autobuild-*`
+  tag with its length and SHA-256 in `FFmpegComponentsInstaller.PinnedSource` - SP-0128; BtbN prunes
+  daily tags but keeps month-end ones, and `latest` moves daily so no digest can pin it), on explicit user
   request, into `%LOCALAPPDATA%\StreamsPlayer\FFmpeg` - never into the package. Two facts that make
   this work and are not obvious: both builds export the *same* sonames (`avcodec-62`, `avformat-62`,
   `avutil-60`, `swresample-6`, `swscale-9`, `avfilter-11`, `avdevice-62`), so `Flyleaf.FFmpeg.Bindings
@@ -84,8 +86,9 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   (SP-0046, 2026-08-06).
 - **`build.ps1` deploys by default.** `-Deploy` is `$true` unless you pass `-Deploy:$false`, and when it is
   set the script *forces* Release + win-x64 and throws on `-Configuration Debug`. So a bare
-  `./build.ps1 -Test` is not a Debug test run: it builds Release, tests, then publishes a self-contained
-  single-file EXE into `C:\GD\i` and `C:\GD\tc\SZA\_APP`. `./run.ps1` is the safe launcher - it always
+  `./build.ps1 -Test` is not a Debug test run: it builds Release, tests, then publishes the release-shaped
+  self-contained folder into `C:\GD\i\StreamsPlayer\` and `C:\GD\tc\SZA\_APP\StreamsPlayer\` (SP-0133; a
+  single-file EXE in the roots before that). `./run.ps1` is the safe launcher - it always
   passes `-Deploy:$false`. Both `CLAUDE.md` and `AGENTS.md` had documented the opposite for months
   (corrected 2026-08-06).
 - **A failed state save used to kill the whole app.** Every save path is an `async void` handler and
@@ -107,12 +110,17 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   process down. Consequences to keep in mind for any teardown work: an unhandled exception here skips
   `App.OnExit`, and that is where `WakeGuard.Reset()` lives, so the crash could leave a power request
   behind. **Disposing a field is not enough - null it, and gate the handlers.** `MainWindow._shuttingDown`
-  is the latch (set as the first statement of `Closed`, before any await) and `GridPreviewCoordinator`
-  carries its own `_disposed` flag because it owns the semaphores that a late `StartAsync`/`StopAsync`
-  would wait on. Closing the catalog also closes every open `PlayerWindow` - explicitly, through
-  `MainWindow.CloseOpenPlayerWindows()`, since a player is a top-level window and no longer WPF-owned by
-  the catalog - and their `Closed` handler calls back into `StartPreviewsAsync`, so the late caller is
-  not always an input event.
+  is the latch and `GridPreviewCoordinator` carries its own `_disposed` flag because it owns the semaphores
+  that a late `StartAsync`/`StopAsync` would wait on. Closing the catalog also closes every open
+  `PlayerWindow` - explicitly, through `MainWindow.CloseOpenPlayerWindows()`, since a player is a top-level
+  window and no longer WPF-owned by the catalog - and their `Closed` handler calls back into
+  `StartPreviewsAsync`, so the late caller is not always an input event. *Corrected 2026-09-25 (SP-0120):*
+  the latch used to be set in `Closed`, which runs *after* `Closing` has closed the players, so the last
+  player's callback restarted preview capture during shutdown; it is now the first statement of
+  `MainWindow_Closing`. The coordinator re-checks `_disposed` after taking its lock and no longer disposes
+  its semaphores - a caller already queued on one used to wait for ever. The close work is a `Task`
+  (`MainWindow.CloseWork`) and the process ends only when it finishes or 4 s pass (`ShutdownMode` is
+  `OnExplicitShutdown`; `App.EndAfterCloseWorkAsync`, `App.OnSessionEnding`).
 - **The README trio is the product's manual, not repo prose.** Settings -> Instructions opens
   `README.md`, `README.ru.md` or `README.uk.md` by interface language
   (`ProductInfo.InstructionsUrl`), so a UI change is not finished until all three describe it.
@@ -458,10 +466,10 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   windows where `visible && !WS_EX_TOOLWINDOW && (WS_EX_APPWINDOW || no owner)` - one, while
   collapsed. Do **not** reach for an owned window here: `PlayerWindow` clears its `Owner` in `Loaded`
   for the opposite need (independent minimising), and an owned window carrying its own taskbar button
-  is the shape that produces two entries. Also note the default `ShutdownMode` is `OnLastWindowClose`
-  and a hidden window still counts as open, so closing the visible one does **not** end the process -
-  SP-0080 routes the panel's close through `MainWindow.Close()` so the ordinary save path runs
-  (2026-08-19).
+  is the shape that produces two entries. SP-0080 routes the panel's close through `MainWindow.Close()` so
+  the ordinary save path runs (2026-08-19). Since SP-0120 (2026-09-25) `ShutdownMode` is
+  `OnExplicitShutdown`: closing the catalog is the only ordinary way the process ends, so a new top-level
+  window must never be the thing that is expected to end it.
 - **The stream bank is republished in place several times a day, so any row count written into a
   ticket is stale before the ticket is finished - and the atlas can stay byte-identical while the CSV
   changes underneath it.** Measured inside a single session on 2026-08-19: at 18:45 the asset was
@@ -555,6 +563,29 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   window's descendants; a Settings control on an unselected tab is not in the tree until the tab is
   selected; and a label and its combo box share the name, so filter by `ControlType`. A WPF
   `MessageBox`'s OK is a `Pane` without `InvokePattern` - dismiss it with Enter.
+  Three more (2026-09-25, SP-0124): a catalog card is a `DataItem` with **no UIA children**, so its Play
+  and More buttons cannot be reached by automation at all; an agent session may have **no input desktop**
+  (`GetCursorPos` reads 0,0, synthetic clicks go nowhere, `PrintWindow` returns black), so do not plan on
+  mouse input; and `AutomationElement.RootElement` children by process id can miss an owned modal that
+  `EnumWindows` sees. What works without input: launch with `--id <guid>` (startup) and run a second copy
+  with `--id` (SP-0118 forwards it into the running one) - both enter the same `PlayChannelAsync` a click
+  does; find windows with `EnumWindows`, read and press buttons through `AutomationElement.FromHandle`.
+  `temp/SP-0124/observe.ps1` is a working example, including the profile sandbox.
+  Two more (2026-09-26, SP-0132): **`InvokePattern.Invoke` ignores the Win32 disable a modal puts on its
+  owner**, so automation can press a catalog button - collapse, refresh - underneath an open `MessageBox`,
+  a state no user can reach; a run that "reproduces" a bug that way proves nothing. Order the steps so the
+  press happens before the modal can appear, and check the log timestamps. And the input desktop is not
+  always absent: that session had one (`OpenInputDesktop` non-zero, `SetCursorPos` moved the real cursor),
+  which made a card's Pin reachable by a computed mouse click; restore the owner's cursor afterwards. A
+  `MessageBox`'s Yes/No are `Pane`s too - `SetForegroundWindow` on the `#32770` and send `n`. For a
+  performance claim, the deployed build in `C:\GD\i` against the same sandbox is a ready "before".
+- **A frozen `BitmapDecoder` frame is still thread-bound; decode off-thread with a frozen `BitmapImage`.**
+  Found 2026-09-25 (SP-0125): `BitmapDecoder.Create(..., OnLoad).Frames[0]` decoded in `Task.Run` and
+  `Freeze()`d threw "a different thread owns it" on every `CroppedBitmap` taken on the UI thread; the
+  `Image` binding swallowed it, so every favicon silently became a monogram while build and tests stayed
+  green. `BitmapImage` + `CacheOption = OnLoad` + `Freeze()` owns its pixels and works. Only a GUI probe
+  of a row that *has* an index catches this - a screen of top rows proves nothing, 70% have no icon.
+  `temp/SP-0125/run-refresh-memory.ps1` searches such a row by exact title.
 
 ## References
 
@@ -912,6 +943,11 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   `.github/workflows/release.yml` builds - a plain self-contained folder publish, no single-file - and
   a build meant for someone else must be produced and verified that way, by extracting it and launching
   the extracted EXE (2026-08-07).
+  **Superseded 2026-09-26 (SP-0133):** `-Deploy` no longer builds a single-file EXE. The "older full copy"
+  in those roots turned out to be **FastMediaSorter LITE's** `libvlc\` (3.0.21) and `LibVLCSharp.dll`
+  (3.9.3) - another product's natives, which StreamsPlayer had been running on. The owner chose a
+  `StreamsPlayer\` subfolder per root holding the full release payload; never write StreamsPlayer files
+  into those shared roots again.
 
 - **A Partner Center listing import must be CRLF everywhere, and it reports a bare LF as the wrong
   error entirely.** The export is CRLF throughout, inside quoted multi-line cells as much as between
@@ -1044,8 +1080,9 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   WPF runtime **10.0.11** breaks `MediaElement` network audio: every station fails instantly with
   `InvalidOperationException` out of `MediaFailed` while the server answers `200`. The app opens, loads
   the catalog, renders the grid - and plays nothing. `scripts/check.ps1` stayed 858/858 green throughout,
-  because nothing in the repo was wrong. SP-0093 pins `Microsoft.WindowsDesktop.App` to 10.0.10 in
-  `Directory.Build.targets`. **The published 26.0820.1828 shipped with 10.0.11 and is affected** - it was
+  because nothing in the repo was wrong. SP-0093 pinned `Microsoft.WindowsDesktop.App` to 10.0.10 in
+  `Directory.Build.targets`; SP-0133 removed the pin (2026-09-26) once radio had left `MediaElement` for
+  LibVLC (SP-0104) and the smoke gate proved sound and picture on 10.0.11 itself. **The published 26.0820.1828 shipped with 10.0.11 and is affected** - it was
   released before anyone played a stream from it.
   Three durable lessons, each of which cost a wrong turn here:
   1. **Isolate by swapping one variable under an unchanged artifact.** Overlaying only the WindowsDesktop
@@ -1132,12 +1169,23 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   program at all, suspect the message before you suspect your understanding** - and go read the throw
   site in the source rather than reasoning from the text (2026-08-21).
 
-- **`reference` - a leftover StreamsPlayer process silently swallows a `--url` launch.** The app is
-  single-instance: starting it while another copy runs hands off, and the new process contributes
-  nothing to `Current.log`. The symptom is a log full of ordinary catalog activity and **no `AUDIO`
-  line at all** - identical to what a mis-typed invocation looks like, and easy to misread as the
-  playback bug itself. `Get-Process StreamsPlayer` and kill before any run-and-observe check
-  (2026-08-21).
+- **`reference` - a leftover StreamsPlayer process hides a `--url` launch from `Current.log`.** The
+  symptom is a `Current.log` full of ordinary catalog activity and **no `AUDIO` line at all** - identical
+  to what a mis-typed invocation looks like, and easy to misread as the playback bug itself.
+  `Get-Process StreamsPlayer` and kill before any run-and-observe check (2026-08-21).
+  **Correction, 2026-09-25: the app is NOT single-instance, and this entry's original explanation ("it
+  hands off") was wrong.** Nothing in `src` holds a mutex or a pipe; the second process runs as a full
+  second instance. It is missing from `Current.log` because the first process still owns that file, so
+  the SP-0085 path in `CurrentLog` gives the newcomer its own `Session-<stamp>.log` - look there. Two
+  instances also overwrite each other's whole state and delete each other's atlas; SP-0118 makes the
+  app single-instance per `APP-ACTIVATION`. Verified by reading `App.xaml.cs` and `CurrentLog.cs:45-57`.
+  **Update, 2026-09-25, SP-0118 implemented: builds from this date ARE single-instance per session.**
+  A second launch forwards over the pipe, exits 0 in ~0.2 s and writes no log at all; the running copy
+  logs `LAUNCH FORWARDED | kind=.. | foreground=..` and plays the target. So on a current build the
+  `--url` lands in the *running* copy's `Current.log`; on an older running build the old
+  `Session-<stamp>.log` explanation still applies. Killing stale copies before a check stays the rule.
+  A running copy that holds the lock but does not answer yields a dialog and exit 1 - to reproduce it,
+  hold `Local\StreamsPlayerSingleInstance` from PowerShell without listening.
 
 - **`project` - the release gate that unit tests structurally cannot be: `scripts/smoke-playback.ps1`.**
   Added 2026-08-21, after SP-0093 shipped a release that built clean, passed 858 tests and played
@@ -1190,3 +1238,10 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   GUI run-and-observe, `ListAgents` and claim the slot by message; address the app by PID only; and
   re-read any shared file immediately before editing it. `temp/SP-0109/observe.ps1` is a reusable
   sandboxed run (copies the catalog state, forces list view, restores the real folder in `finally`).
+- **After a LibVLC player window closes, UI Automation stops seeing the catalog window's content.** Found
+  2026-09-25 (SP-0075): the window renders normally, but its UIA tree shrinks to the title bar, and a
+  fresh app instance inspected from the *same* pwsh UIA client stays truncated too. A mouse click to wake
+  the player's auto-hidden panel is also unsafe - it lands on whatever window is in front. What worked:
+  read the player's panel by polling in the first seconds after it opens (it is shown on start, then
+  hides), and run every step that follows a player in a *new* pwsh process, seeded from a file the
+  earlier part saved. `temp/SP-0075/observe.ps1 -Part AB|CD` is the worked example.

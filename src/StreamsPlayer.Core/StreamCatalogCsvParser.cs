@@ -60,13 +60,16 @@ public static class StreamCatalogCsvParser
         return result;
     }
 
-    // Tolerant parse of the optional, untrusted is_live claim. Unknown/blank/absent stays null.
-    private static bool? ParseIsLive(string value) => value.Trim().ToLowerInvariant() switch
+    // SP-0108, STREAM-BANK `03_catalog_format.md` §2.3: a trimmed, case-insensitive "true" is the only
+    // true; every other non-empty value - "false", "1", "yes", anything - is false. A blank cell (and an
+    // absent column) stays null, "the producer did not say", where the contract says false: that half is
+    // this product's proposal to the contract owner, carried as a dated exception in the registry until
+    // it is ruled on. SP-0033 read "1" and "yes" as true - the inverse of the contract.
+    private static bool? ParseIsLive(string value)
     {
-        "true" or "1" or "yes" or "live" => true,
-        "false" or "0" or "no" or "vod" => false,
-        _ => null
-    };
+        var trimmed = value.Trim();
+        return trimmed.Length == 0 ? null : trimmed.Equals("true", StringComparison.OrdinalIgnoreCase);
+    }
 
     // SP-0088, STREAM-BANK item E: `access` is an opaque token, not a closed set. Blank - and an
     // absent column, which reads as blank - means open; any non-empty value means a restriction this

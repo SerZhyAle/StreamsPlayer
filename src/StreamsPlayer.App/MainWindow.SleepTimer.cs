@@ -88,7 +88,7 @@ public partial class MainWindow
             menu.IsOpen = false;
         }
 
-        StartSleepTimer(SleepTimerPlan.FromLocalTime(DateTimeOffset.Now, localTime));
+        StartSleepTimer(SleepTimerPlan.FromLocalTime(DateTimeOffset.Now, localTime, TimeZoneInfo.Local));
     }
 
     private void StartSleepTimer(DateTimeOffset deadline)

@@ -6,8 +6,17 @@ public enum QualityChangeKind
     /// <summary>The source could not deliver the current rung in real time.</summary>
     StepDown,
 
-    /// <summary>A trial of the next rung up, after an interval with no starvation.</summary>
-    Probe
+    /// <summary>
+    /// A trial of the next rung up, after an interval with no starvation at all - SP-0130: a starvation
+    /// too isolated to step down still restarts that interval.
+    /// </summary>
+    Probe,
+
+    /// <summary>
+    /// SP-0130: the rung on trial never went live, so the player returns to the rung it left. A failed
+    /// probe rather than a playback failure: the rung below was playing a moment ago.
+    /// </summary>
+    ProbeFailed
 }
 
 /// <summary>
@@ -166,9 +175,14 @@ public sealed class AdaptiveQualityGovernor
     }
 
     /// <summary>
-    /// Bumped every time a rung's record changes, so the player can persist without polling or a callback.
-    /// It exists because one of the two changes is invisible in the return values: a probe that survives
-    /// its window clears that rung's failures from inside <see cref="Observe"/>, which returns null.
+    /// Bumped every time what the record would say changes - a rung's failures or the settled ceiling - so
+    /// the player can persist without polling or a callback. It exists because one of those changes is
+    /// invisible in the return values: a probe that survives its window settles from inside
+    /// <see cref="Observe"/>, which returns null.
+    /// <para>SP-0130: a plain step-down bumps it too. The record's ceiling used to move only with a
+    /// failure count, so a session that stepped down without ever probing left nothing behind and the next
+    /// one paid the same re-open to arrive at the same rung. A probe does <em>not</em> bump it when raised:
+    /// a rung on trial is not yet a ceiling worth opening at.</para>
     /// </summary>
     public int MemoryRevision { get; private set; }
 
@@ -234,6 +248,10 @@ public sealed class AdaptiveQualityGovernor
         _starvations.Add(now);
         if (_starvations.Count < StarvationsBeforeStepDown || _index == 0)
         {
+            // SP-0130: too isolated to step down, but not clean either. Without this a probe to the heavier
+            // rung could follow a starvation by seconds - contrary to "an interval with no starvation".
+            // The starvation itself stays counted: it is half of the evidence the next one completes.
+            _cleanSince = now;
             return null;
         }
 
@@ -244,12 +262,38 @@ public sealed class AdaptiveQualityGovernor
             // next attempt at it waits twice as long however well any other rung behaves meanwhile.
             _probedAt = null;
             _failures[_index]++;
-            MemoryRevision++;
         }
 
         _index--;
+        MemoryRevision++; // SP-0130: the settled ceiling moved, whatever the failure counts did
         StartCleanInterval(now);
         return new QualityDecision(_ladder[_index], QualityChangeKind.StepDown, starvations);
+    }
+
+    /// <summary>True while a probe's rung is on trial - raised and not yet settled either way.</summary>
+    public bool IsProbing => _probedAt is not null;
+
+    /// <summary>
+    /// SP-0130: the media opened for a probe never went live. The trial is failed on the spot - recorded
+    /// against the probed rung exactly as a starved trial is - and the player returns to the rung it left.
+    /// <para>Starvation cannot report this: it is measured on a stream that is playing, and this one never
+    /// started. Left to the ordinary open rules instead, a channel that was playing a minute ago would end
+    /// in a terminal "unavailable" verdict, and recovery would re-open at the rung that just failed.</para>
+    /// Returns null when no probe is on trial, so a stale report cannot move the ladder.
+    /// </summary>
+    public QualityDecision? NotifyProbeNeverLive(TimeSpan now)
+    {
+        if (!HasLadder || _probedAt is null || _index == 0)
+        {
+            return null;
+        }
+
+        _probedAt = null;
+        _failures[_index]++;
+        _index--;
+        MemoryRevision++;
+        StartCleanInterval(now);
+        return new QualityDecision(_ladder[_index], QualityChangeKind.ProbeFailed, 0);
     }
 
     /// <summary>
@@ -270,11 +314,9 @@ public sealed class AdaptiveQualityGovernor
         if (_probedAt is { } probed && now - probed >= StarvationWindow)
         {
             _probedAt = null;
-            if (_failures[_index] > 0)
-            {
-                _failures[_index] = 0;
-                MemoryRevision++;
-            }
+            _failures[_index] = 0;
+            // SP-0130: bumped even with nothing to forgive - the rung has just become the settled ceiling.
+            MemoryRevision++;
         }
 
         if (_index >= _ladder.Count - 1 || now - _cleanSince < WaitBeforeProbing(_index + 1))

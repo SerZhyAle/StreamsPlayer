@@ -63,7 +63,5 @@ public sealed class PreviewFrameCache(int capacity, Action<string>? evicted = nu
 public static class PreviewCapturePolicy
 {
     public static bool IsCaptureable(StreamChannel channel) =>
-        channel.MediaKind == MediaKind.Video &&
-        Uri.TryCreate(channel.Url, UriKind.Absolute, out var uri) &&
-        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+        channel.MediaKind == MediaKind.Video && LaunchableAddress.TryParseHttp(channel.Url, out _);
 }

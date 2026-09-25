@@ -34,12 +34,14 @@ public static class IcecastStatusParser
                 return false;
             }
 
-            return sources.ValueKind switch
+            IReadOnlyList<JsonElement> candidates = sources.ValueKind switch
             {
-                JsonValueKind.Object => TryExtractFromSource(sources, streamUri, out title),
-                JsonValueKind.Array => TryExtractFromSources(sources, streamUri, out title),
-                _ => false
+                JsonValueKind.Object => [sources],
+                JsonValueKind.Array => [.. sources.EnumerateArray()],
+                _ => []
             };
+
+            return TryExtractFromSources(candidates, streamUri, out title);
         }
         catch (JsonException)
         {
@@ -47,41 +49,63 @@ public static class IcecastStatusParser
         }
     }
 
-    private static bool TryExtractFromSources(JsonElement sources, Uri streamUri, out string? title)
+    /// <summary>
+    /// An exact host, port and path match wins. Failing that, SP-0131: the one source whose mount path is
+    /// the playing path. A server left with its stock <c>hostname</c> reports <c>localhost</c>, and one
+    /// behind a proxy reports its own port, so an exact-only rule sent every such station to a second
+    /// audio download just to read titles. Two sources on the same path under different hosts stay
+    /// unmatched: guessing between them could show another station's track.
+    /// </summary>
+    private static bool TryExtractFromSources(IReadOnlyList<JsonElement> sources, Uri streamUri, out string? title)
     {
-        foreach (var source in sources.EnumerateArray())
+        JsonElement? samePath = null;
+        var samePathCount = 0;
+        foreach (var source in sources)
         {
-            if (TryExtractFromSource(source, streamUri, out title))
+            if (!TryGetListenUri(source, out var listenUri) || !SamePath(listenUri, streamUri))
             {
+                continue;
+            }
+
+            if (SameAuthority(listenUri, streamUri))
+            {
+                title = ExtractTitle(source);
                 return true;
             }
+
+            samePath = source;
+            samePathCount++;
+        }
+
+        if (samePathCount == 1)
+        {
+            title = ExtractTitle(samePath!.Value);
+            return true;
         }
 
         title = null;
         return false;
     }
 
-    private static bool TryExtractFromSource(JsonElement source, Uri streamUri, out string? title)
+    private static bool TryGetListenUri(JsonElement source, out Uri listenUri)
     {
-        title = null;
-        if (source.ValueKind != JsonValueKind.Object ||
-            !TryGetString(source, "listenurl", out var listenUrl) ||
-            !Uri.TryCreate(listenUrl, UriKind.Absolute, out var listenUri) ||
-            !SameMount(listenUri, streamUri))
-        {
-            return false;
-        }
+        listenUri = null!;
+        return source.ValueKind == JsonValueKind.Object &&
+               TryGetString(source, "listenurl", out var listenUrl) &&
+               Uri.TryCreate(listenUrl, UriKind.Absolute, out listenUri!);
+    }
 
+    private static string? ExtractTitle(JsonElement source)
+    {
         foreach (var property in new[] { "title", "display-title", "yp_currently_playing" })
         {
             if (TryGetString(source, property, out var value))
             {
-                title = BroadcastText.Sanitize(value, IcyMetadataParser.MaxTitleLength);
-                break;
+                return BroadcastText.Sanitize(value, IcyMetadataParser.MaxTitleLength);
             }
         }
 
-        return true;
+        return null;
     }
 
     private static bool TryGetString(JsonElement element, string property, out string? value)
@@ -92,8 +116,10 @@ public static class IcecastStatusParser
                (value = candidate.GetString()) is not null;
     }
 
-    private static bool SameMount(Uri left, Uri right) =>
+    private static bool SameAuthority(Uri left, Uri right) =>
         string.Equals(left.Host, right.Host, StringComparison.OrdinalIgnoreCase) &&
-        left.Port == right.Port &&
+        left.Port == right.Port;
+
+    private static bool SamePath(Uri left, Uri right) =>
         string.Equals(left.AbsolutePath.TrimEnd('/'), right.AbsolutePath.TrimEnd('/'), StringComparison.Ordinal);
 }

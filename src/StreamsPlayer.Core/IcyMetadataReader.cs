@@ -19,8 +19,15 @@ namespace StreamsPlayer.Core;
 /// </remarks>
 public sealed class IcyMetadataReader
 {
-    private const int ConnectTimeoutSeconds = 15;
+    private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(15);
     private const int MetadataBlockUnit = 16;
+
+    /// <summary>
+    /// SP-0129: how long the live body may deliver nothing before the read is abandoned as
+    /// <see cref="IcyReadOutcome.TimedOut"/>. A playing station sends audio continuously, so this much
+    /// silence is a dead connection; without it a stalled socket held this read open until playback ended.
+    /// </summary>
+    private static readonly TimeSpan SilenceTimeout = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// The largest <c>icy-metaint</c> this reader will honour. The value sizes a buffer allocated per
@@ -29,11 +36,29 @@ public sealed class IcyMetadataReader
     private const int MaxMetaInterval = 1024 * 1024;
 
     private readonly HttpClient _httpClient;
+    private readonly TimeSpan _connectTimeout;
+    private readonly TimeSpan _silenceTimeout;
 
     public IcyMetadataReader(HttpClient httpClient)
+        : this(httpClient, ConnectTimeout, SilenceTimeout)
+    {
+    }
+
+    /// <summary>Tests shorten the deadlines; the product always uses the constants above.</summary>
+    internal IcyMetadataReader(HttpClient httpClient, TimeSpan connectTimeout, TimeSpan silenceTimeout)
     {
         _httpClient = httpClient;
+        _connectTimeout = connectTimeout;
+        _silenceTimeout = silenceTimeout;
     }
+
+    /// <summary>
+    /// SP-0131: the decoding this read's titles needed - the single-byte one when any block was not valid
+    /// UTF-8, <see cref="IcyTextEncoding.Utf8"/> when every block was, <c>null</c> when no block arrived.
+    /// The App logs it beside the outcome, so a station whose titles still look wrong can be traced to the
+    /// choice that produced them.
+    /// </summary>
+    public IcyTextEncoding? TextEncoding { get; private set; }
 
     /// <summary>
     /// Streams metadata updates until <paramref name="cancellationToken"/> is cancelled
@@ -80,7 +105,7 @@ public sealed class IcyMetadataReader
     private async Task<IcyReadOutcome> ReadCoreAsync(string url, IProgress<string?> onTitleChanged, CancellationToken cancellationToken)
     {
         using var connectDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        connectDeadline.CancelAfter(TimeSpan.FromSeconds(ConnectTimeoutSeconds));
+        connectDeadline.CancelAfter(_connectTimeout);
 
         HttpResponseMessage response;
         try
@@ -127,7 +152,7 @@ public sealed class IcyMetadataReader
     /// by our own stack rather than by the station, and a station that drops this one is left alone until
     /// the channel is launched again.</para>
     /// </remarks>
-    private static async Task<IcyReadOutcome> ReadViaSocketAsync(
+    internal async Task<IcyReadOutcome> ReadViaSocketAsync(
         string url,
         IProgress<string?> onTitleChanged,
         CancellationToken connectDeadline,
@@ -188,7 +213,7 @@ public sealed class IcyMetadataReader
     private static bool TryParseMetaInterval(string? value, out int metaInterval) =>
         (metaInterval = int.TryParse(value, out var parsed) && parsed > 0 && parsed <= MaxMetaInterval ? parsed : 0) > 0;
 
-    private static async Task<IcyReadOutcome> PumpAsync(
+    private async Task<IcyReadOutcome> PumpAsync(
         Stream stream,
         int metaInterval,
         IProgress<string?> onTitleChanged,
@@ -198,16 +223,19 @@ public sealed class IcyMetadataReader
         var lengthBuffer = new byte[1];
         string? lastReported = null;
         var reportedAny = false;
+        // Linked, so its expiry surfaces as a cancellation the caller's token did not ask for - the
+        // TimedOut branch of ReadAsync - and never as the user's own stop.
+        using var silence = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         while (!cancellationToken.IsCancellationRequested)
         {
             // Discard the audio segment; we only want the metadata that follows it.
-            if (!await ReadExactlyAsync(stream, audioBuffer, metaInterval, cancellationToken))
+            if (!await ReadExactlyAsync(stream, audioBuffer, metaInterval, silence))
             {
                 return Ended(reportedAny);
             }
 
-            if (!await ReadExactlyAsync(stream, lengthBuffer, 1, cancellationToken))
+            if (!await ReadExactlyAsync(stream, lengthBuffer, 1, silence))
             {
                 return Ended(reportedAny);
             }
@@ -219,12 +247,18 @@ public sealed class IcyMetadataReader
             }
 
             var metaBuffer = new byte[metaLength];
-            if (!await ReadExactlyAsync(stream, metaBuffer, metaLength, cancellationToken))
+            if (!await ReadExactlyAsync(stream, metaBuffer, metaLength, silence))
             {
                 return Ended(reportedAny);
             }
 
-            var block = Encoding.UTF8.GetString(metaBuffer);
+            var block = IcyTextDecoder.Decode(metaBuffer, out var encoding);
+            // A single-byte choice is the notable one; a later UTF-8 block never overwrites it.
+            if (TextEncoding is null or IcyTextEncoding.Utf8)
+            {
+                TextEncoding = encoding;
+            }
+
             var title = IcyMetadataParser.ExtractStreamTitle(block);
             if (!string.Equals(title, lastReported, StringComparison.Ordinal))
             {
@@ -261,16 +295,18 @@ public sealed class IcyMetadataReader
         }
     }
 
-    private static async Task<bool> ReadExactlyAsync(
+    private async Task<bool> ReadExactlyAsync(
         Stream stream,
         byte[] buffer,
         int count,
-        CancellationToken cancellationToken)
+        CancellationTokenSource silence)
     {
         var offset = 0;
         while (offset < count)
         {
-            var read = await stream.ReadAsync(buffer.AsMemory(offset, count - offset), cancellationToken);
+            // Re-armed before every read, so the bound measures silence and not the length of the session.
+            silence.CancelAfter(_silenceTimeout);
+            var read = await stream.ReadAsync(buffer.AsMemory(offset, count - offset), silence.Token);
             if (read == 0)
             {
                 return false; // Stream ended mid-frame.

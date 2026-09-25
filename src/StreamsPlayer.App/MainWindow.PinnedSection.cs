@@ -74,30 +74,44 @@ public partial class MainWindow
 
     private async void PinnedHeader_Click(object sender, MouseButtonEventArgs e)
     {
-        if (!HasPinned)
+        try
         {
-            return;
-        }
+            if (!HasPinned)
+            {
+                return;
+            }
 
-        PinnedSectionCollapsed = !PinnedSectionCollapsed;
-        NotifySectionState();
-        UpdatePinnedSectionLayout();
-        ScheduleVisiblePreviewUpdate();
-        if (_preferencesLoaded)
+            PinnedSectionCollapsed = !PinnedSectionCollapsed;
+            NotifySectionState();
+            UpdatePinnedSectionLayout();
+            ScheduleVisiblePreviewUpdate();
+            if (_preferencesLoaded)
+            {
+                _state = await PersistAsync(state => state with { PinnedSectionCollapsed = PinnedSectionCollapsed });
+            }
+        }
+        catch (Exception exception)
         {
-            _state = await PersistAsync(_state with { PinnedSectionCollapsed = PinnedSectionCollapsed });
+            HandlerBoundary.Report(nameof(PinnedHeader_Click), exception);
         }
     }
 
     private async void MainHeader_Click(object sender, MouseButtonEventArgs e)
     {
-        MainSectionCollapsed = !MainSectionCollapsed;
-        NotifySectionState();
-        UpdatePinnedSectionLayout();
-        ScheduleVisiblePreviewUpdate();
-        if (_preferencesLoaded)
+        try
         {
-            _state = await PersistAsync(_state with { MainSectionCollapsed = MainSectionCollapsed });
+            MainSectionCollapsed = !MainSectionCollapsed;
+            NotifySectionState();
+            UpdatePinnedSectionLayout();
+            ScheduleVisiblePreviewUpdate();
+            if (_preferencesLoaded)
+            {
+                _state = await PersistAsync(state => state with { MainSectionCollapsed = MainSectionCollapsed });
+            }
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(MainHeader_Click), exception);
         }
     }
 

@@ -22,27 +22,48 @@ function Get-RepositoryRoot {
     return (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 }
 
-function Get-InterfaceLanguages {
+function Resolve-CoreAssemblyPath {
+    <#
+        SP-0133: which built StreamsPlayer.Core.dll a tool reads. Pinned, it is that configuration's build or
+        nothing. Unpinned, it is the most recently written of the Release and Debug builds - a fixed
+        Release-first order read a stale Release build over the Debug build made a minute ago, so a registry
+        edit the developer had just compiled was silently absent from what the tool produced.
+    #>
     [CmdletBinding()]
     param(
-        # Which build of StreamsPlayer.Core to read. Release first, then Debug, unless pinned.
-        [ValidateSet('Release', 'Debug')] [string] $Configuration
+        [ValidateSet('Release', 'Debug')] [string] $Configuration,
+        # What the caller reads the assembly for; it only shapes the error.
+        [string] $Purpose = 'The value is read from the built assembly'
     )
 
     $root = Get-RepositoryRoot
     $configurations = if ($Configuration) { @($Configuration) } else { @('Release', 'Debug') }
-
-    $assemblyPath = $null
-    foreach ($candidate in $configurations) {
+    $found = @(foreach ($candidate in $configurations) {
         $path = Join-Path $root "src/StreamsPlayer.Core/bin/$candidate/net10.0/StreamsPlayer.Core.dll"
-        if (Test-Path -LiteralPath $path) { $assemblyPath = $path; break }
+        if (Test-Path -LiteralPath $path) { Get-Item -LiteralPath $path }
+    })
+
+    if ($found.Count -eq 0) {
+        throw "StreamsPlayer.Core.dll not found under src/StreamsPlayer.Core/bin ($($configurations -join ', ')). " +
+              "$Purpose, so build first: dotnet build StreamsPlayer.sln -c Release"
     }
 
-    if (-not $assemblyPath) {
-        throw "StreamsPlayer.Core.dll not found under src/StreamsPlayer.Core/bin ($($configurations -join ', ')). " +
-              "The language registry is read from the built assembly, so build first: " +
-              "dotnet build StreamsPlayer.sln -c Release"
-    }
+    $chosen = $found | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+    Write-Verbose "StreamsPlayer.Core: $($chosen.FullName) ($($chosen.LastWriteTime))"
+    return $chosen.FullName
+}
+
+function Get-InterfaceLanguages {
+    [CmdletBinding()]
+    param(
+        # Which build of StreamsPlayer.Core to read. Unpinned, the most recently built one (SP-0133).
+        [ValidateSet('Release', 'Debug')] [string] $Configuration
+    )
+
+    $root = Get-RepositoryRoot
+    $pinned = if ($Configuration) { @{ Configuration = $Configuration } } else { @{} }
+    $assemblyPath = Resolve-CoreAssemblyPath @pinned `
+        -Purpose 'The language registry is read from the built assembly'
 
     # Load from bytes rather than LoadFrom: LoadFrom locks the file, and a later dotnet build in the
     # same session would fail with the assembly still held open.

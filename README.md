@@ -94,8 +94,8 @@ code or features.
   in another. A topic this version has not seen yet is shown as the catalog
   spells it rather than hidden. **General** covers about half the catalog, so it
   sits at the end of the list, below the topics that actually narrow it.
-- Hide adult channels from the catalog and filters at any time using the
-  **Hide adult channels** option in Settings.
+- Hide adult channels from the catalog, the filters and the **Random station**
+  draw at any time using the **Hide adult channels** option in Settings.
 - Reach the actions you use rarely from one **Operations** menu in the header:
   always on top, refresh previews (in grid mode), **Random station**, history,
   add stream, **Paste channel**, **Tools**, and, set apart at the end,
@@ -143,6 +143,11 @@ code or features.
 - Record a live broadcast with the **Record** button (or press `R` in the video player):
   losslessly captures the active live video or radio stream directly to a media file in the
   saved files folder without interrupting playback, and shows the saved file name on stop.
+  A video recording survives reconnects - each connection becomes its own file and all of
+  them are reported at the end; a radio recording is named after the format the station
+  really sends and follows a `.pls`/`.m3u` link to the stream, and when the station drops
+  the connection you are told at once what was saved and how long it runs. A FastMediaSorter
+  broadcast cannot be recorded (it allows only the one connection playback uses).
 - Answer a failed stream from the failure dialog - **Retry**, **Copy report**,
   **Keep**, or remove it: a catalog channel is hidden and a channel of your own is
   deleted after a confirmation. Hidden catalog channels survive a refresh and come
@@ -160,6 +165,18 @@ code or features.
   channels you played, with the last observed now-playing text when a station
   provides it. History is local only, never uploaded, and cleared on demand;
   a channel you removed stays as a non-playable label.
+- See what is on a TV channel now and next from a TV schedule you choose: paste
+  the address of an XMLTV guide (`.xml` or `.xml.gz`, for example one from the
+  iptv-org/epg project) under **TV schedule** in **Tools** and press **Download
+  schedule**. The channel list then shows the current programme under each
+  matched channel, and the player shows the current and next programme with
+  their times, in your local time. Channels are matched by exact name; a name the
+  guide uses for more than one channel matches nothing, and **TV schedule
+  channel..** in a channel's three-dot menu binds it by hand or turns its
+  schedule off. The guide is downloaded only when you press the button, kept for
+  36 hours ahead within a fixed size limit, never updated in the background, and
+  **Remove schedule** deletes it. A channel without a schedule looks and plays
+  exactly as before.
 - Import channels from a local `.m3u`/`.m3u8` file or an HTTP(S) playlist URL as
   `IMPORTED` rows, with an atomic preview of new, duplicate, invalid, and skipped
   counts before applying; HLS media manifests import nothing and explain why.
@@ -226,7 +243,8 @@ code or features.
 - Let the catalog choose: **Random station** in the **Operations** menu draws one
   radio station from the whole catalog and plays it. The draw ignores the current
   search, the open facets and the active collection, and it never offers a
-  channel you hid, a video stream or an RTSP address. A station that refuses, or
+  channel you hid, an adult channel while adult channels are hidden, a video
+  stream or an RTSP address. A station that refuses, or
   that connects and stays silent for ten seconds, is dropped for the next draw
   with no dialog to dismiss; after five such stations in a row the hunt stops and
   says so on the status line. Nothing in the list moves - no scroll, no filter
@@ -345,10 +363,11 @@ StreamsPlayer.exe --url "https://example.test/live"
 ```
 
 For a saved channel, open its <img src="docs/assets/glyphs/nav.more.svg" width="16" height="16" alt=""> three-dot menu and use **Copy launch command** or
-**Create desktop shortcut**. These entries use the channel's persisted GUID:
+**Create desktop shortcut**. These entries carry the channel's persisted GUID and, beside it, its address,
+so the channel is still found after a catalog refresh gives it a new GUID:
 
 ```powershell
-StreamsPlayer.exe --id "channel-guid"
+StreamsPlayer.exe --id "channel-guid" --url "https://example.test/live"
 ```
 
 An ordinary launch without arguments starts nothing. Turn on **Resume playback on startup** on the
@@ -391,7 +410,9 @@ channel** for a stream, or keep Grid mode active while visible video previews
 refresh (all to that stream's own provider); when you listen to a
 FastMediaSorter broadcast you imported (directly to that device on your local
 network); and when you download the optional FFmpeg libraries in **Tools**
-(from a third-party GitHub project, `BtbN/FFmpeg-Builds`). Local data leaves your device only if you
+(from a third-party GitHub project, `BtbN/FFmpeg-Builds`); and when you press
+**Download schedule** in **Tools** (from the TV schedule address you entered
+yourself). Local data leaves your device only if you
 send it yourself - **Send logs to the author** prepares an archive and a message in
 your own mail program, and never sends anything on its own. See the
 [privacy page](https://serzhyale.github.io/StreamsPlayer/privacy.html) for details.

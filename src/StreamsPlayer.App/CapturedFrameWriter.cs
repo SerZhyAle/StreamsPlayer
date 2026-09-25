@@ -40,10 +40,36 @@ internal static class CapturedFrameWriter
             encoder.Frames.Add(BitmapFrame.Create(frame));
             Directory.CreateDirectory(folder);
             var path = ReserveUniquePath(folder, CapturedFrameName.For(channelTitle, capturedAt));
-            using var stream = File.Create(path);
-            encoder.Save(stream);
-            return path;
+            try
+            {
+                using (var stream = File.Create(path))
+                {
+                    encoder.Save(stream);
+                }
+
+                return path;
+            }
+            catch
+            {
+                // SP-0121 R7: a save that failed part-way - a full disk, a folder that went away - must not leave a
+                // truncated picture behind under a name that looks like a good one (C-13). Deleted after the stream
+                // is closed, and the original failure is what the caller reports.
+                TryDelete(path);
+                throw;
+            }
         });
+    }
+
+    private static void TryDelete(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Nothing more can be done from here; the caller still reports the save as failed.
+        }
     }
 
     /// <summary>

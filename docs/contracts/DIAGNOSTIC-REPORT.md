@@ -17,3 +17,5 @@
 5. **User Consent Only:** Generate diagnostic archives and copy diagnostic info only on explicit user request; zero background telemetry.
 
 Evidence: `src/StreamsPlayer.Core/DiagnosticArchiveBuilder.cs`, `DiagnosticEnvironmentSummary.cs`, `DiagnosticLogFiles.cs`, `src/StreamsPlayer.App/CurrentLog.cs`, `MainWindow.Diagnostics.cs`. Tests: `DiagnosticArchiveBuilderTests.cs`, `DiagnosticEnvironmentSummaryTests.cs`, `DiagnosticLogFilesTests.cs`.
+
+Rule 3 URL half (SP-0123): `CatalogUrlIdentity.RedactText` runs at the log sink (`CurrentLog`) and again when the archive is packed; `LogSinkRedactionSourceTests.cs` gates the sink against bypass. Rule 3 path half is **not held** - a dated exception in the registry, fixed by SP-0137.

@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
@@ -18,18 +19,20 @@ public partial class MainWindow
 
     // Freeze the record first, tear the players down second - that ordering is the whole reason this is
     // Closing and not Closed. The players are no longer owned windows (see OpenIndependentPlayerWindow),
-    // so closing them is this handler's job; doing it while the catalog is still open also keeps the last
-    // player's close from tripping the last-window shutdown before the catalog has saved its state.
+    // so closing them is this handler's job. (It also used to keep the last player's close from tripping the
+    // last-window shutdown; since SP-0120 the process ends only once the catalog's close work is done.)
     private void MainWindow_Closing(object? sender, CancelEventArgs e)
     {
+        // SP-0120: first. Nothing cancels this close, and closing the players below runs their Closed callbacks,
+        // which reach the preview funnel - with the latch still clear, the last one restarted capture.
+        _shuttingDown = true;
         // SP-0086: before the freeze. A hunt's in-flight probe is not a station the next launch should
         // bring back, and a hunt that outlived its window would write a status line into a dead one.
         CancelRandomStationHunt();
         _resumeRecordFrozen = true;
         CloseOpenPlayerWindows();
         // SP-0080: the compact panel is a top-level window of this application's making, so it goes the
-        // same way and for the same reason - the catalog must still be open when its last companion
-        // closes, or OnLastWindowClose fires before the state below has been saved.
+        // same way, while the catalog is still open.
         CloseCompactPanel();
     }
 
@@ -42,7 +45,7 @@ public partial class MainWindow
         var recorded = _state.ResumeChannelIds.ToList();
         if (recorded.Count > 0)
         {
-            await UpdateResumeRecordAsync([]);
+            await UpdateResumeRecordAsync(_ => []);
         }
 
         return recorded;
@@ -84,43 +87,39 @@ public partial class MainWindow
 
     private Task NoteStreamStartedAsync(Guid channelId)
     {
-        // An externally launched channel is minted with a fresh id on every launch and is never persisted,
-        // so recording one would store an id that can never resolve again. Same membership test
-        // RememberSelectedChannelAsync uses.
-        if (!_state.Channels.Any(channel => channel.Id == channelId))
-        {
-            return Task.CompletedTask;
-        }
-
-        return UpdateResumeRecordAsync([.. _state.ResumeChannelIds, channelId]);
+        return UpdateResumeRecordAsync(state =>
+            state.Channels.Any(channel => channel.Id == channelId)
+                ? [.. state.ResumeChannelIds, channelId]
+                : null);
     }
 
     private Task NoteStreamStoppedAsync(Guid channelId)
     {
-        var updated = new List<Guid>(_state.ResumeChannelIds);
-        // One occurrence, not all: two player windows on the same channel are two entries, and closing one
-        // of them must not forget the other.
-        if (!updated.Remove(channelId))
+        return UpdateResumeRecordAsync(state =>
         {
-            return Task.CompletedTask;
-        }
-
-        return UpdateResumeRecordAsync(updated);
+            var updated = new List<Guid>(state.ResumeChannelIds);
+            // One occurrence, not all: two player windows on the same channel are two entries, and closing one
+            // of them must not forget the other.
+            return updated.Remove(channelId) ? updated : null;
+        });
     }
 
-    private Task UpdateResumeRecordAsync(List<Guid> updated)
+    private async Task UpdateResumeRecordAsync(Func<CatalogState, List<Guid>?> update)
     {
-        if (_resumeRecordFrozen || !_state.ResumePlaybackOnStartup)
+        if (_resumeRecordFrozen)
         {
-            return Task.CompletedTask;
+            return;
         }
 
-        // The in-memory swap happens before the await, not after it. A station switch calls the stop hook
-        // and then the start hook in the same turn, and if each read _state on its own side of an await the
-        // later save would be built on a stale list and lose the earlier change.
-        _state = _state with { ResumeChannelIds = updated };
-        return PersistResumeRecordAsync();
-    }
+        _state = await PersistAsync(state =>
+        {
+            if (!state.ResumePlaybackOnStartup || _resumeRecordFrozen)
+            {
+                return state;
+            }
 
-    private async Task PersistResumeRecordAsync() => _state = await PersistAsync(_state);
+            var updated = update(state);
+            return updated is null ? state : state with { ResumeChannelIds = updated };
+        });
+    }
 }

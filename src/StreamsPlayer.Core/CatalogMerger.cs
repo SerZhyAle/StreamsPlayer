@@ -25,6 +25,7 @@ public static class CatalogMerger
         }
 
         var seenCatalogUrls = new HashSet<string>(StringComparer.Ordinal);
+        var reindexed = new HashSet<Guid>();
         var output = existing.ToDictionary(channel => channel.Id);
         var added = 0;
         var updated = 0;
@@ -45,6 +46,7 @@ public static class CatalogMerger
                     continue;
                 }
 
+                reindexed.Add(current.Id);
                 var replacement = current with
                 {
                     Title = entry.Title,
@@ -63,8 +65,9 @@ public static class CatalogMerger
                     Bitrate = entry.Bitrate,
                     IsLive = entry.IsLive,
                     Access = entry.Access,
-                    // SP-0089: the bank lists this URL again, so the row is on offer again.
-                    RetiredAt = null
+                    // SP-0089: the bank lists this URL again, so the row is on offer again - unless this
+                    // bank cannot speak for the present (SP-0126: the bundled snapshot).
+                    RetiredAt = options.RevivesRetired ? null : current.RetiredAt
                 };
 
                 if (replacement != current)
@@ -101,6 +104,7 @@ public static class CatalogMerger
             };
             output[channel.Id] = channel;
             byNormalizedUrl[normalizedUrl] = channel;
+            reindexed.Add(channel.Id);
             added++;
         }
 
@@ -130,6 +134,24 @@ public static class CatalogMerger
         }
 
         var channels = output.Values.ToList();
+        if (options.ReplacesAtlas)
+        {
+            // SP-0125, STREAM-BANK rule 6 / item A: an index is an offset into the sheet of its own bank. This
+            // slot's sheet is being replaced, so an index these entries did not just write points into a sheet
+            // about to be deleted - and resolved against the new one it would show another channel's icon.
+            // The monogram is the honest answer until a bank lists the row again.
+            for (var i = 0; i < channels.Count; i++)
+            {
+                var channel = channels[i];
+                if (channel.FaviconIndex is not null &&
+                    channel.FaviconSource == options.FaviconSource &&
+                    !reindexed.Contains(channel.Id))
+                {
+                    channels[i] = channel with { FaviconIndex = null };
+                }
+            }
+        }
+
         return new MergeResult(
             channels,
             added,

@@ -25,87 +25,94 @@ public partial class MainWindow
     /// </summary>
     private async void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SettingsWindow(_state.Theme, _state.TileSize, _state.UpdateStreamPreviews, _state.HideAdultContent, _state.AnimatedBackdrop, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.ResumePlaybackOnStartup, _state.VideoBackend, _state.FrameFolder, LocalizationService.CurrentLanguage)
+        try
         {
-            Owner = this
-        };
-        if (dialog.ShowDialog() != true)
-        {
-            return;
+            var dialog = new SettingsWindow(_state.Theme, _state.TileSize, _state.UpdateStreamPreviews, _state.HideAdultContent, _state.AnimatedBackdrop, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.ResumePlaybackOnStartup, _state.VideoBackend, _state.FrameFolder, LocalizationService.CurrentLanguage)
+            {
+                Owner = this
+            };
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            var tileSizeChanged = dialog.SelectedTileSize != _state.TileSize;
+            var previewsChanged = dialog.UpdateStreamPreviews != _state.UpdateStreamPreviews;
+            var hideAdultContentChanged = dialog.HideAdultContent != _state.HideAdultContent;
+            var systemMediaControlsChanged = dialog.SystemMediaControls != _state.SystemMediaControls;
+            var animatedBackdropChanged = dialog.AnimatedBackdrop != _state.AnimatedBackdrop;
+            // SP-0062: the launch already gates on the preference, so clearing is not what makes the switch
+            // work - it is that a list of what the user was listening to should not outlive their decision to
+            // stop the feature from using it.
+            var resumeTurnedOff = _state.ResumePlaybackOnStartup && !dialog.ResumePlaybackOnStartup;
+            // Null means "the language already in use", so the settings save stays a single write.
+            var chosenLanguage = dialog.SelectedLanguage;
+            _state = await PersistAsync(state => state with
+            {
+                Language = chosenLanguage ?? state.Language,
+                Theme = dialog.SelectedTheme,
+                TileSize = dialog.SelectedTileSize,
+                UpdateStreamPreviews = dialog.UpdateStreamPreviews,
+                HideAdultContent = dialog.HideAdultContent,
+                AnimatedBackdrop = dialog.AnimatedBackdrop,
+                KeepAwakeDuringPlayback = dialog.KeepAwakeDuringPlayback,
+                SystemMediaControls = dialog.SystemMediaControls,
+                // Read at launch, so this needs no side effect applied below - it takes effect next time.
+                ResumePlaybackOnStartup = dialog.ResumePlaybackOnStartup,
+                ResumeChannelIds = resumeTurnedOff ? [] : state.ResumeChannelIds,
+                // Takes effect on the next player window opened; an already-open player keeps its engine.
+                VideoBackend = dialog.SelectedVideoBackend,
+                // Read per capture, so an open player window picks this up without being reopened (SP-0038).
+                FrameFolder = dialog.FrameFolder
+            });
+
+            ThemeService.Apply(_state.Theme);
+
+            if (chosenLanguage is { } language)
+            {
+                LocalizationService.Apply(language);
+                RefreshLocalizedInterface();
+            }
+            else if (hideAdultContentChanged)
+            {
+                PopulateFacets();
+                ApplyFilter();
+            }
+
+            // Toggling off releases an active wake lock immediately; toggling on re-acquires it for any
+            // session already playing (the guard recomputes from its live request counts).
+            WakeGuard.Enabled = _state.KeepAwakeDuringPlayback;
+
+            if (systemMediaControlsChanged)
+            {
+                ApplySystemMediaControlsSetting();
+            }
+
+            if (animatedBackdropChanged)
+            {
+                ApplyBackdrop();
+            }
+
+            if (tileSizeChanged)
+            {
+                PropertyChanged?.Invoke(this, new(nameof(GridTileWidth)));
+                PropertyChanged?.Invoke(this, new(nameof(GridTileHeight)));
+                PropertyChanged?.Invoke(this, new(nameof(IsVerySmallTile)));
+                _catalogColumns = 0;
+                UpdateCatalogColumns();
+            }
+
+            if (previewsChanged)
+            {
+                await ApplyPreviewPreferenceAsync();
+            }
+            UpdateViewModeControls();
+            SetStatus("SettingsApplied");
         }
-
-        var tileSizeChanged = dialog.SelectedTileSize != _state.TileSize;
-        var previewsChanged = dialog.UpdateStreamPreviews != _state.UpdateStreamPreviews;
-        var hideAdultContentChanged = dialog.HideAdultContent != _state.HideAdultContent;
-        var systemMediaControlsChanged = dialog.SystemMediaControls != _state.SystemMediaControls;
-        var animatedBackdropChanged = dialog.AnimatedBackdrop != _state.AnimatedBackdrop;
-        // SP-0062: the launch already gates on the preference, so clearing is not what makes the switch
-        // work - it is that a list of what the user was listening to should not outlive their decision to
-        // stop the feature from using it.
-        var resumeTurnedOff = _state.ResumePlaybackOnStartup && !dialog.ResumePlaybackOnStartup;
-        // Null means "the language already in use", so the settings save stays a single write.
-        var chosenLanguage = dialog.SelectedLanguage;
-        _state = await PersistAsync(_state with
+        catch (Exception exception)
         {
-            Language = chosenLanguage ?? _state.Language,
-            Theme = dialog.SelectedTheme,
-            TileSize = dialog.SelectedTileSize,
-            UpdateStreamPreviews = dialog.UpdateStreamPreviews,
-            HideAdultContent = dialog.HideAdultContent,
-            AnimatedBackdrop = dialog.AnimatedBackdrop,
-            KeepAwakeDuringPlayback = dialog.KeepAwakeDuringPlayback,
-            SystemMediaControls = dialog.SystemMediaControls,
-            // Read at launch, so this needs no side effect applied below - it takes effect next time.
-            ResumePlaybackOnStartup = dialog.ResumePlaybackOnStartup,
-            ResumeChannelIds = resumeTurnedOff ? [] : _state.ResumeChannelIds,
-            // Takes effect on the next player window opened; an already-open player keeps its engine.
-            VideoBackend = dialog.SelectedVideoBackend,
-            // Read per capture, so an open player window picks this up without being reopened (SP-0038).
-            FrameFolder = dialog.FrameFolder
-        });
-
-        ThemeService.Apply(_state.Theme);
-
-        if (chosenLanguage is { } language)
-        {
-            LocalizationService.Apply(language);
-            RefreshLocalizedInterface();
+            HandlerBoundary.Report(nameof(SettingsButton_Click), exception);
         }
-        else if (hideAdultContentChanged)
-        {
-            PopulateFacets();
-            ApplyFilter();
-        }
-
-        // Toggling off releases an active wake lock immediately; toggling on re-acquires it for any
-        // session already playing (the guard recomputes from its live request counts).
-        WakeGuard.Enabled = _state.KeepAwakeDuringPlayback;
-
-        if (systemMediaControlsChanged)
-        {
-            ApplySystemMediaControlsSetting();
-        }
-
-        if (animatedBackdropChanged)
-        {
-            ApplyBackdrop();
-        }
-
-        if (tileSizeChanged)
-        {
-            PropertyChanged?.Invoke(this, new(nameof(GridTileWidth)));
-            PropertyChanged?.Invoke(this, new(nameof(GridTileHeight)));
-            PropertyChanged?.Invoke(this, new(nameof(IsVerySmallTile)));
-            _catalogColumns = 0;
-            UpdateCatalogColumns();
-        }
-
-        if (previewsChanged)
-        {
-            await ApplyPreviewPreferenceAsync();
-        }
-        UpdateViewModeControls();
-        SetStatus("SettingsApplied");
     }
 
     private async Task ApplyPreviewPreferenceAsync()

@@ -47,6 +47,11 @@ public partial class MainWindow
 
     private async Task ImportFastMediaSorterBroadcastAsync(FastMediaSorterBroadcastRead read, Window owner)
     {
+        if (_busy)
+        {
+            return;
+        }
+
         if (!read.IsAccepted || read.Broadcast is null)
         {
             var key = read.Status switch
@@ -72,13 +77,23 @@ public partial class MainWindow
             return;
         }
 
-        _state = await PersistAsync(_state with { Channels = [.. planned.Channels] });
-        _log.Event("FMS IMPORT APPLY", $"added={planned.Added}",
-            $"url={CatalogUrlIdentity.Redact(planned.Channel.Url)}");
+        FastMediaSorterBroadcastApplyResult? applied = null;
+        _state = await PersistAsync(state =>
+        {
+            applied = FastMediaSorterBroadcastImport.Apply(state.Channels, read.Broadcast, DateTimeOffset.UtcNow);
+            return state with { Channels = [.. applied.Channels] };
+        });
+        if (applied is null)
+        {
+            return;
+        }
+
+        _log.Event("FMS IMPORT APPLY", $"added={applied.Added}",
+            $"url={CatalogUrlIdentity.Redact(applied.Channel.Url)}");
         PopulateFacets();
         ApplyFilter();
-        SetStatus(planned.Added ? "FmsBroadcastAdded" : "FmsBroadcastUpdated", planned.Channel.Title);
-        await RevealChannelAsync(planned.Channel.Id);
+        SetStatus(applied.Added ? "FmsBroadcastAdded" : "FmsBroadcastUpdated", applied.Channel.Title);
+        await RevealChannelAsync(applied.Channel.Id);
     }
 
     private void MainWindow_PreviewDragOver(object sender, DragEventArgs e)
@@ -89,9 +104,16 @@ public partial class MainWindow
 
     private async void MainWindow_Drop(object sender, DragEventArgs e)
     {
-        if (TryGetBroadcastFile(e, out var path))
+        try
         {
-            await ImportFastMediaSorterBroadcastFileAsync(path, this);
+            if (TryGetBroadcastFile(e, out var path))
+            {
+                await ImportFastMediaSorterBroadcastFileAsync(path, this);
+            }
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(MainWindow_Drop), exception);
         }
     }
 

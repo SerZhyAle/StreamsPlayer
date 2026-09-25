@@ -22,6 +22,13 @@ public partial class PlayerWindow
     private bool _lowestRungReported;
 
     /// <summary>
+    /// SP-0130: the current leg was opened for a probe and has not gone live yet. While it holds, a failure
+    /// of that leg is the probe's, not the channel's - see <see cref="TryAbandonFailedProbe"/>. Cleared when
+    /// the leg goes live and by any leg opened for another reason.
+    /// </summary>
+    private bool _probeLegPending;
+
+    /// <summary>
     /// SP-0077: decides which of the two-second readings is worth a line. The engine chooses a rendition
     /// inside the ceiling itself and may change that choice mid-air, so the ceiling the log already
     /// carried was only ever half the story.
@@ -57,7 +64,7 @@ public partial class PlayerWindow
 
     /// <summary>
     /// The ceiling the next media should be opened with. Read on the UI thread and carried into
-    /// <c>StartMedia</c> as an argument rather than read from inside it: two of the three opens happen on
+    /// <c>StartMedia</c> as an argument rather than read from inside it: a re-open hands it to the engine on
     /// a worker thread, and the governor is single-threaded by contract.
     /// <para>SP-0076: until a ladder has been read, the answer is what the record said. Falling back to
     /// null there would throw the ceiling away on the first reconnect - the stretch of a session most
@@ -291,13 +298,39 @@ public partial class PlayerWindow
     }
 
     /// <summary>
+    /// SP-0130: a leg opened for a probe failed before it ever went live. Returns true when that was the
+    /// case and the player has gone back to the rung it left; the caller then stops - no open verdict, no
+    /// recovery attempt, no failure dialog. The rung below was playing a moment ago, and ending the channel
+    /// or re-opening at the rung that just refused would blame the source for the player's own trial.
+    /// UI thread only, like every other governor call.
+    /// </summary>
+    private bool TryAbandonFailedProbe(string trigger)
+    {
+        if (!_probeLegPending || _reachedLive || _closing)
+        {
+            return false;
+        }
+
+        _probeLegPending = false;
+        var before = Describe(_quality.CurrentRung);
+        if (_quality.NotifyProbeNeverLive(HealthNow) is not { } decision)
+        {
+            return false;
+        }
+
+        SyncQualityMemory(); // the failed probe is the fact worth surviving, as on a starved one
+        ApplyQualityDecision(decision, $"probe_never_live_{trigger}", before, reopenNow: true);
+        return true;
+    }
+
+    /// <summary>
     /// Logs the decision first and acts second, so the record survives even where the re-open is
     /// suppressed - the log is the only way a complaint about picture quality can be read back.
     /// </summary>
     private void ApplyQualityDecision(QualityDecision decision, string reason, string before, bool reopenNow)
     {
         _log.Event("PLAYBACK QUALITY",
-            $"action={(decision.Kind == QualityChangeKind.StepDown ? "down" : "up")}",
+            $"action={(decision.Kind == QualityChangeKind.Probe ? "up" : "down")}",
             $"reason={reason}",
             $"from={before}",
             $"to={decision.Rung.Describe()}",
@@ -312,11 +345,6 @@ public partial class PlayerWindow
             return;
         }
 
-        // Closes the watchdog's and the stall path's window here, on the UI thread, rather than a few
-        // milliseconds later inside StartMedia on a worker thread. Both of those gate on _reachedLive,
-        // and a tick landing in that gap would start a recovery for a media that is already being
-        // replaced - the recovery leg is guarded by _recoveryInFlight, this one had nothing.
-        _reachedLive = false;
         // SP-0072: the one cause the status line never distinguished. A quality change re-opens the
         // media exactly as a reconnect does, so the screen goes black for the same seconds - but calling
         // it a reconnect would blame the source for a step the player chose to take.
@@ -324,16 +352,12 @@ public partial class PlayerWindow
 
         // Deliberately not through RecoverAsync: a quality change must not spend the bounded recovery
         // budget, must not count as a reconnect, and must not put a "Reconnecting" label on a stream that
-        // is being improved. Off the UI thread for the same reason the recovery leg is - the backend
-        // serializes play against teardown, and a flapping stream must never freeze WPF.
-        var ceiling = QualityCeiling;
-        _ = Task.Run(() =>
-        {
-            if (!_closing)
-            {
-                StartMedia("quality", ceiling);
-            }
-        });
+        // is being improved. The engine call goes off the UI thread for the same reason the recovery leg's
+        // does; the leg itself - _reachedLive among its resets - starts here, on the UI thread, so neither the
+        // watchdog nor the stall path can start a recovery for the media that is being replaced.
+        // SP-0130: a probe's leg is marked before it starts, so a failure before live is known to be the probe's.
+        _probeLegPending = decision.Kind == QualityChangeKind.Probe;
+        _ = StartMediaOffUiThreadAsync("quality", QualityCeiling);
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Windows.Threading;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -11,6 +12,8 @@ public partial class MainWindow
     private readonly HttpClient _icyHttpClient = CreateIcyHttpClient();
     private readonly HttpClient _statusHttpClient = CreateStatusHttpClient();
     private CancellationTokenSource? _icyCts;
+    private readonly Dictionary<Guid, string?> _pendingNowPlayingHistory = [];
+    private readonly DispatcherTimer _nowPlayingHistorySaveTimer = new() { Interval = TimeSpan.FromSeconds(1) };
 
     // Bumped on every start/stop so a marshaled report from a superseded reader is
     // dropped instead of overwriting the current station's now-playing line.
@@ -44,8 +47,7 @@ public partial class MainWindow
         StopNowPlayingMetadata();
 
         // Metadata is requested only as part of an explicit HTTP(S) audio attempt.
-        if (!Uri.TryCreate(channel.Url, UriKind.Absolute, out var uri) ||
-            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        if (!LaunchableAddress.TryParseHttp(channel.Url, out var uri))
         {
             return;
         }
@@ -88,8 +90,14 @@ public partial class MainWindow
             return;
         }
 
-        var outcome = await new IcyMetadataReader(_icyHttpClient).ReadAsync(url, progress, cancellationToken);
-        _log.Event("ICY METADATA", $"outcome={outcome}", $"host={uri.Host}");
+        var reader = new IcyMetadataReader(_icyHttpClient);
+        var outcome = await reader.ReadAsync(url, progress, cancellationToken);
+        // SP-0131: the decoding the titles needed, so a station whose text still looks wrong can be traced.
+        _log.Event(
+            "ICY METADATA",
+            $"outcome={outcome}",
+            $"text={reader.TextEncoding?.ToString() ?? "none"}",
+            $"host={uri.Host}");
     }
 
     private void StopNowPlayingMetadata()
@@ -119,23 +127,53 @@ public partial class MainWindow
             SetNowPlaying("NowPlayingWithTrack", station, title);
             // SP-0019: fold the latest observed track text into this channel's history entry. A blank
             // title never overwrites a good line; the entry already exists (created at MediaOpened).
-            _ = PersistNowPlayingHistoryAsync(_playingAudio.Channel.Id, title);
+            QueueNowPlayingHistory(_playingAudio.Channel.Id, title);
         }
 
         // SP-0021: mirror the current track into the Windows media session title (no-op when off).
         UpdateSystemMediaMetadata(string.IsNullOrWhiteSpace(title) ? null : title);
     }
 
-    // Best-effort history track-text update: no reorder, no new row, and no disk write when the entry
-    // is absent or the text is unchanged (UpdateTrackText returns null). Fire-and-forget on the UI thread.
-    private async Task PersistNowPlayingHistoryAsync(Guid channelId, string? title)
+    private void QueueNowPlayingHistory(Guid channelId, string? title)
     {
-        var updated = ListeningHistory.UpdateTrackText(_state.ListeningHistory, channelId, title);
-        if (updated is null)
+        _pendingNowPlayingHistory[channelId] = title;
+        _nowPlayingHistorySaveTimer.Stop();
+        _nowPlayingHistorySaveTimer.Tick -= NowPlayingHistorySaveTimer_Tick;
+        _nowPlayingHistorySaveTimer.Tick += NowPlayingHistorySaveTimer_Tick;
+        _nowPlayingHistorySaveTimer.Start();
+    }
+
+    private async void NowPlayingHistorySaveTimer_Tick(object? sender, EventArgs e)
+    {
+        try
+        {
+            _nowPlayingHistorySaveTimer.Stop();
+            await FlushPendingNowPlayingHistoryAsync();
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(NowPlayingHistorySaveTimer_Tick), exception);
+        }
+    }
+
+    private async Task FlushPendingNowPlayingHistoryAsync()
+    {
+        if (_pendingNowPlayingHistory.Count == 0)
         {
             return;
         }
 
-        _state = await PersistAsync(_state with { ListeningHistory = updated });
+        var pending = _pendingNowPlayingHistory.ToArray();
+        _pendingNowPlayingHistory.Clear();
+        _state = await PersistAsync(state =>
+        {
+            var history = state.ListeningHistory;
+            foreach (var (channelId, title) in pending)
+            {
+                history = ListeningHistory.UpdateTrackText(history, channelId, title) ?? history;
+            }
+
+            return history == state.ListeningHistory ? state : state with { ListeningHistory = history };
+        });
     }
 }

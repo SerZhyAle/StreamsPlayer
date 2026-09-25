@@ -35,46 +35,60 @@ public partial class ListeningHistoryWindow : Window
 
     private async void Play_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.Tag is not HistoryRowView view)
+        try
         {
-            return;
-        }
+            if ((sender as FrameworkElement)?.Tag is not HistoryRowView view)
+            {
+                return;
+            }
 
-        // Close first so playback (inline audio, or a new video window owned by the main window) is visible.
-        var channelId = view.ChannelId;
-        Close();
-        await _play(channelId);
+            // Close first so playback (inline audio, or a new video window owned by the main window) is visible.
+            var channelId = view.ChannelId;
+            Close();
+            await _play(channelId);
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(Play_Click), exception);
+        }
     }
 
     private async void Clear_Click(object sender, RoutedEventArgs e)
     {
-        // APP-BEHAVIOUR rule 5 (SP-0114): nothing to clear is a message, never a silent no-op and never a
-        // confirmation of nothing - the same answer the catalog purge gives (MainWindow.CatalogPurge.cs).
-        if (_rows.Count == 0)
+        try
         {
-            MessageBox.Show(
+            // APP-BEHAVIOUR rule 5 (SP-0114): nothing to clear is a message, never a silent no-op and never a
+            // confirmation of nothing - the same answer the catalog purge gives (MainWindow.CatalogPurge.cs).
+            if (_rows.Count == 0)
+            {
+                MessageBox.Show(
+                    this,
+                    LocalizationService.Get("HistoryClearNone"),
+                    LocalizationService.Get("HistoryTitle"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            var confirmed = MessageBox.Show(
                 this,
-                LocalizationService.Get("HistoryClearNone"),
+                LocalizationService.Get("HistoryClearConfirm"),
                 LocalizationService.Get("HistoryTitle"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-            return;
-        }
+                MessageBoxButton.OKCancel,
+                MessageBoxImage.Warning);
+            if (confirmed != MessageBoxResult.OK)
+            {
+                return;
+            }
 
-        var confirmed = MessageBox.Show(
-            this,
-            LocalizationService.Get("HistoryClearConfirm"),
-            LocalizationService.Get("HistoryTitle"),
-            MessageBoxButton.OKCancel,
-            MessageBoxImage.Warning);
-        if (confirmed != MessageBoxResult.OK)
+            await _clear();
+            _rows.Clear();
+            UpdateEmptyState();
+        }
+        catch (Exception exception)
         {
-            return;
+            HandlerBoundary.Report(nameof(Clear_Click), exception);
         }
-
-        await _clear();
-        _rows.Clear();
-        UpdateEmptyState();
     }
 
     private void UpdateEmptyState()

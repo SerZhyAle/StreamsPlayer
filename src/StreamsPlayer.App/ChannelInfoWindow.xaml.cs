@@ -41,33 +41,40 @@ public partial class ChannelInfoWindow : Window
 
     private async void ChannelInfoWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        _storedFacts = ChannelFactSheet.Describe(_channel, _collectionNames);
-        ChannelFacts.ItemsSource = Rows(ChannelFactGroup.Channel);
-        CatalogFacts.ItemsSource = Rows(ChannelFactGroup.Catalog);
-        ShowTransmission([ChannelFactSheet.Status("AboutMeasuring")]);
-
-        var live = _liveTransmission?.Invoke();
-        if (live is not null)
+        try
         {
-            ShowTransmission(ChannelFactSheet.DescribeTransmission(live, measured: true));
-            return;
-        }
+            _storedFacts = ChannelFactSheet.Describe(_channel, _collectionNames);
+            ChannelFacts.ItemsSource = Rows(ChannelFactGroup.Channel);
+            CatalogFacts.ItemsSource = Rows(ChannelFactGroup.Catalog);
+            ShowTransmission([ChannelFactSheet.Status("AboutMeasuring")]);
 
-        // SP-0099: a FastMediaSorter watch serves four listeners, and a measurement is one of them - it
-        // can take the slot the person is about to listen with. Such a source is never opened from here.
-        if (FastMediaSorterBroadcastImport.IsFastMediaSorterBroadcast(_channel))
+            var live = _liveTransmission?.Invoke();
+            if (live is not null)
+            {
+                ShowTransmission(ChannelFactSheet.DescribeTransmission(live, measured: true));
+                return;
+            }
+
+            // SP-0099: a FastMediaSorter watch serves four listeners, and a measurement is one of them - it
+            // can take the slot the person is about to listen with. Such a source is never opened from here.
+            if (FastMediaSorterBroadcastImport.IsFastMediaSorterBroadcast(_channel))
+            {
+                ShowTransmission(ChannelFactSheet.DescribeTransmission(null, measured: false));
+                return;
+            }
+
+            var measured = await StreamTransmissionProbe.MeasureAsync(_channel.Url, _measurement.Token);
+            if (_measurement.IsCancellationRequested)
+            {
+                return; // the window is gone; there is nothing left to tell
+            }
+
+            ShowTransmission(ChannelFactSheet.DescribeTransmission(measured, measured is not null));
+        }
+        catch (Exception exception)
         {
-            ShowTransmission(ChannelFactSheet.DescribeTransmission(null, measured: false));
-            return;
+            HandlerBoundary.Report(nameof(ChannelInfoWindow_Loaded), exception);
         }
-
-        var measured = await StreamTransmissionProbe.MeasureAsync(_channel.Url, _measurement.Token);
-        if (_measurement.IsCancellationRequested)
-        {
-            return; // the window is gone; there is nothing left to tell
-        }
-
-        ShowTransmission(ChannelFactSheet.DescribeTransmission(measured, measured is not null));
     }
 
     private void ChannelInfoWindow_Closed(object? sender, EventArgs e)

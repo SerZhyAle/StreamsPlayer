@@ -52,8 +52,7 @@ public static class M3uPlaylistParser
             var line = originalLine.Trim();
             if (line.StartsWith("#EXTINF:", StringComparison.OrdinalIgnoreCase))
             {
-                var comma = line.IndexOf(',');
-                nextTitle = comma >= 0 ? line[(comma + 1)..].Trim() : null;
+                nextTitle = TitleOf(line);
                 continue;
             }
 
@@ -84,7 +83,7 @@ public static class M3uPlaylistParser
                 continue;
             }
 
-            var title = string.IsNullOrWhiteSpace(nextTitle) ? new Uri(line).Host : nextTitle;
+            var title = string.IsNullOrWhiteSpace(nextTitle) ? LaunchableAddress.HostOf(line) : nextTitle;
             newEntries.Add(new CatalogEntry(
                 title,
                 line,
@@ -100,5 +99,27 @@ public static class M3uPlaylistParser
 
         var status = candidateLines == 0 ? M3uImportStatus.Empty : M3uImportStatus.Ok;
         return new M3uImportPreview(status, newEntries, newEntries.Count, duplicate, invalid, skipped);
+    }
+
+    /// <summary>
+    /// The display title of an <c>#EXTINF</c> line: whatever follows the first comma outside a quoted attribute
+    /// value (SP-0126), so <c>group-title="News, Sport",BBC</c> is titled <c>BBC</c>. Null when there is none.
+    /// </summary>
+    private static string? TitleOf(string extinfLine)
+    {
+        var quoted = false;
+        for (var i = 0; i < extinfLine.Length; i++)
+        {
+            switch (extinfLine[i])
+            {
+                case '"':
+                    quoted = !quoted;
+                    break;
+                case ',' when !quoted:
+                    return extinfLine[(i + 1)..].Trim();
+            }
+        }
+
+        return null;
     }
 }

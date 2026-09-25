@@ -126,6 +126,43 @@ public sealed class FastMediaSorterBroadcastDescriptorTests
         Assert.Equal(FastMediaSorterBroadcastReadStatus.NotBroadcast, read.Status);
     }
 
+    public static TheoryData<string, string> WronglyTypedNumericFields()
+    {
+        const string root = """"{"schemaVersion":1,"url":"http://192.168.1.97:8768/a.aac","mode":"AUDIO_ONLY"""";
+        var data = new TheoryData<string, string>();
+        foreach (var value in new[] { "\"2.2\"", "null", "true", "false", "1.5", "{}", "[]" })
+        {
+            data.Add("schemaVersion", $$"""{"schemaVersion":{{value}},"url":"http://h/a","mode":"AUDIO_ONLY"}""");
+            data.Add("targetLatencyMs", $$"""{{root}},"targetLatencyMs":{{value}}}""");
+            foreach (var field in new[] { "sampleRate", "bitrate", "targetLatencyMs" })
+            {
+                data.Add($"endpoints[].{field}", $$"""{{root}},"endpoints":[{"url":"http://h/b","{{field}}":{{value}}}]}""");
+            }
+        }
+
+        return data;
+    }
+
+    /// <summary>
+    /// SP-0119: a string, null or boolean in a numeric field used to throw out of the reader and end the
+    /// process from the paste handler. It is a broken payload like any other.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(WronglyTypedNumericFields))]
+    public void WronglyTypedNumericFieldIsAnInvalidPayload(string field, string json)
+    {
+        var read = FastMediaSorterBroadcastDescriptor.Read(json);
+
+        Assert.True(read.Status == FastMediaSorterBroadcastReadStatus.InvalidPayload, $"{field}: {read.Status} for {json}");
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.InvalidPayload, FastMediaSorterBroadcastDescriptor.Read(Compress(json)).Status);
+    }
+
+    [Fact]
+    public void ClipboardJsonWithAStringSchemaVersionIsNotABroadcast() =>
+        Assert.Equal(
+            FastMediaSorterBroadcastReadStatus.InvalidPayload,
+            FastMediaSorterBroadcastDescriptor.Read("""{"schemaVersion":"2.2"}""").Status);
+
     // A test used to read a copy of the LIVE-BROADCAST document out of this repository and assert it
     // carried the wire shapes above. The copy is gone: the contract has one home, the shared store that
     // CLAUDE.md names and docs/contracts/LIVE-BROADCAST.md points at, and a repository that keeps its own

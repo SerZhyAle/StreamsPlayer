@@ -214,6 +214,66 @@ public sealed class StreamQualityLadderTests
             StreamQualityLadder.Read(playlist));
     }
 
+    // SP-0130: the engines cap by resolution, so two renditions at one resolution are one rung - a ceiling
+    // set to the poorer one plays the richer one, and a "step" between them re-opens onto the same picture.
+    // The richer one is the rung, because it is what the engine plays under that cap.
+    [Fact]
+    public void TwoVariantsAtTheSameResolution_AreOneRung_TheRicherOne()
+    {
+        var playlist =
+            """
+            #EXTM3U
+            #EXT-X-STREAM-INF:BANDWIDTH=446000,RESOLUTION=426x240
+            low.m3u8
+            #EXT-X-STREAM-INF:BANDWIDTH=796000,RESOLUTION=640x360
+            mid-lean.m3u8
+            #EXT-X-STREAM-INF:BANDWIDTH=1200000,RESOLUTION=640x360
+            mid-rich.m3u8
+            #EXT-X-STREAM-INF:BANDWIDTH=2096000,RESOLUTION=1024x576
+            high.m3u8
+            """;
+
+        Assert.Equal(
+            [new StreamQualityRung(446_000, 426, 240), new StreamQualityRung(1_200_000, 640, 360), new StreamQualityRung(2_096_000, 1024, 576)],
+            StreamQualityLadder.Read(playlist));
+    }
+
+    // SP-0130 acceptance: two bitrates of one resolution yield one steppable rung - and one rung is no ladder.
+    [Fact]
+    public void OnlyTwoVariantsAtOneResolution_HaveNoLadder()
+    {
+        var playlist =
+            """
+            #EXTM3U
+            #EXT-X-STREAM-INF:BANDWIDTH=1500000,RESOLUTION=1280x720
+            lean.m3u8
+            #EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1280x720
+            rich.m3u8
+            """;
+
+        Assert.Empty(StreamQualityLadder.Read(playlist));
+    }
+
+    // SP-0130: a taller rendition offered at a lower rate than a shorter one is never what a cap plays -
+    // any cap it fits under also admits the richer, shorter rendition. It is not a rung either.
+    [Fact]
+    public void ATallerRenditionAtALowerRate_IsNotARung()
+    {
+        var playlist =
+            """
+            #EXTM3U
+            #EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360
+            low.m3u8
+            #EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1280x720
+            rich-720.m3u8
+            #EXT-X-STREAM-INF:BANDWIDTH=2500000,RESOLUTION=1920x1080
+            lean-1080.m3u8
+            """;
+
+        Assert.Equal([new StreamQualityRung(800_000, 640, 360), new StreamQualityRung(3_000_000, 1280, 720)],
+            StreamQualityLadder.Read(playlist));
+    }
+
     // A tag with nothing after it names no stream; it must not become a rung, and it must not void the
     // ladder either - a truncated tail is not the same thing as an under-declared rendition.
     [Fact]

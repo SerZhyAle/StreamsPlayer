@@ -12,6 +12,9 @@ internal sealed class FastMediaSorterPlaybackTransport
 {
     private static readonly HttpClient Client = CreateClient();
 
+    /// <summary>How long the broadcaster may take to answer with a response head.</summary>
+    internal static readonly TimeSpan HeaderTimeout = TimeSpan.FromSeconds(15);
+
     public async Task<FastMediaSorterPlaybackConnection> OpenAsync(Uri endpoint, CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -20,7 +23,17 @@ internal sealed class FastMediaSorterPlaybackTransport
 
         try
         {
-            var response = await Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            // SP-0129: the client has no timeout, so the head gets its own bound. Its expiry is a
+            // cancellation the caller did not ask for, which lands in the transport-error branch below
+            // exactly as a refused connection does. The body is the live broadcast, and the playback
+            // engine that consumes it owns its silence.
+            HttpResponseMessage response;
+            using (var headers = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+            {
+                headers.CancelAfter(HeaderTimeout);
+                response = await Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, headers.Token);
+            }
+
             var elapsed = stopwatch.Elapsed;
             if (!response.IsSuccessStatusCode)
             {

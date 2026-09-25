@@ -80,12 +80,10 @@ public partial class PlayerWindow : Window
     // measures the current leg only; the archived log has to answer "how did this session as a whole
     // cope with a bad stream", which needs a clock and counters that survive the re-opens.
     private readonly Stopwatch _sessionClock = Stopwatch.StartNew();
-    // Written by StartMedia, which two of its three callers run on a worker thread, and read on the UI
-    // thread by ObserveRendition; volatile so a rendition belonging to the new leg is never filed under
-    // the previous one - that mislabelling is precisely what SP-0077's criterion 2 forbids. Incremented
-    // in one place only, and StartMedia never runs against itself (_recoveryInFlight guards the paths
-    // that could), so a read-modify-write on it is not a race in practice.
-    private volatile int _legCount;
+    // Incremented by BeginLeg on the UI thread and read there by ObserveRendition, before the engine has the
+    // new media - so a rendition belonging to the new leg is never filed under the previous one, which is
+    // precisely what SP-0077's criterion 2 forbids.
+    private int _legCount;
     private int _reconnectCount;
     private long _firstLiveMs = -1;
     private string _sessionOutcome = "closed";
@@ -111,13 +109,11 @@ public partial class PlayerWindow : Window
     private long _bufferingSinceMs;
     private long _bufferingStartPosition;
     // The live buffer the media currently open was started with - the delay the live caption reports.
-    // Written by StartMedia, which two of its three callers run on a worker thread, and read on the UI
-    // thread in ShowLiveStatus; volatile so the reader never sees the previous leg's buffer.
-    private volatile uint _liveCacheMs = LiveCacheMilliseconds;
+    // Written by BeginLeg and read by ShowLiveStatus, both on the UI thread.
+    private uint _liveCacheMs = LiveCacheMilliseconds;
     private bool _settingsReady;
     private bool _isMuted;
     private bool _fullscreen;
-    private DateTimeOffset? _recordingStartTime;
     private WindowStyle _restoredWindowStyle;
     private ResizeMode _restoredResizeMode;
     private WindowState _restoredWindowState;
@@ -183,6 +179,8 @@ public partial class PlayerWindow : Window
         _backend.EndReached += Backend_EndReached;
         _backend.TracksChanged += Backend_TracksChanged;
         _backend.SnapshotReady += Backend_SnapshotReady;
+        _backend.RecordingInterrupted += Backend_RecordingInterrupted; // SP-0121: kept through teardown on purpose
+        UpdateRecordingUi(); // SP-0121: an engine that cannot record says so on the button from the start
         // SP-0076: started here rather than in Loaded so a local file read overlaps window layout instead
         // of standing in front of the first open. Video only - radio has no renditions to choose between,
         // so its first open must not pay a read that could never produce a ceiling.
@@ -239,87 +237,51 @@ public partial class PlayerWindow : Window
     /// </remarks>
     private async void PlayerWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        // The catalog lends this window its ownership for the CenterOwner placement only, and gets it back
-        // here, at the first moment the placement is already applied. Windows minimizes and restores owned
-        // windows together with their owner, so an owned player - a fullscreen one included, which is
-        // exactly when the catalog gets minimized - went down with the list. From here on this is an
-        // independent top-level window; MainWindow_Closing is what closes it when the catalog quits.
-        // Before StartMedia: opening the stream holds the UI thread, and every millisecond of it is a
-        // millisecond in which the window is on screen and still owned.
-        Owner = null;
-        // System + display wake for the video/RTSP session lifetime (Decision 3: the user is watching).
-        // Tied to the window rather than LibVLC's thread-affine, flapping play/pause events, so the
-        // hold survives bounded reconnects and is released reliably in PlayerWindow_Closed.
-        _wake = WakeGuard.Acquire(keepDisplayOn: true);
-        ApplySignalHealth(); // SP-0045: the colourless opening state, before any claim can be made
-        // SP-0072: the blackout starts here, before the open, so its delay is measured from the moment
-        // the window went black rather than from the first event the engine happens to raise.
-        NotifyInterrupted(PlaybackInterruptionKind.Connecting);
-        // SP-0076: the ladder is still read only after this open, but what earlier sessions recorded about
-        // this source is a local file and arrives in time to shape it.
-        await ApplyRememberedCeilingAsync();
-        if (_closing)
+        try
         {
-            return; // the window was closed inside the read; PlayerWindow_Closed has already torn down
-        }
+            // The catalog lends this window its ownership for the CenterOwner placement only, and gets it back
+            // here, at the first moment the placement is already applied. Windows minimizes and restores owned
+            // windows together with their owner, so an owned player - a fullscreen one included, which is
+            // exactly when the catalog gets minimized - went down with the list. From here on this is an
+            // independent top-level window; MainWindow_Closing is what closes it when the catalog quits.
+            // Before StartMedia: opening the stream holds the UI thread, and every millisecond of it is a
+            // millisecond in which the window is on screen and still owned.
+            Owner = null;
+            // System + display wake for the video/RTSP session lifetime (Decision 3: the user is watching).
+            // Tied to the window rather than LibVLC's thread-affine, flapping play/pause events, so the
+            // hold survives bounded reconnects and is released reliably in PlayerWindow_Closed.
+            _wake = WakeGuard.Acquire(keepDisplayOn: true);
+            ApplySignalHealth(); // SP-0045: the colourless opening state, before any claim can be made
+            // SP-0072: the blackout starts here, before the open, so its delay is measured from the moment
+            // the window went black rather than from the first event the engine happens to raise.
+            NotifyInterrupted(PlaybackInterruptionKind.Connecting);
+            // SP-0076: the ladder is still read only after this open, but what earlier sessions recorded about
+            // this source is a local file and arrives in time to shape it.
+            await ApplyRememberedCeilingAsync();
+            if (_closing)
+            {
+                return; // the window was closed inside the read; PlayerWindow_Closed has already torn down
+            }
 
-        // SP-0096: started before the open, not after it. StartMedia restarts the budget clock and then
-        // blocks for as long as the engine takes to hand back a media object - about 2 s against an
-        // unresponsive host. Starting the cadence afterwards offsets every observation by that cost, so
-        // the 8 s dead-source rule was observed at 10 s twice running in phase 6, and the offset grows
-        // with the open rather than staying put. Anchoring both to the same instant is what makes the
-        // priced numbers the ones actually paid. The first tick is 2 s out, so StartMedia has long
-        // returned before either timer looks at the backend.
-        _statsTimer.Start();
-        _watchdogTimer.Start();
-        StartMedia("initial", QualityCeiling); // SP-0071: the ladder's answer is not in yet - memory's may be
-        ShowControls();
-        if (_startFullscreen)
-        {
-            ToggleFullscreen();
+            // SP-0096: started before the open, not after it. StartMedia restarts the budget clock and then
+            // blocks for as long as the engine takes to hand back a media object - about 2 s against an
+            // unresponsive host. Starting the cadence afterwards offsets every observation by that cost, so
+            // the 8 s dead-source rule was observed at 10 s twice running in phase 6, and the offset grows
+            // with the open rather than staying put. Anchoring both to the same instant is what makes the
+            // priced numbers the ones actually paid. The first tick is 2 s out, so StartMedia has long
+            // returned before either timer looks at the backend.
+            _statsTimer.Start();
+            _watchdogTimer.Start();
+            StartMedia("initial", QualityCeiling); // SP-0071: the ladder's answer is not in yet - memory's may be
+            ShowControls();
+            if (_startFullscreen)
+            {
+                ToggleFullscreen();
+            }
         }
-    }
-
-    /// <summary>
-    /// Opens the channel. <paramref name="qualityCeiling"/> is passed in rather than read here because
-    /// two of the three callers run this on a worker thread and the governor that owns the answer is
-    /// single-threaded; the caller reads it on the UI thread, as late as it can (SP-0071).
-    /// </summary>
-    private void StartMedia(string reason, StreamQualityRung? qualityCeiling)
-    {
-        if (_closing)
+        catch (Exception exception)
         {
-            return; // window is tearing down; do not touch the (soon) disposed player
-        }
-
-        _reachedLive = false;
-        _isStalled = false;
-        _outcomeRecorded = false;
-        // SP-0070: same reason as the health baseline below - the new media restarts the engine's
-        // progress counters from zero, and differencing across that boundary would invent a freeze.
-        _freeze.Reset();
-        // SP-0096: one leg, one open budget. A re-open is entitled to its own, which is what makes the
-        // budget a per-leg quantity rather than a session-wide one.
-        _openBudget.Reset();
-        _buffering = false;
-        _playbackClock.Restart();
-        _legCount++;
-        // SP-0045: the new media restarts the engine's loss counters; drop the baseline so the reset is
-        // not differenced into a fabricated disturbance. The health state itself is left alone - a
-        // reconnect must stay red while it is in progress.
-        NotifySignalHealthOpening();
-        var cacheMs = reason == "initial" ? LiveCacheMilliseconds : ReconnectCacheMilliseconds;
-        _liveCacheMs = cacheMs;
-        _log.Event("PLAYBACK OPEN",
-            $"reason={reason}",
-            $"kind={_channel.MediaKind}",
-            $"cache_ms={cacheMs}",
-            $"engine={_backend.EngineName}",       // SP-0071: which engine received the ceiling below
-            $"ceiling={Describe(qualityCeiling)}", // SP-0071: every leg says what it was opened with
-            $"url={_channel.Url}");
-        if (!_backend.Play(new Uri(_channel.Url), cacheMs, rtspOverTcp: true, softwareDecode: true, qualityCeiling))
-        {
-            ShowPlaybackFailure("play_rejected");
+            HandlerBoundary.Report(nameof(PlayerWindow_Loaded), exception);
         }
     }
 
@@ -327,6 +289,12 @@ public partial class PlayerWindow : Window
 
     /// <summary>SP-0053: the channel this window is playing, so the About window can be offered for it.</summary>
     internal StreamChannel Channel => _channel;
+
+    /// <summary>
+    /// SP-0120: completes once this window's engine has been released after it closed - what quitting waits for
+    /// (bounded) so the process does not exit in the middle of a native teardown. Completed until then.
+    /// </summary>
+    internal Task EngineReleased { get; private set; } = Task.CompletedTask;
 
     /// <summary>SP-0053: this window's engine already has the description; nothing is opened for it.</summary>
     internal StreamTransmission? DescribeTransmission() => _backend.DescribeTransmission();
@@ -347,70 +315,6 @@ public partial class PlayerWindow : Window
         if (!_backend.RequestSnapshot(0))
         {
             _manualSnapshotPending = false; // snapshot rejected (e.g. surface not ready) - no toast
-        }
-    }
-
-    private void RecordButton_Click(object sender, RoutedEventArgs e) => ToggleRecording();
-
-    private void ToggleRecording()
-    {
-        if (!_backend.IsRecording)
-        {
-            if (!_reachedLive)
-            {
-                return;
-            }
-
-            var folder = _frameFolder();
-            var targetDir = RecordedBroadcastWriter.ResolveFolder(folder);
-            var title = StreamTitleFormatter.Display(_channel.Title);
-            var started = _backend.StartRecording(targetDir, title);
-            if (started)
-            {
-                _recordingStartTime = DateTimeOffset.Now;
-                UpdateRecordingUi(isRecording: true);
-            }
-            else
-            {
-                ShowFrameToast(LocalizationService.Get("RecordSaveFailed"));
-            }
-        }
-        else
-        {
-            var savedPath = _backend.StopRecording();
-            _recordingStartTime = null;
-            UpdateRecordingUi(isRecording: false);
-            if (!string.IsNullOrWhiteSpace(savedPath))
-            {
-                ShowFrameToast(LocalizationService.Format("RecordSaved", Path.GetFileName(savedPath)));
-            }
-            else
-            {
-                ShowFrameToast(LocalizationService.Get("RecordSaveFailed"));
-            }
-        }
-    }
-
-    private void UpdateRecordingUi(bool isRecording)
-    {
-        RecordButton.Style = (Style)FindResource(isRecording ? "PlayerOverlayStopRecordGlyphButton" : "PlayerOverlayRecordGlyphButton");
-        // Resource references, not assigned strings: the name follows the role here and must also follow a
-        // language change made while recording (APP-BEHAVIOUR rule 9, SP-0114).
-        RecordButton.SetResourceReference(ToolTipProperty, isRecording ? "StopRecordTip" : "RecordTip");
-        RecordButton.SetResourceReference(System.Windows.Automation.AutomationProperties.NameProperty, isRecording ? "StopRecord" : "Record");
-        RecordIndicator.Visibility = isRecording ? Visibility.Visible : Visibility.Collapsed;
-        if (isRecording)
-        {
-            UpdateRecordTimer();
-        }
-    }
-
-    private void UpdateRecordTimer()
-    {
-        if (_recordingStartTime.HasValue)
-        {
-            var elapsed = DateTimeOffset.Now - _recordingStartTime.Value;
-            RecordTimerText.Text = $"REC {(int)elapsed.TotalMinutes:00}:{elapsed.Seconds:00}";
         }
     }
 
@@ -493,20 +397,34 @@ public partial class PlayerWindow : Window
 
     // ~2s over-video confirmation: fade in, hold, fade out. Independent of the auto-hiding control panel
     // and IsHitTestVisible=false, so it stays legible (and unobtrusive) in fullscreen (AC 4).
-    private void ShowFrameToast(string message)
+    // SP-0121: a recording notice can name a folder or a place a file was left, so it may ask to be held longer.
+    private void ShowFrameToast(string message, int holdMilliseconds = 1450)
     {
         FrameToastText.Text = message;
         var fade = new DoubleAnimationUsingKeyFrames();
         fade.KeyFrames.Add(new LinearDoubleKeyFrame(0.0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
         fade.KeyFrames.Add(new LinearDoubleKeyFrame(1.0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(250))));
-        fade.KeyFrames.Add(new LinearDoubleKeyFrame(1.0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(1700))));
-        fade.KeyFrames.Add(new LinearDoubleKeyFrame(0.0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(2000))));
+        fade.KeyFrames.Add(new LinearDoubleKeyFrame(1.0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(250 + holdMilliseconds))));
+        fade.KeyFrames.Add(new LinearDoubleKeyFrame(0.0, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(550 + holdMilliseconds))));
         FrameSavedToast.BeginAnimation(UIElement.OpacityProperty, fade);
     }
 
     // SP-0045 rides this existing tick rather than adding one: the observation cadence is the budget.
     private void StatsTimer_Tick(object? sender, EventArgs e)
     {
+        if (_closing)
+        {
+            return;
+        }
+
+        if (_failureShown)
+        {
+            // SP-0120: the engine was stopped with the verdict, so there is nothing left to observe - the tick
+            // is kept only because it is what lets the Unavailable caption's appear delay elapse (SP-0072).
+            ApplyInterruptionNotice();
+            return;
+        }
+
         _backend.LogStats("STATS");
         SampleSignalHealth();
         ObserveQuality(); // SP-0071 rides this tick too: the probe clock, no timer of its own
@@ -517,10 +435,7 @@ public partial class PlayerWindow : Window
         // just put up, not be overwritten by it. This tick and not the watchdog's because 2 s divides
         // the 8 s threshold and 3 s does not - the watchdog would report a dead source a second late.
         ObserveOpenBudget();
-        if (_backend.IsRecording)
-        {
-            UpdateRecordTimer();
-        }
+        ObserveRecording(); // SP-0121 rides it too: the badge timer, the engine-state check and the resume retry
     }
 
     /// <summary>
@@ -548,6 +463,13 @@ public partial class PlayerWindow : Window
             $"leg={_legCount}",
             $"bytes={received?.ToString() ?? "n/a"}",
             $"url={_channel.Url}");
+
+        // SP-0130: a probe's leg that never went live is a failed probe, not a dead channel - neither
+        // verdict below applies to it, and the rung it left is re-opened instead.
+        if (TryAbandonFailedProbe(verdict == PlaybackOpenVerdict.DeadSource ? "dead_source" : "deadline"))
+        {
+            return;
+        }
 
         if (verdict == PlaybackOpenVerdict.DeadSource)
         {
@@ -577,6 +499,14 @@ public partial class PlayerWindow : Window
 
     private void UpdateBuffering(float cache)
     {
+        if (_closing)
+        {
+            // SP-0120: queued by the engine before the window closed, run after teardown began. It reads the
+            // position, the statistics and the track list; the backend answers those neutrally once released,
+            // but a closed window has no buffering state worth updating either.
+            return;
+        }
+
         var percentage = Math.Clamp((int)Math.Round(cache), 0, 100);
         BufferProgress.Value = percentage;
         if (percentage < 100)
@@ -634,6 +564,7 @@ public partial class PlayerWindow : Window
         // SP-0072: the repo's own definition of "the picture is back" - this is where PLAYBACK LIVE is
         // logged, and the ticket's 3-18 s blackouts were measured to that line.
         NotifyPictureLive();
+        ResumeRecordingIfPending(); // SP-0121: the picture is back, so the next segment can start
         RefreshTrackControls();
         if (_isStalled)
         {
@@ -646,6 +577,7 @@ public partial class PlayerWindow : Window
         {
             _outcomeRecorded = true;
             _reachedLive = true;
+            _probeLegPending = false; // SP-0130: the probe went live; its trial is the governor's from here
             _quietUntilLive = false; // SP-0062: from here on this is an ordinary window
             _recovery.NotifyLive(); // sustained live - restore the full recovery budget
             // SP-0096: the picture is on the screen, so this stream is the freeze rule's from here.
@@ -665,6 +597,7 @@ public partial class PlayerWindow : Window
             _sessionOutcome = "live";
             RequestQualityLadder(); // SP-0071: after live, so the measurement never delays the first open
             _ = _recordOutcome(_channel.Id, true);
+            StartSmokeRecordingIfAsked(); // SP-0121: the playback smoke gate records through the shipping binary
             if (!_thumbnailCaptured && _onThumbnail is not null)
             {
                 _thumbnailCaptured = true;
@@ -713,6 +646,11 @@ public partial class PlayerWindow : Window
 
     private void RefreshTrackControls()
     {
+        if (_closing)
+        {
+            return; // SP-0120: a TracksChanged queued before the window closed
+        }
+
         AudioTracksButton.Visibility = _backend.AudioTracks.Count > 1 ? Visibility.Visible : Visibility.Hidden;
         SubtitleTracksButton.Visibility = _backend.SubtitleTracks.Count > 1 ? Visibility.Visible : Visibility.Hidden;
     }
@@ -780,11 +718,18 @@ public partial class PlayerWindow : Window
 
         if (_failureShown)
         {
-            // SP-0096: the verdict is final. The backend is not stopped by ShowPlaybackFailure, so a dead
-            // host keeps raising EncounteredError for as long as the dialog stands - observed in phase 6:
-            // a dead_source give-up at 8 s was followed 23 s later by Reconnect attempt=1 against the very
-            // URL just declared dead, replacing the "Unavailable" caption with "Reconnecting". Giving up
-            // has to mean it. A hand retry is the one way back, and it clears this latch itself.
+            // SP-0096: the verdict is final. Before SP-0120 stopped the engine with the verdict, a dead host
+            // kept raising EncounteredError for as long as the dialog stood - observed in phase 6: a
+            // dead_source give-up at 8 s was followed 23 s later by Reconnect attempt=1 against the very URL
+            // just declared dead. Errors queued before the stop still arrive, so giving up still has to mean
+            // it here. A hand retry is the one way back, and it clears this latch itself.
+            return;
+        }
+
+        // SP-0130: an error or end on a probe's leg before live spends no recovery budget and never reaches
+        // the verdict - the player returns to the rung that was playing.
+        if (TryAbandonFailedProbe(signal.Reason ?? "error"))
+        {
             return;
         }
 
@@ -859,7 +804,7 @@ public partial class PlayerWindow : Window
             // the ceiling during the backoff above, and this re-open is what carries the new one.
             var ceiling = QualityCeiling;
             // Play off the UI thread (the backend serializes play against teardown) so a flapping stream never freezes WPF.
-            await Task.Run(() => { if (!_closing) { StartMedia("recover", ceiling); } });
+            await StartMediaOffUiThreadAsync("recover", ceiling);
         }
         finally
         {
@@ -878,11 +823,13 @@ public partial class PlayerWindow : Window
         }
 
         var position = _backend.PositionMs;
+        var progress = _backend.ReadProgressCounters();
+        NoteFirstDisplayedFrame(progress); // SP-0133: the picture really reached the screen
 
         // Freeze A: nothing is reaching the screen and nothing is arriving from the source (SP-0070).
         // The rule is in Core; this tick is only its observation cadence, and the threshold is a duration
         // there rather than a poll count here.
-        if (_freeze.Observe(HealthNow, _backend.IsPlaying, position, _backend.ReadProgressCounters()))
+        if (_freeze.Observe(HealthNow, _backend.IsPlaying, position, progress))
         {
             _log.Event("PLAYBACK WATCHDOG", "kind=frozen", $"pos_ms={position}", $"url={_channel.Url}");
             _health.NotifyDisturbance(HealthNow); // SP-0045: a caught freeze is a disturbance in its own right
@@ -914,6 +861,16 @@ public partial class PlayerWindow : Window
             return;
         }
 
+        if (_closing)
+        {
+            // SP-0119: a late verdict from an engine that was torn down because the user closed this window
+            // (a disposed backend answers Play with false). The user ended the session, not the channel: no
+            // failure record for a channel that may be healthy, and no dialog owned by a closed window,
+            // which WPF refuses with an exception.
+            _log.Event("PLAYBACK FAIL IGNORED", $"reason={reason}", "why=window_closing", $"url={_channel.Url}");
+            return;
+        }
+
         if (_failureShown)
         {
             // SP-0096 criterion 6: the open budget expiring in the same second as an engine error is a
@@ -923,6 +880,7 @@ public partial class PlayerWindow : Window
         }
 
         _failureShown = true;
+        ReleaseAfterFailure();
         SetWaitTextResource("PlayerUnavailable");
         // SP-0072: a terminal failure is a black screen too, and it is the one the user can be left
         // staring at after dismissing the dialog - or that raises no dialog at all under _quietUntilLive.
@@ -964,14 +922,13 @@ public partial class PlayerWindow : Window
             case PlaybackFailureChoice.Retry:
                 _recovery.Reset(); // a manual retry starts a fresh recovery budget
                 _recovering = false;
-                _failureShown = false; // SP-0096: a hand retry is a new session, entitled to its own verdict
                 // SP-0071: the recovery budget is reset, the ceiling is not. What the governor learned
                 // about this source's delivery did not stop being true because the user pressed Retry.
                 // SP-0076: a ceiling that came from memory and never produced a picture is the exception -
                 // the hand retry is exactly the moment to stop insisting on a week-old opinion.
                 DropRememberedCeilingOnMiss();
                 NotifyInterrupted(PlaybackInterruptionKind.Connecting); // SP-0072: connecting again, by hand
-                StartMedia("retry", QualityCeiling);
+                _ = RetryAfterFailureAsync();
                 break;
             case PlaybackFailureChoice.Remove:
                 _ = RemoveAndCloseAsync();
@@ -1052,13 +1009,13 @@ public partial class PlayerWindow : Window
         {
             Header = LocalizationService.Get(Topmost ? "PlayerAlwaysOnTopOff" : "PlayerAlwaysOnTopOn")
         };
-        topmost.Click += async (_, _) => await _saveTopmost(!Topmost);
+        topmost.Click += (_, _) => HandlerBoundary.Run("PlayerAlwaysOnTop.Click", () => _saveTopmost(!Topmost));
 
         var pin = new MenuItem
         {
             Header = LocalizationService.Get(_isPinned() ? "MenuUnpin" : "MenuPin")
         };
-        pin.Click += async (_, _) => await _savePinned(!_isPinned());
+        pin.Click += (_, _) => HandlerBoundary.Run("PlayerPin.Click", () => _savePinned(!_isPinned()));
 
         var about = new MenuItem { Header = LocalizationService.Get("MenuAboutChannel") };
         about.Click += AboutChannel_Click;
@@ -1104,13 +1061,13 @@ public partial class PlayerWindow : Window
                 IsChecked = collection.ChannelIds.Contains(_channel.Id),
                 Tag = collection.Id
             };
-            item.Click += async (_, _) =>
+            item.Click += (_, _) => HandlerBoundary.Run("PlayerCollectionMembership.Click", async () =>
             {
                 if (item.Tag is Guid collectionId)
                 {
                     await _saveCollectionMembership(collectionId, item.IsChecked);
                 }
-            };
+            });
             parent.Items.Add(item);
         }
 
@@ -1138,20 +1095,27 @@ public partial class PlayerWindow : Window
 
     private async void NewCollectionNameBox_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter || sender is not TextBox box)
+        try
         {
-            return;
-        }
+            if (e.Key != Key.Enter || sender is not TextBox box)
+            {
+                return;
+            }
 
-        e.Handled = true;
-        if (!await _createCollection(box.Text))
+            e.Handled = true;
+            if (!await _createCollection(box.Text))
+            {
+                MessageBox.Show(
+                    this,
+                    LocalizationService.Get("CollectionNameInvalid"),
+                    LocalizationService.Get("PlayerActions"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+        catch (Exception exception)
         {
-            MessageBox.Show(
-                this,
-                LocalizationService.Get("CollectionNameInvalid"),
-                LocalizationService.Get("PlayerActions"),
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+            HandlerBoundary.Report(nameof(NewCollectionNameBox_KeyDown), exception);
         }
     }
 
@@ -1221,7 +1185,7 @@ public partial class PlayerWindow : Window
         }
         else if (e.Key == Key.R)
         {
-            ToggleRecording();
+            HandlerBoundary.Run("PlayerRecord.Key", ToggleRecordingAsync);
             e.Handled = true;
         }
     }
@@ -1302,6 +1266,7 @@ public partial class PlayerWindow : Window
         // The backend tears the native engine down off the UI thread (Stop()/Dispose() block until
         // worker threads settle; on a flapping stream that can take seconds and would freeze the
         // shared WPF UI thread). Its internal gate serializes teardown against any in-flight reconnect.
-        _ = _backend.StopAndDisposeAsync();
+        EngineReleased = _backend.StopAndDisposeAsync();
+        FinishRecordingOnClose(EngineReleased);
     }
 }

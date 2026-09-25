@@ -193,7 +193,9 @@ public static class QualityMemory
             .ToList();
 
         var recorded = rungs.Where(rung => rung.Failures > 0).ToList();
-        if (identity.Length > 0 && recorded.Count > 0)
+        // SP-0130: a ceiling alone is worth a record. A plain step-down fails no rung, and dropping its
+        // record would send the next session to the top to pay the same re-open all over again.
+        if (identity.Length > 0 && (recorded.Count > 0 || ceiling is not null))
         {
             kept.Add(new ChannelQualityMemory(identity, now, recorded, ceiling));
         }
@@ -204,6 +206,13 @@ public static class QualityMemory
             .ToArray();
     }
 
+    /// <summary>
+    /// SP-0130: how far ahead of now a record may be dated and still count. A record from the future was
+    /// written while the clock was wrong; left alone it would never age - applied on every open and ranked
+    /// first until real time caught up. The tolerance absorbs ordinary clock adjustment and nothing more.
+    /// </summary>
+    public static readonly TimeSpan FutureTolerance = TimeSpan.FromMinutes(5);
+
     private static bool IsExpired(ChannelQualityMemory entry, DateTimeOffset now) =>
-        now - entry.UpdatedAt >= Retention;
+        now - entry.UpdatedAt >= Retention || entry.UpdatedAt - now > FutureTolerance;
 }

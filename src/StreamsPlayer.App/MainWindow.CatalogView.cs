@@ -161,7 +161,7 @@ public partial class MainWindow
         var visibleUniverse = 0;
 
         // The one pass. Everything the old chain computed separately - the two Where enumerations for
-        // pinned and unpinned, and the Count over the unhidden universe for the status line - falls out
+        // pinned and unpinned, and the Count over the unhidden universe for the channel count - falls out
         // of this loop.
         var channels = _state.Channels;
         for (var index = 0; index < channels.Count; index++)
@@ -174,17 +174,14 @@ public partial class MainWindow
 
             // SP-0063: when HideAdultContent is enabled, adult rubric channels are hidden from the catalog
             // list, grid, search, and reachable count.
-            if (_state.HideAdultContent && CatalogTopics.IsAdult(channel.Topic))
-            {
-                continue;
-            }
-
             // SP-0089: a retired row is kept, not offered. It stays exactly where the user put it - the
             // pinned strip, or the collection currently being browsed - and leaves the general list,
             // because a channel the bank has stopped publishing must not sit among current ones as if it
             // were still on offer. Placed above visibleUniverse so the status line's total counts what is
             // actually reachable; a pinned retired row is reachable and is counted.
-            if (channel.RetiredAt is not null && !channel.Pinned && collectionMembers is null)
+            // SP-0132: both rules live in CatalogOffer, because Reveal has to ask them before it clears filters.
+            if (CatalogOffer.Exclusion(channel, _state.HideAdultContent, browsingCollection: collectionMembers is not null)
+                != CatalogExclusion.None)
             {
                 continue;
             }
@@ -274,9 +271,12 @@ public partial class MainWindow
         StreamsList.Visibility = Rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         NotifySectionState();
         UpdatePinnedSectionLayout();
+        ChannelCountText.Text = LocalizationService.Format("ChannelCount", totalShown, visibleUniverse);
+        // SP-0138: this pass used to overwrite the last message with the count; clearing it instead keeps
+        // a transient message alive exactly as long as before. A running operation owns the line.
         if (!_busy)
         {
-            SetStatus("ChannelCount", totalShown, visibleUniverse);
+            ClearStatus();
         }
         ScheduleVisiblePreviewUpdate();
         // Closed after the nested RebuildGridRows record, so the filter's own line is the outer of the
@@ -465,6 +465,18 @@ public partial class MainWindow
             _store.ResolveAtlasPath(_state, AtlasSlot.Imported),
             MaximumIndexOf(FaviconSource.Imported));
         _atlasSetSource = _state;
+        if (_atlasSet != built)
+        {
+            // SP-0125: every cached row, not only the ones the current filter shows. A row outside the
+            // filter still holds a crop of the previous sheet, and that crop alone keeps the whole decoded
+            // sheet (~25 MB) alive after the loader has let go of it - one more per refresh.
+            FaviconTileLoader.Retain([built.CatalogPath, built.SnapshotPath, built.ImportedPath]);
+            foreach (var row in _rowCache.Values)
+            {
+                row.UpdatePresentation(built);
+            }
+        }
+
         _atlasSet = built;
         return built;
     }
@@ -489,6 +501,7 @@ public partial class MainWindow
         }
 
         var row = new ChannelRow(channel, atlases);
+        row.SetScheduleNow(ScheduleNowTitle(channel.Url));
         _rowCache[channel.Id] = row;
         IndexUrl(row);
         return row;

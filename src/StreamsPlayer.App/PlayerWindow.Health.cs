@@ -23,20 +23,11 @@ public partial class PlayerWindow
     private TimeSpan HealthNow => _sessionClock.Elapsed;
 
     /// <summary>
-    /// Drops the loss baseline for a media that is being opened. <c>StartMedia</c> is the one feed point
-    /// the window also calls off the UI thread (the recover path plays off-thread so a flapping stream
-    /// cannot freeze WPF), and the monitor is single-threaded, so this hop is what keeps it so.
+    /// Drops the loss baseline for a media that is being opened. Called by <c>BeginLeg</c>, which runs on the
+    /// UI thread even for a re-open whose engine call goes to a worker (SP-0120), so the single-threaded
+    /// monitor is reset in step with every other per-leg monitor.
     /// </summary>
-    private void NotifySignalHealthOpening()
-    {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.BeginInvoke(NotifySignalHealthOpening);
-            return;
-        }
-
-        _health.NotifyOpening();
-    }
+    private void NotifySignalHealthOpening() => _health.NotifyOpening();
 
     /// <summary>One observation of the decoder's loss counters, on the existing stats tick.</summary>
     private void SampleSignalHealth()

@@ -8,21 +8,32 @@ namespace StreamsPlayer.App;
 
 public partial class MainWindow
 {
-    private async void ListModeButton_Click(object sender, RoutedEventArgs e) => await SetViewModeAsync(CatalogViewMode.List);
+    // SP-0119: the preview engine failed to start in the constructor; previews are off for the session.
+    private bool _gridPreviewsUnavailable;
+    private bool _gridPreviewsUnavailableReported;
 
-    private async void GridModeButton_Click(object sender, RoutedEventArgs e) => await SetViewModeAsync(CatalogViewMode.Grid);
+    private void ListModeButton_Click(object sender, RoutedEventArgs e) => HandlerBoundary.Run(nameof(ListModeButton_Click), () => SetViewModeAsync(CatalogViewMode.List));
+
+    private void GridModeButton_Click(object sender, RoutedEventArgs e) => HandlerBoundary.Run(nameof(GridModeButton_Click), () => SetViewModeAsync(CatalogViewMode.Grid));
 
     private async void RefreshPreviewsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_previewCoordinator is null)
+        try
         {
-            return;
-        }
+            if (_previewCoordinator is null)
+            {
+                return;
+            }
 
-        // An explicit "capture now" has to make sure there is a session to capture in: the coordinator may
-        // be suspended after a playback session, and a forced queue with no session only repaints.
-        await StartPreviewsAsync();
-        await QueueVisibleSafelyAsync(force: true);
+            // An explicit "capture now" has to make sure there is a session to capture in: the coordinator may
+            // be suspended after a playback session, and a forced queue with no session only repaints.
+            await StartPreviewsAsync();
+            await QueueVisibleSafelyAsync(force: true);
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(RefreshPreviewsButton_Click), exception);
+        }
     }
 
     private async Task QueueVisibleSafelyAsync(bool force)
@@ -44,7 +55,7 @@ public partial class MainWindow
             return;
         }
 
-        _state = await PersistAsync(_state with { ViewMode = viewMode });
+        _state = await PersistAsync(state => state with { ViewMode = viewMode });
         IsGridMode = viewMode == CatalogViewMode.Grid;
         UpdateViewModeControls();
         UpdatePinnedSectionLayout();
@@ -75,10 +86,60 @@ public partial class MainWindow
     /// only when this holds, so the condition survives the move instead of leaving an entry that
     /// silently does nothing in list mode.
     /// </summary>
-    private bool CanRefreshPreviews => IsGridMode && GridPreviewFeature.CaptureEnabled && _state.UpdateStreamPreviews;
+    private bool CanRefreshPreviews =>
+        IsGridMode && GridPreviewFeature.CaptureEnabled && _previewCoordinator is not null && _state.UpdateStreamPreviews;
+
+    /// <summary>
+    /// Starts the grid-preview engine, or returns null when it cannot start (SP-0119).
+    /// </summary>
+    /// <remarks>
+    /// This runs in the window's constructor, so an engine that throws - a portable copy without its native
+    /// folder, a plugin quarantined by antivirus - used to end the process at startup with nothing on screen,
+    /// before the catalog or the lazily started radio engine ever had a chance. Previews are the one feature
+    /// that needs this engine, so they are what is switched off; grid mode says so once.
+    /// </remarks>
+    private VideoFrameCaptureService? TryStartGridPreviewEngine()
+    {
+        try
+        {
+            return new VideoFrameCaptureService();
+        }
+        catch (Exception exception)
+        {
+            _gridPreviewsUnavailable = true;
+            _log.Event("GRID PREVIEWS UNAVAILABLE", $"type={exception.GetType().Name}");
+            _log.Error("Grid preview engine failed to start", exception);
+            return null;
+        }
+    }
+
+    /// <summary>The one notice that grid previews are off for this session because their engine failed.</summary>
+    private void ReportGridPreviewsUnavailableOnce()
+    {
+        if (!_gridPreviewsUnavailable || _gridPreviewsUnavailableReported || !IsGridMode)
+        {
+            return;
+        }
+
+        _gridPreviewsUnavailableReported = true;
+        // A message rather than the status line: the status is rewritten by the channel count moments later,
+        // so a status notice was gone before anyone could read it. Posted at idle so the load, a requested
+        // launch and the first-run offers are not held behind the user's click.
+        Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, () =>
+        {
+            if (_shuttingDown || !IsVisible)
+            {
+                return;
+            }
+
+            MessageBox.Show(this, LocalizationService.Get("GridPreviewsUnavailable"), LocalizationService.Get("ProductName"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        });
+    }
 
     private async Task StartPreviewsAsync()
     {
+        ReportGridPreviewsUnavailableOnce();
         // The coordinator runs in Grid mode to *show* stored thumbnails (capture is gated separately by the setting).
         // Never run while something is playing: a background LibVLC decode competes with the player.
         // SP-0065: _shuttingDown first, because this is the funnel the late callers reach - the last owned
@@ -298,67 +359,109 @@ public partial class MainWindow
 
     private async void MainWindow_Activated(object? sender, EventArgs e)
     {
-        _windowActive = true;
-        if (IsLoaded && IsGridMode)
+        try
         {
-            await StartPreviewsAsync();
+            _windowActive = true;
+            if (IsLoaded && IsGridMode)
+            {
+                await StartPreviewsAsync();
+            }
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(MainWindow_Activated), exception);
         }
     }
 
     private async void MainWindow_Deactivated(object? sender, EventArgs e)
     {
-        _windowActive = false;
-        // SP-0065: closing deactivates, and this one does not go through StartPreviewsAsync's funnel.
-        if (_shuttingDown || _previewCoordinator is null)
+        try
         {
-            return;
-        }
+            _windowActive = false;
+            // SP-0065: closing deactivates, and this one does not go through StartPreviewsAsync's funnel.
+            if (_shuttingDown || _previewCoordinator is null)
+            {
+                return;
+            }
 
-        await _previewCoordinator.StopAsync();
+            await _previewCoordinator.StopAsync();
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(MainWindow_Deactivated), exception);
+        }
     }
 
-    private async void MainWindow_Closed(object? sender, EventArgs e)
+    /// <summary>
+    /// SP-0120: the close work - session save and disposals - as a task the application waits for before it ends
+    /// the process. It used to run in an <c>async void</c> handler that nothing waited for, so the process could
+    /// exit at its first await with the disposals below never reached. Completed until the window has closed.
+    /// </summary>
+    internal Task CloseWork { get; private set; } = Task.CompletedTask;
+
+    private void MainWindow_Closed(object? sender, EventArgs e)
     {
-        // SP-0065: before the first await. Everything below tears down state that the preview handlers
-        // touch, and the dispatcher keeps delivering input to them while this handler saves.
+        // SP-0065: before the first await - already set by MainWindow_Closing, restated here because this is the
+        // statement everything below depends on. The dispatcher keeps delivering input while the work saves.
         _shuttingDown = true;
-        // SP-0040: quitting while a station plays is a normal way to end a listening session, and the
-        // stop funnel is not on this path - without this the session the user was listening to when they
-        // gave up on it would be the one session missing its summary in the archived log.
-        _audioRecorder?.Dispose();
-        _audioRecorder = null;
-        EndAudioSession();
-        // SP-0067: a filter change still inside its debounce would otherwise be dropped, and the session
-        // saved from the state before the user's last keystroke. Flush it, then save.
-        FlushPendingFilterEvaluation();
-        _browsingSessionSaveTimer.Stop();
-        // SP-0069: a started DispatcherTimer is rooted by the dispatcher and keeps its Tick target - this
-        // window - alive. The sleep ticker repeats and stops itself only when its deadline arrives or the
-        // user cancels it, so quitting with a sleep timer armed left one running against a closed window.
-        StopSleepTicker();
-        // force: the scroll-only rate limit must never be what decides whether the position the user
-        // left the list at survives the session.
-        await SaveBrowsingSessionAsync(force: true);
-        _viewportDebounce?.Cancel();
-        _viewportDebounce?.Dispose();
-        _viewportDebounce = null;
-        _hoverDwell?.Cancel();
-        _hoverDwell?.Dispose();
-        // SP-0065: nulled, not merely disposed. The latch above is the policy; this is the mechanical
-        // guarantee that a handler which forgets to consult it cannot reach a disposed source.
-        _hoverDwell = null;
-        if (_previewCoordinator is not null)
+        // SP-0120: before any await, for the same reason: a recovery backoff that ends during the saves below
+        // would otherwise restart a station in a window that is closing.
+        _audioRecoveryCts?.Cancel();
+        CloseWork = RunCloseWorkAsync();
+    }
+
+    private async Task RunCloseWorkAsync()
+    {
+        try
         {
-            await _previewCoordinator.DisposeAsync();
+            // SP-0040: quitting while a station plays is a normal way to end a listening session, and the
+            // stop funnel is not on this path - without this the session the user was listening to when they
+            // gave up on it would be the one session missing its summary in the archived log.
+            await StopAudioRecordingForShutdownAsync(); // SP-0121: the file is closed before the process goes
+            EndAudioSession();
+            // SP-0067: a filter change still inside its debounce would otherwise be dropped, and the session
+            // saved from the state before the user's last keystroke. Flush it, then save.
+            FlushPendingFilterEvaluation();
+            _browsingSessionSaveTimer.Stop();
+            _audioVolumeSaveTimer.Stop();
+            await FlushPendingAudioVolumeAsync();
+            _nowPlayingHistorySaveTimer.Stop();
+            await FlushPendingNowPlayingHistoryAsync();
+            await RetryPendingStateSaveAsync();
+            // SP-0069: a started DispatcherTimer is rooted by the dispatcher and keeps its Tick target - this
+            // window - alive. The sleep ticker repeats and stops itself only when its deadline arrives or the
+            // user cancels it, so quitting with a sleep timer armed left one running against a closed window.
+            StopSleepTicker();
+            // force: the scroll-only rate limit must never be what decides whether the position the user
+            // left the list at survives the session.
+            await SaveBrowsingSessionAsync(force: true);
+            _viewportDebounce?.Cancel();
+            _viewportDebounce?.Dispose();
+            _viewportDebounce = null;
+            _hoverDwell?.Cancel();
+            _hoverDwell?.Dispose();
+            // SP-0065: nulled, not merely disposed. The latch above is the policy; this is the mechanical
+            // guarantee that a handler which forgets to consult it cannot reach a disposed source.
+            _hoverDwell = null;
+            if (_previewCoordinator is not null)
+            {
+                await _previewCoordinator.DisposeAsync();
+            }
+            _standardAudioPlayback.Dispose();
+            StopNowPlayingMetadata();
+            DisposeSystemMediaControls(); // SP-0021: end the Windows media session with the window
+            _httpClient.Dispose();
+            _icyHttpClient.Dispose();
+            _statusHttpClient.Dispose();
+            _previewArtworkHttpClient.Dispose();
+            _catalogHttpClient.Dispose();
+            // SP-0120: last, so a slow native teardown costs nothing above. Waited for so the process does not
+            // exit in the middle of one; the application bounds the whole close work, this included.
+            await Task.WhenAll(_closedPlayerEngines);
         }
-        _audioRecoveryCts?.Cancel(); // abort any pending audio recovery so it never touches a disposing window
-        _standardAudioPlayback.Dispose();
-        StopNowPlayingMetadata();
-        DisposeSystemMediaControls(); // SP-0021: end the Windows media session with the window
-        _httpClient.Dispose();
-        _icyHttpClient.Dispose();
-        _statusHttpClient.Dispose();
-        _previewArtworkHttpClient.Dispose();
-        _catalogHttpClient.Dispose();
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(MainWindow_Closed), exception);
+        }
     }
 }

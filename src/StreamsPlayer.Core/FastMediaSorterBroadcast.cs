@@ -193,7 +193,7 @@ public static class FastMediaSorterBroadcastDescriptor
             }
 
             var root = document.RootElement;
-            if (!TryGetInt64(root, "schemaVersion", out var schemaVersion))
+            if (ReadInt64(root, "schemaVersion") is not { } schemaVersion)
             {
                 return new(FastMediaSorterBroadcastReadStatus.InvalidPayload);
             }
@@ -218,7 +218,7 @@ public static class FastMediaSorterBroadcastDescriptor
             var title = TryGetString(root, "title") ?? string.Empty;
             var sourceId = TryGetString(root, "sourceId");
             var isLive = TryGetBoolean(root, "isLive") ?? true;
-            long? targetLatencyMs = TryGetInt64(root, "targetLatencyMs", out var targetLatency) ? targetLatency : null;
+            var targetLatencyMs = ReadInt64(root, "targetLatencyMs");
 
             return new(
                 FastMediaSorterBroadcastReadStatus.Ok,
@@ -251,10 +251,10 @@ public static class FastMediaSorterBroadcastDescriptor
                 TryGetString(endpoint, "mode"),
                 TryGetString(endpoint, "videoCodec"),
                 TryGetString(endpoint, "audioCodec"),
-                TryGetInt64(endpoint, "sampleRate", out var sampleRate) ? sampleRate : null,
-                TryGetInt64(endpoint, "bitrate", out var bitrate) ? bitrate : null,
+                ReadInt64(endpoint, "sampleRate"),
+                ReadInt64(endpoint, "bitrate"),
                 TryGetBoolean(endpoint, "isLive"),
-                TryGetInt64(endpoint, "targetLatencyMs", out var targetLatency) ? targetLatency : null));
+                ReadInt64(endpoint, "targetLatencyMs")));
         }
 
         return result;
@@ -327,10 +327,24 @@ public static class FastMediaSorterBroadcastDescriptor
         return value.Length > 0;
     }
 
-    private static bool TryGetInt64(JsonElement element, string name, out long value)
+    /// <summary>An absent integer field is null; a present one that is not a whole JSON number is a broken payload.</summary>
+    /// <remarks>
+    /// SP-0119: <see cref="JsonElement.TryGetInt64"/> throws <see cref="InvalidOperationException"/> - not a
+    /// <see cref="JsonException"/> - on a string, <c>null</c> or boolean value, and that escaped the reader's
+    /// catch into the paste and drop handlers, which ended the process on any clipboard JSON that happened to
+    /// carry the right field names. Throwing <see cref="JsonException"/> here routes a wrongly typed field to
+    /// the same invalid-payload answer as malformed JSON, the way the artwork-manifest reader treats one.
+    /// </remarks>
+    private static long? ReadInt64(JsonElement element, string name)
     {
-        value = 0;
-        return element.TryGetProperty(name, out var property) && property.TryGetInt64(out value);
+        if (!element.TryGetProperty(name, out var property))
+        {
+            return null;
+        }
+
+        return property.ValueKind == JsonValueKind.Number && property.TryGetInt64(out var value)
+            ? value
+            : throw new JsonException($"'{name}' is not an integer.");
     }
 
     private static bool? TryGetBoolean(JsonElement element, string name) =>

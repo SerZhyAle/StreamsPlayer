@@ -13,6 +13,11 @@ public sealed class StreamCatalogService
     // link now finishes; a socket that stops answering still fails promptly.
     private static readonly TimeSpan DownloadIdleTimeout = TimeSpan.FromSeconds(20);
 
+    // SP-0129: the silence bound starts only once the body is being read, and the catalog client has no
+    // timeout of its own, so a TLS or proxy stall before the head left "Downloading catalog" spinning until
+    // Cancel. A head is a few hundred bytes; this long without one is a dead connection.
+    private static readonly TimeSpan HeaderTimeout = TimeSpan.FromSeconds(30);
+
     // The steps after the download are local work on a fixed-size input, so a duration bound is the right
     // shape there in a way it is not for a transfer.
     private static readonly TimeSpan ApplyDeadline = TimeSpan.FromSeconds(60);
@@ -59,6 +64,27 @@ public sealed class StreamCatalogService
         IProgress<PublishWindowRetryNotice>? retrying = null,
         CancellationToken cancellationToken = default)
     {
+        var outcome = await DownloadAsync(progress, retrying, cancellationToken);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(ApplyDeadline);
+        var result = outcome.Apply(currentState);
+        var state = await _store.SaveAsync(
+            result.State,
+            outcome.Bank.FaviconAtlas,
+            outcome.ReplacesAtlas,
+            deadline.Token);
+        return result with { State = state };
+    }
+
+    /// <summary>
+    /// Downloads and validates one published bank without observing or writing local catalog state.
+    /// Its result can therefore be merged only after the caller has acquired its serialized state commit.
+    /// </summary>
+    public async Task<CatalogRefreshOutcome> DownloadAsync(
+        IProgress<DownloadProgress>? progress = null,
+        IProgress<PublishWindowRetryNotice>? retrying = null,
+        CancellationToken cancellationToken = default)
+    {
         // SP-0107, STREAM-BANK rule 11: the retry covers the fetch and the read of the archive and nothing
         // after them. Everything that could touch the user's catalog - the merge, item D's absence
         // handling, the save - runs only on a bank that arrived whole, so a publish window can at worst
@@ -70,73 +96,12 @@ public sealed class StreamCatalogService
         // catalog untouched - but checking here makes that an asserted property instead of a coincidence,
         // and it stops a cancelled refresh from spending a second of the caller's thread on the merge.
         cancellationToken.ThrowIfCancellationRequested();
-        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        deadline.CancelAfter(ApplyDeadline);
-
         if (bank.Entries.Count == 0)
         {
             throw new InvalidDataException("The downloaded catalog contains no valid channels.");
         }
 
-        var now = DateTimeOffset.UtcNow;
-        // SP-0088, STREAM-BANK item A: a build is atomic - `favicon_index` is an offset into the
-        // atlas that arrived in the same ZIP and carries no meaning against any other one. When this
-        // build brought no usable atlas (absent, over the ceiling, unreadable) its indices are discarded
-        // here, before the merge can stamp them onto rows that still point at the previously installed
-        // sheet. Keeping them was not a cosmetic bug: of the three outcomes - right icons, no icons,
-        // wrong icons - only the third is invisible to the user and undescribable in a support report,
-        // and it is the one the old code produced. The stored atlas is still not deleted (see below), so
-        // the degraded state is "no icon" for one refresh, which SP-0087's monogram renders as a
-        // deliberate placeholder rather than a broken image.
-        var bankCarriedAtlas = bank.FaviconAtlas is { Length: > 0 };
-        var entries = bankCarriedAtlas
-            ? bank.Entries
-            : [.. bank.Entries.Select(entry => entry with { FaviconIndex = null })];
-
-        // SP-0089, STREAM-BANK item D: the merge is told which rows carry user-authored data before it
-        // is allowed to prune, because absence from this build is not authority to delete a pin, a
-        // collection membership or a history entry. Computed from the state that is about to be replaced -
-        // the only moment both the old rows and their references are still in hand.
-        var merge = CatalogMerger.Merge(
-            currentState.Channels,
-            entries,
-            now,
-            options: null,
-            channelsWithUserData: UserAuthoredChannels.Identify(currentState));
-        var channels = merge.Channels.ToList();
-        var state = currentState with
-        {
-            Channels = channels,
-            LastCatalogRefreshAt = now
-        };
-
-        // SP-0052: a refresh reclaims every snapshot row onto its own atlas, so once none is left the
-        // bundled atlas is a file nothing points at - seven megabytes of the user's disk that no later
-        // save would ever reclaim, because the store keeps whatever the state still names. Dropping the
-        // reference here is what lets its own cleanup pass sweep the file. The date goes with it: it
-        // describes rows that no longer exist.
-        if (!channels.Any(channel => channel.FaviconSource == FaviconSource.Snapshot))
-        {
-            state = state with { SnapshotAtlasFileName = null, AppliedSnapshotDate = null };
-        }
-        // Only a bank that actually carried an atlas may replace the stored one. Passing replaceAtlas
-        // unconditionally made a bank without an atlas - a mispackaged upstream zip, or one whose atlas this
-        // reader rejected - delete the installed atlas, so a single refresh silently stripped the favicon
-        // from every channel with no error and no way back short of a corrected republish.
-        // Keeping the file and discarding this build's indices are the two halves of one rule: the sheet
-        // survives so a later corrected bank can re-point at it, and nothing points at it meanwhile.
-        state = await _store.SaveAsync(
-            state,
-            bank.FaviconAtlas,
-            replaceAtlas: bankCarriedAtlas,
-            deadline.Token);
-        return new CatalogRefreshResult(
-            state,
-            merge.Added,
-            merge.Updated,
-            merge.Removed,
-            bankCarriedAtlas,
-            merge.Retired);
+        return new CatalogRefreshOutcome(bank, DateTimeOffset.UtcNow);
     }
 
     /// <summary>One attempt at the archive: request, bounded download, and the read of the ZIP.</summary>
@@ -145,7 +110,7 @@ public sealed class StreamCatalogService
         CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, CatalogUrl);
-        using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        using var response = await HttpDownload.SendForHeadersAsync(_httpClient, request, HeaderTimeout, cancellationToken);
         response.EnsureSuccessStatusCode();
         // SP-0069 closed the omission that SP-0056 recorded here: bounding the archive is a behaviour
         // change, which is why it did not belong in a reporting ticket, and it belongs in a resilience one.

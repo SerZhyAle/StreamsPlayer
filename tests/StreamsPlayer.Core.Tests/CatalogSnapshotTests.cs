@@ -93,6 +93,30 @@ public sealed class CatalogSnapshotTests
 
     // AC 5 and AC 7 together: nothing the download brought in is removed, and the two atlases coexist so
     // each row's favicon index keeps indexing the sheet it shipped with.
+    // SP-0126: the snapshot is older than the download that retired the row; listing it proves nothing.
+    [Fact]
+    public void Apply_LeavesARetiredRowRetired()
+    {
+        var retiredAt = DateTimeOffset.UtcNow.AddDays(-1);
+        var retired = new StreamChannel
+        {
+            Id = Guid.NewGuid(),
+            Url = "https://example.test/snapshot-one",
+            Title = "Retired",
+            MediaKind = MediaKind.Audio,
+            SourceOrigin = SourceOrigin.Catalog,
+            AddedAt = DateTimeOffset.UtcNow.AddDays(-30),
+            Pinned = true,
+            RetiredAt = retiredAt
+        };
+        var outcome = CatalogSnapshotService.Prepare(BundledCatalogSnapshot.Read(CreateSnapshotZip(atlas: ValidAtlasA)));
+
+        var result = outcome.Apply(new CatalogState { Channels = [retired] });
+
+        var kept = Assert.Single(result.State.Channels, channel => channel.Id == retired.Id);
+        Assert.Equal(retiredAt, kept.RetiredAt);
+    }
+
     [Fact]
     public async Task Apply_OverADownloadedCatalogKeepsBothRowsAndBothAtlases()
     {

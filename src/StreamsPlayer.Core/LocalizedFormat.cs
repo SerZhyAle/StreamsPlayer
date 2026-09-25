@@ -18,6 +18,12 @@ namespace StreamsPlayer.Core;
 public static class LocalizedFormat
 {
     /// <summary>
+    /// One past the highest argument index composite formatting accepts; the runtime throws
+    /// <see cref="FormatException"/> for anything at or above it.
+    /// </summary>
+    public const int RuntimeArgumentIndexLimit = 1_000_000;
+
+    /// <summary>
     /// The ordered multiset of composite-format argument indices a template references.
     /// </summary>
     /// <remarks>
@@ -110,6 +116,15 @@ public static class LocalizedFormat
 
         var supplied = arguments ?? [];
         var required = RequiredArgumentCount(template);
+        if (required is < 0 or > RuntimeArgumentIndexLimit)
+        {
+            // SP-0119: the runtime rejects such an index with a FormatException anyway, but only after the
+            // padding below has allocated one slot per index - {999999999} is ~8 GB, and an out-of-memory
+            // failure is not the exception this method absorbs. Degrade the way an unparseable template
+            // does, before allocating anything. An index of int.MaxValue overflows the count to a negative.
+            return template;
+        }
+
         if (supplied.Length < required)
         {
             var padded = new object?[required];

@@ -22,6 +22,19 @@ public sealed class ChannelPreviewCoordsTests
         Assert.Equal(68, map["https://chan/c.m3u8"]);
     }
 
+    // SP-0126: the service decodes the downloaded bytes with Encoding.UTF8, which keeps a byte-order mark.
+    [Fact]
+    public void Parse_ReadsASidecarWrittenWithAByteOrderMark()
+    {
+        var bytes = System.Text.Encoding.UTF8.GetPreamble()
+            .Concat(System.Text.Encoding.UTF8.GetBytes("""{"https://chan/a.m3u8":4}"""))
+            .ToArray();
+
+        var map = ChannelPreviewCoords.Parse(System.Text.Encoding.UTF8.GetString(bytes));
+
+        Assert.Equal(4, Assert.Single(map).Value);
+    }
+
     [Fact]
     public void Parse_SkipsNonIntegerValuesInsteadOfFailing()
     {

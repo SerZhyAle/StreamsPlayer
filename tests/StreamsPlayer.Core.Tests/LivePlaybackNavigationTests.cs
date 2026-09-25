@@ -67,4 +67,33 @@ public sealed class LivePlaybackNavigationTests
         Assert.Null(LivePlaybackNavigation.NextAvailable(-1, available));
         Assert.Null(LivePlaybackNavigation.PreviousAvailable(-1, available));
     }
+
+    // SP-0132: the compact panel asks for both neighbours on every volume tick. The availability check
+    // behind the predicate is a catalog lookup, so the cost of one refresh must be the neighbours the scan
+    // visits, not the length of the captured order - with the full bank that difference was ~10^8 compares.
+    [Fact]
+    public void PredicateOverloads_AskOnlyAboutTheIndicesTheScanVisits()
+    {
+        var asked = new List<int>();
+        bool IsAvailable(int index)
+        {
+            asked.Add(index);
+            return true;
+        }
+
+        Assert.Equal(5_001, LivePlaybackNavigation.NextAvailable(5_000, 20_000, IsAvailable));
+        Assert.Equal(4_999, LivePlaybackNavigation.PreviousAvailable(5_000, IsAvailable));
+
+        Assert.Equal([5_001, 4_999], asked);
+    }
+
+    [Fact]
+    public void PredicateOverloads_SkipUnavailableEntriesLikeTheMask()
+    {
+        var available = new[] { true, false, false, true, false };
+
+        Assert.Equal(3, LivePlaybackNavigation.NextAvailable(0, available.Length, index => available[index]));
+        Assert.Equal(0, LivePlaybackNavigation.PreviousAvailable(3, index => available[index]));
+        Assert.Null(LivePlaybackNavigation.NextAvailable(3, available.Length, index => available[index]));
+    }
 }

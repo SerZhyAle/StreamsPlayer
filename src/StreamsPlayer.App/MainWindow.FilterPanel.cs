@@ -100,11 +100,11 @@ public partial class MainWindow
     /// </summary>
     private async Task SetFilterPanelVisibleAsync(bool visible)
     {
-        _state = await PersistAsync(_state with { CatalogFiltersVisible = visible });
+        _state = await PersistAsync(state => state with { CatalogFiltersVisible = visible });
         UpdateFilterPanelChrome();
     }
 
-    private async void FiltersButton_Click(object sender, RoutedEventArgs e) => await SetFilterPanelVisibleAsync(true);
+    private void FiltersButton_Click(object sender, RoutedEventArgs e) => HandlerBoundary.Run(nameof(FiltersButton_Click), () => SetFilterPanelVisibleAsync(true));
 
-    private async void HideFiltersButton_Click(object sender, RoutedEventArgs e) => await SetFilterPanelVisibleAsync(false);
+    private void HideFiltersButton_Click(object sender, RoutedEventArgs e) => HandlerBoundary.Run(nameof(HideFiltersButton_Click), () => SetFilterPanelVisibleAsync(false));
 }

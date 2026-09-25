@@ -68,6 +68,10 @@ public sealed class ChannelPreviewArtworkService
     // minutes the user cannot tell from a hang.
     private static readonly TimeSpan DownloadIdleTimeout = TimeSpan.FromSeconds(20);
 
+    // SP-0129: the pack's head, which the silence bound does not cover and the client's infinite timeout
+    // does not either. The small files need no separate one - their total deadline already spans the head.
+    private static readonly TimeSpan HeaderTimeout = TimeSpan.FromSeconds(30);
+
     private readonly HttpClient _httpClient;
     private readonly PublishWindowRetry _publishWindowRetry;
 
@@ -120,8 +124,8 @@ public sealed class ChannelPreviewArtworkService
             throw new InvalidDataException("The channel-preview sidecar lists no tiles.");
         }
 
-        using var packResponse = await _httpClient.GetAsync(
-            TilePackUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        using var packResponse = await HttpDownload.GetForHeadersAsync(
+            _httpClient, new Uri(TilePackUrl), HeaderTimeout, cancellationToken);
         packResponse.EnsureSuccessStatusCode();
         // The ceiling is checked against the declared length and against the bytes that actually arrive;
         // both live in the download loop, so doing either here would leave one condition with two

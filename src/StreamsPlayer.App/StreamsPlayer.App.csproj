@@ -39,11 +39,11 @@
          Windows 10 builds; the SMTC APIs used have shipped since 10.0.10240. -->
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
-    <!-- SP-0093: the WPF runtime is pinned back from 10.0.11, which breaks MediaElement network audio
-         and leaves the app opening, listing the catalog, and playing nothing. The pin cannot live in
-         this file - it has to update a KnownFrameworkReference the SDK defines after every line here -
-         so it lives in Directory.Build.targets at the repository root, with the full evidence and the
-         instructions for removing it. -->
+    <!-- SP-0133: the WPF runtime is no longer pinned. SP-0093 held it at 10.0.10 because 10.0.11 broke
+         MediaElement network audio; radio left MediaElement for LibVLC in SP-0104, and the playback smoke
+         gate (scripts/smoke-playback.ps1) now proves sound and picture on whatever runtime a publish selects.
+         Should a runtime ever need holding back again, SP-0093 records the one mechanism that works - a
+         KnownFrameworkReference update in a root Directory.Build.targets - and the two that silently do not. -->
     <AssemblyName>StreamsPlayer</AssemblyName>
     <ApplicationIcon Condition="Exists('..\..\assets\streamsplayer.ico')">..\..\assets\streamsplayer.ico</ApplicationIcon>
     <Nullable>enable</Nullable>
