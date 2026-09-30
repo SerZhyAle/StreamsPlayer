@@ -21,6 +21,14 @@ public static class ThemeService
             ["MutedBrush"] = (Color.FromRgb(99, 112, 131), Color.FromRgb(184, 200, 219)),
             ["AccentBrush"] = (Color.FromRgb(35, 100, 170), Color.FromRgb(31, 78, 138)),
             ["AccentTextBrush"] = (Colors.White, Colors.White),
+            // SP-0162: the accent as a mark drawn on a themed surface (menu check, selected-tab stripe,
+            // selection and filter borders, the keyboard focus ring). AccentBrush is a fill that carries
+            // AccentTextBrush on top, so in the dark theme it stays dark enough for white text and reads
+            // about 1.4-1.7:1 against the control colours; the dark mark is the light end of the same hue,
+            // 5.8:1 against the hover row, the weakest pairing. SelectionBrush is the text selection's plate,
+            // which keeps white text on it (4.7:1) and stands 3.1:1 off the text box.
+            ["AccentMarkBrush"] = (Color.FromRgb(35, 100, 170), Color.FromRgb(120, 189, 255)),
+            ["SelectionBrush"] = (Color.FromRgb(35, 100, 170), Color.FromRgb(56, 116, 200)),
             ["BorderBrush"] = (Color.FromRgb(213, 220, 230), Color.FromRgb(51, 65, 85)),
             ["ControlBrush"] = (Colors.White, Color.FromRgb(31, 42, 58)),
             ["ControlHoverBrush"] = (Color.FromRgb(239, 246, 255), Color.FromRgb(42, 58, 82)),

@@ -163,7 +163,7 @@ A ~15-second live buffer, and video that settles at the quality your connection 
 Record the live video or radio you are playing straight to a file, without interrupting playback: video goes to the Recordings folder in Videos, radio to the Recordings folder in Music, or to folders you choose.
 
 @@cap-play-6
-Listen to a live audio broadcast from a FastMediaSorter phone or watch, directly over your local network - no server in between.
+Listen to a live audio or video broadcast from a FastMediaSorter phone or watch, directly over your local network - no server in between.
 
 @@cap-window-title
 Watch your way

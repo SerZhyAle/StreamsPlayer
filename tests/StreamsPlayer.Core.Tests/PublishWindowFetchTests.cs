@@ -181,6 +181,86 @@ public sealed class PublishWindowFetchTests
         Assert.Empty(notices);
     }
 
+    /// <summary>
+    /// SP-0160, STREAM-BANK item L: an absent manifest is the nothing-case. The 404 still gets the
+    /// publish-window retries (the manifest is published delete-then-upload like the rest), and when
+    /// the schedule is spent the outcome is the nothing-case, not a failure - the installed artwork
+    /// stays and no stamp can be written.
+    /// </summary>
+    [Fact]
+    public async Task Artwork_AbsentManifestIsTheNothingCaseAfterTheRetriesAreSpent()
+    {
+        var handler = new ScriptedHandler(
+            Status(HttpStatusCode.NotFound), Status(HttpStatusCode.NotFound),
+            Status(HttpStatusCode.NotFound), Status(HttpStatusCode.NotFound));
+
+        var nothing = await Assert.ThrowsAsync<ArtworkManifestNothingNewException>(() =>
+            new ChannelPreviewArtworkService(new HttpClient(handler), Immediate).DownloadAsync());
+
+        Assert.Equal("not found", nothing.Reason);
+        Assert.Equal(HttpStatusCode.NotFound, Assert.IsType<HttpRequestException>(nothing.InnerException).StatusCode);
+        Assert.Equal(Immediate.MaximumAttempts, handler.Requests.Count);
+        Assert.All(handler.Requests, request => Assert.Equal(ChannelPreviewArtworkService.ManifestUrl, request));
+    }
+
+    /// <summary>An unparseable manifest is the nothing-case too, and is not retried: garbage is not
+    /// what a publish in progress looks like.</summary>
+    [Fact]
+    public async Task Artwork_UnparseableManifestIsTheNothingCaseWithoutARetry()
+    {
+        var handler = new ScriptedHandler(Zip(Encoding.UTF8.GetBytes("{not json")));
+
+        var nothing = await Assert.ThrowsAsync<ArtworkManifestNothingNewException>(() =>
+            new ChannelPreviewArtworkService(new HttpClient(handler), Immediate).DownloadAsync());
+
+        Assert.Equal("unparseable", nothing.Reason);
+        Assert.Single(handler.Requests);
+    }
+
+    /// <summary>
+    /// SP-0160, STREAM-BANK item L: a pack whose hash differs from the manifest is imported all the
+    /// same - the mismatch is reported on the artwork as a diagnostic, never refused.
+    /// </summary>
+    [Fact]
+    public async Task Artwork_APackWhoseHashDiffersFromTheManifestIsImportedAndTheMismatchReported()
+    {
+        var coords = Encoding.UTF8.GetBytes("""{"https://example.test/live": 0}""");
+        byte[] pack = [1, 2, 3, 4, 5, 6, 7, 8];
+        var manifest = Encoding.UTF8.GetString(Manifest(coords, pack))
+            .Replace("\"sha256\": \"" + Hash(pack) + "\"", "\"sha256\": \"00\"", StringComparison.Ordinal);
+        var handler = new ScriptedHandler(
+            Zip(Encoding.UTF8.GetBytes(manifest)), Zip(coords), Zip(pack));
+
+        var artwork = await new ChannelPreviewArtworkService(new HttpClient(handler), Immediate)
+            .DownloadAsync();
+
+        Assert.Equal(pack, artwork.TilePack);
+        var mismatch = Assert.Single(artwork.Diagnostics);
+        Assert.Contains(ChannelPreviewArtworkService.TilePackFile, mismatch, StringComparison.Ordinal);
+        Assert.Contains("sha256", mismatch, StringComparison.Ordinal);
+    }
+
+    /// <summary>Size is part of the same diagnostic declaration - a truncated transfer is reported the
+    /// same way, and the import still proceeds.</summary>
+    [Fact]
+    public async Task Artwork_ACoordsSizeMismatchIsReportedAndTheImportProceeds()
+    {
+        var coords = Encoding.UTF8.GetBytes("""{"https://example.test/live": 0}""");
+        byte[] pack = [1, 2, 3, 4, 5, 6, 7, 8];
+        var manifest = Encoding.UTF8.GetString(Manifest(coords, pack))
+            .Replace("\"size\": " + coords.Length, "\"size\": 99", StringComparison.Ordinal);
+        var handler = new ScriptedHandler(
+            Zip(Encoding.UTF8.GetBytes(manifest)), Zip(coords), Zip(pack));
+
+        var artwork = await new ChannelPreviewArtworkService(new HttpClient(handler), Immediate)
+            .DownloadAsync();
+
+        Assert.Equal(pack, artwork.TilePack);
+        var mismatch = Assert.Single(artwork.Diagnostics);
+        Assert.Contains(ChannelPreviewArtworkService.CoordsFile, mismatch, StringComparison.Ordinal);
+        Assert.Contains("declares 99", mismatch, StringComparison.Ordinal);
+    }
+
     private static Task<CatalogRefreshResult> Refresh(
         ScriptedHandler handler,
         CatalogState state,

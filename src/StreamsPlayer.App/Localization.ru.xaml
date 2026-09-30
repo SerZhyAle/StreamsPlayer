@@ -23,6 +23,7 @@
     <sys:String x:Key="ChannelPreviewsUnavailable">Этот компьютер не может открыть набор картинок. Превью работают как раньше.</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">Не удалось скачать картинки превью.</sys:String>
     <sys:String x:Key="ChannelPreviewsNewerVersion">Эти картинки превью опубликованы для более новой версии StreamsPlayer. Обновите приложение, чтобы получить их. Текущие картинки сохранены.</sys:String>
+    <sys:String x:Key="ChannelPreviewsNothingNew">Новых картинок превью не опубликовано. Текущие картинки сохранены.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgress">Загрузка картинок.. {0}% ({1} из {2} МБ)</sys:String>
     <sys:String x:Key="ChannelPreviewsPublishWindowRetry">Картинки сейчас переопубликовываются. Повтор через {0} с (попытка {1} из {2})..</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Загрузка картинок.. {0} МБ</sys:String>
@@ -97,8 +98,7 @@
     <sys:String x:Key="ExpandFromPanelName">Вернуться к полному окну каталога</sys:String>
     <sys:String x:Key="CompactPanelMinimizeTip">Свернуть</sys:String>
     <sys:String x:Key="CompactPanelCloseTip">Закрыть приложение</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOn">Закрепить поверх окон: вкл.</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOff">Закрепить поверх окон: выкл.</sys:String>
+    <sys:String x:Key="MenuCompactPanelOnTop">Поверх всех окон</sys:String>
     <sys:String x:Key="AllOption">Все</sys:String>
     <sys:String x:Key="AudioOption">Аудио</sys:String>
     <sys:String x:Key="VideoOption">Видео</sys:String>
@@ -360,6 +360,7 @@
     <sys:String x:Key="SettingsName">Открыть настройки</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Настройки Трансляции</sys:String>
     <sys:String x:Key="ToolsWindowTitle">Инструменты Трансляции</sys:String>
+    <sys:String x:Key="ToolsWindowBusyClose">Выполняется операция. Дождитесь её завершения или отмените её, затем закройте это окно.</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Диагностика</sys:String>
     <sys:String x:Key="GridSettings">Сетка</sys:String>
     <sys:String x:Key="ThemeLabel">Цветовая тема</sys:String>
@@ -479,6 +480,7 @@
     <sys:String x:Key="ImportInvalidEncoding">Этот файл не является корректным текстом UTF-8. Ваш список не изменён.</sys:String>
     <sys:String x:Key="ImportFileReadFailed">Windows не смог прочитать выбранный файл. Ваш список не изменён.</sys:String>
     <sys:String x:Key="ImportUrlFailed">Не удалось загрузить плейлист. Ваш список не изменён.</sys:String>
+    <sys:String x:Key="ImportUrlCancelled">Импорт отменён. Ваш список не изменён.</sys:String>
     <sys:String x:Key="ImportHlsManifest">Это медиа-манифест HLS, а не список каналов. Каналы не импортированы.</sys:String>
     <sys:String x:Key="ImportEmpty">Каналы для импорта не найдены. Ваш список не изменён.</sys:String>
     <sys:String x:Key="ExportAll">Все мои каналы</sys:String>
@@ -653,4 +655,6 @@
     <sys:String x:Key="TvScheduleBindingNone">Без программы</sys:String>
     <sys:String x:Key="TvScheduleBindingNoneTip">Никогда не показывать передачи для этого канала</sys:String>
     <sys:String x:Key="TvScheduleBindingApply">Привязать</sys:String>
+    <sys:String x:Key="SecondInstanceElevated">StreamsPlayer уже запущен с правами администратора, поэтому эта копия не может передать ему запрос. Закройте его и запустите StreamsPlayer снова или запускайте обе копии одинаково.</sys:String>
+    <sys:String x:Key="SecondInstanceLaunchTooLarge">Этот запрос слишком велик, чтобы передать его запущенной копии StreamsPlayer, поэтому ничего не запущено. Закройте запущенную копию и попробуйте снова.</sys:String>
 </ResourceDictionary>

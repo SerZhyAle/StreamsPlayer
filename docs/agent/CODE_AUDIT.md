@@ -105,6 +105,33 @@ a tail manifest that the fan-out and the summary accept like the first.
    fix has its evidence. A slice never runs a release, a deploy or anything that publishes.
 <!-- slice-procedure:end -->
 
+## Before a release (SP-0180)
+
+A release is preflighted only with a final audit of the exact candidate. The campaign above is the method; this is
+the gate that makes it a precondition, and it reads only the working tree, because `PLAN/` is not tracked.
+
+1. Finish the candidate's code. Run a campaign over it (a new umbrella ticket, a new manifest); a change to audited
+   code after the audit invalidates it.
+2. Resolve every High and Medium finding: **fixed** (with `expected: X | actual: Y` evidence) or **exception** (the
+   owner's recorded decision to ship with it). A Low finding may instead be **ticketed** (`SP-NNNN`). Nothing is
+   left undispositioned.
+3. Run `scripts/check.ps1` on the result, then, on a clean committed tree, write the verdict from a findings file:
+
+   ```powershell
+   pwsh -NoProfile -File ./scripts/Write-AuditVerdict.ps1 -FindingsPath <findings.json>
+   ```
+
+   The findings file shape is in the script's header. The writer generates one row per audited file (class A of
+   `tools/audit/AuditCampaign.psm1`), ties the verdict to `HEAD`, and writes nothing if the findings break the rule
+   above. Commit `release-verdicts/<version>.audit.json`, then run the smoke gate and tag.
+4. `release.yml` runs `scripts/Assert-AuditVerdict.ps1`: the verdict names the tagged version and result `PASS`; its
+   file rows are exactly the tree's audited set; every finding is dispositioned; the audited commit is an ancestor
+   of the tag and nothing outside `release-verdicts/` changed since. Otherwise the release stops before any build.
+
+The severity threshold is fixed at High and Medium blocking, Low ticketable; changing it is a change to the gate.
+The playback smoke verdict and the green CI run remain separate, equally required gates. The gate's own fixture
+tests: `pwsh -NoProfile -File tools/audit/Test-AuditVerdictGate.ps1`.
+
 ## After the campaign
 
 The summary's output becomes the umbrella ticket's own `## Last Audit`. The umbrella closes when the summary

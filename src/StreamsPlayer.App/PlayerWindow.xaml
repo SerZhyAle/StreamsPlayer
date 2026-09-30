@@ -31,7 +31,7 @@
                             ToolTip="{DynamicResource MuteTip}" />
                     <!-- IsMoveToPointEnabled: a click jumps the volume straight to the clicked level instead of stepping toward it. -->
                     <Slider x:Name="VolumeSlider" Width="90" Minimum="0" Maximum="100" Value="100" TickFrequency="10"
-                            IsMoveToPointEnabled="True"
+                            IsMoveToPointEnabled="True" FocusVisualStyle="{StaticResource PlayerOverlayFocusVisual}"
                             ValueChanged="VolumeSlider_ValueChanged" VerticalAlignment="Center" Margin="4,0,8,0"
                             ToolTip="{DynamicResource VolumeTip}" AutomationProperties.Name="{DynamicResource VolumeName}" />
                 </StackPanel>

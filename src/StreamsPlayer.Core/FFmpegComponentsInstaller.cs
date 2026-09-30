@@ -141,10 +141,10 @@ public sealed class FFmpegComponentsInstaller
         {
             await DownloadArchiveAsync(archivePath, progress, cancellationToken);
             await VerifyArchiveAsync(archivePath, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-            ExtractRequiredLibraries(archivePath, staging);
+            await ExtractRequiredLibrariesAsync(archivePath, staging, cancellationToken);
             // Past this point a cancel no longer applies: the swap is short and must not be interrupted.
-            PublishStaging(staging, target);
+            // Off the caller's thread: the caller resumed on the UI thread, and the swap touches the disk.
+            await Task.Run(() => PublishStaging(staging, target), CancellationToken.None);
             return target;
         }
         finally
@@ -218,13 +218,33 @@ public sealed class FFmpegComponentsInstaller
         }
     }
 
-    private static void ExtractRequiredLibraries(string archivePath, string staging)
+    /// <summary>
+    /// Extracts the required libraries one file at a time, off the caller's thread (SP-0165).
+    /// </summary>
+    /// <remarks>
+    /// The caller resumes on the UI thread, where this loop used to run as one synchronous stretch of
+    /// roughly 137 MB the window could not answer during. Cancellation is honoured between files, so a
+    /// cancel never lands halfway through one and the previous set stays intact until the swap starts.
+    /// <paramref name="beforeFile"/> exists for tests: it runs ahead of each file's cancellation check.
+    /// </remarks>
+    internal static async Task ExtractRequiredLibrariesAsync(
+        string archivePath,
+        string staging,
+        CancellationToken cancellationToken,
+        Func<string, Task>? beforeFile = null)
     {
         Directory.CreateDirectory(staging);
         using var archive = ZipFile.OpenRead(archivePath);
 
         foreach (var required in FFmpegComponents.RequiredLibraries)
         {
+            if (beforeFile is not null)
+            {
+                await beforeFile(required);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Matched on the file name alone: the build nests everything under a versioned folder whose
             // name carries the build date, and the bundled ffmpeg/ffplay/ffprobe executables are simply
             // never asked for, which is most of the archive left undisturbed.
@@ -235,7 +255,9 @@ public sealed class FFmpegComponentsInstaller
                 throw new InvalidDataException($"The FFmpeg archive does not contain {required}.");
             }
 
-            entry.ExtractToFile(Path.Combine(staging, required), overwrite: true);
+            await Task.Run(
+                () => entry.ExtractToFile(Path.Combine(staging, required), overwrite: true),
+                cancellationToken);
         }
     }
 

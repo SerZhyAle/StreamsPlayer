@@ -35,6 +35,15 @@ public partial class TvScheduleBindingWindow : Window
         Filter(string.Empty);
         if (currentId is not null && _options.FirstOrDefault(option => option.Id == currentId) is { } current)
         {
+            // SP-0161: the cap may have cut the current binding out of the initial view, which read as
+            // nothing being bound. Pin it to the top so it is always shown and selected; the cap still
+            // holds, and a search rebuilds the plain filtered order.
+            var listed = (List<Option>)ChannelList.ItemsSource;
+            ChannelList.ItemsSource = listed.Any(option => option.Id == current.Id)
+                ? listed
+                : new List<Option>(MaximumListed) { current }
+                    .Concat(listed.Take(MaximumListed - 1))
+                    .ToList();
             ChannelList.SelectedItem = current;
             ChannelList.ScrollIntoView(current);
         }
@@ -65,6 +74,13 @@ public partial class TvScheduleBindingWindow : Window
 
     private void ChannelList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
+        // SP-0161: the scrollbar and the empty area are not items, so they must not bind; only a
+        // double-click on a row does (the catalog cards got the same guard in SP-0132 R2).
+        if (!VisualAncestry.IsInsideItem(e.OriginalSource as DependencyObject, (DependencyObject)sender))
+        {
+            return;
+        }
+
         if (ChannelList.SelectedItem is Option)
         {
             Bind_Click(sender, e);

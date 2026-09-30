@@ -23,6 +23,7 @@
     <sys:String x:Key="ChannelPreviewsUnavailable">This computer cannot open the picture pack. Previews keep working as before.</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">Could not download the preview pictures.</sys:String>
     <sys:String x:Key="ChannelPreviewsNewerVersion">These preview pictures were published for a newer version of StreamsPlayer. Update the application to get them. Your current pictures were kept.</sys:String>
+    <sys:String x:Key="ChannelPreviewsNothingNew">No new preview pictures were published. Your current pictures were kept.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgress">Downloading pictures.. {0}% ({1} of {2} MB)</sys:String>
     <sys:String x:Key="ChannelPreviewsPublishWindowRetry">The pictures are being republished right now. Trying again in {0} s (attempt {1} of {2})..</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Downloading pictures.. {0} MB</sys:String>
@@ -99,8 +100,7 @@
     <sys:String x:Key="ExpandFromPanelName">Return to the full catalog window</sys:String>
     <sys:String x:Key="CompactPanelMinimizeTip">Minimize</sys:String>
     <sys:String x:Key="CompactPanelCloseTip">Close the application</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOn">Pin on top: on</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOff">Pin on top: off</sys:String>
+    <sys:String x:Key="MenuCompactPanelOnTop">Always on top</sys:String>
     <sys:String x:Key="AllOption">All</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Video</sys:String>
@@ -379,6 +379,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="SettingsName">Open Settings</sys:String>
     <sys:String x:Key="SettingsWindowTitle">STREAMS Player settings</sys:String>
     <sys:String x:Key="ToolsWindowTitle">STREAMS Player tools</sys:String>
+    <sys:String x:Key="ToolsWindowBusyClose">An operation is running. Wait for it to finish or cancel it, then close this window.</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Diagnostics</sys:String>
     <sys:String x:Key="GridSettings">Grid</sys:String>
     <sys:String x:Key="ThemeLabel">Colour theme</sys:String>
@@ -498,6 +499,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="ImportInvalidEncoding">This file is not valid UTF-8 text. Your list was not changed.</sys:String>
     <sys:String x:Key="ImportFileReadFailed">Windows could not read the selected file. Your list was not changed.</sys:String>
     <sys:String x:Key="ImportUrlFailed">The playlist could not be downloaded. Your list was not changed.</sys:String>
+    <sys:String x:Key="ImportUrlCancelled">Import cancelled. Your list was not changed.</sys:String>
     <sys:String x:Key="ImportHlsManifest">This is an HLS media manifest, not a channel list. No channels were imported.</sys:String>
     <sys:String x:Key="ImportEmpty">No importable channels were found. Your list was not changed.</sys:String>
     <sys:String x:Key="ExportAll">All my channels</sys:String>
@@ -680,4 +682,6 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="TvScheduleBindingNone">No schedule</sys:String>
     <sys:String x:Key="TvScheduleBindingNoneTip">Never show programmes for this channel</sys:String>
     <sys:String x:Key="TvScheduleBindingApply">Bind</sys:String>
+    <sys:String x:Key="SecondInstanceElevated">StreamsPlayer is already running with administrator rights, so this copy cannot pass your request to it. Close it and start StreamsPlayer again, or run both copies the same way.</sys:String>
+    <sys:String x:Key="SecondInstanceLaunchTooLarge">This request is too large to pass to the running copy of StreamsPlayer, so nothing was started. Close the running copy and try again.</sys:String>
 </ResourceDictionary>

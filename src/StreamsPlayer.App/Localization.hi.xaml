@@ -23,6 +23,7 @@
     <sys:String x:Key="ChannelPreviewsUnavailable">यह कंप्यूटर चित्र पैक नहीं खोल सकता। पूर्वावलोकन पहले की तरह काम करते रहेंगे।</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">पूर्वावलोकन चित्र डाउनलोड नहीं हो सके।</sys:String>
     <sys:String x:Key="ChannelPreviewsNewerVersion">ये पूर्वावलोकन चित्र StreamsPlayer के नए संस्करण के लिए प्रकाशित किए गए हैं। इन्हें पाने के लिए ऐप अपडेट करें। आपके मौजूदा चित्र रखे गए हैं।</sys:String>
+    <sys:String x:Key="ChannelPreviewsNothingNew">कोई नए पूर्वावलोकन चित्र प्रकाशित नहीं हुए। आपके मौजूदा चित्र रखे गए हैं।</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgress">चित्र डाउनलोड हो रहे हैं.. {0}% ({2} MB में से {1})</sys:String>
     <sys:String x:Key="ChannelPreviewsPublishWindowRetry">चित्र अभी दोबारा प्रकाशित हो रहे हैं। {0} सेकंड में फिर कोशिश (प्रयास {2} में से {1})..</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">चित्र डाउनलोड हो रहे हैं.. {0} MB</sys:String>
@@ -97,8 +98,7 @@
     <sys:String x:Key="ExpandFromPanelName">पूरी सूची विंडो पर लौटें</sys:String>
     <sys:String x:Key="CompactPanelMinimizeTip">छोटा करें</sys:String>
     <sys:String x:Key="CompactPanelCloseTip">ऐप्लिकेशन बंद करें</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOn">सबसे ऊपर पिन करें: चालू</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOff">सबसे ऊपर पिन करें: बंद</sys:String>
+    <sys:String x:Key="MenuCompactPanelOnTop">हमेशा ऊपर</sys:String>
     <sys:String x:Key="AllOption">सभी</sys:String>
     <sys:String x:Key="AudioOption">ऑडियो</sys:String>
     <sys:String x:Key="VideoOption">वीडियो</sys:String>
@@ -363,6 +363,7 @@
     <sys:String x:Key="SettingsName">सेटिंग खोलें</sys:String>
     <sys:String x:Key="SettingsWindowTitle">STREAMS Player सेटिंग</sys:String>
     <sys:String x:Key="ToolsWindowTitle">STREAMS Player टूल</sys:String>
+    <sys:String x:Key="ToolsWindowBusyClose">एक ऑपरेशन चल रहा है। उसके पूरा होने की प्रतीक्षा करें या उसे रद्द करें, फिर यह विंडो बंद करें।</sys:String>
     <sys:String x:Key="DiagnosticsHeading">निदान</sys:String>
     <sys:String x:Key="GridSettings">ग्रिड</sys:String>
     <sys:String x:Key="ThemeLabel">रंग थीम</sys:String>
@@ -482,6 +483,7 @@
     <sys:String x:Key="ImportInvalidEncoding">यह फ़ाइल मान्य UTF-8 पाठ नहीं है। आपकी सूची नहीं बदली गई।</sys:String>
     <sys:String x:Key="ImportFileReadFailed">Windows चुनी हुई फ़ाइल नहीं पढ़ सका। आपकी सूची नहीं बदली गई।</sys:String>
     <sys:String x:Key="ImportUrlFailed">प्लेलिस्ट डाउनलोड नहीं हो सकी। आपकी सूची नहीं बदली गई।</sys:String>
+    <sys:String x:Key="ImportUrlCancelled">इंपोर्ट रद्द किया गया। आपकी सूची नहीं बदली गई।</sys:String>
     <sys:String x:Key="ImportHlsManifest">यह HLS मीडिया मैनिफ़ेस्ट है, चैनल सूची नहीं। कोई चैनल आयात नहीं हुआ।</sys:String>
     <sys:String x:Key="ImportEmpty">आयात करने योग्य कोई चैनल नहीं मिला। आपकी सूची नहीं बदली गई।</sys:String>
     <sys:String x:Key="ExportAll">मेरे सभी चैनल</sys:String>
@@ -664,4 +666,6 @@
     <sys:String x:Key="TvScheduleBindingNone">कोई सूची नहीं</sys:String>
     <sys:String x:Key="TvScheduleBindingNoneTip">इस चैनल के लिए कभी कार्यक्रम न दिखाएँ</sys:String>
     <sys:String x:Key="TvScheduleBindingApply">जोड़ें</sys:String>
+    <sys:String x:Key="SecondInstanceElevated">StreamsPlayer पहले से प्रशासक अधिकारों के साथ चल रहा है, इसलिए यह प्रति आपका अनुरोध उसे नहीं भेज सकती। उसे बंद करें और StreamsPlayer फिर से शुरू करें, या दोनों प्रतियों को एक ही तरह से चलाएँ।</sys:String>
+    <sys:String x:Key="SecondInstanceLaunchTooLarge">यह अनुरोध चल रही StreamsPlayer प्रति को भेजने के लिए बहुत बड़ा है, इसलिए कुछ भी शुरू नहीं हुआ। चल रही प्रति को बंद करें और फिर से कोशिश करें।</sys:String>
 </ResourceDictionary>

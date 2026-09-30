@@ -23,6 +23,7 @@
     <sys:String x:Key="ChannelPreviewsUnavailable">لا يمكن لهذا الحاسوب فتح حزمة الصور. تبقى المعاينات تعمل كما كانت.</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">تعذر تنزيل صور المعاينة.</sys:String>
     <sys:String x:Key="ChannelPreviewsNewerVersion">نُشرت صور المعاينة هذه لإصدار أحدث من StreamsPlayer. حدّث التطبيق للحصول عليها. احتُفظ بصورك الحالية.</sys:String>
+    <sys:String x:Key="ChannelPreviewsNothingNew">لم تُنشر صور معاينة جديدة. احتُفظ بصورك الحالية.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgress">جارٍ تنزيل الصور.. {0}% ({1} من {2} ميغابايت)</sys:String>
     <sys:String x:Key="ChannelPreviewsPublishWindowRetry">يُعاد نشر الصور الآن. إعادة المحاولة بعد {0} ث (المحاولة {1} من {2})..</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">جارٍ تنزيل الصور.. {0} ميغابايت</sys:String>
@@ -97,8 +98,7 @@
     <sys:String x:Key="ExpandFromPanelName">العودة إلى نافذة الدليل الكاملة</sys:String>
     <sys:String x:Key="CompactPanelMinimizeTip">تصغير</sys:String>
     <sys:String x:Key="CompactPanelCloseTip">إغلاق التطبيق</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOn">تثبيت في المقدمة: مفعّل</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOff">تثبيت في المقدمة: معطّل</sys:String>
+    <sys:String x:Key="MenuCompactPanelOnTop">دائمًا في المقدمة</sys:String>
     <sys:String x:Key="AllOption">الكل</sys:String>
     <sys:String x:Key="AudioOption">صوت</sys:String>
     <sys:String x:Key="VideoOption">فيديو</sys:String>
@@ -363,6 +363,7 @@
     <sys:String x:Key="SettingsName">فتح الإعدادات</sys:String>
     <sys:String x:Key="SettingsWindowTitle">إعدادات STREAMS Player</sys:String>
     <sys:String x:Key="ToolsWindowTitle">أدوات STREAMS Player</sys:String>
+    <sys:String x:Key="ToolsWindowBusyClose">عملية قيد التنفيذ. انتظر حتى تنتهي أو ألغها، ثم أغلق هذه النافذة.</sys:String>
     <sys:String x:Key="DiagnosticsHeading">التشخيص</sys:String>
     <sys:String x:Key="GridSettings">الشبكة</sys:String>
     <sys:String x:Key="ThemeLabel">سمة الألوان</sys:String>
@@ -482,6 +483,7 @@
     <sys:String x:Key="ImportInvalidEncoding">هذا الملف ليس نص UTF-8 صالحًا. لم تتغير قائمتك.</sys:String>
     <sys:String x:Key="ImportFileReadFailed">تعذر على Windows قراءة الملف المحدد. لم تتغير قائمتك.</sys:String>
     <sys:String x:Key="ImportUrlFailed">تعذر تنزيل قائمة التشغيل. لم تتغير قائمتك.</sys:String>
+    <sys:String x:Key="ImportUrlCancelled">تم إلغاء الاستيراد. لم تتغير قائمتك.</sys:String>
     <sys:String x:Key="ImportHlsManifest">هذا بيان وسائط HLS، وليس قائمة قنوات. لم تُستورد أي قناة.</sys:String>
     <sys:String x:Key="ImportEmpty">لم يُعثر على قنوات قابلة للاستيراد. لم تتغير قائمتك.</sys:String>
     <sys:String x:Key="ExportAll">كل قنواتي</sys:String>
@@ -664,4 +666,6 @@
     <sys:String x:Key="TvScheduleBindingNone">بلا جدول</sys:String>
     <sys:String x:Key="TvScheduleBindingNoneTip">عدم عرض برامج لهذه القناة أبدًا</sys:String>
     <sys:String x:Key="TvScheduleBindingApply">ربط</sys:String>
+    <sys:String x:Key="SecondInstanceElevated">StreamsPlayer قيد التشغيل بالفعل بصلاحيات المسؤول، لذلك لا تستطيع هذه النسخة تمرير طلبك إليه. أغلقه ثم شغّل StreamsPlayer مرة أخرى، أو شغّل النسختين بالطريقة نفسها.</sys:String>
+    <sys:String x:Key="SecondInstanceLaunchTooLarge">هذا الطلب أكبر من أن يُمرَّر إلى النسخة قيد التشغيل من StreamsPlayer، لذلك لم يبدأ شيء. أغلق النسخة قيد التشغيل ثم حاول مرة أخرى.</sys:String>
 </ResourceDictionary>

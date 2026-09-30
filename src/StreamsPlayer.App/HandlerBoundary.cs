@@ -42,13 +42,15 @@ internal static class HandlerBoundary
 
     /// <summary>
     /// Records that <paramref name="handler"/> failed and tells the user. Never throws.
+    /// A callback behind a decorative feature - a backdrop, a thumbnail - passes <c>notifyUser: false</c>
+    /// (SP-0166): the fault is logged in full and costs only that feature, with no dialog over it.
     /// </summary>
     /// <remarks>
     /// A cancellation is an ending the user or the code asked for, not a fault, so it is logged and nothing
     /// is shown. The notice is shown at most once per handler per session and never while another one is
     /// open: a failing timer tick would otherwise stack a dialog every few seconds.
     /// </remarks>
-    public static void Report(string handler, Exception exception)
+    public static void Report(string handler, Exception exception, bool notifyUser = true)
     {
         try
         {
@@ -60,7 +62,10 @@ internal static class HandlerBoundary
 
             _log?.Event("HANDLER FAULT", $"handler={handler}", $"type={exception.GetType().Name}");
             _log?.Error($"Handler {handler} failed", exception);
-            Notify(handler);
+            if (notifyUser)
+            {
+                Notify(handler);
+            }
         }
         catch (Exception reportFailure)
         {

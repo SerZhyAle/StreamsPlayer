@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
@@ -33,10 +34,10 @@ public partial class App : Application
         // rotates no session log and opens no window: it hands its request over and ends.
         var identity = SingleInstanceIdentity.For(
             AppPaths.DataDirectory, AppPaths.DefaultDataDirectory, Process.GetCurrentProcess().SessionId);
-        _instanceLock = SingleInstanceLock.TryAcquire(identity.MutexName);
-        if (_instanceLock is null)
+        var lockResult = SingleInstanceLock.TryAcquire(identity.MutexName, TimeSpan.Zero, out _instanceLock);
+        if (lockResult != SingleInstanceLockResult.Acquired
+            && !HandOverToRunningCopy(identity, e.Args, lockResult, out _instanceLock))
         {
-            ForwardToRunningCopy(identity, e.Args);
             return;
         }
 
@@ -69,6 +70,9 @@ public partial class App : Application
         MainWindow = window;
         // Registered after the window's own Closed handler, which is what starts the close work read below.
         window.Closed += (_, _) => HandlerBoundary.Run("App.MainWindow.Closed", () => EndAfterCloseWorkAsync(window));
+        // SP-0170: the moment the close is under way - nothing cancels it - a forwarded launch is refused, and the
+        // sender is told so, rather than a window that is closing being asked to play it.
+        window.Closing += (_, _) => _activationListener?.StopAccepting();
         window.Show();
     }
 
@@ -191,25 +195,94 @@ public partial class App : Application
     }
 
     /// <summary>
+    /// How long a later copy waits for the lock of a copy that refused or did not answer its launch (SP-0170):
+    /// the running copy's close work is bounded by <see cref="CloseWorkDeadline"/>, and the lock is released
+    /// right after it.
+    /// </summary>
+    private static readonly TimeSpan LockHandoverWait = CloseWorkDeadline + TimeSpan.FromSeconds(2);
+
+    /// <summary>
     /// SP-0118: this is a later copy. Its request goes to the running one, and it exits with 0. If the
     /// running copy does not answer, it says so and exits - never falling back to a second full instance,
     /// which is what used to overwrite the first one's state.
     /// </summary>
-    private void ForwardToRunningCopy(SingleInstanceIdentity identity, IReadOnlyList<string> arguments)
+    /// <remarks>
+    /// SP-0170: a launch the running copy refuses - it is closing - or does not answer is not lost. The running
+    /// copy's lock is waited for, and when it is released this copy becomes the first one and starts with the
+    /// launch it was given; that is not a second instance, the first being gone. Only a lock that never
+    /// comes free ends in the "did not answer" notice. A launch beyond the receiver's limits, and a lock this
+    /// copy may not open (an elevated copy holds it), each get a notice of their own.
+    /// </remarks>
+    /// <returns><see langword="true"/> when this copy became the first one and <paramref name="acquired"/> holds the lock.</returns>
+    private bool HandOverToRunningCopy(
+        SingleInstanceIdentity identity,
+        IReadOnlyList<string> arguments,
+        SingleInstanceLockResult lockResult,
+        out SingleInstanceLock? acquired)
     {
+        acquired = null;
         ForegroundActivation.AllowAnyProcessToTakeForeground();
-        if (ActivationPipeClient.TrySend(identity.PipeName, arguments, ActivationPipeClient.ConnectTimeout))
+        switch (ActivationPipeClient.TrySend(identity.PipeName, arguments, ActivationPipeClient.ConnectTimeout))
         {
-            Shutdown(0);
-            return;
+            case ActivationSendResult.Delivered:
+                Shutdown(0);
+                return false;
+            case ActivationSendResult.TooLarge:
+                EndWithNotice("SecondInstanceLaunchTooLarge");
+                return false;
         }
 
+        if (lockResult == SingleInstanceLockResult.Inaccessible)
+        {
+            EndWithNotice("SecondInstanceElevated");
+            return false;
+        }
+
+        if (SingleInstanceLock.TryAcquire(identity.MutexName, LockHandoverWait, out acquired)
+            == SingleInstanceLockResult.Acquired)
+        {
+            return true;
+        }
+
+        EndWithNotice("SecondInstanceNoAnswer");
+        return false;
+    }
+
+    /// <summary>
+    /// SP-0161 (APP-BEHAVIOUR rule 6): this notice is the one message that shows before the main window
+    /// loads, so it reads the chosen language from the catalog state itself - the interface dictionary is
+    /// otherwise applied only when that window loads. Ends this copy with exit code 1.
+    /// </summary>
+    private void EndWithNotice(string messageKey)
+    {
+        ApplyPersistedLanguage();
         MessageBox.Show(
-            LocalizationService.Get("SecondInstanceNoAnswer"),
+            LocalizationService.Get(messageKey),
             LocalizationService.Get("ProductName"),
             MessageBoxButton.OK,
             MessageBoxImage.Warning);
         Shutdown(1);
+    }
+
+    /// <summary>
+    /// SP-0161: applies the language the catalog state carries, falling back to the English dictionary
+    /// App.xaml merges when the state cannot be read. The fallback is silent on purpose - a second copy
+    /// writes nothing (SP-0118), so there is no log to tell and the notice shows either way; a fresh
+    /// install has no state file and an English dictionary is what its first window would detect too.
+    /// </summary>
+    private static void ApplyPersistedLanguage()
+    {
+        try
+        {
+            var state = new StreamCatalogStore(AppPaths.DataDirectory).LoadAsync().GetAwaiter().GetResult();
+            var language = state.Language
+                ?? InterfaceLanguages.Detect(CultureInfo.CurrentUICulture, CultureInfo.InstalledUICulture);
+            LocalizationService.Apply(language);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
+            or System.Text.Json.JsonException)
+        {
+        }
     }
 
     private void OnForwardedLaunch(IReadOnlyList<string> arguments)

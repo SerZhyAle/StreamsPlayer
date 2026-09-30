@@ -101,6 +101,34 @@ public sealed class ActivationMessageTests
         Assert.False(ActivationMessage.TryParse(line, out _));
     }
 
+    // SP-0170: the sender checks the receiver's limits itself, so a launch the receiver would drop is never sent.
+    [Fact]
+    public void TrySerialize_RefusesALaunchWithMoreArgumentsThanTheReceiverAccepts()
+    {
+        var arguments = Enumerable.Repeat("x", 40).ToArray();
+
+        Assert.False(ActivationMessage.TrySerialize(arguments, out var payload));
+        Assert.Null(payload);
+    }
+
+    [Fact]
+    public void TrySerialize_CountsNonAsciiTextAsTheReceiverSeesIt()
+    {
+        // 12 000 Cyrillic letters are 24 000 bytes as UTF-8 but 72 000 once escaped for the wire.
+        var arguments = new[] { "--url", "https://example.test/" + new string('ж', 12_000) };
+
+        Assert.False(ActivationMessage.TrySerialize(arguments, out _));
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidLaunches))]
+    public void TrySerialize_AcceptsWhatSerializeProducesForARealLaunch(string[] arguments)
+    {
+        Assert.True(ActivationMessage.TrySerialize(arguments, out var payload));
+        Assert.Equal(ActivationMessage.Serialize(arguments), payload);
+        Assert.True(ActivationMessage.TryParse(payload.AsSpan(0, payload.Length - 1), out _));
+    }
+
     [Fact]
     public void TryParse_SkipsUnknownFieldsAndAcceptsAMissingArgsArray()
     {

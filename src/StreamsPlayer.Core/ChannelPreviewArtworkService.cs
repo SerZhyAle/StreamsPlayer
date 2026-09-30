@@ -1,21 +1,27 @@
+using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 
 namespace StreamsPlayer.Core;
 
 /// <summary>
-/// The downloaded channel-preview artwork: the tile pack bytes, its <c>url -&gt; slot</c> map, and the
-/// manifest stamp identifying the build both came from.
+/// The downloaded channel-preview artwork: the tile pack bytes, its <c>url -&gt; slot</c> map, the
+/// manifest stamp identifying the build both came from, and the per-file manifest mismatches (item L
+/// diagnostics) reported for the log.
 /// </summary>
 public sealed record ChannelPreviewArtwork(
     string Stamp,
     DateTimeOffset? GeneratedAt,
     IReadOnlyDictionary<string, int> Coords,
-    byte[] TilePack);
+    byte[] TilePack,
+    IReadOnlyList<string> Diagnostics);
 
 /// <summary>
 /// SP-0031 downloader for the published channel-preview artwork, rewritten for SP-0091 against
-/// STREAM-BANK items F and G2: stable names, manifest-verified, tile pack rather than sprite sheet.
+/// STREAM-BANK items F and G2: stable names, manifest-stamped, tile pack rather than sprite sheet.
+/// SP-0160 brings it to item L: the manifest's per-file hashes are diagnostic, and an absent or
+/// unparseable manifest is the nothing-case.
 /// </summary>
 /// <remarks>
 /// <para>These are release assets with their own lifecycle, deliberately not bundled into
@@ -94,9 +100,10 @@ public sealed class ChannelPreviewArtworkService
     /// The three files are published the same delete-then-upload way as the bank, so the same
     /// publish-window outcomes are retried (<c>STREAM-BANK</c> rule 11). A retry restarts from the
     /// manifest rather than re-fetching only the file that failed: the manifest may have moved on to the
-    /// new build in the meantime, and a pack from one build verified against the hashes of another is the
-    /// half-replaced publish this class refuses. A hash mismatch itself is not retried here - it stays the
-    /// error it was, and the user's own retry is the recovery.
+    /// new build in the meantime. A per-file mismatch is not a refusal at all - item L makes the
+    /// manifest's hashes diagnostic, so the mismatch travels back on the artwork and the import
+    /// proceeds. An absent or unparseable manifest ends as <see cref="ArtworkManifestNothingNewException"/>,
+    /// the nothing-case, once the publish-window retries have had their turn at a 404.
     /// </remarks>
     public Task<ChannelPreviewArtwork> DownloadAsync(
         IProgress<DownloadProgress>? progress = null,
@@ -108,16 +115,37 @@ public sealed class ChannelPreviewArtworkService
         IProgress<DownloadProgress>? progress,
         CancellationToken cancellationToken)
     {
-        var manifest = ArtworkManifest.Parse(
-            Encoding.UTF8.GetString(await GetSmallAsync(ManifestUrl, MaximumManifestBytes, cancellationToken)));
+        ArtworkManifest manifest;
+        try
+        {
+            manifest = ArtworkManifest.Parse(
+                Encoding.UTF8.GetString(await GetSmallAsync(ManifestUrl, MaximumManifestBytes, cancellationToken)));
+        }
+        catch (Exception exception) when (
+            exception is HttpRequestException { StatusCode: HttpStatusCode.NotFound } or JsonException)
+        {
+            // SP-0160, STREAM-BANK item L: a manifest that is absent (404) or unparseable is the
+            // nothing-case, never an error. The original travels as the inner exception so the
+            // publish-window retry (rule 11) still recognises a 404 caught mid-publish; the wrapper
+            // escapes only once that schedule is spent. Any other manifest failure - DNS, a timeout, a
+            // 5xx, a short read - stays what it was: the offer fires right after a catalog refresh, so
+            // the network was answering seconds ago and the user is better told than silently told
+            // "nothing new".
+            throw new ArtworkManifestNothingNewException(
+                exception is JsonException ? "unparseable" : "not found", exception);
+        }
+
         // SP-0106: refused here, before the sidecar and the pack - a newer shape is not ours to read.
         manifest.EnsureSupported();
         var set = manifest.Set(ArtworkManifest.ChannelPreviewSet);
+        var diagnostics = new List<string>();
 
-        // Verified against the manifest before it is parsed: an index map from a different build resolves
-        // every URL to somebody else's picture, and nothing downstream would ever notice.
+        // Item L: the structural checks gate the import, the manifest's per-file declaration is a
+        // diagnostic. A coords map from a different build resolves every URL to somebody else's picture
+        // and nothing downstream would notice - that risk is accepted by the owner's 2026-09-26 item L
+        // decision, and the mismatch line is what the log keeps.
         var coordsBytes = await GetSmallAsync(CoordsUrl, MaximumCoordsBytes, cancellationToken);
-        set.File(CoordsFile).Verify(coordsBytes);
+        CollectDiagnostic(diagnostics, set.File(CoordsFile).Diagnose(coordsBytes));
         var coords = ChannelPreviewCoords.Parse(Encoding.UTF8.GetString(coordsBytes));
         if (coords.Count == 0)
         {
@@ -132,9 +160,17 @@ public sealed class ChannelPreviewArtworkService
         // messages.
         var pack = await HttpDownload.ReadAllBytesAsync(
             packResponse, progress, MaximumTilePackBytes, DownloadIdleTimeout, cancellationToken);
-        set.File(TilePackFile).Verify(pack);
+        CollectDiagnostic(diagnostics, set.File(TilePackFile).Diagnose(pack));
 
-        return new ChannelPreviewArtwork(set.Stamp, manifest.GeneratedAt, coords, pack);
+        return new ChannelPreviewArtwork(set.Stamp, manifest.GeneratedAt, coords, pack, diagnostics);
+    }
+
+    private static void CollectDiagnostic(List<string> diagnostics, string? mismatch)
+    {
+        if (mismatch is not null)
+        {
+            diagnostics.Add(mismatch);
+        }
     }
 
     /// <summary>

@@ -1,6 +1,23 @@
+using System.IO;
 using System.Threading;
 
 namespace StreamsPlayer.App;
+
+/// <summary>SP-0170: how an attempt on the session lock ended.</summary>
+internal enum SingleInstanceLockResult
+{
+    /// <summary>This copy holds the lock and is the first.</summary>
+    Acquired,
+
+    /// <summary>Another copy holds it.</summary>
+    HeldByAnotherCopy,
+
+    /// <summary>
+    /// The lock exists but this copy may not open it - it was created by a copy running with other rights,
+    /// typically elevated. Somebody holds it; it cannot be waited for or taken over.
+    /// </summary>
+    Inaccessible
+}
 
 /// <summary>
 /// SP-0118: the session-local named lock the first copy holds for its lifetime (<c>APP-ACTIVATION</c>
@@ -17,24 +34,40 @@ internal sealed class SingleInstanceLock : IDisposable
 
     private SingleInstanceLock(Mutex mutex) => _mutex = mutex;
 
-    /// <summary>The lock when this is the first copy; <see langword="null"/> when another copy holds it.</summary>
-    internal static SingleInstanceLock? TryAcquire(string name)
+    /// <summary>
+    /// Takes the lock, waiting up to <paramref name="wait"/> for the copy that holds it to let go (SP-0170: a
+    /// copy that is closing releases it when its close work is done). Never throws for an unopenable lock.
+    /// </summary>
+    internal static SingleInstanceLockResult TryAcquire(string name, TimeSpan wait, out SingleInstanceLock? held)
     {
-        var mutex = new Mutex(initiallyOwned: false, name);
+        held = null;
+        Mutex mutex;
         try
         {
-            if (mutex.WaitOne(TimeSpan.Zero))
+            mutex = new Mutex(initiallyOwned: false, name);
+        }
+        catch (Exception exception) when (exception is UnauthorizedAccessException or WaitHandleCannotBeOpenedException
+            or IOException)
+        {
+            return SingleInstanceLockResult.Inaccessible;
+        }
+
+        try
+        {
+            if (mutex.WaitOne(wait))
             {
-                return new SingleInstanceLock(mutex);
+                held = new SingleInstanceLock(mutex);
+                return SingleInstanceLockResult.Acquired;
             }
         }
         catch (AbandonedMutexException)
         {
-            return new SingleInstanceLock(mutex);
+            held = new SingleInstanceLock(mutex);
+            return SingleInstanceLockResult.Acquired;
         }
 
         mutex.Dispose();
-        return null;
+        return SingleInstanceLockResult.HeldByAnotherCopy;
     }
 
     public void Dispose()

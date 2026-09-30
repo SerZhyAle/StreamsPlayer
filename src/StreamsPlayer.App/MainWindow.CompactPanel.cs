@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Win32;
@@ -61,6 +62,14 @@ public partial class MainWindow
     /// </remarks>
     private bool IsCompact => _compactPanel is not null;
 
+    /// <summary>
+    /// The window a dialog raised from a channel menu is owned by (SP-0182): the panel while the catalog is
+    /// hidden behind it, the catalog otherwise. A dialog owned by the hidden catalog renders below the topmost
+    /// panel (see <see cref="IsCompact"/>); these are answers to a click the listener just made in the panel,
+    /// so showing them over it is the intent, not the jump the panel exists to avoid.
+    /// </summary>
+    private Window DialogOwner => _compactPanel ?? (Window)this;
+
     private void CompactPanelButton_Click(object sender, RoutedEventArgs e) => CollapseToCompactPanel();
 
     private void CollapseToCompactPanel()
@@ -78,7 +87,7 @@ public partial class MainWindow
         panel.RandomRequested += CompactPanel_RandomRequested;
         panel.RecordRequested += CompactPanel_RecordRequested;
         panel.SleepTimerRequested += CompactPanel_SleepTimerRequested;
-        panel.TopmostToggleRequested += CompactPanel_TopmostToggleRequested;
+        panel.OverflowRequested += CompactPanel_OverflowRequested;
         panel.VolumeChanged += CompactPanel_VolumeChanged;
         panel.Moved += CompactPanel_Moved;
         panel.MoveFinished += CompactPanel_MoveFinished;
@@ -184,7 +193,7 @@ public partial class MainWindow
         panel.RandomRequested -= CompactPanel_RandomRequested;
         panel.RecordRequested -= CompactPanel_RecordRequested;
         panel.SleepTimerRequested -= CompactPanel_SleepTimerRequested;
-        panel.TopmostToggleRequested -= CompactPanel_TopmostToggleRequested;
+        panel.OverflowRequested -= CompactPanel_OverflowRequested;
         panel.VolumeChanged -= CompactPanel_VolumeChanged;
         panel.Moved -= CompactPanel_Moved;
         panel.MoveFinished -= CompactPanel_MoveFinished;
@@ -235,7 +244,48 @@ public partial class MainWindow
 
     private void CompactPanel_RandomRequested(object? sender, EventArgs e) => HandlerBoundary.Run(nameof(CompactPanel_RandomRequested), () => StartRandomStationHuntAsync());
 
-    private void CompactPanel_TopmostToggleRequested(object? sender, EventArgs e)
+    /// <summary>
+    /// SP-0182: the strip's overflow menu - the catalog cards' menu, built now for the station playing now.
+    /// </summary>
+    /// <remarks>
+    /// Built per open from the live catalog row, never cached on the panel, so a prev/next/random since the
+    /// strip opened cannot leave it acting on a stale station, and the pin entry shows the stored state. The
+    /// channel is taken from the playing (or paused) audio, not from any visible row - it may be filtered
+    /// out of the catalog's current view. With no station the menu still opens, holding only the
+    /// always-on-top entry, so that capability never becomes unreachable.
+    /// </remarks>
+    private void CompactPanel_OverflowRequested(object? sender, EventArgs e)
+    {
+        if (_compactPanel is not { } panel)
+        {
+            return;
+        }
+
+        var playingId = _playingAudio?.Channel.Id ?? _audioPausedChannelId;
+        var channel = playingId is { } id ? ChannelById(id) ?? _playingAudio?.Channel : null;
+        var menu = channel is null
+            ? new ContextMenu { PlacementTarget = panel.OverflowAnchor }
+            : BuildChannelMenu(GetOrCreateRow(channel, BuildFaviconAtlasSet()), panel.OverflowAnchor);
+        if (menu.Items.Count > 0)
+        {
+            menu.Items.Add(new Separator());
+        }
+
+        var topmostItem = new MenuItem
+        {
+            Header = LocalizationService.Get("MenuCompactPanelOnTop"),
+            IsCheckable = true,
+            IsChecked = _compactPanelTopmost
+        };
+        topmostItem.Click += (_, _) => ToggleCompactPanelTopmost();
+        menu.Items.Add(topmostItem);
+        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Top;
+        OpenChannelMenu(menu, panel.OverflowAnchor);
+    }
+
+    // The state stays owned here, so a collapse after an expand comes back pinned the way it was left;
+    // the panel only ever asks for a flip.
+    private void ToggleCompactPanelTopmost()
     {
         _compactPanelTopmost = !_compactPanelTopmost;
         _compactPanel?.ShowTopmost(_compactPanelTopmost);

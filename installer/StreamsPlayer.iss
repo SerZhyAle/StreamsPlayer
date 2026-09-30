@@ -99,6 +99,16 @@ Name: "uk"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 ; always created. InstallerShortcutTests holds both.
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
+; SP-0156 (T-09): an upgrade must leave {app} holding exactly the new payload. Without this wipe, an
+; upgraded install keeps every file an earlier version shipped that the new one dropped - including a
+; media plugin a later engine removed, which the engine still loads at start - and the installer stops
+; carrying the same payload as the archive it is published beside. Everything the user owns lives in
+; %LOCALAPPDATA%\StreamsPlayer (see the [UninstallDelete] note below), so nothing user-made is here to
+; lose. The wipe runs after the AppMutex checks above, so a running copy is asked about and never
+; deleted out from under.
+[InstallDelete]
+Type: filesandordirs; Name: "{app}"
+
 [Files]
 ; One recursive line carries the whole self-contained publish, including libvlc\win-x64\ and
 ; THIRD-PARTY-NOTICES.txt. The notices requirement for a distributed package is met by this line - it

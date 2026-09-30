@@ -16,7 +16,7 @@
         <Style x:Key="FiltersRevealButton" TargetType="Button" BasedOn="{StaticResource FilterGlyphButton}">
             <Style.Triggers>
                 <Trigger Property="Tag" Value="Active">
-                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentMarkBrush}" />
                     <Setter Property="BorderThickness" Value="2" />
                 </Trigger>
             </Style.Triggers>
@@ -227,7 +227,7 @@
                                     <!-- BasedOn keeps the app-wide ComboBox padding/margin; without it this filter
                                          rendered shorter than its neighbours and its value sat off-centre. -->
                                     <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentMarkBrush}" />
                                         <Setter Property="BorderThickness" Value="2" />
                                         <Setter Property="VerticalContentAlignment" Value="Center" />
                                         <Style.Triggers>
@@ -269,12 +269,24 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid.Resources>
-                        <Style x:Key="SectionHeaderBorderStyle" TargetType="Border">
+                        <!-- SP-0161: a button, not a border with a mouse handler - it is focusable, works
+                             with Enter and Space, and UI Automation exposes its InvokePattern. -->
+                        <Style x:Key="SectionHeaderButtonStyle" TargetType="Button">
                             <Setter Property="Background" Value="{DynamicResource SectionBrush}" />
-                            <Setter Property="CornerRadius" Value="6" />
-                            <Setter Property="Padding" Value="10,6" />
-                            <Setter Property="Margin" Value="3" />
                             <Setter Property="Cursor" Value="Hand" />
+                            <Setter Property="Margin" Value="3" />
+                            <Setter Property="Padding" Value="10,6" />
+                            <Setter Property="HorizontalContentAlignment" Value="Left" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter VerticalAlignment="Center" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
                         </Style>
                         <Style x:Key="StreamCardBorderStyle" TargetType="Border">
                             <Setter Property="Background" Value="{DynamicResource CardBrush}" />
@@ -283,7 +295,7 @@
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                     <Setter Property="Background" Value="{DynamicResource CardSelectedBrush}" />
-                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentMarkBrush}" />
                                     <Setter Property="BorderThickness" Value="2" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -322,7 +334,7 @@
                             <Setter Property="BorderThickness" Value="1" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentMarkBrush}" />
                                     <Setter Property="BorderThickness" Value="3" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -335,7 +347,7 @@
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                             <Setter Property="VerticalContentAlignment" Value="Top" />
                             <Setter Property="Padding" Value="0" />
-                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                            <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisualInset}" />
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="ListViewItem">
@@ -945,8 +957,9 @@
                         </DataTemplate>
                 </Grid.Resources>
 
-                <Border Grid.Row="0" Style="{StaticResource SectionHeaderBorderStyle}"
-                        Visibility="{Binding PinnedHeaderVisibility}" MouseLeftButtonUp="PinnedHeader_Click"
+                <Button Grid.Row="0" Style="{StaticResource SectionHeaderButtonStyle}"
+                        Visibility="{Binding PinnedHeaderVisibility}" Click="PinnedHeader_Click"
+                        AutomationProperties.Name="{DynamicResource PinnedSectionHeader}"
                         ToolTip="{DynamicResource CollapseSectionTip}">
                     <StackPanel Orientation="Horizontal">
                         <!-- SP-0113: nav.collapse while open, nav.expand while collapsed - the action a click takes. -->
@@ -981,7 +994,7 @@
                         <TextBlock Text="{DynamicResource PinnedSectionHeader}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" />
                     </StackPanel>
-                </Border>
+                </Button>
 
                 <!-- SP-0067: two virtualized lists in one cell, one per view mode, replacing a
                      ScrollViewer around a non-virtualizing ItemsControl. Pinning is not capped, so this
@@ -1046,8 +1059,9 @@
                     </ListView.ItemTemplate>
                 </ListView>
 
-                <Border Grid.Row="2" Style="{StaticResource SectionHeaderBorderStyle}"
-                        Visibility="{Binding MainHeaderVisibility}" MouseLeftButtonUp="MainHeader_Click"
+                <Button Grid.Row="2" Style="{StaticResource SectionHeaderButtonStyle}"
+                        Visibility="{Binding MainHeaderVisibility}" Click="MainHeader_Click"
+                        AutomationProperties.Name="{DynamicResource MainSectionHeader}"
                         ToolTip="{DynamicResource CollapseSectionTip}">
                     <StackPanel Orientation="Horizontal">
                         <!-- SP-0113: nav.collapse while open, nav.expand while collapsed - the action a click takes. -->
@@ -1082,7 +1096,7 @@
                         <TextBlock Text="{DynamicResource MainSectionHeader}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" />
                     </StackPanel>
-                </Border>
+                </Button>
 
                 <Grid Grid.Row="3" Visibility="{Binding MainContentVisibility}">
                     <!-- SP-0067: ScrollUnit="Pixel" - the panel stays a virtualizing stack panel and

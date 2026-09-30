@@ -1,6 +1,6 @@
 # Vendored ICON-SET glyphs - copies of Contracts/iconography/glyphs/<id>.svg (owner: FastMediaSorter Android).
 # Written by tools/Sync-IconGlyphs.ps1; own/, pending/ and private/ are this product's drawings and are not listed.
-# ICON-SET 0.13, ICON-RENDER 0.11, ICON-EXTERNAL 0.9
+# ICON-SET 0.16, ICON-RENDER 0.13, ICON-EXTERNAL 0.10
 action.add.svg  98CECE8C14E972A3A5B6B440D667A1CAFF32DA7F75C0BEE2A896A1D8DA5AC011
 action.cancel.svg  0B2EE602DECE67950E801B3DF344297E311E8BC33C592C7AE8CC9F5D4195C873
 action.clear-filter.svg  F78E3D1F9A436343E20B8D952011D60F4EDE25287286321AD1BF601E162798F0

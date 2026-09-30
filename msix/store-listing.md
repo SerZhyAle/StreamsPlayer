@@ -344,13 +344,14 @@ certificate were then removed.
 
 **Built from a clean `git worktree` at the tag, and the first attempt was thrown away.** Unlike the zip
 and the installer, which `release.yml` builds from a fresh checkout of `v26.0821.1208`, an MSIX built
-by `msix/build-msix.ps1` publishes **the working tree as it stands right now**. Unreleased work was in
+by `msix/build-msix.ps1` published **the working tree as it stood at the moment of the pack** - that was
+the script's behaviour then. Unreleased work was in
 progress in this one - SP-0094, timestamps three minutes before the pack - so the first package carried
 1,502 bytes of UI that is in no release, under a version number claiming to be 26.0821.1208. It was
 deleted rather than kept "for reference", because the one thing worse than no prepared package is a
-prepared package nobody can tell is wrong. **Build a Store package from
-`git worktree add ../<dir> v<version>` unless the tree is provably clean at the tag**; `git status`
-before the pack is the whole check, and it costs one command.
+prepared package nobody can tell is wrong. Since SP-0156 the script itself refuses a dirty tree and a
+HEAD off the version tag, so this failure mode needs the discipline no more - but the worktree habit
+(`git worktree add ../<dir> v<version>`) still spares the main tree when it is busy.
 
 New in the release assets: `StreamsPlayer-26.0821.1208-windows-x64-setup.exe` and its `.sha256`
 sidecar, beside the portable zip. The zip's name and shape are unchanged, which is what keeps the

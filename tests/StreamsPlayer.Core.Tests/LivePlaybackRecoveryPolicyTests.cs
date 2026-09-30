@@ -94,6 +94,47 @@ public sealed class LivePlaybackRecoveryPolicyTests
     }
 
     [Fact]
+    public void NotifyLegPlayed_ShortLegLeavesTheSpentBudgetSpent()
+    {
+        // SP-0169: a station that opens and drops within seconds must still reach the terminal verdict.
+        var policy = new LivePlaybackRecoveryPolicy();
+        for (var i = 0; i < 2; i++)
+        {
+            policy.NotifyLegPlayed(TimeSpan.FromSeconds(1));
+            Assert.Equal(RecoveryActionKind.Reconnect, policy.Decide(Ended()).Kind);
+        }
+
+        policy.NotifyLegPlayed(TimeSpan.FromSeconds(1));
+        Assert.Equal(RecoveryActionKind.HardFail, policy.Decide(Ended()).Kind);
+    }
+
+    [Fact]
+    public void NotifyLegPlayed_SustainedLegRestoresFullBudget()
+    {
+        var policy = new LivePlaybackRecoveryPolicy();
+        policy.Decide(Ended());
+        policy.Decide(Ended());
+
+        policy.NotifyLegPlayed(LivePlaybackRecoveryPolicy.SustainedLiveAfter);
+
+        var decision = policy.Decide(Ended());
+        Assert.Equal(RecoveryActionKind.Reconnect, decision.Kind);
+        Assert.Equal(1, decision.Attempt);
+    }
+
+    [Fact]
+    public void NotifyLegPlayed_JustUnderTheMinimumEarnsNothing()
+    {
+        var policy = new LivePlaybackRecoveryPolicy();
+        policy.Decide(Ended());
+        policy.Decide(Ended());
+
+        policy.NotifyLegPlayed(LivePlaybackRecoveryPolicy.SustainedLiveAfter - TimeSpan.FromMilliseconds(1));
+
+        Assert.Equal(RecoveryActionKind.HardFail, policy.Decide(Ended()).Kind);
+    }
+
+    [Fact]
     public void Budgets_AreIndependentPerTrigger()
     {
         var policy = new LivePlaybackRecoveryPolicy();

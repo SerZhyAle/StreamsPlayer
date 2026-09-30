@@ -31,22 +31,41 @@ public sealed record FastMediaSorterBroadcastEndpoint(
 /// <summary>The supported, forward-compatible portion of a FastMediaSorter live-broadcast descriptor.</summary>
 public sealed record FastMediaSorterBroadcast(
     string Url,
+    string Mode,
     string Title,
     string? SourceId,
     bool IsLive,
     long? TargetLatencyMs,
     IReadOnlyList<FastMediaSorterBroadcastEndpoint> Endpoints)
 {
+    /// <summary>Whether the descriptor describes one of the contract's camera/video kinds (§2.3, §2.4).</summary>
+    public bool IsVideoMode =>
+        Mode is FastMediaSorterBroadcastDescriptor.VideoAudioMode or FastMediaSorterBroadcastDescriptor.VideoOnlyMode;
+
+    /// <summary>
+    /// Returns the endpoint this product plays: the explicitly declared HTTP audio endpoint for the audio
+    /// mode, the declared RTSP endpoint for a video mode, or the legacy top-level address when no
+    /// compatible endpoint is declared. The transport is read from a declaration, never guessed from the
+    /// mode - so an audio descriptor never falls into a video endpoint and the reverse.
+    /// </summary>
+    public FastMediaSorterBroadcastEndpoint SelectPlaybackEndpoint() =>
+        IsVideoMode ? SelectVideoEndpoint() : SelectAudioEndpoint();
+
     /// <summary>
     /// Returns the first explicitly declared HTTP audio endpoint, or the legacy top-level address when
     /// no compatible endpoint is declared. A video endpoint is never an implicit fallback.
     /// </summary>
     public FastMediaSorterBroadcastEndpoint SelectAudioEndpoint() =>
-        Endpoints.FirstOrDefault(IsHttpAudio) ??
-        new FastMediaSorterBroadcastEndpoint(
+        Endpoints.FirstOrDefault(IsHttpAudio) ?? LegacyEndpoint();
+
+    private FastMediaSorterBroadcastEndpoint SelectVideoEndpoint() =>
+        Endpoints.FirstOrDefault(IsDeclaredRtspEndpoint) ?? LegacyEndpoint();
+
+    private FastMediaSorterBroadcastEndpoint LegacyEndpoint() =>
+        new(
             Url,
             InferTransport(Url),
-            FastMediaSorterBroadcastDescriptor.AudioOnlyMode,
+            Mode,
             null,
             null,
             null,
@@ -59,6 +78,12 @@ public sealed record FastMediaSorterBroadcast(
         string.Equals(endpoint.Transport, "HTTP", StringComparison.OrdinalIgnoreCase) &&
         Uri.TryCreate(endpoint.Url, UriKind.Absolute, out var uri) &&
         (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+
+    private bool IsDeclaredRtspEndpoint(FastMediaSorterBroadcastEndpoint endpoint) =>
+        string.Equals(endpoint.Mode, Mode, StringComparison.Ordinal) &&
+        string.Equals(endpoint.Transport, "RTSP", StringComparison.OrdinalIgnoreCase) &&
+        Uri.TryCreate(endpoint.Url, UriKind.Absolute, out var uri) &&
+        uri.Scheme.Equals("rtsp", StringComparison.OrdinalIgnoreCase);
 
     private static string? InferTransport(string url) =>
         Uri.TryCreate(url, UriKind.Absolute, out var uri)
@@ -85,6 +110,8 @@ public static class FastMediaSorterBroadcastDescriptor
     public const int SupportedSchemaVersion = 1;
     public const string CompressedPrefix = "FMSBCAST1:";
     public const string AudioOnlyMode = "AUDIO_ONLY";
+    public const string VideoAudioMode = "VIDEO_AUDIO";
+    public const string VideoOnlyMode = "VIDEO_ONLY";
 
     /// <summary>
     /// SP-0158: the most wrappings one read follows - an intent-link unwrap and a gzip layer each cost
@@ -93,6 +120,13 @@ public static class FastMediaSorterBroadcastDescriptor
     /// rather than unwrapping without end.
     /// </summary>
     public const int MaximumWrappings = 8;
+
+    /// <summary>
+    /// The stream kinds this build reads: the audio kinds of §2.1/§2.2 and, since contract 0.13, the
+    /// camera/video kinds of §2.3/§2.4. Anything else is refused as an unsupported mode.
+    /// </summary>
+    public static bool IsSupportedMode(string mode) =>
+        mode is AudioOnlyMode or VideoAudioMode or VideoOnlyMode;
 
     private static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
@@ -259,7 +293,9 @@ public static class FastMediaSorterBroadcastDescriptor
                 return new(FastMediaSorterBroadcastReadStatus.InvalidPayload);
             }
 
-            if (!string.Equals(mode, AudioOnlyMode, StringComparison.Ordinal))
+            // SP-0159: §2.3 and §2.4 are contract kinds since 0.13, read in the §2.5 shape. A mode
+            // outside the contract stays refused - never guessed into a transport.
+            if (!IsSupportedMode(mode))
             {
                 return new(FastMediaSorterBroadcastReadStatus.UnsupportedMode);
             }
@@ -271,7 +307,7 @@ public static class FastMediaSorterBroadcastDescriptor
 
             return new(
                 FastMediaSorterBroadcastReadStatus.Ok,
-                new FastMediaSorterBroadcast(url, title, sourceId, isLive, targetLatencyMs, ReadEndpoints(root)));
+                new FastMediaSorterBroadcast(url, mode, title, sourceId, isLive, targetLatencyMs, ReadEndpoints(root)));
         }
         catch (JsonException)
         {

@@ -26,9 +26,9 @@ namespace StreamsPlayer.App;
 /// </para>
 /// <para>
 /// The window has no system caption, so it carries its own close, minimize and always-on-top buttons
-/// and is dragged by any spot outside a control. The pin state is the one thing it shows that the
-/// main window owns only for the panel's sake; it still lives there, so a collapse after an expand
-/// comes back pinned the way it was left.
+/// and is dragged by any spot outside a control. The always-on-top state (SP-0182: an entry of the
+/// overflow menu, no longer a button) is the one thing it applies that the main window owns only for
+/// the panel's sake; it still lives there, so a collapse after an expand comes back the way it was left.
 /// </para>
 /// </remarks>
 public partial class CompactPanelWindow : Window
@@ -53,7 +53,7 @@ public partial class CompactPanelWindow : Window
 
     public event EventHandler? SleepTimerRequested;
 
-    public event EventHandler? TopmostToggleRequested;
+    public event EventHandler? OverflowRequested;
 
     public event EventHandler<double>? VolumeChanged;
 
@@ -74,6 +74,9 @@ public partial class CompactPanelWindow : Window
     /// <summary>The menu the main window fills, so the presets and the time parser have one home.</summary>
     public ContextMenu SleepTimerMenu => SleepTimerContextMenu;
 
+    /// <summary>The button the main window places the channel menu on.</summary>
+    public Button OverflowAnchor => OverflowButton;
+
     /// <summary>
     /// The header line: the station and its tags. The now-playing and status lines have no room of
     /// their own in a captionless strip, so they travel in the header's tooltip.
@@ -90,15 +93,8 @@ public partial class CompactPanelWindow : Window
         Title = title;
     }
 
-    /// <summary>Applies the pin state the main window owns; the button only asks for a flip.</summary>
-    public void ShowTopmost(bool topmost)
-    {
-        Topmost = topmost;
-        TopmostButton.Style = (Style)FindResource(topmost ? "PinOnGlyphOnlyButton" : "PinOffGlyphOnlyButton");
-        var caption = topmost ? "CompactPanelOnTopOn" : "CompactPanelOnTopOff";
-        TopmostButton.SetResourceReference(ToolTipProperty, caption);
-        TopmostButton.SetResourceReference(System.Windows.Automation.AutomationProperties.NameProperty, caption);
-    }
+    /// <summary>Applies the always-on-top state the main window owns; the menu entry only asks for a flip.</summary>
+    public void ShowTopmost(bool topmost) => Topmost = topmost;
 
     /// <summary>
     /// Mirrors <c>MainWindow.ApplyAudioTransportState</c>. The glyph and the caption come from the same
@@ -216,7 +212,7 @@ public partial class CompactPanelWindow : Window
 
     private void ExpandButton_Click(object sender, RoutedEventArgs e) => ExpandRequested?.Invoke(this, EventArgs.Empty);
 
-    private void TopmostButton_Click(object sender, RoutedEventArgs e) => TopmostToggleRequested?.Invoke(this, EventArgs.Empty);
+    private void OverflowButton_Click(object sender, RoutedEventArgs e) => OverflowRequested?.Invoke(this, EventArgs.Empty);
 
     private void MinimizeButton_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 

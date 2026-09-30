@@ -1,5 +1,9 @@
 name: Deploy Pages
 
+# SP-0156: the site deploys only after CI judged the same commit - the documentation gate and the
+# site-sync check are CI steps, so a push whose docs would fail them never reaches Pages. The deploy
+# job waits for the ci.yml run of its own head SHA and requires it green.
+
 on:
   push:
     branches: [main]
@@ -10,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -18,7 +23,47 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  ci-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Wait for CI to judge this commit
+        run: |
+          sha="${GITHUB_SHA}"
+          deadline=$(( $(date +%s) + 1500 ))
+          while true; do
+            runs="$(gh run list -R "$GITHUB_REPOSITORY" -w ci.yml -c "$sha" --json databaseId,status,conclusion)"
+            count="$(echo "$runs" | jq 'length')"
+            if [ "$count" -eq 0 ]; then
+              if [ "$(date +%s)" -gt "$deadline" ]; then
+                echo "No CI run exists for commit $sha." >&2
+                exit 1
+              fi
+              sleep 30
+              continue
+            fi
+            active="$(echo "$runs" | jq '[.[] | select(.status != "completed")] | length')"
+            if [ "$active" -gt 0 ]; then
+              if [ "$(date +%s)" -gt "$deadline" ]; then
+                echo "CI for commit $sha is still running after 25 minutes." >&2
+                exit 1
+              fi
+              sleep 30
+              continue
+            fi
+            verdict="$(echo "$runs" | jq -r 'sort_by(.databaseId) | last | .conclusion')"
+            if [ "$verdict" != "success" ]; then
+              echo "CI for commit $sha concluded '$verdict'; the site deploys only a green commit." >&2
+              exit 1
+            fi
+            echo "CI for commit $sha concluded success."
+            exit 0
+          done
+
   deploy:
+    needs: ci-gate
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

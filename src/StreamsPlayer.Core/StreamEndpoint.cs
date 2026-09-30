@@ -10,7 +10,8 @@ namespace StreamsPlayer.Core;
 /// <param name="Host">The host name or IP literal, without IPv6 brackets.</param>
 /// <param name="Port">The explicit port, or the scheme's well-known one.</param>
 /// <param name="IsLocal">
-/// True for an address the internet has nothing to do with - loopback, a private or link-local range, or a
+/// True for an address the internet has nothing to do with - loopback, a private, shared (100.64.0.0/10) or
+/// link-local range, or a
 /// short or local-suffixed host name. The recovery gate never network-checks such a host, and never blames
 /// it when it does not answer (SP-0041 Decision 5): a camera that is switched off is not a broken channel.
 /// </param>
@@ -92,7 +93,9 @@ public static class StreamEndpointResolver
             return b[0] == 10 ||
                    (b[0] == 172 && b[1] >= 16 && b[1] <= 31) ||
                    (b[0] == 192 && b[1] == 168) ||
-                   (b[0] == 169 && b[1] == 254);
+                   (b[0] == 169 && b[1] == 254) ||
+                   // SP-0168: 100.64.0.0/10 - carrier-grade NAT and overlay networks such as Tailscale.
+                   (b[0] == 100 && (b[1] & 0xC0) == 0x40);
         }
 
         if (ip.AddressFamily == AddressFamily.InterNetworkV6)

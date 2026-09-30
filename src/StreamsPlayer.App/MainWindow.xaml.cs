@@ -113,8 +113,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // the open budget still waits for Playing alone. The interval comes from Core so the radio and
     // the player cannot drift apart.
     private readonly DispatcherTimer _audioOpenTimer;
-    // SP-0104: LibVLC-based audio playback engine for standard radio streams.
-    private readonly StandardAudioPlayback _standardAudioPlayback = new();
+    // SP-0104: LibVLC-based audio playback engine for standard radio streams. Built in the constructor, where
+    // the log it reports hung-engine abandonments to (SP-0165) already exists - field initializers run first.
+    private readonly StandardAudioPlayback _standardAudioPlayback;
     private bool _restoringBrowsingSession;
     private bool _resettingFilters;
     // SP-0067: a pixel offset read off the scroll event, not a channel identity searched for among the
@@ -141,6 +142,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _audioVolumeSaveTimer.Tick += AudioVolumeSaveTimer_Tick;
         _audioOpenTimer = new DispatcherTimer { Interval = PlaybackOpenBudget.OpenDeadline };
         _audioOpenTimer.Tick += AudioOpenTimer_Tick;
+        _standardAudioPlayback = new StandardAudioPlayback((tag, fields) => _log.Event(tag, fields));
         _standardAudioPlayback.Playing += StandardAudioPlayback_Playing;
         _standardAudioPlayback.Ended += StandardAudioPlayback_Ended;
         _standardAudioPlayback.Failed += StandardAudioPlayback_Failed;
@@ -315,12 +317,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 SetBusy(false);
             }
 
+            // SP-0170: each start-up step is its own failure boundary. A fault in the previews or the TV schedule
+            // costs that feature and is reported, but no longer keeps the requested playback - or the launches
+            // another copy forwarded meanwhile - from running.
             if (IsGridMode)
             {
-                await StartPreviewsAsync();
+                await RunStartupStepAsync(nameof(StartPreviewsAsync), StartPreviewsAsync);
             }
 
-            await LoadTvScheduleAsync(); // SP-0075: the local file only - never the network
+            await RunStartupStepAsync(nameof(LoadTvScheduleAsync), LoadTvScheduleAsync); // SP-0075: the local file only - never the network
             await StartRequestedPlaybackAsync();
             await HandOverStagedRecordingsAsync(); // SP-0121: what a crash left in staging goes to the user
 
@@ -342,6 +347,25 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         catch (Exception exception)
         {
             HandlerBoundary.Report(nameof(MainWindow_Loaded), exception);
+        }
+        finally
+        {
+            // SP-0170: the last resort. A start-up that failed before the requested playback never opened the gate
+            // forwarded launches wait at; they would wait for ever. A no-op when it was opened.
+            await DrainForwardedLaunchesAsync();
+        }
+    }
+
+    /// <summary>SP-0170: one start-up step behind its own boundary; a fault is reported and the next step still runs.</summary>
+    private static async Task RunStartupStepAsync(string step, Func<Task> action)
+    {
+        try
+        {
+            await action();
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report($"MainWindow_Loaded.{step}", exception);
         }
     }
 
@@ -384,6 +408,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             var retrying = OnDispatcher<PublishWindowRetryNotice>(notice =>
                 ShowPublishWindowRetry(notice, "catalog_refresh", "CatalogPublishWindowRetry"));
             var outcome = await service.DownloadAsync(progress, retrying, _cancellableOperation.Token);
+            // SP-0161: the transfer is over, so the run can no longer be stopped - the Cancel button goes
+            // dark for the merge and save instead of swallowing a click and reporting success.
+            EndCancellablePhase();
             CatalogRefreshResult? result = null;
             var commit = await CommitStateAsync(
                 async (state, cancellationToken) =>
@@ -669,6 +696,34 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
+        OpenChannelMenu(BuildChannelMenu(row, button), button);
+    }
+
+    /// <summary>Attaches a per-open channel menu to its button and opens it; the menu lives only while open.</summary>
+    /// <remarks>
+    /// SP-0132: every item carries its row in its Tag. A pinned-strip container is recycled for another channel
+    /// with its button, and a menu left attached would open again on a right-click there and act on the channel
+    /// it was built for.
+    /// </remarks>
+    private static void OpenChannelMenu(ContextMenu menu, Button button)
+    {
+        button.ContextMenu = menu;
+        menu.Closed += (_, _) =>
+        {
+            if (ReferenceEquals(button.ContextMenu, menu))
+            {
+                button.ContextMenu = null;
+            }
+        };
+        menu.IsOpen = true;
+    }
+
+    /// <summary>
+    /// The per-channel menu shared by the catalog cards and the compact panel (SP-0182): one builder, so the
+    /// two surfaces cannot drift apart. Built per open; the row is the channel every item acts on.
+    /// </summary>
+    private ContextMenu BuildChannelMenu(ChannelRow row, UIElement placementTarget)
+    {
         var openItem = new MenuItem
         {
             Header = LocalizationService.Get("MenuOpen"),
@@ -729,7 +784,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             Tag = row
         };
         pinItem.Click += PinButton_Click;
-        var menu = new ContextMenu { PlacementTarget = button };
+        var menu = new ContextMenu { PlacementTarget = placementTarget };
         menu.Items.Add(openItem);
         menu.Items.Add(fullscreenItem);
         menu.Items.Add(newWindowItem);
@@ -747,18 +802,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             menu.Items.Add(scheduleItem);
         }
 
-        button.ContextMenu = menu;
-        // SP-0132: every item above carries this row in its Tag. A pinned-strip container is recycled for
-        // another channel with its button, and a menu left attached would open again on a right-click there
-        // and act on the channel it was built for. Built per open, so it lives only while it is open.
-        menu.Closed += (_, _) =>
-        {
-            if (ReferenceEquals(button.ContextMenu, menu))
-            {
-                button.ContextMenu = null;
-            }
-        };
-        menu.IsOpen = true;
+        return menu;
     }
 
     private void OpenMenuItem_Click(object sender, RoutedEventArgs e)
@@ -814,9 +858,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             .Where(collection => collection.ChannelIds.Contains(row.Channel.Id))
             .Select(collection => collection.Name)
             .ToArray();
-        new ChannelInfoWindow(row.Channel, collections, playing is null ? null : playing.DescribeTransmission)
+        new ChannelInfoWindow(row.Channel, collections, playing is null ? null : playing.DescribeTransmission,
+            (tag, fields) => _log.Event(tag, fields))
         {
-            Owner = this
+            Owner = DialogOwner
         }.ShowDialog();
     }
 
@@ -829,7 +874,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 return;
             }
 
-            var dialog = new AddStreamWindow(row.Channel) { Owner = this };
+            var dialog = new AddStreamWindow(row.Channel) { Owner = DialogOwner };
             if (dialog.ShowDialog() != true)
             {
                 return;
@@ -838,7 +883,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             var url = dialog.StreamUrl.Trim();
             if (_state.Channels.Any(channel => channel.Id != row.Channel.Id && CatalogUrlIdentity.SameIdentity(channel.Url, url)))
             {
-                MessageBox.Show(this, LocalizationService.Get("DuplicateStream"), LocalizationService.Get("ProductName"));
+                MessageBox.Show(DialogOwner, LocalizationService.Get("DuplicateStream"), LocalizationService.Get("ProductName"));
                 return;
             }
 
@@ -1114,6 +1159,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
             await HandleAudioOpenedAsync();
             WatchForAudibleOutput(e.Connection); // SP-0133: Playing is not yet sound
+            WatchForAudioStall(e.Connection); // SP-0169: nor is it a promise the flow will last
         })), DispatcherPriority.Normal);
     }
 
@@ -1151,7 +1197,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
 
         _audioOpenTimer.Stop(); // SP-0096: it opened, which is the only thing the budget was waiting for
-        _audioRecovery?.NotifyLive(); // sustained live - restore the full recovery budget
+        // SP-0169: live is not yet sustained. The budget comes back when this leg has played long enough
+        // (LivePlaybackRecoveryPolicy.SustainedLiveAfter), judged where the leg ends - see RecoverAudioAsync.
+        // Resetting it here let a station that connects and drops within seconds reconnect for ever.
+        NoteAudioLegLive();
         if (!_audioOutcomeRecorded)
         {
             _audioOutcomeRecorded = true;
@@ -1277,8 +1326,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         PlaybackReachability reachability = PlaybackReachability.NotProbed)
     {
         NoteAudioTerminalFailure(); // before the stop, which is what closes and records the session
-        var quiet = _audioQuiet; // StopAudio below reassigns nothing, but the next play would
-        StopAudio();
+        var quiet = _audioQuiet; // the stop below reassigns nothing, but the next play would
+        // SP-0169: not StopAudio. A station that could not be brought back is not the user stopping: the sleep
+        // timer's deadline is theirs, and SP-0022 lets only a manual Stop, Cancel or exit clear it - so after
+        // Retry the station plays with the timer it had.
+        StopAudioKeepingSleepTimer();
         if (!_audioTerminalFailureRecorded)
         {
             _audioTerminalFailureRecorded = true;
@@ -1345,6 +1397,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         try
         {
+            // The slider's Value="100" raises this while InitializeComponent still runs, before the constructor
+            // has created the engine (it now takes the log sink) - nothing to apply yet, the saved volume is
+            // applied by the startup path.
+            if (_standardAudioPlayback is null)
+            {
+                return;
+            }
+
             var volume = (int)Math.Round(e.NewValue);
             _standardAudioPlayback.SetVolume(volume);
             _fastMediaSorterAudioPlayback?.SetVolume(volume); // SP-0099: that route plays through LibVLC, not AudioPlayer
@@ -1456,8 +1516,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // switch goes through StopAudioPlayback directly and keeps the deadline.
         // SP-0086: and for the same reason it ends a random-station hunt. The hunt's own between-attempt
         // stop takes the StopAudioPlayback route below, so it cannot cancel itself here.
-        CancelRandomStationHunt();
         CancelSleepTimer(announce: false);
+        StopAudioKeepingSleepTimer();
+    }
+
+    /// <summary>
+    /// Everything a stop does except the user's own deadline. The terminal-failure funnel stops through here:
+    /// the sleep timer is cleared only by the actions SP-0022 names (SP-0169).
+    /// </summary>
+    private void StopAudioKeepingSleepTimer()
+    {
+        CancelRandomStationHunt();
         StopAudioPlayback();
         _ = StartPreviewsAsync();
     }
@@ -1477,6 +1546,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // what makes a single Stop here enough - a station the user stopped must not fail ten seconds
         // later, and a station being switched away from must not condemn its successor.
         _audioOpenTimer.Stop();
+        StopWatchingAudioStall(); // SP-0169
+        ResetAudioLegTiming();
         _audioRecoveryCts?.Cancel(); // cancel any in-flight recovery backoff (stop / switch / close)
         _audioRecoveryCts?.Dispose();
         _audioRecoveryCts = null;

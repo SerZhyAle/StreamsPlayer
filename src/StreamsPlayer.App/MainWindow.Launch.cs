@@ -31,12 +31,31 @@ public partial class MainWindow
         }
         finally
         {
-            _startupLaunchHandled = true;
+            // SP-0170: also when the startup launch threw - the exception still propagates to the caller's
+            // boundary, but the launches that arrived meanwhile are not left waiting behind it.
+            await DrainForwardedLaunchesAsync();
         }
+    }
 
-        while (_pendingForwardedLaunches.TryDequeue(out var forwarded))
+    /// <summary>
+    /// SP-0170: opens the gate forwarded launches wait at and plays the ones queued behind it, each on its own -
+    /// one that throws is reported and the rest still play. Safe to call again: the queue is simply empty then.
+    /// Called from <see cref="StartRequestedPlaybackAsync"/> and, as the last resort for a start-up that never
+    /// got that far, from the end of <c>MainWindow_Loaded</c>.
+    /// </summary>
+    private async Task DrainForwardedLaunchesAsync()
+    {
+        _startupLaunchHandled = true;
+        while (!_shuttingDown && _pendingForwardedLaunches.TryDequeue(out var forwarded))
         {
-            await PlayLaunchTargetAsync(forwarded);
+            try
+            {
+                await PlayLaunchTargetAsync(forwarded);
+            }
+            catch (Exception exception)
+            {
+                _log.Error("Queued forwarded launch failed", exception);
+            }
         }
     }
 
@@ -49,6 +68,14 @@ public partial class MainWindow
     {
         try
         {
+            // SP-0170: the listener stops accepting as the close begins, so this is only a launch that was
+            // already on its way. Nothing is brought to the front or played by a window that is closing.
+            if (_shuttingDown)
+            {
+                _log.Event("LAUNCH FORWARDED", $"kind={request.Kind}", "result=dropped_closing");
+                return;
+            }
+
             var foreground = BringApplicationToFront();
             _log.Event("LAUNCH FORWARDED", $"kind={request.Kind}", $"foreground={foreground}");
             if (!_startupLaunchHandled)

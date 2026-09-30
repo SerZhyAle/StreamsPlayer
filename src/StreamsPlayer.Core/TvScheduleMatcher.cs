@@ -109,9 +109,13 @@ public static class TvScheduleMatcher
     public static string? Resolve(
         StreamChannel channel,
         IReadOnlyDictionary<string, TvScheduleBinding> bindingsByUrl,
-        IReadOnlyDictionary<string, string> nameIndex)
+        IReadOnlyDictionary<string, string> nameIndex,
+        Func<string, string>? normalize = null)
     {
-        if (bindingsByUrl.TryGetValue(CatalogUrlIdentity.Normalize(channel.Url), out var binding))
+        // SP-0171: with no user binding there is nothing to look up, so the address is not parsed at all -
+        // a catalog of 20,000 rows paid that parse once per row on every index rebuild.
+        if (bindingsByUrl.Count > 0 &&
+            bindingsByUrl.TryGetValue((normalize ?? CatalogUrlIdentity.Normalize)(channel.Url), out var binding))
         {
             return binding.ScheduleChannelId;
         }

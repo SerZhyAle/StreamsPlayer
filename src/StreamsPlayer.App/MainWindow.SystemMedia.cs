@@ -177,6 +177,13 @@ public partial class MainWindow
 
     private void OnSystemMediaCommand(SystemMediaControls.Command command)
     {
+        // SP-0170: a key posted before the close began, or pressed while the close work saves, must not open a
+        // leg - Play would start one and replace the recovery source the close path has just cancelled.
+        if (_shuttingDown)
+        {
+            return;
+        }
+
         switch (command)
         {
             case SystemMediaControls.Command.Play:

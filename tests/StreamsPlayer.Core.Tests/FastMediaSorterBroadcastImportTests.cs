@@ -73,6 +73,55 @@ public sealed class FastMediaSorterBroadcastImportTests
         Assert.Equal("watch-1", result.Channel.FastMediaSorterBroadcast?.SourceId);
     }
 
+    /// <summary>
+    /// SP-0159: the camera kinds of contract 0.13 §2.3/§2.4 read into a playable channel - the RTSP
+    /// address, the live mark of §2, the real mode and transport stored for the player window.
+    /// </summary>
+    [Theory]
+    [InlineData(FastMediaSorterBroadcastDescriptor.VideoAudioMode)]
+    [InlineData(FastMediaSorterBroadcastDescriptor.VideoOnlyMode)]
+    public void Apply_CameraDescriptorBecomesAnImportedLiveRtspChannel(string mode)
+    {
+        var result = FastMediaSorterBroadcastImport.Apply([], CameraDescriptor(mode), Now);
+
+        Assert.True(result.Added);
+        Assert.Equal(SourceOrigin.Imported, result.Channel.SourceOrigin);
+        Assert.Equal(MediaKind.Rtsp, result.Channel.MediaKind);
+        Assert.Equal("rtsp://192.168.1.97:8554/", result.Channel.Url);
+        Assert.Equal("Galaxy S25 FE", result.Channel.Title);
+        Assert.True(result.Channel.IsLive);
+        Assert.Equal(mode, result.Channel.FastMediaSorterBroadcast?.Mode);
+        Assert.Equal("RTSP", result.Channel.FastMediaSorterBroadcast?.SelectedTransport);
+        Assert.Equal(200, result.Channel.FastMediaSorterBroadcast?.TargetLatencyMs);
+    }
+
+    /// <summary>A phone that switched from audio to its camera replaces its channel instead of duplicating it.</summary>
+    [Fact]
+    public void Apply_SourceIdMatchReplacesAnAudioChannelWithTheVideoBroadcast()
+    {
+        var original = Channel("http://192.168.1.97:8768/live-audio.aac") with
+        {
+            Pinned = true,
+            SortIndex = -3,
+            FastMediaSorterBroadcast = new FastMediaSorterBroadcastInfo
+            {
+                SourceId = "phone-camera-1",
+                Mode = FastMediaSorterBroadcastDescriptor.AudioOnlyMode,
+                SelectedTransport = "HTTP"
+            }
+        };
+
+        var result = FastMediaSorterBroadcastImport.Apply([original], CameraDescriptor("VIDEO_AUDIO"), Now);
+
+        Assert.False(result.Added);
+        Assert.Equal(original.Id, result.Channel.Id);
+        Assert.True(result.Channel.Pinned);
+        Assert.Equal(-3, result.Channel.SortIndex);
+        Assert.Equal(MediaKind.Rtsp, result.Channel.MediaKind);
+        Assert.Equal("rtsp://192.168.1.97:8554/", result.Channel.Url);
+        Assert.Equal("VIDEO_AUDIO", result.Channel.FastMediaSorterBroadcast?.Mode);
+    }
+
     [Fact]
     public async Task PersistedBroadcastMetadataRoundTripsThroughTheStateStore()
     {
@@ -166,6 +215,7 @@ public sealed class FastMediaSorterBroadcastImportTests
     private static FastMediaSorterBroadcast Descriptor(string url, string? sourceId, string title) =>
         new(
             url,
+            Mode: FastMediaSorterBroadcastDescriptor.AudioOnlyMode,
             title,
             sourceId,
             IsLive: true,
@@ -174,6 +224,12 @@ public sealed class FastMediaSorterBroadcastImportTests
             [
                 new FastMediaSorterBroadcastEndpoint(url, "HTTP", "AUDIO_ONLY", null, "AAC", 44100, 128000, true, 1000)
             ]);
+
+    /// <summary>The §2.5 descriptor the phone emits for a camera broadcast, read through the contract reader.</summary>
+    private static FastMediaSorterBroadcast CameraDescriptor(string mode) =>
+        FastMediaSorterBroadcastDescriptor.Read($$"""
+            {"schemaVersion":1,"url":"rtsp://192.168.1.97:8554/","title":"Galaxy S25 FE","mode":"{{mode}}","sourceId":"phone-camera-1","isLive":true,"targetLatencyMs":200,"endpoints":[{"url":"rtsp://192.168.1.97:8554/","transport":"RTSP","mode":"{{mode}}","videoCodec":"h264","bitrate":2000000,"isLive":true,"targetLatencyMs":200}]}
+            """).Broadcast!;
 
     private static StreamChannel Channel(string url) => new()
     {

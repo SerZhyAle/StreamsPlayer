@@ -19,6 +19,7 @@ public partial class ToolsWindow : Window
     private readonly Func<ToolsAction, Window, Task> _runAction;
     private readonly Func<TvScheduleIndex> _tvSchedule;
     private bool _actionRunning;
+    private bool _closeByRunningAction;
     private CancellationTokenSource? _installCancellation;
 
     internal ToolsWindow(Func<ToolsAction, Window, Task> runAction, Func<TvScheduleIndex> tvSchedule)
@@ -30,11 +31,12 @@ public partial class ToolsWindow : Window
         TvScheduleAddressBox.Text = tvSchedule().Document?.SourceUrl ?? string.Empty;
         ShowTvSchedule();
 
-        // SP-0052: a build without a snapshot says so rather than failing when pressed.
+        // SP-0161: a build without a snapshot has no button at all. A disabled control promises a
+        // working one (APP-BEHAVIOUR rule 11); the press-path guard in the snapshot offer stays as the
+        // second line of defence.
         if (!BundledCatalogSnapshot.Exists)
         {
-            ApplyCatalogSnapshotButton.IsEnabled = false;
-            ApplyCatalogSnapshotButton.ToolTip = LocalizationService.Get("CatalogSnapshotUnavailable");
+            ApplyCatalogSnapshotButton.Visibility = Visibility.Collapsed;
         }
     }
 
@@ -93,10 +95,46 @@ public partial class ToolsWindow : Window
         _installCancellation?.Cancel();
     }
 
+    /// <summary>
+    /// SP-0161: closes the window from inside a running action that has outgrown it. The TV-schedule
+    /// download and Import from URL move to the main window's bar - where their Cancel button lives -
+    /// before their transfer starts, and close this window on the way. That close is the action's own,
+    /// so <see cref="OnClosing"/> neither refuses it nor turns it into a cancellation.
+    /// </summary>
+    internal void CloseForRunningAction()
+    {
+        _closeByRunningAction = true;
+        Close();
+    }
+
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
-        // Close is the exit that changes nothing (rule 1), so it abandons a download still in flight.
-        _installCancellation?.Cancel();
+        if (_actionRunning && !_closeByRunningAction)
+        {
+            if (_installCancellation is not null)
+            {
+                // A running install is the one action closing can stop (SP-0128): the close is its
+                // Cancel, and a cancelled install shows no follow-up dialog.
+                VideoComponentsCancelButton.IsEnabled = false;
+                _installCancellation.Cancel();
+            }
+            else
+            {
+                // Every other running action cannot be stopped and ends in dialogs this window owns, so
+                // the close is refused until it completes (SP-0161) - closing would either drop the
+                // result or orphan a dialog.
+                e.Cancel = true;
+                MessageBox.Show(
+                    this,
+                    LocalizationService.Get("ToolsWindowBusyClose"),
+                    LocalizationService.Get("ToolsWindowTitle"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                base.OnClosing(e);
+                return;
+            }
+        }
+
         base.OnClosing(e);
     }
 

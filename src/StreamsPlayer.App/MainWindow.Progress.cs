@@ -63,6 +63,14 @@ public partial class MainWindow
     }
 
     /// <summary>
+    /// SP-0161: ends the phase a Cancel click could stop. What follows - parse, merge, save - runs to
+    /// completion whatever the button does, so the button goes dark rather than swallowing a click and
+    /// letting the operation report success (APP-BEHAVIOUR rule 3: Cancel is only offered while it can
+    /// still stop anything). SetBusy(false) hides the row when the operation actually ends.
+    /// </summary>
+    private void EndCancellablePhase() => CancelOperationButton.IsEnabled = false;
+
+    /// <summary>
     /// Renders one download report onto the shared bar and the status line.
     /// </summary>
     /// <remarks>

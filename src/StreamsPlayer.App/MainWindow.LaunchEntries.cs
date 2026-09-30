@@ -58,7 +58,7 @@ public partial class MainWindow
     {
         if (!StreamLaunchArguments.CarriesAddress(channel))
         {
-            MessageBox.Show(this, LocalizationService.Get("LaunchIdOnlyNotice"),
+            MessageBox.Show(DialogOwner, LocalizationService.Get("LaunchIdOnlyNotice"),
                 LocalizationService.Get(titleKey), MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }

@@ -12,9 +12,9 @@ namespace StreamsPlayer.App;
 /// <remarks>
 /// The video path reports its own session summary from <see cref="PlayerWindow"/>. Audio plays inside
 /// this window, so its accounting lives here: one summary per station session, in the same field shape,
-/// minus the stall fields - the audio path has no stall watchdog and reads no buffer level (it had none
-/// to read under WPF MediaElement, and the LibVLC engine has not been given one since SP-0104), so
-/// "it stuttered for four seconds" is not knowable for audio and must not be implied.
+/// minus the stall fields - the audio stall watchdog (SP-0169) recovers a stream that stopped delivering, but
+/// it reads no buffer level and counts no stalls in the summary, so "it stuttered for four seconds" is not
+/// knowable for audio and must not be implied.
 /// </remarks>
 public partial class MainWindow
 {

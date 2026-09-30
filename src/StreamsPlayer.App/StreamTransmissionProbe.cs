@@ -29,6 +29,19 @@ internal static class StreamTransmissionProbe
     private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(500);
 
     /// <summary>
+    /// SP-0165: how long the native stop is waited for before the player is abandoned to its late release.
+    /// The same measured bound the preview captures and the radio engine hold their stops to.
+    /// </summary>
+    internal static readonly TimeSpan NativeStopTimeout = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// SP-0165: engines abandoned to stops that never returned, counted across the whole session - the
+    /// probe lives for one measurement, so the budget cannot. Past the cap the probe pauses (requirement 2,
+    /// shared rule with SP-0166 R3) and answers null at once.
+    /// </summary>
+    private static readonly AbandonedEngineBudget Abandoned = new();
+
+    /// <summary>
     /// How many of the most recent rate samples the reported figure is the median of. The counter is
     /// noisy on a chunked source - the reference HLS stream swings between 133 and 13021 kbps within one
     /// window - so the last sample alone reports whichever burst it landed in.
@@ -52,12 +65,18 @@ internal static class StreamTransmissionProbe
     /// interface thread it runs before the window has painted - so the "measuring" line the user is
     /// supposed to see while waiting would appear only once the wait was nearly over.
     /// </remarks>
-    public static Task<StreamTransmission?> MeasureAsync(string url, CancellationToken cancellationToken) =>
+    public static Task<StreamTransmission?> MeasureAsync(
+        string url,
+        CancellationToken cancellationToken,
+        Action<string, string[]>? diagnostics = null) =>
         // CancellationToken.None: cancellation is this method's own business and is reported as a null
         // reading. Handing the token to Task.Run would instead throw at a caller promised an answer.
-        Task.Run(() => MeasureCoreAsync(url, cancellationToken), CancellationToken.None);
+        Task.Run(() => MeasureCoreAsync(url, cancellationToken, diagnostics), CancellationToken.None);
 
-    private static async Task<StreamTransmission?> MeasureCoreAsync(string url, CancellationToken cancellationToken)
+    private static async Task<StreamTransmission?> MeasureCoreAsync(
+        string url,
+        CancellationToken cancellationToken,
+        Action<string, string[]>? diagnostics)
     {
         // SP-0124: this opens the stream in an engine, so it takes the launch rule - an About window on a
         // file:// or network-share row must not be the path that opens it.
@@ -66,18 +85,30 @@ internal static class StreamTransmissionProbe
             return null;
         }
 
+        if (Abandoned.IsPaused)
+        {
+            diagnostics?.Invoke("ABOUT PROBE REFUSED", ["reason=abandoned_engine_cap"]);
+            return null;
+        }
+
         LibVLCSharp.Shared.Core.Initialize();
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(DescriptionTimeout);
-        // Dummy outputs: this opens a stream to describe it, never to show or play it.
-        using var libVlc = new LibVLC("--no-video-title-show", "--no-osd", "--quiet", "--avcodec-hw=none", "--vout=dummy", "--aout=dummy");
-        using var mediaPlayer = new VlcMediaPlayer(libVlc) { Mute = true, Volume = 0 };
-        using var media = new Media(libVlc, address);
-        media.AddOption(":network-caching=2000");
-        media.AddOption(":live-caching=2000");
+        // SP-0165 (R3): declared here, created inside the try - every engine object is built inside the
+        // guard whose finally releases it, so a construction failure can no longer leak what came before.
+        LibVLC? libVlc = null;
+        VlcMediaPlayer? mediaPlayer = null;
+        Media? media = null;
 
         try
         {
+            // Dummy outputs: this opens a stream to describe it, never to show or play it.
+            libVlc = new LibVLC("--no-video-title-show", "--no-osd", "--quiet", "--avcodec-hw=none", "--vout=dummy", "--aout=dummy");
+            mediaPlayer = new VlcMediaPlayer(libVlc) { Mute = true, Volume = 0 };
+            media = new Media(libVlc, address);
+            media.AddOption(":network-caching=2000");
+            media.AddOption(":live-caching=2000");
+
             if (!mediaPlayer.Play(media))
             {
                 return null;
@@ -114,7 +145,7 @@ internal static class StreamTransmissionProbe
         }
         finally
         {
-            await StopAsync(mediaPlayer);
+            await ReleaseAsync(mediaPlayer, media, libVlc, diagnostics);
         }
     }
 
@@ -204,15 +235,76 @@ internal static class StreamTransmissionProbe
             sample.ObservedKilobitsPerSecond ?? previous.ObservedKilobitsPerSecond);
     }
 
-    private static async Task StopAsync(VlcMediaPlayer mediaPlayer)
+    /// <summary>
+    /// Releases one measurement's engine objects under a stop deadline.
+    /// </summary>
+    /// <remarks>
+    /// SP-0165: a hung stop no longer holds the window's continuation and "Measuring.." on screen. The
+    /// player is abandoned to its own late release - whoever the stop finally returns to disposes it and
+    /// lowers the count - exactly as the preview captures and the radio engine do; the refcounted media
+    /// and LibVLC wrappers are disposed at once either way.
+    /// </remarks>
+    private static async Task ReleaseAsync(
+        VlcMediaPlayer? mediaPlayer,
+        Media? media,
+        LibVLC? libVlc,
+        Action<string, string[]>? diagnostics)
     {
+        if (mediaPlayer is null)
+        {
+            media?.Dispose();
+            libVlc?.Dispose();
+            return;
+        }
+
+        var stop = Task.Run(mediaPlayer.Stop);
         try
         {
-            await Task.Run(mediaPlayer.Stop);
+            await stop.WaitAsync(NativeStopTimeout);
+        }
+        catch (TimeoutException)
+        {
+            var pausedNow = Abandoned.RecordAbandoned();
+            diagnostics?.Invoke("ABOUT PROBE ABANDONED", [$"outstanding={Abandoned.Outstanding}", $"cap={AbandonedEngineBudget.DefaultCap}"]);
+            if (pausedNow)
+            {
+                diagnostics?.Invoke("ABOUT PROBE PAUSED", ["reason=native_stop_hung", $"abandoned={Abandoned.Outstanding}", "until=session_end"]);
+            }
+
+            _ = stop.ContinueWith(
+                completed =>
+                {
+                    _ = completed.Exception; // a failed stop still ends in the release below
+                    ReleasePlayer(mediaPlayer, diagnostics);
+                    Abandoned.RecordReleased();
+                },
+                CancellationToken.None,
+                TaskContinuationOptions.None,
+                TaskScheduler.Default);
+            media?.Dispose();
+            libVlc?.Dispose();
+            return;
         }
         catch (VLCException)
         {
-            // Disposal by the using declarations remains mandatory even if the native stop reports failure.
+            // The releases below remain mandatory even if the native stop reports failure.
+        }
+
+        media?.Dispose();
+        ReleasePlayer(mediaPlayer, diagnostics);
+        libVlc?.Dispose();
+    }
+
+    /// <summary>A release fault costs a log line. Runs after the stop resolved, or on its late continuation.</summary>
+    private static void ReleasePlayer(VlcMediaPlayer mediaPlayer, Action<string, string[]>? diagnostics)
+    {
+        try
+        {
+            mediaPlayer.Dispose();
+        }
+        catch (Exception exception)
+        {
+            diagnostics?.Invoke("ABOUT PROBE RELEASE FAULT", FaultLogFields.Of(exception));
         }
     }
 

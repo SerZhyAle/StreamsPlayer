@@ -569,6 +569,12 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   that way are fiction - count in PowerShell (`[regex]::Matches($text, "\r\n")`); and the repair is to
   diff against the HEAD blob exported with `git show HEAD:<path> > file`, then restore both the CRLF
   and the three `\r\r\n` keys with a PowerShell `[IO.File]` read/replace/write (UTF-8, no BOM).
+  Two more from SP-0160 (2026-09-30): a PowerShell quoted string cannot carry the typographic
+  apostrophe U+2019 (or U+2018/U+201C/U+201D) - the tokenizer treats them as string delimiters, so a
+  script carrying `прев’ю` fails to parse; build such text as `.. + [char]0x2019 + ..`. And endings
+  are a fact about the checkout, not about the file: on this tree the dictionaries sat LF with zero
+  lone CRs while this entry said CRLF - count CRLF/LF/lone-CR before inserting and match what is
+  there (a first insert cost one normalize-back pass; `git diff --numstat` 1/0 per file is the check).
 - **UI Automation on this app, three traps** (2026-09-24, SP-0114): owned windows (History, Settings, a
   MessageBox, a context menu) are top-level, so search the process's top-level windows, not the main
   window's descendants; a Settings control on an unselected tab is not in the tree until the tab is
@@ -1125,9 +1131,10 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   release wiring and the generated site publishes the download tile *before* the release that contains
   the file - the tile would resolve to nothing for the minutes the release workflow runs, and to the
   previous release forever if the workflow failed. Split it: commit everything except `docs/`, push,
-  tag, wait for the release to land and verify the asset, then commit `docs/` and push. Nothing in CI
-  gates `docs/` against `tools/site/templates`, so the split leaves no red build in between - the only
-  cost is remembering to run `build-site.ps1` and make the second commit (2026-08-21).
+  tag, wait for the release to land and verify the asset, then commit `docs/` and push. Since SP-0156
+  the deploy waits for CI's documentation and site-sync gates on the same commit (a `ci-gate` job), so
+  the split leaves no red site in between - the only cost is remembering to run `build-site.ps1` and
+  make the second commit (2026-08-21; gate added 2026-09-30).
 
 - **`reference` - launching a station from the command line takes `--url <value>`, two arguments.**
   `StreamLaunchRequest.Parse` accepts exactly zero or two arguments; anything else is `Invalid`, and an

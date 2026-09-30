@@ -22,9 +22,10 @@ public sealed class ChannelPreviewTilePackTests
         Assert.Equal("last", Text(pack.Read(2722)));
     }
 
-    // The gap case, and the reason it is not an error: the sidecar and the pack are verified as a pair
-    // before they get here, so a slot with no entry means the publisher had no capture for that channel.
-    // It is one channel without a picture, not a broken import.
+    // The gap case, and the reason it is not an error: a slot with no entry means the publisher shipped
+    // a coords row it had no capture for. One channel without a picture, not a broken import - and
+    // since SP-0160 the coords hash can no longer prove the pair whole, so the reader must tolerate the
+    // gap either way.
     [Fact]
     public void Read_ReturnsNullForASlotThePackDoesNotCarry()
     {
@@ -62,6 +63,44 @@ public sealed class ChannelPreviewTilePackTests
     {
         Assert.Throws<InvalidDataException>(
             () => ChannelPreviewTilePack.Open(Encoding.UTF8.GetBytes("this is not a zip")));
+    }
+
+    // SP-0160, STREAM-BANK item L's structural gate, bounded per tile: one entry declaring more than
+    // the per-tile ceiling refuses the pack as a whole before any tile is read - a mis-published pack
+    // can no longer end an import part-way with an out-of-memory failure.
+    [Fact]
+    public void Open_RefusesAPackWhoseEntryDeclaresMoreThanThePerTileCeiling()
+    {
+        var over = new string('x', (int)ChannelPreviewTilePack.MaximumTileBytes + 1);
+
+        var error = Assert.Throws<InvalidDataException>(
+            () => ChannelPreviewTilePack.Open(Zip(("0", "small"), ("1", over))));
+
+        Assert.Contains("Tile 1", error.Message, StringComparison.Ordinal);
+        Assert.Contains("per-tile ceiling", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Open_AcceptsAnEntryExactlyAtThePerTileCeiling()
+    {
+        var at = new string('x', (int)ChannelPreviewTilePack.MaximumTileBytes);
+
+        using var pack = ChannelPreviewTilePack.Open(Zip(("0", at)));
+
+        Assert.Equal(1, pack.Count);
+    }
+
+    // The ceiling gates the tiles this class reads, not the tolerated bystanders: a README beside the
+    // tiles is never opened, so its declared size cannot cost memory here.
+    [Fact]
+    public void Open_GatesOnlyTheTileEntries()
+    {
+        var over = new string('x', (int)ChannelPreviewTilePack.MaximumTileBytes + 1);
+
+        using var pack = ChannelPreviewTilePack.Open(Zip(("README.md", over), ("0", "small")));
+
+        Assert.Equal(1, pack.Count);
+        Assert.Equal("small", Text(pack.Read(0)));
     }
 
     /// <summary>

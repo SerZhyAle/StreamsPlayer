@@ -148,7 +148,7 @@ public partial class MainWindow
             RenameCollectionAsync,
             DeleteCollectionAsync)
         {
-            Owner = this
+            Owner = DialogOwner
         };
         window.ShowDialog();
     }

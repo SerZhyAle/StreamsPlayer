@@ -6,7 +6,7 @@ name: Release
 #
 # SP-0156: a release ships only a gated payload. Before anything is built the workflow requires a completed,
 # green CI run (documentation and site-sync gates included) for the tagged commit, and a committed playback
-# smoke verdict for exactly the tagged version; the published payload must carry the pinned natives; and an
+# smoke verdict and a committed code-audit verdict (SP-0180) for exactly the tagged version; the published payload must carry the pinned natives; and an
 # already published asset is never replaced with different bytes.
 
 on:
@@ -128,6 +128,12 @@ jobs:
           if ($verdict.result -ne 'PASS') { throw "Verdict $verdictPath records result '$($verdict.result)', not PASS." }
           if ($verdict.version -ne $env:RELEASE_VERSION) { throw "Verdict $verdictPath names version '$($verdict.version)', not the tagged version $env:RELEASE_VERSION." }
           Write-Host "Smoke verdict for $env:RELEASE_VERSION (commit $($verdict.commit)): PASS, $($verdict.when)."
+      # SP-0180: the release is also the audited release. The audit's outcome travels as a committed verdict
+      # (PLAN/ is not tracked); the gate checks it names this version, covers every in-scope file, leaves no
+      # High/Medium finding unresolved, and that no code changed after the audited commit.
+      - name: Require the code-audit verdict for this version
+        run: |
+          ./scripts/Assert-AuditVerdict.ps1 -Version $env:RELEASE_VERSION
       - name: Verify version exceeds every published version
         run: |
           ./scripts/assert-release-version.ps1 -Version $env:RELEASE_VERSION

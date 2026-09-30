@@ -163,7 +163,7 @@ Buffer live di circa 15 secondi, e il video si assesta sulla qualità che la tua
 Registra il video live o la radio che stai riproducendo direttamente in un file, senza interrompere la riproduzione: il video va nella cartella Recordings di Video, la radio nella cartella Recordings di Musica o nelle cartelle che scegli.
 
 @@cap-play-6
-Ascolta una trasmissione audio in diretta da un telefono o da un orologio con FastMediaSorter, direttamente sulla tua rete locale - senza server in mezzo.
+Ascolta una trasmissione audio o video in diretta da un telefono o da un orologio con FastMediaSorter, direttamente sulla tua rete locale - senza server in mezzo.
 
 @@cap-window-title
 Guardare come vuoi

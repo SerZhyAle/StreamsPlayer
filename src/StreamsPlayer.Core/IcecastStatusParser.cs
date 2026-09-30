@@ -7,18 +7,21 @@ namespace StreamsPlayer.Core;
 /// </summary>
 /// <remarks>
 /// The document is not a public catalog contract: Icecast emits either one source object or an array,
-/// and broadcasters can omit every optional field. This parser therefore treats a readable document with
-/// no matching mount or title as an ordinary absence, while malformed JSON remains distinguishable to the
-/// network caller. Returned text takes the same untrusted-broadcast path as ICY metadata.
+/// and broadcasters can omit every optional field. SP-0172: a readable document that lists other mounts
+/// reports <see cref="IcecastStatusParse.NoMatchingMount"/> - an ordinary absence - while a payload that
+/// is not a status document at all reports <see cref="IcecastStatusParse.NotStatusDocument"/>, so the
+/// network caller can log the two differently. Returned text takes the same untrusted-broadcast path as
+/// ICY metadata.
 /// </remarks>
 public static class IcecastStatusParser
 {
     /// <summary>
-    /// Tries to read the status document for <paramref name="streamUri"/>.
+    /// Reads the status document for <paramref name="streamUri"/>.
     /// </summary>
-    /// <returns><c>false</c> when the payload is not an Icecast status document; otherwise <c>true</c>,
-    /// with a sanitized title or <c>null</c> when that mount currently announces none.</returns>
-    public static bool TryExtractTitle(string payload, Uri streamUri, out string? title)
+    /// <returns>What the payload turned out to be; <paramref name="title"/> carries a sanitized title or
+    /// <c>null</c> only for <see cref="IcecastStatusParse.MatchedMount"/>, the latter when that mount
+    /// currently announces none.</returns>
+    public static IcecastStatusParse ExtractTitle(string payload, Uri streamUri, out string? title)
     {
         ArgumentNullException.ThrowIfNull(streamUri);
         title = null;
@@ -28,10 +31,16 @@ public static class IcecastStatusParser
             using var document = JsonDocument.Parse(payload);
             if (document.RootElement.ValueKind != JsonValueKind.Object ||
                 !document.RootElement.TryGetProperty("icestats", out var stats) ||
-                stats.ValueKind != JsonValueKind.Object ||
-                !stats.TryGetProperty("source", out var sources))
+                stats.ValueKind != JsonValueKind.Object)
             {
-                return false;
+                return IcecastStatusParse.NotStatusDocument;
+            }
+
+            // A status document without a source list, or with an empty one, is a server that currently
+            // publishes no mounts - a readable absence, not a broken answer.
+            if (!stats.TryGetProperty("source", out var sources))
+            {
+                return IcecastStatusParse.NoMatchingMount;
             }
 
             IReadOnlyList<JsonElement> candidates = sources.ValueKind switch
@@ -41,11 +50,13 @@ public static class IcecastStatusParser
                 _ => []
             };
 
-            return TryExtractFromSources(candidates, streamUri, out title);
+            return TryExtractFromSources(candidates, streamUri, out title)
+                ? IcecastStatusParse.MatchedMount
+                : IcecastStatusParse.NoMatchingMount;
         }
         catch (JsonException)
         {
-            return false;
+            return IcecastStatusParse.NotStatusDocument;
         }
     }
 

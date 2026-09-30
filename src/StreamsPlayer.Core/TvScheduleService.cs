@@ -44,7 +44,7 @@ public sealed class TvScheduleService(HttpClient httpClient)
         var body = await HttpDownload.ReadAllBytesAsync(
                 response, progress, TvScheduleLimits.MaximumDownloadBytes, TvScheduleLimits.IdleTimeout, cancellationToken)
             .ConfigureAwait(false);
-        var channels = await Task.Run(() => XmltvParser.Parse(body, now), cancellationToken).ConfigureAwait(false);
+        var channels = await Task.Run(() => XmltvParser.Parse(body, now, cancellationToken), cancellationToken).ConfigureAwait(false);
         return new TvScheduleDocument(TvScheduleDocument.CurrentSchemaVersion, source.ToString(), now, channels);
     }
 }

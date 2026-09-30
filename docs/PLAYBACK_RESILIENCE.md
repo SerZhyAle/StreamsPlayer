@@ -199,7 +199,7 @@ zero, never differences it, which is what makes summing them safe here and wrong
 `null` counters (FlyleafLib, and the audio-only LibVLC engine on the radio path, which reads none) drop the dead branch and keep the
 deadline. An engine that reports nothing must never be read as reporting zero.
 
-Radio has the deadline only, as a `DispatcherTimer` in `MainWindow` (`AUDIO GIVEUP`), armed per leg in
+Radio has the deadline for the opening (and, once live, the stall watchdog of §4), as a `DispatcherTimer` in `MainWindow` (`AUDIO GIVEUP`), armed per leg in
 `StartAudioPlayback` and disarmed in `StopAudioPlayback` - the one funnel every stop, switch, pause and
 failure passes through. Before this a station whose URL never opened raised no `MediaOpened`, no
 `MediaFailed` and no `MediaEnded`: the line read "Connecting.." indefinitely and `_audioWake` forbade the
@@ -276,20 +276,37 @@ SP-0096 open verdict, or a status already in hand is never gated: that host was 
 |---|---|---|---|
 | `NotProbed` | not gated, or no probeable endpoint | runs | shown |
 | `HostReachable` | TCP connect to the stream's own host:port succeeded | runs (then the status probe) | shown |
-| `ChannelUnreachable` | that connect failed, and the catalog host answers | **skipped** - verdict now | shown |
-| `NetworkUnreachable` | no interface up, the catalog host does not answer either, or a *local* host did not answer | **skipped** - verdict now | **withheld**, with a line saying the channel was never reached |
+| `ChannelUnreachable` | the host actively **refused** the connection (TCP reset) | **skipped** - verdict now | shown |
+| `NameNotResolved` | the resolver said the host name does not exist (SP-0168) | **skipped** - verdict now | shown |
+| `NetworkUnreachable` | no interface up, or a *local* host refused or is not known | **skipped** - verdict now | **withheld**, with a line saying the channel was never reached |
+| `Inconclusive` | a timeout (DNS included), a transient resolver failure, a routing error (SP-0168) | runs (then the status probe) | shown |
 
 It connects rather than pings because CDN hosts drop ICMP while serving media, and the endpoint probed is
-exactly the one the engine needs. Each connect is capped at 1.5 s, so the worst branch costs ~3 s against
-the ladder it replaces. The only second host is the catalog host the app already downloads from - no new
-outbound destination. A loopback, private-range, link-local, dotless or `.local`/`.lan` host is never
-network-checked and never blamed (`StreamEndpointResolver.IsLocalHost`): a camera that is switched off is
-not a broken channel. The verdict is logged as `PLAYBACK REACH` / `AUDIO REACH`.
+exactly the one the engine needs. The connect is capped at 1.5 s and its outcome is mapped in Core
+(`PlaybackReachabilityRules.OutcomeOf` / `Verdict`): **only a refusal or a missing name skips the ladder; a
+slow answer never does**, because one lost SYN or a slow resolver must not become a terminal dialog. The
+probe contacts the channel's own host and nothing else - there is no reference host (SP-0168), so a playback
+failure opens no connection the privacy page does not already describe. A loopback, private-range,
+shared-range (100.64.0.0/10), link-local, dotless or `.local`/`.lan` host is never blamed
+(`StreamEndpointResolver.IsLocalHost`): a camera that is switched off is not a broken channel. The verdict is
+logged as `PLAYBACK REACH` / `AUDIO REACH`.
 
 The backoff is cancellable and the "Reconnecting" label stays visible through it: ordinary buffering and
 reconnection must never look the same to the user.
 
-Audio has its own parallel path in `MainWindow` (`AUDIO RECOVER`), same policy type.
+Audio has its own parallel path in `MainWindow` (`AUDIO RECOVER`), same policy type, with two differences
+(SP-0169):
+
+- **Radio has a stall watchdog.** While a LibVLC radio connection plays, the bytes it has read from the source
+  are sampled every 2 s (`MainWindow.AudioStallWatchdog.cs`); `AudioStallDetector` (Core) reports a stall when
+  the total has not moved for 15 s, and the recovery runs with the `Stall` trigger, ungated like any stream that
+  was already playing. The FastMediaSorter broadcast route plays through its own engine and is not watched.
+- **Live is not sustained.** The budget is not restored on reaching Playing but when the leg that ends has
+  played for `LivePlaybackRecoveryPolicy.SustainedLiveAfter` (30 s, the stall's own silence not counted), so a
+  station that connects and drops within seconds reaches the terminal dialog after its budget.
+
+A terminal failure never clears the sleep timer: it stops through `StopAudioKeepingSleepTimer`, not
+`StopAudio`, because only a manual Stop, Cancel or exit clear it (SP-0022).
 
 ---
 
@@ -479,6 +496,7 @@ look the same in an archive.
 | `PLAYBACK WATCHDOG` | `kind=frozen` or `kind=stuck_buffer` |
 | `PLAYBACK GIVEUP` | `rule=dead_source\|deadline`, `at_ms=`, `leg=`, `bytes=` - §3a decided this leg is not going to open |
 | `AUDIO GIVEUP` | `rule=deadline`, `at_ms=` - the radio's half of §3a |
+| `AUDIO STALL` | `silent_ms=`, `read_bytes=` - a radio connection that stayed open but read no bytes for that long (SP-0169); followed by `AUDIO RECOVER trigger=Stall` |
 | `PLAYBACK RECOVER` | `trigger=`, `action=`, `attempt=`, budget, delay |
 | `PLAYBACK QUALITY` | `action=recall\|ladder\|down\|up\|hold\|memory\|rendition`, `from=`, `to=`, `ceiling=`, `starvations=`, `memory=`, `within=`, `leg=` |
 | `PLAYBACK CLOSE` / `SESSION` | `legs=`, `reconnects=`, `stalls=`, `outcome=` |

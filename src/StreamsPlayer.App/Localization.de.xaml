@@ -23,6 +23,7 @@
     <sys:String x:Key="ChannelPreviewsUnavailable">Dieser Computer kann das Bildpaket nicht öffnen. Die Vorschau arbeitet weiter wie bisher.</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">Die Vorschaubilder konnten nicht geladen werden.</sys:String>
     <sys:String x:Key="ChannelPreviewsNewerVersion">Diese Vorschaubilder wurden für eine neuere Version von StreamsPlayer veröffentlicht. Aktualisieren Sie die Anwendung, um sie zu erhalten. Ihre bisherigen Bilder bleiben erhalten.</sys:String>
+    <sys:String x:Key="ChannelPreviewsNothingNew">Es wurden keine neuen Vorschaubilder veröffentlicht. Ihre bisherigen Bilder bleiben erhalten.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgress">Bilder werden geladen.. {0} % ({1} von {2} MB)</sys:String>
     <sys:String x:Key="ChannelPreviewsPublishWindowRetry">Die Bilder werden gerade neu veröffentlicht. Neuer Versuch in {0} s (Versuch {1} von {2})..</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Bilder werden geladen.. {0} MB</sys:String>
@@ -97,8 +98,7 @@
     <sys:String x:Key="ExpandFromPanelName">Zum vollständigen Katalogfenster zurückkehren</sys:String>
     <sys:String x:Key="CompactPanelMinimizeTip">Minimieren</sys:String>
     <sys:String x:Key="CompactPanelCloseTip">Anwendung schließen</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOn">Im Vordergrund anheften: an</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOff">Im Vordergrund anheften: aus</sys:String>
+    <sys:String x:Key="MenuCompactPanelOnTop">Immer im Vordergrund</sys:String>
     <sys:String x:Key="AllOption">Alle</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Video</sys:String>
@@ -363,6 +363,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="SettingsName">Einstellungen öffnen</sys:String>
     <sys:String x:Key="SettingsWindowTitle">STREAMS Player Einstellungen</sys:String>
     <sys:String x:Key="ToolsWindowTitle">STREAMS Player Werkzeuge</sys:String>
+    <sys:String x:Key="ToolsWindowBusyClose">Ein Vorgang läuft. Warten Sie, bis er beendet ist, oder brechen Sie ihn ab, und schließen Sie dann dieses Fenster.</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Diagnose</sys:String>
     <sys:String x:Key="GridSettings">Raster</sys:String>
     <sys:String x:Key="ThemeLabel">Farbdesign</sys:String>
@@ -482,6 +483,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="ImportInvalidEncoding">Diese Datei ist kein gültiger UTF-8-Text. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="ImportFileReadFailed">Windows konnte die gewählte Datei nicht lesen. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="ImportUrlFailed">Die Wiedergabeliste konnte nicht geladen werden. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="ImportUrlCancelled">Der Import wurde abgebrochen. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="ImportHlsManifest">Dies ist ein HLS-Medienmanifest, keine Kanalliste. Es wurden keine Kanäle importiert.</sys:String>
     <sys:String x:Key="ImportEmpty">Es wurden keine importierbaren Kanäle gefunden. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="ExportAll">Alle meine Kanäle</sys:String>
@@ -664,4 +666,6 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="TvScheduleBindingNone">Kein Programm</sys:String>
     <sys:String x:Key="TvScheduleBindingNoneTip">Für diesen Sender nie Sendungen anzeigen</sys:String>
     <sys:String x:Key="TvScheduleBindingApply">Zuordnen</sys:String>
+    <sys:String x:Key="SecondInstanceElevated">StreamsPlayer läuft bereits mit Administratorrechten, daher kann diese Kopie ihre Anfrage nicht weitergeben. Schließen Sie es und starten Sie StreamsPlayer erneut, oder starten Sie beide Kopien auf dieselbe Weise.</sys:String>
+    <sys:String x:Key="SecondInstanceLaunchTooLarge">Diese Anfrage ist zu groß, um sie an die laufende Kopie von StreamsPlayer weiterzugeben, daher wurde nichts gestartet. Schließen Sie die laufende Kopie und versuchen Sie es erneut.</sys:String>
 </ResourceDictionary>

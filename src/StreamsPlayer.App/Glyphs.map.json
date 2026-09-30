@@ -1,6 +1,6 @@
 {
   "about": "SP-0113. This product's map to the portfolio icon vocabulary (ICON-SET, ICON-RENDER, ICON-EXTERNAL, consumer). Every glyph the application, its READMEs and its site draw is listed here once: a vocabulary meaning, a meaning asked for by proposal and pending, product chrome or illustration, or an external picture. Glyphs.xaml is generated from this file and assets/glyphs/ by tools/Sync-IconGlyphs.ps1; IconographyConformanceTests hold the three against each other.",
-  "contracts": { "ICON-SET": "0.13", "ICON-RENDER": "0.11", "ICON-EXTERNAL": "0.9" },
+  "contracts": { "ICON-SET": "0.16", "ICON-RENDER": "0.13", "ICON-EXTERNAL": "0.10" },
   "meanings": [
     { "id": "view.list", "name": "List view", "surfaces": [ "style:ListGlyphButton" ] },
     { "id": "view.grid", "name": "Grid view", "surfaces": [ "style:GridGlyphButton", "SettingsWindow.xaml tab GridSettings" ] },
@@ -32,8 +32,8 @@
     { "id": "action.filter", "name": "Filter", "surfaces": [ "style:FilterGlyphButton" ] },
     { "id": "content.video", "name": "Video", "surfaces": [ "style:QuickVideoFilterButton" ], "nameKeys": [ "QuickVideoTip" ] },
     { "id": "content.audio", "name": "Audio", "surfaces": [ "style:QuickAudioFilterButton", "MainWindow.xaml now-playing badge (list and grid)", "CompactPanelWindow.xaml now-playing badge" ], "nameKeys": [ "QuickAudioTip" ] },
-    { "id": "action.pin", "name": "Pin", "surfaces": [ "style:PinOnGlyphOnlyButton", "MainWindow.xaml row pin (pinned)" ], "nameKeys": [ "PinName", "CompactPanelOnTopOn" ] },
-    { "id": "action.pin--off", "name": "Pin", "surfaces": [ "style:PinOffGlyphOnlyButton", "MainWindow.xaml row pin (not pinned)" ], "own": "the catalog draws the off state as a 2-unit stroke; this product's templates paint fills only, so its copy is Material's outlined push_pin, the same picture as a filled silhouette (ICON-SET rule 1)", "nameKeys": [ "CompactPanelOnTopOff" ] },
+    { "id": "action.pin", "name": "Pin", "surfaces": [ "MainWindow.xaml row pin (pinned)" ], "nameKeys": [ "PinName" ] },
+    { "id": "action.pin--off", "name": "Pin", "surfaces": [ "MainWindow.xaml row pin (not pinned)" ], "own": "the catalog draws the off state as a 2-unit stroke; this product's templates paint fills only, so its copy is Material's outlined push_pin, the same picture as a filled silhouette (ICON-SET rule 1)" },
     { "id": "action.search", "name": "Search", "surfaces": [ "MainWindow.xaml search box" ] },
     { "id": "nav.expand", "name": "Expand", "surfaces": [ "MainWindow.xaml section header (collapsed)" ] },
     { "id": "nav.collapse", "name": "Collapse", "surfaces": [ "MainWindow.xaml section header (open)" ] },

@@ -130,9 +130,10 @@ public sealed class NetworkDeadlineTests
         var reader = new IcecastStatusReader(client, Bound);
         var clock = Stopwatch.StartNew();
 
-        var outcome = await reader.ReadAsync(new Uri(server.Url), new Progress<string?>(), CancellationToken.None);
+        var result = await reader.ReadAsync(new Uri(server.Url), new Progress<string?>(), CancellationToken.None);
 
-        Assert.Equal(IcecastStatusReadOutcome.EndpointUnavailable, outcome);
+        Assert.Equal(IcecastStatusReadOutcome.EndpointUnavailable, result.Outcome);
+        Assert.False(result.TitlesReported);
         AssertWithinLimit(clock);
     }
 
@@ -144,9 +145,10 @@ public sealed class NetworkDeadlineTests
         var reader = new IcecastStatusReader(client, Bound);
         var clock = Stopwatch.StartNew();
 
-        var outcome = await reader.ReadAsync(new Uri(server.Url), new Progress<string?>(), CancellationToken.None);
+        var result = await reader.ReadAsync(new Uri(server.Url), new Progress<string?>(), CancellationToken.None);
 
-        Assert.Equal(IcecastStatusReadOutcome.EndpointUnavailable, outcome);
+        Assert.Equal(IcecastStatusReadOutcome.EndpointUnavailable, result.Outcome);
+        Assert.False(result.TitlesReported);
         AssertWithinLimit(clock);
     }
 

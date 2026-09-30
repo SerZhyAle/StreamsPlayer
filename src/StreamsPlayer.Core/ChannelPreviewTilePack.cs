@@ -27,6 +27,15 @@ namespace StreamsPlayer.Core;
 /// </remarks>
 public sealed class ChannelPreviewTilePack : IDisposable
 {
+    /// <summary>
+    /// SP-0160, STREAM-BANK item G2's structural gate, bounded per tile: the per-tile ceiling, derived
+    /// from the tile geometry item G fixes for this set (240 x 135) as the decoded RGBA size at 4
+    /// bytes/pixel, with a factor of 4 for encoder overhead on incompressible content. What it rules
+    /// out is the mis-published or hostile entry declaring gigabytes, never a real tile - the live pack
+    /// averaged ~5.5 KB a tile (2,723 tiles in 14.6 MB, measured 2026-08-20).
+    /// </summary>
+    public const long MaximumTileBytes = 240L * 135 * 4 * 4;
+
     private readonly ZipArchive _archive;
     private readonly Dictionary<int, ZipArchiveEntry> _tiles;
 
@@ -39,9 +48,12 @@ public sealed class ChannelPreviewTilePack : IDisposable
     /// <summary>
     /// Opens the pack over its downloaded bytes. Entries whose name is not a plain non-negative decimal
     /// are ignored rather than rejected, so the publisher can add a README beside the tiles without
-    /// breaking this reader.
+    /// breaking this reader - and they are never read by this class, so they are not gated by the
+    /// per-tile ceiling.
     /// </summary>
-    /// <exception cref="InvalidDataException">The bytes are not a readable ZIP.</exception>
+    /// <exception cref="InvalidDataException">The bytes are not a readable ZIP, or any tile entry
+    /// declares more than <see cref="MaximumTileBytes"/> - the pack is refused as a whole before any
+    /// tile is read or anything can be seeded from it.</exception>
     public static ChannelPreviewTilePack Open(byte[] pack)
     {
         ArgumentNullException.ThrowIfNull(pack);
@@ -57,6 +69,18 @@ public sealed class ChannelPreviewTilePack : IDisposable
                 // is accepted as a slot.
                 if (int.TryParse(entry.FullName, NumberStyles.None, CultureInfo.InvariantCulture, out var index))
                 {
+                    // The declared length is metadata, so the refusal allocates nothing for the
+                    // offending entry - and it is what bounds every later Read: the buffer below is
+                    // entry.Length, and Open hands out an instance no entry of which exceeds the
+                    // ceiling. A mis-published pack therefore dies here, not part-way through an
+                    // import with an out-of-memory failure.
+                    if (entry.Length > MaximumTileBytes)
+                    {
+                        throw new InvalidDataException(
+                            $"Tile {entry.FullName} declares {entry.Length} bytes, over the " +
+                            $"{MaximumTileBytes}-byte per-tile ceiling; the pack is refused as a whole.");
+                    }
+
                     tiles[index] = entry;
                 }
             }
@@ -82,8 +106,9 @@ public sealed class ChannelPreviewTilePack : IDisposable
 
     /// <summary>
     /// The bytes of one tile, or <c>null</c> when the pack has no such slot. A sidecar index with no
-    /// entry is a gap to skip, never a fault: the two files are verified as a pair before they get here,
-    /// so a missing slot means the publisher shipped a coords row it had no capture for.
+    /// entry is a gap to skip, never a fault: a missing slot means the publisher shipped a coords row it
+    /// had no capture for. The buffer is the entry's declared length, which <see cref="Open"/> has
+    /// already bounded by <see cref="MaximumTileBytes"/> for every tile it admitted.
     /// </summary>
     /// <exception cref="InvalidDataException">The entry is present but unreadable.</exception>
     public byte[]? Read(int index)

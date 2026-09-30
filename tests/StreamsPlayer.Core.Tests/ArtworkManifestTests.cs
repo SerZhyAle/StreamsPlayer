@@ -5,9 +5,9 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.Core.Tests;
 
 /// <summary>
-/// SP-0091, STREAM-BANK item F. The manifest is what replaces a compiled-in asset revision, so what
-/// is gated here is the two jobs it took over: naming the build that landed, and refusing a pair whose
-/// halves came from different builds.
+/// SP-0091, STREAM-BANK item F. The manifest is what replaces a compiled-in asset revision, so what is
+/// exercised here is the two jobs it took over: naming the build that landed, and - since SP-0160 made
+/// item L the rule - reporting a pair whose halves came from different builds instead of refusing it.
 /// </summary>
 public sealed class ArtworkManifestTests
 {
@@ -166,33 +166,36 @@ public sealed class ArtworkManifestTests
     private const string AbcSha256 = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 
     [Fact]
-    public void Verify_AcceptsTheDeclaredBytesInEitherHexCase()
+    public void Diagnose_AcceptsTheDeclaredBytesInEitherHexCase()
     {
         var payload = Encoding.UTF8.GetBytes("abc");
 
-        new ArtworkFile("t.bin", 3, AbcSha256).Verify(payload);
-        new ArtworkFile("t.bin", 3, AbcSha256.ToUpperInvariant()).Verify(payload);
+        Assert.Null(new ArtworkFile("t.bin", 3, AbcSha256).Diagnose(payload));
+        Assert.Null(new ArtworkFile("t.bin", 3, AbcSha256.ToUpperInvariant()).Diagnose(payload));
     }
 
-    // The torn pair this exists for: both halves answer 200, both are internally valid, and their index
-    // spaces disagree. Nothing downstream can notice, so it has to be refused here.
+    // The torn pair SP-0091 refused: both halves answer 200, both are internally valid, and their index
+    // spaces disagree. Item L (owner decision 2026-09-26) rules the hash diagnostic - the mismatch is
+    // reported for the log and the import proceeds, because the structural checks are the gate.
     [Fact]
-    public void Verify_RefusesBytesFromAnotherBuild()
+    public void Diagnose_ReportsBytesFromAnotherBuild()
     {
         var file = new ArtworkFile("channel-preview-tiles.zip", 3, AbcSha256);
 
-        var error = Assert.Throws<InvalidDataException>(() => file.Verify(Encoding.UTF8.GetBytes("abd")));
-        Assert.Contains("channel-preview-tiles.zip", error.Message, StringComparison.Ordinal);
-        Assert.Contains("sha256", error.Message, StringComparison.Ordinal);
+        var mismatch = file.Diagnose(Encoding.UTF8.GetBytes("abd"));
+
+        Assert.NotNull(mismatch);
+        Assert.Contains("channel-preview-tiles.zip", mismatch, StringComparison.Ordinal);
+        Assert.Contains("sha256", mismatch, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Verify_RefusesAShortTransferBySizeBeforeHashing()
+    public void Diagnose_ReportsAShortTransferBySizeBeforeHashing()
     {
-        var error = Assert.Throws<InvalidDataException>(
-            () => new ArtworkFile("t.bin", 3, AbcSha256).Verify(Encoding.UTF8.GetBytes("ab")));
+        var mismatch = new ArtworkFile("t.bin", 3, AbcSha256).Diagnose(Encoding.UTF8.GetBytes("ab"));
 
-        Assert.Contains("2 bytes", error.Message, StringComparison.Ordinal);
-        Assert.Contains("declares 3", error.Message, StringComparison.Ordinal);
+        Assert.NotNull(mismatch);
+        Assert.Contains("2 bytes", mismatch, StringComparison.Ordinal);
+        Assert.Contains("declares 3", mismatch, StringComparison.Ordinal);
     }
 }

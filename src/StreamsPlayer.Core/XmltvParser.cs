@@ -6,15 +6,31 @@ using System.Xml;
 namespace StreamsPlayer.Core;
 
 /// <summary>
+/// SP-0173: what one <see cref="XmltvParser"/> read observed about itself. A diagnostic and test hook; the
+/// schedule itself carries none of it.
+/// </summary>
+public sealed class XmltvParseReport
+{
+    /// <summary>Programmes dropped because their start or stop was present but could not be represented.</summary>
+    public int SkippedProgrammes { get; internal set; }
+
+    /// <summary>The most programmes held at once while reading; never above the programme cap.</summary>
+    public int PeakProgrammesHeld { get; internal set; }
+}
+
+/// <summary>
 /// SP-0075: reads an XMLTV document into the bounded schedule the product keeps.
 ///
 /// <para>Streaming, because a source is untrusted and may be large: the reader never builds a DOM, never
 /// resolves a DTD or an external entity, and stops at <see cref="TvScheduleLimits.MaximumDecompressedBytes"/>.
 /// Only programmes that end after <c>now</c> and start before <c>now + WindowAhead</c> are kept.</para>
 ///
-/// <para>A malformed programme (no channel, no title, unparsable start) is skipped rather than failing the
-/// document: partial coverage is the normal state of a schedule. A document that is not XML at all, or
-/// not XMLTV, throws <see cref="InvalidDataException"/>.</para>
+/// <para>A malformed programme (no channel, no title, a start or stop that cannot be represented) is skipped
+/// rather than failing the document: partial coverage is the normal state of a schedule. A document that is
+/// not XML at all, or not XMLTV, throws <see cref="InvalidDataException"/>.</para>
+///
+/// <para>SP-0173: the programme cap is enforced while reading, so memory follows the cap and not the file,
+/// and the read observes its cancellation token once per node.</para>
 /// </summary>
 public static class XmltvParser
 {
@@ -22,26 +38,40 @@ public static class XmltvParser
     // at the window's edge is available when the open end is resolved.
     private static readonly TimeSpan ClosingMargin = TimeSpan.FromHours(12);
 
+    // DateTimeOffset refuses any offset beyond 14 hours in total, so "+1430" is unreadable, not merely odd.
+    private const int MaximumOffsetMinutes = 14 * 60;
+
     private static readonly string[] TimeFormats =
     [
         "yyyyMMddHHmmss", "yyyyMMddHHmm", "yyyyMMddHH", "yyyyMMdd"
     ];
 
     /// <summary>Parses a downloaded body, decompressing it first when it carries the gzip signature.</summary>
-    public static IReadOnlyList<TvScheduleChannel> Parse(byte[] body, DateTimeOffset now)
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
+    public static IReadOnlyList<TvScheduleChannel> Parse(
+        byte[] body,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default,
+        XmltvParseReport? report = null)
     {
         using var raw = new MemoryStream(body, writable: false);
         if (body.Length >= 2 && body[0] == 0x1F && body[1] == 0x8B)
         {
             using var gzip = new GZipStream(raw, CompressionMode.Decompress);
-            return Parse(gzip, now);
+            return Parse(gzip, now, cancellationToken, report);
         }
 
-        return Parse(raw, now);
+        return Parse(raw, now, cancellationToken, report);
     }
 
-    public static IReadOnlyList<TvScheduleChannel> Parse(Stream source, DateTimeOffset now)
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
+    public static IReadOnlyList<TvScheduleChannel> Parse(
+        Stream source,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default,
+        XmltvParseReport? report = null)
     {
+        report ??= new XmltvParseReport();
         var settings = new XmlReaderSettings
         {
             DtdProcessing = DtdProcessing.Ignore,
@@ -54,7 +84,7 @@ public static class XmltvParser
 
         var names = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         var order = new List<string>();
-        var programmes = new List<(string Channel, TvProgramme Programme, bool OpenEnded)>();
+        var programmes = new ProgrammeBuffer(TvScheduleLimits.MaximumProgrammes, report);
         var windowEnd = now + TvScheduleLimits.WindowAhead;
         var sawRoot = false;
 
@@ -64,6 +94,7 @@ public static class XmltvParser
             using var reader = XmlReader.Create(bounded, settings);
             while (reader.Read())
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (reader.NodeType != XmlNodeType.Element)
                 {
                     continue;
@@ -78,7 +109,7 @@ public static class XmltvParser
                         ReadChannel(reader, names, order);
                         break;
                     case "programme" when reader.Depth == 1:
-                        ReadProgramme(reader, programmes, now, windowEnd);
+                        ReadProgramme(reader, programmes, report, now, windowEnd);
                         break;
                 }
             }
@@ -93,7 +124,7 @@ public static class XmltvParser
             throw new InvalidDataException("The document is not an XMLTV schedule.");
         }
 
-        return Assemble(names, order, programmes, now, windowEnd);
+        return Assemble(names, order, programmes.Drain(), now, windowEnd);
     }
 
     private static void ReadChannel(XmlReader reader, Dictionary<string, List<string>> names, List<string> order)
@@ -129,19 +160,29 @@ public static class XmltvParser
 
     private static void ReadProgramme(
         XmlReader reader,
-        List<(string, TvProgramme, bool)> programmes,
+        ProgrammeBuffer programmes,
+        XmltvParseReport report,
         DateTimeOffset now,
         DateTimeOffset windowEnd)
     {
         var channel = Clip(reader.GetAttribute("channel"));
+        var stopText = reader.GetAttribute("stop");
         var start = ParseTime(reader.GetAttribute("start"));
-        var stop = ParseTime(reader.GetAttribute("stop"));
+        var stop = ParseTime(stopText);
+
+        // A stop that is present but cannot be represented is not "open-ended": guessing its end from the
+        // next programme could put the wrong title on air, so the programme goes with it. Returning early
+        // leaves the children to the main loop, which ignores anything below depth 1.
+        if (start is null || (stop is null && !string.IsNullOrWhiteSpace(stopText)))
+        {
+            report.SkippedProgrammes++;
+            return;
+        }
 
         // Dropped while reading, so a week-long guide never holds a week of programmes in memory. The margin
         // on both sides keeps the successor that closes an open-ended programme: dropping a recently ended
-        // one would let a later programme close it instead and put the wrong title on air. Returning early
-        // leaves the children to the main loop, which ignores anything below depth 1.
-        if (start is null || (stop is { } ended && ended <= now - ClosingMargin) ||
+        // one would let a later programme close it instead and put the wrong title on air.
+        if ((stop is { } ended && ended <= now - ClosingMargin) ||
             start.Value >= windowEnd + ClosingMargin || (stop is null && start.Value < now - ClosingMargin))
         {
             return;
@@ -156,7 +197,7 @@ public static class XmltvParser
         }
 
         // An open-ended programme is closed later by the next start on its channel.
-        programmes.Add((channel, new TvProgramme(start.Value, stop ?? start.Value, title), stop is null));
+        programmes.Add(channel, new TvProgramme(start.Value, stop ?? start.Value, title), stop is null);
     }
 
     private static IReadOnlyList<TvScheduleChannel> Assemble(
@@ -195,20 +236,6 @@ public static class XmltvParser
             {
                 byChannel[group.Key] = kept;
             }
-        }
-
-        // Over the cap, the earliest programmes win: they are the ones "now" and "next" are made of.
-        if (byChannel.Values.Sum(list => list.Count) > TvScheduleLimits.MaximumProgrammes)
-        {
-            byChannel = byChannel
-                .SelectMany(pair => pair.Value.Select(programme => (pair.Key, programme)))
-                .OrderBy(item => item.programme.Start)
-                .Take(TvScheduleLimits.MaximumProgrammes)
-                .GroupBy(item => item.Key, StringComparer.Ordinal)
-                .ToDictionary(
-                    group => group.Key,
-                    group => group.Select(item => item.programme).OrderBy(programme => programme.Start).ToList(),
-                    StringComparer.Ordinal);
         }
 
         var result = new List<TvScheduleChannel>();
@@ -257,7 +284,7 @@ public static class XmltvParser
             if (zone.Length == 5 && (zone[0] == '+' || zone[0] == '-') &&
                 int.TryParse(zone.AsSpan(1, 2), NumberStyles.None, CultureInfo.InvariantCulture, out var hours) &&
                 int.TryParse(zone.AsSpan(3, 2), NumberStyles.None, CultureInfo.InvariantCulture, out var minutes) &&
-                hours <= 14 && minutes < 60)
+                minutes < 60 && hours * 60 + minutes <= MaximumOffsetMinutes)
             {
                 offset = new TimeSpan(hours, minutes, 0);
                 if (zone[0] == '-')
@@ -273,6 +300,14 @@ public static class XmltvParser
                 // not showing it (strategic risk: a one-hour error makes the feature harmful).
                 return null;
             }
+        }
+
+        // DateTimeOffset throws when the UTC instant falls outside DateTime's range, which a year-1 or
+        // year-9999 date with an offset reaches; one such programme must cost only itself (SP-0173).
+        var utcTicks = local.Ticks - offset.Ticks;
+        if (utcTicks < DateTime.MinValue.Ticks || utcTicks > DateTime.MaxValue.Ticks)
+        {
+            return null;
         }
 
         return new DateTimeOffset(DateTime.SpecifyKind(local, DateTimeKind.Unspecified), offset);
@@ -338,9 +373,50 @@ public static class XmltvParser
         }
 
         var text = string.Join(' ', value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-        return text.Length <= TvScheduleLimits.MaximumTextLength
-            ? text
-            : text[..TvScheduleLimits.MaximumTextLength].TrimEnd();
+        return TextBoundary.Truncate(text, TvScheduleLimits.MaximumTextLength).TrimEnd();
+    }
+
+    /// <summary>
+    /// SP-0173: the programmes kept while reading, never more than the cap. When full, the latest start is
+    /// the one to go, so what remains is exactly the earliest programmes - the ones "now" and "next" are
+    /// made of - and any programme that could close an open-ended one is either held or later than every
+    /// held one.
+    /// </summary>
+    private sealed class ProgrammeBuffer(int capacity, XmltvParseReport report)
+    {
+        // A min-heap over the negated key, so its root is the latest start; the file-order sequence breaks
+        // ties so that, as before, the programme read first wins.
+        private readonly PriorityQueue<(string Channel, TvProgramme Programme, bool OpenEnded), (long, long)> _held = new();
+        private long _sequence;
+
+        public void Add(string channel, TvProgramme programme, bool openEnded)
+        {
+            var item = (channel, programme, openEnded);
+            var priority = (-programme.Start.UtcTicks, -_sequence++);
+            if (_held.Count < capacity)
+            {
+                _held.Enqueue(item, priority);
+            }
+            else if (_held.TryPeek(out _, out var latest) && priority.CompareTo(latest) > 0)
+            {
+                _held.EnqueueDequeue(item, priority);
+            }
+
+            report.PeakProgrammesHeld = Math.Max(report.PeakProgrammesHeld, _held.Count);
+        }
+
+        /// <summary>Everything held, earliest start first (file order among equal starts).</summary>
+        public List<(string Channel, TvProgramme Programme, bool OpenEnded)> Drain()
+        {
+            var items = new List<(string Channel, TvProgramme Programme, bool OpenEnded)>(_held.Count);
+            while (_held.TryDequeue(out var item, out _))
+            {
+                items.Add(item);
+            }
+
+            items.Reverse();
+            return items;
+        }
     }
 
     /// <summary>Fails the read once more than the allowed number of bytes has come through.</summary>

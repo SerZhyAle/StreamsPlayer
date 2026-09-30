@@ -438,6 +438,7 @@ public partial class MainWindow
             if (_rowCache.Remove(id, out var row))
             {
                 UnindexUrl(row.Channel.Url, row);
+                _tvScheduleLines.Forget(row);
             }
         }
     }
@@ -496,13 +497,14 @@ public partial class MainWindow
             {
                 UnindexUrl(previousUrl, cached);
                 IndexUrl(cached);
+                AttachScheduleLine(cached);
             }
 
             return cached;
         }
 
         var row = new ChannelRow(channel, atlases);
-        row.SetScheduleNow(ScheduleNowTitle(channel.Url));
+        AttachScheduleLine(row);
         _rowCache[channel.Id] = row;
         IndexUrl(row);
         return row;
@@ -540,12 +542,24 @@ public partial class MainWindow
             // SP-0061: ordered by the rubric the reader can see, under the interface culture. An ordinal
             // sort over the English identifier put the Russian and Arabic lists in what looked like
             // random order, because the string being compared was not the string on screen.
-            "Topic" => channels.OrderBy(channel => channel.Topic is null).ThenBy(channel => channel.Topic ?? string.Empty, TopicLabels.Comparer),
+            "Topic" => SortByTopic(channels),
             "Language" => channels.OrderBy(channel => channel.Language is null).ThenBy(channel => channel.Language, StringComparer.OrdinalIgnoreCase),
             "Country" => channels.OrderBy(channel => channel.Country is null).ThenBy(channel => channel.Country, StringComparer.OrdinalIgnoreCase),
             "Recently added" => channels.OrderByDescending(channel => channel.AddedAt),
             _ => channels.OrderBy(channel => channel.Title, StringComparer.OrdinalIgnoreCase)
         };
+
+    /// <summary>
+    /// SP-0171: the label comparer runs over the list's distinct rubrics once, and each row then sorts by
+    /// an integer rank. Handing the comparer to <c>ThenBy</c> ran it per comparison - two resource lookups
+    /// each, hundreds of thousands per rebuild of a 20,000-row list.
+    /// </summary>
+    private static IEnumerable<StreamChannel> SortByTopic(IEnumerable<StreamChannel> channels)
+    {
+        var items = channels as IReadOnlyCollection<StreamChannel> ?? channels.ToList();
+        var ranks = TopicLabels.RankOf(items.Select(channel => channel.Topic ?? string.Empty));
+        return items.OrderBy(channel => channel.Topic is null).ThenBy(channel => ranks[channel.Topic ?? string.Empty]);
+    }
 
     private static bool Contains(string? value, string query) =>
         value?.Contains(query, StringComparison.OrdinalIgnoreCase) == true;

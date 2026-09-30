@@ -14,7 +14,7 @@ public sealed class ActivationPipeTests
     {
         await using var harness = Harness.Start();
 
-        Assert.True(ActivationPipeClient.TrySend(harness.PipeName, ["--url", "https://example.test/a"], Wait));
+        Assert.Equal(ActivationSendResult.Delivered, ActivationPipeClient.TrySend(harness.PipeName, ["--url", "https://example.test/a"], Wait));
 
         Assert.Equal(["--url", "https://example.test/a"], await harness.NextRequestAsync());
     }
@@ -30,7 +30,7 @@ public sealed class ActivationPipeTests
         await SendRawAsync(harness.PipeName, new byte[ActivationMessage.MaximumPayloadBytes + 10]);
         await SendRawAsync(harness.PipeName, "{\"schemaVersion\":1,\"comm"u8.ToArray());
 
-        Assert.True(ActivationPipeClient.TrySend(harness.PipeName, ["--id", "0f8fad5b-d9cb-469f-a165-70867728950e"], Wait));
+        Assert.Equal(ActivationSendResult.Delivered, ActivationPipeClient.TrySend(harness.PipeName, ["--id", "0f8fad5b-d9cb-469f-a165-70867728950e"], Wait));
 
         Assert.Equal(["--id", "0f8fad5b-d9cb-469f-a165-70867728950e"], await harness.NextRequestAsync());
         Assert.True(harness.Rejections.Count >= 4, $"rejections: {string.Join(", ", harness.Rejections)}");
@@ -52,7 +52,47 @@ public sealed class ActivationPipeTests
     {
         var pipeName = "sp-test-absent-" + Guid.NewGuid().ToString("N");
 
-        Assert.False(ActivationPipeClient.TrySend(pipeName, [], TimeSpan.FromMilliseconds(200)));
+        Assert.Equal(ActivationSendResult.Unanswered, ActivationPipeClient.TrySend(pipeName, [], TimeSpan.FromMilliseconds(200)));
+    }
+
+    // SP-0170: a closing copy answers "refused" instead of acting on the launch, and the sender hears it.
+    [Fact]
+    public async Task Listener_RefusesAfterStopAcceptingAndSaysSo()
+    {
+        await using var harness = Harness.Start();
+        harness.Listener.StopAccepting();
+
+        var result = ActivationPipeClient.TrySend(harness.PipeName, ["--url", "https://example.test/a"], Wait);
+
+        Assert.Equal(ActivationSendResult.Refused, result);
+        Assert.Empty(harness.Requests);
+        Assert.Contains("listener is closing", harness.Rejections);
+    }
+
+    [Fact]
+    public async Task Client_DoesNotSendALaunchTheReceiverWouldDrop()
+    {
+        await using var harness = Harness.Start();
+
+        var result = ActivationPipeClient.TrySend(harness.PipeName, Enumerable.Repeat("x", 40).ToArray(), Wait);
+
+        Assert.Equal(ActivationSendResult.TooLarge, result);
+        Assert.Empty(harness.Requests);
+        Assert.Empty(harness.Rejections);
+    }
+
+    [Fact]
+    public async Task Client_ReportsUnansweredWhenTheReceiverNeverAcknowledges()
+    {
+        var pipeName = "sp-test-mute-" + Guid.NewGuid().ToString("N");
+        await using var server = new NamedPipeServerStream(
+            pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+        var connected = server.WaitForConnectionAsync();
+
+        var send = Task.Run(() => ActivationPipeClient.TrySend(pipeName, ["--url", "https://example.test/a"], Wait));
+        await connected;
+
+        Assert.Equal(ActivationSendResult.Unanswered, await send);
     }
 
     private static async Task SendRawAsync(string pipeName, byte[] bytes)
@@ -86,6 +126,10 @@ public sealed class ActivationPipeTests
         public string PipeName { get; }
 
         public ConcurrentQueue<string> Rejections { get; } = new();
+
+        public ActivationPipeListener Listener => _listener;
+
+        public IReadOnlyCollection<IReadOnlyList<string>> Requests => _requests;
 
         public static Harness Start()
         {

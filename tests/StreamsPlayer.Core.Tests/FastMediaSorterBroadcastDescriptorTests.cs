@@ -74,16 +74,80 @@ public sealed class FastMediaSorterBroadcastDescriptorTests
         Assert.Equal(FastMediaSorterBroadcastReadStatus.UnsupportedSchema, read.Status);
     }
 
-    [Theory]
-    [InlineData("VIDEO_AUDIO")]
-    [InlineData("VIDEO_ONLY")]
-    [InlineData("FUTURE_MODE")]
-    public void UnsupportedModesAreNeverAcceptedAsAudio(string mode)
+    [Fact]
+    public void AModeOutsideTheContractIsRefusedAsUnsupported()
     {
         var read = FastMediaSorterBroadcastDescriptor.Read(
-            $$"""{"schemaVersion":1,"url":"rtsp://192.168.1.97:8554/live","mode":"{{mode}}"}""");
+            """{"schemaVersion":1,"url":"rtsp://192.168.1.97:8554/live","mode":"FUTURE_MODE"}""");
 
         Assert.Equal(FastMediaSorterBroadcastReadStatus.UnsupportedMode, read.Status);
+    }
+
+    /// <summary>
+    /// SP-0159: the §2.5 shape the phone emits for the camera kinds, one RTSP endpoint with the audio
+    /// fields of §2.3 and, for VIDEO_ONLY, with them omitted per §2.4. Both read into a broadcast whose
+    /// playback endpoint is the RTSP address.
+    /// </summary>
+    [Theory]
+    [InlineData(FastMediaSorterBroadcastDescriptor.VideoAudioMode)]
+    [InlineData(FastMediaSorterBroadcastDescriptor.VideoOnlyMode)]
+    public void CameraModeDescriptorsInContractShapeAreAccepted(string mode)
+    {
+        var audioFields = mode == FastMediaSorterBroadcastDescriptor.VideoAudioMode
+            ? "\"audioCodec\":\"aac\",\"sampleRate\":48000,"
+            : string.Empty;
+        var json = $$"""
+            {"schemaVersion":1,"url":"rtsp://192.168.1.97:8554/","title":"Galaxy S25 FE","mode":"{{mode}}","sourceId":"3f6c1f0e-8d2b-4f6e-9a57-2b1f0c9d4e11","isLive":true,"targetLatencyMs":200,"endpoints":[{"url":"rtsp://192.168.1.97:8554/","transport":"RTSP","mode":"{{mode}}","videoCodec":"h264",{{audioFields}}"bitrate":2000000,"isLive":true,"targetLatencyMs":200}]}
+            """;
+
+        var read = FastMediaSorterBroadcastDescriptor.Read(json);
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, read.Status);
+        Assert.NotNull(read.Broadcast);
+        Assert.True(read.Broadcast.IsVideoMode);
+        Assert.Equal(mode, read.Broadcast.Mode);
+        Assert.Equal("rtsp://192.168.1.97:8554/", read.Broadcast.SelectPlaybackEndpoint().Url);
+        Assert.Equal("RTSP", read.Broadcast.SelectPlaybackEndpoint().Transport);
+        var endpoint = Assert.Single(read.Broadcast.Endpoints);
+        Assert.Equal("h264", endpoint.VideoCodec);
+        if (mode == FastMediaSorterBroadcastDescriptor.VideoOnlyMode)
+        {
+            Assert.Null(endpoint.AudioCodec);
+            Assert.Null(endpoint.SampleRate);
+        }
+        else
+        {
+            Assert.Equal("aac", endpoint.AudioCodec);
+            Assert.Equal(48000, endpoint.SampleRate);
+        }
+    }
+
+    /// <summary>A legacy §2.3 descriptor without the endpoints list still plays from the top-level address.</summary>
+    [Fact]
+    public void CameraModeWithoutEndpointsFallsBackToTheTopLevelAddress()
+    {
+        var read = FastMediaSorterBroadcastDescriptor.Read(
+            """{"schemaVersion":1,"url":"rtsp://192.168.1.97:8554/","mode":"VIDEO_AUDIO"}""");
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, read.Status);
+        Assert.NotNull(read.Broadcast);
+        var endpoint = read.Broadcast.SelectPlaybackEndpoint();
+        Assert.Equal("rtsp://192.168.1.97:8554/", endpoint.Url);
+        Assert.Equal("RTSP", endpoint.Transport);
+        Assert.Equal("VIDEO_AUDIO", endpoint.Mode);
+    }
+
+    /// <summary>The endpoint choice reads the declared transport: a video descriptor never plays the audio entry.</summary>
+    [Fact]
+    public void CameraModeSkipsAnAudioOnlyEndpointWhenSelectingForPlayback()
+    {
+        var read = FastMediaSorterBroadcastDescriptor.Read(
+            """
+            {"schemaVersion":1,"url":"rtsp://192.168.1.97:8554/","mode":"VIDEO_ONLY","endpoints":[{"url":"http://192.168.1.97:8768/live-audio.aac","transport":"HTTP","mode":"AUDIO_ONLY"},{"url":"rtsp://192.168.1.97:8554/","transport":"RTSP","mode":"VIDEO_ONLY"}]}
+            """);
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, read.Status);
+        Assert.Equal("rtsp://192.168.1.97:8554/", read.Broadcast!.SelectPlaybackEndpoint().Url);
     }
 
     [Theory]

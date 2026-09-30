@@ -132,24 +132,73 @@ public partial class CollectionsWindow : Window
 
     private async Task ApplyRenameAsync(TextBox box)
     {
-        if (box.Tag is not CollectionRowView row)
+        if (box.Tag is CollectionRowView row)
         {
-            return;
+            await ApplyRenameAsync(row, box.Text);
         }
+    }
 
+    private async Task ApplyRenameAsync(CollectionRowView row, string name)
+    {
         var current = _read().FirstOrDefault(collection => collection.Id == row.Id);
-        if (current is null || string.Equals(current.Name, box.Text, StringComparison.Ordinal))
+        if (current is null || string.Equals(current.Name, name, StringComparison.Ordinal))
         {
             return;
         }
 
-        if (!await _rename(row.Id, box.Text))
+        if (!await _rename(row.Id, name))
         {
             // Blank or duplicate: put the stored name back so the list never shows an unsaved edit.
             row.Name = current.Name;
             MessageBox.Show(this, LocalizationService.Get("CollectionNameInvalid"), Title,
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
+    }
+
+    private bool _closingAfterRenameCommit;
+
+    /// <summary>
+    /// SP-0161 (APP-BEHAVIOUR rule 1): the exits are one path. The Close button commits a pending rename
+    /// because it takes focus, so Escape and the close box commit it too - the close is held while the
+    /// commit runs, then taken. A refused name reverts with its warning, the same answer Enter gives.
+    /// </summary>
+    protected override async void OnClosing(CancelEventArgs e)
+    {
+        try
+        {
+            if (_closingAfterRenameCommit)
+            {
+                base.OnClosing(e);
+                return;
+            }
+
+            var pending = PendingRenames().ToList();
+            if (pending.Count == 0)
+            {
+                base.OnClosing(e);
+                return;
+            }
+
+            e.Cancel = true;
+            foreach (var row in pending)
+            {
+                await ApplyRenameAsync(row, row.Name);
+            }
+
+            _closingAfterRenameCommit = true;
+            Close();
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(OnClosing), exception);
+        }
+    }
+
+    private IEnumerable<CollectionRowView> PendingRenames()
+    {
+        var stored = _read().ToDictionary(collection => collection.Id, collection => collection.Name);
+        return _rows.Where(row => stored.TryGetValue(row.Id, out var name)
+            && !string.Equals(name, row.Name, StringComparison.Ordinal));
     }
 
     private async void Delete_Click(object sender, RoutedEventArgs e)

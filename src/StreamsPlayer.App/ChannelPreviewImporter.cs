@@ -149,10 +149,13 @@ internal sealed class ChannelPreviewImporter
     /// across every supported Windows build, so "cannot decode" is an expected outcome to degrade on.
     /// </summary>
     /// <remarks>
-    /// A one-tile probe is sound only because the pack was verified against the manifest before it got
-    /// here: the bytes are the publisher's, so a decode failure is about this machine, not about this
-    /// file. Without that check a single corrupt tile would report the whole computer as incapable.
-    /// An empty pack is not "incapable" - it is a bad publish, and the loop reports it as zero seeded.
+    /// The probe reads the first slot only. The pack has passed the structural checks (it opens, every
+    /// slot name is a decimal, the per-tile ceiling held) and the publisher's tiles are all built by one
+    /// tool in one format, so a decode failure is almost always this machine's missing WebP codec rather
+    /// than the file. Since SP-0160 (item L) the manifest hashes no longer prove the bytes, so a corrupt
+    /// first tile would be misread as "cannot decode" - accepted as the cost of not probing thousands of
+    /// failed decodes on a codec-less machine. An empty pack is not "incapable" - it is a bad publish,
+    /// and the loop reports it as zero seeded.
     /// </remarks>
     private bool CanDecodeTiles(ChannelPreviewTilePack pack)
     {

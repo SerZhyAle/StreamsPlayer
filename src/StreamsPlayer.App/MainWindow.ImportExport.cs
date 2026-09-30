@@ -157,32 +157,55 @@ public partial class MainWindow
             return;
         }
 
+        // SP-0161: the transfer runs on this window's bar, where its Cancel button lives - a modal Tools
+        // window would sit over that button for the whole download (the TV-schedule download made the
+        // same move in SP-0128). The Tools window closes itself through CloseForRunningAction, so every
+        // dialog below is owned by this window, never by the one the action closed.
+        (owner as ToolsWindow)?.CloseForRunningAction();
+        await RunImportUrlDownloadAsync(prompt.PlaylistUrl);
+    }
+
+    private async Task RunImportUrlDownloadAsync(string playlistUrl)
+    {
         string text;
+        _cancellableOperation = new CancellationTokenSource();
         SetStatus("ImportDownloading");
-        SetBusy(true);
+        SetBusy(true, cancellable: true);
         try
         {
             var service = new M3uImportService(_httpClient);
-            text = await service.FetchAsync(prompt.PlaylistUrl);
+            text = await service.FetchAsync(playlistUrl, _cancellableOperation.Token);
         }
-        // SP-0129: TimeoutException (no head, or a silent body) and InvalidDataException (media rather than a
-        // playlist, or over the ceiling) are the service's bounded failures; both read as "could not import".
-        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException
+        // SP-0161: abandoning is not failing, so this precedes the general catch. A live link served
+        // with a generic type is exactly what the cancel exists for (SP-0129 R2).
+        catch (OperationCanceledException) when (_cancellableOperation?.IsCancellationRequested == true)
+        {
+            _log.Event("CANCEL", "op=import_url");
+            SetStatus("ImportUrlCancelled");
+            return;
+        }
+        // SP-0129: TimeoutException (no head, or a silent body) and InvalidDataException (media rather
+        // than a playlist, or over the ceiling) are the service's bounded failures. SP-0161 adds
+        // IOException - HttpIOException is what a body cut short or reset raises - so the import speaks
+        // for itself instead of landing in the handler guard. Both read as "could not import".
+        catch (Exception exception) when (exception is HttpRequestException or IOException or TaskCanceledException
             or DecoderFallbackException or InvalidOperationException or TimeoutException or InvalidDataException)
         {
             _log.Event("IMPORT FAIL", "source=url", $"reason={exception.GetType().Name}");
             var key = exception is DecoderFallbackException ? "ImportInvalidEncoding" : "ImportUrlFailed";
             SetStatus("ImportFailedStatus");
-            MessageBox.Show(owner, LocalizationService.Get(key), LocalizationService.Get("ImportListPlain"),
+            MessageBox.Show(this, LocalizationService.Get(key), LocalizationService.Get("ImportListPlain"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         finally
         {
             SetBusy(false);
+            _cancellableOperation?.Dispose();
+            _cancellableOperation = null;
         }
 
-        await ShowPreviewAndApplyAsync(CatalogUrlIdentity.Redact(prompt.PlaylistUrl), text, owner);
+        await ShowPreviewAndApplyAsync(CatalogUrlIdentity.Redact(playlistUrl), text, this);
     }
 
     private async Task ShowPreviewAndApplyAsync(string sourceLabel, string text, Window owner)

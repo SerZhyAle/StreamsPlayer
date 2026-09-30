@@ -27,20 +27,25 @@
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)] [string] $AppPath
+    [Parameter(Mandatory)] [string] $AppPath,
+
+    # The repository the verdict is about. Defaults to the one this script lives in; the worktree form is
+    # for observing the writer against a clean checkout that cannot yet carry the (uncommitted) writer
+    # itself, on the -PublishedVersions terms of assert-release-version.ps1.
+    [string] $Root
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$root = Split-Path $PSScriptRoot -Parent
+if (-not $Root) { $Root = Split-Path $PSScriptRoot -Parent }
 
-$propsPath = Join-Path $root 'Directory.Build.props'
+$propsPath = Join-Path $Root 'Directory.Build.props'
 $props = [xml](Get-Content -LiteralPath $propsPath -Raw)
 $version = ($props.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1)
 if (-not $version) { throw "Could not read <Version> from $propsPath." }
 if ($version -notmatch '^\d{2}\.\d{4}\.\d{4}$') { throw "Version '$version' must use the house stamp YY.MMDD.HHmm." }
 
-Push-Location $root
+Push-Location $Root
 try {
     $dirty = git status --porcelain
     if ($LASTEXITCODE -ne 0) { throw 'git status failed.' }
@@ -64,7 +69,7 @@ $verdict = [ordered]@{
     commit  = $commit
     when    = (Get-Date).ToString('yyyy-MM-ddTHH:mm:sszzz')
 }
-$folder = Join-Path $root 'release-verdicts'
+$folder = Join-Path $Root 'release-verdicts'
 New-Item -ItemType Directory -Path $folder -Force | Out-Null
 $path = Join-Path $folder "$version.json"
 $verdict | ConvertTo-Json | Set-Content -LiteralPath $path -Encoding utf8

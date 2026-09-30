@@ -64,7 +64,9 @@ public partial class MainWindow
     /// <summary>
     /// SP-0074: one line per attempt, so an archived session can answer why a station showed no track.
     /// Before this, every failure was swallowed and a station that could not be read looked exactly like
-    /// a station that announces nothing.
+    /// a station that announces nothing. SP-0172: each outcome also carries whether titles were
+    /// reported before it ended, so a reader that was working and then stopped is not logged as one
+    /// that never worked.
     /// </summary>
     /// <remarks>
     /// The host, never the address: a catalog URL may carry credentials and <see cref="Uri.Host"/> cannot.
@@ -78,27 +80,44 @@ public partial class MainWindow
         IProgress<string?> progress,
         CancellationToken cancellationToken)
     {
-        var statusOutcome = await new IcecastStatusReader(_statusHttpClient).ReadAsync(uri, progress, cancellationToken);
-        _log.Event("STATUS METADATA", $"outcome={statusOutcome}", $"host={uri.Host}");
+        var status = await new IcecastStatusReader(_statusHttpClient).ReadAsync(uri, progress, cancellationToken);
+        _log.Event("STATUS METADATA", $"outcome={status.Outcome}", $"titles={BoolText(status.TitlesReported)}", $"host={uri.Host}");
 
-        // A compatible status endpoint replaces the old full-stream metadata read for this session. Only
-        // an absent or malformed endpoint reaches ICY, so a normal Icecast server costs small status
-        // documents instead of a second continuous audio transfer.
-        if (statusOutcome is IcecastStatusReadOutcome.TitlesReported or IcecastStatusReadOutcome.Cancelled ||
-            cancellationToken.IsCancellationRequested)
+        if (cancellationToken.IsCancellationRequested || status.Outcome is IcecastStatusReadOutcome.Cancelled)
         {
+            // Playback stopped or switched: nothing to fall back from.
             return;
         }
 
+        if (status.TitlesReported)
+        {
+            // SP-0172: the endpoint worked and then gave up, so this fallback costs a second
+            // full-bitrate connection until the channel is relaunched - the expense SP-0131 built this
+            // feature to avoid. It is still the only remaining source of titles, but the log has to say
+            // why the session is paying for it.
+            _log.Event(
+                "STATUS METADATA",
+                "fallback=icy",
+                $"reason={status.Outcome}",
+                "the status endpoint reported titles and then kept failing; opening the full-stream ICY read");
+        }
+
+        // A compatible status endpoint replaces the old full-stream metadata read for this session. Only
+        // an absent or malformed endpoint - or one that gave up after reporting titles, above - reaches
+        // ICY, so a normal Icecast server costs small status documents instead of a second continuous
+        // audio transfer.
         var reader = new IcyMetadataReader(_icyHttpClient);
         var outcome = await reader.ReadAsync(url, progress, cancellationToken);
         // SP-0131: the decoding the titles needed, so a station whose text still looks wrong can be traced.
         _log.Event(
             "ICY METADATA",
-            $"outcome={outcome}",
+            $"outcome={outcome.Outcome}",
+            $"titles={BoolText(outcome.TitlesReported)}",
             $"text={reader.TextEncoding?.ToString() ?? "none"}",
             $"host={uri.Host}");
     }
+
+    private static string BoolText(bool value) => value ? "true" : "false";
 
     private void StopNowPlayingMetadata()
     {

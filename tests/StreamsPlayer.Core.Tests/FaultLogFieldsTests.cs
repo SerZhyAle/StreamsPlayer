@@ -1,0 +1,47 @@
+namespace StreamsPlayer.Core.Tests;
+
+public sealed class FaultLogFieldsTests
+{
+    private static Exception Thrown(Exception exception)
+    {
+        try
+        {
+            throw exception;
+        }
+        catch (Exception caught)
+        {
+            return caught;
+        }
+    }
+
+    [Fact]
+    public void DescribesTheTypeTheTextAndTheFrame()
+    {
+        var fields = FaultLogFields.Of(Thrown(new UnauthorizedAccessException("denied")));
+
+        Assert.Equal("type=UnauthorizedAccessException", fields[0]);
+        Assert.Equal("err=denied", fields[1]);
+        Assert.StartsWith("at=at ", fields[2]);
+        Assert.Contains(nameof(Thrown), fields[2]); // the frame that threw - the first line of the trace
+    }
+
+    [Fact]
+    public void AnExceptionThatWasNeverThrownHasNoFrame() =>
+        Assert.Equal("at=none", FaultLogFields.Of(new InvalidOperationException("x"))[2]);
+
+    [Fact]
+    public void AMultiLineMessageStaysOnOneLine()
+    {
+        var fields = FaultLogFields.Of(new InvalidOperationException("first\r\nsecond\nthird"));
+
+        Assert.DoesNotContain(fields, field => field.Contains('\n') || field.Contains('\r'));
+    }
+
+    [Fact]
+    public void ALongMessageIsCut()
+    {
+        var fields = FaultLogFields.Of(new InvalidOperationException(new string('x', 5000)));
+
+        Assert.Equal("err=".Length + FaultLogFields.MaximumMessageLength, fields[1].Length);
+    }
+}

@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -72,7 +71,7 @@ public partial class MainWindow
         nameof(MainHeaderVisibility), nameof(MainContentVisibility)
     ];
 
-    private async void PinnedHeader_Click(object sender, MouseButtonEventArgs e)
+    private async void PinnedHeader_Click(object sender, RoutedEventArgs e)
     {
         try
         {
@@ -98,7 +97,7 @@ public partial class MainWindow
         }
     }
 
-    private async void MainHeader_Click(object sender, MouseButtonEventArgs e)
+    private async void MainHeader_Click(object sender, RoutedEventArgs e)
     {
         try
         {

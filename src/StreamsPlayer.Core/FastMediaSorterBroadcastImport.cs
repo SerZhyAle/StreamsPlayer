@@ -23,11 +23,13 @@ public static class FastMediaSorterBroadcastImport
         ArgumentNullException.ThrowIfNull(descriptor);
 
         var channels = existingChannels.ToList();
-        var endpoint = descriptor.SelectAudioEndpoint();
+        // SP-0159: a video descriptor selects its declared RTSP endpoint; the kind follows the address,
+        // so a camera broadcast lands where the catalog's own RTSP rows land.
+        var endpoint = descriptor.SelectPlaybackEndpoint();
         var broadcast = new FastMediaSorterBroadcastInfo
         {
             SourceId = descriptor.SourceId,
-            Mode = FastMediaSorterBroadcastDescriptor.AudioOnlyMode,
+            Mode = descriptor.Mode,
             SelectedTransport = endpoint.Transport,
             Endpoints = descriptor.Endpoints,
             TargetLatencyMs = endpoint.TargetLatencyMs ?? descriptor.TargetLatencyMs
@@ -40,7 +42,7 @@ public static class FastMediaSorterBroadcastImport
             {
                 Url = endpoint.Url,
                 Title = string.IsNullOrWhiteSpace(descriptor.Title) ? existing.Title : descriptor.Title,
-                MediaKind = MediaKind.Audio,
+                MediaKind = StreamMediaKindClassifier.Classify(endpoint.Url),
                 IsLive = true,
                 FastMediaSorterBroadcast = broadcast
             };
@@ -56,7 +58,7 @@ public static class FastMediaSorterBroadcastImport
             Id = Guid.NewGuid(),
             Url = endpoint.Url,
             Title = title,
-            MediaKind = MediaKind.Audio,
+            MediaKind = StreamMediaKindClassifier.Classify(endpoint.Url),
             SourceOrigin = SourceOrigin.Imported,
             SortIndex = nextOrder,
             AddedAt = now,

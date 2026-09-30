@@ -25,22 +25,26 @@ correctly-identified Store package.
 | Store deep link | `ms-windows-store://pdp/?ProductId=9NBTD5SXB8TB` |
 | Web Store URL (after live) | `https://apps.microsoft.com/detail/9NBTD5SXB8TB` |
 
-To override for a one-off, pass the parameters explicitly:
+To override the identity for a one-off, pass the parameters explicitly:
 
 ```powershell
 .\msix\build-msix.ps1 `
   -IdentityName 'SZA.StreamsPlayer' `
   -Publisher 'CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD' `
-  -PublisherDisplayName 'SZA' `
-  -Version '26.0719.0131.0'
+  -PublisherDisplayName 'SZA'
 ```
 
-The application and release version uses `YY.MMDD.HHmm`; MSIX requires a fourth
-numeric component and **forbids leading zeros** in any part, so the script maps
-the identity version by dropping the zero-padding: `26.0723.0959` becomes package
-identity `26.723.959.0`. This stays monotonic and unique per minute. When
-`-Version` is omitted, the script derives it from the current UTC time. The
-three-part `YY.MMDD.HHmm` value is embedded in the application and shown in Settings.
+The version always comes from the `vYY.MMDD.HHmm` tag at HEAD: the script
+refuses a dirty working tree (it would pack edits no commit carries) and
+refuses a HEAD that is not exactly at the version tag, so a Store package
+always carries a version a tag publishes. Build it from a clean checkout at
+the tag - `git worktree add <dir> v<version>` when the main tree is busy - or
+follow scripts/release.ps1, which tags before the package is built. MSIX
+requires a fourth numeric component and **forbids leading zeros** in any part,
+so the script maps the tag's version by dropping the zero-padding:
+`26.0723.0959` becomes package identity `26.723.959.0`. This stays monotonic
+and unique per minute. The three-part `YY.MMDD.HHmm` value is embedded in the
+application and shown in Settings.
 
 The Store package must remain unsigned because Microsoft signs it during
 certification. For local sideload testing only, use

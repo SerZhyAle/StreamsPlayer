@@ -22,7 +22,7 @@ public partial class MainWindow
         // Mandatory, unlike the export gate it mirrors: a chat message is not revocable and is a strictly
         // easier leak path than a file the user chose where to save.
         if (CatalogUrlIdentity.HasCredentials(row.Channel.Url) &&
-            MessageBox.Show(this, LocalizationService.Get("ShareCredentialWarning"),
+            MessageBox.Show(DialogOwner, LocalizationService.Get("ShareCredentialWarning"),
                 LocalizationService.Get("MenuCopyShareText"), MessageBoxButton.YesNo, MessageBoxImage.Warning)
                 != MessageBoxResult.Yes)
         {
@@ -33,13 +33,13 @@ public partial class MainWindow
         {
             Clipboard.SetText(ChannelShareText.Format(row.Channel.Url));
             _log.Event("SHARE COPY", $"url={CatalogUrlIdentity.Redact(row.Channel.Url)}");
-            MessageBox.Show(this, LocalizationService.Get("ShareTextCopied"),
+            MessageBox.Show(DialogOwner, LocalizationService.Get("ShareTextCopied"),
                 LocalizationService.Get("MenuCopyShareText"), MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (COMException)
         {
             // Another process owns the clipboard; the same failure ChannelInfoWindow reports for its copy.
-            MessageBox.Show(this, LocalizationService.Get("ShareTextCopyFailed"),
+            MessageBox.Show(DialogOwner, LocalizationService.Get("ShareTextCopyFailed"),
                 LocalizationService.Get("MenuCopyShareText"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }

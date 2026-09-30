@@ -44,9 +44,12 @@ public sealed class TruncatedArchiveException(string message, InvalidDataExcepti
 /// cancelling the operation cancels the wait, and when the schedule is spent the last failure surfaces
 /// exactly as it did before this class existed.</para>
 /// <para>Only the three outcomes the contract calls expected are retried. A body over its ceiling, a
-/// CSV that does not parse, a manifest mismatch, a timeout, a DNS failure - each is still an error on the
-/// first attempt, because none of them is what a publish in progress looks like and repeating them would
-/// only make the user wait longer for the same message.</para>
+/// CSV that does not parse, a timeout, a DNS failure - each is still an error on the first attempt,
+/// because none of them is what a publish in progress looks like and repeating them would only make the
+/// user wait longer for the same message. (Since SP-0160 the artwork manifest's per-file mismatches are
+/// no longer errors at all - item L makes them diagnostics - and an absent or unparseable manifest is
+/// the nothing-case, whose 404 shape still reaches this classifier through its wrapper's inner
+/// exception.)</para>
 /// </remarks>
 public sealed class PublishWindowRetry
 {

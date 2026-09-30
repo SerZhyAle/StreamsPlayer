@@ -102,7 +102,7 @@ public partial class MainWindow
     {
         try
         {
-            return new VideoFrameCaptureService();
+            return new VideoFrameCaptureService((category, fields) => _log.Event(category, fields));
         }
         catch (Exception exception)
         {

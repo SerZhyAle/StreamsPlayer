@@ -110,6 +110,7 @@ public partial class MainWindow
         if (_rowCache.Remove(id, out var row))
         {
             UnindexUrl(row.Channel.Url, row);
+            _tvScheduleLines.Forget(row);
         }
 
         if (_selectedRow?.Channel.Id == id)

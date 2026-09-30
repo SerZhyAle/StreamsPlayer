@@ -68,10 +68,11 @@ public sealed class IcyMetadataReader
     /// stream carries no ICY metadata.
     /// </summary>
     /// <returns>
-    /// How the attempt ended, for the caller to log. Never throws: the mapping below is what turns a
-    /// failure into a value, and playback is never disturbed by anything on this path.
+    /// How the attempt ended, and whether titles were reported before then (SP-0172), for the caller to
+    /// log. Never throws: the mapping below is what turns a failure into a value, and playback is never
+    /// disturbed by anything on this path.
     /// </returns>
-    public async Task<IcyReadOutcome> ReadAsync(string url, IProgress<string?> onTitleChanged, CancellationToken cancellationToken)
+    public async Task<IcyReadResult> ReadAsync(string url, IProgress<string?> onTitleChanged, CancellationToken cancellationToken)
     {
         // A live station is almost always torn down mid-read rather than ending on its own, so without
         // this the common ending would be a bare "Cancelled" and the log could not tell a station that
@@ -85,25 +86,25 @@ public sealed class IcyMetadataReader
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             // Playback stopped, switched, or failed.
-            return sink.ReportedAny ? IcyReadOutcome.TitlesReported : IcyReadOutcome.Cancelled;
+            return new(IcyReadOutcome.Cancelled, sink.ReportedAny);
         }
         catch (OperationCanceledException)
         {
-            return IcyReadOutcome.TimedOut; // our own connect deadline, not the caller's teardown
+            return new(IcyReadOutcome.TimedOut, sink.ReportedAny); // our own connect deadline, not the caller's teardown
         }
         catch (Exception exception) when (exception is HttpRequestException or SocketException or IOException)
         {
-            return IcyReadOutcome.Unreachable;
+            return new(IcyReadOutcome.Unreachable, sink.ReportedAny);
         }
         catch
         {
             // Best-effort: any remaining protocol or decoding failure leaves the caller's station-only
             // presentation intact. Core stays log-free; the value is what the App reports.
-            return IcyReadOutcome.Malformed;
+            return new(IcyReadOutcome.Malformed, sink.ReportedAny);
         }
     }
 
-    private async Task<IcyReadOutcome> ReadCoreAsync(string url, IProgress<string?> onTitleChanged, CancellationToken cancellationToken)
+    private async Task<IcyReadResult> ReadCoreAsync(string url, TitleSink onTitleChanged, CancellationToken cancellationToken)
     {
         using var connectDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         connectDeadline.CancelAfter(_connectTimeout);
@@ -132,7 +133,7 @@ public sealed class IcyMetadataReader
 
             if (!TryGetMetaInterval(response, out var metaInterval))
             {
-                return IcyReadOutcome.NoMetadataOffered; // the station says it carries no metadata
+                return new(IcyReadOutcome.NoMetadataOffered, onTitleChanged.ReportedAny); // the station says it carries no metadata
             }
 
             await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
@@ -153,7 +154,7 @@ public sealed class IcyMetadataReader
     /// by our own stack rather than by the station, and a station that drops this one is left alone until
     /// the channel is launched again.</para>
     /// </remarks>
-    internal async Task<IcyReadOutcome> ReadViaSocketAsync(
+    internal async Task<IcyReadResult> ReadViaSocketAsync(
         string url,
         IProgress<string?> onTitleChanged,
         CancellationToken connectDeadline,
@@ -161,7 +162,7 @@ public sealed class IcyMetadataReader
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttp)
         {
-            return IcyReadOutcome.StatusLineRefused;
+            return new(IcyReadOutcome.StatusLineRefused, TitlesReported: false);
         }
 
         using var client = new TcpClient();
@@ -179,12 +180,13 @@ public sealed class IcyMetadataReader
         var head = await IcyResponseHead.ReadAsync(stream, connectDeadline);
         if (head is null || head.StatusCode != 200)
         {
-            return IcyReadOutcome.Malformed;
+            // Reached before any body byte, so no title can have been reported yet.
+            return new(IcyReadOutcome.Malformed, TitlesReported: false);
         }
 
         if (!TryParseMetaInterval(head["icy-metaint"], out var metaInterval))
         {
-            return IcyReadOutcome.NoMetadataOffered;
+            return new(IcyReadOutcome.NoMetadataOffered, TitlesReported: false);
         }
 
         return await PumpAsync(stream, metaInterval, onTitleChanged, cancellationToken);
@@ -214,7 +216,7 @@ public sealed class IcyMetadataReader
     private static bool TryParseMetaInterval(string? value, out int metaInterval) =>
         (metaInterval = int.TryParse(value, out var parsed) && parsed > 0 && parsed <= MaxMetaInterval ? parsed : 0) > 0;
 
-    private async Task<IcyReadOutcome> PumpAsync(
+    private async Task<IcyReadResult> PumpAsync(
         Stream stream,
         int metaInterval,
         IProgress<string?> onTitleChanged,
@@ -273,11 +275,11 @@ public sealed class IcyMetadataReader
     }
 
     /// <summary>
-    /// A stream that ended after saying something is a success that finished, not a failure - the
-    /// distinction is the whole point of the log line this feeds.
+    /// A stream that ended is recorded as ended; whether it said anything first rides on the result's
+    /// flag - the distinction is the whole point of the log line this feeds.
     /// </summary>
-    private static IcyReadOutcome Ended(bool reportedAny) =>
-        reportedAny ? IcyReadOutcome.TitlesReported : IcyReadOutcome.StreamEnded;
+    private static IcyReadResult Ended(bool reportedAny) =>
+        new(IcyReadOutcome.StreamEnded, reportedAny);
 
     /// <summary>
     /// Forwards every title to the caller and remembers whether any real one went through, so the

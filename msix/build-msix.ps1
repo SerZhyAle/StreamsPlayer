@@ -51,18 +51,29 @@ function Find-SdkTool([string] $Name) {
     throw "$Name was not found. Install the Windows SDK: winget install Microsoft.WindowsSDK"
 }
 
-if (-not $Version) {
-    # Local time, not UTC: the stamp exists to tell the owner when the package was built, read against
-    # his own clock. This script only ever runs on his machine, so machine-local is that clock.
-    $Version = "$((Get-Date).ToString('yy.MMdd.HHmm')).0"
+# SP-0156 (T-03): the version comes from the version tag at HEAD, never from the clock and never from a
+# hand-typed value, and the tree is packed only when it is exactly that tag - the Store has already
+# shipped a version no tag carries (26.0806.2225). The checklist builds the package after the tag exists
+# locally and before it is pushed.
+Push-Location $root
+try {
+    $dirty = git status --porcelain
+    if ($LASTEXITCODE -ne 0) { throw 'git status failed.' }
+    if ($dirty) {
+        throw "The working tree is not clean - the package would pack edits no commit carries. Build the Store package from a clean checkout at the version tag: git worktree add <dir> v<version> (msix/README.md)."
+    }
+    $tag = git describe --exact-match --tags HEAD 2>$null
+    if ($LASTEXITCODE -ne 0 -or $tag -cnotmatch '^v\d{2}\.\d{4}\.\d{4}$') {
+        throw "HEAD is not exactly at a vYY.MMDD.HHmm tag ($((git describe --tags --always HEAD))). The Store package takes its version from the tag; tag this commit first (the checklist tags before the package is built and before the tag is pushed)."
+    }
 }
-if ($Version -notmatch '^\d{2}\.\d{4}\.\d{4}\.0$') { throw 'Version must use YY.MMDD.HHmm.0.' }
-$appVersion = $Version.Substring(0, $Version.Length - 2)
+finally { Pop-Location }
+$appVersion = $tag.Substring(1)
 [DateTime]::ParseExact($appVersion, 'yy.MMdd.HHmm', [Globalization.CultureInfo]::InvariantCulture) | Out-Null
 # The MSIX Identity Version schema forbids leading zeros in any part (e.g. 26.0723.0957.0 is
 # rejected), so convert each component to an integer: 26.0723.0957.0 -> 26.723.957.0. This is
 # still monotonic and unique per minute (MMDD and HHmm as ints preserve ordering).
-$msixVersion = ($Version.Split('.') | ForEach-Object { [int]$_ }) -join '.'
+$msixVersion = ($appVersion.Split('.') | ForEach-Object { [int]$_ }) -join '.'
 foreach ($part in $msixVersion.Split('.')) { if ([int]$part -gt 65535) { throw "Version part '$part' exceeds 65535." } }
 
 $makeappx = Find-SdkTool 'makeappx.exe'

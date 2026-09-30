@@ -7,7 +7,8 @@ namespace StreamsPlayer.Core.Tests;
 
 /// <summary>
 /// SP-0131: every <see cref="IcyReadOutcome"/> the reader can return, and the Shoutcast v1 socket fallback
-/// of SP-0074, each against a loopback server scripted to produce it.
+/// of SP-0074, each against a loopback server scripted to produce it. SP-0172: every result also records
+/// whether titles were reported before the attempt ended.
 /// </summary>
 public sealed class IcyReadOutcomeTests
 {
@@ -33,7 +34,9 @@ public sealed class IcyReadOutcomeTests
         await recorder.First.WaitAsync(TestDeadline);
         cts.Cancel();
 
-        Assert.Equal(IcyReadOutcome.TitlesReported, await read);
+        var result = await read;
+        Assert.Equal(IcyReadOutcome.Cancelled, result.Outcome);
+        Assert.True(result.TitlesReported);
         Assert.Equal(["Кино - Звезда"], recorder.Titles);
         Assert.Equal(IcyTextEncoding.Windows1251, reader.TextEncoding);
         Assert.Equal(2, server.Connections); // the refused HTTP attempt, then the socket
@@ -45,7 +48,7 @@ public sealed class IcyReadOutcomeTests
         using var server = LoopbackServer.Start((stream, token) =>
             WriteAsciiAsync(stream, "ICY 404 Resource Not Found\r\n\r\n", token));
 
-        Assert.Equal(IcyReadOutcome.Malformed, await ReadAsync(server.Url));
+        Assert.Equal(IcyReadOutcome.Malformed, await OutcomeOf(server.Url));
     }
 
     [Fact]
@@ -54,7 +57,7 @@ public sealed class IcyReadOutcomeTests
         using var server = LoopbackServer.Start((stream, token) =>
             WriteAsciiAsync(stream, "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n", token));
 
-        Assert.Equal(IcyReadOutcome.Unreachable, await ReadAsync(server.Url));
+        Assert.Equal(IcyReadOutcome.Unreachable, await OutcomeOf(server.Url));
     }
 
     [Fact]
@@ -62,10 +65,10 @@ public sealed class IcyReadOutcomeTests
     {
         using var cts = new CancellationTokenSource(TestDeadline);
 
-        var outcome = await NewReader().ReadViaSocketAsync(
+        var result = await NewReader().ReadViaSocketAsync(
             "https://127.0.0.1:1/live", new TitleRecorder(), cts.Token, cts.Token);
 
-        Assert.Equal(IcyReadOutcome.StatusLineRefused, outcome);
+        Assert.Equal(IcyReadOutcome.StatusLineRefused, result.Outcome);
     }
 
     [Fact]
@@ -77,7 +80,7 @@ public sealed class IcyReadOutcomeTests
             await stream.WriteAsync(new byte[64], token);
         });
 
-        Assert.Equal(IcyReadOutcome.NoMetadataOffered, await ReadAsync(server.Url));
+        Assert.Equal(IcyReadOutcome.NoMetadataOffered, await OutcomeOf(server.Url));
     }
 
     [Fact]
@@ -89,11 +92,11 @@ public sealed class IcyReadOutcomeTests
             await stream.WriteAsync(new byte[8], token);
         });
 
-        Assert.Equal(IcyReadOutcome.StreamEnded, await ReadAsync(server.Url));
+        Assert.Equal(IcyReadOutcome.StreamEnded, await OutcomeOf(server.Url));
     }
 
     [Fact]
-    public async Task StreamEndingAfterATitleIsTitlesReported()
+    public async Task StreamEndingAfterATitleRecordsTheTitles()
     {
         using var server = LoopbackServer.Start(async (stream, token) =>
         {
@@ -105,9 +108,36 @@ public sealed class IcyReadOutcomeTests
         var reader = NewReader();
         using var cts = new CancellationTokenSource(TestDeadline);
 
-        Assert.Equal(IcyReadOutcome.TitlesReported, await reader.ReadAsync(server.Url, recorder, cts.Token));
+        var result = await reader.ReadAsync(server.Url, recorder, cts.Token);
+        Assert.Equal(IcyReadOutcome.StreamEnded, result.Outcome);
+        Assert.True(result.TitlesReported);
         Assert.Equal(["Beyoncé - Halo"], recorder.Titles);
         Assert.Equal(IcyTextEncoding.Utf8, reader.TextEncoding);
+    }
+
+    /// <summary>
+    /// SP-0172: the silence timeout used to erase the hour of titles that came before it. The outcome
+    /// stays <see cref="IcyReadOutcome.TimedOut"/> - the station did go silent - and the flag says the
+    /// read was working when it happened.
+    /// </summary>
+    [Fact]
+    public async Task FallingSilentAfterATitleTimesOutSayingSo()
+    {
+        using var server = LoopbackServer.Start(async (stream, token) =>
+        {
+            await WriteAsciiAsync(stream, MetaIntHead, token);
+            await stream.WriteAsync(new byte[16], token);
+            await WriteBlockAsync(stream, Encoding.UTF8.GetBytes("StreamTitle='Beyoncé - Halo';"), token);
+            await Task.Delay(Timeout.Infinite, token);
+        });
+        var recorder = new TitleRecorder();
+        using var cts = new CancellationTokenSource(TestDeadline);
+
+        var result = await NewReader().ReadAsync(server.Url, recorder, cts.Token);
+
+        Assert.Equal(IcyReadOutcome.TimedOut, result.Outcome);
+        Assert.True(result.TitlesReported);
+        Assert.Equal(["Beyoncé - Halo"], recorder.Titles);
     }
 
     [Fact]
@@ -120,9 +150,10 @@ public sealed class IcyReadOutcomeTests
         });
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
 
-        var outcome = await NewReader().ReadAsync(server.Url, new TitleRecorder(), cts.Token);
+        var result = await NewReader().ReadAsync(server.Url, new TitleRecorder(), cts.Token);
 
-        Assert.Equal(IcyReadOutcome.Cancelled, outcome);
+        Assert.Equal(IcyReadOutcome.Cancelled, result.Outcome);
+        Assert.False(result.TitlesReported);
     }
 
     [Fact]
@@ -137,9 +168,10 @@ public sealed class IcyReadOutcomeTests
         var reader = new IcyMetadataReader(SharedClient, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(1));
         using var cts = new CancellationTokenSource(TestDeadline);
 
-        Assert.Equal(
-            IcyReadOutcome.Unreachable,
-            await reader.ReadAsync($"http://127.0.0.1:{port}/", new TitleRecorder(), cts.Token));
+        var result = await reader.ReadAsync($"http://127.0.0.1:{port}/", new TitleRecorder(), cts.Token);
+
+        Assert.Equal(IcyReadOutcome.Unreachable, result.Outcome);
+        Assert.False(result.TitlesReported);
     }
 
     [Fact]
@@ -147,7 +179,7 @@ public sealed class IcyReadOutcomeTests
     {
         using var server = LoopbackServer.Start((_, token) => Task.Delay(Timeout.Infinite, token));
 
-        Assert.Equal(IcyReadOutcome.TimedOut, await ReadAsync(server.Url));
+        Assert.Equal(IcyReadOutcome.TimedOut, await OutcomeOf(server.Url));
     }
 
     [Fact]
@@ -159,7 +191,7 @@ public sealed class IcyReadOutcomeTests
             await Task.Delay(Timeout.Infinite, token);
         });
 
-        Assert.Equal(IcyReadOutcome.TimedOut, await ReadAsync(server.Url));
+        Assert.Equal(IcyReadOutcome.TimedOut, await OutcomeOf(server.Url));
     }
 
     private const string MetaIntHead =
@@ -170,7 +202,15 @@ public sealed class IcyReadOutcomeTests
 
     private static readonly HttpClient SharedClient = new() { Timeout = Timeout.InfiniteTimeSpan };
 
-    private static async Task<IcyReadOutcome> ReadAsync(string url)
+    /// <summary>The outcome of a read expected to have reported nothing; the flag is checked here.</summary>
+    private static async Task<IcyReadOutcome> OutcomeOf(string url)
+    {
+        var result = await ReadResult(url);
+        Assert.False(result.TitlesReported);
+        return result.Outcome;
+    }
+
+    private static async Task<IcyReadResult> ReadResult(string url)
     {
         using var cts = new CancellationTokenSource(TestDeadline);
         return await NewReader().ReadAsync(url, new TitleRecorder(), cts.Token);

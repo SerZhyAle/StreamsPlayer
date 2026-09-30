@@ -105,7 +105,15 @@ public sealed class WaveParticlesBackdropSession
         _front.Render(_visual);
         _model.Resize(width, height);
         _points = new double[_model.LinePointCount * 2];
-        _lastWash = wash;
+
+        // SP-0162: _lastWash names the colour the picture was drawn against, and a carried picture was not
+        // drawn against this one. Recording `wash` here made EnsureStill believe a frozen frame from a dark
+        // card already suited the light compact panel it had just been resized for, so the old surface's
+        // picture stayed under the new one (WAVE-PARTICLES rule 7, SP-0110).
+        if (carried is null)
+        {
+            _lastWash = wash;
+        }
     }
 
     /// <summary>Advances by real elapsed time and draws one frame.</summary>

@@ -58,6 +58,8 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     private double _liveEdgeSpeed = 1d;
     private int _selectedAudioPos = -1;
     private int _selectedSubtitlePos = -1;
+    private volatile TrackSnapshot _audioTracks = TrackSnapshot.Empty;
+    private volatile TrackSnapshot _subtitleTracks = TrackSnapshot.Empty;
     // SP-0121: the segment being written. Touched only under _mediaGate.
     private RecordingSegment? _segment;
     // SP-0120: the same Play/teardown protection LibVlcVideoBackend has always had. A recovery or quality re-open
@@ -68,6 +70,18 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     // Set on the UI thread as the first act of StopAndDisposeAsync, so every UI-thread reading after that point
     // returns its neutral value instead of reaching a player that a pool thread is disposing.
     private volatile bool _released;
+
+    // SP-0165: the latest title the background sampler read out of the demuxer, published for the stats tick to
+    // return without touching the engine. FlyleafLib holds lockFmtCtx across opening an input and across every
+    // frame read, so the read itself can wait seconds on a live source - taking it on the UI thread froze the
+    // whole window, the open budget and the freeze watchdog with it. Volatile: one pool-thread writer, one
+    // UI-thread reader.
+    private volatile string? _publishedNowPlaying;
+    // A recurring sampler fault is logged once, not every two seconds for the rest of the session.
+    private int _nowPlayingFaultReported;
+
+    /// <summary>How often the sampler re-reads the demuxer's ICY block. Matches the stats tick that consumes it.</summary>
+    private static readonly TimeSpan NowPlayingSampleInterval = TimeSpan.FromSeconds(2);
 
     public FlyleafVideoBackend(int volume, bool muted, CurrentLog log)
     {
@@ -92,9 +106,13 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         {
             // The factory falls back to LibVLC on any construction failure; without this the half-built
             // player (and its FFmpeg/DirectX resources) would be unreachable and never disposed.
+            // Released is also what stops the sampler here: teardown will never run to set it.
+            _released = true;
             _player.Dispose();
             throw;
         }
+
+        _ = Task.Run(RunNowPlayingSamplerAsync); // SP-0165: the demuxer read never runs on the UI thread
     }
 
     public FrameworkElement View => _host;
@@ -304,6 +322,9 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         }
 
         _lastUrl = url.ToString();
+        _audioTracks = TrackSnapshot.Empty; // the previous source's tracks are not this one's
+        _subtitleTracks = TrackSnapshot.Empty;
+        _publishedNowPlaying = null; // and the previous source's title is not this one's either
         _player.OpenAsync(_lastUrl); // rejection/failure surfaces via OpenCompleted / PlaybackStopped -> EncounteredError
         return true;
     }
@@ -396,9 +417,12 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         }
     }
 
-    public IReadOnlyList<VideoTrack> AudioTracks => IsReleased ? [] : Map(_player.Audio.Streams);
+    // SP-0166: the UI reads these from a snapshot this class publishes when an open completes, never from the
+    // engine's live stream lists. The engine clears and refills those under its own lock on a re-open, and an
+    // enumeration that lands in that window throws on the UI thread - out of a menu click, which ends the app.
+    public IReadOnlyList<VideoTrack> AudioTracks => IsReleased ? [] : _audioTracks.Tracks;
 
-    public IReadOnlyList<VideoTrack> SubtitleTracks => IsReleased ? [] : Map(_player.Subtitles.Streams);
+    public IReadOnlyList<VideoTrack> SubtitleTracks => IsReleased ? [] : _subtitleTracks.Tracks;
 
     public int SelectedAudioTrackId => IsReleased ? -1 : _selectedAudioPos;
 
@@ -406,20 +430,52 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
 
     public void SelectAudioTrack(int id)
     {
-        if (!IsReleased && id >= 0 && id < _player.Audio.Streams.Count)
+        var openers = _audioTracks.Openers;
+        if (!IsReleased && id >= 0 && id < openers.Length)
         {
             _selectedAudioPos = id;
-            _player.OpenAsync(_player.Audio.Streams[id]);
+            openers[id]();
         }
     }
 
     public void SelectSubtitleTrack(int id)
     {
-        if (!IsReleased && id >= 0 && id < _player.Subtitles.Streams.Count)
+        var openers = _subtitleTracks.Openers;
+        if (!IsReleased && id >= 0 && id < openers.Length)
         {
             _selectedSubtitlePos = id;
-            _player.OpenAsync(_player.Subtitles.Streams[id]);
+            openers[id]();
         }
+    }
+
+    /// <summary>
+    /// Publishes the engine's current audio and subtitle streams. Called from the engine's own open-completed
+    /// callback, after it finished filling the lists, so the copy is taken on the side that owns them. A copy that
+    /// still fails keeps the previous snapshot: a menu that is one open behind beats one that ends the app.
+    /// </summary>
+    private void PublishTrackSnapshots()
+    {
+        try
+        {
+            _audioTracks = Capture(_player.Audio.Streams, stream => _player.OpenAsync(stream));
+            _subtitleTracks = Capture(_player.Subtitles.Streams, stream => _player.OpenAsync(stream));
+        }
+        catch (Exception exception)
+        {
+            _log.Event("FLYLEAF TRACKS", "snapshot=failed", $"type={exception.GetType().Name}", $"err={exception.Message}");
+        }
+    }
+
+    private static TrackSnapshot Capture<T>(IEnumerable<T> streams, Action<T> open)
+    {
+        var copy = streams.ToArray();
+        return new TrackSnapshot(Map(copy), [.. copy.Select(stream => (Action)(() => open(stream)))]);
+    }
+
+    /// <summary>One published copy of a track list, with the action that opens each entry.</summary>
+    private sealed record TrackSnapshot(VideoTrack[] Tracks, Action[] Openers)
+    {
+        public static readonly TrackSnapshot Empty = new([], []);
     }
 
     // FlyleafLib exposes no LibVLC-style input/demux counter surface; documented experimental gap.
@@ -478,32 +534,72 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
             : null;
 
     /// <summary>
-    /// SP-0073: what the stream says is on air, read from the demuxer's own format context.
+    /// SP-0165: what the stream says is on air - the title the background sampler last published.
     /// </summary>
     /// <remarks>
-    /// The one place in this assembly that needs pointer syntax, and the reason is measured rather than
-    /// assumed: FlyleafLib fills <c>Demuxer.Metadata</c> once, in <c>FillInfo()</c> during <c>Open()</c>,
-    /// and nothing in its demux loop refreshes it - the library never checks FFmpeg's
-    /// <c>AVFMT_EVENT_FLAG_METADATA_UPDATED</c>. Polling that property would therefore report whatever
-    /// the stream said at open, unchanged, for the life of the leg. The owner asked for parity with the
-    /// LibVLC engine knowing this cost.
-    /// <para>What is read instead is FFmpeg's live <c>icy_metadata_packet</c> option on the AVIOContext,
-    /// which the HTTP protocol rewrites as each metadata block arrives. Its payload is the
-    /// <c>StreamTitle='..';</c> block <see cref="IcyMetadataParser"/> already parses, so nothing new is
-    /// needed to read it. <c>fmtCtx-&gt;metadata</c> is the fallback for a source that routes the title
-    /// through the format dictionary rather than through ICY.</para>
-    /// <para>Two rules make this safe to run from the UI thread's stats tick while the window may be
-    /// closing: everything touching the context happens under FlyleafLib's own <c>lockFmtCtx</c>, which
-    /// is the lock the library takes when it disposes that context, and every failure path returns null
-    /// rather than throwing at a caller that is repainting a panel.</para>
+    /// The stats tick calls this every two seconds on the UI thread, so it only ever reads a value the
+    /// engine side has already published; the lock the demuxer read needs is taken off this thread, in
+    /// <see cref="RunNowPlayingSamplerAsync"/>. Worst-case staleness is one sampler period plus one tick,
+    /// which the tracker's own ten-second minimum hold makes invisible. Every failure path returns null
+    /// rather than throwing at a caller that is repainting a panel.
     /// </remarks>
-    public unsafe string? ReadNowPlaying()
-    {
-        if (IsReleased)
-        {
-            return null;
-        }
+    public string? ReadNowPlaying() => IsReleased ? null : _publishedNowPlaying;
 
+    /// <summary>
+    /// SP-0165: reads the demuxer's ICY block every two seconds on the pool and publishes the title.
+    /// </summary>
+    /// <remarks>
+    /// Everything touching the context happens under FlyleafLib's own <c>lockFmtCtx</c>, which is the lock
+    /// the library holds across opening an input and across every frame read (open timeout up to 300 s, live
+    /// read timeout 20 s) and takes again when it disposes that context. Two consequences shape this loop.
+    /// The read can block for seconds on a re-open or a waiting read, so it lives here, on the pool, inside
+    /// <see cref="_mediaGate"/> - the same gate teardown holds while disposing the player, so a demuxer read
+    /// and a disposal cannot overlap. And the published title belongs to the leg it was read on: the loop
+    /// captures <see cref="_lastUrl"/> around the engine call and drops the answer when it changed, so a
+    /// station switch never paints the previous station's title under the new one.
+    /// <para>The demuxer source of the title is SP-0073's measured choice: FlyleafLib fills
+    /// <c>Demuxer.Metadata</c> once at open and never refreshes it, so what is read is FFmpeg's live
+    /// <c>icy_metadata_packet</c> option on the AVIOContext - the <c>StreamTitle='..';</c> block
+    /// <see cref="IcyMetadataParser"/> already parses - with <c>fmtCtx-&gt;metadata</c> as the fallback for a
+    /// source that routes the title through the format dictionary.</para>
+    /// </remarks>
+    private async Task RunNowPlayingSamplerAsync()
+    {
+        while (!IsReleased)
+        {
+            var urlAtRead = _lastUrl;
+            string? title = null;
+            try
+            {
+                lock (_mediaGate)
+                {
+                    if (!IsReleased && !_disposed)
+                    {
+                        title = ReadNowPlayingUnderLock();
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                if (Interlocked.Exchange(ref _nowPlayingFaultReported, 1) == 0)
+                {
+                    _log.Event("FLYLEAF NOW PLAYING", "ok=false", $"err={exception.Message}");
+                }
+            }
+
+            // A leg switch during the read means the answer describes a station that is already gone.
+            if (ReferenceEquals(urlAtRead, _lastUrl))
+            {
+                _publishedNowPlaying = title;
+            }
+
+            await Task.Delay(NowPlayingSampleInterval);
+        }
+    }
+
+    /// <summary>One demuxer read under FlyleafLib's own context lock. Runs on the sampler's pool thread only.</summary>
+    private unsafe string? ReadNowPlayingUnderLock()
+    {
         var demuxer = _player.MainDemuxer;
         if (demuxer is null)
         {
@@ -599,15 +695,24 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
 
     private void OnOpenCompleted(object? sender, OpenCompletedArgs e)
     {
-        if (e.Success)
+        // SP-0166: raised on the engine's thread, which nothing guards; a fault costs this notification only.
+        try
         {
-            TracksChanged?.Invoke(); // embedded streams are populated after a successful open
-            ApplyLiveEdgeCorridor(); // SP-0078: only now is it known whether this source has a live edge
+            if (e.Success)
+            {
+                PublishTrackSnapshots(); // before TracksChanged: the UI reads the snapshot when it is told
+                TracksChanged?.Invoke(); // embedded streams are populated after a successful open
+                ApplyLiveEdgeCorridor(); // SP-0078: only now is it known whether this source has a live edge
+            }
+            else
+            {
+                _log.Event("FLYLEAF ERROR", "source=open", $"url={_lastUrl}");
+                EncounteredError?.Invoke();
+            }
         }
-        else
+        catch (Exception exception)
         {
-            _log.Event("FLYLEAF ERROR", "source=open", $"url={_lastUrl}");
-            EncounteredError?.Invoke();
+            HandlerBoundary.Report("FlyleafVideoBackend.OpenCompleted", exception, notifyUser: false);
         }
     }
 

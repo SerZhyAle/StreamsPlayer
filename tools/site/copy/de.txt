@@ -163,7 +163,7 @@ Live-Puffer von etwa 15 Sekunden, und das Video pendelt sich auf der Qualität e
 Nehmen Sie das laufende Live-Video oder Radio direkt in eine Datei auf, ohne die Wiedergabe zu unterbrechen: Video landet im Ordner Recordings unter Videos, Radio im Ordner Recordings unter Musik oder in Ordnern Ihrer Wahl.
 
 @@cap-play-6
-Hören Sie eine Live-Audioübertragung von einem Telefon oder einer Uhr mit FastMediaSorter, direkt über Ihr lokales Netzwerk - ohne Server dazwischen.
+Hören Sie eine Live-Audio- oder Videoübertragung von einem Telefon oder einer Uhr mit FastMediaSorter, direkt über Ihr lokales Netzwerk - ohne Server dazwischen.
 
 @@cap-window-title
 Ansicht nach Ihrem Wunsch

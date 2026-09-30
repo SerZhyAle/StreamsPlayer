@@ -1,7 +1,7 @@
 namespace StreamsPlayer.Core;
 
 /// <summary>
-/// SP-0074: how one metadata attempt ended. The reader used to swallow every failure so that nothing
+/// SP-0074: why one metadata attempt ended. The reader used to swallow every failure so that nothing
 /// could disturb playback, which left "this station announces nothing" and "we could not read what it
 /// announces" as the same observable event - silence. It still never throws at the caller; it returns
 /// this instead, and the App writes one line of it to the session log.
@@ -9,29 +9,24 @@ namespace StreamsPlayer.Core;
 /// <remarks>
 /// Values name what a person reading a log can act on, not what the exception type was. Two failures
 /// that lead to the same conclusion share a value on purpose.
+/// <para>SP-0172: whether titles were reported before the attempt ended is not a value here but the
+/// <see cref="IcyReadResult.TitlesReported"/> flag on the result - one flag instead of a reported-titles
+/// twin of every value, so a new way to fail cannot forget the fact.</para>
 /// </remarks>
 public enum IcyReadOutcome
 {
     /// <summary>
-    /// Playback stopped, switched, or failed and the read was torn down having never read a title.
-    /// <para>The station connected and offered metadata; it just had not sent any by the time the user
-    /// moved on. Distinct from <see cref="TitlesReported"/> on purpose - a read that was working is not
-    /// the same event as one that was merely open, and a log that called both "cancelled" would answer
-    /// none of the questions this ticket asks.</para>
+    /// Playback stopped, switched, or failed and the read was torn down. Whether the station had
+    /// already been announcing tracks is the result's <see cref="IcyReadResult.TitlesReported"/>:
+    /// a read that was working is not the same event as one that was merely open.
     /// </summary>
     Cancelled,
-
-    /// <summary>
-    /// At least one track title was read and reported. The success this ticket is counting - and the
-    /// value a live station normally ends on, because its read is torn down rather than finished.
-    /// </summary>
-    TitlesReported,
 
     /// <summary>The station answered, and said it carries no metadata. Nothing is wrong; this is the
     /// honest "this broadcaster does not tell anyone what is playing".</summary>
     NoMetadataOffered,
 
-    /// <summary>The station offered metadata and then ended the stream before sending any.</summary>
+    /// <summary>The station offered metadata and then ended the stream.</summary>
     StreamEnded,
 
     /// <summary>

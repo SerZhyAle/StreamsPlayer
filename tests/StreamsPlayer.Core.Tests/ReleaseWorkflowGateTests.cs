@@ -38,6 +38,18 @@ public sealed class ReleaseWorkflowGateTests
         Assert.Contains("version -ne $env:RELEASE_VERSION", step.Value, StringComparison.Ordinal);
     }
 
+    // SP-0180: a release is also an audited release; the verdict gate runs before anything is built.
+    [Fact]
+    public void Release_RefusesToBuildWithoutTheCodeAuditVerdictForTheTaggedVersion()
+    {
+        var step = Regex.Match(Release, @"- name: Require the code-audit verdict for this version(?s).*?(?=- name:)");
+        Assert.True(step.Success, "release.yml no longer gates the release on the committed code-audit verdict.");
+        Assert.Contains("Assert-AuditVerdict.ps1 -Version $env:RELEASE_VERSION", step.Value, StringComparison.Ordinal);
+        Assert.True(
+            step.Index < Release.IndexOf("actions/setup-dotnet", StringComparison.Ordinal),
+            "The code-audit gate must run before the build starts.");
+    }
+
     [Fact]
     public void Release_AppliesThePinnedNativesCheckToThePayload()
     {

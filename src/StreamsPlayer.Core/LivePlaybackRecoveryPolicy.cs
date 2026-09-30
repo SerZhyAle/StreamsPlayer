@@ -72,6 +72,25 @@ public sealed class LivePlaybackRecoveryPolicy
     /// <summary>Resets every budget after the stream reaches sustained live playback.</summary>
     public void NotifyLive() => Reset();
 
+    /// <summary>
+    /// SP-0169: how long a leg must have played before its recovery budget is handed back. Reaching Playing
+    /// proves only that a connection opened; a station that opens and drops within seconds - over and over -
+    /// would otherwise start every leg with a full budget and never reach the terminal dialog.
+    /// </summary>
+    public static readonly TimeSpan SustainedLiveAfter = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// SP-0169: a leg that was playing has ended after <paramref name="playedFor"/>. Restores every budget
+    /// only when that was long enough to count as sustained; a shorter leg leaves the spent attempts spent.
+    /// </summary>
+    public void NotifyLegPlayed(TimeSpan playedFor)
+    {
+        if (playedFor >= SustainedLiveAfter)
+        {
+            Reset();
+        }
+    }
+
     /// <summary>Clears all consecutive-attempt counters.</summary>
     public void Reset()
     {

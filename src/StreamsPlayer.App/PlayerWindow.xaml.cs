@@ -1146,7 +1146,7 @@ public partial class PlayerWindow : Window
             .Where(collection => collection.ChannelIds.Contains(_channel.Id))
             .Select(collection => collection.Name)
             .ToArray();
-        new ChannelInfoWindow(_channel, collections, DescribeTransmission) { Owner = this }.ShowDialog();
+        new ChannelInfoWindow(_channel, collections, DescribeTransmission, (tag, fields) => _log.Event(tag, fields)) { Owner = this }.ShowDialog();
     }
 
     private MenuItem BuildCollectionMenu()

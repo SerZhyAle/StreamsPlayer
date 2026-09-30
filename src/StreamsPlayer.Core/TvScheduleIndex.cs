@@ -6,17 +6,23 @@ namespace StreamsPlayer.Core;
 /// </summary>
 public sealed class TvScheduleIndex
 {
-    public static readonly TvScheduleIndex Empty = new(null, [], [], new Dictionary<string, TvScheduleBinding>());
+    public static readonly TvScheduleIndex Empty =
+        new(null, [], [], new Dictionary<string, TvScheduleBinding>(), CatalogUrlIdentity.Normalize);
 
     private readonly Dictionary<string, TvScheduleChannel> _byUrl;
     private readonly Dictionary<string, TvScheduleChannel> _byId;
+    // SP-0171: the address parser every lookup by URL goes through. A parameter so a test can count the
+    // calls; in the product it is always CatalogUrlIdentity.Normalize.
+    private readonly Func<string, string> _normalize;
 
     private TvScheduleIndex(
         TvScheduleDocument? document,
         Dictionary<string, TvScheduleChannel> byUrl,
         Dictionary<string, TvScheduleChannel> byId,
-        IReadOnlyDictionary<string, TvScheduleBinding> bindings)
+        IReadOnlyDictionary<string, TvScheduleBinding> bindings,
+        Func<string, string> normalize)
     {
+        _normalize = normalize;
         Document = document;
         _byUrl = byUrl;
         _byId = byId;
@@ -46,12 +52,14 @@ public sealed class TvScheduleIndex
     public static TvScheduleIndex Build(
         TvScheduleDocument? document,
         IEnumerable<TvScheduleBinding> bindings,
-        IEnumerable<StreamChannel> catalog)
+        IEnumerable<StreamChannel> catalog,
+        Func<string, string>? normalize = null)
     {
+        normalize ??= CatalogUrlIdentity.Normalize;
         var bindingsByUrl = new Dictionary<string, TvScheduleBinding>(StringComparer.Ordinal);
         foreach (var binding in bindings)
         {
-            bindingsByUrl[CatalogUrlIdentity.Normalize(binding.Url)] = binding;
+            bindingsByUrl[normalize(binding.Url)] = binding;
         }
 
         var byUrl = new Dictionary<string, TvScheduleChannel>(StringComparer.Ordinal);
@@ -72,24 +80,24 @@ public sealed class TvScheduleIndex
                     eligible++;
                 }
 
-                if (TvScheduleMatcher.Resolve(channel, bindingsByUrl, names) is { } id &&
+                if (TvScheduleMatcher.Resolve(channel, bindingsByUrl, names, normalize) is { } id &&
                     byId.TryGetValue(id, out var scheduleChannel))
                 {
-                    byUrl[CatalogUrlIdentity.Normalize(channel.Url)] = scheduleChannel;
+                    byUrl[normalize(channel.Url)] = scheduleChannel;
                 }
             }
         }
 
-        return new TvScheduleIndex(document, byUrl, byId, bindingsByUrl) { EligibleCount = eligible };
+        return new TvScheduleIndex(document, byUrl, byId, bindingsByUrl, normalize) { EligibleCount = eligible };
     }
 
     /// <summary>The schedule channel bound to this stream, if any.</summary>
     public TvScheduleChannel? ChannelFor(string url) =>
-        _byUrl.TryGetValue(CatalogUrlIdentity.Normalize(url), out var channel) ? channel : null;
+        _byUrl.TryGetValue(_normalize(url), out var channel) ? channel : null;
 
     /// <summary>The user's own binding for this stream, or null when it is matched automatically.</summary>
     public TvScheduleBinding? BindingFor(string url) =>
-        Bindings.TryGetValue(CatalogUrlIdentity.Normalize(url), out var binding) ? binding : null;
+        Bindings.TryGetValue(_normalize(url), out var binding) ? binding : null;
 
     public TvScheduleNowNext NowAndNext(string url, DateTimeOffset now) =>
         ChannelFor(url) is { } channel

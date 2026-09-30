@@ -59,6 +59,9 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
     // disposal released it, and starting a session then would leave capture workers running against a disposed
     // capture engine. An ObjectDisposedException inside those async void handlers takes the process down.
     private bool _disposed;
+    // SP-0166: 1 once a worker's fault was logged for the current session, so four workers that fail together
+    // leave one line. Reset by StartAsync.
+    private int _workerFaultReported;
 
     public GridPreviewCoordinator(
         Dispatcher dispatcher,
@@ -101,9 +104,10 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
 
             _session = new CancellationTokenSource();
             _workers = new Task[MaxConcurrentCaptures];
+            Volatile.Write(ref _workerFaultReported, 0);
             for (var i = 0; i < MaxConcurrentCaptures; i++)
             {
-                _workers[i] = RunWorkerAsync(_session.Token);
+                _workers[i] = RunWorkerAsync(_session);
             }
 
             _diagnostics?.Invoke("PREVIEW COORD", ["state=started"]);
@@ -249,6 +253,12 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         {
             // Cancellation is the normal grid-exit path.
         }
+        catch (Exception exception)
+        {
+            // SP-0166: workers contain their own faults, so this is unreachable by design; it is the belt that
+            // keeps a stop - and the close steps behind it - from ever ending in a worker's exception.
+            _diagnostics?.Invoke("PREVIEW COORD", ["state=stop_fault", .. FaultLogFields.Of(exception)]);
+        }
         finally
         {
             session.Dispose();
@@ -371,6 +381,11 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
     {
         // An explicit request - a hover dwell or an explicit refresh - is the user asking for this tile
         // now, and clears the cooldown instead of being stopped by it.
+        if (_captureService.IsPaused)
+        {
+            return PreviewEnqueueOutcome.Paused;
+        }
+
         lock (_failureGate)
         {
             if (force)
@@ -400,10 +415,51 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
     {
         Queued,
         AlreadyPending,
-        UnderCooldown
+        UnderCooldown,
+        Paused
     }
 
-    private async Task RunWorkerAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// The containment around one capture worker (SP-0166). A worker never ends in a fault: it ends when its
+    /// session is cancelled, or - on any other exception - after logging it once and cancelling the session, so
+    /// the pool stops as a whole. The rule is "stays stopped until the next explicit start": capture is decorative,
+    /// so it is not restarted behind the user's back, and <see cref="StartAsync"/> (a window reactivation) is the
+    /// one thing that brings it back. Nothing is rethrown into <see cref="StopSessionAsync"/> or the disposal.
+    /// </summary>
+    private async Task RunWorkerAsync(CancellationTokenSource session)
+    {
+        try
+        {
+            await ServeQueueAsync(session.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // The session ended; leaving the loop through the wait is the normal way out.
+        }
+        catch (Exception exception)
+        {
+            ReportWorkerFault(session, exception);
+        }
+    }
+
+    private void ReportWorkerFault(CancellationTokenSource session, Exception exception)
+    {
+        try
+        {
+            if (Interlocked.Exchange(ref _workerFaultReported, 1) == 0)
+            {
+                _diagnostics?.Invoke("PREVIEW WORKER FAULT", [.. FaultLogFields.Of(exception), "previews=stopped_until_restart"]);
+            }
+
+            session.Cancel(); // wakes the other workers; the window's own stop cleans the session up later
+        }
+        catch (Exception)
+        {
+            // A disposed session (the stop got there first) or a failing log sink: nothing is left to protect.
+        }
+    }
+
+    private async Task ServeQueueAsync(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -422,6 +478,13 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
                     {
                         continue;
                     }
+                }
+
+                // SP-0166: capture paused after abandoned engines piled up; the request is dropped, not failed -
+                // a failure would mark a healthy source unreachable and put it under cooldown.
+                if (_captureService.IsPaused)
+                {
+                    continue;
                 }
 
                 if (!request.Force && _memoryCache.TryGet(request.Url, out var existing) && existing is not null)

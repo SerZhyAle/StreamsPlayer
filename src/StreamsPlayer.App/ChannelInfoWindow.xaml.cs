@@ -17,6 +17,8 @@ public partial class ChannelInfoWindow : Window
     private readonly StreamChannel _channel;
     private readonly IReadOnlyList<string> _collectionNames;
     private readonly Func<StreamTransmission?>? _liveTransmission;
+    // SP-0165: where the probe's hung-stop abandonments and refusals are told.
+    private readonly Action<string, string[]>? _diagnostics;
     private readonly CancellationTokenSource _measurement = new();
     private IReadOnlyList<ChannelFact> _storedFacts = [];
     private IReadOnlyList<ChannelFact> _streamFacts = [];
@@ -25,15 +27,18 @@ public partial class ChannelInfoWindow : Window
     /// Supplied when this channel is already playing: the engine on screen answers the question, so
     /// nothing is opened. Null means the window measures the stream itself.
     /// </param>
+    /// <param name="diagnostics">Receives the probe's abandonment log lines; null keeps the probe silent.</param>
     public ChannelInfoWindow(
         StreamChannel channel,
         IReadOnlyList<string> collectionNames,
-        Func<StreamTransmission?>? liveTransmission)
+        Func<StreamTransmission?>? liveTransmission,
+        Action<string, string[]>? diagnostics = null)
     {
         InitializeComponent();
         _channel = channel;
         _collectionNames = collectionNames;
         _liveTransmission = liveTransmission;
+        _diagnostics = diagnostics;
         Title = LocalizationService.Format("WindowTitleWithSubject", LocalizationService.Get("AboutChannelTitle"), channel.Title);
         Loaded += ChannelInfoWindow_Loaded;
         Closed += ChannelInfoWindow_Closed;
@@ -63,7 +68,7 @@ public partial class ChannelInfoWindow : Window
                 return;
             }
 
-            var measured = await StreamTransmissionProbe.MeasureAsync(_channel.Url, _measurement.Token);
+            var measured = await StreamTransmissionProbe.MeasureAsync(_channel.Url, _measurement.Token, _diagnostics);
             if (_measurement.IsCancellationRequested)
             {
                 return; // the window is gone; there is nothing left to tell

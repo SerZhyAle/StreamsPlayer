@@ -58,6 +58,31 @@ public static class ActivationMessage
     }
 
     /// <summary>
+    /// SP-0170: <see cref="Serialize"/> for a sender that has to honour the receiver's limits. <see langword="false"/>
+    /// when <paramref name="arguments"/> are more than <see cref="MaximumArgumentCount"/> or the line, as it
+    /// would travel (non-ASCII text is escaped six-fold), is longer than <see cref="MaximumPayloadBytes"/> -
+    /// both of which <see cref="TryParse(string?, out IReadOnlyList{string}?)"/> refuses on the other end.
+    /// </summary>
+    public static bool TrySerialize(IReadOnlyList<string> arguments, [NotNullWhen(true)] out byte[]? payload)
+    {
+        ArgumentNullException.ThrowIfNull(arguments);
+        payload = null;
+        if (arguments.Count > MaximumArgumentCount)
+        {
+            return false;
+        }
+
+        var line = Serialize(arguments);
+        if (line.Length - 1 > MaximumPayloadBytes)
+        {
+            return false;
+        }
+
+        payload = line;
+        return true;
+    }
+
+    /// <summary>
     /// Reads one payload line received from the pipe. <see langword="false"/> for anything empty,
     /// oversized, malformed, of another schema version, or carrying a command other than <c>open</c>.
     /// </summary>

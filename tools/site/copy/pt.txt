@@ -163,7 +163,7 @@ Buffer ao vivo de cerca de 15 segundos, e o vídeo assenta na qualidade que sua 
 Grave o vídeo ao vivo ou o rádio que está tocando direto em um arquivo, sem interromper a reprodução: o vídeo vai para a pasta Recordings em Vídeos, o rádio para a pasta Recordings em Músicas ou para as pastas que você escolher.
 
 @@cap-play-6
-Ouça uma transmissão de áudio ao vivo de um celular ou relógio com FastMediaSorter, direto pela sua rede local - sem servidor no meio.
+Ouça uma transmissão de áudio ou vídeo ao vivo de um celular ou relógio com FastMediaSorter, direto pela sua rede local - sem servidor no meio.
 
 @@cap-window-title
 Assista do seu jeito

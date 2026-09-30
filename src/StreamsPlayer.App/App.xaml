@@ -14,6 +14,8 @@
             <SolidColorBrush x:Key="TextBrush" Color="#FF172236" />
             <SolidColorBrush x:Key="AccentBrush" Color="#FF2364AA" />
             <SolidColorBrush x:Key="AccentTextBrush" Color="White" />
+            <SolidColorBrush x:Key="AccentMarkBrush" Color="#FF2364AA" />
+            <SolidColorBrush x:Key="SelectionBrush" Color="#FF2364AA" />
             <SolidColorBrush x:Key="MutedBrush" Color="#FF637083" />
             <SolidColorBrush x:Key="BorderBrush" Color="#FFD5DCE6" />
             <SolidColorBrush x:Key="ControlBrush" Color="White" />
@@ -37,6 +39,56 @@
             <Style TargetType="Control">
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
             </Style>
+            <!-- SP-0162: the keyboard focus position. The platform's own visual is a black dotted rectangle,
+                 which on the dark theme's near-black surfaces cannot be seen, so every focusable control names
+                 one of these two rings instead. The outer one sits just outside the control, for a button or
+                 a box that has room around it; the inset one sits inside the edge, for an item in a list or a
+                 tab strip, where an outer ring would be clipped by the list's own bounds or overdraw the
+                 neighbour. Both draw from AccentMarkBrush, the accent in the form that reads on either theme. -->
+            <Style x:Key="ThemedFocusVisual">
+                <Setter Property="Control.Template">
+                    <Setter.Value>
+                        <ControlTemplate>
+                            <Rectangle Margin="-2" RadiusX="5" RadiusY="5" StrokeThickness="2" SnapsToDevicePixels="True"
+                                       IsHitTestVisible="False" Stroke="{DynamicResource AccentMarkBrush}" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="ThemedFocusVisualInset">
+                <Setter Property="Control.Template">
+                    <Setter.Value>
+                        <ControlTemplate>
+                            <Rectangle Margin="1" RadiusX="3" RadiusY="3" StrokeThickness="2" SnapsToDevicePixels="True"
+                                       IsHitTestVisible="False" Stroke="{DynamicResource AccentMarkBrush}" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!-- Out of theme (APP-STYLE 5): the ring of a control drawn over live video, which decides its
+                 own contrast (see PlayerOverlayButton). A white ring disappears over a bright frame and a dark
+                 one over a dark frame, so it is both: a white ring with a near-black one outside it. -->
+            <Style x:Key="PlayerOverlayFocusVisual">
+                <Setter Property="Control.Template">
+                    <Setter.Value>
+                        <ControlTemplate>
+                            <Grid IsHitTestVisible="False">
+                                <Rectangle Margin="-4" RadiusX="6" RadiusY="6" StrokeThickness="2" Stroke="#FF141A24" />
+                                <Rectangle Margin="-2" RadiusX="5" RadiusY="5" StrokeThickness="2" Stroke="White" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style TargetType="Hyperlink">
+                <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisual}" />
+            </Style>
+            <Style TargetType="Slider">
+                <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisual}" />
+            </Style>
+            <Style TargetType="ToggleButton">
+                <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisual}" />
+            </Style>
             <!-- The Foreground setter is not decoration. Every glyph template below paints its Path from
                  the button's own Foreground, and without a setter that property is only inherited - from
                  a Window that has none, so it resolves to the system's black. In the dark theme that put
@@ -49,6 +101,7 @@
                 <Setter Property="Padding" Value="12,7" />
                 <Setter Property="Margin" Value="3" />
                 <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisual}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
@@ -80,7 +133,7 @@
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
                 <Setter Property="CaretBrush" Value="{DynamicResource TextBrush}" />
-                <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}" />
+                <Setter Property="SelectionBrush" Value="{DynamicResource SelectionBrush}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TextBox">
@@ -89,12 +142,20 @@
                                     Padding="{TemplateBinding Padding}">
                                 <ScrollViewer x:Name="PART_ContentHost" />
                             </Border>
+                            <!-- A text box draws no focus rectangle (its caret is the platform's cue), and a
+                                 caret blinking in a near-black box is the only thing left in the dark theme. -->
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentMarkBrush}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
             </Style>
             <Style TargetType="CheckBox">
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisual}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <!-- A Grid, not a horizontal StackPanel: a stack measures its children with
@@ -139,6 +200,7 @@
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Padding" Value="8,5" />
+                <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisualInset}" />
                 <Setter Property="HorizontalContentAlignment" Value="Left" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
                 <Setter Property="Template">
@@ -169,6 +231,7 @@
             </Style>
             <Style TargetType="ListBoxItem">
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisualInset}" />
                 <Style.Triggers>
                     <Trigger Property="IsSelected" Value="True">
                         <Setter Property="Background" Value="{DynamicResource CardSelectedBrush}" />
@@ -196,7 +259,12 @@
                                     CornerRadius="6"
                                     Padding="{TemplateBinding Padding}"
                                     SnapsToDevicePixels="True">
-                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                <!-- SP-0162: the scrolling host the stock template has and this one had dropped. The
+                                     popup hands its content the screen's height at most, so a menu with more
+                                     entries than fit (one per collection) scrolls instead of running off it. -->
+                                <ScrollViewer Focusable="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                </ScrollViewer>
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
@@ -218,7 +286,7 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="14" />
                                         </Grid.ColumnDefinitions>
-                                        <Path x:Name="CheckMark" Data="{StaticResource Chrome.menu-check}" Stroke="{DynamicResource AccentBrush}"
+                                        <Path x:Name="CheckMark" Data="{StaticResource Chrome.menu-check}" Stroke="{DynamicResource AccentMarkBrush}"
                                               StrokeThickness="2" StrokeLineJoin="Round" Visibility="Collapsed" VerticalAlignment="Center" />
                                         <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True"
                                                           VerticalAlignment="Center" />
@@ -231,7 +299,9 @@
                                        IsOpen="{TemplateBinding IsSubmenuOpen}">
                                     <Border Background="{DynamicResource ControlBrush}" BorderBrush="{DynamicResource BorderBrush}"
                                             BorderThickness="1" Padding="3" CornerRadius="6">
-                                        <StackPanel IsItemsHost="True" />
+                                        <ScrollViewer Focusable="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                            <StackPanel IsItemsHost="True" />
+                                        </ScrollViewer>
                                     </Border>
                                 </Popup>
                             </Grid>
@@ -282,6 +352,7 @@
                 <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
                 <Setter Property="Padding" Value="8,5" />
+                <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisualInset}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TabItem">
@@ -293,7 +364,7 @@
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsSelected" Value="True">
                                     <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource SurfaceBrush}" />
-                                    <Setter TargetName="TabBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                    <Setter TargetName="TabBorder" Property="BorderBrush" Value="{DynamicResource AccentMarkBrush}" />
                                     <Setter TargetName="TabBorder" Property="BorderThickness" Value="0,0,3,0" />
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -505,6 +576,7 @@
                 <Setter Property="Padding" Value="10,6" />
                 <Setter Property="Margin" Value="3" />
                 <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FocusVisualStyle" Value="{StaticResource PlayerOverlayFocusVisual}" />
                 <Setter Property="ContentTemplate" Value="{StaticResource ButtonOwnColourCaption}" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
@@ -794,30 +866,13 @@
                 <Setter Property="FlowDirection" Value="LeftToRight" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.media.exit-picture-in-picture}" />
             </Style>
-            <!-- The compact panel has no system caption, so it carries its own window buttons. The pin
-                 is one button in two styles rather than a ToggleButton, because every glyph style here
-                 targets Button; the "on" style says its state with the accent fill, the tooltip with
-                 words. -->
+            <!-- The compact panel has no system caption, so it carries its own window buttons
+                 (SP-0182: always-on-top is an entry of its overflow menu, not a button). -->
             <Style x:Key="MinimizeGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.window.minimize}" />
             </Style>
             <Style x:Key="CloseGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.nav.close}" />
-            </Style>
-            <Style x:Key="PinOffGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
-                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.pin--off}" />
-            </Style>
-            <Style x:Key="PinOnGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource PinOffGlyphOnlyButton}">
-                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.pin}" />
-                <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
-                <!-- The inherited hover brush is near-white in the light theme, and the accent text on
-                     it would vanish; hovering keeps the accent instead. -->
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
             <Style x:Key="SaveGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.save}" />
@@ -842,6 +897,7 @@
                 <Setter Property="MinWidth" Value="120" />
                 <Setter Property="Margin" Value="3" />
                 <Setter Property="Padding" Value="7,5" />
+                <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisual}" />
                 <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />

@@ -23,6 +23,7 @@
     <sys:String x:Key="ChannelPreviewsUnavailable">Cet ordinateur ne peut pas ouvrir le pack d'images. Les aperçus continuent de fonctionner comme avant.</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">Impossible de télécharger les images d'aperçu.</sys:String>
     <sys:String x:Key="ChannelPreviewsNewerVersion">Ces images d'aperçu ont été publiées pour une version plus récente de StreamsPlayer. Mettez l'application à jour pour les obtenir. Vos images actuelles ont été conservées.</sys:String>
+    <sys:String x:Key="ChannelPreviewsNothingNew">Aucune nouvelle image d'aperçu n'a été publiée. Vos images actuelles ont été conservées.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgress">Téléchargement des images.. {0} % ({1} sur {2} Mo)</sys:String>
     <sys:String x:Key="ChannelPreviewsPublishWindowRetry">Les images sont en cours de republication. Nouvel essai dans {0} s (tentative {1} sur {2})..</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Téléchargement des images.. {0} Mo</sys:String>
@@ -97,8 +98,7 @@
     <sys:String x:Key="ExpandFromPanelName">Revenir à la fenêtre complète du catalogue</sys:String>
     <sys:String x:Key="CompactPanelMinimizeTip">Réduire</sys:String>
     <sys:String x:Key="CompactPanelCloseTip">Fermer l'application</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOn">Épingler au premier plan : activé</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOff">Épingler au premier plan : désactivé</sys:String>
+    <sys:String x:Key="MenuCompactPanelOnTop">Toujours au premier plan</sys:String>
     <sys:String x:Key="AllOption">Tous</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Vidéo</sys:String>
@@ -363,6 +363,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="SettingsName">Ouvrir les paramètres</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Paramètres de STREAMS Player</sys:String>
     <sys:String x:Key="ToolsWindowTitle">Outils de STREAMS Player</sys:String>
+    <sys:String x:Key="ToolsWindowBusyClose">Une opération est en cours. Attendez qu'elle se termine ou annulez-la, puis fermez cette fenêtre.</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Diagnostic</sys:String>
     <sys:String x:Key="GridSettings">Grille</sys:String>
     <sys:String x:Key="ThemeLabel">Thème de couleur</sys:String>
@@ -482,6 +483,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="ImportInvalidEncoding">Ce fichier n'est pas du texte UTF-8 valide. Votre liste n'a pas été modifiée.</sys:String>
     <sys:String x:Key="ImportFileReadFailed">Windows n'a pas pu lire le fichier sélectionné. Votre liste n'a pas été modifiée.</sys:String>
     <sys:String x:Key="ImportUrlFailed">La liste de lecture n'a pas pu être téléchargée. Votre liste n'a pas été modifiée.</sys:String>
+    <sys:String x:Key="ImportUrlCancelled">Importation annulée. Votre liste n'a pas été modifiée.</sys:String>
     <sys:String x:Key="ImportHlsManifest">Il s'agit d'un manifeste multimédia HLS, pas d'une liste de chaînes. Aucune chaîne n'a été importée.</sys:String>
     <sys:String x:Key="ImportEmpty">Aucune chaîne importable n'a été trouvée. Votre liste n'a pas été modifiée.</sys:String>
     <sys:String x:Key="ExportAll">Toutes mes chaînes</sys:String>
@@ -664,4 +666,6 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="TvScheduleBindingNone">Sans programme</sys:String>
     <sys:String x:Key="TvScheduleBindingNoneTip">Ne jamais afficher d'émissions pour cette chaîne</sys:String>
     <sys:String x:Key="TvScheduleBindingApply">Associer</sys:String>
+    <sys:String x:Key="SecondInstanceElevated">StreamsPlayer est déjà en cours d'exécution avec des droits d'administrateur, cette copie ne peut donc pas lui transmettre votre demande. Fermez-le puis relancez StreamsPlayer, ou lancez les deux copies de la même manière.</sys:String>
+    <sys:String x:Key="SecondInstanceLaunchTooLarge">Cette demande est trop volumineuse pour être transmise à la copie de StreamsPlayer en cours d'exécution ; rien n'a été lancé. Fermez la copie en cours puis réessayez.</sys:String>
 </ResourceDictionary>

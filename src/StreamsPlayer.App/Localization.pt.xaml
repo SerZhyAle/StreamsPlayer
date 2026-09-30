@@ -23,6 +23,7 @@
     <sys:String x:Key="ChannelPreviewsUnavailable">Este computador não consegue abrir o pacote de imagens. As pré-visualizações continuam funcionando como antes.</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">Não foi possível baixar as imagens de pré-visualização.</sys:String>
     <sys:String x:Key="ChannelPreviewsNewerVersion">Estas imagens de pré-visualização foram publicadas para uma versão mais recente do StreamsPlayer. Atualize a aplicação para as obter. As suas imagens atuais foram mantidas.</sys:String>
+    <sys:String x:Key="ChannelPreviewsNothingNew">Não foram publicadas imagens de pré-visualização novas. As suas imagens atuais foram mantidas.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgress">Baixando as imagens.. {0}% ({1} de {2} MB)</sys:String>
     <sys:String x:Key="ChannelPreviewsPublishWindowRetry">As imagens estão sendo republicadas agora. Nova tentativa em {0} s (tentativa {1} de {2})..</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Baixando as imagens.. {0} MB</sys:String>
@@ -97,8 +98,7 @@
     <sys:String x:Key="ExpandFromPanelName">Voltar à janela completa do catálogo</sys:String>
     <sys:String x:Key="CompactPanelMinimizeTip">Minimizar</sys:String>
     <sys:String x:Key="CompactPanelCloseTip">Fechar o aplicativo</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOn">Fixar em primeiro plano: ativado</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOff">Fixar em primeiro plano: desativado</sys:String>
+    <sys:String x:Key="MenuCompactPanelOnTop">Sempre visível</sys:String>
     <sys:String x:Key="AllOption">Todos</sys:String>
     <sys:String x:Key="AudioOption">Áudio</sys:String>
     <sys:String x:Key="VideoOption">Vídeo</sys:String>
@@ -363,6 +363,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="SettingsName">Abrir as configurações</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Configurações do STREAMS Player</sys:String>
     <sys:String x:Key="ToolsWindowTitle">Ferramentas do STREAMS Player</sys:String>
+    <sys:String x:Key="ToolsWindowBusyClose">Uma operação está em andamento. Aguarde o término ou cancele-a e feche esta janela depois.</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Diagnóstico</sys:String>
     <sys:String x:Key="GridSettings">Grade</sys:String>
     <sys:String x:Key="ThemeLabel">Tema de cor</sys:String>
@@ -482,6 +483,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="ImportInvalidEncoding">Este arquivo não é texto UTF-8 válido. Sua lista não foi alterada.</sys:String>
     <sys:String x:Key="ImportFileReadFailed">O Windows não conseguiu ler o arquivo selecionado. Sua lista não foi alterada.</sys:String>
     <sys:String x:Key="ImportUrlFailed">Não foi possível baixar a lista de reprodução. Sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="ImportUrlCancelled">Importação cancelada. Sua lista não foi alterada.</sys:String>
     <sys:String x:Key="ImportHlsManifest">Este é um manifesto de mídia HLS, não uma lista de canais. Nenhum canal foi importado.</sys:String>
     <sys:String x:Key="ImportEmpty">Nenhum canal importável foi encontrado. Sua lista não foi alterada.</sys:String>
     <sys:String x:Key="ExportAll">Todos os meus canais</sys:String>
@@ -664,4 +666,6 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="TvScheduleBindingNone">Sem programação</sys:String>
     <sys:String x:Key="TvScheduleBindingNoneTip">Nunca mostrar programas para este canal</sys:String>
     <sys:String x:Key="TvScheduleBindingApply">Associar</sys:String>
+    <sys:String x:Key="SecondInstanceElevated">O StreamsPlayer já está em execução com direitos de administrador, então esta cópia não pode repassar seu pedido a ele. Feche-o e inicie o StreamsPlayer novamente, ou execute as duas cópias do mesmo modo.</sys:String>
+    <sys:String x:Key="SecondInstanceLaunchTooLarge">Este pedido é grande demais para ser repassado à cópia do StreamsPlayer em execução, então nada foi iniciado. Feche a cópia em execução e tente novamente.</sys:String>
 </ResourceDictionary>

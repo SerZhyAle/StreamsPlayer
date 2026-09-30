@@ -16,7 +16,7 @@ public sealed class IcecastStatusParserTests
             ] } }
             """;
 
-        Assert.True(IcecastStatusParser.TryExtractTitle(payload, StreamUri, out var title));
+        Assert.Equal(IcecastStatusParse.MatchedMount, IcecastStatusParser.ExtractTitle(payload, StreamUri, out var title));
         Assert.Equal("Artist - Track", title);
     }
 
@@ -30,7 +30,7 @@ public sealed class IcecastStatusParserTests
             } } }
             """;
 
-        Assert.True(IcecastStatusParser.TryExtractTitle(payload, StreamUri, out var title));
+        Assert.Equal(IcecastStatusParse.MatchedMount, IcecastStatusParser.ExtractTitle(payload, StreamUri, out var title));
         Assert.Equal("Programme name", title);
     }
 
@@ -43,19 +43,38 @@ public sealed class IcecastStatusParserTests
             } } }
             """;
 
-        Assert.True(IcecastStatusParser.TryExtractTitle(payload, StreamUri, out var title));
+        Assert.Equal(IcecastStatusParse.MatchedMount, IcecastStatusParser.ExtractTitle(payload, StreamUri, out var title));
         Assert.Null(title);
     }
 
     [Fact]
-    public void RefusesMalformedAndUnrelatedDocuments()
+    public void UnreadableJsonIsNotAStatusDocument()
     {
-        Assert.False(IcecastStatusParser.TryExtractTitle("not json", StreamUri, out _));
-        Assert.False(IcecastStatusParser.TryExtractTitle("{ \"icestats\": { \"source\": [] } }", StreamUri, out _));
-        Assert.False(IcecastStatusParser.TryExtractTitle(
-            "{ \"icestats\": { \"source\": { \"listenurl\": \"https://radio.example.test:8443/other.mp3\" } } }",
-            StreamUri,
-            out _));
+        Assert.Equal(IcecastStatusParse.NotStatusDocument, IcecastStatusParser.ExtractTitle("not json", StreamUri, out _));
+        Assert.Equal(
+            IcecastStatusParse.NotStatusDocument,
+            IcecastStatusParser.ExtractTitle("{ \"server\": \"something else\" }", StreamUri, out _));
+    }
+
+    /// <summary>
+    /// SP-0172: a readable status document that does not describe the playing mount is an ordinary
+    /// absence, not a malformed answer - the two must not share one classification.
+    /// </summary>
+    [Fact]
+    public void AMountlessDocumentIsReadableButUnmatched()
+    {
+        Assert.Equal(
+            IcecastStatusParse.NoMatchingMount,
+            IcecastStatusParser.ExtractTitle("{ \"icestats\": { \"source\": [] } }", StreamUri, out _));
+        Assert.Equal(
+            IcecastStatusParse.NoMatchingMount,
+            IcecastStatusParser.ExtractTitle("{ \"icestats\": {} }", StreamUri, out _));
+        Assert.Equal(
+            IcecastStatusParse.NoMatchingMount,
+            IcecastStatusParser.ExtractTitle(
+                "{ \"icestats\": { \"source\": { \"listenurl\": \"https://radio.example.test:8443/other.mp3\" } } }",
+                StreamUri,
+                out _));
     }
 
     [Fact]
@@ -68,7 +87,7 @@ public sealed class IcecastStatusParserTests
             ] } }
             """;
 
-        Assert.True(IcecastStatusParser.TryExtractTitle(payload, StreamUri, out var title));
+        Assert.Equal(IcecastStatusParse.MatchedMount, IcecastStatusParser.ExtractTitle(payload, StreamUri, out var title));
         Assert.Equal("Artist - Track", title);
     }
 
@@ -82,7 +101,7 @@ public sealed class IcecastStatusParserTests
             ] } }
             """;
 
-        Assert.True(IcecastStatusParser.TryExtractTitle(payload, StreamUri, out var title));
+        Assert.Equal(IcecastStatusParse.MatchedMount, IcecastStatusParser.ExtractTitle(payload, StreamUri, out var title));
         Assert.Equal("Right", title);
     }
 
@@ -96,7 +115,7 @@ public sealed class IcecastStatusParserTests
             ] } }
             """;
 
-        Assert.False(IcecastStatusParser.TryExtractTitle(payload, StreamUri, out _));
+        Assert.Equal(IcecastStatusParse.NoMatchingMount, IcecastStatusParser.ExtractTitle(payload, StreamUri, out _));
     }
 
     [Fact]
@@ -110,7 +129,7 @@ public sealed class IcecastStatusParserTests
             } } }
             """;
 
-        Assert.True(IcecastStatusParser.TryExtractTitle(payload, StreamUri, out var title));
+        Assert.Equal(IcecastStatusParse.MatchedMount, IcecastStatusParser.ExtractTitle(payload, StreamUri, out var title));
         Assert.NotNull(title);
         Assert.Equal(IcyMetadataParser.MaxTitleLength, title.Length);
         Assert.DoesNotContain('\n', title);

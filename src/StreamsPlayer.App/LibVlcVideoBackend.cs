@@ -726,17 +726,37 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     private static VideoTrack[] Describe(TrackDescription[]? tracks) =>
         tracks?.Where(track => track.Id >= 0).Select(track => new VideoTrack(track.Id, track.Name)).ToArray() ?? [];
 
+    /// <summary>
+    /// Runs on LibVLC's native event thread, which nothing guards: an exception leaving here reaches the
+    /// process-ending handlers (SP-0166). A thumbnail is decorative, so any fault costs this one frame, is
+    /// logged, and is contained.
+    /// </summary>
     private void MediaPlayer_SnapshotTaken(object? sender, MediaPlayerSnapshotTakenEventArgs e)
     {
-        var name = Path.GetFileNameWithoutExtension(e.Filename);
-        var idText = name.StartsWith("streamsplayer_thumb_", StringComparison.Ordinal)
-            ? name["streamsplayer_thumb_".Length..] : string.Empty;
-        var frame = LoadFrozenImage(e.Filename);
-        _log.Event("THUMB TAKEN", $"loaded={frame is not null}", $"url={_lastUrl}");
-        TryDeleteFile(e.Filename);
-        if (frame is not null && Guid.TryParseExact(idText, "N", out var requestId))
+        try
         {
-            SnapshotReady?.Invoke(requestId, frame);
+            var name = Path.GetFileNameWithoutExtension(e.Filename);
+            var idText = name.StartsWith("streamsplayer_thumb_", StringComparison.Ordinal)
+                ? name["streamsplayer_thumb_".Length..] : string.Empty;
+            BitmapSource? frame;
+            try
+            {
+                frame = LoadFrozenImage(e.Filename);
+            }
+            finally
+            {
+                TryDeleteFile(e.Filename);
+            }
+
+            _log.Event("THUMB TAKEN", $"loaded={frame is not null}", $"url={_lastUrl}");
+            if (frame is not null && Guid.TryParseExact(idText, "N", out var requestId))
+            {
+                SnapshotReady?.Invoke(requestId, frame);
+            }
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report("LibVlcVideoBackend.SnapshotTaken", exception, notifyUser: false);
         }
     }
 

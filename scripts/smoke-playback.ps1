@@ -34,7 +34,7 @@
 
   Deliberately NOT part of scripts/check.ps1: that gate must stay offline and deterministic so CI can
   run it. This one needs the network, a desktop session and a working audio device, so it runs on the
-  owner's machine before a release - release.ps1 step 2b.
+  owner's machine before a release - release.ps1 step 4.
 
   SP-0156: a PASS writes release-verdicts/<version>.json via scripts/Write-SmokeVerdict.ps1 - the
   committed verdict release.yml requires before it builds a release. Only a clean tree at a commit gets

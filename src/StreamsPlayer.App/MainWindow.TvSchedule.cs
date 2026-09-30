@@ -31,6 +31,8 @@ public partial class MainWindow
     private IReadOnlyList<StreamChannel>? _tvScheduleCatalog;
     private DispatcherTimer? _tvScheduleTimer;
     private bool _tvScheduleRunningOutShown;
+    // SP-0171: the rows that show a "now" line. The tick walks this set, not _rowCache.
+    private readonly TvScheduleLines<ChannelRow> _tvScheduleLines = new();
 
     /// <summary>The current schedule, for the Tools window's status line.</summary>
     internal TvScheduleIndex TvSchedule => _tvSchedule;
@@ -64,7 +66,8 @@ public partial class MainWindow
             _tvScheduleTimer?.Stop();
         }
 
-        RefreshTvScheduleLines();
+        ReconcileTvScheduleLines();
+        SuggestTvScheduleUpdate();
     }
 
     private DispatcherTimer CreateTvScheduleTimer()
@@ -76,26 +79,46 @@ public partial class MainWindow
             {
                 _tvScheduleCatalog = _state.Channels;
                 _tvSchedule = TvScheduleIndex.Build(_tvSchedule.Document, _tvSchedule.Bindings.Values, _tvScheduleCatalog);
+                ReconcileTvScheduleLines();
+            }
+            else
+            {
+                // SP-0171: only the rows bound to a guide, and no address parsed - not every cached row.
+                _tvScheduleLines.Tick(DateTimeOffset.Now, ShowScheduleNow);
             }
 
-            RefreshTvScheduleLines();
+            SuggestTvScheduleUpdate();
             return Task.CompletedTask;
         });
         Closed += (_, _) => timer.Stop();
         return timer;
     }
 
-    /// <summary>The title on air now for a stream, or null - the row's whole input.</summary>
-    private string? ScheduleNowTitle(string url) =>
-        _tvSchedule.HasSchedule ? _tvSchedule.NowAndNext(url, DateTimeOffset.Now).Now?.Title : null;
+    private static void ShowScheduleNow(ChannelRow row, string? title) => row.SetScheduleNow(title);
 
-    private void RefreshTvScheduleLines()
+    /// <summary>
+    /// Binds one row against the current index: on creation, and when an edit gives the row a new address.
+    /// </summary>
+    private void AttachScheduleLine(ChannelRow row) =>
+        _tvScheduleLines.Attach(row, row.Channel.Url, _tvSchedule, DateTimeOffset.Now, ShowScheduleNow);
+
+    /// <summary>
+    /// SP-0171: the one bulk pass - after a new schedule, a binding edit or a changed catalog list. The
+    /// clock never triggers it. Timed into the log because it is the part that still follows catalog size.
+    /// </summary>
+    private void ReconcileTvScheduleLines()
     {
-        foreach (var row in _rowCache.Values)
+        var timer = System.Diagnostics.Stopwatch.StartNew();
+        _tvScheduleLines.Reconcile(_rowCache.Values, row => row.Channel.Url, _tvSchedule, DateTimeOffset.Now, ShowScheduleNow);
+        if (_tvSchedule.HasSchedule)
         {
-            row.SetScheduleNow(ScheduleNowTitle(row.Channel.Url));
+            _log.Event("TV SCHEDULE", "op=reconcile", $"rows={_rowCache.Count}",
+                $"bound={_tvScheduleLines.BoundCount}", $"ms={timer.ElapsedMilliseconds}");
         }
+    }
 
+    private void SuggestTvScheduleUpdate()
+    {
         // A suggestion, once per schedule, and only on an idle status line: the running operation owns it
         // while one is running. Nothing is downloaded because of it.
         if (!_busy && !_tvScheduleRunningOutShown && _tvSchedule.IsRunningOut(DateTimeOffset.Now))
@@ -131,7 +154,9 @@ public partial class MainWindow
 
         // The download reports on the main window's bar, where its Cancel button lives (APP-BEHAVIOUR
         // rule 3). Left open, the modal Tools window would sit over that button for the whole transfer.
-        owner.Close();
+        // SP-0161: through CloseForRunningAction, so the close is the action's own and the running flag
+        // lets it through; every dialog this action shows later is owned by the main window.
+        (owner as ToolsWindow)?.CloseForRunningAction();
         await RunTvScheduleDownloadAsync(source);
     }
 
@@ -148,6 +173,9 @@ public partial class MainWindow
             var document = await new TvScheduleService(_catalogHttpClient)
                 .DownloadAsync(source, DateTimeOffset.Now, progress, _cancellableOperation.Token);
             _reportingProgress = false;
+            // SP-0161: the transfer is over, so the run can no longer be stopped - the Cancel button goes
+            // dark for the read and the save instead of swallowing a click.
+            EndCancellablePhase();
             var programmes = document.Channels.Sum(channel => channel.Programmes.Count);
             _log.Event("TV SCHEDULE", "op=download", "ok=true", $"host={source.Host}",
                 $"channels={document.Channels.Count}", $"programmes={programmes}");
@@ -242,7 +270,7 @@ public partial class MainWindow
         var dialog = new TvScheduleBindingWindow(
             StreamTitleFormatter.Display(channel.Title),
             _tvSchedule.Channels,
-            _tvSchedule.ChannelFor(channel.Url)?.Id) { Owner = this };
+            _tvSchedule.ChannelFor(channel.Url)?.Id) { Owner = DialogOwner };
         if (dialog.ShowDialog() != true)
         {
             return;

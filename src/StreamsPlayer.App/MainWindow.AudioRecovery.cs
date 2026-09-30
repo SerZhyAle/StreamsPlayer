@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -15,6 +16,28 @@ public partial class MainWindow
     /// when they run - so a failure queued by the previous connection used to stop its successor and spend the
     /// recovery budget a second time. Asked here, on the UI thread, where connections are opened and stopped.
     /// </summary>
+    // SP-0169: when the leg now running reached live, on the monotonic clock; null until it does. Cleared as each
+    // leg opens, so one leg's playing time never counts towards the next.
+    private long? _audioLegLiveSince;
+
+    private void NoteAudioLegLive() => _audioLegLiveSince ??= Stopwatch.GetTimestamp();
+
+    private void ResetAudioLegTiming()
+    {
+        _audioLegLiveSince = null;
+        _audioLegSilence = TimeSpan.Zero;
+    }
+
+    /// <summary>How long the ending leg played - zero if it never went live - and forgets it.</summary>
+    private TimeSpan TakeAudioLegPlayed()
+    {
+        var played = _audioLegLiveSince is { } since
+            ? Stopwatch.GetElapsedTime(since) - _audioLegSilence
+            : TimeSpan.Zero;
+        ResetAudioLegTiming();
+        return played;
+    }
+
     private bool IsSupersededAudioEvent(StandardAudioEventArgs e, string kind)
     {
         if (_standardAudioPlayback.IsCurrent(e.Connection))
@@ -28,13 +51,14 @@ public partial class MainWindow
 
     // Bounded audio recovery (DEVELOPER_PROMPT.md Part D). Classifies the failure, then reconnects after a cancellable
     // backoff (showing a Reconnecting label) or, once the budget is spent or a hard failure is hit, shows the
-    // terminal dialog. There is no position stall-watchdog for audio - it was ruled out while radio ran on
-    // MediaElement, which exposed no live telemetry, and the LibVLC engine (SP-0104) has not been given one.
+    // terminal dialog. A connection that stays open but stops delivering reaches it through the stall watchdog
+    // (SP-0169, MainWindow.AudioStallWatchdog.cs), which reads the engine's own byte count.
     private async Task RecoverAudioAsync(
         StreamChannel channel,
         string reason,
         bool endReached = false,
         bool openTimedOut = false,
+        bool stall = false,
         int? firstResponseStatusCode = null,
         bool hasFirstResponseStatus = false,
         FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure = null)
@@ -59,7 +83,7 @@ public partial class MainWindow
         _audioRecoveryInFlightFor = cts;
         try
         {
-            await RecoverAudioInFlightAsync(channel, reason, policy, cts, endReached, openTimedOut,
+            await RecoverAudioInFlightAsync(channel, reason, policy, cts, endReached, openTimedOut, stall,
                 firstResponseStatusCode, hasFirstResponseStatus, fastMediaSorterFailure);
         }
         finally
@@ -78,19 +102,26 @@ public partial class MainWindow
         CancellationTokenSource cts,
         bool endReached,
         bool openTimedOut,
+        bool stall,
         int? firstResponseStatusCode,
         bool hasFirstResponseStatus,
         FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure)
     {
+        // SP-0169: the leg that just ended hands back the budget only if it played long enough. Settled here,
+        // once per recovery (the in-flight guard above admits one), and before the policy is consulted so the
+        // decision below sees the result; a leg that never reached live has no timestamp and earns nothing.
+        policy.NotifyLegPlayed(TakeAudioLegPlayed());
+
         // Only a fresh open failure needs the status probe; a stream that ended already carries its own
         // signal, and probing it would spend a request to learn nothing. Same rule the video path applies.
+        // A stall is the same case: the stream was playing, so it is not gated as a fresh open.
         // SP-0096 is the second such case: the source has just had the full open budget to answer, so
         // asking it again buys nothing but more of the wait that budget exists to end.
         // SP-0041: the same fresh-open condition selects the connectivity gate, in the same order as the
         // video path - an already-playing stream (end, open verdict, a status already in hand) is not gated.
         var reachability = PlaybackReachability.NotProbed;
         int? status = hasFirstResponseStatus ? firstResponseStatusCode : null;
-        if (!hasFirstResponseStatus && !endReached && !openTimedOut)
+        if (!hasFirstResponseStatus && !endReached && !openTimedOut && !stall)
         {
             reachability = await StreamReachabilityProbe.ProbeAsync(channel.Url, cts.Token);
             if (cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
@@ -117,7 +148,7 @@ public partial class MainWindow
             return;
         }
 
-        var decision = policy.Decide(new PlaybackFailureSignal(reason, EndReached: endReached, HttpStatusCode: status, OpenTimedOut: openTimedOut));
+        var decision = policy.Decide(new PlaybackFailureSignal(reason, EndReached: endReached, HttpStatusCode: status, OpenTimedOut: openTimedOut, Stall: stall));
         _log.Event("AUDIO RECOVER",
             $"trigger={decision.Trigger}",
             $"action={decision.Kind}",

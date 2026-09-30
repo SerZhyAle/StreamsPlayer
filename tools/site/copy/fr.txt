@@ -163,7 +163,7 @@ Mémoire tampon de direct d'environ 15 secondes, et la vidéo se cale sur la qua
 Enregistrez la vidéo en direct ou la radio en cours de lecture directement dans un fichier, sans interrompre la lecture : la vidéo va dans le dossier Recordings de Vidéos, la radio dans le dossier Recordings de Musique, ou dans les dossiers de votre choix.
 
 @@cap-play-6
-Écoutez une diffusion audio en direct depuis un téléphone ou une montre équipés de FastMediaSorter, directement sur votre réseau local - sans serveur intermédiaire.
+Écoutez une diffusion audio ou vidéo en direct depuis un téléphone ou une montre équipés de FastMediaSorter, directement sur votre réseau local - sans serveur intermédiaire.
 
 @@cap-window-title
 Regarder à votre façon

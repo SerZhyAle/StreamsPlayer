@@ -81,15 +81,17 @@ internal static class BackdropEnvironment
     private static void PowerManager_Changed(object? sender, object e) =>
         _dispatcher?.BeginInvoke(() =>
         {
+            // SP-0166: a dispatcher callback is outside every handler boundary, so whatever escapes it reaches
+            // the handler that ends the process - over a decorative backdrop. Any fault, from the read or from a
+            // subscriber of Changed, costs this one update and is logged.
             try
             {
                 ReadPower();
+                Changed?.Invoke(null, EventArgs.Empty);
             }
-            catch (COMException)
+            catch (Exception exception)
             {
-                return;
+                HandlerBoundary.Report("BackdropEnvironment.PowerChanged", exception, notifyUser: false);
             }
-
-            Changed?.Invoke(null, EventArgs.Empty);
         });
 }

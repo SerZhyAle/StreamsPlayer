@@ -23,6 +23,7 @@
     <sys:String x:Key="ChannelPreviewsUnavailable">Este equipo no puede abrir el paquete de imágenes. Las vistas previas siguen funcionando como antes.</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">No se han podido descargar las imágenes de vista previa.</sys:String>
     <sys:String x:Key="ChannelPreviewsNewerVersion">Estas imágenes de vista previa se publicaron para una versión más reciente de StreamsPlayer. Actualice la aplicación para obtenerlas. Se han conservado sus imágenes actuales.</sys:String>
+    <sys:String x:Key="ChannelPreviewsNothingNew">No se han publicado imágenes de vista previa nuevas. Se han conservado sus imágenes actuales.</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgress">Descargando imágenes.. {0}% ({1} de {2} MB)</sys:String>
     <sys:String x:Key="ChannelPreviewsPublishWindowRetry">Las imágenes se están volviendo a publicar. Reintento en {0} s (intento {1} de {2})..</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">Descargando imágenes.. {0} MB</sys:String>
@@ -97,8 +98,7 @@
     <sys:String x:Key="ExpandFromPanelName">Volver a la ventana completa del catálogo</sys:String>
     <sys:String x:Key="CompactPanelMinimizeTip">Minimizar</sys:String>
     <sys:String x:Key="CompactPanelCloseTip">Cerrar la aplicación</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOn">Fijar en primer plano: activado</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOff">Fijar en primer plano: desactivado</sys:String>
+    <sys:String x:Key="MenuCompactPanelOnTop">Siempre visible</sys:String>
     <sys:String x:Key="AllOption">Todos</sys:String>
     <sys:String x:Key="AudioOption">Audio</sys:String>
     <sys:String x:Key="VideoOption">Vídeo</sys:String>
@@ -363,6 +363,7 @@
     <sys:String x:Key="SettingsName">Abrir los ajustes</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Ajustes de STREAMS Player</sys:String>
     <sys:String x:Key="ToolsWindowTitle">Herramientas de STREAMS Player</sys:String>
+    <sys:String x:Key="ToolsWindowBusyClose">Hay una operación en curso. Espere a que termine o cancélela, y cierre esta ventana después.</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Diagnóstico</sys:String>
     <sys:String x:Key="GridSettings">Cuadrícula</sys:String>
     <sys:String x:Key="ThemeLabel">Tema de color</sys:String>
@@ -482,6 +483,7 @@
     <sys:String x:Key="ImportInvalidEncoding">Este archivo no es texto UTF-8 válido. Tu lista no se ha modificado.</sys:String>
     <sys:String x:Key="ImportFileReadFailed">Windows no ha podido leer el archivo seleccionado. Tu lista no se ha modificado.</sys:String>
     <sys:String x:Key="ImportUrlFailed">No se ha podido descargar la lista. Tu lista no se ha modificado.</sys:String>
+    <sys:String x:Key="ImportUrlCancelled">Importación cancelada. Tu lista no se ha modificado.</sys:String>
     <sys:String x:Key="ImportHlsManifest">Esto es un manifiesto de medios HLS, no una lista de canales. No se ha importado ningún canal.</sys:String>
     <sys:String x:Key="ImportEmpty">No se han encontrado canales importables. Tu lista no se ha modificado.</sys:String>
     <sys:String x:Key="ExportAll">Todos mis canales</sys:String>
@@ -664,4 +666,6 @@
     <sys:String x:Key="TvScheduleBindingNone">Sin programación</sys:String>
     <sys:String x:Key="TvScheduleBindingNoneTip">No mostrar nunca programas para este canal</sys:String>
     <sys:String x:Key="TvScheduleBindingApply">Vincular</sys:String>
+    <sys:String x:Key="SecondInstanceElevated">StreamsPlayer ya se está ejecutando con derechos de administrador, por lo que esta copia no puede pasarle tu solicitud. Ciérralo y vuelve a iniciar StreamsPlayer, o ejecuta ambas copias del mismo modo.</sys:String>
+    <sys:String x:Key="SecondInstanceLaunchTooLarge">Esta solicitud es demasiado grande para pasarla a la copia de StreamsPlayer en ejecución, así que no se ha iniciado nada. Cierra la copia en ejecución e inténtalo de nuevo.</sys:String>
 </ResourceDictionary>

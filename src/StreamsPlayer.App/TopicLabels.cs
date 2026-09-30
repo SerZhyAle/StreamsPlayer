@@ -43,6 +43,15 @@ internal static class TopicLabels
     /// </remarks>
     public static IComparer<string> Comparer { get; } = new LabelComparer();
 
+    /// <summary>
+    /// SP-0171: the sort position of every distinct rubric in a list, under <see cref="Comparer"/>. The
+    /// comparer resolves two localized labels per call, so a whole list is ordered by these ranks - a
+    /// dictionary read per row - instead of by the comparer. Built on each call and never kept: the
+    /// labels depend on the interface language, and a stored rank would be a copy that has to be told.
+    /// </summary>
+    public static Dictionary<string, int> RankOf(IEnumerable<string> topics) =>
+        DistinctKeyRanking.Build(topics, Comparer);
+
     private sealed class LabelComparer : IComparer<string>
     {
         public int Compare(string? left, string? right)

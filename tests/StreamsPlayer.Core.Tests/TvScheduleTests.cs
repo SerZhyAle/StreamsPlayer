@@ -112,6 +112,7 @@ public sealed class TvScheduleTests
     [InlineData("20260925140000 -0130", 15)]
     [InlineData("20260925140000", 14)]
     [InlineData("20260925140000 UTC", 14)]
+    [InlineData("20260925140000 +1400", 0)]
     public void TimesResolveToTheRightUtcHour(string value, int utcHour)
     {
         var parsed = XmltvParser.ParseTime(value);
@@ -124,9 +125,51 @@ public sealed class TvScheduleTests
     [InlineData("20260925140000 CEST")]
     [InlineData("2026-09-25")]
     [InlineData("")]
+    [InlineData("20260925140000 +1430")]
+    [InlineData("20260925140000 -1430")]
+    [InlineData("00010101000000 +0100")]
+    [InlineData("99991231235959 -0100")]
     public void UnreadableTimesAreRefusedRatherThanGuessed(string value)
     {
         Assert.Null(XmltvParser.ParseTime(value));
+    }
+
+    [Fact]
+    public void AProgrammeWithAnUnrepresentableTimeCostsOnlyItself()
+    {
+        const string body = """
+            <tv>
+              <programme start="20260925130000 +1430" stop="20260925140000 +0000" channel="x"><title>Bad start</title></programme>
+              <programme start="20260925130000 +0000" stop="20260925140000 +1430" channel="x"><title>Bad stop</title></programme>
+              <programme start="00010101000000 +0100" stop="20260925140000 +0000" channel="x"><title>Year one</title></programme>
+              <programme start="20260925130000 +0000" stop="20260925140000 +0000" channel="x"><title>Good</title></programme>
+            </tv>
+            """;
+        var report = new XmltvParseReport();
+
+        var channel = Assert.Single(XmltvParser.Parse(Encoding.UTF8.GetBytes(body), Now, report: report));
+
+        Assert.Equal(["Good"], channel.Programmes.Select(programme => programme.Title));
+        Assert.Equal(3, report.SkippedProgrammes);
+    }
+
+    [Fact]
+    public void ATitleIsCutOnACharacterBoundary()
+    {
+        // The emoji is two UTF-16 units starting at index 119, so the 120-unit limit falls inside it.
+        var title = new string('a', TvScheduleLimits.MaximumTextLength - 1) + "\U0001F600" + "tail";
+        var body = $"""
+            <tv>
+              <channel id="x"><display-name>{title}</display-name></channel>
+              <programme start="20260925130000 +0000" stop="20260925140000 +0000" channel="x"><title>{title}</title></programme>
+            </tv>
+            """;
+
+        var channel = Assert.Single(XmltvParser.Parse(Encoding.UTF8.GetBytes(body), Now));
+
+        var expected = new string('a', TvScheduleLimits.MaximumTextLength - 1);
+        Assert.Equal(expected, channel.Programmes.Single().Title);
+        Assert.Equal(expected, channel.Names.Single());
     }
 
     [Theory]
@@ -221,9 +264,112 @@ public sealed class TvScheduleTests
 
         builder.Append("</tv>");
 
-        var channels = XmltvParser.Parse(Encoding.UTF8.GetBytes(builder.ToString()), Now);
+        var report = new XmltvParseReport();
+        var channels = XmltvParser.Parse(Encoding.UTF8.GetBytes(builder.ToString()), Now, report: report);
 
         Assert.Equal(TvScheduleLimits.MaximumProgrammes, channels.Sum(channel => channel.Programmes.Count));
+        Assert.Equal(TvScheduleLimits.MaximumProgrammes, report.PeakProgrammesHeld);
+    }
+
+    [Fact]
+    public void ProgrammeCapIsEnforcedWhileReadingAndTheLatestStartsAreTheOnesDropped()
+    {
+        // Latest start first in the file: a parser that held everything and cut afterwards would still
+        // pass a count check, so the survivors are checked too.
+        var builder = new StringBuilder("<tv>");
+        var total = TvScheduleLimits.MaximumProgrammes + 10;
+        for (var index = total - 1; index >= 0; index--)
+        {
+            // One second apart, so all of them fall inside the reading window.
+            var start = Now.AddSeconds(index).ToString("yyyyMMddHHmmss") + " +0000";
+            var stop = Now.AddSeconds(index + 1).ToString("yyyyMMddHHmmss") + " +0000";
+            builder.Append($"<programme start=\"{start}\" stop=\"{stop}\" channel=\"c\"><title>t{index}</title></programme>");
+        }
+
+        builder.Append("</tv>");
+        var report = new XmltvParseReport();
+
+        var channel = Assert.Single(XmltvParser.Parse(Encoding.UTF8.GetBytes(builder.ToString()), Now, report: report));
+
+        Assert.Equal(TvScheduleLimits.MaximumProgrammes, report.PeakProgrammesHeld);
+        Assert.Equal(TvScheduleLimits.MaximumProgrammes, channel.Programmes.Count);
+        Assert.Equal("t0", channel.Programmes[0].Title);
+        Assert.Equal($"t{TvScheduleLimits.MaximumProgrammes - 1}", channel.Programmes[^1].Title);
+    }
+
+    [Fact]
+    public void ACancelledTokenStopsTheParseLongBeforeTheEndOfTheGuide()
+    {
+        var builder = new StringBuilder("<tv>");
+        for (var index = 0; index < 20_000; index++)
+        {
+            var start = Now.AddMinutes(index % 1000).ToString("yyyyMMddHHmmss") + " +0000";
+            builder.Append($"<programme start=\"{start}\" channel=\"c{index}\"><title>t</title></programme>");
+        }
+
+        builder.Append("</tv>");
+        var bytes = Encoding.UTF8.GetBytes(builder.ToString());
+        using var source = new CancellingStream(bytes);
+
+        Assert.Throws<OperationCanceledException>(
+            () => XmltvParser.Parse(source, Now, source.Token));
+
+        Assert.True(source.BytesRead < bytes.Length / 2, $"read {source.BytesRead} of {bytes.Length} bytes");
+    }
+
+    [Fact]
+    public void AnAlreadyCancelledTokenReadsNothing()
+    {
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+
+        Assert.Throws<OperationCanceledException>(
+            () => XmltvParser.Parse(Encoding.UTF8.GetBytes(Sample), Now, cancelled.Token));
+    }
+
+    /// <summary>Cancels its own token on the first read, so the parser has to notice between reads.</summary>
+    private sealed class CancellingStream(byte[] bytes) : Stream
+    {
+        private readonly MemoryStream _inner = new(bytes, writable: false);
+        private readonly CancellationTokenSource _cancellation = new();
+
+        public CancellationToken Token => _cancellation.Token;
+        public long BytesRead => _inner.Position;
+
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position
+        {
+            get => _inner.Position;
+            set => throw new NotSupportedException();
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            _cancellation.Cancel();
+            return _inner.Read(buffer, offset, count);
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _inner.Dispose();
+                _cancellation.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
     }
 
     [Fact]

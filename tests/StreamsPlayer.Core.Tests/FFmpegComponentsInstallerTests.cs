@@ -230,6 +230,70 @@ public sealed class FFmpegComponentsInstallerTests
     }
 
     [Fact]
+    public async Task Install_CancelledAfterTheDownload_LeavesThePreviousSetIntact()
+    {
+        await WithDataDirectoryAsync(async directory =>
+        {
+            var folder = FFmpegComponents.ResolveFolder(directory);
+            WriteOldSet(folder);
+            var archive = CreateArchive();
+            using var httpClient = Serving(archive);
+            var installer = new FFmpegComponentsInstaller(httpClient, SourceFor(archive));
+            using var cancel = new CancellationTokenSource();
+            var progress = new Progress(report =>
+            {
+                if (report.ReceivedBytes >= archive.Length)
+                {
+                    cancel.Cancel();
+                }
+            });
+
+            var error = await Record.ExceptionAsync(() => installer.InstallAsync(directory, progress, cancel.Token));
+
+            // SP-0165: the cancel lands between the verified download and the extraction, so the user's
+            // previous set is exactly what the folder still holds.
+            Assert.IsAssignableFrom<OperationCanceledException>(error);
+            AssertOldSet(folder);
+            AssertNothingStaged(directory);
+        });
+    }
+
+    [Fact]
+    public async Task Extraction_CancelledBetweenFiles_KeepsTheFilesExtractedSoFar()
+    {
+        await WithDataDirectoryAsync(async directory =>
+        {
+            var archivePath = Path.Combine(directory, "archive.zip");
+            Directory.CreateDirectory(directory);
+            await File.WriteAllBytesAsync(archivePath, CreateArchive());
+            var staging = Path.Combine(directory, "staging");
+            using var cancel = new CancellationTokenSource();
+
+            var error = await Record.ExceptionAsync(() => FFmpegComponentsInstaller.ExtractRequiredLibrariesAsync(
+                archivePath,
+                staging,
+                cancel.Token,
+                beforeFile: required =>
+                {
+                    if (required == FFmpegComponents.RequiredLibraries[2])
+                    {
+                        cancel.Cancel();
+                    }
+
+                    return Task.CompletedTask;
+                }));
+
+            Assert.IsAssignableFrom<OperationCanceledException>(error);
+            Assert.Equal(
+                FFmpegComponents.RequiredLibraries.Take(2),
+                Directory.GetFiles(staging).Select(Path.GetFileName));
+            Assert.DoesNotContain(
+                FFmpegComponents.RequiredLibraries[2],
+                Directory.GetFiles(staging).Select(Path.GetFileName));
+        });
+    }
+
+    [Fact]
     public async Task Install_ReplacesAnIncompleteExistingSet()
     {
         await WithDataDirectoryAsync(async directory =>

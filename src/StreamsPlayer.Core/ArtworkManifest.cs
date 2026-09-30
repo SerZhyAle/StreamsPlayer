@@ -10,37 +10,34 @@ namespace StreamsPlayer.Core;
 public sealed record ArtworkFile(string Name, long Size, string Sha256)
 {
     /// <summary>
-    /// Throws unless <paramref name="payload"/> is byte-for-byte the file this entry describes.
+    /// Compares <paramref name="payload"/> against the declared size and hash; null when it matches,
+    /// otherwise the one-line description of the mismatch for the log.
     /// </summary>
     /// <remarks>
-    /// <para>SP-0091. This is not a paranoid checksum, it is the only defence against a torn pair. The
-    /// publisher replaces an asset by deleting and re-uploading it (STREAM-BANK item H), so a
-    /// rebuild that lands between our coords fetch and our tile-pack fetch gives us two files that each
-    /// answer 200 and each are internally valid - and whose index space disagrees. The result is not
-    /// missing pictures, it is a still from another station on a channel that looks perfectly healthy:
-    /// the failure shape of contract item A, which the user cannot detect and a support report cannot
-    /// describe. Refusing the whole import costs one retry; accepting it poisons a disk cache that
-    /// nothing later re-checks.</para>
+    /// <para>STREAM-BANK item L: the manifest's per-file hashes are diagnostic, not a gate - a consumer
+    /// must not refuse an otherwise valid pack on a mismatch it cannot act on. What gates the import is
+    /// the structural check (the archive opens, every slot name is a decimal, the per-tile ceiling);
+    /// this report is what the log keeps. The truncated transfer and the half-replaced publish it names
+    /// are real accidents, and a support report can quote the line even though the import proceeds.</para>
     /// <para>Size is compared first because it is free and it names the likelier accident - a truncated
     /// transfer - in a message that says which file and by how much.</para>
     /// </remarks>
-    /// <exception cref="InvalidDataException">The payload is not the declared file.</exception>
-    public void Verify(byte[] payload)
+    public string? Diagnose(byte[] payload)
     {
         ArgumentNullException.ThrowIfNull(payload);
 
         if (payload.LongLength != Size)
         {
-            throw new InvalidDataException(
-                $"{Name} arrived as {payload.LongLength} bytes; the manifest declares {Size}.");
+            return $"{Name} arrived as {payload.LongLength} bytes; the manifest declares {Size}.";
         }
 
         var actual = Convert.ToHexStringLower(SHA256.HashData(payload));
         if (!actual.Equals(Sha256, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidDataException(
-                $"{Name} does not match the manifest: sha256 {actual}, expected {Sha256}.");
+            return $"{Name} does not match the manifest: sha256 {actual}, expected {Sha256}.";
         }
+
+        return null;
     }
 }
 
@@ -71,8 +68,9 @@ public sealed record ArtworkSet(string Stamp, IReadOnlyList<ArtworkFile> Files)
 /// measurement from inside the client can tell a frozen asset from a current one.</para>
 /// <para>The stable names have the opposite property - they always resolve to the current build - and
 /// the cost of that is that they change under you. This manifest is what makes that safe: it names the
-/// files of a build together, carries their hashes so a half-replaced pair is refused rather than
-/// seeded, and carries a per-set <c>stamp</c> so the client can record which build it installed.</para>
+/// files of a build together and carries a per-set <c>stamp</c> so the client can record which build it
+/// installed. Item L rules the per-file hashes diagnostic: a mismatch is reported for the log, never
+/// refused, and the stamp is the only invalidation key.</para>
 /// </remarks>
 public sealed record ArtworkManifest(
     int SchemaVersion,
@@ -256,4 +254,25 @@ public sealed class UnsupportedArtworkManifestException(int schemaVersion)
         $"{ArtworkManifest.SupportedSchemaVersion}.")
 {
     public int SchemaVersion { get; } = schemaVersion;
+}
+
+/// <summary>
+/// SP-0160, STREAM-BANK item L: the manifest was absent (404) or unparseable, which the contract makes
+/// the nothing-case - "nothing new", never an error, never a prompt, never a reason to discard the
+/// installed artwork.
+/// </summary>
+/// <remarks>
+/// <para>The original failure travels as the inner exception, and it must: <see cref="PublishWindowRetry"/>
+/// classifies a publish-window 404 by walking the chain, so a manifest caught mid-publish is still
+/// retried (rule 11) and this exception only escapes once the schedule is spent. Deliberately not an
+/// <see cref="InvalidDataException"/>, so no caller mistakes it for a broken publish - the caller's
+/// answer is a benign status, and the only recovery is the next explicit refresh.</para>
+/// </remarks>
+public sealed class ArtworkManifestNothingNewException(string reason, Exception innerException)
+    : Exception(
+        $"The artwork manifest was {reason}; STREAM-BANK item L makes that the nothing-case, not a failure.",
+        innerException)
+{
+    /// <summary>Short cause for a log line: "not found" or "unparseable".</summary>
+    public string Reason { get; } = reason;
 }

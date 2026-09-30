@@ -163,7 +163,7 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 将正在播放的直播视频或广播直接录制为文件，播放不会中断：视频保存到“视频”中的 Recordings 文件夹，广播保存到“音乐”中的 Recordings 文件夹，也可以保存到您选择的文件夹。
 
 @@cap-play-6
-通过您的本地网络，直接收听运行 FastMediaSorter 的手机或手表发出的音频直播 - 中间没有服务器。
+通过您的本地网络，直接收听或观看运行 FastMediaSorter 的手机或手表发出的音频或视频直播 - 中间没有服务器。
 
 @@cap-window-title
 按您的习惯观看

@@ -76,21 +76,34 @@
                      cards and tiles use. -->
                 <Grid x:Name="PlayingIndicator" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
                     <Ellipse Fill="#CC2364AA" />
+                    <!-- SP-0162: the note turns only while the indicator is shown. A storyboard begun on Loaded
+                         never ended, so a Collapsed indicator - no station, or one that is stopped - still kept
+                         the render loop running on an idle, always-on-top panel. IsVisible is false for a
+                         Collapsed element and for one whose window is hidden, which is when it matters. -->
                     <Path Data="{StaticResource Icon.content.audio}" FlowDirection="LeftToRight"
                           Fill="White" Stretch="Uniform" Margin="4" RenderTransformOrigin="0.5,0.5">
                         <Path.RenderTransform>
                             <RotateTransform x:Name="CompactNoteRotate" />
                         </Path.RenderTransform>
-                        <Path.Triggers>
-                            <EventTrigger RoutedEvent="Loaded">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetProperty="(Path.RenderTransform).(RotateTransform.Angle)"
-                                                         From="0" To="360" Duration="0:0:1.8" RepeatBehavior="Forever" />
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Path.Triggers>
+                        <Path.Style>
+                            <Style TargetType="Path">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsVisible, ElementName=PlayingIndicator}" Value="True">
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard x:Name="NoteTurn">
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="(Path.RenderTransform).(RotateTransform.Angle)"
+                                                                     From="0" To="360" Duration="0:0:1.8" RepeatBehavior="Forever" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                        <DataTrigger.ExitActions>
+                                            <StopStoryboard BeginStoryboardName="NoteTurn" />
+                                        </DataTrigger.ExitActions>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Path.Style>
                     </Path>
                 </Grid>
             </Grid>
@@ -139,12 +152,13 @@
                         AutomationProperties.Name="{DynamicResource StopAudio}" />
             </StackPanel>
 
-            <!-- Column 2: window buttons (Always on top + Expand + Minimize + Close) -->
+            <!-- Column 2: window buttons (More actions + Expand + Minimize + Close). SP-0182: the overflow
+                 button is the catalog cards' menu for the station playing now; always-on-top is an entry in it. -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
-                <Button x:Name="TopmostButton" Style="{StaticResource PinOnGlyphOnlyButton}"
-                        Margin="4,0,0,0" Padding="9,7" Click="TopmostButton_Click"
-                        ToolTip="{DynamicResource CompactPanelOnTopOn}"
-                        AutomationProperties.Name="{DynamicResource CompactPanelOnTopOn}" />
+                <Button x:Name="OverflowButton" Style="{StaticResource MoreGlyphButton}"
+                        Margin="4,0,0,0" Padding="9,7" Click="OverflowButton_Click"
+                        ToolTip="{DynamicResource MoreActionsTip}"
+                        AutomationProperties.Name="{DynamicResource MoreActionsName}" />
 
                 <Button x:Name="ExpandButton" Style="{StaticResource FullWindowGlyphOnlyButton}"
                         Margin="4,0,0,0" Padding="9,7" Click="ExpandButton_Click"

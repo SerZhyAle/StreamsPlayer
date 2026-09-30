@@ -23,6 +23,7 @@
     <sys:String x:Key="ChannelPreviewsUnavailable">此计算机无法打开图片包。预览仍按原方式工作。</sys:String>
     <sys:String x:Key="ChannelPreviewsFailed">无法下载预览图片。</sys:String>
     <sys:String x:Key="ChannelPreviewsNewerVersion">这些预览图片是为较新版本的 StreamsPlayer 发布的。请更新应用以获取它们。当前图片已保留。</sys:String>
+    <sys:String x:Key="ChannelPreviewsNothingNew">没有发布新的预览图片。当前图片已保留。</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgress">正在下载图片.. {0}%（{1} / {2} MB）</sys:String>
     <sys:String x:Key="ChannelPreviewsPublishWindowRetry">图片正在重新发布。{0} 秒后重试（第 {1} 次，共 {2} 次）..</sys:String>
     <sys:String x:Key="ChannelPreviewsDownloadProgressUnknown">正在下载图片.. {0} MB</sys:String>
@@ -97,8 +98,7 @@
     <sys:String x:Key="ExpandFromPanelName">返回完整的频道目录窗口</sys:String>
     <sys:String x:Key="CompactPanelMinimizeTip">最小化</sys:String>
     <sys:String x:Key="CompactPanelCloseTip">关闭应用程序</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOn">固定在最前：开</sys:String>
-    <sys:String x:Key="CompactPanelOnTopOff">固定在最前：关</sys:String>
+    <sys:String x:Key="MenuCompactPanelOnTop">始终置顶</sys:String>
     <sys:String x:Key="AllOption">全部</sys:String>
     <sys:String x:Key="AudioOption">音频</sys:String>
     <sys:String x:Key="VideoOption">视频</sys:String>
@@ -363,6 +363,7 @@
     <sys:String x:Key="SettingsName">打开设置</sys:String>
     <sys:String x:Key="SettingsWindowTitle">STREAMS Player 设置</sys:String>
     <sys:String x:Key="ToolsWindowTitle">STREAMS Player 工具</sys:String>
+    <sys:String x:Key="ToolsWindowBusyClose">有一个操作正在进行。请等待它完成或取消它，然后关闭此窗口。</sys:String>
     <sys:String x:Key="DiagnosticsHeading">诊断</sys:String>
     <sys:String x:Key="GridSettings">网格</sys:String>
     <sys:String x:Key="ThemeLabel">颜色主题</sys:String>
@@ -482,6 +483,7 @@
     <sys:String x:Key="ImportInvalidEncoding">此文件不是有效的 UTF-8 文本。您的列表未改动。</sys:String>
     <sys:String x:Key="ImportFileReadFailed">Windows 无法读取所选文件。您的列表未改动。</sys:String>
     <sys:String x:Key="ImportUrlFailed">无法下载该播放列表。您的列表未改动。</sys:String>
+    <sys:String x:Key="ImportUrlCancelled">导入已取消。您的列表未改动。</sys:String>
     <sys:String x:Key="ImportHlsManifest">这是 HLS 媒体清单，不是频道列表。未导入任何频道。</sys:String>
     <sys:String x:Key="ImportEmpty">未找到可导入的频道。您的列表未改动。</sys:String>
     <sys:String x:Key="ExportAll">我的所有频道</sys:String>
@@ -664,4 +666,6 @@
     <sys:String x:Key="TvScheduleBindingNone">无节目表</sys:String>
     <sys:String x:Key="TvScheduleBindingNoneTip">从不为此频道显示节目</sys:String>
     <sys:String x:Key="TvScheduleBindingApply">绑定</sys:String>
+    <sys:String x:Key="SecondInstanceElevated">StreamsPlayer 已以管理员权限运行，因此此副本无法把您的请求传递给它。请关闭它后重新启动 StreamsPlayer，或以相同方式运行两个副本。</sys:String>
+    <sys:String x:Key="SecondInstanceLaunchTooLarge">此请求太大，无法传递给正在运行的 StreamsPlayer，因此没有启动任何内容。请关闭正在运行的副本后重试。</sys:String>
 </ResourceDictionary>

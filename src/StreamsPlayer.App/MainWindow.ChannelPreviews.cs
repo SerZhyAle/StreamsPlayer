@@ -111,16 +111,25 @@ public partial class MainWindow
             _log.Event("CHANNEL PREVIEWS", "op=manifest_refused", $"schema={exception.SchemaVersion}");
             SetStatus("ChannelPreviewsNewerVersion");
         }
+        // SP-0160, STREAM-BANK item L: an absent or unparseable manifest is the nothing-case too, never
+        // a failure - the 404 inside it has already had the publish-window retries, so this is the
+        // publisher's settled answer. The installed artwork stays, no stamp is written.
+        catch (ArtworkManifestNothingNewException exception)
+        {
+            _log.Event("CHANNEL PREVIEWS", "op=nothing_new", $"reason={exception.Reason}");
+            SetStatus("ChannelPreviewsNothingNew");
+        }
         // InvalidOperationException covers WPF imaging state/affinity faults: this handler is async void,
         // so anything escaping it takes the whole app down - AC 6 requires a message, never a crash.
+        // SP-0161: IOException covers HttpIOException, what a body cut short or reset raises - the
+        // import reports its own failure instead of landing in the handler guard.
         catch (Exception exception) when (exception is HttpRequestException or InvalidDataException
             or OperationCanceledException or TimeoutException or System.Text.Json.JsonException
-            or InvalidOperationException)
+            or IOException or InvalidOperationException)
         {
             // The artwork stamp is deliberately NOT written: it must record what actually landed, and a
             // failed import landed nothing. A cancellation reaches the same outcome by the same route,
-            // throwing out of the import before the stamp is persisted. A manifest mismatch arrives here
-            // too, as InvalidDataException - a half-replaced publish is a retry, not a state change.
+            // throwing out of the import before the stamp is persisted.
             _log.Error("Channel preview artwork download failed", exception);
             SetStatus("ChannelPreviewsFailed");
         }
@@ -148,6 +157,12 @@ public partial class MainWindow
             ShowPublishWindowRetry(notice, "preview_artwork", "ChannelPreviewsPublishWindowRetry"));
         var artwork = await new ChannelPreviewArtworkService(_previewArtworkHttpClient)
             .DownloadAsync(download, retrying, token);
+        // Item L diagnostics: a per-file mismatch the download no longer refuses, reported once where
+        // the log can carry it - not per tile, and never to the user, whose status stays the plain done.
+        foreach (var diagnostic in artwork.Diagnostics)
+        {
+            _log.Event("CHANNEL PREVIEWS", "op=manifest_mismatch", diagnostic);
+        }
         var catalogUrls = _state.Channels.Select(channel => channel.Url).ToHashSet(StringComparer.Ordinal);
         var importer = new ChannelPreviewImporter(_previewFrameStore!, _log);
         var tiles = new Progress<(int Processed, int Total)>(report =>
@@ -155,6 +170,9 @@ public partial class MainWindow
         // One Task.Run, one thread: the pack's entries are read through one shared archive stream.
         var result = await Task.Run(() => importer.Import(artwork, catalogUrls, tiles, token), token);
 
+        // SP-0161: the tile import was the last stoppable step, so the Cancel button goes dark for the
+        // stamp persist instead of swallowing a click and reporting done.
+        EndCancellablePhase();
         // SP-0091: this used to be followed by a forced GC.Collect/WaitForPendingFinalizers pair and a
         // "finishing up" line, because the sheet path left a ~235 MB finalizable WIC bitmap behind
         // (measured 786 MB resident after an import against 289 MB before it). The tile pack decodes one
