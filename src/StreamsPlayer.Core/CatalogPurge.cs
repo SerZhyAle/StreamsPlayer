@@ -27,7 +27,17 @@ public static class CatalogPurge
             .Where(channel => channel.SourceOrigin != SourceOrigin.Catalog)
             .ToList();
 
-        return new CatalogPurgeResult(state with { Channels = kept }, removedIds);
+        // SP-0177: the downloaded rows' bookkeeping leaves with them - the atlases nothing indexes any more
+        // (the save sweeps their files), and the download and snapshot dates, which describe no row now and
+        // would otherwise keep the provenance line claiming a refresh and the first-run offer away for good.
+        return new CatalogPurgeResult(
+            FaviconAtlasReferences.ReleaseUnreferenced(state with
+            {
+                Channels = kept,
+                LastCatalogRefreshAt = null,
+                AppliedSnapshotDate = null
+            }, writtenSlot: null),
+            removedIds);
     }
 
     public static int CountImportedBank(IEnumerable<StreamChannel> channels) =>

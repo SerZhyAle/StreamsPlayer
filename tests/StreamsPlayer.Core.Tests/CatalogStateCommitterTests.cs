@@ -43,7 +43,7 @@ public sealed class CatalogStateCommitterTests
     }
 
     [Fact]
-    public async Task CommitAsync_KeepsAnUnsavedMutationAndRetriesItWithTheNextCommit()
+    public async Task CommitAsync_FailedSaveKeepsCurrentAtLastSavedState()
     {
         var attempts = 0;
         var committer = new CatalogStateCommitter(new CatalogState(), (state, _) =>
@@ -57,13 +57,54 @@ public sealed class CatalogStateCommitterTests
         });
 
         var failed = await committer.CommitAsync(state => state with { AudioVolume = 42 });
-        var retried = await committer.CommitAsync(state => state with { VideoVolume = 24 });
+        Assert.Equal(new CatalogState().AudioVolume, committer.Current.AudioVolume);
+        Assert.Equal(42, failed.AttemptedState.AudioVolume);
+        var following = await committer.CommitAsync(state => state with { VideoVolume = 24 });
 
         Assert.False(failed.Saved);
         Assert.IsType<IOException>(failed.Failure);
-        Assert.True(retried.Saved);
-        Assert.Equal(42, retried.State.AudioVolume);
-        Assert.Equal(24, retried.State.VideoVolume);
+        Assert.True(following.Saved);
+        Assert.Equal(new CatalogState().AudioVolume, following.State.AudioVolume);
+        Assert.Equal(24, following.State.VideoVolume);
+    }
+
+    [Fact]
+    public async Task CommitAsync_UnchangedMutationDoesNotWrite()
+    {
+        var writes = 0;
+        var initial = new CatalogState();
+        var committer = new CatalogStateCommitter(initial, (state, _) =>
+        {
+            writes++;
+            return Task.FromResult(state);
+        });
+
+        var result = await committer.CommitAsync(state => state);
+
+        Assert.True(result.Saved);
+        Assert.Same(initial, result.State);
+        Assert.Equal(0, writes);
+    }
+
+    [Fact]
+    public async Task CommitAsync_FailedAtlasWriteCannotLeakIndicesIntoTheNextSave()
+    {
+        var initial = new CatalogState { AtlasFileName = "old.png" };
+        var committer = new CatalogStateCommitter(initial, (state, _) => Task.FromResult(state));
+        var failed = await committer.CommitAsync(
+            state => state with
+            {
+                Channels = [Channel("https://example.test/new") with { FaviconIndex = 7 }]
+            },
+            (_, _) => throw new IOException("atlas unavailable"));
+
+        var next = await committer.CommitAsync(state => state with { AudioVolume = 31 });
+
+        Assert.False(failed.Saved);
+        Assert.Single(failed.AttemptedState.Channels);
+        Assert.Same(initial, failed.State);
+        Assert.Empty(next.State.Channels);
+        Assert.Equal("old.png", next.State.AtlasFileName);
     }
 
     private static StreamChannel Channel(string url) => new()

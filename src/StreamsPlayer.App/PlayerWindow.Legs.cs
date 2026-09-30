@@ -4,35 +4,119 @@ namespace StreamsPlayer.App;
 
 /// <summary>
 /// SP-0120: how a leg of playback starts and how a failed one gives back what it holds. Every per-leg reset runs
-/// on the UI thread, where the monitors it resets are read; only the engine call of a re-open goes to a worker.
+/// on the UI thread, where the monitors it resets are read; each engine call goes to a worker.
 /// </summary>
 public partial class PlayerWindow
 {
-    // The engine stop a terminal failure started; a hand retry opens only after it has landed.
-    private Task _failureStop = Task.CompletedTask;
+    private static readonly TimeSpan OpenCallDeadline = TimeSpan.FromSeconds(20);
 
-    /// <summary>
-    /// Opens the channel on the UI thread - the first open, which has nothing on screen to keep responsive.
-    /// <paramref name="qualityCeiling"/> is passed in rather than read here because the governor that owns the
-    /// answer is single-threaded; the caller reads it on the UI thread, as late as it can (SP-0071).
-    /// </summary>
-    private void StartMedia(string reason, StreamQualityRung? qualityCeiling)
+    private void AttachBackendEvents(IVideoBackend backend)
     {
-        if (BeginLeg(reason, qualityCeiling) is { } cacheMs)
+        _bufferingHandler = cache => Backend_BufferingChanged(backend, cache);
+        _errorHandler = () => Backend_EncounteredError(backend);
+        _endHandler = () => Backend_EndReached(backend);
+        _tracksHandler = () => Backend_TracksChanged(backend);
+        _snapshotHandler = (id, frame) => Backend_SnapshotReady(backend, id, frame);
+        backend.BufferingChanged += _bufferingHandler;
+        backend.EncounteredError += _errorHandler;
+        backend.EndReached += _endHandler;
+        backend.TracksChanged += _tracksHandler;
+        backend.SnapshotReady += _snapshotHandler;
+    }
+
+    private void DetachBackendEvents(IVideoBackend backend)
+    {
+        backend.BufferingChanged -= _bufferingHandler;
+        backend.EncounteredError -= _errorHandler;
+        backend.EndReached -= _endHandler;
+        backend.TracksChanged -= _tracksHandler;
+        backend.SnapshotReady -= _snapshotHandler;
+    }
+
+    private void ReplaceBackend()
+    {
+        // The old engine's callbacks keep their old instance even if they have already queued a UI action.
+        var replacement = VideoBackendFactory.Create(_backendSelection, (int)VolumeSlider.Value, _isMuted, _log);
+        var previous = _backend;
+        try
         {
-            OpenLeg(cacheMs, qualityCeiling);
+            previous.SetOverlay(null);
+            VideoHost.Children.Remove(previous.View);
+            VideoHost.Children.Add(replacement.View);
+            replacement.SetOverlay(ControlsOverlay);
+        }
+        catch
+        {
+            replacement.SetOverlay(null);
+            VideoHost.Children.Remove(replacement.View);
+            if (!VideoHost.Children.Contains(previous.View))
+            {
+                VideoHost.Children.Add(previous.View);
+            }
+
+            previous.SetOverlay(ControlsOverlay);
+            _retiredBackendReleases.Add(ReleaseRetiredBackendAsync(replacement));
+            throw;
+        }
+
+        DetachBackendEvents(previous);
+        _backend = replacement;
+        AttachBackendEvents(replacement);
+        replacement.RecordingInterrupted += Backend_RecordingInterrupted;
+        if (_recordingSession is not null)
+        {
+            _recordingResumePending = true;
+        }
+
+        _previousBackendRelease = ReleaseRetiredBackendAsync(previous);
+        _retiredBackendReleases.RemoveAll(task => task.IsCompleted);
+        _retiredBackendReleases.Add(_previousBackendRelease);
+    }
+
+    private async Task ReleaseRetiredBackendAsync(IVideoBackend previous)
+    {
+        try
+        {
+            await previous.StopAndDisposeAsync();
+        }
+        catch (Exception exception)
+        {
+            _log.Event("PLAYBACK TEARDOWN", "stage=retired_backend", "ok=false", $"err={exception.Message}");
+        }
+        finally
+        {
+            previous.RecordingInterrupted -= Backend_RecordingInterrupted;
         }
     }
 
     /// <summary>
-    /// The same open for a re-open: the leg starts here on the UI thread and only the engine call moves to a
-    /// worker, because a flapping stream can hold <see cref="IVideoBackend.Play"/> for seconds and the backend
-    /// serializes it against teardown. Must be called on the UI thread.
+    /// Starts the leg on the UI thread and makes the engine call on a worker, with a deadline. A native
+    /// <see cref="IVideoBackend.Play"/> can block while a source stops answering. The caller passes the
+    /// quality ceiling it read on the UI thread, where the governor is owned (SP-0071).
     /// </summary>
-    private Task StartMediaOffUiThreadAsync(string reason, StreamQualityRung? qualityCeiling) =>
-        BeginLeg(reason, qualityCeiling) is { } cacheMs
-            ? Task.Run(() => OpenLeg(cacheMs, qualityCeiling))
-            : Task.CompletedTask;
+    private async Task StartMediaOffUiThreadAsync(string reason, StreamQualityRung? qualityCeiling)
+    {
+        if (BeginLeg(reason, qualityCeiling) is not { } cacheMs)
+        {
+            return;
+        }
+
+        var backend = _backend;
+        var open = Task.Run(() => OpenLeg(backend, cacheMs, qualityCeiling));
+        using var deadlineCts = CancellationTokenSource.CreateLinkedTokenSource(_sessionCts.Token);
+        var deadline = Task.Delay(OpenCallDeadline, deadlineCts.Token);
+        if (await Task.WhenAny(open, deadline) == open)
+        {
+            deadlineCts.Cancel();
+            await open;
+        }
+        else if (!_closing && ReferenceEquals(backend, _backend))
+        {
+            _log.Event("PLAYBACK OPEN TIMEOUT", $"leg={_legCount}",
+                $"after_ms={OpenCallDeadline.TotalMilliseconds:F0}", $"url={_channel.Url}");
+            ShowPlaybackFailure("engine_open_timeout");
+        }
+    }
 
     /// <summary>
     /// Starts a leg: every per-leg reset, the leg count and the log line, and returns the live buffer the open
@@ -48,14 +132,28 @@ public partial class PlayerWindow
             return null; // window is tearing down; do not touch the (soon) disposed player
         }
 
+        if (_legCount > 0)
+        {
+            try
+            {
+                ReplaceBackend();
+            }
+            catch (Exception exception)
+            {
+                _log.Event("PLAYBACK OPEN", "ok=false", "stage=replace_backend", $"err={exception.Message}");
+                ShowPlaybackFailure("engine_open_error");
+                return null;
+            }
+        }
+
         _reachedLive = false;
         _isStalled = false;
+        _snapshotRequests.Clear(); // a capture from replaced media cannot satisfy this leg's request
         if (reason != "quality")
         {
             _probeLegPending = false; // SP-0130: only a quality re-open can carry a probe
         }
 
-        _outcomeRecorded = false;
         // SP-0070: same reason as the health baseline below - the new media restarts the engine's
         // progress counters from zero, and differencing across that boundary would invent a freeze.
         _freeze.Reset();
@@ -63,6 +161,8 @@ public partial class PlayerWindow
         // budget a per-leg quantity rather than a session-wide one.
         _openBudget.Reset();
         _buffering = false;
+        _bufferFullPending = false;
+        _frameShownLogged = false;
         _playbackClock.Restart();
         _legCount++;
         // SP-0045: the new media restarts the engine's loss counters; drop the baseline so the reset is
@@ -82,7 +182,7 @@ public partial class PlayerWindow
     }
 
     /// <summary>Hands the leg to the engine. Any thread; a rejection is reported on the UI thread.</summary>
-    private void OpenLeg(uint cacheMs, StreamQualityRung? qualityCeiling)
+    private void OpenLeg(IVideoBackend backend, uint cacheMs, StreamQualityRung? qualityCeiling)
     {
         if (_closing)
         {
@@ -97,9 +197,17 @@ public partial class PlayerWindow
             return;
         }
 
-        if (!_backend.Play(address, cacheMs, rtspOverTcp: true, softwareDecode: true, qualityCeiling))
+        try
         {
-            ShowPlaybackFailure("play_rejected");
+            if (!backend.Play(address, cacheMs, rtspOverTcp: true, softwareDecode: true, qualityCeiling))
+            {
+                ShowPlaybackFailure("play_rejected");
+            }
+        }
+        catch (Exception exception)
+        {
+            _log.Event("PLAYBACK OPEN", "ok=false", $"err={exception.Message}", $"url={_channel.Url}");
+            ShowPlaybackFailure("engine_open_error");
         }
     }
 
@@ -114,19 +222,16 @@ public partial class PlayerWindow
         _watchdogTimer.Stop();
         _wake?.Dispose();
         _wake = null;
-        _failureStop = _backend.StopPlaybackAsync();
+        var failureStop = _backend.StopPlaybackAsync();
         // SP-0121: a recording ends visibly with the playback it records, and its segments are saved and announced.
-        EndRecordingAfterFailure(_failureStop);
+        EndRecordingAfterFailure(failureStop);
     }
 
     /// <summary>
-    /// The hand retry's open. It waits for the stop <see cref="ReleaseAfterFailure"/> started - the two are
-    /// separate pool tasks, and an open that won the engine's gate first would be stopped by the verdict it
-    /// is retrying. The stop's own outcome does not matter here: the engine logs a failed stop itself.
+    /// The hand retry gets a new backend, so an old native stop that never returns cannot hold it hostage.
     /// </summary>
     private async Task RetryAfterFailureAsync()
     {
-        await _failureStop.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext);
         if (_closing)
         {
             return;

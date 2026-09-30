@@ -13,7 +13,7 @@ namespace StreamsPlayer.App;
 /// buffering events, which arrive continuously during exactly the state being reported.</para>
 ///
 /// <para>This caption exists because the status line it mirrors lives inside a panel that hides itself
-/// after ten seconds of no mouse. A viewer who is only watching therefore had no explanation at the one
+/// after four seconds of no mouse (ControlsHideTimeout). A viewer who is only watching therefore had no explanation at the one
 /// moment an explanation was worth having.</para>
 /// </summary>
 public partial class PlayerWindow

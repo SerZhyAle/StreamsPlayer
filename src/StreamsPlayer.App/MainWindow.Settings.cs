@@ -27,7 +27,7 @@ public partial class MainWindow
     {
         try
         {
-            var dialog = new SettingsWindow(_state.Theme, _state.TileSize, _state.UpdateStreamPreviews, _state.HideAdultContent, _state.AnimatedBackdrop, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.ResumePlaybackOnStartup, _state.VideoBackend, _state.FrameFolder, LocalizationService.CurrentLanguage)
+            var dialog = new SettingsWindow(_state.Theme, _state.TileSize, _state.UpdateStreamPreviews, _state.HideAdultContent, _state.AnimatedBackdrop, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.ResumePlaybackOnStartup, _state.VideoBackend, _state.FrameFolder, _state.VideoRecordingFolder, _state.AudioRecordingFolder, LocalizationService.CurrentLanguage)
             {
                 Owner = this
             };
@@ -47,23 +47,40 @@ public partial class MainWindow
             var resumeTurnedOff = _state.ResumePlaybackOnStartup && !dialog.ResumePlaybackOnStartup;
             // Null means "the language already in use", so the settings save stays a single write.
             var chosenLanguage = dialog.SelectedLanguage;
-            _state = await PersistAsync(state => state with
+            var settings = (
+                Theme: dialog.SelectedTheme,
+                TileSize: dialog.SelectedTileSize,
+                UpdateStreamPreviews: dialog.UpdateStreamPreviews,
+                HideAdultContent: dialog.HideAdultContent,
+                AnimatedBackdrop: dialog.AnimatedBackdrop,
+                KeepAwakeDuringPlayback: dialog.KeepAwakeDuringPlayback,
+                SystemMediaControls: dialog.SystemMediaControls,
+                ResumePlaybackOnStartup: dialog.ResumePlaybackOnStartup,
+                VideoBackend: dialog.SelectedVideoBackend,
+                FrameFolder: dialog.FrameFolder,
+                VideoRecordingFolder: dialog.VideoRecordingFolder,
+                AudioRecordingFolder: dialog.AudioRecordingFolder);
+            await PersistAsync(state => state with
             {
                 Language = chosenLanguage ?? state.Language,
-                Theme = dialog.SelectedTheme,
-                TileSize = dialog.SelectedTileSize,
-                UpdateStreamPreviews = dialog.UpdateStreamPreviews,
-                HideAdultContent = dialog.HideAdultContent,
-                AnimatedBackdrop = dialog.AnimatedBackdrop,
-                KeepAwakeDuringPlayback = dialog.KeepAwakeDuringPlayback,
-                SystemMediaControls = dialog.SystemMediaControls,
+                Theme = settings.Theme,
+                TileSize = settings.TileSize,
+                UpdateStreamPreviews = settings.UpdateStreamPreviews,
+                HideAdultContent = settings.HideAdultContent,
+                AnimatedBackdrop = settings.AnimatedBackdrop,
+                KeepAwakeDuringPlayback = settings.KeepAwakeDuringPlayback,
+                SystemMediaControls = settings.SystemMediaControls,
                 // Read at launch, so this needs no side effect applied below - it takes effect next time.
-                ResumePlaybackOnStartup = dialog.ResumePlaybackOnStartup,
+                ResumePlaybackOnStartup = settings.ResumePlaybackOnStartup,
                 ResumeChannelIds = resumeTurnedOff ? [] : state.ResumeChannelIds,
                 // Takes effect on the next player window opened; an already-open player keeps its engine.
-                VideoBackend = dialog.SelectedVideoBackend,
+                VideoBackend = settings.VideoBackend,
                 // Read per capture, so an open player window picks this up without being reopened (SP-0038).
-                FrameFolder = dialog.FrameFolder
+                FrameFolder = settings.FrameFolder,
+                VideoRecordingFolder = settings.VideoRecordingFolder,
+                AudioRecordingFolder = settings.AudioRecordingFolder,
+                // SP-0179: these are per-kind choices now; a later launch must not carry FrameFolder over again.
+                CaptureFoldersSchema = CaptureFolderChoices.CurrentSchema
             });
 
             ThemeService.Apply(_state.Theme);

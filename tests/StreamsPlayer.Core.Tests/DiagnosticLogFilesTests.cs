@@ -138,6 +138,25 @@ public sealed class DiagnosticLogFilesTests
         });
     }
 
+    // SP-0174: the retention number is the contract's (<c>DIAGNOSTIC-REPORT</c> rule 4, version 0.10):
+    // the last 10 session logs in total - the session running now plus the 9 most recent closed ones.
+    // The 0.9 wording read as ten closed logs besides the current one; the contract was amended rather
+    // than the count changed, so this test pins code and contract to the same number.
+    [Fact]
+    public void Retention_MatchesTheContractRuleFourCount()
+    {
+        Assert.Equal(10, DiagnosticLogFiles.KeptSessions);
+
+        RunInTempDirectory(directory =>
+        {
+            RetireSessions(directory, count: DiagnosticLogFiles.KeptSessions + 5);
+
+            DiagnosticLogFiles.Rotate(directory);
+
+            Assert.Equal(DiagnosticLogFiles.KeptSessions - 1, Directory.GetFiles(directory, "Session-*.log").Length);
+        });
+    }
+
     // The whole feature is retention, but a launch must survive a directory that refuses to cooperate -
     // the current log is the hard requirement, retention is the convenience.
     [Fact]

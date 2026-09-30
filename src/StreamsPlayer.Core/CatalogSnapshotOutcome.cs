@@ -24,7 +24,9 @@ public sealed record CatalogSnapshotOutcome(CatalogSnapshot Snapshot)
                 RemoveMissing: false,
                 FaviconSource: FaviconSource.Snapshot,
                 ReplacesAtlas: ReplacesAtlas,
-                RevivesRetired: false));
+                RevivesRetired: false,
+                // SP-0177: offered after any failed refresh, so it can meet a list a later download wrote.
+                PreservesLiveDownloadedRows: currentState.LastCatalogRefreshAt > Snapshot.SourceDate));
         return new CatalogSnapshotApplyResult(
             FaviconAtlasReferences.ReleaseUnreferenced(currentState with
             {

@@ -27,13 +27,19 @@ public sealed class LivePlaybackRecoveryPolicy
     // wait this rule exists to end.
     private const int OpenTimeoutBudget = 1;
 
+    // SP-0041 Decision 1: every backoff below is half of what Part D (and this class before it) used.
+    // Each leg already spends the engine's own open timeout, so a longer pause bought little but more
+    // black screen - and the connectivity gate in front of this policy now settles the dead-host and
+    // no-network cases a longer wait was hoping to outlast. StreamsPlayer's values, a recorded
+    // divergence from the reference (docs/PLAYBACK_RESILIENCE.md section 4).
+    //
     // Part D leaves no explicit backoff for a stall or a stream-end re-open; a short fixed delay avoids
     // a tight reconnect loop without adding perceptible latency to a recovery.
-    private static readonly TimeSpan StallBackoff = TimeSpan.FromSeconds(1);
-    private static readonly TimeSpan StreamEndedBackoff = TimeSpan.FromSeconds(1);
-    // SP-0096: not the transient 2 s/4 s ladder. Twenty seconds have already been spent waiting by the
+    private static readonly TimeSpan StallBackoff = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan StreamEndedBackoff = TimeSpan.FromMilliseconds(500);
+    // SP-0096: not the transient 1 s/2 s ladder. Twenty seconds have already been spent waiting by the
     // time this trigger fires; the delay exists only so the re-open is not a tight loop.
-    private static readonly TimeSpan OpenTimeoutBackoff = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan OpenTimeoutBackoff = TimeSpan.FromMilliseconds(500);
 
     private int _behindLiveWindowAttempts;
     private int _transientAttempts;
@@ -43,8 +49,15 @@ public sealed class LivePlaybackRecoveryPolicy
 
     /// <summary>Classifies the signal and returns the next recovery action for its trigger.</summary>
     public RecoveryDecision Decide(PlaybackFailureSignal signal)
+        => Decide(PlaybackRecoveryClassifier.Classify(signal));
+
+    /// <summary>
+    /// The decision for an already-classified trigger. A trigger with no arm in the budget table - one
+    /// appended to the enum without a budget - hard-fails on its first occurrence instead of reconnecting
+    /// forever with no delay (SP-0178).
+    /// </summary>
+    internal RecoveryDecision Decide(RecoveryTrigger trigger)
     {
-        var trigger = PlaybackRecoveryClassifier.Classify(signal);
         if (trigger == RecoveryTrigger.HardFail)
         {
             return new RecoveryDecision(RecoveryActionKind.HardFail, TimeSpan.Zero, 0, 0, RecoveryTrigger.HardFail);
@@ -71,15 +84,16 @@ public sealed class LivePlaybackRecoveryPolicy
 
     private (int Attempt, int Budget, TimeSpan Delay) Advance(RecoveryTrigger trigger) => trigger switch
     {
-        // Linear 1 s / 2 s / 3 s.
+        // Linear 0.5 / 1 / 1.5 s (SP-0041: half of Part D's 1 / 2 / 3 s).
         RecoveryTrigger.BehindLiveWindow => (
-            ++_behindLiveWindowAttempts, BehindLiveWindowBudget, TimeSpan.FromSeconds(_behindLiveWindowAttempts)),
-        // Exponential 2 / 4 / 8 / 16 s.
+            ++_behindLiveWindowAttempts, BehindLiveWindowBudget, TimeSpan.FromSeconds(_behindLiveWindowAttempts * 0.5)),
+        // Exponential 1 / 2 s within SP-0079's budget of two (SP-0041: half of Part D's 2 / 4 / 8 / 16 s).
         RecoveryTrigger.Transient => (
-            ++_transientAttempts, TransientBudget, TimeSpan.FromSeconds(Math.Pow(2, _transientAttempts))),
+            ++_transientAttempts, TransientBudget, TimeSpan.FromSeconds(Math.Pow(2, _transientAttempts - 1))),
         RecoveryTrigger.Stall => (++_stallAttempts, StallBudget, StallBackoff),
         RecoveryTrigger.StreamEnded => (++_streamEndedAttempts, StreamEndedBudget, StreamEndedBackoff),
         RecoveryTrigger.OpenTimeout => (++_openTimeoutAttempts, OpenTimeoutBudget, OpenTimeoutBackoff),
-        _ => (0, 0, TimeSpan.Zero)
+        // Attempt 1 against budget 0: an unmapped trigger is a hard failure, never a free reconnect.
+        _ => (1, 0, TimeSpan.Zero)
     };
 }

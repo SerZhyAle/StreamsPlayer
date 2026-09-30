@@ -268,6 +268,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="FailureDialogMessage">Non è stato possibile riprodurre «{0}».</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">Impossibile riprodurre «{0}»: il suo indirizzo non è un flusso http, https o rtsp.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">Il catalogo segnala questo canale come bloccato per regione: non ha risposto dal paese del curatore. Potrebbe funzionare se ti trovi nella regione in cui trasmette.</sys:String>
+    <sys:String x:Key="FailureNoNetwork">Non c'è connessione di rete, quindi questo canale non è mai stato raggiunto. Potrebbe funzionare - controlla la connessione e riprova.</sys:String>
     <sys:String x:Key="FailureRetry">Riprova</sys:String>
     <sys:String x:Key="FailureHide">Nascondi</sys:String>
     <sys:String x:Key="FailureDelete">Elimina</sys:String>
@@ -316,6 +317,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="SaveFrame">Salva fotogramma</sys:String>
     <sys:String x:Key="SaveFrameTip">Salva il fotogramma corrente come file immagine e come icona di questo canale</sys:String>
     <sys:String x:Key="FrameSaved">Fotogramma salvato: {0}</sys:String>
+    <sys:String x:Key="FrameSavedElsewhere">Impossibile scrivere in {0} - fotogramma salvato in {1}</sys:String>
     <sys:String x:Key="FrameSaveFailed">Impossibile salvare il fotogramma</sys:String>
     <sys:String x:Key="Record">Registra</sys:String>
     <sys:String x:Key="RecordTip">Registra trasmissione in diretta (R)</sys:String>
@@ -333,15 +335,21 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="RecordEndedConnectionLost">Registrazione interrotta - la stazione ha chiuso la connessione. Salvato: {0} ({1})</sys:String>
     <sys:String x:Key="RecordUnsupportedFormat">Il formato del flusso di questa stazione non può essere registrato</sys:String>
     <sys:String x:Key="RecordWriteFailed">Registrazione interrotta - impossibile scrivere in {0}</sys:String>
+    <sys:String x:Key="RecordFellBack">Impossibile scrivere in {0} - registrazione in {1}</sys:String>
+    <sys:String x:Key="RecordSavedElsewhere">Impossibile scrivere in {0} - registrazione salvata in {1}</sys:String>
     <sys:String x:Key="RecordUnavailableEngine">La registrazione non è disponibile con questa versione del motore video</sys:String>
     <sys:String x:Key="RecordUnavailableFastMediaSorter">Una trasmissione FastMediaSorter consente una sola connessione, già usata dalla riproduzione - non può essere registrata</sys:String>
     <sys:String x:Key="RecordingsRecovered">{0} registrazioni non salvate dell'ultima sessione spostate in {1}</sys:String>
     <sys:String x:Key="RecordingsRecoveryFailed">Impossibile spostare {0} registrazioni non salvate dell'ultima sessione - si trovano in {1}</sys:String>
-    <sys:String x:Key="FrameFolderLabel">Cartella dei file salvati</sys:String>
-    <sys:String x:Key="FrameFolderHint">Dove STREAMS Player salva fotogrammi e archivi dei registri. Lascia vuoto per usare la cartella Download.</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Cartella dei fotogrammi</sys:String>
+    <sys:String x:Key="FrameFolderHint">Dove finiscono i fotogrammi salvati e gli archivi dei registri. Lascia vuoto per la cartella Frames in Immagini; gli archivi dei registri andranno allora in Download.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Scegli cartella..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Usa Download</sys:String>
+    <sys:String x:Key="FrameFolderReset">Usa la cartella predefinita</sys:String>
     <sys:String x:Key="FrameFolderOpen">Apri cartella</sys:String>
+    <sys:String x:Key="VideoRecordingFolderLabel">Cartella delle registrazioni video</sys:String>
+    <sys:String x:Key="VideoRecordingFolderHint">Dove finiscono le registrazioni dei flussi video. Lascia vuoto per la cartella Recordings in Video.</sys:String>
+    <sys:String x:Key="AudioRecordingFolderLabel">Cartella delle registrazioni radio</sys:String>
+    <sys:String x:Key="AudioRecordingFolderHint">Dove finiscono le registrazioni delle stazioni radio. Lascia vuoto per la cartella Recordings in Musica.</sys:String>
     <sys:String x:Key="VolumeTip">Volume del video</sys:String>
     <sys:String x:Key="VolumeName">Volume del video</sys:String>
     <sys:String x:Key="AudioVolumeTip">Volume dell'audio</sys:String>
@@ -393,6 +401,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="VideoComponentsProgressUnknown">Download dei componenti.. {0} MB</sys:String>
     <sys:String x:Key="VideoComponentsInstallDone">Componenti installati in {0}. FlyleafLib è disponibile per il prossimo lettore che apri.</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">Non è stato possibile scaricare i componenti. Non è stato installato nulla. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRollbackFailed">Non è stato possibile sostituire i componenti né ripristinare completamente la versione precedente. Non sono utilizzabili finché non li reinstalli. I file precedenti sono stati conservati in: {0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">Rimuovere i componenti di FlyleafLib? FlyleafLib smetterà di funzionare finché non verranno scaricati di nuovo; VLC non ne risente.</sys:String>
     <sys:String x:Key="VideoComponentsRemoveFailed">Non è stato possibile rimuovere i componenti. Chiudi le finestre del lettore ancora aperte e riprova.</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib non è pronto</sys:String>
@@ -434,6 +443,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="CreateDesktopShortcut">Crea collegamento sul desktop</sys:String>
     <sys:String x:Key="LaunchCommandCopied">Il comando di avvio è stato copiato negli appunti.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows non ha potuto copiare il comando di avvio.</sys:String>
+    <sys:String x:Key="LaunchIdOnlyNotice">L’indirizzo è stato omesso. Questo collegamento o comando funziona solo finché il canale è presente in questa raccolta.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Copia il testo di condivisione</sys:String>
     <sys:String x:Key="MenuCopyLaunchCommand">Copia comando di avvio</sys:String>
@@ -595,6 +605,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="FmsBroadcastUnsupportedMode">Questa modalità di trasmissione non è ancora supportata. L'elenco non è cambiato.</sys:String>
     <sys:String x:Key="FmsBroadcastInvalid">Questa non è una descrizione valida di trasmissione FastMediaSorter. L'elenco non è cambiato.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">Questa descrizione di trasmissione supera 64 KiB. L'elenco non è cambiato.</sys:String>
+    <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer è occupato con un'altra operazione. Importa di nuovo la trasmissione quando l'operazione è terminata. L'elenco non è cambiato.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} ha già il numero massimo di ascoltatori. Riprova quando un altro ascoltatore si disconnette.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} ha smesso di trasmettere o non è più raggiungibile su questa rete.</sys:String>
     <!-- SP-0098 portable stream catalog import -->

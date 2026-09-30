@@ -36,6 +36,10 @@
   run it. This one needs the network, a desktop session and a working audio device, so it runs on the
   owner's machine before a release - release.ps1 step 2b.
 
+  SP-0156: a PASS writes release-verdicts/<version>.json via scripts/Write-SmokeVerdict.ps1 - the
+  committed verdict release.yml requires before it builds a release. Only a clean tree at a commit gets
+  a verdict; a red run writes nothing.
+
 .PARAMETER AppPath
   StreamsPlayer.exe to test. Defaults to publishing the current tree into artifacts/smoke, because
   the thing worth testing is publish output: that is the shape that ships, and SP-0093 lived in the
@@ -90,6 +94,17 @@ function Write-Step([string] $Message) { Write-Host "==> $Message" -ForegroundCo
 function Write-Good([string] $Message) { Write-Host "    $Message" -ForegroundColor Green }
 function Write-Bad([string] $Message) { Write-Host "    $Message" -ForegroundColor Red }
 
+# SP-0157: a folder whose leftovers could be tested is emptied, or the gate stops. Remove-Item with errors ignored
+# leaves a locked file from an earlier run in place, and that file would then be judged as this run's output.
+function Reset-Folder([string] $Path) {
+    if (Test-Path -LiteralPath $Path) {
+        try { Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop }
+        catch { throw "Cannot empty $Path - a leftover there would be tested as this run's output: $($_.Exception.Message)" }
+        if (Test-Path -LiteralPath $Path) { throw "Cannot empty $Path - it still exists after removal." }
+    }
+    New-Item -ItemType Directory -Force -Path $Path | Out-Null
+}
+
 # The owner's session logs, as names and sizes. The gate must leave them exactly as it found them apart from the
 # live Current.log, which the owner's own running copy may be writing to.
 function Get-OwnerSessionLogs {
@@ -129,8 +144,7 @@ function Invoke-PlaybackProbe {
 
     # SP-0133: a profile of the probe's own. Nothing the owner has - a running copy, its catalog, its ten session
     # logs - is touched, and the probe's own log is the only Current.log in this folder.
-    Remove-Item -LiteralPath $ProfileDir -Recurse -Force -ErrorAction SilentlyContinue
-    New-Item -ItemType Directory -Force -Path $ProfileDir | Out-Null
+    Reset-Folder $ProfileDir
     $log = Join-Path $ProfileDir 'Current.log'
 
     $since = [DateTimeOffset]::UtcNow.AddSeconds(-5)
@@ -171,17 +185,30 @@ function Invoke-PlaybackProbe {
 
     # SP-0121: a proven stream then records for $Record seconds; wait for the app's own SMOKE RECORD line.
     $recording = $null
+    $exitedWhileRecording = $null
     if ($verdict -eq 'PASS' -and $Record -gt 0) {
         $recordDeadline = [DateTime]::UtcNow.AddSeconds($Record + 45)
         while ([DateTime]::UtcNow -lt $recordDeadline -and -not $recording) {
             Start-Sleep -Seconds 2
-            if ($proc.HasExited) { break }
+            if ($proc.HasExited) {
+                # SP-0157: the case most likely to be a native crash in recording - reported as itself, not left to
+                # surface as "no SMOKE RECORD line" or as an empty module list.
+                $code = try { $proc.ExitCode } catch { 'unknown' }
+                $exitedWhileRecording = "the application exited during the ${Record}s recording wait (exit code $code) - suspect a native crash in recording; read the probe's Current.log and the Windows Application event log"
+                break
+            }
             foreach ($line in (Get-Content -LiteralPath $log -ErrorAction SilentlyContinue)) {
                 if ($line -match '^(\S+) \[Diag\] SMOKE RECORD \| kind=(\w+) \| fate=([^|]+) \| bytes=(-?\d+) \| path=(.+)$') {
                     [DateTimeOffset] $stamp = [DateTimeOffset]::MinValue
                     if (-not [DateTimeOffset]::TryParse($Matches[1], [ref] $stamp) -or $stamp -lt $since) { continue }
+                    # SP-0157: only the file name is taken from the line. The log redacts a profile root (SP-0137),
+                    # so from a checkout under the user profile the logged path reads <USER>\..; the name survives
+                    # redaction, and the folder is the one this gate handed the app - a chain of one (SP-0179).
+                    $logged = $Matches[5].Trim()
+                    $name = ($logged -split '[\\/]')[-1]
                     $recording = [pscustomobject]@{
-                        Kind = $Matches[2]; Fate = $Matches[3].Trim(); Bytes = [long] $Matches[4]; Path = $Matches[5].Trim()
+                        Kind = $Matches[2]; Fate = $Matches[3].Trim(); Bytes = [long] $Matches[4]; Logged = $logged
+                        Path = if ($RecordFolder -and $name -and $logged -ne 'none') { Join-Path $RecordFolder $name } else { $logged }
                     }
                 }
             }
@@ -200,12 +227,15 @@ function Invoke-PlaybackProbe {
     if (-not $verdict) { $verdict = 'SILENT' }
     [pscustomobject]@{
         Url = $Url; Verdict = $verdict; Detail = $detail; Live = [bool] $live; Modules = $modules; Recording = $recording
+        ExitedWhileRecording = $exitedWhileRecording
     }
 }
 
 # SP-0133: the round's natives were loaded from the folder under test, and from nowhere else.
 function Test-NativeOrigin {
-    param([Parameter(Mandatory)] [string[]] $Modules, [Parameter(Mandatory)] [string] $AppDir)
+    param([Parameter(Mandatory)] [AllowEmptyCollection()] [string[]] $Modules, [Parameter(Mandatory)] [string] $AppDir)
+
+    if ($Modules.Count -eq 0) { return 'no module list - the application exited before its modules could be read' }
 
     $prefix = $AppDir.TrimEnd('\') + '\'
     foreach ($name in 'libvlc.dll', 'libvlccore.dll') {
@@ -224,7 +254,7 @@ function Test-RecordedFile {
     param([Parameter(Mandatory)] $Recording, [long] $MinimumBytes = 16384)
 
     if ($Recording.Fate -ne 'saved' -and $Recording.Fate -ne 'stopped') { return "fate=$($Recording.Fate)" }
-    if (-not (Test-Path -LiteralPath $Recording.Path)) { return "no file at $($Recording.Path)" }
+    if (-not (Test-Path -LiteralPath $Recording.Path)) { return "no file at $($Recording.Path) (logged as $($Recording.Logged))" }
     $size = (Get-Item -LiteralPath $Recording.Path).Length
     if ($size -lt $MinimumBytes) { return "only $size bytes" }
 
@@ -253,8 +283,8 @@ try {
     if (-not $AppPath) {
         $out = Join-Path $root 'artifacts/smoke'
         Write-Step "Publishing to $out"
-        # Emptied first: a file an earlier publish left behind is not part of what this tree ships.
-        Remove-Item -LiteralPath $out -Recurse -Force -ErrorAction SilentlyContinue
+        # Emptied first, or the gate stops: a file an earlier publish left behind is not part of what this tree ships.
+        Reset-Folder $out
         dotnet publish src/StreamsPlayer.App/StreamsPlayer.App.csproj -c Release -r win-x64 `
             --self-contained true -o $out --nologo | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "Publish failed (exit $LASTEXITCODE)." }
@@ -302,15 +332,18 @@ try {
             $index++
             Write-Host "    trying $url"
             $recordFolder = Join-Path $root "artifacts/smoke-recordings/$($round.Name)"
-            if (-not $SkipRecording) {
-                Remove-Item -LiteralPath $recordFolder -Recurse -Force -ErrorAction SilentlyContinue
-                New-Item -ItemType Directory -Force -Path $recordFolder | Out-Null
-            }
+            if (-not $SkipRecording) { Reset-Folder $recordFolder }
             $probe = Invoke-PlaybackProbe -Exe $AppPath -Url $url -Round $round `
                 -ProfileDir (Join-Path $profiles "$($round.Name)-$index") -Budget $TimeoutSeconds `
                 -Record $(if ($SkipRecording) { 0 } else { $RecordSeconds }) -RecordFolder $recordFolder
             $attempts += $probe
 
+            if ($probe.Verdict -eq 'PASS' -and $probe.ExitedWhileRecording) {
+                Write-Bad "expected: a ${RecordSeconds}s $($round.Name) recording | actual: $($probe.ExitedWhileRecording)"
+                $probe.Verdict = 'RECORD'
+                $probe.Detail = $probe.ExitedWhileRecording
+                continue
+            }
             if ($probe.Verdict -eq 'PASS') {
                 $origin = Test-NativeOrigin -Modules $probe.Modules -AppDir $appDir
                 if ($origin) {
@@ -356,6 +389,9 @@ try {
 
     Write-Host ''
     if (-not $failed -and -not $ownerTouched) {
+        # SP-0156: a PASS becomes the committed release verdict release.yml requires. A failure to record
+        # it is a red gate - a PASS nobody can hand to the release is not a release's PASS.
+        & (Join-Path $PSScriptRoot 'Write-SmokeVerdict.ps1') -AppPath $AppPath
         $recorded = if ($SkipRecording) { '' } else { ' and recorded' }
         $what = if ($SkipVideo) { 'audio was heard' } else { 'audio was heard and video was shown' }
         Write-Host "Playback smoke check PASSED - $what$recorded, against an isolated profile." -ForegroundColor Green

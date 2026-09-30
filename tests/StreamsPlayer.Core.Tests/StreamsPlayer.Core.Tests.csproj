@@ -29,6 +29,28 @@
              Link="FastMediaSorterPlaybackTransport.cs" />
   </ItemGroup>
 
+  <!-- SP-0164: the radio recorder is WPF-free too, and its contract - an end raised before anyone
+       subscribed, a file written nothing into, a folder refusal reported as a write failure - is
+       proven against local servers and temp folders. Compiled as sources, on the SP-0099 terms. -->
+  <ItemGroup>
+    <Compile Include="..\..\src\StreamsPlayer.App\StreamAudioRecorder.cs"
+             Link="app-compile\StreamAudioRecorder.cs" />
+    <Compile Include="..\..\src\StreamsPlayer.App\RecordingWriteProbe.cs"
+             Link="app-compile\RecordingWriteProbe.cs" />
+    <Compile Include="..\..\src\StreamsPlayer.App\RecordingFinisher.cs"
+             Link="app-compile\RecordingFinisher.cs" />
+    <Compile Include="..\..\src\StreamsPlayer.App\RecordingStaging.cs"
+             Link="app-compile\RecordingStaging.cs" />
+    <Compile Include="..\..\src\StreamsPlayer.App\AppPaths.cs"
+             Link="app-compile\AppPaths.cs" />
+    <Compile Include="..\..\src\StreamsPlayer.App\CaptureFolders.cs"
+             Link="app-compile\CaptureFolders.cs" />
+    <Compile Include="..\..\src\StreamsPlayer.App\CurrentLog.cs"
+             Link="app-compile\CurrentLog.cs" />
+    <Compile Include="..\..\src\StreamsPlayer.App\StreamTitleFormatter.cs"
+             Link="app-compile\StreamTitleFormatter.cs" />
+  </ItemGroup>
+
   <!--
     SP-0034 criterion 2: the language parity gate has to run in CI, and CI runs dotnet test. The App's
     resource dictionaries are therefore copied in as test DATA and parsed as XML. This is deliberately
@@ -78,6 +100,27 @@
              CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\tools\site\templates\*.html"
              Link="site-templates\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    SP-0136: the installer script, read as text, so the lock name it checks is held against the one the
+    application takes. Inno is not part of the .NET toolchain; this is the check CI can always run.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\installer\StreamsPlayer.iss"
+             Link="installer\StreamsPlayer.iss"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    SP-0156: the release and Pages workflows, read as text, so the gates that decide what ships - the smoke
+    verdict, green CI, the pinned natives, the never-replaced published assets and the site's wait for CI -
+    are held in place by the same suite CI always runs. A workflow cannot be unit-tested; its gates can be.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\.github\workflows\release.yml;..\..\.github\workflows\pages.yml"
+             Link="workflows\%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

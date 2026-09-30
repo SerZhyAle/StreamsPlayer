@@ -268,6 +268,7 @@
     <sys:String x:Key="FailureDialogMessage">Не вдалося відтворити «{0}».</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">«{0}» не можна відтворити: його адреса не є потоком http, https чи rtsp.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">Каталог позначає цей канал як доступний лише у своєму регіоні: із країни упорядника він не відповідав. Він може працювати, якщо ви перебуваєте в регіоні мовлення.</sys:String>
+    <sys:String x:Key="FailureNoNetwork">Немає підключення до мережі, тому канал так і не вдалося відкрити. Можливо, з ним усе гаразд - перевірте підключення й повторіть спробу.</sys:String>
     <sys:String x:Key="FailureRetry">Повторити</sys:String>
     <sys:String x:Key="FailureHide">Приховати</sys:String>
     <sys:String x:Key="FailureDelete">Видалити</sys:String>
@@ -316,6 +317,7 @@
     <sys:String x:Key="SaveFrame">Зберегти кадр</sys:String>
     <sys:String x:Key="SaveFrameTip">Зберегти поточний кадр у файл і як значок каналу</sys:String>
     <sys:String x:Key="FrameSaved">Кадр збережено: {0}</sys:String>
+    <sys:String x:Key="FrameSavedElsewhere">Не вдалося записати в {0} - кадр збережено в {1}</sys:String>
     <sys:String x:Key="FrameSaveFailed">Не вдалося зберегти кадр</sys:String>
     <sys:String x:Key="Record">Запис</sys:String>
     <sys:String x:Key="RecordTip">Записати прямий ефір (R)</sys:String>
@@ -333,15 +335,21 @@
     <sys:String x:Key="RecordEndedConnectionLost">Запис перервано - станція розірвала з'єднання. Збережено: {0} ({1})</sys:String>
     <sys:String x:Key="RecordUnsupportedFormat">Формат потоку цієї станції не можна записати</sys:String>
     <sys:String x:Key="RecordWriteFailed">Запис зупинено - не вдалося записати в {0}</sys:String>
+    <sys:String x:Key="RecordFellBack">Не вдалося записати в {0} - запис іде в {1}</sys:String>
+    <sys:String x:Key="RecordSavedElsewhere">Не вдалося записати в {0} - запис збережено в {1}</sys:String>
     <sys:String x:Key="RecordUnavailableEngine">Запис недоступний у цій версії відеорушія</sys:String>
     <sys:String x:Key="RecordUnavailableFastMediaSorter">Трансляція FastMediaSorter допускає одне підключення, і його займає відтворення - записати її не можна</sys:String>
     <sys:String x:Key="RecordingsRecovered">Незбережені записи минулого сеансу ({0}) переміщено до {1}</sys:String>
     <sys:String x:Key="RecordingsRecoveryFailed">Не вдалося перемістити незбережені записи минулого сеансу ({0}) - вони в {1}</sys:String>
-    <sys:String x:Key="FrameFolderLabel">Тека збережених файлів</sys:String>
-    <sys:String x:Key="FrameFolderHint">Куди Трансляції зберігають кадри й архіви журналів. Залиште порожнім, щоб використовувати теку «Завантаження».</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Тека кадрів</sys:String>
+    <sys:String x:Key="FrameFolderHint">Куди потрапляють збережені кадри й архіви журналів. Залиште порожнім, щоб використовувати теку «Frames» у «Зображеннях»; архіви журналів тоді потрапляють у «Завантаження».</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Вибрати теку..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Використовувати «Завантаження»</sys:String>
+    <sys:String x:Key="FrameFolderReset">Використовувати типову теку</sys:String>
     <sys:String x:Key="FrameFolderOpen">Відкрити теку</sys:String>
+    <sys:String x:Key="VideoRecordingFolderLabel">Тека відеозаписів</sys:String>
+    <sys:String x:Key="VideoRecordingFolderHint">Куди потрапляють записи відеотрансляцій. Залиште порожнім, щоб використовувати теку «Recordings» у «Відео».</sys:String>
+    <sys:String x:Key="AudioRecordingFolderLabel">Тека записів радіо</sys:String>
+    <sys:String x:Key="AudioRecordingFolderHint">Куди потрапляють записи радіостанцій. Залиште порожнім, щоб використовувати теку «Recordings» у «Музиці».</sys:String>
     <sys:String x:Key="VolumeTip">Гучність відео</sys:String>
     <sys:String x:Key="VolumeName">Гучність відео</sys:String>
     <sys:String x:Key="AudioVolumeTip">Гучність аудіо</sys:String>
@@ -393,6 +401,7 @@
     <sys:String x:Key="VideoComponentsProgressUnknown">Завантаження компонентів.. {0} МБ</sys:String>
     <sys:String x:Key="VideoComponentsInstallDone">Компоненти встановлено в теку {0}. FlyleafLib буде доступний для наступного відкритого програвача.</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">Не вдалося завантажити компоненти. Нічого не встановлено. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRollbackFailed">Не вдалося замінити компоненти, і попередню версію не вдалося повністю відновити. Доки ви не встановите їх знову, ними не можна користуватися. Попередні файли збережено в теці: {0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">Видалити компоненти FlyleafLib? FlyleafLib не працюватиме, доки їх не буде завантажено знову; на VLC це не вплине.</sys:String>
     <sys:String x:Key="VideoComponentsRemoveFailed">Не вдалося видалити компоненти. Закрийте відкриті вікна програвача й спробуйте ще раз.</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib не готовий</sys:String>
@@ -434,6 +443,7 @@
     <sys:String x:Key="CreateDesktopShortcut">Створити ярлик на робочому столі</sys:String>
     <sys:String x:Key="LaunchCommandCopied">Команду запуску скопійовано до буфера обміну.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows не вдалося скопіювати команду запуску.</sys:String>
+    <sys:String x:Key="LaunchIdOnlyNotice">Адресу не додано. Цей ярлик або команда працює, лише доки канал є в цій бібліотеці.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Копіювати текст для надсилання</sys:String>
     <sys:String x:Key="MenuCopyLaunchCommand">Копіювати команду запуску</sys:String>
@@ -595,6 +605,7 @@
     <sys:String x:Key="FmsBroadcastUnsupportedMode">Цей режим трансляції ще не підтримується. Ваш список не змінено.</sys:String>
     <sys:String x:Key="FmsBroadcastInvalid">Це некоректний опис трансляції FastMediaSorter. Ваш список не змінено.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">Опис трансляції більший за 64 КіБ. Ваш список не змінено.</sys:String>
+    <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer зайнятий іншою операцією. Імпортуйте трансляцію ще раз, коли операція завершиться. Ваш список не змінено.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">На пристрої «{0}» уже досягнуто максимальної кількості слухачів. Спробуйте знову, коли хтось від'єднається.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">Пристрій «{0}» припинив трансляцію або більше недоступний у цій мережі.</sys:String>
     <!-- SP-0098 portable stream catalog import -->

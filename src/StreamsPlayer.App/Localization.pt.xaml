@@ -268,6 +268,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="FailureDialogMessage">Não foi possível reproduzir “{0}”.</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">Não é possível reproduzir “{0}”: o endereço não é um fluxo http, https ou rtsp.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">O catálogo marca este canal como restrito à região: ele não respondeu do país de quem mantém o catálogo. Pode funcionar se você estiver na região para a qual ele transmite.</sys:String>
+    <sys:String x:Key="FailureNoNetwork">Não há conexão de rede, então este canal nunca foi alcançado. Ele pode estar funcionando - verifique sua conexão e tente novamente.</sys:String>
     <sys:String x:Key="FailureRetry">Tentar novamente</sys:String>
     <sys:String x:Key="FailureHide">Ocultar</sys:String>
     <sys:String x:Key="FailureDelete">Excluir</sys:String>
@@ -316,6 +317,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="SaveFrame">Salvar quadro</sys:String>
     <sys:String x:Key="SaveFrameTip">Salvar o quadro atual como arquivo de imagem e como ícone deste canal</sys:String>
     <sys:String x:Key="FrameSaved">Quadro salvo: {0}</sys:String>
+    <sys:String x:Key="FrameSavedElsewhere">Não foi possível gravar em {0} - quadro salvo em {1}</sys:String>
     <sys:String x:Key="FrameSaveFailed">Não foi possível salvar o quadro</sys:String>
     <sys:String x:Key="Record">Gravar</sys:String>
     <sys:String x:Key="RecordTip">Gravar transmissão ao vivo (R)</sys:String>
@@ -333,15 +335,21 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="RecordEndedConnectionLost">Gravação encerrada - a estação cortou a conexão. Salvo: {0} ({1})</sys:String>
     <sys:String x:Key="RecordUnsupportedFormat">O formato de transmissão desta estação não pode ser gravado</sys:String>
     <sys:String x:Key="RecordWriteFailed">Gravação interrompida - não foi possível gravar em {0}</sys:String>
+    <sys:String x:Key="RecordFellBack">Não foi possível gravar em {0} - gravando em {1}</sys:String>
+    <sys:String x:Key="RecordSavedElsewhere">Não foi possível gravar em {0} - gravação salva em {1}</sys:String>
     <sys:String x:Key="RecordUnavailableEngine">A gravação não está disponível nesta versão do mecanismo de vídeo</sys:String>
     <sys:String x:Key="RecordUnavailableFastMediaSorter">Uma transmissão do FastMediaSorter permite uma única conexão, usada pela reprodução - não pode ser gravada</sys:String>
     <sys:String x:Key="RecordingsRecovered">{0} gravação(ões) não salva(s) da última sessão movida(s) para {1}</sys:String>
     <sys:String x:Key="RecordingsRecoveryFailed">Não foi possível mover {0} gravação(ões) não salva(s) da última sessão - estão em {1}</sys:String>
-    <sys:String x:Key="FrameFolderLabel">Pasta dos arquivos salvos</sys:String>
-    <sys:String x:Key="FrameFolderHint">Onde o STREAMS Player salva quadros e arquivos de registros. Deixe vazio para usar a pasta Downloads.</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Pasta dos quadros</sys:String>
+    <sys:String x:Key="FrameFolderHint">Para onde vão os quadros salvos e os arquivos de registros. Deixe vazio para usar a pasta Frames em Imagens; os arquivos de registros vão então para Downloads.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Escolher pasta..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Usar Downloads</sys:String>
+    <sys:String x:Key="FrameFolderReset">Usar a pasta padrão</sys:String>
     <sys:String x:Key="FrameFolderOpen">Abrir pasta</sys:String>
+    <sys:String x:Key="VideoRecordingFolderLabel">Pasta das gravações de vídeo</sys:String>
+    <sys:String x:Key="VideoRecordingFolderHint">Para onde vão as gravações de transmissões de vídeo. Deixe vazio para usar a pasta Recordings em Vídeos.</sys:String>
+    <sys:String x:Key="AudioRecordingFolderLabel">Pasta das gravações de rádio</sys:String>
+    <sys:String x:Key="AudioRecordingFolderHint">Para onde vão as gravações de estações de rádio. Deixe vazio para usar a pasta Recordings em Música.</sys:String>
     <sys:String x:Key="VolumeTip">Volume do vídeo</sys:String>
     <sys:String x:Key="VolumeName">Volume do vídeo</sys:String>
     <sys:String x:Key="AudioVolumeTip">Volume do áudio</sys:String>
@@ -393,6 +401,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="VideoComponentsProgressUnknown">Baixando os componentes.. {0} MB</sys:String>
     <sys:String x:Key="VideoComponentsInstallDone">Componentes instalados em {0}. O FlyleafLib fica disponível no próximo player que você abrir.</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">Não foi possível baixar os componentes. Nada foi instalado. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRollbackFailed">Não foi possível substituir os componentes nem restaurar totalmente a versão anterior. Eles não podem ser usados até você instalá-los novamente. Os arquivos anteriores foram mantidos em: {0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">Remover os componentes do FlyleafLib? O FlyleafLib deixará de funcionar até que sejam baixados de novo; o VLC não é afetado.</sys:String>
     <sys:String x:Key="VideoComponentsRemoveFailed">Não foi possível remover os componentes. Feche as janelas de player abertas e tente novamente.</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">O FlyleafLib não está pronto</sys:String>
@@ -434,6 +443,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="CreateDesktopShortcut">Criar atalho na área de trabalho</sys:String>
     <sys:String x:Key="LaunchCommandCopied">O comando de inicialização foi copiado para a área de transferência.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">O Windows não conseguiu copiar o comando de inicialização.</sys:String>
+    <sys:String x:Key="LaunchIdOnlyNotice">O endereço foi omitido. Este atalho ou comando só funciona enquanto o canal existir nesta biblioteca.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Copiar texto de compartilhamento</sys:String>
     <sys:String x:Key="MenuCopyLaunchCommand">Copiar comando de inicialização</sys:String>
@@ -595,6 +605,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="FmsBroadcastUnsupportedMode">Este modo de transmissão ainda não é suportado. A sua lista não foi alterada.</sys:String>
     <sys:String x:Key="FmsBroadcastInvalid">Esta não é uma descrição válida de transmissão do FastMediaSorter. A sua lista não foi alterada.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">Esta descrição de transmissão é maior que 64 KiB. A sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer está ocupado com outra operação. Importe a transmissão novamente quando a operação terminar. A sua lista não foi alterada.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} já tem o número máximo de ouvintes. Tente novamente quando outro ouvinte se desligar.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} deixou de transmitir ou já não está acessível nesta rede.</sys:String>
     <!-- SP-0098 portable stream catalog import -->

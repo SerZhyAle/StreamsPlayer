@@ -86,6 +86,14 @@ public static class FastMediaSorterBroadcastDescriptor
     public const string CompressedPrefix = "FMSBCAST1:";
     public const string AudioOnlyMode = "AUDIO_ONLY";
 
+    /// <summary>
+    /// SP-0158: the most wrappings one read follows - an intent-link unwrap and a gzip layer each cost
+    /// one. The producer emits at most two (a link around a compressed token), so deeper nesting is not
+    /// a shape anyone sends; it is the input being followed as deep as it goes, which the reader refuses
+    /// rather than unwrapping without end.
+    /// </summary>
+    public const int MaximumWrappings = 8;
+
     private static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
     public static FastMediaSorterBroadcastRead Read(ReadOnlySpan<byte> bytes)
@@ -127,27 +135,59 @@ public static class FastMediaSorterBroadcastDescriptor
         return ReadText(text.Trim());
     }
 
+    /// <summary>
+    /// SP-0158: unwraps in a loop, never by calling itself - a nested link or compressed layer used to
+    /// recurse one frame per level, and a payload within the size cap could nest thousands of levels.
+    /// </summary>
     private static FastMediaSorterBroadcastRead ReadText(string text)
     {
-        if (text.StartsWith(CompressedPrefix, StringComparison.Ordinal))
+        var wrappingsLeft = MaximumWrappings;
+        // The whole read's inflation budget, not one layer's: the size ceiling applies once, so a set of
+        // compressed layers that each fit is refused when their inflated total passes it.
+        var inflatedBytes = 0L;
+        while (true)
         {
-            return ReadCompressed(text[CompressedPrefix.Length..]);
-        }
+            if (text.StartsWith(CompressedPrefix, StringComparison.Ordinal))
+            {
+                if (wrappingsLeft == 0)
+                {
+                    return new(FastMediaSorterBroadcastReadStatus.InvalidPayload);
+                }
 
-        if (TryReadIntentPayload(text, out var payload))
-        {
-            return payload is null
-                ? new(FastMediaSorterBroadcastReadStatus.InvalidPayload)
-                : ReadText(payload);
-        }
+                wrappingsLeft--;
+                var inflated = Decompress(text[CompressedPrefix.Length..], ref inflatedBytes, out var failure);
+                if (inflated is null)
+                {
+                    return new(failure);
+                }
 
-        return text.StartsWith('{')
-            ? ReadJson(text)
-            : new(FastMediaSorterBroadcastReadStatus.NotBroadcast);
+                text = inflated;
+                continue;
+            }
+
+            if (TryReadIntentPayload(text, out var payload))
+            {
+                if (payload is null || wrappingsLeft == 0)
+                {
+                    return new(FastMediaSorterBroadcastReadStatus.InvalidPayload);
+                }
+
+                wrappingsLeft--;
+                text = payload;
+                continue;
+            }
+
+            return text.StartsWith('{')
+                ? ReadJson(text)
+                : new(FastMediaSorterBroadcastReadStatus.NotBroadcast);
+        }
     }
 
-    private static FastMediaSorterBroadcastRead ReadCompressed(string encoded)
+    /// <summary>Inflates one <c>FMSBCAST1:</c> layer against the read's shared budget.</summary>
+    /// <returns>The decoded, trimmed layer text, or <c>null</c> with the refusal status in <paramref name="failure"/>.</returns>
+    private static string? Decompress(string encoded, ref long inflatedBytes, out FastMediaSorterBroadcastReadStatus failure)
     {
+        failure = FastMediaSorterBroadcastReadStatus.InvalidPayload;
         try
         {
             var compressed = Convert.FromBase64String(encoded);
@@ -158,27 +198,36 @@ public static class FastMediaSorterBroadcastDescriptor
             int read;
             while ((read = gzip.Read(buffer, 0, buffer.Length)) > 0)
             {
-                if (decoded.Length + read > MaximumPayloadBytes)
+                inflatedBytes += read;
+                if (inflatedBytes > MaximumPayloadBytes)
                 {
-                    return new(FastMediaSorterBroadcastReadStatus.TooLarge);
+                    failure = FastMediaSorterBroadcastReadStatus.TooLarge;
+                    return null;
                 }
 
                 decoded.Write(buffer, 0, read);
             }
 
-            return Read(decoded.ToArray());
+            // The strict decode is the byte entry's rule: a layer that inflates to non-UTF-8 is an
+            // encoding failure, not a malformed payload.
+            failure = FastMediaSorterBroadcastReadStatus.InvalidEncoding;
+            return StrictUtf8.GetString(decoded.GetBuffer(), 0, (int)decoded.Length).Trim();
+        }
+        catch (DecoderFallbackException)
+        {
+            return null;
         }
         catch (FormatException)
         {
-            return new(FastMediaSorterBroadcastReadStatus.InvalidPayload);
+            return null;
         }
         catch (InvalidDataException)
         {
-            return new(FastMediaSorterBroadcastReadStatus.InvalidPayload);
+            return null;
         }
         catch (IOException)
         {
-            return new(FastMediaSorterBroadcastReadStatus.InvalidPayload);
+            return null;
         }
     }
 

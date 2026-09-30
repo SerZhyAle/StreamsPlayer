@@ -501,11 +501,29 @@ public sealed record CatalogState
 
     /// <summary>
     /// Folder the player writes captured frames into (SP-0038), or <c>null</c> when the user never
-    /// chose one - which means the Windows Downloads folder, resolved at save time. Deliberately not
-    /// filled in on first run: writing a resolved path here would freeze a "Downloads" the user may
-    /// later move, and would turn a default into a preference the user never expressed.
+    /// chose one - which means the frames role's default folder (CAPTURE-OUTPUT rule 9, SP-0179),
+    /// resolved at save time. The log archive also goes here, or to Downloads when it is unset.
+    /// Deliberately not filled in on first run: writing a resolved path here would freeze a known folder
+    /// the user may later move, and would turn a default into a preference the user never expressed.
     /// </summary>
     public string? FrameFolder { get; init; }
+
+    /// <summary>
+    /// Folder video recordings land in (SP-0179, CAPTURE-OUTPUT rule 10), or <c>null</c> for the
+    /// <c>stream-recordings</c> role's default. Before SP-0179 recordings went to <see cref="FrameFolder"/>;
+    /// <see cref="CaptureFolderChoices.Split"/> carries that choice over once.
+    /// </summary>
+    public string? VideoRecordingFolder { get; init; }
+
+    /// <summary>Folder radio recordings land in (SP-0179), or <c>null</c> for the role's default. See <see cref="VideoRecordingFolder"/>.</summary>
+    public string? AudioRecordingFolder { get; init; }
+
+    /// <summary>
+    /// 1 once <see cref="CaptureFolderChoices.Split"/> has run on this state, 0 for a state written before
+    /// SP-0179. Without it a user who later cleared a recording folder would have the frames folder copied
+    /// back into it on the next launch.
+    /// </summary>
+    public int CaptureFoldersSchema { get; init; }
 
     // ---------------------------------------------------------------------------------------------
     // Migration-only as of SP-0067. The browsing session - search text, facets, sort order, scroll
@@ -599,12 +617,19 @@ public sealed record CatalogState
 /// speaks for the present. False for the bundled snapshot: it is always older than the download that
 /// retired the row, so listing the URL is no evidence the channel came back.
 /// </param>
+/// <param name="PreservesLiveDownloadedRows">
+/// SP-0177: whether a published row last written by a live download (<see cref="FaviconSource.Catalog"/>) is
+/// left as it is. True for a bundled snapshot older than the last download: its title, format, bitrate, live
+/// flag, access and icon are older than the row's, and "newest data wins" is the only order a merge may keep.
+/// Rows the snapshot itself wrote, and local-bank rows, stay updatable - no live download spoke for them.
+/// </param>
 public sealed record CatalogMergeOptions(
     bool RemoveMissing = true,
     FaviconSource FaviconSource = FaviconSource.Catalog,
     SourceOrigin TargetOrigin = SourceOrigin.Catalog,
     bool ReplacesAtlas = false,
-    bool RevivesRetired = true)
+    bool RevivesRetired = true,
+    bool PreservesLiveDownloadedRows = false)
 {
     public static readonly CatalogMergeOptions CatalogRefresh = new();
 }

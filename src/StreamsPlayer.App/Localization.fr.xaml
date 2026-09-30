@@ -268,6 +268,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="FailureDialogMessage">« {0} » n'a pas pu être lu.</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">« {0} » ne peut pas être lu : son adresse n'est pas un flux http, https ou rtsp.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">Le catalogue signale cette chaîne comme bloquée par région : elle n'a pas répondu depuis le pays du responsable. Elle peut fonctionner si vous êtes dans la région où elle est diffusée.</sys:String>
+    <sys:String x:Key="FailureNoNetwork">Aucune connexion réseau : cette chaîne n'a jamais été atteinte. Elle fonctionne peut-être - vérifiez votre connexion et réessayez.</sys:String>
     <sys:String x:Key="FailureRetry">Réessayer</sys:String>
     <sys:String x:Key="FailureHide">Masquer</sys:String>
     <sys:String x:Key="FailureDelete">Supprimer</sys:String>
@@ -316,6 +317,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="SaveFrame">Enregistrer l'image</sys:String>
     <sys:String x:Key="SaveFrameTip">Enregistrer l'image actuelle comme fichier image et comme icône de cette chaîne</sys:String>
     <sys:String x:Key="FrameSaved">Image enregistrée : {0}</sys:String>
+    <sys:String x:Key="FrameSavedElsewhere">Impossible d'écrire dans {0} - image enregistrée dans {1}</sys:String>
     <sys:String x:Key="FrameSaveFailed">Impossible d'enregistrer l'image</sys:String>
     <sys:String x:Key="Record">Enregistrer</sys:String>
     <sys:String x:Key="RecordTip">Enregistrer la diffusion en direct (R)</sys:String>
@@ -333,15 +335,21 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="RecordEndedConnectionLost">Enregistrement interrompu - la station a coupé la connexion. Sauvegardé : {0} ({1})</sys:String>
     <sys:String x:Key="RecordUnsupportedFormat">Le format du flux de cette station ne peut pas être enregistré</sys:String>
     <sys:String x:Key="RecordWriteFailed">Enregistrement arrêté - impossible d'écrire dans {0}</sys:String>
+    <sys:String x:Key="RecordFellBack">Impossible d'écrire dans {0} - enregistrement dans {1}</sys:String>
+    <sys:String x:Key="RecordSavedElsewhere">Impossible d'écrire dans {0} - enregistrement sauvegardé dans {1}</sys:String>
     <sys:String x:Key="RecordUnavailableEngine">L'enregistrement n'est pas disponible avec cette version du moteur vidéo</sys:String>
     <sys:String x:Key="RecordUnavailableFastMediaSorter">Une diffusion FastMediaSorter n'autorise qu'une connexion, utilisée par la lecture - elle ne peut pas être enregistrée</sys:String>
     <sys:String x:Key="RecordingsRecovered">{0} enregistrement(s) non sauvegardé(s) de la dernière session déplacé(s) vers {1}</sys:String>
     <sys:String x:Key="RecordingsRecoveryFailed">Impossible de déplacer {0} enregistrement(s) non sauvegardé(s) de la dernière session - ils se trouvent dans {1}</sys:String>
-    <sys:String x:Key="FrameFolderLabel">Dossier des fichiers enregistrés</sys:String>
-    <sys:String x:Key="FrameFolderHint">Emplacement où STREAMS Player enregistre les images et les archives de journaux. Laissez vide pour utiliser le dossier Téléchargements.</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Dossier des images</sys:String>
+    <sys:String x:Key="FrameFolderHint">Emplacement des images enregistrées et des archives de journaux. Laissez vide pour le dossier Frames dans Images ; les archives de journaux vont alors dans Téléchargements.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Choisir un dossier..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Utiliser Téléchargements</sys:String>
+    <sys:String x:Key="FrameFolderReset">Utiliser le dossier par défaut</sys:String>
     <sys:String x:Key="FrameFolderOpen">Ouvrir le dossier</sys:String>
+    <sys:String x:Key="VideoRecordingFolderLabel">Dossier des enregistrements vidéo</sys:String>
+    <sys:String x:Key="VideoRecordingFolderHint">Emplacement des enregistrements de flux vidéo. Laissez vide pour le dossier Recordings dans Vidéos.</sys:String>
+    <sys:String x:Key="AudioRecordingFolderLabel">Dossier des enregistrements radio</sys:String>
+    <sys:String x:Key="AudioRecordingFolderHint">Emplacement des enregistrements de stations de radio. Laissez vide pour le dossier Recordings dans Musique.</sys:String>
     <sys:String x:Key="VolumeTip">Volume de la vidéo</sys:String>
     <sys:String x:Key="VolumeName">Volume de la vidéo</sys:String>
     <sys:String x:Key="AudioVolumeTip">Volume audio</sys:String>
@@ -393,6 +401,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="VideoComponentsProgressUnknown">Téléchargement des composants.. {0} Mo</sys:String>
     <sys:String x:Key="VideoComponentsInstallDone">Composants installés dans {0}. FlyleafLib est disponible pour le prochain lecteur que vous ouvrez.</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">Les composants n'ont pas pu être téléchargés. Rien n'a été installé. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRollbackFailed">Les composants n'ont pas pu être remplacés, et la version précédente n'a pas pu être entièrement restaurée. Ils sont inutilisables jusqu'à une nouvelle installation. Les fichiers précédents ont été conservés dans : {0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">Supprimer les composants FlyleafLib ? FlyleafLib cessera de fonctionner tant qu'ils n'auront pas été téléchargés à nouveau ; VLC n'est pas affecté.</sys:String>
     <sys:String x:Key="VideoComponentsRemoveFailed">Les composants n'ont pas pu être supprimés. Fermez les fenêtres de lecteur ouvertes et réessayez.</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib n'est pas prêt</sys:String>
@@ -434,6 +443,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="CreateDesktopShortcut">Créer un raccourci sur le bureau</sys:String>
     <sys:String x:Key="LaunchCommandCopied">La commande de lancement a été copiée dans le presse-papiers.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows n'a pas pu copier la commande de lancement.</sys:String>
+    <sys:String x:Key="LaunchIdOnlyNotice">L’adresse a été omise. Ce raccourci ou cette commande fonctionne uniquement tant que la chaîne figure dans cette bibliothèque.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Copier le texte de partage</sys:String>
     <sys:String x:Key="MenuCopyLaunchCommand">Copier la commande de lancement</sys:String>
@@ -595,6 +605,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="FmsBroadcastUnsupportedMode">Ce mode de diffusion n'est pas encore pris en charge. Votre liste n'a pas changé.</sys:String>
     <sys:String x:Key="FmsBroadcastInvalid">Cette description de diffusion FastMediaSorter n'est pas valide. Votre liste n'a pas changé.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">Cette description de diffusion dépasse 64 Kio. Votre liste n'a pas changé.</sys:String>
+    <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer est occupé par une autre opération. Importez de nouveau la diffusion une fois celle-ci terminée. Votre liste n'a pas changé.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} a déjà atteint le nombre maximal d'auditeurs. Réessayez quand un autre auditeur se déconnecte.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} a cessé de diffuser ou n'est plus joignable sur ce réseau.</sys:String>
     <!-- SP-0098 portable stream catalog import -->

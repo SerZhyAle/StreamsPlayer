@@ -101,7 +101,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
 
     // FlyleafHost is a ContentControl whose Content is presented on the overlay window above the
     // DirectX video surface; assigning it keeps the control panel on top of the video through resizes.
-    public void SetOverlay(FrameworkElement overlay) => _host.Content = overlay;
+    public void SetOverlay(FrameworkElement? overlay) => _host.Content = overlay;
 
     public string EngineName => "flyleaf";
 
@@ -168,9 +168,10 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
                     // anything in - so the segment carries the file's name rather than a directory to search.
                     Directory.CreateDirectory(target.Folder);
                     var startedAt = DateTimeOffset.Now;
-                    var path = RecordedBroadcastWriter.ReserveUniquePath(
+                    // SP-0179: the file grows in place in the folder chosen at the start (CAPTURE-OUTPUT 0.2 allows it).
+                    var path = CaptureFolders.ReserveUniquePath(
                         target.Folder,
-                        RecordedBroadcastName.For(target.ChannelTitle, startedAt, RecordedBroadcastName.DefaultVideoExtension));
+                        CaptureFileName.For(CaptureKind.StreamVideo, startedAt, target.ChannelTitle, CaptureFileName.DefaultVideoExtension));
                     _player.StartRecording(ref path, false);
                     var started = _player.IsRecording;
                     _log.Event("RECORD START", "engine=flyleaf", $"ok={started}", $"path={path}");
@@ -260,7 +261,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     public event Action? EndReached;
     public event Action? EncounteredError;
     public event Action? TracksChanged;
-    public event Action<BitmapSource>? SnapshotReady;
+    public event Action<Guid, BitmapSource>? SnapshotReady;
 
     public bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling)
     {
@@ -368,7 +369,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         });
     }
 
-    public bool RequestSnapshot(int width)
+    public bool RequestSnapshot(Guid requestId, int width)
     {
         if (IsReleased)
         {
@@ -384,7 +385,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
                 return false;
             }
 
-            SnapshotReady?.Invoke(frame);
+            SnapshotReady?.Invoke(requestId, frame);
             return true;
         }
         catch (Exception ex)

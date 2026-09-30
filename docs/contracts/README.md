@@ -29,7 +29,8 @@ amendment is written in the store, not here.
 | [REPO-STAMP.md](REPO-STAMP.md) | `REPO-STAMP`, `REPO-LAYOUT` | Repository Declarations & Canon Interface | Consumer, P/C |
 | [CHECK-VERDICT.md](CHECK-VERDICT.md) | `CHECK-VERDICT`, `BUILD-EVIDENCE` | Quality Scripts, Exit Codes & Release Gates | Consumer |
 | [INSTALL-TRUST.md](INSTALL-TRUST.md) | `INSTALL-TRUST` | Unsigned Installer Warning & Trust Guidance | Producer (adopted 2026-09-24, SP-0105) |
-| [DOC-QUALITY.md](DOC-QUALITY.md) | `DOC-INTERNAL-QUALITY` | Internal Documentation Registry, Links & Sync | Consumer (adopted 2026-09-26, gaps in SP-0140) |
+| [DOC-QUALITY.md](DOC-QUALITY.md) | `DOC-INTERNAL-QUALITY` | Internal Documentation Registry, Links & Sync | Consumer (adopted 2026-09-26, gated by SP-0140) |
+| [CAPTURE-OUTPUT.md](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | Produced Files: Kind, Prefix, Name, Folder and Format | Producer (read 2026-09-26; deviations by exception, aligned by SP-0179) |
 
 Four of these are **owned here** (`APP-BEHAVIOUR`, `APP-STYLE`, `USER-PLAYLIST`, `DIAGNOSTIC-REPORT`). That changes what a disagreement means: for a contract this product only
 consumes, a difference is this repository's defect until the owner says otherwise; for one it owns, a

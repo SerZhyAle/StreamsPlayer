@@ -50,13 +50,13 @@ public partial class MainWindow
 
     private async Task SetViewModeAsync(CatalogViewMode viewMode)
     {
-        if (_state.ViewMode == viewMode)
+        if ((_stateCommitter?.Requested ?? _state).ViewMode == viewMode)
         {
             return;
         }
 
-        _state = await PersistAsync(state => state with { ViewMode = viewMode });
-        IsGridMode = viewMode == CatalogViewMode.Grid;
+        await PersistAsync(state => state.ViewMode == viewMode ? state : state with { ViewMode = viewMode });
+        IsGridMode = (_stateCommitter?.Requested ?? _state).ViewMode == CatalogViewMode.Grid;
         UpdateViewModeControls();
         UpdatePinnedSectionLayout();
         _catalogColumns = 0;
@@ -425,9 +425,9 @@ public partial class MainWindow
             _browsingSessionSaveTimer.Stop();
             _audioVolumeSaveTimer.Stop();
             await FlushPendingAudioVolumeAsync();
+            await FlushPendingAudioResumeAsync();
             _nowPlayingHistorySaveTimer.Stop();
             await FlushPendingNowPlayingHistoryAsync();
-            await RetryPendingStateSaveAsync();
             // SP-0069: a started DispatcherTimer is rooted by the dispatcher and keeps its Tick target - this
             // window - alive. The sleep ticker repeats and stops itself only when its deadline arrives or the
             // user cancels it, so quitting with a sleep timer armed left one running against a closed window.
@@ -458,6 +458,10 @@ public partial class MainWindow
             // SP-0120: last, so a slow native teardown costs nothing above. Waited for so the process does not
             // exit in the middle of one; the application bounds the whole close work, this included.
             await Task.WhenAll(_closedPlayerEngines);
+            // SP-0164: then the recording finishes, each already past its engine release, so the move into the
+            // recordings folder gets its chance. The move ends in a rename, so a miss of the deadline leaves
+            // the staged original for the next start to hand over - never a partial file under the final name.
+            await Task.WhenAll(_closedRecordingFinishes);
         }
         catch (Exception exception)
         {

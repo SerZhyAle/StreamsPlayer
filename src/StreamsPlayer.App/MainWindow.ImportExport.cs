@@ -119,10 +119,13 @@ public partial class MainWindow
         string text;
         try
         {
-            var bytes = await File.ReadAllBytesAsync(dialog.FileName);
-            text = M3uImportService.DecodeUtf8(bytes);
+            // SP-0177: the picker offers "All files", so the read carries the URL path's ceiling and runs off
+            // the UI thread; an oversized file reads as one that could not be imported.
+            var path = dialog.FileName;
+            text = await Task.Run(() => M3uPlaylistFile.ReadAsync(path));
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or DecoderFallbackException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or DecoderFallbackException
+            or InvalidDataException)
         {
             _log.Event("IMPORT FAIL", "source=file", $"reason={exception.GetType().Name}");
             var key = exception is DecoderFallbackException ? "ImportInvalidEncoding" : "ImportFileReadFailed";
@@ -185,7 +188,7 @@ public partial class MainWindow
     private async Task ShowPreviewAndApplyAsync(string sourceLabel, string text, Window owner)
     {
         var existing = new HashSet<string>(_state.Channels.Select(channel => channel.Url), StringComparer.Ordinal);
-        var preview = M3uPlaylistParser.Analyze(text, existing);
+        var preview = await Task.Run(() => M3uPlaylistParser.Analyze(text, existing));
 
         if (preview.Status != M3uImportStatus.Ok)
         {
@@ -220,7 +223,7 @@ public partial class MainWindow
             AddedAt = now
         }).ToList();
 
-        _state = await PersistAsync(state => state with { Channels = [.. state.Channels, .. additions] });
+        await PersistAsync(state => state with { Channels = [.. state.Channels, .. additions] });
         _log.Event("IMPORT APPLY", $"count={additions.Count}");
         PopulateFacets();
         ApplyFilter();
@@ -279,7 +282,7 @@ public partial class MainWindow
                 $"installed={(bankCarriedAtlas ? "replaced" : "kept")}");
 
             MergeResult? merge = null;
-            _state = await PersistAsync(
+            var commit = await CommitStateAsync(
                 state =>
                 {
                     merge = CatalogMerger.Merge(
@@ -301,9 +304,9 @@ public partial class MainWindow
                     bankCarriedAtlas,
                     AtlasSlot.Imported,
                     cancellationToken));
-            if (merge is null)
+            if (merge is null || !commit.Saved)
             {
-                return;
+                throw commit.Failure ?? new IOException("Catalog import was not saved.");
             }
 
             _log.Event("CATALOG IMPORT APPLY",
@@ -385,8 +388,8 @@ public partial class MainWindow
 
         try
         {
-            var body = M3uPlaylistWriter.Write(rows);
-            await File.WriteAllTextAsync(dialog.FileName, body, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            // SP-0177: written beside the target and moved into place, so a failure keeps the previous export.
+            await M3uPlaylistFile.WriteAsync(dialog.FileName, rows);
             _log.Event("EXPORT", $"count={rows.Count}", $"pinnedOnly={pinnedOnly}");
             SetStatus("ExportResult", rows.Count);
         }

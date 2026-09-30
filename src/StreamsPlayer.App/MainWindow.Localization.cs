@@ -1,6 +1,9 @@
 using System.IO;
+using System.Diagnostics;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -9,7 +12,6 @@ public partial class MainWindow
 {
     private bool _preferencesLoaded;
     private bool _updatingLocalizedOptions;
-    private bool _stateSavePending;
 
     // Null means the status line is deliberately empty (ClearStatus), not that it was never set.
     private string? _statusResourceKey = "Ready";
@@ -20,58 +22,107 @@ public partial class MainWindow
     /// <summary>
     /// The only way this window writes state.
     /// <para>
-    /// Persistence begins only after startup has either loaded state or deliberately chosen a fresh one after
-    /// a load failure. That keeps event handlers from writing while initialization is incomplete without
-    /// turning a recoverable failed load into a read-only session.
+    /// Persistence begins only after startup has either loaded state or deliberately chosen a fresh one
+    /// after a load failure. That keeps event handlers from writing while initialization is incomplete
+    /// without turning a recoverable failed load into a silent one. After a failed load the store itself
+    /// refuses every save (SP-0175), so the unread file survives to the restart the notice asks for;
+    /// the refusals surface as ordinary failed saves.
     /// </para>
     /// </summary>
     private CatalogStateCommitter CreateStateCommitter(CatalogState initialState) =>
-        new(initialState, (state, cancellationToken) => _store.SaveAsync(state, cancellationToken: cancellationToken));
+        new(initialState, (state, cancellationToken) => _store.SaveAsync(state, cancellationToken: cancellationToken),
+            mutation => AssertUiIndependentMutation(mutation));
 
-    private async Task<CatalogState> PersistAsync(Func<CatalogState, CatalogState> mutation)
-        => await PersistAsync(mutation, (state, cancellationToken) => _store.SaveAsync(state, cancellationToken: cancellationToken));
+    private Task PersistAsync(Func<CatalogState, CatalogState> mutation)
+        => PersistAsync(mutation, (state, cancellationToken) => _store.SaveAsync(state, cancellationToken: cancellationToken));
 
     /// <summary>Commits one mutation with an associated atlas write, still under the window's one state gate.</summary>
-    private async Task<CatalogState> PersistAsync(
+    private async Task PersistAsync(
         Func<CatalogState, CatalogState> mutation,
         Func<CatalogState, CancellationToken, Task<CatalogState>> save)
     {
-        if (!_preferencesLoaded || _stateCommitter is null)
-        {
-            return _state;
-        }
-
-        var result = await _stateCommitter.CommitAsync(mutation, save);
-        _state = _stateCommitter.Current;
-        if (!result.Saved && result.Failure is not null)
-        {
-            _stateSavePending = true;
-            _log.Error("Catalog state save failed", result.Failure);
-            // The calling action normally sets its success status after this await. Queue the failure
-            // after that continuation so an Add or Import cannot claim success when its disk write failed.
-            _ = Dispatcher.BeginInvoke(() => SetStatus("StateSaveFailed"));
-        }
-        else
-        {
-            _stateSavePending = false;
-        }
-
-        return _state;
+        AssertUiIndependentMutation(mutation);
+        await PersistAsync((state, _) => Task.FromResult(mutation(state)), save);
     }
 
-    private async Task RetryPendingStateSaveAsync()
+    private async Task PersistAsync(
+        Func<CatalogState, CancellationToken, Task<CatalogState>> mutation,
+        Func<CatalogState, CancellationToken, Task<CatalogState>> save,
+        CancellationToken cancellationToken = default)
+        => await CommitStateAsync(mutation, save, cancellationToken);
+
+    private Task<CatalogStateCommitResult> CommitStateAsync(
+        Func<CatalogState, CatalogState> mutation,
+        Func<CatalogState, CancellationToken, Task<CatalogState>> save)
     {
-        if (!_stateSavePending || _stateCommitter is null)
+        AssertUiIndependentMutation(mutation);
+        return CommitStateAsync((state, _) => Task.FromResult(mutation(state)), save);
+    }
+
+    private async Task<CatalogStateCommitResult> CommitStateAsync(
+        Func<CatalogState, CancellationToken, Task<CatalogState>> mutation,
+        Func<CatalogState, CancellationToken, Task<CatalogState>> save,
+        CancellationToken cancellationToken = default)
+    {
+        AssertUiIndependentMutation(mutation);
+        if (!_preferencesLoaded || _stateCommitter is null)
         {
-            return;
+            return new CatalogStateCommitResult(_state, Saved: false,
+                Failure: new InvalidOperationException("Catalog state has not loaded."), AttemptedState: _state);
         }
 
-        var result = await _stateCommitter.RetryAsync();
+        var result = await _stateCommitter.CommitAsync(mutation, save, cancellationToken);
         _state = _stateCommitter.Current;
-        _stateSavePending = !result.Saved;
         if (!result.Saved && result.Failure is not null)
         {
-            _log.Error("Catalog state save retry failed", result.Failure);
+            _log.Error("Catalog state save failed", result.Failure);
+            // The calling action normally sets its success status after this await. Queue the failure
+            // after that continuation so the visible status reflects the unsuccessful write.
+            _ = Dispatcher.BeginInvoke(() => SetStatus("StateSaveFailed"));
+        }
+
+        return result;
+    }
+
+    [Conditional("DEBUG")]
+    private static void AssertUiIndependentMutation(Delegate mutation)
+    {
+        var seen = new HashSet<object>(ReferenceEqualityComparer.Instance);
+        Check(mutation);
+
+        void Check(object? value)
+        {
+            if (value is null || !seen.Add(value))
+            {
+                return;
+            }
+
+            Debug.Assert(value is not DispatcherObject,
+                "A catalog mutation captured a WPF object; capture its values before queuing the commit.");
+            var target = value is Delegate callback ? callback.Target : value;
+            Debug.Assert(target is not DispatcherObject,
+                "A catalog mutation targets a WPF object; capture its values before queuing the commit.");
+            if (target is null || target is DispatcherObject)
+            {
+                return;
+            }
+
+            // Only compiler closure objects and delegates need descent. Domain records may contain
+            // arbitrary data; walking them would turn this boundary check into a graph traversal.
+            if (target is not Delegate && !target.GetType().Name.Contains("DisplayClass", StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            foreach (var field in target.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                var captured = field.GetValue(target);
+                if (captured is DispatcherObject or Delegate ||
+                    captured?.GetType().Name.Contains("DisplayClass", StringComparison.Ordinal) == true)
+                {
+                    Check(captured);
+                }
+            }
         }
     }
 
@@ -82,20 +133,30 @@ public partial class MainWindow
             window.ApplyPlayerTopmost(topmost);
         }
 
-        if (_state.PlayerWindowTopmost != topmost)
+        if ((_stateCommitter?.Requested ?? _state).PlayerWindowTopmost != topmost)
         {
-            _state = await PersistAsync(state => state with { PlayerWindowTopmost = topmost });
+            await PersistAsync(state => state.PlayerWindowTopmost == topmost
+                ? state : state with { PlayerWindowTopmost = topmost });
+            if (_state.PlayerWindowTopmost != topmost)
+            {
+                foreach (var window in _playerWindows)
+                {
+                    window.ApplyPlayerTopmost(_state.PlayerWindowTopmost);
+                }
+            }
         }
     }
 
     private async Task SaveVideoAudioPreferencesAsync(int volume, bool muted)
     {
-        if (_state.VideoVolume == volume && _state.VideoMuted == muted)
+        var requested = _stateCommitter?.Requested ?? _state;
+        if (requested.VideoVolume == volume && requested.VideoMuted == muted)
         {
             return;
         }
 
-        _state = await PersistAsync(state => state with { VideoVolume = volume, VideoMuted = muted });
+        await PersistAsync(state => state.VideoVolume == volume && state.VideoMuted == muted
+            ? state : state with { VideoVolume = volume, VideoMuted = muted });
     }
 
     private void RefreshLocalizedInterface()

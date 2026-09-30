@@ -164,7 +164,7 @@ public partial class MainWindow
             AddedAt = DateTimeOffset.UtcNow
         };
 
-        _state = await PersistAsync(state => state with { Channels = [.. state.Channels, channel] });
+        await PersistAsync(state => state with { Channels = [.. state.Channels, channel] });
         _log.Event("SHARE PASTE APPLY", $"url={CatalogUrlIdentity.Redact(url)}");
         PopulateFacets();
         ApplyFilter();

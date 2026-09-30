@@ -268,6 +268,7 @@
     <sys:String x:Key="FailureDialogMessage">No se ha podido reproducir «{0}».</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">No se puede reproducir «{0}»: su dirección no es un flujo http, https ni rtsp.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">El catálogo marca este canal como bloqueado por región: no respondió desde el país del responsable. Puede funcionar si estás en la región a la que emite.</sys:String>
+    <sys:String x:Key="FailureNoNetwork">No hay conexión de red, así que nunca se llegó a este canal. Puede que funcione bien - comprueba tu conexión y vuelve a intentarlo.</sys:String>
     <sys:String x:Key="FailureRetry">Reintentar</sys:String>
     <sys:String x:Key="FailureHide">Ocultar</sys:String>
     <sys:String x:Key="FailureDelete">Eliminar</sys:String>
@@ -316,6 +317,7 @@
     <sys:String x:Key="SaveFrame">Guardar fotograma</sys:String>
     <sys:String x:Key="SaveFrameTip">Guardar el fotograma actual como archivo de imagen y como icono de este canal</sys:String>
     <sys:String x:Key="FrameSaved">Fotograma guardado: {0}</sys:String>
+    <sys:String x:Key="FrameSavedElsewhere">No se pudo escribir en {0} - fotograma guardado en {1}</sys:String>
     <sys:String x:Key="FrameSaveFailed">No se ha podido guardar el fotograma</sys:String>
     <sys:String x:Key="Record">Grabar</sys:String>
     <sys:String x:Key="RecordTip">Grabar transmisión en directo (R)</sys:String>
@@ -333,15 +335,21 @@
     <sys:String x:Key="RecordEndedConnectionLost">Grabación terminada - la emisora cortó la conexión. Guardado: {0} ({1})</sys:String>
     <sys:String x:Key="RecordUnsupportedFormat">El formato de transmisión de esta emisora no se puede grabar</sys:String>
     <sys:String x:Key="RecordWriteFailed">Grabación detenida - no se pudo escribir en {0}</sys:String>
+    <sys:String x:Key="RecordFellBack">No se pudo escribir en {0} - grabando en {1}</sys:String>
+    <sys:String x:Key="RecordSavedElsewhere">No se pudo escribir en {0} - grabación guardada en {1}</sys:String>
     <sys:String x:Key="RecordUnavailableEngine">La grabación no está disponible con esta versión del motor de vídeo</sys:String>
     <sys:String x:Key="RecordUnavailableFastMediaSorter">Una transmisión de FastMediaSorter admite una sola conexión y la usa la reproducción - no se puede grabar</sys:String>
     <sys:String x:Key="RecordingsRecovered">Se movieron {0} grabación(es) sin guardar de la última sesión a {1}</sys:String>
     <sys:String x:Key="RecordingsRecoveryFailed">No se pudieron mover {0} grabación(es) sin guardar de la última sesión - están en {1}</sys:String>
-    <sys:String x:Key="FrameFolderLabel">Carpeta de archivos guardados</sys:String>
-    <sys:String x:Key="FrameFolderHint">Donde STREAMS Player guarda fotogramas y archivos de registros. Déjalo vacío para usar la carpeta Descargas.</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Carpeta de fotogramas</sys:String>
+    <sys:String x:Key="FrameFolderHint">Dónde van los fotogramas guardados y los archivos de registros. Déjalo vacío para usar la carpeta Frames de Imágenes; los archivos de registros irán entonces a Descargas.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Elegir carpeta..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Usar Descargas</sys:String>
+    <sys:String x:Key="FrameFolderReset">Usar la carpeta predeterminada</sys:String>
     <sys:String x:Key="FrameFolderOpen">Abrir carpeta</sys:String>
+    <sys:String x:Key="VideoRecordingFolderLabel">Carpeta de grabaciones de vídeo</sys:String>
+    <sys:String x:Key="VideoRecordingFolderHint">Dónde van las grabaciones de transmisiones de vídeo. Déjalo vacío para usar la carpeta Recordings de Vídeos.</sys:String>
+    <sys:String x:Key="AudioRecordingFolderLabel">Carpeta de grabaciones de radio</sys:String>
+    <sys:String x:Key="AudioRecordingFolderHint">Dónde van las grabaciones de emisoras de radio. Déjalo vacío para usar la carpeta Recordings de Música.</sys:String>
     <sys:String x:Key="VolumeTip">Volumen del vídeo</sys:String>
     <sys:String x:Key="VolumeName">Volumen del vídeo</sys:String>
     <sys:String x:Key="AudioVolumeTip">Volumen del audio</sys:String>
@@ -393,6 +401,7 @@
     <sys:String x:Key="VideoComponentsProgressUnknown">Descargando componentes.. {0} MB</sys:String>
     <sys:String x:Key="VideoComponentsInstallDone">Componentes instalados en {0}. FlyleafLib está disponible para el siguiente reproductor que abras.</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">No se han podido descargar los componentes. No se ha instalado nada. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRollbackFailed">No se han podido sustituir los componentes ni restaurar por completo la versión anterior. No se pueden usar hasta que vuelva a instalarlos. Los archivos anteriores se han conservado en: {0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">¿Eliminar los componentes de FlyleafLib? FlyleafLib dejará de funcionar hasta que se descarguen de nuevo; VLC no se ve afectado.</sys:String>
     <sys:String x:Key="VideoComponentsRemoveFailed">No se han podido eliminar los componentes. Cierra las ventanas del reproductor que estén abiertas e inténtalo de nuevo.</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib no está listo</sys:String>
@@ -434,6 +443,7 @@
     <sys:String x:Key="CreateDesktopShortcut">Crear acceso directo en el escritorio</sys:String>
     <sys:String x:Key="LaunchCommandCopied">El comando de inicio se ha copiado al portapapeles.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows no ha podido copiar el comando de inicio.</sys:String>
+    <sys:String x:Key="LaunchIdOnlyNotice">Se omitió la dirección. Este acceso directo o comando solo funciona mientras el canal exista en esta biblioteca.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Copiar texto para compartir</sys:String>
     <sys:String x:Key="MenuCopyLaunchCommand">Copiar comando de inicio</sys:String>
@@ -595,6 +605,7 @@
     <sys:String x:Key="FmsBroadcastUnsupportedMode">Este modo de emisión todavía no es compatible. Su lista no ha cambiado.</sys:String>
     <sys:String x:Key="FmsBroadcastInvalid">Esta no es una descripción válida de emisión de FastMediaSorter. Su lista no ha cambiado.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">Esta descripción de emisión supera 64 KiB. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer está ocupado con otra operación. Importe la emisión de nuevo cuando termine. Su lista no ha cambiado.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} ya tiene el número máximo de oyentes. Vuelva a intentarlo cuando otro oyente se desconecte.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} dejó de emitir o ya no está accesible en esta red.</sys:String>
     <!-- SP-0098 portable stream catalog import -->

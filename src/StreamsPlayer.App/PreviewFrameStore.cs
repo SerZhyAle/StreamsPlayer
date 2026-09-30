@@ -61,14 +61,23 @@ public sealed class PreviewFrameStore(string directory, long maxBytes, int jpegQ
     /// which is not. An <c>await</c> between imaging calls lets the continuation resume on another pool
     /// thread and the next crop throws "the calling thread cannot access this object"; the bulk caller
     /// therefore does all of its imaging on one thread, with no await in between.
+    /// <para>
+    /// SP-0178: written to a temporary sibling and moved over the final name, so a crash or a full disk
+    /// never leaves a truncated JPEG under it - one that still decoded would count as stored and never be
+    /// captured again.
+    /// </para>
     /// </remarks>
     public bool Write(string url, BitmapSource frame)
     {
+        string? temporaryPath = null;
         try
         {
             Directory.CreateDirectory(directory);
             var path = ResolvePath(url);
-            File.WriteAllBytes(path, Encode(frame));
+            temporaryPath = $"{path}.{Guid.NewGuid():N}{TemporarySuffix}";
+            File.WriteAllBytes(temporaryPath, Encode(frame));
+            File.Move(temporaryPath, path, overwrite: true);
+            temporaryPath = null;
             File.SetLastWriteTimeUtc(path, DateTime.UtcNow);
             return true;
         }
@@ -87,7 +96,19 @@ public sealed class PreviewFrameStore(string directory, long maxBytes, int jpegQ
             // An unsupported encoder does not affect the live in-memory frame.
             return false;
         }
+        finally
+        {
+            if (temporaryPath is not null)
+            {
+                TryDelete(new FileInfo(temporaryPath));
+            }
+        }
     }
+
+    private const string TemporarySuffix = ".tmp";
+
+    /// <summary>How old a temporary frame must be before a trim treats it as a crashed write's leftover.</summary>
+    private static readonly TimeSpan AbandonedTemporaryAge = TimeSpan.FromMinutes(10);
 
     /// <summary>Off-thread wrapper over <see cref="Write"/> for the single-frame capture path.</summary>
     public Task<bool> WriteAsync(string url, BitmapSource frame, CancellationToken cancellationToken) =>
@@ -144,18 +165,41 @@ public sealed class PreviewFrameStore(string directory, long maxBytes, int jpegQ
                 continue;
             }
 
-            try
+            TryDelete(file);
+        }
+
+        // A write interrupted by a crash leaves its temporary file behind; one old enough is no write in flight.
+        try
+        {
+            var cutoff = DateTime.UtcNow - AbandonedTemporaryAge;
+            foreach (var file in new DirectoryInfo(directory).EnumerateFiles($"*{TemporarySuffix}", SearchOption.TopDirectoryOnly))
             {
-                file.Delete();
+                cancellationToken.ThrowIfCancellationRequested();
+                if (file.LastWriteTimeUtc < cutoff)
+                {
+                    TryDelete(file);
+                }
             }
-            catch (IOException)
-            {
-                // Cleanup is retried after the next successful frame write.
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // A locked cache entry is harmless and can be retried later.
-            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // The sweep is retried after the next successful frame write.
+        }
+    }
+
+    private static void TryDelete(FileInfo file)
+    {
+        try
+        {
+            file.Delete();
+        }
+        catch (IOException)
+        {
+            // Cleanup is retried after the next successful frame write.
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // A locked cache entry is harmless and can be retried later.
         }
     }
 

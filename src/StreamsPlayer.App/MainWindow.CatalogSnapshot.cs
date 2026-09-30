@@ -16,10 +16,12 @@ public partial class MainWindow
     /// <summary>
     /// The one first-launch offer. Eligible only while the catalog has never been downloaded and holds
     /// no catalog rows at all: a user who already has a list does not need a seed, and the Tools
-    /// action covers every other moment.
+    /// action covers every other moment. Also ineligible after a failed catalog load (SP-0175): both
+    /// answers write the state file, and nothing may write it before a read has succeeded.
     /// </summary>
     private bool CatalogSnapshotOfferEligible =>
         _preferencesLoaded &&
+        !_catalogStateUnreadable &&
         BundledCatalogSnapshot.Exists &&
         !_applyingCatalogSnapshot &&
         _state.LastCatalogRefreshAt is null &&
@@ -53,7 +55,7 @@ public partial class MainWindow
         }
 
         // The Tools action is the way back for a user who changes their mind.
-        _state = await PersistAsync(state => state with { CatalogSnapshotOfferDeclined = true });
+        await PersistAsync(state => state with { CatalogSnapshotOfferDeclined = true });
         _log.Event("CATALOG SNAPSHOT", "op=offer", "result=declined");
     }
 
@@ -87,7 +89,7 @@ public partial class MainWindow
                 // The built-in copy was this dialog's second button, so refusing the dialog refuses it
                 // too. Without this write the inline bar would re-offer on the next launch exactly what
                 // the user just declined.
-                _state = await PersistAsync(state => state with { CatalogSnapshotOfferDeclined = true });
+                await PersistAsync(state => state with { CatalogSnapshotOfferDeclined = true });
                 break;
         }
     }
@@ -102,7 +104,10 @@ public partial class MainWindow
     /// </param>
     private async Task OfferSnapshotAfterFailedRefreshAsync(string cause)
     {
-        if (!BundledCatalogSnapshot.Exists)
+        // SP-0175: after a failed catalog read the snapshot cannot be offered - applying it would write
+        // over a file whose content this session never saw. The plain failure message is shown instead,
+        // and the store refuses the write if some other path tries one.
+        if (!BundledCatalogSnapshot.Exists || _catalogStateUnreadable)
         {
             MessageBox.Show(this,
                 $"{LocalizationService.Get("CatalogUpdateFailedStatus")}{Environment.NewLine}{Environment.NewLine}{cause}",
@@ -150,7 +155,7 @@ public partial class MainWindow
         {
             var outcome = CatalogSnapshotService.Prepare(BundledCatalogSnapshot.Read());
             CatalogSnapshotApplyResult? result = null;
-            _state = await PersistAsync(
+            var commit = await CommitStateAsync(
                 state => (result = outcome.Apply(state)).State,
                 (state, cancellationToken) => _store.SaveAsync(
                     state,
@@ -158,9 +163,9 @@ public partial class MainWindow
                     outcome.ReplacesAtlas,
                     AtlasSlot.Snapshot,
                     cancellationToken));
-            if (result is null)
+            if (result is null || !commit.Saved)
             {
-                return;
+                throw commit.Failure ?? new IOException("Catalog snapshot was not saved.");
             }
             _log.Event("CATALOG SNAPSHOT", $"added={result.Added}", $"updated={result.Updated}",
                 $"date={result.SourceDate:yyyy-MM-dd}");

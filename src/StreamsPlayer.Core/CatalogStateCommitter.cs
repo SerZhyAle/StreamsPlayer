@@ -3,32 +3,34 @@ namespace StreamsPlayer.Core;
 /// <summary>
 /// Serializes mutations of one catalog state document.
 /// </summary>
-/// <remarks>
-/// A state change becomes the current in-memory truth before its write starts. If that write fails, the
-/// change is deliberately retained: the next commit retries the complete latest state instead of making a
-/// successful-looking user action disappear. Callers must surface <see cref="CatalogStateCommitResult.Failure"/>
-/// when that matters to the user.
-/// </remarks>
 public sealed class CatalogStateCommitter
 {
     private readonly Func<CatalogState, CancellationToken, Task<CatalogState>> _save;
+    private readonly Action<Delegate>? _mutationGuard;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private CatalogState _current;
+    private CatalogState _requested;
 
     public CatalogStateCommitter(
         CatalogState initialState,
-        Func<CatalogState, CancellationToken, Task<CatalogState>> save)
+        Func<CatalogState, CancellationToken, Task<CatalogState>> save,
+        Action<Delegate>? mutationGuard = null)
     {
         _current = initialState ?? throw new ArgumentNullException(nameof(initialState));
+        _requested = initialState;
         _save = save ?? throw new ArgumentNullException(nameof(save));
+        _mutationGuard = mutationGuard;
     }
 
-    /// <summary>The latest accepted state, including a change awaiting retry after a failed save.</summary>
-    public CatalogState Current => _current;
+    /// <summary>The last state successfully saved.</summary>
+    public CatalogState Current => Volatile.Read(ref _current);
+
+    /// <summary>The latest requested state, including a write in progress.</summary>
+    public CatalogState Requested => Volatile.Read(ref _requested);
 
     /// <summary>
     /// Applies <paramref name="mutation"/> to the latest state and saves that result before another
-    /// mutation can begin. The caller always receives the accepted in-memory state.
+    /// mutation can begin. A failed write leaves Current at the last saved state.
     /// </summary>
     public async Task<CatalogStateCommitResult> CommitAsync(
         Func<CatalogState, CatalogState> mutation,
@@ -45,20 +47,54 @@ public sealed class CatalogStateCommitter
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(mutation);
+        return await CommitAsync((state, _) => Task.FromResult(mutation(state)), save, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>Applies a bounded asynchronous mutation while holding the same state gate.</summary>
+    public async Task<CatalogStateCommitResult> CommitAsync(
+        Func<CatalogState, CancellationToken, Task<CatalogState>> mutation,
+        Func<CatalogState, CancellationToken, Task<CatalogState>> save,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(mutation);
         ArgumentNullException.ThrowIfNull(save);
 
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            _current = mutation(_current) ?? throw new InvalidOperationException("A catalog-state mutation returned null.");
+#if DEBUG
+            _mutationGuard?.Invoke(mutation);
+#endif
+            var previous = _requested;
+            var attempted = await mutation(previous, cancellationToken).ConfigureAwait(false)
+                ?? throw new InvalidOperationException("A catalog-state mutation returned null.");
+            if (ReferenceEquals(attempted, previous) && ReferenceEquals(previous, _current))
+            {
+                return new CatalogStateCommitResult(_current, Saved: true, Failure: null, AttemptedState: attempted);
+            }
+
+            Volatile.Write(ref _requested, attempted);
+            var committed = false;
             try
             {
-                _current = await save(_current, cancellationToken).ConfigureAwait(false);
-                return new CatalogStateCommitResult(_current, Saved: true, Failure: null);
+                var saved = await save(attempted, cancellationToken).ConfigureAwait(false)
+                    ?? throw new InvalidOperationException("A catalog-state writer returned null.");
+                Volatile.Write(ref _current, saved);
+                Volatile.Write(ref _requested, saved);
+                committed = true;
+                return new CatalogStateCommitResult(saved, Saved: true, Failure: null, AttemptedState: attempted);
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                return new CatalogStateCommitResult(_current, Saved: false, Failure: exception);
+                return new CatalogStateCommitResult(_current, Saved: false, Failure: exception, AttemptedState: attempted);
+            }
+            finally
+            {
+                if (!committed)
+                {
+                    Volatile.Write(ref _requested, _current);
+                }
             }
         }
         finally
@@ -66,10 +102,7 @@ public sealed class CatalogStateCommitter
             _gate.Release();
         }
     }
-
-    /// <summary>Retries the latest state without inventing a new mutation.</summary>
-    public Task<CatalogStateCommitResult> RetryAsync(CancellationToken cancellationToken = default) =>
-        CommitAsync(state => state, cancellationToken);
 }
 
-public sealed record CatalogStateCommitResult(CatalogState State, bool Saved, Exception? Failure);
+public sealed record CatalogStateCommitResult(
+    CatalogState State, bool Saved, Exception? Failure, CatalogState AttemptedState);

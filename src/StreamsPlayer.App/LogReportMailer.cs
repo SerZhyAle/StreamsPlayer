@@ -15,10 +15,11 @@ namespace StreamsPlayer.App;
 /// </para>
 /// <para>
 /// <c>mailto:</c> cannot carry an attachment - the parameter is not part of the scheme and Windows mail
-/// clients ignore or reject it - so attaching stays a user gesture. The archive's full path is carried in
-/// both the prepared mail and the confirmation; opening its folder is a separate action the user chooses.
-/// The alternative, Simple MAPI, would attach automatically but silently has no client on a webmail-only
-/// desktop, which is the common case; a support feature must not be the thing that fails.
+/// clients ignore or reject it - so attaching stays a user gesture. The prepared mail names the archive by
+/// file name and folder alias (SP-0174: a draft can be stored or forwarded, so it carries no profile
+/// path); the confirmation shows the full path, and opening its folder is a separate action the user
+/// chooses. The alternative, Simple MAPI, would attach automatically but silently has no client on a
+/// webmail-only desktop, which is the common case; a support feature must not be the thing that fails.
 /// </para>
 /// </remarks>
 internal static class LogReportMailer

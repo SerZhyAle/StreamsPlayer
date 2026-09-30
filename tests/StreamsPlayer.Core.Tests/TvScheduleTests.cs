@@ -273,4 +273,110 @@ public sealed class TvScheduleTests
     {
         Assert.Equal(accepted, TvScheduleService.TryParseSource(text, out _));
     }
+
+    // SP-0175: a file that could not be read - locked or malformed - is never saved over. The next
+    // manual bind used to write the in-memory bindings plus one entry over the file, silently losing
+    // every binding the user had made; the store now refuses the save as false, exactly like a write
+    // that did not land, and the file stays byte-identical until a read has succeeded.
+    [Fact]
+    public async Task AMalformedBindingsFile_RefusesTheNextSaveAndStaysByteIdentical()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "sp0175-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new TvScheduleStore(directory);
+            Directory.CreateDirectory(directory);
+            await File.WriteAllTextAsync(store.BindingsPath, "{ not json");
+            var before = await File.ReadAllBytesAsync(store.BindingsPath);
+
+            Assert.Empty(await store.LoadBindingsAsync());
+            Assert.False(await store.SaveBindingsAsync([new TvScheduleBinding("https://a.test/x", null)]));
+
+            Assert.Equal(before, await File.ReadAllBytesAsync(store.BindingsPath));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task ALockedBindingsFile_RefusesTheNextSaveAndStaysByteIdentical()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "sp0175-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new TvScheduleStore(directory);
+            Directory.CreateDirectory(directory);
+            await File.WriteAllTextAsync(store.BindingsPath, "[]");
+            using (File.Open(store.BindingsPath, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                Assert.Empty(await store.LoadBindingsAsync());
+                Assert.False(await store.SaveBindingsAsync([new TvScheduleBinding("https://a.test/x", null)]));
+            }
+
+            Assert.Equal("[]", await File.ReadAllTextAsync(store.BindingsPath));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    // The downloaded schedule is external data replaced wholesale, so a zero-byte file holds nothing to
+    // preserve (SP-0175): both files count as absent and a save may create them.
+    [Fact]
+    public async Task ZeroByteFiles_CountAsAbsentAndMayBeSavedOver()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "sp0175-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new TvScheduleStore(directory);
+            Directory.CreateDirectory(directory);
+            await File.WriteAllBytesAsync(store.SchedulePath, []);
+            await File.WriteAllBytesAsync(store.BindingsPath, []);
+
+            Assert.Null(await store.LoadScheduleAsync());
+            Assert.Empty(await store.LoadBindingsAsync());
+            Assert.True(await store.SaveScheduleAsync(new TvScheduleDocument(
+                TvScheduleDocument.CurrentSchemaVersion, "https://s.test/g.xml", Now, ParseSample())));
+            Assert.True(await store.SaveBindingsAsync([new TvScheduleBinding("https://a.test/x", null)]));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    // SP-0175: a document that parses but holds null entries must load as empty rather than throw in the
+    // index build; the load already dropped such entries, and this pins it.
+    [Fact]
+    public async Task ADocumentOfNullBindingEntries_LoadsAsEmptyWithoutThrowing()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "sp0175-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new TvScheduleStore(directory);
+            Directory.CreateDirectory(directory);
+            await File.WriteAllTextAsync(store.BindingsPath, "[null]");
+
+            Assert.Empty(await store.LoadBindingsAsync());
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
 }

@@ -12,8 +12,9 @@ public static class FaviconAtlasReferences
     /// The slot the calling operation's own save decides: it is replaced when the bank carried a sheet,
     /// and kept when it did not - SP-0088 keeps the installed sheet on a degraded bank, and releasing it
     /// here would turn "discard this build's indices" into "delete the atlas".
+    /// <c>null</c> when the operation writes no atlas at all (SP-0177: deleting downloaded channels).
     /// </param>
-    public static CatalogState ReleaseUnreferenced(CatalogState state, AtlasSlot writtenSlot)
+    public static CatalogState ReleaseUnreferenced(CatalogState state, AtlasSlot? writtenSlot)
     {
         ArgumentNullException.ThrowIfNull(state);
         bool catalog = false, snapshot = false, imported = false;

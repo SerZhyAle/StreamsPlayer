@@ -35,7 +35,9 @@ public partial class AddStreamWindow : Window
         ProtocolBox.Text = channel.Protocol ?? string.Empty;
         FormatBox.Text = channel.Format ?? string.Empty;
         BitrateBox.Text = channel.Bitrate ?? string.Empty;
-        LiveBox.IsChecked = channel.IsLive;
+        // SP-0177: two states only. An unknown value reads as live unless the row is video, the one kind with
+        // real on-demand addresses; a new row keeps the XAML default, live.
+        LiveBox.IsChecked = channel.IsLive ?? channel.MediaKind != MediaKind.Video;
 
         SetResourceReference(TitleProperty, "EditWindowTitle");
         ConfirmButton.SetResourceReference(ContentControl.ContentProperty, "Save");
@@ -55,7 +57,7 @@ public partial class AddStreamWindow : Window
     public string? MetaProtocol => NullIfEmpty(ProtocolBox.Text);
     public string? MetaFormat => NullIfEmpty(FormatBox.Text);
     public string? MetaBitrate => NullIfEmpty(BitrateBox.Text);
-    public bool? MetaIsLive => LiveBox.IsChecked;
+    public bool MetaIsLive => LiveBox.IsChecked == true;
 
     private void PopulateMediaKinds(MediaKind? current)
     {

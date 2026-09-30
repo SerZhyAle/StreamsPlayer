@@ -28,7 +28,17 @@ public partial class PlaybackFailureDialog : Window
     /// <param name="canRetry">
     /// SP-0124: false when a retry cannot change the answer - an address that is never launched stays so.
     /// </param>
-    internal PlaybackFailureDialog(string channelTitle, SourceOrigin origin, string report, ChannelAccess access, string? message = null, bool canRetry = true)
+    /// <param name="reachability">
+    /// SP-0041: what the connectivity gate found before the verdict. The default is the dialog as it was.
+    /// </param>
+    internal PlaybackFailureDialog(
+        string channelTitle,
+        SourceOrigin origin,
+        string report,
+        ChannelAccess access,
+        string? message = null,
+        bool canRetry = true,
+        PlaybackReachability reachability = PlaybackReachability.NotProbed)
     {
         InitializeComponent();
         _report = report;
@@ -42,7 +52,17 @@ public partial class PlaybackFailureDialog : Window
         }
 
         RemoveButton.SetResourceReference(ContentControl.ContentProperty,
-            origin == SourceOrigin.Catalog ? "FailureHide" : "FailureDelete");
+            ChannelOwnership.IsBankSourced(origin) ? "FailureHide" : "FailureDelete");
+        // SP-0041 Decision 4: a channel that was never reached has not been proven broken, and for a
+        // MANUAL/IMPORTED row the delete is irreversible - so the offer is withheld, and the line says why.
+        // The Core rule decides; this dialog does not re-derive it. Retry stays the default and Keep the
+        // cancel, so the keyboard path does not depend on the hidden button.
+        RemoveButton.Visibility = PlaybackReachabilityRules.AllowsChannelRemoval(reachability)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        NoNetworkText.Visibility = reachability == PlaybackReachability.NetworkUnreachable
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         // SP-0033: the tag explains a failure, so it is only ever shown on this path - a region-locked
         // channel that plays says nothing.
         RegionRestrictedText.Visibility = access == ChannelAccess.GeoRestricted
@@ -58,7 +78,9 @@ public partial class PlaybackFailureDialog : Window
 
     private void Remove_Click(object sender, RoutedEventArgs e)
     {
-        if (_origin is SourceOrigin.Manual or SourceOrigin.Imported)
+        // SP-0177: every delete is confirmed - by the same rule that labels the button, so no origin can
+        // reach "Delete" without the question.
+        if (!ChannelOwnership.IsBankSourced(_origin))
         {
             var confirm = MessageBox.Show(
                 this,

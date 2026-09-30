@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.ExceptionServices;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -46,18 +47,27 @@ internal sealed class StreamAudioRecorder
     private static readonly HttpClient Client = CreateClient();
 
     private readonly CancellationTokenSource _stop = new();
+    /// <summary>Recordings racing for one name in one second; a longer run means something else is wrong.</summary>
+    private const int MaxCreateAttempts = 5;
+
     private readonly CurrentLog _log;
-    private readonly string _folder;
+    private readonly IReadOnlyList<string> _chain;
+    private readonly Action<string, string>? _onRedirected;
     private readonly string? _title;
     private readonly Stopwatch _written = new();
     private readonly Task<AudioRecordingOutcome> _worker;
+    private readonly object _endedGate = new();
+    private Action<StreamAudioRecorder, AudioRecordingOutcome>? _endedHandlers;
+    private AudioRecordingOutcome? _endedOutcome;
+    private bool _endedDelivered;
     private int _stopRequested;
     private long _bytes;
 
-    private StreamAudioRecorder(StreamChannel channel, string folder, CurrentLog log)
+    private StreamAudioRecorder(StreamChannel channel, IReadOnlyList<string> chain, CurrentLog log, Action<string, string>? onRedirected)
     {
         _log = log;
-        _folder = folder;
+        _chain = chain;
+        _onRedirected = onRedirected;
         _title = StreamTitleFormatter.Display(channel.Title);
         StartedAt = DateTimeOffset.Now;
         _worker = Task.Run(() => RecordAsync(channel.Url));
@@ -66,15 +76,41 @@ internal sealed class StreamAudioRecorder
     internal DateTimeOffset StartedAt { get; }
 
     /// <summary>
-    /// Raised once, on a worker thread, when the recording ends for any reason but <see cref="StopAsync"/>. Not
-    /// raised after a stop was asked for - the caller of <see cref="StopAsync"/> gets the outcome from it.
+    /// Raised once when the recording ends for any reason but <see cref="StopAsync"/>. Not raised after a stop
+    /// was asked for - the caller of <see cref="StopAsync"/> gets the outcome from it. Raised on the worker
+    /// thread - unless the recording ended before the owner's subscription made it back from <see cref="Start"/>,
+    /// in which case the stored outcome is delivered on the subscribing thread (SP-0164: a recording that ends at
+    /// once can no longer end unheard).
     /// </summary>
-    internal event Action<StreamAudioRecorder, AudioRecordingOutcome>? Ended;
-
-    internal static StreamAudioRecorder Start(StreamChannel channel, string folder, CurrentLog log)
+    internal event Action<StreamAudioRecorder, AudioRecordingOutcome>? Ended
     {
-        log.Event("AUDIO RECORD START", $"channel={channel.Title}", $"folder={folder}");
-        return new StreamAudioRecorder(channel, folder, log);
+        add
+        {
+            lock (_endedGate)
+            {
+                _endedHandlers += value;
+                DeliverEndedUnderGate();
+            }
+        }
+        remove
+        {
+            lock (_endedGate)
+            {
+                _endedHandlers -= value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Starts recording into the first folder of <paramref name="chain"/> that takes the file (SP-0179, CAPTURE-OUTPUT
+    /// rule 11). <paramref name="onRedirected"/> is called on the worker with the refused first folder and the one
+    /// used, when they differ; it is passed in rather than subscribed because the worker may reach the file before
+    /// a subscription made after this returns.
+    /// </summary>
+    internal static StreamAudioRecorder Start(StreamChannel channel, IReadOnlyList<string> chain, CurrentLog log, Action<string, string>? onRedirected)
+    {
+        log.Event("AUDIO RECORD START", $"channel={channel.Title}", $"folder={chain[0]}", $"fallbacks={chain.Count - 1}");
+        return new StreamAudioRecorder(channel, chain, log, onRedirected);
     }
 
     /// <summary>Stops the copy and returns what it produced. Awaitable from the UI thread; the wait is on the worker.</summary>
@@ -96,19 +132,43 @@ internal sealed class StreamAudioRecorder
             $"length={RecordingLength.Format(outcome.Length)}",
             $"path={outcome.Path ?? "none"}",
             $"detail={outcome.Detail ?? "none"}");
-        if (!StopRequested)
+        RaiseEnded(outcome);
+        return outcome;
+    }
+
+    private void RaiseEnded(AudioRecordingOutcome outcome)
+    {
+        lock (_endedGate)
+        {
+            if (StopRequested)
+            {
+                return;
+            }
+
+            _endedOutcome = outcome;
+            DeliverEndedUnderGate();
+        }
+    }
+
+    private void DeliverEndedUnderGate()
+    {
+        if (_endedDelivered || _endedOutcome is not { } outcome || _endedHandlers is not { } handlers)
+        {
+            return;
+        }
+
+        _endedDelivered = true;
+        foreach (var handler in handlers.GetInvocationList().Cast<Action<StreamAudioRecorder, AudioRecordingOutcome>>())
         {
             try
             {
-                Ended?.Invoke(this, outcome);
+                handler(this, outcome);
             }
             catch (Exception exception)
             {
                 _log.Event("AUDIO RECORD END", "handed_over=false", $"err={exception.Message}");
             }
         }
-
-        return outcome;
     }
 
     private async Task<AudioRecordingOutcome> CopyAsync(string url)
@@ -152,10 +212,33 @@ internal sealed class StreamAudioRecorder
                         return Outcome(AudioRecordingEnd.UnsupportedFormat, null, $"content_type={response.Content.Headers.ContentType?.MediaType ?? "none"}");
                 }
 
-                Directory.CreateDirectory(_folder);
-                path = RecordedBroadcastWriter.ReserveUniquePath(_folder, RecordedBroadcastName.For(_title, StartedAt, kind.Extension));
-                _log.Event("AUDIO RECORD FILE", $"format={kind.Extension}", $"content_type={response.Content.Headers.ContentType?.MediaType ?? "none"}", $"path={path}");
-                return await WriteAsync(network, head, path, token).ConfigureAwait(false);
+                FileStream file;
+                string? skipped;
+                try
+                {
+                    (file, path, skipped) = CreateInChain(CaptureFileName.For(CaptureKind.StreamAudio, StartedAt, _title, kind.Extension));
+                }
+                catch (Exception exception) when (CaptureFolders.IsFolderRefusal(exception))
+                {
+                    return Failed(AudioRecordingEnd.WriteFailed, null, exception);
+                }
+
+                _log.Event("AUDIO RECORD FILE", $"format={kind.Extension}", $"content_type={response.Content.Headers.ContentType?.MediaType ?? "none"}", $"path={path}", $"skipped={skipped ?? "none"}");
+                if (skipped is not null)
+                {
+                    _onRedirected?.Invoke(skipped, Path.GetDirectoryName(path) ?? path);
+                }
+
+                var outcome = await WriteAsync(network, head, file, path, token).ConfigureAwait(false);
+                if (outcome.Bytes == 0 && path is not null)
+                {
+                    // SP-0164: a recording that wrote nothing leaves no file - the video path deletes such
+                    // files too. Here, past the await using, the stream is closed and the delete can
+                    // succeed; Outcome has already dropped the path from the outcome itself.
+                    TryDeleteEmpty(path);
+                }
+
+                return outcome;
             }
         }
         catch (OperationCanceledException) when (StopRequested)
@@ -173,18 +256,51 @@ internal sealed class StreamAudioRecorder
         }
     }
 
-    private async Task<AudioRecordingOutcome> WriteAsync(Stream network, byte[] head, string path, CancellationToken token)
+    /// <summary>
+    /// SP-0179: creates the recording's file in the first folder of the chain that takes it, choosing the name
+    /// there before the write (CAPTURE-OUTPUT rules 5-6) and taking the next ordinal when another recording wins
+    /// the same name first. Returns the refused first folder as well when the file landed further down the chain.
+    /// </summary>
+    private (FileStream File, string Path, string? Skipped) CreateInChain(string fileName)
     {
-        FileStream file;
-        try
+        ExceptionDispatchInfo? last = null;
+        for (var index = 0; index < _chain.Count; index++)
         {
-            file = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.Read, bufferSize: 64 * 1024, useAsync: true);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            return Failed(AudioRecordingEnd.WriteFailed, null, exception);
+            try
+            {
+                var (file, path) = CreateIn(_chain[index], fileName);
+                return (file, path, index == 0 ? null : _chain[0]);
+            }
+            catch (Exception exception) when (CaptureFolders.IsFolderRefusal(exception))
+            {
+                _log.Event("AUDIO RECORD FOLDER", "ok=false", $"folder={_chain[index]}", $"err={exception.Message}");
+                last = ExceptionDispatchInfo.Capture(exception);
+            }
         }
 
+        last?.Throw();
+        throw new IOException("No folder to record into.");
+    }
+
+    private static (FileStream File, string Path) CreateIn(string folder, string fileName)
+    {
+        Directory.CreateDirectory(folder);
+        for (var attempt = 1; ; attempt++)
+        {
+            var path = CaptureFolders.ReserveUniquePath(folder, fileName);
+            try
+            {
+                return (new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.Read, bufferSize: 64 * 1024, useAsync: true), path);
+            }
+            catch (IOException) when (attempt < MaxCreateAttempts && File.Exists(path))
+            {
+                // Lost the name to another recording in the same second; reserve the next one.
+            }
+        }
+    }
+
+    private async Task<AudioRecordingOutcome> WriteAsync(Stream network, byte[] head, FileStream file, string path, CancellationToken token)
+    {
         await using (file.ConfigureAwait(false))
         {
             _written.Start();
@@ -254,6 +370,18 @@ internal sealed class StreamAudioRecorder
     {
         _log.Event("AUDIO RECORD ERROR", $"end={end}", $"err={exception.Message}");
         return Outcome(end, path, exception.GetType().Name);
+    }
+
+    private void TryDeleteEmpty(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            _log.Event("AUDIO RECORD ERROR", "reason=empty_file_kept", $"path={path}", $"err={exception.Message}");
+        }
     }
 
     private AudioRecordingOutcome Outcome(AudioRecordingEnd end, string? path, string? detail)

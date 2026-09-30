@@ -71,6 +71,84 @@ public sealed class QualityMemoryStoreTests : IDisposable
         Assert.Empty(await store.LoadAsync());
     }
 
+    // SP-0175: a file that could not be read is never saved over - saving the empty evidence plus one
+    // record would wipe every other channel's memory over what may be a transient lock. The refusal is
+    // the same false a failed write already reports, and the file on disk is untouched.
+    [Fact]
+    public async Task AMalformedFile_RefusesTheNextSaveAndStaysByteIdentical()
+    {
+        var store = new QualityMemoryStore(_directory);
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(store.FilePath, "{ this is not the list it used to be");
+        var before = await File.ReadAllBytesAsync(store.FilePath);
+
+        Assert.Empty(await store.LoadAsync());
+        Assert.False(await store.SaveAsync(
+            [new ChannelQualityMemory("https://host/live.m3u8", DateTimeOffset.UtcNow, [])]));
+
+        Assert.Equal(before, await File.ReadAllBytesAsync(store.FilePath));
+    }
+
+    [Fact]
+    public async Task ALockedFile_RefusesTheNextSaveAndStaysByteIdentical()
+    {
+        var store = new QualityMemoryStore(_directory);
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(store.FilePath, "[]");
+        using (File.Open(store.FilePath, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            Assert.Empty(await store.LoadAsync());
+            Assert.False(await store.SaveAsync(
+                [new ChannelQualityMemory("https://host/live.m3u8", DateTimeOffset.UtcNow, [])]));
+        }
+
+        Assert.Equal("[]", await File.ReadAllTextAsync(store.FilePath));
+    }
+
+    // SP-0175: an empty file holds nothing to preserve, so it counts as absent and a save may create it.
+    [Fact]
+    public async Task AZeroByteFile_CountsAsAbsentAndMayBeSavedOver()
+    {
+        var store = new QualityMemoryStore(_directory);
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllBytesAsync(store.FilePath, []);
+
+        Assert.Empty(await store.LoadAsync());
+        Assert.True(await store.SaveAsync(
+            [new ChannelQualityMemory("https://host/live.m3u8", DateTimeOffset.UtcNow, [])]));
+    }
+
+    // SP-0175: a side file that parses but holds null entries used to pass the catch and then throw in
+    // recall; an invalid entry is dropped instead of dereferenced.
+    [Fact]
+    public async Task ADocumentOfNullEntries_LoadsAsEmptyWithoutThrowing()
+    {
+        var store = new QualityMemoryStore(_directory);
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(store.FilePath, "[null]");
+
+        Assert.Empty(await store.LoadAsync());
+    }
+
+    // SP-0175: null rungs inside an otherwise real record must not throw in recall; the ceiling the
+    // record still carries is evidence worth keeping.
+    [Fact]
+    public async Task ARecordWithNullRungs_KeepsTheCeilingAndRecallsWithoutThrowing()
+    {
+        var store = new QualityMemoryStore(_directory);
+        Directory.CreateDirectory(_directory);
+        await File.WriteAllTextAsync(
+            store.FilePath,
+            """[{"url":"https://host/live.m3u8","updatedAt":"2026-09-01T00:00:00+00:00","rungs":null,"ceiling":{"bandwidthBps":796000,"width":640,"height":360}}]""");
+
+        var entry = Assert.Single(await store.LoadAsync());
+        Assert.Empty(entry.Rungs);
+
+        var recollection = QualityMemory.Recall(
+            [entry], "https://host/live.m3u8", new DateTimeOffset(2026, 9, 1, 6, 0, 0, TimeSpan.Zero));
+        Assert.Equal(QualityCeilingRecall.Applied, recollection.CeilingRecall);
+    }
+
     // SP-0076 criterion 5, and the reason Ceiling is the last member and nullable: a document written
     // before that field existed still loads, keeping the failure counts it does carry. Written as literal
     // JSON rather than through an old type, because the file on the user's disk is the contract here.

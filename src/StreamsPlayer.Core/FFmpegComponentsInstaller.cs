@@ -245,8 +245,17 @@ public sealed class FFmpegComponentsInstaller
     /// completed move is reversed, so the target ends up holding either the whole new set or exactly what
     /// it held before. Other files in the target (a licence copy, extra plugins) are never touched.
     /// </summary>
-    internal static void PublishStaging(string staging, string target)
+    /// <remarks>
+    /// SP-0178: when the reversal fails too, the target may hold a mix of both builds that would otherwise
+    /// count as installed - and a complete-looking set is what lets the next install sweep the preserved
+    /// folder. The target is therefore marked incomplete (<see cref="FFmpegComponents.IncompleteMarkerName"/>)
+    /// before the exception naming that folder is thrown, and the mark is cleared only by a publish that
+    /// completes.
+    /// </remarks>
+    /// <param name="move">The file move; <see cref="File.Move(string, string)"/> unless a test injects a failure.</param>
+    internal static void PublishStaging(string staging, string target, Action<string, string>? move = null)
     {
+        move ??= File.Move;
         Directory.CreateDirectory(target);
         var previous = $"{target}{PreviousMarker}{Guid.NewGuid():N}";
         var movedAside = new List<string>();
@@ -260,21 +269,22 @@ public sealed class FFmpegComponentsInstaller
                 if (File.Exists(current))
                 {
                     Directory.CreateDirectory(previous);
-                    File.Move(current, Path.Combine(previous, library));
+                    move(current, Path.Combine(previous, library));
                     movedAside.Add(library);
                 }
             }
 
             foreach (var library in FFmpegComponents.RequiredLibraries)
             {
-                File.Move(Path.Combine(staging, library), Path.Combine(target, library));
+                move(Path.Combine(staging, library), Path.Combine(target, library));
                 movedIn.Add(library);
             }
         }
         catch (Exception failure) when (failure is IOException or UnauthorizedAccessException)
         {
-            if (!TryRollBack(staging, target, previous, movedIn, movedAside))
+            if (!TryRollBack(staging, target, previous, movedIn, movedAside, move))
             {
+                MarkIncomplete(target, previous);
                 throw new FFmpegComponentsRollbackException(
                     "The FFmpeg components could not be replaced, and the previous set could not be fully " +
                     $"restored; its libraries were kept in {previous}.",
@@ -290,6 +300,8 @@ public sealed class FFmpegComponentsInstaller
         // Best effort: the old set is no longer needed. A file that cannot be deleted now is swept by the
         // next install once a complete set is in place.
         DiscardFolder(previous);
+        // A whole new set is in place, so an earlier failed rollback's mark no longer describes it.
+        Discard(Path.Combine(target, FFmpegComponents.IncompleteMarkerName));
     }
 
     private static bool TryRollBack(
@@ -297,27 +309,43 @@ public sealed class FFmpegComponentsInstaller
         string target,
         string previous,
         IEnumerable<string> movedIn,
-        IEnumerable<string> movedAside)
+        IEnumerable<string> movedAside,
+        Action<string, string> move)
     {
         var restored = true;
         foreach (var library in movedIn)
         {
-            restored &= TryMove(Path.Combine(target, library), Path.Combine(staging, library));
+            restored &= TryMove(Path.Combine(target, library), Path.Combine(staging, library), move);
         }
 
         foreach (var library in movedAside)
         {
-            restored &= TryMove(Path.Combine(previous, library), Path.Combine(target, library));
+            restored &= TryMove(Path.Combine(previous, library), Path.Combine(target, library), move);
         }
 
         return restored;
     }
 
-    private static bool TryMove(string from, string to)
+    /// <summary>
+    /// Best effort: if even this write fails, the folder may still read as installed - but nothing more can
+    /// be done from here, and the exception that follows still names the preserved folder.
+    /// </summary>
+    private static void MarkIncomplete(string target, string previous)
     {
         try
         {
-            File.Move(from, to);
+            File.WriteAllText(Path.Combine(target, FFmpegComponents.IncompleteMarkerName), previous);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+        }
+    }
+
+    private static bool TryMove(string from, string to, Action<string, string> move)
+    {
+        try
+        {
+            move(from, to);
             return true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

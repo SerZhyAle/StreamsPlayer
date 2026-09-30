@@ -268,6 +268,7 @@
     <sys:String x:Key="FailureDialogMessage">تعذر تشغيل «{0}».</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">لا يمكن تشغيل «{0}»: عنوانه ليس بثًا من نوع http أو https أو rtsp.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">يشير الكتالوج إلى أن هذه القناة مقيَّدة بمنطقة: لم تستجب من بلد القائم على الكتالوج. قد تعمل إذا كنت في المنطقة التي تبث إليها.</sys:String>
+    <sys:String x:Key="FailureNoNetwork">لا يوجد اتصال بالشبكة، لذلك لم يتم الوصول إلى هذه القناة أصلًا. قد تكون سليمة - تحقّق من اتصالك وأعد المحاولة.</sys:String>
     <sys:String x:Key="FailureRetry">إعادة المحاولة</sys:String>
     <sys:String x:Key="FailureHide">إخفاء</sys:String>
     <sys:String x:Key="FailureDelete">حذف</sys:String>
@@ -316,6 +317,7 @@
     <sys:String x:Key="SaveFrame">حفظ الإطار</sys:String>
     <sys:String x:Key="SaveFrameTip">حفظ الإطار الحالي كملف صورة وكأيقونة لهذه القناة</sys:String>
     <sys:String x:Key="FrameSaved">تم حفظ الإطار: {0}</sys:String>
+    <sys:String x:Key="FrameSavedElsewhere">تعذّرت الكتابة في {0} - تم حفظ الإطار في {1}</sys:String>
     <sys:String x:Key="FrameSaveFailed">تعذر حفظ الإطار</sys:String>
     <sys:String x:Key="Record">تسجيل</sys:String>
     <sys:String x:Key="RecordTip">تسجيل البث المباشر (R)</sys:String>
@@ -333,15 +335,21 @@
     <sys:String x:Key="RecordEndedConnectionLost">انتهى التسجيل - قطعت المحطة الاتصال. تم الحفظ: {0} ({1})</sys:String>
     <sys:String x:Key="RecordUnsupportedFormat">لا يمكن تسجيل صيغة بث هذه المحطة</sys:String>
     <sys:String x:Key="RecordWriteFailed">توقف التسجيل - تعذّرت الكتابة في {0}</sys:String>
+    <sys:String x:Key="RecordFellBack">تعذّرت الكتابة في {0} - يجري التسجيل في {1}</sys:String>
+    <sys:String x:Key="RecordSavedElsewhere">تعذّرت الكتابة في {0} - تم حفظ التسجيل في {1}</sys:String>
     <sys:String x:Key="RecordUnavailableEngine">التسجيل غير متاح مع هذا الإصدار من محرك الفيديو</sys:String>
     <sys:String x:Key="RecordUnavailableFastMediaSorter">يسمح بث FastMediaSorter باتصال واحد يستخدمه التشغيل - لا يمكن تسجيله</sys:String>
     <sys:String x:Key="RecordingsRecovered">تم نقل {0} من التسجيلات غير المحفوظة من الجلسة السابقة إلى {1}</sys:String>
     <sys:String x:Key="RecordingsRecoveryFailed">تعذّر نقل {0} من التسجيلات غير المحفوظة من الجلسة السابقة - إنها في {1}</sys:String>
-    <sys:String x:Key="FrameFolderLabel">مجلد الملفات المحفوظة</sys:String>
-    <sys:String x:Key="FrameFolderHint">هنا يحفظ STREAMS Player الإطارات وأرشيفات السجل. اتركه فارغًا لاستخدام مجلد التنزيلات.</sys:String>
+    <sys:String x:Key="FrameFolderLabel">مجلد الإطارات</sys:String>
+    <sys:String x:Key="FrameFolderHint">هنا تُحفظ الإطارات وأرشيفات السجل. اتركه فارغًا لاستخدام مجلد Frames داخل الصور؛ وعندها تذهب أرشيفات السجل إلى التنزيلات.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">اختيار مجلد..</sys:String>
-    <sys:String x:Key="FrameFolderReset">استخدام التنزيلات</sys:String>
+    <sys:String x:Key="FrameFolderReset">استخدام المجلد الافتراضي</sys:String>
     <sys:String x:Key="FrameFolderOpen">فتح المجلد</sys:String>
+    <sys:String x:Key="VideoRecordingFolderLabel">مجلد تسجيلات الفيديو</sys:String>
+    <sys:String x:Key="VideoRecordingFolderHint">هنا تُحفظ تسجيلات بثوث الفيديو. اتركه فارغًا لاستخدام مجلد Recordings داخل مقاطع الفيديو.</sys:String>
+    <sys:String x:Key="AudioRecordingFolderLabel">مجلد تسجيلات الراديو</sys:String>
+    <sys:String x:Key="AudioRecordingFolderHint">هنا تُحفظ تسجيلات محطات الراديو. اتركه فارغًا لاستخدام مجلد Recordings داخل الموسيقى.</sys:String>
     <sys:String x:Key="VolumeTip">مستوى صوت الفيديو</sys:String>
     <sys:String x:Key="VolumeName">مستوى صوت الفيديو</sys:String>
     <sys:String x:Key="AudioVolumeTip">مستوى الصوت</sys:String>
@@ -393,6 +401,7 @@
     <sys:String x:Key="VideoComponentsProgressUnknown">جارٍ تنزيل المكوّنات.. {0} ميغابايت</sys:String>
     <sys:String x:Key="VideoComponentsInstallDone">ثُبِّتت المكوّنات في {0}. يصبح FlyleafLib متاحًا في المشغل التالي الذي تفتحه.</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">تعذّر تنزيل المكوّنات. لم يُثبَّت أي شيء. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRollbackFailed">تعذّر استبدال المكوّنات، وتعذّرت استعادة الإصدار السابق بالكامل. لا يمكن استخدامها حتى تثبّتها من جديد. حُفظت الملفات السابقة في: {0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">هل تريد إزالة مكوّنات FlyleafLib؟ سيتوقف FlyleafLib عن العمل حتى تُنزَّل من جديد؛ ولا يتأثر VLC.</sys:String>
     <sys:String x:Key="VideoComponentsRemoveFailed">تعذّرت إزالة المكوّنات. أغلق نوافذ المشغل المفتوحة ثم أعد المحاولة.</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib غير جاهز</sys:String>
@@ -434,6 +443,7 @@
     <sys:String x:Key="CreateDesktopShortcut">إنشاء اختصار على سطح المكتب</sys:String>
     <sys:String x:Key="LaunchCommandCopied">تم نسخ أمر التشغيل إلى الحافظة.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">تعذر على Windows نسخ أمر التشغيل.</sys:String>
+    <sys:String x:Key="LaunchIdOnlyNotice">حُذف العنوان. لن يعمل هذا الاختصار أو الأمر إلا ما دامت القناة موجودة في هذه المكتبة.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">نسخ نص المشاركة</sys:String>
     <sys:String x:Key="MenuCopyLaunchCommand">نسخ أمر التشغيل</sys:String>
@@ -595,6 +605,7 @@
     <sys:String x:Key="FmsBroadcastUnsupportedMode">وضع البث هذا غير مدعوم بعد. لم تتغير قائمتك.</sys:String>
     <sys:String x:Key="FmsBroadcastInvalid">هذا ليس وصف بث صالحًا من FastMediaSorter. لم تتغير قائمتك.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">وصف البث هذا أكبر من 64 KiB. لم تتغير قائمتك.</sys:String>
+    <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer مشغول بعملية أخرى. استورد البث مرة أخرى بعد انتهاء العملية. لم تتغير قائمتك.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">وصل {0} بالفعل إلى الحد الأقصى لعدد المستمعين. أعد المحاولة عندما يغادر مستمع آخر.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">توقف {0} عن البث أو لم يعد متاحًا على هذه الشبكة.</sys:String>
     <!-- SP-0098 portable stream catalog import -->

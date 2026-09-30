@@ -117,6 +117,30 @@ public sealed class CatalogSnapshotTests
         Assert.Equal(retiredAt, kept.RetiredAt);
     }
 
+    // SP-0177: offered after a failed refresh, the snapshot can meet a list a later download wrote.
+    [Fact]
+    public void Apply_OverALaterDownloadKeepsTheNewerRow()
+    {
+        var downloaded = new StreamChannel
+        {
+            Id = Guid.NewGuid(),
+            Url = "https://example.test/snapshot-one",
+            Title = "Newer title",
+            MediaKind = MediaKind.Audio,
+            SourceOrigin = SourceOrigin.Catalog,
+            AddedAt = SourceDate,
+            IsLive = true
+        };
+        var outcome = CatalogSnapshotService.Prepare(BundledCatalogSnapshot.Read(CreateSnapshotZip(atlas: null)));
+
+        var later = outcome.Apply(new CatalogState { Channels = [downloaded], LastCatalogRefreshAt = SourceDate.AddDays(10) });
+        var earlier = outcome.Apply(new CatalogState { Channels = [downloaded], LastCatalogRefreshAt = SourceDate.AddDays(-10) });
+
+        Assert.Equal(downloaded, Assert.Single(later.State.Channels, channel => channel.Id == downloaded.Id));
+        Assert.Contains(later.State.Channels, channel => channel.Url == "https://example.test/snapshot-two");
+        Assert.Equal("Snapshot one", Assert.Single(earlier.State.Channels, channel => channel.Id == downloaded.Id).Title);
+    }
+
     [Fact]
     public async Task Apply_OverADownloadedCatalogKeepsBothRowsAndBothAtlases()
     {

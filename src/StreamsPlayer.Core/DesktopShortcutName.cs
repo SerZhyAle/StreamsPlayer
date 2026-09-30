@@ -73,7 +73,8 @@ public static class DesktopShortcutName
 
         if (replaced.Length > budget)
         {
-            replaced = replaced[..Math.Max(budget, 0)];
+            // SP-0178 (SP-0134 R4): cut on a text-element boundary, never inside a surrogate pair.
+            replaced = TextBoundary.Truncate(replaced, budget);
         }
 
         // A trailing space or dot makes a file name Windows cannot open, so trim after truncating too.

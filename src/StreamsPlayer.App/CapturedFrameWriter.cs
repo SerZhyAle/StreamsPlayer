@@ -1,13 +1,15 @@
+using System.Globalization;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Runtime.ExceptionServices;
 using System.Windows.Media.Imaging;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// SP-0038: writes a captured video frame into the user's own file system. Lives in the App layer, not
-/// Core, because it depends on WPF imaging and on Windows known folders.
+/// SP-0038 / SP-0179: encodes a captured video frame and writes it into the first folder of its chain that takes
+/// it. Lives in the App layer, not Core, because it depends on WPF imaging. Where the chain comes from is
+/// <see cref="CaptureFolders"/>'s business.
 /// </summary>
 internal static class CapturedFrameWriter
 {
@@ -17,47 +19,93 @@ internal static class CapturedFrameWriter
     /// </summary>
     private const int JpegQuality = 75;
 
-    /// <summary>Bound on the same-second disambiguation suffix; a longer run means something else is wrong.</summary>
-    private const int MaxNameAttempts = 100;
+    /// <summary>Saves racing for one name in one second; a longer run means something else is wrong.</summary>
+    private const int MaxMoveAttempts = 5;
+
+    /// <summary>EXIF <c>DateTimeOriginal</c> (tag 36867), the capture time inside the file, CAPTURE-OUTPUT rule 16.</summary>
+    private const string DateTimeOriginalQuery = "/app1/ifd/exif/{ushort=36867}";
 
     /// <summary>
-    /// Encodes and writes the frame, returning the full path written. The frame must be frozen: it is
-    /// encoded on a worker thread. Throws the ordinary file-system exceptions, which the caller reports.
+    /// Encodes the frame and writes it into the first folder of <paramref name="chain"/> that accepts it, returning
+    /// the full path written and, when that is not the chain's first folder, the folder that refused it (rule 11:
+    /// the user is told in the same moment). The frame must be frozen: it is encoded on a worker thread. When every
+    /// folder refuses, the last refusal is thrown for the caller to report.
     /// </summary>
-    internal static async Task<string> SaveAsync(
+    internal static Task<(string Path, string? Skipped)> SaveAsync(
         BitmapSource frame,
-        string? configuredFolder,
+        IReadOnlyList<string> chain,
         string? channelTitle,
-        DateTimeOffset capturedAt)
+        DateTimeOffset capturedAt) => Task.Run(() =>
     {
-        var folder = ResolveFolder(configuredFolder);
-        return await Task.Run(() =>
+        // Encoded once, before any folder is tried: an encoder saves only once, and a frame that cannot be encoded
+        // is no folder's fault.
+        var bytes = Encode(frame, capturedAt);
+        var fileName = CaptureFileName.For(CaptureKind.VideoFrame, capturedAt, channelTitle);
+        ExceptionDispatchInfo? last = null;
+        foreach (var folder in chain)
         {
-            // The encoder is built here, not on the caller's thread: BitmapEncoder is a DispatcherObject,
-            // and one created on the UI thread refuses to Save from a worker - which wrote an empty file
-            // and lost the exception into an unobserved task. A frozen frame is thread-safe to encode.
-            var encoder = new JpegBitmapEncoder { QualityLevel = JpegQuality };
-            encoder.Frames.Add(BitmapFrame.Create(frame));
-            Directory.CreateDirectory(folder);
-            var path = ReserveUniquePath(folder, CapturedFrameName.For(channelTitle, capturedAt));
             try
             {
-                using (var stream = File.Create(path))
+                var path = WriteInto(folder, fileName, bytes);
+                return (path, ReferenceEquals(folder, chain[0]) ? null : chain[0]);
+            }
+            catch (Exception exception) when (CaptureFolders.IsFolderRefusal(exception))
+            {
+                last = ExceptionDispatchInfo.Capture(exception);
+            }
+        }
+
+        last?.Throw();
+        throw new IOException("No folder to save the frame in.");
+    });
+
+    private static byte[] Encode(BitmapSource frame, DateTimeOffset capturedAt)
+    {
+        // The encoder is built here, on the worker, not on the caller's thread: BitmapEncoder is a DispatcherObject,
+        // and one created on the UI thread refuses to Save from a worker - which wrote an empty file and lost the
+        // exception into an unobserved task. A frozen frame is thread-safe to encode.
+        var metadata = new BitmapMetadata("jpg");
+        metadata.SetQuery(DateTimeOriginalQuery, capturedAt.ToString("yyyy:MM:dd HH:mm:ss", CultureInfo.InvariantCulture));
+        var encoder = new JpegBitmapEncoder { QualityLevel = JpegQuality };
+        encoder.Frames.Add(BitmapFrame.Create(frame, null, metadata, null));
+        using var buffer = new MemoryStream();
+        encoder.Save(buffer);
+        return buffer.ToArray();
+    }
+
+    /// <summary>
+    /// Writes the frame under a temporary name in <paramref name="folder"/> and renames it into place, so the
+    /// frame is visible only once it is complete (CAPTURE-OUTPUT rule 12). A failure deletes the temporary: a
+    /// full disk or a folder that went away must not leave a truncated picture behind (SP-0121 R7).
+    /// </summary>
+    private static string WriteInto(string folder, string fileName, byte[] bytes)
+    {
+        Directory.CreateDirectory(folder);
+        for (var attempt = 1; ; attempt++)
+        {
+            var destination = CaptureFolders.ReserveUniquePath(folder, fileName);
+            var temporary = Path.Combine(folder, $"~{Path.GetFileName(destination)}.partial");
+            try
+            {
+                using (var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-                    encoder.Save(stream);
+                    stream.Write(bytes);
                 }
 
-                return path;
+                File.Move(temporary, destination, overwrite: false);
+                return destination;
             }
-            catch
+            catch (IOException) when (attempt < MaxMoveAttempts && File.Exists(destination))
             {
-                // SP-0121 R7: a save that failed part-way - a full disk, a folder that went away - must not leave a
-                // truncated picture behind under a name that looks like a good one (C-13). Deleted after the stream
-                // is closed, and the original failure is what the caller reports.
-                TryDelete(path);
+                // Lost the name to another save in the same second; reserve the next one.
+                TryDelete(temporary);
+            }
+            catch (Exception exception) when (CaptureFolders.IsFolderRefusal(exception))
+            {
+                TryDelete(temporary);
                 throw;
             }
-        });
+        }
     }
 
     private static void TryDelete(string path)
@@ -71,71 +119,4 @@ internal static class CapturedFrameWriter
             // Nothing more can be done from here; the caller still reports the save as failed.
         }
     }
-
-    /// <summary>
-    /// The folder frames are written to: what the user chose, or the Downloads known folder when the
-    /// setting is unset. Resolved on every save so moving Downloads, or clearing the setting, takes
-    /// effect without touching stored state.
-    /// </summary>
-    internal static string ResolveFolder(string? configuredFolder) =>
-        string.IsNullOrWhiteSpace(configuredFolder) ? DownloadsFolder() : configuredFolder.Trim();
-
-    /// <summary>
-    /// Two captures inside one second share a name, and the timestamp has no finer field, so the second
-    /// one takes a numeric suffix rather than overwriting the first.
-    /// </summary>
-    private static string ReserveUniquePath(string folder, string fileName)
-    {
-        var candidate = Path.Combine(folder, fileName);
-        if (!File.Exists(candidate))
-        {
-            return candidate;
-        }
-
-        var stem = Path.GetFileNameWithoutExtension(fileName);
-        for (var attempt = 2; attempt <= MaxNameAttempts; attempt++)
-        {
-            candidate = Path.Combine(folder, $"{stem}-{attempt}{CapturedFrameName.Extension}");
-            if (!File.Exists(candidate))
-            {
-                return candidate;
-            }
-        }
-
-        throw new IOException($"No free file name for '{stem}' in '{folder}'.");
-    }
-
-    /// <summary>
-    /// The Downloads known folder. Asked of Windows rather than assembled from the profile path,
-    /// because Downloads is commonly redirected to another drive; the profile guess is only the
-    /// fallback for the call failing.
-    /// </summary>
-    private static string DownloadsFolder()
-    {
-        try
-        {
-            var hr = SHGetKnownFolderPath(DownloadsFolderId, 0, IntPtr.Zero, out var path);
-            if (hr == 0 && !string.IsNullOrWhiteSpace(path))
-            {
-                return path;
-            }
-        }
-        catch (DllNotFoundException)
-        {
-            // Fall through to the profile-relative guess.
-        }
-
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            "Downloads");
-    }
-
-    private static readonly Guid DownloadsFolderId = new("374DE290-123F-4565-9164-39C4925E467B");
-
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
-    private static extern int SHGetKnownFolderPath(
-        [MarshalAs(UnmanagedType.LPStruct)] Guid folderId,
-        uint flags,
-        IntPtr token,
-        [MarshalAs(UnmanagedType.LPWStr)] out string path);
 }

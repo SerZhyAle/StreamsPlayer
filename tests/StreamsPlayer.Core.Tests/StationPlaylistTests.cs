@@ -40,4 +40,22 @@ public sealed class StationPlaylistTests
     [InlineData("<html><body>Not found</body></html>", false)]
     public void RecognisesPlaylistText(string text, bool expected) =>
         Assert.Equal(expected, StationPlaylist.LooksLikePlaylist(text));
+
+    [Fact]
+    public void M3uAddressLineWithQueryStringIsTakenWhole() =>
+        Assert.Equal(new Uri("http://host/stream?type=mp3&session=1"),
+            StationPlaylist.FirstStream("http://host/stream?type=mp3&session=1\n", ListAddress));
+
+    [Fact]
+    public void PlsFileEntryWithQueryStringIsTakenWhole()
+    {
+        const string body = "[playlist]\nFile1=http://s1.example/live?type=mp3\n";
+        Assert.Equal(new Uri("http://s1.example/live?type=mp3"), StationPlaylist.FirstStream(body, ListAddress));
+    }
+
+    [Fact]
+    public void HtmlBodyServedAsAPlaylistYieldsNothing() =>
+        Assert.Null(StationPlaylist.FirstStream(
+            "<!DOCTYPE html>\n<html>\n<head><title>404 Not Found</title></head>\n<body>Not Found</body>\n</html>\n",
+            ListAddress));
 }

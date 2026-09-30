@@ -31,6 +31,18 @@ jobs:
       - name: Restore
         run: dotnet restore StreamsPlayer.sln
       - name: Build
+        id: build
         run: dotnet build StreamsPlayer.sln -c Release --no-restore
       - name: Test
         run: dotnet test StreamsPlayer.sln -c Release --no-build --verbosity normal
+      # DOC-INTERNAL-QUALITY (SP-0140): registry and reverse coverage, links and anchors, assets, house style,
+      # offline safety. Exit 0 pass, 1 finding, 2 could not verify (CHECK-VERDICT).
+      - name: Documentation gate
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: pwsh -NoProfile -File scripts/check-docs.ps1
+      # Rule 4: the generated site under docs/ matches its copy decks. Reads the Core assembly built above.
+      - name: Site sync check
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        shell: pwsh
+        run: pwsh -NoProfile -File tools/site/build-site.ps1 -Check

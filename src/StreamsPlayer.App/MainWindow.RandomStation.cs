@@ -11,9 +11,10 @@ namespace StreamsPlayer.App;
 /// <remarks>
 /// The hunt is a short-lived session rather than a flag, because it owns two things the ordinary playback
 /// path does not have and must not gain: a deadline for a station that has never produced a sound
-/// (<c>MediaElement</c> raises neither MediaOpened nor MediaFailed for one that connects and then stays
-/// silent), and a refusal that costs nothing - no status probe, no reconnect budget, no modal. The moment
-/// a station reaches MediaOpened the session ends and the station becomes an ordinary station, carrying
+/// (one that connects and then stays silent may raise no terminal event at all - the rule was written for
+/// WPF <c>MediaElement</c>, which raised neither MediaOpened nor MediaFailed, and is kept for LibVLC), and a
+/// refusal that costs nothing - no status probe, no reconnect budget, no modal. The moment a station
+/// reaches Playing the session ends and the station becomes an ordinary station, carrying
 /// the recovery policy <see cref="MainWindow.PlayChannelAsync"/> already installed for it. That single
 /// hand-off is why an ordinary click keeps its dialog and its reconnects with no second code path.
 /// </remarks>

@@ -442,4 +442,87 @@ public sealed class StreamCatalogStoreTests
             }
         }
     }
+
+    // SP-0175: a state file that could not be read - malformed here, locked below - is never saved
+    // over. The load reports the failure (with the real cause inside), the save refuses, and the file
+    // stays byte-identical until a read has succeeded, which in the product is the restart the
+    // start-up notice asks for.
+    [Fact]
+    public async Task Load_WithAMalformedFile_ThrowsAndTheNextSaveRefusesToTouchIt()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(directory);
+            var store = new StreamCatalogStore(directory);
+            await File.WriteAllTextAsync(store.StatePath, "{ this is not the catalog it used to be");
+            var before = await File.ReadAllBytesAsync(store.StatePath);
+
+            await Assert.ThrowsAsync<IOException>(() => store.LoadAsync());
+            await Assert.ThrowsAsync<IOException>(() => store.SaveAsync(new CatalogState()));
+
+            Assert.Equal(before, await File.ReadAllBytesAsync(store.StatePath));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Load_WithALockedFile_ThrowsAndTheNextSaveRefusesToTouchIt()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(directory);
+            var store = new StreamCatalogStore(directory);
+            await File.WriteAllTextAsync(store.StatePath, "{}");
+            using (File.Open(store.StatePath, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                await Assert.ThrowsAsync<IOException>(() => store.LoadAsync());
+                await Assert.ThrowsAsync<IOException>(() => store.SaveAsync(new CatalogState()));
+            }
+
+            Assert.Equal("{}", await File.ReadAllTextAsync(store.StatePath));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    // SP-0175: an empty file holds nothing to preserve, so it counts as absent - a fresh state that
+    // saves - rather than an unreadable one that would brick the product until a hand delete.
+    [Fact]
+    public async Task Load_WithAZeroByteFile_ReadsAsFreshStateAndSaves()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(directory);
+            var store = new StreamCatalogStore(directory);
+            await File.WriteAllBytesAsync(store.StatePath, []);
+
+            var loaded = await store.LoadAsync();
+            Assert.Empty(loaded.Channels);
+            Assert.Null(loaded.LastCatalogRefreshAt);
+
+            await store.SaveAsync(new CatalogState { CatalogSearchQuery = "written" });
+            Assert.Equal("written", (await store.LoadAsync()).CatalogSearchQuery);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
 }

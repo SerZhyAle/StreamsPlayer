@@ -95,6 +95,91 @@ public sealed class EngineLogNoiseFilterTests
     public void NormalizeShape_ReplacesDigitRunsAndNothingElse(string? message, string expected) =>
         Assert.Equal(expected, EngineLogNoiseFilter.NormalizeShape(message));
 
+    private const string Burst = "libdvbpsi error (TDT/TOT decoder): Already a decoder";
+
+    [Fact]
+    public void FlushAll_ABurstFollowedByTeardown_WritesItsCount()
+    {
+        var filter = new EngineLogNoiseFilter();
+        Assert.True(filter.Observe("ts", Burst, 0, Freq, "Error").ShouldLog);
+        for (var i = 1; i <= 1000; i++)
+        {
+            Assert.False(filter.Observe("ts", Burst, i, Freq, "Error").ShouldLog);
+        }
+
+        // The engine closes inside the window: before SP-0134 these thousand records left no trace.
+        var owed = Assert.Single(filter.FlushAll());
+
+        Assert.Equal(1000, owed.Repeats);
+        Assert.Equal("ts", owed.Module);
+        Assert.Equal("Error", owed.Level);
+        Assert.Equal(Burst, owed.Message);
+        Assert.Equal(EngineLogRepeatReason.Closed, owed.Reason);
+        Assert.Empty(filter.FlushAll());
+    }
+
+    [Fact]
+    public void FlushAll_ShapesThatOweNothing_WriteNothing()
+    {
+        var filter = new EngineLogNoiseFilter();
+        Assert.True(filter.Observe("ts", Burst, 0, Freq).ShouldLog);
+
+        Assert.Empty(filter.FlushAll());
+    }
+
+    [Fact]
+    public void Flush_ABurstThatEnded_WritesItsCountOnceTheWindowRunsOut()
+    {
+        var filter = new EngineLogNoiseFilter();
+        Assert.True(filter.Observe("ts", Burst, 0, Freq).ShouldLog);
+        Assert.False(filter.Observe("ts", Burst, Freq, Freq).ShouldLog);
+        Assert.False(filter.Observe("ts", Burst, 2 * Freq, Freq).ShouldLog);
+
+        Assert.Empty(filter.Flush(29 * Freq, Freq));
+        var owed = Assert.Single(filter.Flush(30 * Freq, Freq));
+
+        Assert.Equal(2, owed.Repeats);
+        Assert.Equal(EngineLogRepeatReason.WindowClosed, owed.Reason);
+
+        // Reported once: nothing is owed until the shape speaks again.
+        Assert.Empty(filter.Flush(90 * Freq, Freq));
+        Assert.Empty(filter.FlushAll());
+    }
+
+    [Fact]
+    public void Flush_ARunningBurst_CostsOneCountPerWindowAndNoExtraRecord()
+    {
+        var filter = new EngineLogNoiseFilter();
+        Assert.True(filter.Observe("ts", Burst, 0, Freq).ShouldLog);
+        Assert.False(filter.Observe("ts", Burst, 10 * Freq, Freq).ShouldLog);
+        Assert.Equal(1, Assert.Single(filter.Flush(30 * Freq, Freq)).Repeats);
+
+        // The count restarted the window, so the burst's next record is suppressed, not written afresh.
+        Assert.False(filter.Observe("ts", Burst, 31 * Freq, Freq).ShouldLog);
+        Assert.Equal(1, Assert.Single(filter.Flush(60 * Freq, Freq)).Repeats);
+    }
+
+    [Fact]
+    public void Flush_AnEvictedShapeThatOwedACount_WritesIt()
+    {
+        var filter = new EngineLogNoiseFilter();
+        Assert.True(filter.Observe("ts", Burst, 0, Freq, "Warning").ShouldLog);
+        Assert.False(filter.Observe("ts", Burst, 1, Freq, "Warning").ShouldLog);
+        Assert.False(filter.Observe("ts", Burst, 2, Freq, "Warning").ShouldLog);
+
+        // Fill the map past its ceiling: the burst above is the oldest shape and is evicted first.
+        for (var i = 0; i < EngineLogNoiseFilter.MaximumTrackedShapes; i++)
+        {
+            Assert.True(filter.Observe("http", "unique shape " + Letters(i), 10 + i, Freq).ShouldLog);
+        }
+
+        var owed = Assert.Single(filter.Flush(20 + EngineLogNoiseFilter.MaximumTrackedShapes, Freq));
+
+        Assert.Equal(2, owed.Repeats);
+        Assert.Equal(Burst, owed.Message);
+        Assert.Equal(EngineLogRepeatReason.Evicted, owed.Reason);
+    }
+
     private static string Letters(int value)
     {
         var text = string.Empty;

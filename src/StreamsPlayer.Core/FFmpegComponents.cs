@@ -33,6 +33,14 @@ public static class FFmpegComponents
         "swscale-9.dll"
     ];
 
+    /// <summary>
+    /// SP-0178: a file the installer leaves in the components folder when it could neither replace the set
+    /// nor restore the previous one. Its presence means the libraries there may be a mix of two builds, so
+    /// the folder reports every library as missing until a later install completes; its content is the
+    /// folder the previous libraries were preserved in.
+    /// </summary>
+    public const string IncompleteMarkerName = ".incomplete";
+
     /// <summary>The components folder inside a data directory, for example <c>%LOCALAPPDATA%\StreamsPlayer</c>.</summary>
     public static string ResolveFolder(string dataDirectory) =>
         Path.Combine(dataDirectory, FolderName);
@@ -40,11 +48,13 @@ public static class FFmpegComponents
     /// <summary>
     /// The required libraries absent from <paramref name="folder"/>, in declaration order. A
     /// zero-length file counts as missing: an interrupted copy leaves one behind, and reporting it as
-    /// present would send the engine into a load failure instead of an actionable "not installed".
+    /// present would send the engine into a load failure instead of an actionable "not installed". A folder
+    /// carrying <see cref="IncompleteMarkerName"/> reports every library as missing.
     /// </summary>
     public static IReadOnlyList<string> MissingLibraries(string folder)
     {
-        if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder))
+        if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder)
+            || File.Exists(Path.Combine(folder, IncompleteMarkerName)))
         {
             return RequiredLibraries;
         }
@@ -85,6 +95,12 @@ public static class FFmpegComponents
             {
                 File.Delete(path);
             }
+        }
+
+        var marker = Path.Combine(folder, IncompleteMarkerName);
+        if (File.Exists(marker))
+        {
+            File.Delete(marker);
         }
 
         if (!Directory.EnumerateFileSystemEntries(folder).Any())

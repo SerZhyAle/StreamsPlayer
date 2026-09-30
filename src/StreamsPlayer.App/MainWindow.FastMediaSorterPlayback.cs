@@ -50,7 +50,8 @@ public partial class MainWindow
             return;
         }
 
-        var result = await playback.StartAsync(endpoint, _state.AudioVolume, cancellationToken);
+        var volume = _pendingAudioVolume ?? (_stateCommitter?.Requested ?? _state).AudioVolume;
+        var result = await playback.StartAsync(endpoint, volume, cancellationToken);
         if (!IsCurrentFastMediaSorterPlayback(playback, generation, channel) || result.Cancelled)
         {
             playback.Dispose();

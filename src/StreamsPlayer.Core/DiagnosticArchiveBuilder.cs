@@ -31,22 +31,49 @@ public static class DiagnosticArchiveBuilder
     public const long HeadLogBytes = 1L * 1024 * 1024;
 
     /// <summary>
+    /// How the mail body names the archive (SP-0174, <c>DIAGNOSTIC-REPORT</c> rule 3): by file name, with
+    /// the folder reduced to its alias. The body leaves the machine inside a draft the user may store,
+    /// quote or forward, so it must not carry a path under the user's profile; the on-screen confirmation
+    /// keeps the real path, because that is what the user needs to find the file.
+    /// </summary>
+    public static string DescribePathForMail(string archivePath, DiagnosticPathRedactor? paths = null)
+    {
+        paths ??= DiagnosticPathRedactor.ForCurrentUser(null);
+        return paths.Redact(archivePath);
+    }
+
+    /// <summary>
     /// Writes the archive and returns its full path. Failures propagate: the caller owns the
     /// user-visible message, and a silently empty archive is worse than an error (SP-0040 decision 5).
     /// </summary>
-    public static string Build(string stateDirectory, string outputDirectory, string summaryText, DateTimeOffset utcNow)
+    /// <param name="paths">
+    /// Path redaction (SP-0137); defaults to the running user's profile with <paramref name="stateDirectory"/> as the
+    /// data directory. Tests pass their own roots.
+    /// </param>
+    public static string Build(
+        string stateDirectory,
+        string outputDirectory,
+        string summaryText,
+        DateTimeOffset utcNow,
+        DiagnosticPathRedactor? paths = null)
     {
+        paths ??= DiagnosticPathRedactor.ForCurrentUser(stateDirectory);
         Directory.CreateDirectory(outputDirectory);
         var temporaryPath = Path.Combine(outputDirectory, $".{ArchivePrefix}{Guid.NewGuid():N}.tmp");
         try
         {
             var notes = new StringBuilder();
-            using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+            // WriteThrough (SP-0175): the finished archive is renamed to its final name right below, and a
+            // rename journalled ahead of unflushed data would leave the user a zero-filled ZIP after a
+            // power cut.
+            using (var stream = new FileStream(
+                       temporaryPath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None,
+                       bufferSize: 4096, FileOptions.WriteThrough))
             using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: false))
             {
                 foreach (var log in DiagnosticLogFiles.ExistingLogs(stateDirectory))
                 {
-                    AddLog(archive, log, notes);
+                    AddLog(archive, log, notes, paths);
                 }
 
                 AddText(archive, SummaryEntryName, summaryText + notes);
@@ -103,7 +130,7 @@ public static class DiagnosticArchiveBuilder
 
     private static readonly UTF8Encoding LogEncoding = new(encoderShouldEmitUTF8Identifier: false);
 
-    private static void AddLog(ZipArchive archive, string path, StringBuilder notes)
+    private static void AddLog(ZipArchive archive, string path, StringBuilder notes, DiagnosticPathRedactor paths)
     {
         // FileShare.ReadWrite, not Read: the live session's writer holds this file with write access,
         // and a share mode that excludes it makes the current log unarchivable.
@@ -112,7 +139,7 @@ public static class DiagnosticArchiveBuilder
         using var entry = archive.CreateEntry(name, CompressionLevel.Optimal).Open();
         if (source.Length <= MaxLogBytes)
         {
-            WriteRedacted(entry, ReadAt(source, 0, source.Length));
+            WriteRedacted(entry, ReadAt(source, 0, source.Length), paths);
             return;
         }
 
@@ -129,19 +156,20 @@ public static class DiagnosticArchiveBuilder
             .Append(" | dropped_middle_bytes=").Append(dropped.ToString(CultureInfo.InvariantCulture))
             .Append("\r\n");
 
-        WriteRedacted(entry, head);
+        WriteRedacted(entry, head, paths);
         var marker = LogEncoding.GetBytes($"\r\n[Diag] LOG TRUNCATED | dropped_middle_bytes={dropped} | kept_head_bytes={head.Length} | kept_tail_bytes={tail.Length}\r\n");
         entry.Write(marker, 0, marker.Length);
-        WriteRedacted(entry, tail);
+        WriteRedacted(entry, tail, paths);
     }
 
     /// <summary>
     /// SP-0123: every log is redacted again as it is packed. The live sink already redacts, but logs kept
     /// from an earlier version were written before it did, and they leave the machine in this archive.
+    /// SP-0137: the same pass replaces the profile and data-directory roots in every path it finds.
     /// </summary>
-    private static void WriteRedacted(Stream destination, ReadOnlySpan<byte> bytes)
+    private static void WriteRedacted(Stream destination, ReadOnlySpan<byte> bytes, DiagnosticPathRedactor paths)
     {
-        var redacted = LogEncoding.GetBytes(CatalogUrlIdentity.RedactText(LogEncoding.GetString(bytes)));
+        var redacted = LogEncoding.GetBytes(paths.Redact(CatalogUrlIdentity.RedactText(LogEncoding.GetString(bytes))));
         destination.Write(redacted, 0, redacted.Length);
     }
 

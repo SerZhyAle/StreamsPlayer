@@ -238,6 +238,26 @@ public sealed class WaveParticlesSessionTests
     }
 
     [Theory]
+    [InlineData(1)]
+    [InlineData(7)]
+    [InlineData(40)]
+    public void Particles_StayInsideAfterAFrameHitch(int seed)
+    {
+        // Section 4 as amended in 0.12 (SP-0132 R9): a hitch of k reference frames overshoots the edge by up
+        // to k steps; the step reflects it back, and the following single steps never leave the canvas.
+        var session = new WaveParticlesSession(600, 80, new Random(seed));
+        foreach (var k in new[] { 900.0, 1, 1, 1, 250, 1, 1, 1 })
+        {
+            session.AdvanceFrames(k);
+            foreach (var particle in session.Particles)
+            {
+                Assert.InRange(particle.X, 0, session.Width);
+                Assert.InRange(particle.Y, 0, session.Height);
+            }
+        }
+    }
+
+    [Theory]
     [InlineData(0, 1, 0.5, 255, 0, 0)]
     [InlineData(120, 1, 0.5, 0, 255, 0)]
     [InlineData(240, 1, 0.5, 0, 0, 255)]

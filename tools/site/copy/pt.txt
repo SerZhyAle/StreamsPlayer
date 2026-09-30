@@ -160,7 +160,7 @@ Vídeo ao vivo e RTSP abrem em uma janela de player dedicada que mostra a faixa 
 Buffer ao vivo de cerca de 15 segundos, e o vídeo assenta na qualidade que sua conexão aguenta e abre ali na próxima vez.
 
 @@cap-play-5
-Grave o vídeo ao vivo ou o rádio que está tocando direto em um arquivo na sua pasta dos arquivos salvos, sem interromper a reprodução.
+Grave o vídeo ao vivo ou o rádio que está tocando direto em um arquivo, sem interromper a reprodução: o vídeo vai para a pasta Recordings em Vídeos, o rádio para a pasta Recordings em Músicas ou para as pastas que você escolher.
 
 @@cap-play-6
 Ouça uma transmissão de áudio ao vivo de um celular ou relógio com FastMediaSorter, direto pela sua rede local - sem servidor no meio.
@@ -313,7 +313,7 @@ O aplicativo só se conecta por uma ação sua, e só ao destino de que essa aç
 Dados locais
 
 @@privacy-local
-O STREAMS Player guarda em [[appdata]] o estado do catálogo, os canais que você adicionou e importou, os canais fixados, as coleções, os canais ocultos, o histórico de audição, as marcas de reprodução, os quadros de pré-visualização em cache dentro de um limite de 150 MB, as bibliotecas opcionais do FFmpeg, se você as baixou, e os registros de diagnóstico das últimas dez execuções. As gravações e os quadros salvos vão para a pasta dos arquivos salvos que você escolher (Downloads por padrão). Esses dados ficam no seu dispositivo, a menos que você os copie ou faça backup deles - ou a menos que use Enviar os registros ao autor em Ferramentas, que empacota esses registros de diagnóstico junto com a versão do aplicativo, a versão do Windows e as configurações em um arquivo compactado e abre o seu programa de e-mail para que você o anexe e envie para [[email]]. Esse arquivo compactado só é preparado quando você pressiona esse botão, os registros nele citam as transmissões que foram reproduzidas e nada é enviado sem que você pressione Enviar no seu próprio programa de e-mail. A programação de TV baixada e as suas associações de canais também ficam guardadas ali; Remover programação em Ferramentas apaga as duas.
+O STREAMS Player guarda em [[appdata]] o estado do catálogo, os canais que você adicionou e importou, os canais fixados, as coleções, os canais ocultos, o histórico de audição, as marcas de reprodução, os quadros de pré-visualização em cache dentro de um limite de 150 MB, as bibliotecas opcionais do FFmpeg, se você as baixou, e os registros de diagnóstico das últimas dez execuções. As gravações e os quadros salvos vão para as pastas que você escolher para eles ou, por padrão, para Recordings em Vídeos, Recordings em Músicas e Frames em Imagens. Esses dados ficam no seu dispositivo, a menos que você os copie ou faça backup deles - ou a menos que use Enviar os registros ao autor em Ferramentas, que empacota esses registros de diagnóstico junto com a versão do aplicativo, a versão do Windows e as configurações em um arquivo compactado e abre o seu programa de e-mail para que você o anexe e envie para [[email]]. Esse arquivo compactado só é preparado quando você pressiona esse botão, os registros nele citam as transmissões que foram reproduzidas e nada é enviado sem que você pressione Enviar no seu próprio programa de e-mail. A programação de TV baixada e as suas associações de canais também ficam guardadas ali; Remover programação em Ferramentas apaga as duas.
 
 @@privacy-contact-title
 Contato

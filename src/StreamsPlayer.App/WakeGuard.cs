@@ -15,8 +15,12 @@ namespace StreamsPlayer.App;
 /// persisted preference and gates whether counted requests translate into an actual OS call, so
 /// toggling the option releases or re-acquires an active lock immediately.
 ///
-/// All members must be called on the WPF UI thread: <c>SetThreadExecutionState</c> is thread-affine
-/// and every caller (playback start/stop, settings, exit) runs on that single thread.
+/// All members must be called on the WPF UI thread: <c>SetThreadExecutionState</c> is thread-affine,
+/// and playback start/stop, settings and an orderly exit all run there. The one exception is the fatal
+/// fault path (<c>App.Terminate</c>), which calls <see cref="Reset"/> from whichever thread faulted: from
+/// a worker thread that call cannot clear the UI thread's request and touches the counters off-thread.
+/// It is harmless only because the process ends right after - Windows drops a thread's power request
+/// when the process exits - so it is a best effort there, not a guarantee.
 /// </summary>
 internal static class WakeGuard
 {
@@ -68,7 +72,7 @@ internal static class WakeGuard
         return new Handle(keepDisplayOn);
     }
 
-    /// <summary>Final safety net on app exit: clears any residual wake request outright.</summary>
+    /// <summary>Clears any residual wake request outright on exit; effective only on the UI thread (see the class remarks).</summary>
     public static void Reset()
     {
         _systemHolds = 0;

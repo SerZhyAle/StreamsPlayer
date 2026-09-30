@@ -179,4 +179,63 @@ public sealed class BrowsingSessionStoreTests
             Cleanup(directory);
         }
     }
+
+    // SP-0175: a session file that could not be read is never written over - the scroll saves that run
+    // several times a minute used to replace it with the fresh session, costless only until the folder
+    // lock cleared and the user's filters were gone. The store now refuses the save, the file stays
+    // byte-identical, and the load still answers a usable fresh session.
+    [Fact]
+    public async Task Load_WithALockedFile_ReturnsFreshRefusesSavesAndKeepsTheFile()
+    {
+        var directory = NewDirectory();
+        try
+        {
+            var store = new BrowsingSessionStore(directory);
+            Directory.CreateDirectory(directory);
+            await File.WriteAllTextAsync(store.SessionPath, """{"searchQuery":"kept"}""");
+
+            BrowsingSession loaded;
+            using (File.Open(store.SessionPath, FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                loaded = await store.LoadAsync(PopulatedState());
+                await Assert.ThrowsAsync<IOException>(
+                    () => store.SaveAsync(new BrowsingSession { SearchQuery = "refused" }));
+            }
+
+            Assert.Equal(new BrowsingSession(), loaded);
+            Assert.Equal("""{"searchQuery":"kept"}""", await File.ReadAllTextAsync(store.SessionPath));
+        }
+        finally
+        {
+            Cleanup(directory);
+        }
+    }
+
+    // SP-0175 / SP-0116 A-18: the migration save used to sit outside the load's guard, so a locked
+    // state folder failed the whole start as a catalog load failure. It now defers to the next launch -
+    // the session file is still absent, so the migration simply runs again - and the migrated session
+    // is returned regardless.
+    [Fact]
+    public async Task Load_WhenTheMigrationSaveFails_StillReturnsTheMigratedSessionAndReports()
+    {
+        // A file where the data directory should be: every attempt to create the directory or write
+        // the session file fails with IOException, which is exactly a locked state folder.
+        var directory = NewDirectory();
+        await File.WriteAllTextAsync(directory, "occupied");
+        try
+        {
+            var store = new BrowsingSessionStore(directory);
+            Exception? reported = null;
+
+            var migrated = await store.LoadAsync(PopulatedState(), onMigrationSaveFailure: e => reported = e);
+
+            Assert.Equal("jazz", migrated.SearchQuery);
+            Assert.Equal("Country", migrated.SortMode);
+            Assert.IsType<IOException>(reported);
+        }
+        finally
+        {
+            Cleanup(directory);
+        }
+    }
 }

@@ -28,7 +28,8 @@ public partial class MainWindow
 
     // Bounded audio recovery (DEVELOPER_PROMPT.md Part D). Classifies the failure, then reconnects after a cancellable
     // backoff (showing a Reconnecting label) or, once the budget is spent or a hard failure is hit, shows the
-    // terminal dialog. There is no position stall-watchdog for audio: MediaElement exposes no live telemetry.
+    // terminal dialog. There is no position stall-watchdog for audio - it was ruled out while radio ran on
+    // MediaElement, which exposed no live telemetry, and the LibVLC engine (SP-0104) has not been given one.
     private async Task RecoverAudioAsync(
         StreamChannel channel,
         string reason,
@@ -85,12 +86,35 @@ public partial class MainWindow
         // signal, and probing it would spend a request to learn nothing. Same rule the video path applies.
         // SP-0096 is the second such case: the source has just had the full open budget to answer, so
         // asking it again buys nothing but more of the wait that budget exists to end.
-        int? status = hasFirstResponseStatus
-            ? firstResponseStatusCode
-            : endReached || openTimedOut ? null : await PlaybackStatusProbe.TryGetStatusAsync(channel.Url, cts.Token);
+        // SP-0041: the same fresh-open condition selects the connectivity gate, in the same order as the
+        // video path - an already-playing stream (end, open verdict, a status already in hand) is not gated.
+        var reachability = PlaybackReachability.NotProbed;
+        int? status = hasFirstResponseStatus ? firstResponseStatusCode : null;
+        if (!hasFirstResponseStatus && !endReached && !openTimedOut)
+        {
+            reachability = await StreamReachabilityProbe.ProbeAsync(channel.Url, cts.Token);
+            if (cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
+            {
+                return; // stopped or switched while probing - no dialog, no restart
+            }
+
+            _log.Event("AUDIO REACH", $"verdict={reachability}", $"url={channel.Url}");
+            // A host that refused the connection cannot answer a status request either.
+            status = PlaybackReachabilityRules.SpendsRecoveryBudget(reachability)
+                ? await PlaybackStatusProbe.TryGetStatusAsync(channel.Url, cts.Token)
+                : null;
+        }
+
         if (cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
         {
             return; // stopped or switched while probing - do not relabel or restart
+        }
+
+        if (!PlaybackReachabilityRules.SpendsRecoveryBudget(reachability))
+        {
+            // Decisions 3 and 4: the policy is never consulted, so no attempt is spent.
+            await FailAudioTerminallyAsync(channel, reason, fastMediaSorterFailure, reachability);
+            return;
         }
 
         var decision = policy.Decide(new PlaybackFailureSignal(reason, EndReached: endReached, HttpStatusCode: status, OpenTimedOut: openTimedOut));

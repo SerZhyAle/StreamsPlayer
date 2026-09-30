@@ -160,7 +160,7 @@ Live-Video und RTSP öffnen sich in einem eigenen Playerfenster, das den laufend
 Live-Puffer von etwa 15 Sekunden, und das Video pendelt sich auf der Qualität ein, die Ihre Verbindung trägt, und startet beim nächsten Mal gleich dort.
 
 @@cap-play-5
-Nehmen Sie das laufende Live-Video oder Radio direkt in eine Datei in Ihrem Ordner für gespeicherte Dateien auf, ohne die Wiedergabe zu unterbrechen.
+Nehmen Sie das laufende Live-Video oder Radio direkt in eine Datei auf, ohne die Wiedergabe zu unterbrechen: Video landet im Ordner Recordings unter Videos, Radio im Ordner Recordings unter Musik oder in Ordnern Ihrer Wahl.
 
 @@cap-play-6
 Hören Sie eine Live-Audioübertragung von einem Telefon oder einer Uhr mit FastMediaSorter, direkt über Ihr lokales Netzwerk - ohne Server dazwischen.
@@ -313,7 +313,7 @@ Die Anwendung verbindet sich nur auf Ihre Aktion hin und nur mit dem Ziel, das d
 Lokale Daten
 
 @@privacy-local
-STREAMS Player speichert seinen Katalogzustand, Ihre hinzugefügten und importierten Kanäle, Anheftungen, Sammlungen, ausgeblendete Kanäle, Ihren Hörverlauf, Wiedergabemarken, zwischengespeicherte Vorschaubilder im Rahmen von 150 MB, die optionalen FFmpeg-Bibliotheken, falls Sie sie heruntergeladen haben, und die Diagnoseprotokolle der letzten zehn Starts unter [[appdata]]. Aufnahmen und gespeicherte Bilder landen in dem von Ihnen gewählten Ordner für gespeicherte Dateien (standardmäßig Downloads). Diese Daten bleiben auf Ihrem Gerät, solange Sie sie nicht selbst kopieren oder sichern - oder solange Sie nicht „Protokolle an den Autor senden“ unter „Werkzeuge“ verwenden, wodurch diese Diagnoseprotokolle samt Ihrer App-Version, Ihrer Windows-Version und Ihren Einstellungen in ein Archiv gepackt werden und Ihr E-Mail-Programm geöffnet wird, damit Sie es anhängen und an [[email]] senden können. Dieses Archiv wird nur erstellt, wenn Sie diese Schaltfläche drücken, die Protokolle darin nennen die Streams, die abgespielt wurden, und es wird nie etwas gesendet, ohne dass Sie in Ihrem eigenen E-Mail-Programm auf Senden drücken. Dort liegen auch ein geladenes TV-Programm und Ihre Senderzuordnungen dafür; „Programm entfernen“ unter „Werkzeuge“ löscht beides.
+STREAMS Player speichert seinen Katalogzustand, Ihre hinzugefügten und importierten Kanäle, Anheftungen, Sammlungen, ausgeblendete Kanäle, Ihren Hörverlauf, Wiedergabemarken, zwischengespeicherte Vorschaubilder im Rahmen von 150 MB, die optionalen FFmpeg-Bibliotheken, falls Sie sie heruntergeladen haben, und die Diagnoseprotokolle der letzten zehn Starts unter [[appdata]]. Aufnahmen und gespeicherte Bilder landen in den Ordnern, die Sie dafür wählen, standardmäßig in Recordings unter Videos, Recordings unter Musik und Frames unter Bilder. Diese Daten bleiben auf Ihrem Gerät, solange Sie sie nicht selbst kopieren oder sichern - oder solange Sie nicht „Protokolle an den Autor senden“ unter „Werkzeuge“ verwenden, wodurch diese Diagnoseprotokolle samt Ihrer App-Version, Ihrer Windows-Version und Ihren Einstellungen in ein Archiv gepackt werden und Ihr E-Mail-Programm geöffnet wird, damit Sie es anhängen und an [[email]] senden können. Dieses Archiv wird nur erstellt, wenn Sie diese Schaltfläche drücken, die Protokolle darin nennen die Streams, die abgespielt wurden, und es wird nie etwas gesendet, ohne dass Sie in Ihrem eigenen E-Mail-Programm auf Senden drücken. Dort liegen auch ein geladenes TV-Programm und Ihre Senderzuordnungen dafür; „Programm entfernen“ unter „Werkzeuge“ löscht beides.
 
 @@privacy-contact-title
 Kontakt

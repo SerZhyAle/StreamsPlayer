@@ -268,6 +268,7 @@
     <sys:String x:Key="FailureDialogMessage">无法播放“{0}”。</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">无法播放“{0}”：其地址不是 http、https 或 rtsp 流。</sys:String>
     <sys:String x:Key="FailureRegionRestricted">目录将此频道标记为限定地区：它没有从维护者所在的国家作出响应。如果您位于它播出的地区，可能可以使用。</sys:String>
+    <sys:String x:Key="FailureNoNetwork">没有网络连接，因此从未连接到此频道。频道本身可能正常 - 请检查网络连接后重试。</sys:String>
     <sys:String x:Key="FailureRetry">重试</sys:String>
     <sys:String x:Key="FailureHide">隐藏</sys:String>
     <sys:String x:Key="FailureDelete">删除</sys:String>
@@ -316,6 +317,7 @@
     <sys:String x:Key="SaveFrame">保存画面</sys:String>
     <sys:String x:Key="SaveFrameTip">将当前画面保存为图片文件，并作为此频道的图标</sys:String>
     <sys:String x:Key="FrameSaved">画面已保存：{0}</sys:String>
+    <sys:String x:Key="FrameSavedElsewhere">无法写入 {0} - 画面已保存到 {1}</sys:String>
     <sys:String x:Key="FrameSaveFailed">无法保存画面</sys:String>
     <sys:String x:Key="Record">录制</sys:String>
     <sys:String x:Key="RecordTip">录制直播 (R)</sys:String>
@@ -333,15 +335,21 @@
     <sys:String x:Key="RecordEndedConnectionLost">录制已结束 - 电台断开了连接。已保存：{0}（{1}）</sys:String>
     <sys:String x:Key="RecordUnsupportedFormat">无法录制此电台的流格式</sys:String>
     <sys:String x:Key="RecordWriteFailed">录制已停止 - 无法写入 {0}</sys:String>
+    <sys:String x:Key="RecordFellBack">无法写入 {0} - 正在录制到 {1}</sys:String>
+    <sys:String x:Key="RecordSavedElsewhere">无法写入 {0} - 录制文件已保存到 {1}</sys:String>
     <sys:String x:Key="RecordUnavailableEngine">此版本的视频引擎不支持录制</sys:String>
     <sys:String x:Key="RecordUnavailableFastMediaSorter">FastMediaSorter 广播只允许一个连接，且已被播放占用 - 无法录制</sys:String>
     <sys:String x:Key="RecordingsRecovered">已将上次会话中 {0} 个未保存的录制移动到 {1}</sys:String>
     <sys:String x:Key="RecordingsRecoveryFailed">上次会话中 {0} 个未保存的录制无法移动 - 它们位于 {1}</sys:String>
-    <sys:String x:Key="FrameFolderLabel">已保存文件文件夹</sys:String>
-    <sys:String x:Key="FrameFolderHint">STREAMS Player 在这里保存画面和日志压缩包。留空则使用“下载”文件夹。</sys:String>
+    <sys:String x:Key="FrameFolderLabel">画面文件夹</sys:String>
+    <sys:String x:Key="FrameFolderHint">保存的画面和日志压缩包存放在这里。留空则使用“图片”中的“Frames”文件夹；此时日志压缩包存放到“下载”。</sys:String>
     <sys:String x:Key="FrameFolderBrowse">选择文件夹..</sys:String>
-    <sys:String x:Key="FrameFolderReset">使用“下载”</sys:String>
+    <sys:String x:Key="FrameFolderReset">使用默认文件夹</sys:String>
     <sys:String x:Key="FrameFolderOpen">打开文件夹</sys:String>
+    <sys:String x:Key="VideoRecordingFolderLabel">视频录制文件夹</sys:String>
+    <sys:String x:Key="VideoRecordingFolderHint">视频流的录制文件存放在这里。留空则使用“视频”中的“Recordings”文件夹。</sys:String>
+    <sys:String x:Key="AudioRecordingFolderLabel">电台录制文件夹</sys:String>
+    <sys:String x:Key="AudioRecordingFolderHint">电台的录制文件存放在这里。留空则使用“音乐”中的“Recordings”文件夹。</sys:String>
     <sys:String x:Key="VolumeTip">视频音量</sys:String>
     <sys:String x:Key="VolumeName">视频音量</sys:String>
     <sys:String x:Key="AudioVolumeTip">音频音量</sys:String>
@@ -393,6 +401,7 @@
     <sys:String x:Key="VideoComponentsProgressUnknown">正在下载组件.. {0} MB</sys:String>
     <sys:String x:Key="VideoComponentsInstallDone">组件已安装到 {0}。下次打开播放器时即可使用 FlyleafLib。</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">无法下载组件。未安装任何内容。{0}</sys:String>
+    <sys:String x:Key="VideoComponentsRollbackFailed">无法替换组件，也无法完全恢复之前的版本。在重新安装之前无法使用这些组件。之前的文件已保存在：{0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">要移除 FlyleafLib 组件吗？在再次下载之前 FlyleafLib 将停止工作；VLC 不受影响。</sys:String>
     <sys:String x:Key="VideoComponentsRemoveFailed">无法移除组件。请关闭已打开的播放器窗口后重试。</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib 尚未就绪</sys:String>
@@ -434,6 +443,7 @@
     <sys:String x:Key="CreateDesktopShortcut">创建桌面快捷方式</sys:String>
     <sys:String x:Key="LaunchCommandCopied">启动命令已复制到剪贴板。</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows 无法复制启动命令。</sys:String>
+    <sys:String x:Key="LaunchIdOnlyNotice">已省略地址。只有当频道仍在此媒体库中时，此快捷方式或命令才能使用。</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">复制分享文本</sys:String>
     <sys:String x:Key="MenuCopyLaunchCommand">复制启动命令</sys:String>
@@ -595,6 +605,7 @@
     <sys:String x:Key="FmsBroadcastUnsupportedMode">尚不支持此直播模式。您的列表未更改。</sys:String>
     <sys:String x:Key="FmsBroadcastInvalid">这不是有效的 FastMediaSorter 直播描述。您的列表未更改。</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">此直播描述大于 64 KiB。您的列表未更改。</sys:String>
+    <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer 正在执行另一项操作。请在操作完成后再次导入此直播。您的列表未更改。</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} 的收听人数已达上限。请在其他收听者断开后重试。</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} 已停止直播，或在此网络中无法访问。</sys:String>
     <!-- SP-0098 portable stream catalog import -->

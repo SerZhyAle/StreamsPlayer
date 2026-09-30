@@ -312,7 +312,9 @@ function Save-Generated {
         throw "Refusing to write outside the generated area: docs/$relative"
     }
 
-    $existing = if (Test-Path -LiteralPath $Path) { [System.IO.File]::ReadAllText($Path) } else { $null }
+    # Line endings are normalized before comparing: .gitattributes checks docs/*.html out as CRLF on every
+    # platform (CI included), the generator writes LF, and git stores LF either way - so only content counts.
+    $existing = if (Test-Path -LiteralPath $Path) { [System.IO.File]::ReadAllText($Path).Replace("`r`n", "`n") } else { $null }
     if ($existing -eq $Content) { return }
 
     if ($Check) {

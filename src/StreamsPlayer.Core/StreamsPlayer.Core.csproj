@@ -15,9 +15,10 @@
   </ItemGroup>
 
   <!-- SP-0052: the bundled catalog snapshot. An embedded resource rather than a file beside the
-       executable, because it has to survive the self-contained single-file publish as well as the
-       release archive, the winget portable package and the Store MSIX. The explicit LogicalName keeps
-       the lookup key independent of this folder. -->
+       executable, so it travels inside the assembly through every shape the app ships in - the portable
+       release archive, the per-user installer (which winget also installs) and the Store MSIX - and no
+       packaging step can drop it on its own. The explicit LogicalName keeps the lookup key independent
+       of this folder. -->
   <PropertyGroup>
     <BundledCatalogSnapshotPath>$(MSBuildProjectDirectory)\Resources\catalog-snapshot.zip</BundledCatalogSnapshotPath>
   </PropertyGroup>

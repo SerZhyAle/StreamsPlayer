@@ -4,7 +4,7 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.App;
 
 // SP-0020: origin-aware removal of a stream from the failure dialog and hidden-row exclusion from views.
-// Catalog rows are hidden (durable across explicit refresh); user-owned rows are deleted.
+// Bank rows are hidden (durable across explicit refresh and import); user-owned rows are deleted.
 public partial class MainWindow
 {
     /// <summary>Normalized identities of the currently hidden catalog channels; empty when nothing is hidden.</summary>
@@ -16,21 +16,25 @@ public partial class MainWindow
     private static bool IsHiddenBySet(HashSet<string> hiddenIdentities, StreamChannel channel) =>
         ChannelOwnership.IsHidden(hiddenIdentities, channel);
 
-    /// <summary>User-confirmed removal. Catalog rows are hidden; Manual/Imported rows are deleted.</summary>
+    /// <summary>
+    /// User-confirmed removal. Bank rows - published or imported (SP-0126, SP-0177) - are hidden, so the next
+    /// refresh or import cannot bring them back without their pin and collections; Manual/Imported rows are
+    /// deleted.
+    /// </summary>
     private Task RemoveChannelAsync(StreamChannel channel) =>
-        channel.SourceOrigin == SourceOrigin.Catalog
+        ChannelOwnership.IsBankSourced(channel.SourceOrigin)
             ? HideCatalogChannelAsync(channel)
             : DeleteUserChannelAsync(channel);
 
     private async Task HideCatalogChannelAsync(StreamChannel channel)
     {
-        if (channel.SourceOrigin != SourceOrigin.Catalog ||
+        if (!ChannelOwnership.IsBankSourced(channel.SourceOrigin) ||
             CatalogUrlIdentity.IsHidden(_state.HiddenCatalogUrls, channel.Url))
         {
             return;
         }
 
-        _state = await PersistAsync(state => state with { HiddenCatalogUrls = [.. state.HiddenCatalogUrls, channel.Url] });
+        await PersistAsync(state => state with { HiddenCatalogUrls = [.. state.HiddenCatalogUrls, channel.Url] });
         ForgetRow(channel.Id);
         _log.Event("CHANNEL HIDE", $"url={channel.Url}");
         PopulateFacets();
@@ -40,14 +44,14 @@ public partial class MainWindow
 
     private async Task DeleteUserChannelAsync(StreamChannel channel)
     {
-        if (channel.SourceOrigin is not (SourceOrigin.Manual or SourceOrigin.Imported or SourceOrigin.LocalCatalog))
+        if (channel.SourceOrigin is not (SourceOrigin.Manual or SourceOrigin.Imported))
         {
             return;
         }
 
         // Rebuild the list without this row, matching strictly by Id so a colliding-URL row is never touched.
         // SP-0017: the same save drops its collection memberships; the collections themselves stay.
-        _state = await PersistAsync(state => state with
+        await PersistAsync(state => state with
         {
             Channels = state.Channels.Where(item => item.Id != channel.Id).ToList(),
             Collections = [.. ChannelCollections.RemoveChannelEverywhere(state.Collections, channel.Id)]
@@ -83,7 +87,7 @@ public partial class MainWindow
     /// <summary>Restore a hidden catalog channel. Only the hidden set changes; the channel record is untouched.</summary>
     private async Task UnhideAsync(string url)
     {
-        _state = await PersistAsync(state => state with
+        await PersistAsync(state => state with
         {
             HiddenCatalogUrls = state.HiddenCatalogUrls.Where(hidden => !CatalogUrlIdentity.SameIdentity(hidden, url)).ToList()
         });

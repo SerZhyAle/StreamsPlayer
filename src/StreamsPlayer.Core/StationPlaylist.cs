@@ -27,6 +27,10 @@ public static class StationPlaylist
     /// <summary>
     /// The first playable address in a PLS (<c>File1=</c>) or M3U body, resolved against the playlist's own
     /// address when relative. Null when the body names nothing an http(s) client can open.
+    /// <para>SP-0164: an M3U address line is taken whole - a query string makes it hold <c>=</c>, and a PLS
+    /// reader that split it lost the stream and ended the recording as "playlist unresolved". A candidate is
+    /// refused when it carries characters a URL cannot carry raw (an HTML error page served at a
+    /// <c>.m3u</c> address is text, not a list of relative hops).</para>
     /// </summary>
     public static Uri? FirstStream(string body, Uri playlistAddress)
     {
@@ -38,32 +42,42 @@ public static class StationPlaylist
                 continue;
             }
 
-            string candidate;
-            var equals = line.IndexOf('=');
-            if (equals > 0)
-            {
-                // PLS: only FileN= entries are addresses; TitleN=, LengthN=, NumberOfEntries= are not.
-                var key = line[..equals].Trim();
-                if (!key.StartsWith("File", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                candidate = line[(equals + 1)..].Trim();
-            }
-            else
+            string? candidate;
+            if (line.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                || line.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
                 candidate = line;
             }
-
-            if (Resolve(candidate, playlistAddress) is { } stream)
+            else
             {
-                return stream;
+                // PLS: only FileN= entries are addresses; TitleN=, LengthN=, NumberOfEntries= are not - and a
+                // line holding '=' is never a relative M3U line, so it yields nothing at all.
+                var equals = line.IndexOf('=');
+                candidate = equals < 0 ? line : ParsePlsValue(line, equals);
             }
+
+            if (candidate is null || !PlausibleAddress(candidate)
+                || Resolve(candidate, playlistAddress) is not { } stream)
+            {
+                continue;
+            }
+
+            return stream;
         }
 
         return null;
     }
+
+    /// <summary>The value of a PLS <c>FileN=</c> line, or null when the line is not one.</summary>
+    private static string? ParsePlsValue(string line, int equals)
+    {
+        var key = line[..equals].Trim();
+        return key.StartsWith("File", StringComparison.OrdinalIgnoreCase) ? line[(equals + 1)..].Trim() : null;
+    }
+
+    /// <summary>False for text an HTML body puts on its lines - never a stream address.</summary>
+    private static bool PlausibleAddress(string candidate) =>
+        candidate.AsSpan().IndexOfAny([' ', '"', '<', '>']) < 0;
 
     private static string? FirstAddressLine(string text)
     {

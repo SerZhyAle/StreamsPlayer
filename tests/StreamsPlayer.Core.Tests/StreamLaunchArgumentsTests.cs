@@ -18,11 +18,32 @@ public sealed class StreamLaunchArgumentsTests
         var channel = Channel(Address);
 
         Assert.Equal($"--id \"{channel.Id:D}\" --url \"{Address}\"", StreamLaunchArguments.For(channel));
+        Assert.True(StreamLaunchArguments.CarriesAddress(channel));
+    }
+
+    [Theory]
+    [InlineData("rtsp://user:pass@camera.example/x")]
+    [InlineData("https://host.example/x?token=abc")]
+    [InlineData("http://panel.example/live/user/pass/123.ts")]
+    [InlineData("https://host.example/x?a=1&amp;token=abc")]
+    public void For_LeavesCredentialAddressesOutAndStillResolvesById(string url)
+    {
+        var channel = Channel(url);
+
+        var arguments = StreamLaunchArguments.For(channel);
+        var request = StreamLaunchRequest.Parse(SplitCommandLine(arguments));
+
+        Assert.Equal($"--id \"{channel.Id:D}\"", arguments);
+        Assert.False(StreamLaunchArguments.CarriesAddress(channel));
+        Assert.Equal(StreamLaunchTargetKind.ChannelId, request.Kind);
+        Assert.Null(request.Url);
+        Assert.Same(channel, StreamLaunchArguments.Resolve([channel], request));
     }
 
     [Theory]
     [InlineData("https://example.test/a b.mp3")]
     [InlineData("https://example.test/a\"b.mp3")]
+    [InlineData("https://example.test/a'b.mp3?token=abc")]
     [InlineData("https://example.test/dir\\")]
     [InlineData("file:///c:/music.mp3")]
     public void For_LeavesOutAnAddressTheCommandLineCannotCarry(string url)

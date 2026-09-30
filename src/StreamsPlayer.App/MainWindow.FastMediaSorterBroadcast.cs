@@ -49,6 +49,11 @@ public partial class MainWindow
     {
         if (_busy)
         {
+            // SP-0158: the window still accepts the offer while another operation owns it - saying
+            // nothing here is the drop that silently does nothing.
+            _log.Event("REFUSE", "op=fms_import", "reason=busy");
+            MessageBox.Show(owner, LocalizationService.Get("FmsBroadcastBusy"),
+                LocalizationService.Get("FmsBroadcastTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
@@ -78,7 +83,7 @@ public partial class MainWindow
         }
 
         FastMediaSorterBroadcastApplyResult? applied = null;
-        _state = await PersistAsync(state =>
+        await PersistAsync(state =>
         {
             applied = FastMediaSorterBroadcastImport.Apply(state.Channels, read.Broadcast, DateTimeOffset.UtcNow);
             return state with { Channels = [.. applied.Channels] };
@@ -98,7 +103,9 @@ public partial class MainWindow
 
     private void MainWindow_PreviewDragOver(object sender, DragEventArgs e)
     {
-        e.Effects = TryGetBroadcastFile(e, out _) ? DragDropEffects.Copy : DragDropEffects.None;
+        // SP-0158: while busy the import is refused, so advertising Copy here would promise a copy the
+        // window will not perform.
+        e.Effects = !_busy && TryGetBroadcastFile(e, out _) ? DragDropEffects.Copy : DragDropEffects.None;
         e.Handled = true;
     }
 

@@ -17,11 +17,18 @@ public static class CatalogMerger
     {
         options ??= CatalogMergeOptions.CatalogRefresh;
         var existing = existingChannels.ToList();
-        var byNormalizedUrl = new Dictionary<string, StreamChannel>(StringComparer.Ordinal);
+        // SP-0177: every row per identity, not the first. A user twin that sorted first used to hide its
+        // catalog twin from every later merge - never updated, never revived, its icon index gone stale.
+        var byNormalizedUrl = new Dictionary<string, List<StreamChannel>>(StringComparer.Ordinal);
         foreach (var channel in existing)
         {
             var normalized = CatalogUrlIdentity.Normalize(channel.Url);
-            byNormalizedUrl.TryAdd(normalized, channel);
+            if (!byNormalizedUrl.TryGetValue(normalized, out var twins))
+            {
+                byNormalizedUrl[normalized] = twins = [];
+            }
+
+            twins.Add(channel);
         }
 
         var seenCatalogUrls = new HashSet<string>(StringComparer.Ordinal);
@@ -35,48 +42,52 @@ public static class CatalogMerger
             var normalizedUrl = CatalogUrlIdentity.Normalize(entry.Url);
             seenCatalogUrls.Add(normalizedUrl);
 
-            if (byNormalizedUrl.TryGetValue(normalizedUrl, out var current))
+            if (byNormalizedUrl.TryGetValue(normalizedUrl, out var twins))
             {
-                // SP-0098 Decision 5: Explicitly separate update rights by provenance:
-                // - Published catalog (Catalog) can update Catalog and LocalCatalog rows (published metadata wins, Decision 2 & 28).
-                // - Local bank import (LocalCatalog) can update LocalCatalog rows only; it never overwrites Catalog or user rows.
-                // - User-created rows (Manual / Imported) are never updated by either catalog path.
-                if (!CanUpdate(current.SourceOrigin, options.TargetOrigin))
+                foreach (var current in twins)
                 {
-                    continue;
+                    // SP-0098 Decision 5: Explicitly separate update rights by provenance:
+                    // - Published catalog (Catalog) can update Catalog and LocalCatalog rows (published metadata wins, Decision 2 & 28).
+                    // - Local bank import (LocalCatalog) can update LocalCatalog rows only; it never overwrites Catalog or user rows.
+                    // - User-created rows (Manual / Imported) are never updated by either catalog path.
+                    if (!CanUpdate(current.SourceOrigin, options.TargetOrigin) || IsNewerThanEntries(current, options))
+                    {
+                        continue;
+                    }
+
+                    reindexed.Add(current.Id);
+                    var replacement = current with
+                    {
+                        Title = entry.Title,
+                        MediaKind = entry.MediaKind,
+                        SourceOrigin = options.TargetOrigin == SourceOrigin.Catalog ? SourceOrigin.Catalog : current.SourceOrigin,
+                        Category = entry.Category,
+                        Topic = entry.Topic,
+                        Language = entry.Language,
+                        Country = entry.Country,
+                        Homepage = entry.Homepage,
+                        FaviconIndex = entry.FaviconIndex,
+                        // SP-0052 & SP-0098: the index and the atlas it indexes move together or not at all.
+                        FaviconSource = options.FaviconSource,
+                        Protocol = entry.Protocol,
+                        Format = entry.Format,
+                        Bitrate = entry.Bitrate,
+                        IsLive = entry.IsLive,
+                        Access = entry.Access,
+                        // SP-0089: the bank lists this URL again, so the row is on offer again - unless this
+                        // bank cannot speak for the present (SP-0126: the bundled snapshot).
+                        RetiredAt = options.RevivesRetired ? null : current.RetiredAt
+                    };
+
+                    if (replacement != current)
+                    {
+                        output[current.Id] = replacement;
+                        updated++;
+                    }
                 }
 
-                reindexed.Add(current.Id);
-                var replacement = current with
-                {
-                    Title = entry.Title,
-                    MediaKind = entry.MediaKind,
-                    SourceOrigin = options.TargetOrigin == SourceOrigin.Catalog ? SourceOrigin.Catalog : current.SourceOrigin,
-                    Category = entry.Category,
-                    Topic = entry.Topic,
-                    Language = entry.Language,
-                    Country = entry.Country,
-                    Homepage = entry.Homepage,
-                    FaviconIndex = entry.FaviconIndex,
-                    // SP-0052 & SP-0098: the index and the atlas it indexes move together or not at all.
-                    FaviconSource = options.FaviconSource,
-                    Protocol = entry.Protocol,
-                    Format = entry.Format,
-                    Bitrate = entry.Bitrate,
-                    IsLive = entry.IsLive,
-                    Access = entry.Access,
-                    // SP-0089: the bank lists this URL again, so the row is on offer again - unless this
-                    // bank cannot speak for the present (SP-0126: the bundled snapshot).
-                    RetiredAt = options.RevivesRetired ? null : current.RetiredAt
-                };
-
-                if (replacement != current)
-                {
-                    output[current.Id] = replacement;
-                    byNormalizedUrl[normalizedUrl] = replacement;
-                    updated++;
-                }
-
+                // Entries are grouped by identity, so this identity is never visited again; a user twin
+                // still keeps a new catalog duplicate from being added beside it.
                 continue;
             }
 
@@ -103,7 +114,7 @@ public static class CatalogMerger
                 Access = entry.Access
             };
             output[channel.Id] = channel;
-            byNormalizedUrl[normalizedUrl] = channel;
+            byNormalizedUrl[normalizedUrl] = [channel];
             reindexed.Add(channel.Id);
             added++;
         }
@@ -159,6 +170,13 @@ public static class CatalogMerger
             removed,
             channels.Count(channel => channel.RetiredAt is not null));
     }
+
+    // SP-0177: FaviconSource.Catalog is what a live refresh stamps on every row it writes, so it is the row's
+    // own record that its fields came from a download.
+    private static bool IsNewerThanEntries(StreamChannel current, CatalogMergeOptions options) =>
+        options.PreservesLiveDownloadedRows &&
+        current.SourceOrigin == SourceOrigin.Catalog &&
+        current.FaviconSource == FaviconSource.Catalog;
 
     private static bool CanUpdate(SourceOrigin currentOrigin, SourceOrigin incomingOrigin) =>
         incomingOrigin switch

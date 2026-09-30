@@ -117,11 +117,18 @@
                                                   ContentTemplate="{TemplateBinding ContentTemplate}" />
                             </Grid>
                             <ControlTemplate.Triggers>
+                                <!-- Checked fills the box with the accent and draws the mark in the
+                                     on-accent colour: an accent stroke on ControlBrush is invisible in the
+                                     dark theme, where the two are both dark blue. -->
                                 <Trigger Property="IsChecked" Value="True">
                                     <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                                    <Setter TargetName="CheckMark" Property="Stroke" Value="{DynamicResource AccentTextBrush}" />
+                                    <Setter TargetName="CheckBorder" Property="Background" Value="{DynamicResource AccentBrush}" />
+                                    <Setter TargetName="CheckBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
                                     <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                                    <Setter TargetName="CheckBorder" Property="Opacity" Value="0.55" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>

@@ -5,7 +5,7 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// Failure-path-only HTTP status probe. Media backends (LibVLC, WPF <c>MediaElement</c>) hide the HTTP
+/// Failure-path-only HTTP status probe. The media backends (LibVLC, FlyleafLib) hide the HTTP
 /// status of a failed open, so recovery cannot otherwise tell a retryable 429/5xx from a permanent non-429
 /// 4xx (SP-0015 / <c>DEVELOPER_PROMPT.md</c> Part D). This reads that status on demand, http/https only, best-effort:
 /// a null result (non-http(s) URL such as RTSP, or any probe error) is treated as transient by the classifier.

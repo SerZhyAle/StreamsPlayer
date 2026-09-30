@@ -16,6 +16,10 @@ hand-off channels, the audio-endpoint choice), and the transport is
 `src/StreamsPlayer.App/FastMediaSorterPlaybackTransport.cs`, which holds the one-connection-per-listener
 rule.
 
+SP-0158: the reader (`src/StreamsPlayer.Core/FastMediaSorterBroadcast.cs`) bounds what it follows - at
+most eight link/compression unwraps and one 64 KiB inflation budget for the whole read - so a nested
+hand-off is refused as an invalid payload rather than followed without end.
+
 Because the contract is below 1.0 it may change shape. The registry row carries the date this product last
 verified against it; a later reading is not assumed to still hold.
 

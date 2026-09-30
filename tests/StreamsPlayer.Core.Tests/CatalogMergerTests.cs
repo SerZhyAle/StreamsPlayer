@@ -266,6 +266,47 @@ public sealed class CatalogMergerTests
         Assert.Equal("Case Normalized", channel.Title);
     }
 
+    // SP-0177: a user row sorting first used to hide its catalog twin from every later merge.
+    [Fact]
+    public void Merge_UpdatesTheCatalogTwinWhenAUserTwinComesFirst()
+    {
+        var user = Channel("https://Example.test:443/twin", SourceOrigin.Manual) with { Title = "Mine" };
+        var catalog = Channel("https://example.test/twin", SourceOrigin.Catalog) with { RetiredAt = Now };
+
+        var result = CatalogMerger.Merge([user, catalog], [Entry("Bank title", "https://example.test/twin", MediaKind.Audio)], Now);
+
+        Assert.Equal(user, Assert.Single(result.Channels, channel => channel.Id == user.Id));
+        var updated = Assert.Single(result.Channels, channel => channel.Id == catalog.Id);
+        Assert.Equal("Bank title", updated.Title);
+        Assert.Null(updated.RetiredAt);
+        Assert.Equal(1, result.Updated);
+        Assert.Equal(0, result.Added);
+    }
+
+    // SP-0177: a snapshot older than the last download adds what is missing and leaves downloaded rows alone.
+    [Fact]
+    public void Merge_PreservingLiveRowsSkipsDownloadedRowsOnly()
+    {
+        var downloaded = Channel("https://example.test/live", SourceOrigin.Catalog) with { Title = "Newer" };
+        var seeded = Channel("https://example.test/seeded", SourceOrigin.Catalog) with { FaviconSource = FaviconSource.Snapshot };
+        var options = new CatalogMergeOptions(
+            RemoveMissing: false, FaviconSource: FaviconSource.Snapshot, RevivesRetired: false, PreservesLiveDownloadedRows: true);
+
+        var result = CatalogMerger.Merge(
+            [downloaded, seeded],
+            [
+                Entry("Older", "https://example.test/live", MediaKind.Audio),
+                Entry("Seed update", "https://example.test/seeded", MediaKind.Audio),
+                Entry("New", "https://example.test/new", MediaKind.Audio)
+            ],
+            Now,
+            options);
+
+        Assert.Equal(downloaded, Assert.Single(result.Channels, channel => channel.Id == downloaded.Id));
+        Assert.Equal("Seed update", Assert.Single(result.Channels, channel => channel.Id == seeded.Id).Title);
+        Assert.Contains(result.Channels, channel => channel.Title == "New");
+    }
+
     private static StreamChannel Channel(string url, SourceOrigin origin) => new()
     {
         Id = Guid.NewGuid(),

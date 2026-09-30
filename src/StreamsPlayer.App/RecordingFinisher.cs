@@ -1,11 +1,16 @@
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
-/// <summary>SP-0121: where a recording is meant to end up, and what it is called after.</summary>
-internal sealed record RecordingTarget(string Folder, string? ChannelTitle);
+/// <summary>
+/// SP-0121 / SP-0179: where a recording is meant to end up, and what it is called after. <paramref name="Folder"/>
+/// is the first folder of the chain that took a write when the recording started; <paramref name="Fallbacks"/> are
+/// the chain's folders after it, for a segment the folder refuses by the time it is finished (CAPTURE-OUTPUT rule 11).
+/// </summary>
+internal sealed record RecordingTarget(string Folder, string? ChannelTitle, IReadOnlyList<string> Fallbacks);
 
 /// <summary>
 /// SP-0121: one stretch of a recording the engine has stopped writing - ended by the user, by a playback re-open,
@@ -49,7 +54,8 @@ internal enum SegmentFate
     Empty
 }
 
-internal sealed record SegmentResult(SegmentFate Fate, string? Path, TimeSpan Length, string? Error = null);
+/// <summary>What became of one segment. <see cref="Skipped"/> is the folder that refused it when it was saved to a fallback.</summary>
+internal sealed record SegmentResult(SegmentFate Fate, string? Path, TimeSpan Length, string? Error = null, string? Skipped = null);
 
 /// <summary>
 /// SP-0121: finishes a segment - waits, bounded, for the engine to release its file and then moves it into the
@@ -64,6 +70,16 @@ internal static class RecordingFinisher
 
     /// <summary>How long a file that the engine already closed gets to appear - enough for a directory listing to catch up.</summary>
     internal static readonly TimeSpan ClosedAppearTimeout = TimeSpan.FromSeconds(2);
+
+    /// <summary>How old a leftover <see cref="PartialSuffix"/> file must be before the hand-over deletes it: a younger one may belong to this process's startup launch.</summary>
+    internal static readonly TimeSpan StalePartialAge = TimeSpan.FromHours(1);
+
+    /// <summary>
+    /// The name a finished recording wears while its bytes are being copied into the recordings folder
+    /// (SP-0164). The copy ends in a rename inside the same volume, so a process killed mid-move leaves the
+    /// part under this suffix with the staged original intact - never a truncated file under the final name.
+    /// </summary>
+    internal const string PartialSuffix = ".recpartial";
 
     private static readonly TimeSpan Poll = TimeSpan.FromMilliseconds(150);
     private const int MaxMoveAttempts = 5;
@@ -115,15 +131,15 @@ internal static class RecordingFinisher
                 return new SegmentResult(SegmentFate.Saved, file, segment.Length);
             }
 
-            Directory.CreateDirectory(segment.Target.Folder);
-            var name = RecordedBroadcastName.For(segment.Target.ChannelTitle, segment.StartedAt, Path.GetExtension(file));
+            // Each segment is named for its own start, in the container the engine actually wrote (CAPTURE-OUTPUT rule 3).
+            var name = CaptureFileName.For(CaptureKind.StreamVideo, segment.StartedAt, segment.Target.ChannelTitle, Path.GetExtension(file));
             var moveClock = Stopwatch.StartNew();
-            var destination = MoveIntoFolder(file, segment.Target.Folder, name);
-            log.Event("RECORD FINISH", $"engine={segment.Engine}", "fate=saved", $"path={destination}",
+            var (destination, skipped) = MoveIntoFirst(file, [segment.Target.Folder, .. segment.Target.Fallbacks], name);
+            log.Event("RECORD FINISH", $"engine={segment.Engine}", "fate=saved", $"path={destination}", $"skipped={skipped ?? "none"}",
                 $"wait_ms={clock.ElapsedMilliseconds - moveClock.ElapsedMilliseconds}", $"move_ms={moveClock.ElapsedMilliseconds}");
-            return new SegmentResult(SegmentFate.Saved, destination, segment.Length);
+            return new SegmentResult(SegmentFate.Saved, destination, segment.Length, Skipped: skipped);
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        catch (Exception exception) when (CaptureFolders.IsFolderRefusal(exception))
         {
             log.Event("RECORD FINISH", $"engine={segment.Engine}", "fate=stranded", $"path={file}", $"err={exception.Message}");
             return new SegmentResult(SegmentFate.Stranded, file, segment.Length, exception.GetType().Name);
@@ -131,22 +147,107 @@ internal static class RecordingFinisher
     }
 
     /// <summary>
-    /// Moves a file into a folder under a name that is free there, retrying when another move takes the same name
-    /// between the check and the move. Returns the destination.
+    /// SP-0179: moves a file into the first of <paramref name="folders"/> that takes it (CAPTURE-OUTPUT rule 11),
+    /// returning the destination and, when that is not the first folder, the first folder - the one the user is
+    /// told was refused. When every folder refuses, the last refusal is thrown and the file stays where it was.
     /// </summary>
-    internal static string MoveIntoFolder(string file, string folder, string fileName)
+    internal static (string Destination, string? Skipped) MoveIntoFirst(string file, IReadOnlyList<string> folders, string fileName)
+    {
+        ExceptionDispatchInfo? last = null;
+        for (var index = 0; index < folders.Count; index++)
+        {
+            try
+            {
+                Directory.CreateDirectory(folders[index]);
+                return (MoveIntoFolder(file, folders[index], fileName), index == 0 ? null : folders[0]);
+            }
+            catch (Exception exception) when (CaptureFolders.IsFolderRefusal(exception) && File.Exists(file))
+            {
+                last = ExceptionDispatchInfo.Capture(exception);
+            }
+        }
+
+        last?.Throw();
+        throw new IOException($"No folder to move '{file}' into.");
+    }
+
+    /// <summary>
+    /// Moves a file into a folder under a name that is free there, retrying when another move takes the same name
+    /// between the check and the move. Copies into a <see cref="PartialSuffix"/> name and renames, so the
+    /// destination only ever appears whole - a process killed mid-copy leaves the partial beside where the
+    /// recording was headed, and the source where it was (SP-0164). Returns the destination.
+    /// </summary>
+    private static string MoveIntoFolder(string file, string folder, string fileName)
     {
         for (var attempt = 1; ; attempt++)
         {
-            var destination = RecordedBroadcastWriter.ReserveUniquePath(folder, fileName);
+            var destination = CaptureFolders.ReserveUniquePath(folder, fileName);
+            var partial = destination + PartialSuffix;
             try
             {
-                File.Move(file, destination, overwrite: false);
-                return destination;
+                File.Copy(file, partial, overwrite: true);
+                File.Move(partial, destination, overwrite: false);
             }
             catch (IOException) when (attempt < MaxMoveAttempts && File.Exists(destination) && File.Exists(file))
             {
-                // Lost the name to a concurrent move; reserve the next one.
+                // Lost the name to a concurrent move; reserve the next one. The partial is reused by the retry.
+                continue;
+            }
+
+            // The move is done; the source goes. Best-effort: a failure here leaves the original behind for
+            // the next hand-over to file again - a duplicate, never a truncation.
+            try
+            {
+                File.Delete(file);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+            }
+
+            return destination;
+        }
+    }
+
+    /// <summary>
+    /// Deletes the <see cref="PartialSuffix"/> files a killed session left in the recordings folders - the
+    /// partial copy that never became the recording, whose staged original the hand-over has filed away.
+    /// A younger file may belong to this process's startup launch and is left alone.
+    /// </summary>
+    internal static void RemoveStalePartials(IReadOnlyList<string> folders, CurrentLog log, DateTimeOffset now)
+    {
+        foreach (var folder in folders)
+        {
+            string[] partials;
+            try
+            {
+                if (!Directory.Exists(folder))
+                {
+                    continue;
+                }
+
+                partials = Directory.GetFiles(folder, $"*{PartialSuffix}");
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                continue;
+            }
+
+            foreach (var partial in partials)
+            {
+                try
+                {
+                    if (now - new FileInfo(partial).LastWriteTimeUtc < StalePartialAge)
+                    {
+                        continue;
+                    }
+
+                    File.Delete(partial);
+                    log.Event("RECORD RECOVERED", $"removed_partial={partial}");
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                {
+                    // Left for the next launch's sweep.
+                }
             }
         }
     }

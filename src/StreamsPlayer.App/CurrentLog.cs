@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Text;
 using StreamsPlayer.Core;
@@ -25,15 +26,21 @@ internal sealed class CurrentLog : IDisposable
     /// <summary>Recent bytes (the tail leading up to the failure) retained across compaction (SP-0097).</summary>
     private const long RetainedTailBytes = 7L * 1024 * 1024;
 
+    /// <summary>How much further the log may grow after a failed compaction before the next attempt (SP-0134).</summary>
+    private const long CompactionRetryBytes = 1L * 1024 * 1024;
+
     private static readonly UTF8Encoding LogEncoding = new(encoderShouldEmitUTF8Identifier: false);
 
     private readonly object _gate = new();
     private readonly string _path;
+    private readonly DiagnosticPathRedactor _paths;
     private StreamWriter? _writer;
+    private long _nextCompactionAt = MaximumSessionBytes;
 
     public CurrentLog(string directory)
     {
         _path = Path.Combine(directory, DiagnosticLogFiles.CurrentLogName);
+        _paths = DiagnosticPathRedactor.ForCurrentUser(directory);
         try
         {
             Directory.CreateDirectory(directory);
@@ -56,7 +63,9 @@ internal sealed class CurrentLog : IDisposable
                 _path = DiagnosticLogFiles.ReserveSessionPath(directory, DateTime.Now);
             }
 
-            var stream = new FileStream(_path, FileMode.Create, FileAccess.Write, FileShare.Read);
+            // ReadWrite, not Write: compaction reads the tail back and rewrites it through this same
+            // handle (SP-0134), so it never has to reopen a file someone else may be holding.
+            var stream = new FileStream(_path, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
             _writer = new StreamWriter(stream, LogEncoding) { AutoFlush = true };
             if (previousRetained)
             {
@@ -84,18 +93,8 @@ internal sealed class CurrentLog : IDisposable
     {
         lock (_gate)
         {
-            try
-            {
-                _writer?.Dispose();
-            }
-            catch (Exception)
-            {
-                // A failed diagnostic flush must not interrupt WPF shutdown.
-            }
-            finally
-            {
-                _writer = null;
-            }
+            // A failed diagnostic flush must not interrupt WPF shutdown.
+            ReleaseWriter();
         }
     }
 
@@ -110,67 +109,119 @@ internal sealed class CurrentLog : IDisposable
                     return;
                 }
 
-                _writer.WriteLine($"{DateTimeOffset.UtcNow:O} [{severity}] {Flatten(message)}");                // AutoFlush is on, so the stream position is the file's real byte count - no estimate,
+                _writer.WriteLine($"{DateTimeOffset.UtcNow:O} [{severity}] {Flatten(message)}");
+                // AutoFlush is on, so the stream position is the file's real byte count - no estimate,
                 // and no second syscall to ask for it.
-                if (_writer.BaseStream.Position >= MaximumSessionBytes)
+                if (_writer.BaseStream.Position >= _nextCompactionAt)
                 {
-                    Compact();
+                    // Compact handles its own failures and keeps the writer; see its remarks.
+                    Compact(_writer);
                 }
             }
             catch (Exception)
             {
-                // Logging has no recovery path; continuing is safer than masking the original application operation.
-                _writer = null;
+                // The line itself could not be written: logging has no recovery path, and continuing is
+                // safer than masking the original application operation. The handle is released rather
+                // than abandoned (SP-0134).
+                ReleaseWriter();
             }
         }
     }
 
-    /// <summary>Drop the middle part of the session log, keeping its head and tail (SP-0097). Caller holds <see cref="_gate"/>.</summary>
-    private void Compact()
+    private void ReleaseWriter()
     {
-        byte[] head;
-        byte[] tail;
-        long dropped;
         try
         {
-            // Read before closing the writer: a failure here must leave logging exactly as it was, so the
-            // ceiling degrades into "the file grows" rather than "the session stops being diagnosable".
-            // FileShare.ReadWrite because this process still holds the file open for writing.
-            using var source = new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            var headLen = (int)Math.Min(RetainedHeadBytes, source.Length);
-            head = new byte[headLen];
-            source.Seek(0, SeekOrigin.Begin);
-            source.ReadExactly(head);
-
-            var tailLen = (int)Math.Min(RetainedTailBytes, Math.Max(0, source.Length - headLen));
-            var tailStart = Math.Max(headLen, source.Length - tailLen);
-            tail = new byte[source.Length - tailStart];
-            source.Seek(tailStart, SeekOrigin.Begin);
-            source.ReadExactly(tail);
-            dropped = source.Length - (head.Length + tail.Length);
+            _writer?.Dispose();
         }
         catch (Exception)
         {
+            // Disposing flushes, and the flush is what just failed; the handle is closed either way.
+        }
+        finally
+        {
+            _writer = null;
+        }
+    }
+
+    /// <summary>
+    /// Drop the middle part of the session log, keeping its head and tail (SP-0097). Caller holds <see cref="_gate"/>.
+    /// </summary>
+    /// <remarks>
+    /// SP-0134: done in place, through the handle this instance already holds. It used to close the file
+    /// and recreate it by name, and anything else holding <c>Current.log</c> at that moment - an editor, a
+    /// virus scanner, the user copying it - made the recreate fail; the writer was already gone, so the
+    /// session logged nothing more. The head is already where it belongs, so only the marker and the tail
+    /// are written after it and the file is cut to that length. A failure is recorded at the end of the file
+    /// and logging carries on; the next attempt waits for another <see cref="CompactionRetryBytes"/>, so a
+    /// failing compaction is not re-tried on every line.
+    /// </remarks>
+    private void Compact(StreamWriter logWriter)
+    {
+        var stream = logWriter.BaseStream;
+        var length = stream.Length;
+        var headLen = Math.Min(RetainedHeadBytes, length);
+        var tailStart = Math.Max(headLen, length - RetainedTailBytes);
+        byte[] tail;
+        try
+        {
+            tail = new byte[length - tailStart];
+            stream.Seek(tailStart, SeekOrigin.Begin);
+            stream.ReadExactly(tail);
+        }
+        catch (Exception exception)
+        {
+            // Nothing was changed yet: the file only grows past its ceiling until the next attempt.
+            stream.Seek(0, SeekOrigin.End);
+            CompactionFailed(logWriter, "read", exception, staleFrom: null);
             return;
         }
 
-        _writer?.Dispose();
-        _writer = null;
-        var replacement = new FileStream(_path, FileMode.Create, FileAccess.Write, FileShare.Read);
-        var writer = new StreamWriter(replacement, LogEncoding) { AutoFlush = true };
-        // Head and tail are bytes Write already redacted; they are copied, not written anew.
-        writer.BaseStream.Write(head);
-        writer.WriteLine();
-        writer.WriteLine($"{DateTimeOffset.UtcNow:O} [Diag] {Flatten($"LOG COMPACTED | dropped_middle_bytes={dropped} | kept_head_bytes={head.Length} | kept_tail_bytes={tail.Length}")}");
-        writer.BaseStream.Write(tail);
-        writer.BaseStream.Flush();
-        _writer = writer;
+        var dropped = length - (headLen + tail.Length);
+        try
+        {
+            // Head and tail are bytes Write already redacted; the tail is copied, not written anew.
+            stream.Seek(headLen, SeekOrigin.Begin);
+            logWriter.WriteLine();
+            logWriter.WriteLine($"{DateTimeOffset.UtcNow:O} [Diag] {Flatten($"LOG COMPACTED | dropped_middle_bytes={dropped} | kept_head_bytes={headLen} | kept_tail_bytes={tail.Length}")}");
+            logWriter.BaseStream.Write(tail);
+            stream.SetLength(stream.Position);
+            stream.Flush();
+            _nextCompactionAt = MaximumSessionBytes;
+        }
+        catch (Exception exception)
+        {
+            // Part-way: the compacted content is in place up to here, and whatever follows it up to the
+            // failure line is a stale copy of older lines. Say so where the reader will meet it.
+            var staleFrom = SafePosition(stream);
+            stream.Seek(0, SeekOrigin.End);
+            CompactionFailed(logWriter, "rewrite", exception, staleFrom);
+        }
+    }
+
+    private void CompactionFailed(StreamWriter logWriter, string stage, Exception exception, long? staleFrom)
+    {
+        _nextCompactionAt = logWriter.BaseStream.Length + CompactionRetryBytes;
+        logWriter.WriteLine($"{DateTimeOffset.UtcNow:O} [Diag] {Flatten($"LOG COMPACTION FAILED | stage={stage} | err={exception.GetType().Name} | msg={exception.Message} | stale_from_byte={(staleFrom?.ToString(CultureInfo.InvariantCulture) ?? "none")} | next_attempt_at_bytes={_nextCompactionAt}")}");
+    }
+
+    private static long? SafePosition(Stream stream)
+    {
+        try
+        {
+            return stream.Position;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 
     // Full URLs are retained for measurement (SP-0040), minus the credentials they carry (SP-0123,
-    // DIAGNOSTIC-REPORT rule 3): this is the one sink every line passes through, so redacting here covers
-    // every call site, including ones not written yet. Line breaks are flattened so each record stays on
-    // one line. LogSinkRedactionSourceTests fails a WriteLine in this file that skips this method.
-    private static string Flatten(string message) =>
-        CatalogUrlIdentity.RedactText(message).ReplaceLineEndings(" | ");
+    // DIAGNOSTIC-REPORT rule 3), and paths keep their tail but lose the profile and data-directory roots
+    // (SP-0137, the same rule's path half): this is the one sink every line passes through, so redacting
+    // here covers every call site, including ones not written yet. Line breaks are flattened so each record
+    // stays on one line. LogSinkRedactionSourceTests fails a WriteLine in this file that skips this method.
+    private string Flatten(string message) =>
+        _paths.Redact(CatalogUrlIdentity.RedactText(message)).ReplaceLineEndings(" | ");
 }

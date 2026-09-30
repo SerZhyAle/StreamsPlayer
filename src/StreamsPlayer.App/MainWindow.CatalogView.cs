@@ -37,10 +37,11 @@ public partial class MainWindow
     //   (MainWindow.Hide.cs), purge, and the refresh's result.State - so it always yields a new
     //   CatalogState instance.
     //
-    // ReplaceChannel is the one path that mutates in place, and it only ever swaps one element for
-    // another; it never adds or removes. That is exactly what these two caches need. PruneRowCache
-    // only cares about channels that disappeared, and the atlas bounds are maxima over favicon indices
-    // that an element swap does not raise.
+    // No path mutates the channel list in place any more: every change, a single edited row included,
+    // is committed as a new CatalogState through CatalogStateCommitter. The caches would survive an
+    // in-place element swap anyway - PruneRowCache only cares about channels that disappeared, and the
+    // atlas bounds are maxima over favicon indices that a swap does not raise - but an in-place add or
+    // remove would silently break them.
     //
     // Keyed on _state rather than on _state.Channels because BuildFaviconAtlasSet also reads the atlas
     // file names, which the snapshot import can replace without touching the channel list.

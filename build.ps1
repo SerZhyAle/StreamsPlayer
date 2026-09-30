@@ -55,46 +55,15 @@ function Invoke-DotNet {
     }
 }
 
-# SP-0133: proves a published or deployed folder runs the native engine this repo pins. The pin is the
-# VideoLAN.LibVLC.Windows package version in the App project; the evidence is byte equality with that package's
-# own x64 natives, with the file version printed beside it (the DLL says 3.0.23 for package 3.0.23.1, the last
-# part being the package's own revision).
+# SP-0133/SP-0156: the pin check has one home, scripts/Assert-PinnedNatives.ps1 - the same check the
+# release workflow, the installer builder and the MSIX packager apply to what they ship.
 function Assert-PinnedNatives {
     param(
         [Parameter(Mandatory)] [string] $Folder,
         [Parameter(Mandatory)] [string] $ProjectPath
     )
 
-    $project = [xml] (Get-Content -LiteralPath $ProjectPath -Raw)
-    $pinned = @($project.SelectNodes("//PackageReference[@Include='VideoLAN.LibVLC.Windows']") |
-        ForEach-Object { $_.GetAttribute('Version') })
-    if ($pinned.Count -ne 1) { throw "Could not read the pinned VideoLAN.LibVLC.Windows version from $ProjectPath." }
-    $pinned = $pinned[0]
-
-    $packages = if ($env:NUGET_PACKAGES) { $env:NUGET_PACKAGES } else { Join-Path $HOME '.nuget\packages' }
-    $packageNatives = Join-Path $packages "videolan.libvlc.windows\$pinned\build\x64"
-    $expectedFileVersion = ($pinned.Split('.') | Select-Object -First 3) -join '.'
-
-    foreach ($name in 'libvlc.dll', 'libvlccore.dll') {
-        $deployed = Join-Path $Folder "libvlc\win-x64\$name"
-        if (-not (Test-Path -LiteralPath $deployed)) { throw "expected: $deployed | actual: missing" }
-        $version = (Get-Item -LiteralPath $deployed).VersionInfo
-        $actualFileVersion = "$($version.FileMajorPart).$($version.FileMinorPart).$($version.FileBuildPart)"
-        if ($actualFileVersion -ne $expectedFileVersion) {
-            throw "expected: $name $expectedFileVersion (package $pinned) | actual: $actualFileVersion in $Folder"
-        }
-
-        $reference = Join-Path $packageNatives $name
-        if (Test-Path -LiteralPath $reference) {
-            if ((Get-FileHash -LiteralPath $deployed).Hash -ne (Get-FileHash -LiteralPath $reference).Hash) {
-                throw "expected: $name identical to package $pinned | actual: different bytes in $Folder"
-            }
-        }
-        else {
-            Write-Host "    (package cache has no $reference; file version checked, bytes not compared)" -ForegroundColor Yellow
-        }
-        Write-Host "    expected: $name $expectedFileVersion (package $pinned) | actual: $actualFileVersion" -ForegroundColor Green
-    }
+    & (Join-Path $PSScriptRoot 'scripts\Assert-PinnedNatives.ps1') -Folder $Folder -ProjectPath $ProjectPath
 }
 
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
@@ -169,7 +138,8 @@ try {
         # SP-0133: the local install is the release's payload - the same self-contained folder publish that
         # release.yml ships, the native LibVLC tree included - mirrored into a folder of its own. A single-file
         # executable carries no libvlc\ (the natives are content files, not bundled), so it ran on whatever
-        # native tree the target folder happened to hold, and died at startup in a clean one (SP-0119).
+        # native tree the target folder happened to hold; in a clean one it died at startup until SP-0119, and
+        # still plays nothing there.
         $localOutputPath = Join-Path $PSScriptRoot "artifacts\local\$Runtime"
         $deployTargets = @($localDeployRoots | ForEach-Object { Join-Path $_ $localDeployFolderName })
         $legacyExePaths = @($localDeployRoots | ForEach-Object { Join-Path $_ 'StreamsPlayer.exe' })

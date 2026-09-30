@@ -212,7 +212,7 @@ the screen at 19.5 s cannot be taken off it by the observation at 20 s.
 first frame arrived at 2.4 s, p90 at 5.3 s, p99 at 11.2 s; only two channels exceeded 12 s (24 s and
 31 s). Twenty clears p99 with room and costs exactly those two. Eight is a fourfold margin over what a
 healthy open needs to move a byte counter at all. **Worst case for the user**: a source that answers and
-never plays costs 20 s + 1 s + 20 s = 41 s before the verdict - against the 65 s measured on 2026-09-06
+never plays costs 20 s + 0.5 s + 20 s = 40.5 s before the verdict - against the 65 s measured on 2026-09-06
 with no verdict at the end of it at all. A dead one costs 8 s.
 
 ---
@@ -228,16 +228,23 @@ below only after reading it.
 
 | Trigger | Budget | Backoff before attempt _n_ |
 |---|---|---|
-| `BehindLiveWindow` | 3 | _n_ s (1, 2, 3) |
-| `Transient` | **2** | 2ⁿ s (2, 4) |
-| `Stall` | 3 | 1 s |
-| `StreamEnded` | **2** | 1 s |
-| `OpenTimeout` | 1 | 1 s |
+| `BehindLiveWindow` | 3 | **_n_ x 0.5 s (0.5, 1, 1.5)** |
+| `Transient` | **2** | **2ⁿ⁻¹ s (1, 2)** |
+| `Stall` | 3 | **0.5 s** |
+| `StreamEnded` | **2** | **0.5 s** |
+| `OpenTimeout` | 1 | **0.5 s** |
 | `HardFail` | - | no reconnect; straight to the verdict |
 
-The two budgets in bold are **2 here and 4 in Part D** - the one place this table deliberately departs
-from the brief, on the owner's decision of 2026-08-08 (SP-0079). This paragraph is now the only record of
-that divergence: it used to be annotated into a repo-local fork of the brief, which was deleted when the
+The table departs from the brief twice, and both departures are recorded only here.
+
+**Budgets.** The two budgets in bold are **2 here and 4 in Part D**, on the owner's decision of
+2026-08-08 (SP-0079). **Backoffs.** Every backoff is **half of Part D's** (transient 2 / 4 / 8 / 16 s,
+behind-live 1 / 2 / 3 s, stall and end 1 s), on SP-0041 Decision 1: each leg already spends the engine's
+own open timeout, so a longer pause bought little but more black screen, and the connectivity gate below
+now settles the two cases a longer wait was hoping to outlast. SP-0041 itself said "three attempts at
+1 / 2 / 4 s"; it predates SP-0079, so the later owner decision on the budget stands and only the halving
+is applied. This paragraph is now the only record of
+these divergences: it used to be annotated into a repo-local fork of the brief, which was deleted when the
 brief's one home became the shared contract store. Part D binds nobody - it is the Android reference the
 handoff was written from, not a rule of `STREAM-BANK` - so the departure is a product decision and not a
 contract deviation. Four transient attempts on that backoff, on top of the engine's own ~26 s open
@@ -245,7 +252,7 @@ timeout per leg, is about two minutes of black screen before the user is offered
 wait on screen where it can be read, which is what turned its length into the visible complaint. Nothing
 is lost by stopping at two: the verdict dialog offers Retry, so a source that would have come back on
 attempt three is one click away instead of ninety silent seconds away. `Stall` and `BehindLiveWindow`
-keep their 3 - they re-open a stream that *was* playing, after a one-second pause, and cutting them
+keep their 3 - they re-open a stream that *was* playing, after a short pause, and cutting them
 would break looping playlists that currently recover.
 
 Budgets are **per trigger**, so a stream that stalls three times and then ends still has its
@@ -255,15 +262,29 @@ Exhausting a budget hands off to `PlaybackFailureDialog` - the terminal verdict,
 `OpenTimeout` is the newest and the smallest, and it is the only trigger the *player* raises rather than
 the engine (SP-0096, §3a). One re-open, because it only ever fires after a full `OpenDeadline` has
 already been spent staring at black, so every extra attempt costs another twenty seconds of exactly the
-thing being fixed. Its backoff is a flat second rather than the transient ladder, for the same reason:
-the waiting has already happened.
+thing being fixed. Its backoff is a flat half second rather than the transient ladder, for the same
+reason: the waiting has already happened.
 
-**SP-0041 is not implemented.** Earlier revisions of this document described a `StreamTransmissionProbe`
-call establishing *what* is unreachable - the channel's host or the network itself - before the ladder is
-spent. That is the ticket's intent, not the tree's behaviour: the probe has exactly one call site,
-`ChannelInfoWindow`, and nothing on the failure path calls it. SP-0096 bounds the wait from *inside* an
-open that has already begun rather than probing before one; distinguishing "this host is down" from "your
-Wi-Fi is down" is still open work.
+### The connectivity gate - SP-0041
+
+Before the ladder is spent on a **fresh open failure** - the one case where the status probe already
+runs - `StreamReachabilityProbe` (App) establishes *what* is unreachable, and
+`PlaybackReachabilityRules` (Core) says what follows. A stall, a stream end, a behind-live event, an
+SP-0096 open verdict, or a status already in hand is never gated: that host was already answering.
+
+| Verdict | How it is reached | Ladder | Hide/delete offer |
+|---|---|---|---|
+| `NotProbed` | not gated, or no probeable endpoint | runs | shown |
+| `HostReachable` | TCP connect to the stream's own host:port succeeded | runs (then the status probe) | shown |
+| `ChannelUnreachable` | that connect failed, and the catalog host answers | **skipped** - verdict now | shown |
+| `NetworkUnreachable` | no interface up, the catalog host does not answer either, or a *local* host did not answer | **skipped** - verdict now | **withheld**, with a line saying the channel was never reached |
+
+It connects rather than pings because CDN hosts drop ICMP while serving media, and the endpoint probed is
+exactly the one the engine needs. Each connect is capped at 1.5 s, so the worst branch costs ~3 s against
+the ladder it replaces. The only second host is the catalog host the app already downloads from - no new
+outbound destination. A loopback, private-range, link-local, dotless or `.local`/`.lan` host is never
+network-checked and never blamed (`StreamEndpointResolver.IsLocalHost`): a camera that is switched off is
+not a broken channel. The verdict is logged as `PLAYBACK REACH` / `AUDIO REACH`.
 
 The backoff is cancellable and the "Reconnecting" label stays visible through it: ordinary buffering and
 reconnection must never look the same to the user.
@@ -410,7 +431,7 @@ At the working rung the delivered rate sat at a steady 636-966 kbps at 24-28 fps
 while the uncapped top rung swung 234-1131 kbps and then reported **0.0 kbps for sixteen consecutive
 seconds**. That contrast is the whole feature.
 
-Full evidence: `PLAN/DONE/SP-0071_adaptive_quality_ceiling/05_validation.md`.
+Full evidence: `PLAN/SP-0071_adaptive_quality_ceiling/05_validation.md`.
 
 ---
 
@@ -452,7 +473,7 @@ look the same in an archive.
 |---|---|
 | `PLAYBACK OPEN` | `reason=` (initial/quality/recover/retry), `cache_ms=`, `engine=`, `ceiling=` |
 | `PLAYBACK LIVE` | `ttff_ms=` - the black-screen cost of that leg |
-| `PLAYBACK SHOWN` | `frames=`, `at_ms=` - once per window, the first time the engine's displayed-picture counter moved; LIVE is only a full buffer (SP-0133) |
+| `PLAYBACK SHOWN` | `frames=`, `at_ms=` - once per leg when the engine's displayed-picture counter first moves; LibVLC video writes LIVE only after this proof (SP-0133, SP-0163) |
 | `AUDIO HEARD` / `AUDIO SILENT` | `played_buffers=`, `decoded_blocks=`, `lost_buffers=`, `after_live_ms=` - radio's output after `AUDIO LIVE`: a played buffer, or none within 20 s (SP-0133) |
 | `PLAYBACK STALL` / `RESUME` | buffer emptied / refilled after live |
 | `PLAYBACK WATCHDOG` | `kind=frozen` or `kind=stuck_buffer` |
@@ -517,8 +538,8 @@ App (forwards observations, applies answers, owns all I/O)
   PlayerWindow.Notice.cs         §6  paints the caption over the video
   PlayerWindow.Quality.cs        §5  feeds the governor, logs it, re-opens
   StreamQualityLadderProbe.cs    §5  fetches the master playlist (5 s deadline)
-  StreamTransmissionProbe.cs         is it the channel or the network - built for §4, wired only to
-                                     ChannelInfoWindow; SP-0041 is not implemented
+  StreamReachabilityProbe.cs     §4  is it the channel or the network - the SP-0041 gate
+  StreamTransmissionProbe.cs         what the engine received - ChannelInfoWindow only
   QualityMemoryFile.cs           §5  the one gate over the memory file
   LibVlcVideoBackend.cs          §2  engine options and the ceiling
   FlyleafVideoBackend.cs         §2  the opt-in engine, and the only home of the live-edge controller
@@ -558,14 +579,14 @@ App (forwards observations, applies answers, owns all I/O)
 |---|---|---|
 | `DONE/SP-0012` | buffered video backend for unreliable live streams | Verified |
 | `DONE/SP-0015` | the bounded recovery ladder | Verified |
-| `DONE/SP-0026` | selectable media backend | Verified |
-| `DONE/SP-0041` | shorter recovery, connectivity-aware verdict | **Tactical** (in `DONE/`, header not updated; its own folder says `Draft`, and none of its decisions are in the tree) |
-| `DONE/SP-0045` | the signal-health stripe | **BlockNeedUserTest** (in `DONE/`, header not updated) |
+| `SP-0026` | selectable media backend | **Implemented** - awaiting the GUI run-and-observe |
+| `SP-0041` | shorter recovery, connectivity-aware verdict | **Implemented** - the three verdicts not yet all seen on screen |
+| `SP-0045` | the signal-health stripe | **BlockNeedUserTest** |
 | `DONE/SP-0070` | silent freeze detection | Verified |
-| `DONE/SP-0071` | adaptive quality ceiling | **Implemented** (in `DONE/`, not yet audited) |
+| `SP-0071` | adaptive quality ceiling | **Implemented** (not yet audited) |
 | `SP-0072` | telling the user during an interruption | **Implemented** - two of five caption states not yet seen on screen |
 | `DONE/SP-0076` | opening at the remembered rung | Verified |
-| `SP-0077` | which rung is actually playing | Verified |
+| `DONE/SP-0077` | which rung is actually playing | Verified |
 | `SP-0078` | holding the distance to the live edge | **Implemented** - the half-hour live run is not done |
 | `SP-0079` | shorter reconnect budget | **Implemented** |
 | `SP-0096` | a stream that never opens is given up on | **Implemented** - the run-and-observe phase is not done |

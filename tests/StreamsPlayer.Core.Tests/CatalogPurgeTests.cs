@@ -29,10 +29,9 @@ public sealed class CatalogPurgeTests
         var state = new CatalogState
         {
             Channels = [Channel("https://example.test/catalog", SourceOrigin.Catalog)],
-            // Decisions 4 and 5: hide choices, the atlas, and the recorded download time survive a purge.
+            // Decision 4: hide choices survive a purge. SP-0177 superseded decision 5: the atlas and the
+            // download time describe the removed rows, so they leave with them (the test below).
             HiddenCatalogUrls = ["https://example.test/hidden"],
-            AtlasFileName = "favicon-atlas.png",
-            LastCatalogRefreshAt = Now,
             ListeningHistory = [new ListeningHistoryEntry
             {
                 ChannelId = Guid.NewGuid(),
@@ -48,11 +47,45 @@ public sealed class CatalogPurgeTests
 
         Assert.Empty(result.State.Channels);
         Assert.Equal(state.HiddenCatalogUrls, result.State.HiddenCatalogUrls);
-        Assert.Equal(state.AtlasFileName, result.State.AtlasFileName);
-        Assert.Equal(state.LastCatalogRefreshAt, result.State.LastCatalogRefreshAt);
         Assert.Equal(state.ListeningHistory, result.State.ListeningHistory);
         Assert.Equal(state.TileSize, result.State.TileSize);
         Assert.Equal(state.Language, result.State.Language);
+    }
+
+    // SP-0177: kept names kept the atlas files, the provenance line kept claiming a refresh, and the
+    // first-run snapshot offer could never qualify again.
+    [Fact]
+    public void RemoveDownloaded_ReleasesAtlasesAndProvenanceButKeepsAnAtlasStillInUse()
+    {
+        var imported = Channel("https://example.test/local", SourceOrigin.LocalCatalog) with
+        {
+            FaviconSource = FaviconSource.Imported,
+            FaviconIndex = 0
+        };
+        var state = new CatalogState
+        {
+            Channels =
+            [
+                Channel("https://example.test/catalog", SourceOrigin.Catalog) with { FaviconIndex = 1 },
+                Channel("https://example.test/seeded", SourceOrigin.Catalog) with { FaviconSource = FaviconSource.Snapshot, FaviconIndex = 2 },
+                Channel("https://example.test/mine", SourceOrigin.Manual),
+                imported
+            ],
+            AtlasFileName = "favicon-atlas-a.png",
+            SnapshotAtlasFileName = "favicon-atlas-b.png",
+            ImportedAtlasFileName = "favicon-atlas-c.png",
+            LastCatalogRefreshAt = Now,
+            AppliedSnapshotDate = Now.AddDays(-30)
+        };
+
+        var result = CatalogPurge.RemoveDownloaded(state).State;
+
+        Assert.Equal(2, result.Channels.Count);
+        Assert.Null(result.AtlasFileName);
+        Assert.Null(result.SnapshotAtlasFileName);
+        Assert.Equal("favicon-atlas-c.png", result.ImportedAtlasFileName);
+        Assert.Null(result.LastCatalogRefreshAt);
+        Assert.Null(result.AppliedSnapshotDate);
     }
 
     [Fact]

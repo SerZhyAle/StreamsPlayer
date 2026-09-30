@@ -31,6 +31,10 @@
 > The installer, the ZIP and the winget package are not code-signed, so Windows
 > may show **"Windows protected your PC"** the first time you run them -
 > [what that screen means and what to click](https://serzhyale.github.io/StreamsPlayer/trust.html).
+>
+> To update or uninstall, close STREAMS Player first - the setup asks you to if it
+> is still open. A silent run (`winget`, `/VERYSILENT`) does not ask: it stops
+> with exit code 1 and changes nothing.
 
 ## A calm player for the stream in front of you
 
@@ -126,8 +130,8 @@ code or features.
   marked with a globe); pick the colour theme, choose Very Small, Small, Medium, or
   Large stream tiles, disable automatic thumbnail updates, hide adult channels, and
   turn the animated background off (**Grid**); keep the computer awake, show system
-  media controls, resume playback on startup, pick the video backend, and choose the
-  folder for saved files (**Playback**); and read the `YY.MMDD.HHmm` version and open the instruction,
+  media controls, resume playback on startup, pick the video backend, and choose a
+  folder for frames, for video recordings and for radio recordings (**Playback**); and read the `YY.MMDD.HHmm` version and open the instruction,
   project, website, privacy, and author pages (**About**). The Settings window
   can be resized, and a tab taller than the window scrolls instead of clipping.
   Settings only holds preferences: nothing in it takes effect until you press
@@ -138,16 +142,23 @@ code or features.
   components, and **Send logs to the author**. Each action asks before it destroys
   anything, and **Close** is the only other button.
 - Save the frame you are watching from the player's camera button: a JPEG named
-  `Channel_YYYYMMDD-HHmmss` lands in the folder set on the **Playback** tab, or in
-  Downloads when that is empty, and the same frame becomes the channel icon.
+  `video_frame_YYMMDD_HHmmss_<channel>` lands in the frames folder set on the **Playback** tab,
+  or in the Frames folder inside Pictures when that is empty, and the same frame becomes the
+  channel icon. A second frame in the same second gets ` (2)`; a folder that cannot be written
+  sends the file to the next one - the default, then Downloads - and the message says where it went.
 - Record a live broadcast with the **Record** button (or press `R` in the video player):
-  losslessly captures the active live video or radio stream directly to a media file in the
-  saved files folder without interrupting playback, and shows the saved file name on stop.
+  losslessly captures the active live video or radio stream directly to a media file without
+  interrupting playback, and shows the saved file name on stop. A video recording is named
+  `stream_video_YYMMDD_HHmmss_<channel>` and goes to the Recordings folder inside Videos, a radio
+  recording `stream_audio_..` to the Recordings folder inside Music, unless you chose other
+  folders on the **Playback** tab.
   A video recording survives reconnects - each connection becomes its own file and all of
   them are reported at the end; a radio recording is named after the format the station
   really sends and follows a `.pls`/`.m3u` link to the stream, and when the station drops
   the connection you are told at once what was saved and how long it runs. A FastMediaSorter
-  broadcast cannot be recorded (it allows only the one connection playback uses).
+  broadcast cannot be recorded (it allows only the one connection playback uses). Quitting
+  while recording is safe: the app waits for the file to reach the recordings folder, and
+  anything it could not wait for is handed over there and announced at the next start.
 - Answer a failed stream from the failure dialog - **Retry**, **Copy report**,
   **Keep**, or remove it: a catalog channel is hidden and a channel of your own is
   deleted after a confirmation. Hidden catalog channels survive a refresh and come
@@ -281,8 +292,8 @@ code or features.
   nine before it.
 - Report a problem with **Send logs to the author** in **Tools** (the
   **Operations** menu): it packs those diagnostic logs plus a short summary of your app
-  version, Windows version and settings into one archive in the **Saved files
-  folder** (Downloads by default, configurable in Playback settings), then opens
+  version, Windows version and settings into one archive in the **frames folder**
+  when you chose one on the Playback tab, or in Downloads, then opens
   your mail program with the message prepared. Its confirmation shows the complete
   path and can open that folder when you ask. Nothing is sent automatically - you
   attach the archive and press Send. The logs name the streams that were played, so
@@ -363,12 +374,17 @@ StreamsPlayer.exe --url "https://example.test/live"
 ```
 
 For a saved channel, open its <img src="docs/assets/glyphs/nav.more.svg" width="16" height="16" alt=""> three-dot menu and use **Copy launch command** or
-**Create desktop shortcut**. These entries carry the channel's persisted GUID and, beside it, its address,
+**Create desktop shortcut**. These entries carry the channel's persisted GUID and, when safe, its address,
 so the channel is still found after a catalog refresh gives it a new GUID:
 
 ```powershell
 StreamsPlayer.exe --id "channel-guid" --url "https://example.test/live"
 ```
+
+If the address contains credentials or cannot fit safely in a launch command, the shortcut or copied
+command carries only the GUID. The app tells you when this happens. That entry works only while the
+channel remains in your library; its address is never placed in the shortcut or command line.
+Recreate shortcuts made by older versions to remove any address they already stored.
 
 An ordinary launch without arguments starts nothing. Turn on **Resume playback on startup** on the
 Playback tab in Settings and a launch brings back whatever was playing when you last closed the app -

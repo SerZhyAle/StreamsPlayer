@@ -26,7 +26,7 @@ internal interface IVideoBackend
     /// surface that paints over sibling WPF elements; routing the overlay through the surface's own
     /// content is the only way to keep the panel visible on top.
     /// </summary>
-    void SetOverlay(FrameworkElement overlay);
+    void SetOverlay(FrameworkElement? overlay);
 
     /// <summary>
     /// Which engine this is, for the log. SP-0071 made it necessary: the quality ceiling is expressed
@@ -78,7 +78,7 @@ internal interface IVideoBackend
     Task StopPlaybackAsync();
 
     /// <summary>Requests a snapshot of the current frame; the result arrives via <see cref="SnapshotReady"/>.</summary>
-    bool RequestSnapshot(int width);
+    bool RequestSnapshot(Guid requestId, int width);
 
     IReadOnlyList<VideoTrack> AudioTracks { get; }
     IReadOnlyList<VideoTrack> SubtitleTracks { get; }
@@ -196,7 +196,7 @@ internal interface IVideoBackend
     event Action EndReached;
     event Action EncounteredError;
     event Action TracksChanged;
-    event Action<BitmapSource> SnapshotReady;
+    event Action<Guid, BitmapSource> SnapshotReady;
 }
 
 /// <summary>An engine-neutral audio or subtitle track descriptor for the player's track menus.</summary>

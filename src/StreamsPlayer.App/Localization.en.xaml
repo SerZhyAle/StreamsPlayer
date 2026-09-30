@@ -284,6 +284,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="FailureDialogMessage">"{0}" could not be played.</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">"{0}" cannot be played: its address is not an http, https or rtsp stream.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">The catalog marks this channel as region-locked: it did not respond from the maintainer's country. It may work if you are in the region it broadcasts to.</sys:String>
+    <sys:String x:Key="FailureNoNetwork">There is no network connection, so this channel was never reached. It may be fine - check your connection and retry.</sys:String>
     <sys:String x:Key="FailureRetry">Retry</sys:String>
     <sys:String x:Key="FailureHide">Hide</sys:String>
     <sys:String x:Key="FailureDelete">Delete</sys:String>
@@ -332,6 +333,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="SaveFrame">Save frame</sys:String>
     <sys:String x:Key="SaveFrameTip">Save the current frame as a picture file and as this channel's icon</sys:String>
     <sys:String x:Key="FrameSaved">Frame saved: {0}</sys:String>
+    <sys:String x:Key="FrameSavedElsewhere">{0} could not be written - frame saved to {1}</sys:String>
     <sys:String x:Key="FrameSaveFailed">Could not save the frame</sys:String>
     <sys:String x:Key="Record">Record</sys:String>
     <sys:String x:Key="RecordTip">Record live broadcast (R)</sys:String>
@@ -349,15 +351,21 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="RecordEndedConnectionLost">Recording ended - the station dropped the connection. Saved: {0} ({1})</sys:String>
     <sys:String x:Key="RecordUnsupportedFormat">This station's stream format cannot be recorded</sys:String>
     <sys:String x:Key="RecordWriteFailed">Recording stopped - could not write to {0}</sys:String>
+    <sys:String x:Key="RecordFellBack">{0} could not be written - recording to {1}</sys:String>
+    <sys:String x:Key="RecordSavedElsewhere">{0} could not be written - recording saved to {1}</sys:String>
     <sys:String x:Key="RecordUnavailableEngine">Recording is not available with this version of the video engine</sys:String>
     <sys:String x:Key="RecordUnavailableFastMediaSorter">A FastMediaSorter broadcast allows one connection, and playback is using it - it cannot be recorded</sys:String>
     <sys:String x:Key="RecordingsRecovered">Moved {0} unsaved recording(s) from the last session to {1}</sys:String>
     <sys:String x:Key="RecordingsRecoveryFailed">{0} unsaved recording(s) from the last session could not be moved - they are in {1}</sys:String>
-    <sys:String x:Key="FrameFolderLabel">Saved files folder</sys:String>
-    <sys:String x:Key="FrameFolderHint">Where STREAMS Player saves frames and log archives. Leave it empty to use the Downloads folder.</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Frames folder</sys:String>
+    <sys:String x:Key="FrameFolderHint">Where saved frames and log archives go. Leave it empty for the Frames folder in Pictures; log archives then go to Downloads.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Choose folder..</sys:String>
-    <sys:String x:Key="FrameFolderReset">Use Downloads</sys:String>
+    <sys:String x:Key="FrameFolderReset">Use the default folder</sys:String>
     <sys:String x:Key="FrameFolderOpen">Open folder</sys:String>
+    <sys:String x:Key="VideoRecordingFolderLabel">Video recordings folder</sys:String>
+    <sys:String x:Key="VideoRecordingFolderHint">Where recordings of video streams go. Leave it empty for the Recordings folder in Videos.</sys:String>
+    <sys:String x:Key="AudioRecordingFolderLabel">Radio recordings folder</sys:String>
+    <sys:String x:Key="AudioRecordingFolderHint">Where recordings of radio stations go. Leave it empty for the Recordings folder in Music.</sys:String>
     <sys:String x:Key="VolumeTip">Video volume</sys:String>
     <sys:String x:Key="VolumeName">Video volume</sys:String>
     <sys:String x:Key="AudioVolumeTip">Audio volume</sys:String>
@@ -409,6 +417,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="VideoComponentsProgressUnknown">Downloading components.. {0} MB</sys:String>
     <sys:String x:Key="VideoComponentsInstallDone">Components installed into {0}. FlyleafLib is available for the next player you open.</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">The components could not be downloaded. Nothing was installed. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRollbackFailed">The components could not be replaced, and the previous version could not be fully restored. They are not usable until you install them again. The previous files were kept in: {0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">Remove the FlyleafLib components? FlyleafLib will stop working until they are downloaded again; VLC is unaffected.</sys:String>
     <sys:String x:Key="VideoComponentsRemoveFailed">The components could not be removed. Close any open player windows and try again.</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib is not ready</sys:String>
@@ -450,6 +459,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="CreateDesktopShortcut">Create desktop shortcut</sys:String>
     <sys:String x:Key="LaunchCommandCopied">The launch command was copied to the clipboard.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows could not copy the launch command.</sys:String>
+    <sys:String x:Key="LaunchIdOnlyNotice">The address was left out. This shortcut or command works only while the channel exists in this library.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Copy share text</sys:String>
     <sys:String x:Key="MenuCopyLaunchCommand">Copy launch command</sys:String>
@@ -611,6 +621,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="FmsBroadcastUnsupportedMode">This broadcast mode is not supported yet. Your list was not changed.</sys:String>
     <sys:String x:Key="FmsBroadcastInvalid">This is not a valid FastMediaSorter broadcast description. Your list was not changed.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">This broadcast description is larger than 64 KiB. Your list was not changed.</sys:String>
+    <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer is busy with another operation. Import the broadcast again once it finishes. Your list was not changed.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} already has the maximum number of listeners. Try again when another listener disconnects.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} stopped broadcasting or is no longer reachable on this network.</sys:String>
     <!-- SP-0098 portable stream catalog import -->

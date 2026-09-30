@@ -72,11 +72,17 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private IDisposable? _audioWake;
     private bool _suppressAudioVolumeSave;
     private int? _pendingAudioVolume;
+    private bool _audioOutcomeRecorded;
+    private bool _audioTerminalFailureRecorded;
     private ChannelRow? _selectedRow;
     private bool _busy;
     private bool _toolsActionActive;
     // SP-0059: whether this launch found no state file at all. Read once, before the load.
     private bool _cleanInstall;
+    // SP-0175: whether this launch's catalog load failed. While set, nothing may offer or perform a
+    // write to the state file - the store refuses the writes, and the snapshot offer is suppressed
+    // until a read has succeeded, which in practice is the restart the load notice asks for.
+    private bool _catalogStateUnreadable;
     private bool _isGridMode;
     private bool _windowActive = true;
     private int _openPlayerWindows;
@@ -91,16 +97,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private bool _shuttingDown;
     // SP-0120: the engine releases of the players closed by quitting; the close work waits for them (bounded).
     private readonly List<Task> _closedPlayerEngines = [];
+    // SP-0164: the recording finishes of the players closed by quitting, each already bound to its engine
+    // release; the close work waits for them too, so the move into the recordings folder is given its chance.
+    private readonly List<Task> _closedRecordingFinishes = [];
     // SP-0067: collapses a burst of events into one save. The interval is also the value the scroll-only
     // rate limit restores when it hands the timer back; see MainWindow.BrowsingSession.cs.
     private static readonly TimeSpan BrowsingSessionSaveDebounce = TimeSpan.FromMilliseconds(350);
     private readonly DispatcherTimer _browsingSessionSaveTimer;
     private static readonly TimeSpan AudioVolumeSaveDebounce = TimeSpan.FromMilliseconds(600);
     private readonly DispatcherTimer _audioVolumeSaveTimer;
-    // SP-0096: the radio's half of the open budget. A timer rather than PlaybackOpenBudget itself
-    // because MediaElement publishes no counters at all - there is nothing to observe, so the rule
-    // collapses to its deadline and the dead-source branch has no input on this engine. The interval
-    // still comes from Core so the radio and the player cannot drift apart.
+    // SP-0096: the radio's half of the open budget. A timer rather than PlaybackOpenBudget itself:
+    // the rule was written when radio ran on WPF MediaElement, which publishes no counters, so it
+    // collapsed to its deadline and the dead-source branch has no input here. The LibVLC audio engine
+    // (SP-0104) does expose statistics now, but only the audible-output proof (SP-0133) reads them;
+    // the open budget still waits for Playing alone. The interval comes from Core so the radio and
+    // the player cannot drift apart.
     private readonly DispatcherTimer _audioOpenTimer;
     // SP-0104: LibVLC-based audio playback engine for standard radio streams.
     private readonly StandardAudioPlayback _standardAudioPlayback = new();
@@ -219,12 +230,32 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             _cleanInstall = !_store.HasStoredState;
             try
             {
-                _state = await _store.LoadAsync();
-                _stateCommitter = CreateStateCommitter(_state);
+                // SP-0179: the single folder choice is split per capture kind in memory; the next save keeps it.
+                _state = CaptureFolderChoices.Split(await _store.LoadAsync());
+            }
+            catch (Exception exception)
+            {
+                // SP-0116 chose a fresh start over an unreadable catalog; SP-0175 adds the other half:
+                // the file on disk is preserved. The store refuses every save until a read has
+                // succeeded, so the notice's "restart the app to try again" is now literally the way
+                // back, and no action or offer that writes the file may appear in the meantime.
+                _catalogStateUnreadable = true;
+                _log.Error("Catalog state load failed", exception);
+                SetStatus("MainLoadFailed");
+                MessageBox.Show(this, LocalizationService.Get("MainLoadFailedBody"), LocalizationService.Get("ProductName"), MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            _preferencesLoaded = true;
+            _stateCommitter = CreateStateCommitter(_state);
+            try
+            {
                 // SP-0067: right after the catalog, and given it as the migration source. When the session
                 // file is absent this is the one read of the old CatalogState fields, ever - it writes the
-                // new file in the same call, so the next launch never looks at them again.
-                _session = await _sessionStore.LoadAsync(_state);
+                // new file in the same call, so the next launch never looks at them again. A migration
+                // save that fails defers to the next launch (SP-0175); it can no longer fail this load.
+                _session = await _sessionStore.LoadAsync(
+                    _state,
+                    onMigrationSaveFailure: exception => _log.Error("Browsing-session migration save deferred to the next launch", exception));
                 // SP-0084: read once here so that placing a player window later needs no await - a window
                 // cannot be positioned after it is visible without the user seeing it jump. Its own file, so
                 // a failure costs window placements and nothing else.
@@ -240,12 +271,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 LocalizationService.Apply(language);
                 WakeGuard.Enabled = _state.KeepAwakeDuringPlayback;
                 Topmost = _state.MainWindowTopmost;
-                _preferencesLoaded = true;
-                if (savedLanguage is null)
+                if (savedLanguage is null && !_catalogStateUnreadable)
                 {
                     // Record the detected language once, so the next launch is an ordinary
                     // saved-preference launch and a later OS change cannot silently move the interface.
-                    _state = await PersistAsync(state => state with { Language = language });
+                    // Skipped after a failed load: the store would refuse the write anyway, and the
+                    // next successful launch asks the question again (SP-0175).
+                    await PersistAsync(state => state with { Language = language });
                 }
 
                 UpdateLocalizedOptions();
@@ -262,19 +294,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 ApplyFilter();
                 UpdateCatalogColumns();
                 await RestoreScrollAnchorAsync();
-                _log.Information($"Catalog state loaded: {_state.Channels.Count} channel(s).");
-                SetCatalogStatus();
+                if (!_catalogStateUnreadable)
+                {
+                    // The failure path keeps its MainLoadFailed status and its error log; a fresh
+                    // catalog reported as loaded would contradict both (SP-0175).
+                    _log.Information($"Catalog state loaded: {_state.Channels.Count} channel(s).");
+                    SetCatalogStatus();
+                }
             }
             catch (Exception exception)
             {
-                // SP-0116: the owner chose a fresh start over retaining an unreadable catalog. The field initializer
-                // is the fresh state, and enabling persistence lets the next user action replace the failed file.
-                // The catch still spans the whole load, so the message cannot claim what was or was not read.
-                _preferencesLoaded = true;
-                _stateCommitter = CreateStateCommitter(_state);
-                _log.Error("Catalog state load failed", exception);
-                SetStatus("MainLoadFailed");
-                MessageBox.Show(this, LocalizationService.Get("MainLoadFailedBody"), LocalizationService.Get("ProductName"), MessageBoxButton.OK, MessageBoxImage.Error);
+                // SP-0175: a failure past the catalog load is this step's own. The catalog in memory is
+                // fine, and reporting it as a load failure would tell the user to restart away a
+                // catalog he still has; the boundary logs the fault under this step's name and shows
+                // the handler notice.
+                HandlerBoundary.Report("MainWindow_Loaded.ViewSetup", exception);
             }
             finally
             {
@@ -351,19 +385,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 ShowPublishWindowRetry(notice, "catalog_refresh", "CatalogPublishWindowRetry"));
             var outcome = await service.DownloadAsync(progress, retrying, _cancellableOperation.Token);
             CatalogRefreshResult? result = null;
-            _state = await PersistAsync(
-                state => (result = outcome.Apply(state)).State,
+            var commit = await CommitStateAsync(
+                async (state, cancellationToken) =>
+                    (result = await StreamCatalogService.ApplyAsync(outcome, state, cancellationToken)).State,
                 (state, cancellationToken) => _store.SaveAsync(
                     state,
                     outcome.Bank.FaviconAtlas,
                     outcome.ReplacesAtlas,
-                    cancellationToken));
+                    cancellationToken),
+                _cancellableOperation.Token);
             // The download is over and the outcome is about to be written, so no further report may touch
             // the status line.
             _reportingProgress = false;
-            if (result is null)
+            if (result is null || !commit.Saved)
             {
-                return;
+                throw commit.Failure ?? new IOException("Catalog refresh was not saved.");
             }
             _log.Information(
                 $"Catalog refresh completed: {result.Added} added, {result.Updated} updated, " +
@@ -457,7 +493,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
 
             var url = dialog.StreamUrl.Trim();
-            if (_state.Channels.Any(channel => channel.Url.Equals(url, StringComparison.Ordinal)))
+            if (_state.Channels.Any(channel => CatalogUrlIdentity.SameIdentity(channel.Url, url)))
             {
                 MessageBox.Show(this, LocalizationService.Get("DuplicateStream"), LocalizationService.Get("ProductName"));
                 return;
@@ -475,7 +511,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 SortIndex = nextOrder,
                 AddedAt = DateTimeOffset.UtcNow
             }, dialog, url, title);
-            _state = await PersistAsync(state => state with { Channels = [.. state.Channels, channel] });
+            await PersistAsync(state => state with { Channels = [.. state.Channels, channel] });
             PopulateFacets();
             ApplyFilter();
             SetStatus("AddedStream", title);
@@ -606,7 +642,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // Pinning moves the channel above every other pinned row (min SortIndex - 1); unpinning keeps its order.
     private async Task SetChannelPinnedAsync(StreamChannel channel, bool pinned)
     {
-        _state = await PersistAsync(state =>
+        await PersistAsync(state =>
         {
             var current = state.Channels.FirstOrDefault(item => item.Id == channel.Id);
             if (current is null || current.Pinned == pinned)
@@ -800,7 +836,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
 
             var url = dialog.StreamUrl.Trim();
-            if (_state.Channels.Any(channel => channel.Id != row.Channel.Id && channel.Url.Equals(url, StringComparison.Ordinal)))
+            if (_state.Channels.Any(channel => channel.Id != row.Channel.Id && CatalogUrlIdentity.SameIdentity(channel.Url, url)))
             {
                 MessageBox.Show(this, LocalizationService.Get("DuplicateStream"), LocalizationService.Get("ProductName"));
                 return;
@@ -810,10 +846,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
             // Editing takes ownership (SP-0126): a published or imported bank row becomes the user's, so no
             // later refresh or import writes over the edit or brings the old address back beside it.
-            _state = await PersistAsync(state => ChannelOwnership.ApplyEdit(
+            var channelId = row.Channel.Id;
+            var metadata = ApplyDialogMetadata(row.Channel, dialog, url, title);
+            await PersistAsync(state => ChannelOwnership.ApplyEdit(
                 state,
-                row.Channel.Id,
-                owned => ApplyDialogMetadata(owned, dialog, url, title)));
+                channelId,
+                owned => ApplyDialogMetadata(owned, metadata)));
             PopulateFacets();
             ApplyFilter();
             SetStatus("EditedStream", title);
@@ -1012,7 +1050,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             // SP-0062: the one place a station session opens. A recovery leg re-enters StartAudioPlayback
             // with reconnecting: true and never comes through here, which is what makes "a reconnect writes
             // nothing" true by construction rather than by a guard.
-            await NoteStreamStartedAsync(channel.Id);
+            QueueAudioResumeChange(channel.Id, started: true);
         }
         else
         {
@@ -1031,11 +1069,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         else
         {
+            _audioOutcomeRecorded = false;
+            _audioTerminalFailureRecorded = false;
             BeginAudioSession(channel);
         }
 
+        var volume = _pendingAudioVolume ?? (_stateCommitter?.Requested ?? _state).AudioVolume;
         _suppressAudioVolumeSave = true;
-        AudioVolumeSlider.Value = _state.AudioVolume;
+        AudioVolumeSlider.Value = volume;
         _suppressAudioVolumeSave = false;
         AudioVolumeSlider.Visibility = Visibility.Visible;
         if (UsesFastMediaSorterAudioRoute(channel))
@@ -1049,7 +1090,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // here, nothing is opened and the open budget below ends the session by the ordinary route.
         if (LaunchableAddress.TryParse(channel.Url, out var address))
         {
-            _standardAudioPlayback.Play(address, _state.AudioVolume);
+            _standardAudioPlayback.Play(address, volume);
         }
 
         // SP-0096: restarted on every leg, so the budget is a per-leg quantity exactly as it is for
@@ -1085,7 +1126,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
-        // A bounded status document can arrive before MediaElement raises Playing. Preserve that early
+        // A bounded status document can arrive before the audio engine raises Playing. Preserve that early
         // reading instead of overwriting it with the station name at the exact moment audio becomes live.
         if (string.IsNullOrWhiteSpace(_currentTrackText))
         {
@@ -1111,7 +1152,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         _audioOpenTimer.Stop(); // SP-0096: it opened, which is the only thing the budget was waiting for
         _audioRecovery?.NotifyLive(); // sustained live - restore the full recovery budget
-        await RecordPlayOutcome(playing.Channel.Id, true);
+        if (!_audioOutcomeRecorded)
+        {
+            _audioOutcomeRecorded = true;
+            await RecordPlayOutcome(playing.Channel.Id, true);
+        }
         if (ReferenceEquals(_playingAudio, playing) && _currentTrackText is { } track)
         {
             QueueNowPlayingHistory(playing.Channel.Id, track);
@@ -1147,8 +1192,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
 
     /// <remarks>
-    /// SP-0069: <c>MediaElement</c> reports a server that closed the response *cleanly* as MediaEnded,
-    /// not MediaFailed - and nothing was listening, so the session simply never ended. What stayed behind
+    /// SP-0069: the audio engine reports a server that closed the response *cleanly* as Ended, not
+    /// Failed (under WPF <c>MediaElement</c>, before SP-0104, it was MediaEnded) - and nothing used to
+    /// listen, so the session simply never ended. What stayed behind
     /// was worse than a leak: <c>_audioWake</c> kept forbidding the machine to sleep, the sleep timer kept
     /// counting, the Windows media session kept showing Playing and the now-playing line kept naming a
     /// station that had stopped. A station that ends is the ordinary way a relay drops, so this takes the
@@ -1223,12 +1269,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     // Terminal audio failure: record the real failed play (red status) and offer Retry / Copy / Hide|Delete / Keep.
     // SP-0099: a FastMediaSorter source names why it ended - the device stopped, or its listener slots are full.
-    private async Task FailAudioTerminallyAsync(StreamChannel channel, string reason, FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure = null)
+    // SP-0041: the reachability verdict decides whether hide/delete is offered; the default is the old dialog.
+    private async Task FailAudioTerminallyAsync(
+        StreamChannel channel,
+        string reason,
+        FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure = null,
+        PlaybackReachability reachability = PlaybackReachability.NotProbed)
     {
         NoteAudioTerminalFailure(); // before the stop, which is what closes and records the session
         var quiet = _audioQuiet; // StopAudio below reassigns nothing, but the next play would
         StopAudio();
-        await RecordPlayOutcome(channel.Id, false);
+        if (!_audioTerminalFailureRecorded)
+        {
+            _audioTerminalFailureRecorded = true;
+            await RecordPlayOutcome(channel.Id, false);
+        }
         if (quiet)
         {
             // SP-0062: a stream resumed at launch that never reached live reports itself in the status line.
@@ -1272,7 +1327,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             channel.Url,
             channel.MediaKind,
             PlaybackErrorClassifier.Classify(reason)));
-        var dialog = new PlaybackFailureDialog(channel.Title, channel.SourceOrigin, report, channel.Access, message) { Owner = this };
+        var dialog = new PlaybackFailureDialog(
+            channel.Title, channel.SourceOrigin, report, channel.Access, message, reachability: reachability) { Owner = this };
         dialog.ShowDialog();
         switch (dialog.Choice)
         {
@@ -1289,13 +1345,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         try
         {
-            // The slider's XAML Value="100" fires ValueChanged during InitializeComponent,
-            // before the AudioPlayer element below it in the tree exists. Ignore that spurious fire.
-            if (_standardAudioPlayback is null)
-            {
-                return;
-            }
-
             var volume = (int)Math.Round(e.NewValue);
             _standardAudioPlayback.SetVolume(volume);
             _fastMediaSorterAudioPlayback?.SetVolume(volume); // SP-0099: that route plays through LibVLC, not AudioPlayer
@@ -1341,7 +1390,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
 
         _pendingAudioVolume = null;
-        _state = await PersistAsync(state => state.AudioVolume == volume ? state : state with { AudioVolume = volume });
+        await PersistAsync(state => state.AudioVolume == volume ? state : state with { AudioVolume = volume });
     }
 
     // SP-0081: the panel's own transport. Silencing a station is the common reason to press this, and
@@ -1454,7 +1503,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         if (stoppedChannelId is { } id)
         {
-            _ = NoteStreamStoppedAsync(id);
+            QueueAudioResumeChange(id, started: false);
         }
     }
 
@@ -1467,16 +1516,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             RemoveChannelAsync,
             () => _state.Channels.FirstOrDefault(item => item.Id == channel.Id)?.Pinned ?? channel.Pinned,
             pinned => SetChannelPinnedAsync(channel, pinned),
-            _state.PlayerWindowTopmost,
+            (_stateCommitter?.Requested ?? _state).PlayerWindowTopmost,
             SetPlayerTopmostAsync,
             () => _state.Collections,
             (collectionId, member) => SetCollectionMembershipAsync(collectionId, channel.Id, member),
             name => CreateCollectionWithChannelAsync(name, channel.Id),
-            _state.VideoVolume,
-            _state.VideoMuted,
+            (_stateCommitter?.Requested ?? _state).VideoVolume,
+            (_stateCommitter?.Requested ?? _state).VideoMuted,
             SaveVideoAudioPreferencesAsync,
             (url, frame) => _previewCoordinator?.IngestFrame(url, frame),
-            () => _state.FrameFolder,
+            kind => CaptureFolderChoices.For(_state, kind),
             _state.VideoBackend,
             startFullscreen,
             quiet) { Owner = this };
@@ -1524,6 +1573,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             window.Close();
             _closedPlayerEngines.Add(window.EngineReleased);
+            // SP-0164: window.Close ran the player's own Closed handler first, so the finish exists by now.
+            if (window.CloseRecordingFinish is { } finish)
+            {
+                _closedRecordingFinishes.Add(finish);
+            }
         }
     }
 
@@ -1538,12 +1592,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private async Task RecordPlayOutcome(Guid id, bool succeeded)
     {
         var now = DateTimeOffset.UtcNow;
-        _state = await PersistAsync(state =>
+        var resumeChanges = TakePendingAudioResumeChanges();
+        await PersistAsync(state =>
         {
+            var withResume = ApplyAudioResumeChanges(state, resumeChanges);
             var channel = state.Channels.FirstOrDefault(item => item.Id == id);
             if (channel is null)
             {
-                return state;
+                return withResume;
             }
 
             var updated = channel with
@@ -1555,7 +1611,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             var history = succeeded
                 ? ListeningHistory.RecordPlay(state.ListeningHistory, channel.Id, channel.Title, channel.MediaKind, now)
                 : state.ListeningHistory;
-            return state with
+            return withResume with
             {
                 Channels = [.. state.Channels.Select(item => item.Id == id ? updated : item)],
                 ListeningHistory = history
@@ -1582,6 +1638,22 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             Bitrate = dialog.MetaBitrate,
             IsLive = dialog.MetaIsLive
         };
+
+    private static StreamChannel ApplyDialogMetadata(StreamChannel channel, StreamChannel metadata) => channel with
+    {
+        Url = metadata.Url,
+        Title = metadata.Title,
+        MediaKind = metadata.MediaKind,
+        Category = metadata.Category,
+        Topic = metadata.Topic,
+        Language = metadata.Language,
+        Country = metadata.Country,
+        Homepage = metadata.Homepage,
+        Protocol = metadata.Protocol,
+        Format = metadata.Format,
+        Bitrate = metadata.Bitrate,
+        IsLive = metadata.IsLive
+    };
 
     private void SetBusy(bool busy, bool cancellable = false)
     {

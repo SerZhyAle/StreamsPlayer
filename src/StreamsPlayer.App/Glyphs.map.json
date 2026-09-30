@@ -12,7 +12,7 @@
     { "id": "action.delete", "name": "Delete", "surfaces": [ "style:DeleteGlyphButton" ], "note": "Collections, downloaded streams, the imported catalog, the video components - each destroyed, not taken off a list." },
     { "id": "action.clear-input", "name": "Clear", "surfaces": [ "style:ClearInputGlyphButton" ], "nameKeys": [ "ClearTip" ] },
     { "id": "action.clear-filter", "name": "Clear filters", "surfaces": [ "style:ClearFilterGlyphButton" ], "nameKeys": [ "ClearFiltersName" ] },
-    { "id": "action.reset", "name": "Reset to defaults", "surfaces": [ "style:ResetGlyphButton" ], "note": "The saved-files folder back to Downloads." },
+    { "id": "action.reset", "name": "Reset to defaults", "surfaces": [ "style:ResetGlyphButton" ], "note": "A capture folder back to its default." },
     { "id": "nav.close", "name": "Close", "surfaces": [ "style:CloseGlyphOnlyButton", "style:PlayerOverlayCloseGlyphButton" ], "nameKeys": [ "HideFilters", "CompactPanelCloseTip" ] },
     { "id": "action.cancel", "name": "Cancel", "surfaces": [ "style:CancelGlyphButton" ] },
     { "id": "action.save", "name": "Save", "surfaces": [ "style:SaveGlyphButton" ] },
@@ -39,7 +39,7 @@
     { "id": "nav.collapse", "name": "Collapse", "surfaces": [ "MainWindow.xaml section header (open)" ] },
     { "id": "nav.dropdown", "name": "Choose from list", "surfaces": [ "App.xaml ComboBox" ] },
     { "id": "app.info", "name": "Information", "surfaces": [ "SettingsWindow.xaml tab About" ] },
-    { "id": "nav.open-external", "name": "Open in new window", "rtl": "mirror", "surfaces": [ "style:OpenFolderGlyphButton" ], "note": "Opens the saved-files folder in File Explorer." },
+    { "id": "nav.open-external", "name": "Open in new window", "rtl": "mirror", "surfaces": [ "style:OpenFolderGlyphButton" ], "note": "Opens a capture folder in File Explorer." },
     { "id": "nav.scroll-top", "name": "Scroll to top", "surfaces": [ "site _footer.html back-to-top" ] }
   ],
   "pending": [

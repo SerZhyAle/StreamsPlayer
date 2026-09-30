@@ -15,6 +15,11 @@ Index of this tree. Two very different things live here, and the split matters:
   `tools/site/export-site-screenshots.ps1` from the Store captures in `assets/store/`.
 - **Hand-written documentation** - everything below. Edit these directly.
 
+Every document in the repository - these, the generated pages above, and every other `*.md` - has one
+entry in [`DOCUMENT_REGISTRY.jsonl`](../DOCUMENT_REGISTRY.jsonl) at the root. `scripts/check-docs.ps1`
+fails on an undeclared document, a broken link or anchor, and house-style breaks (SP-0140), so a new
+document lands with its entry.
+
 ## Maintainer documentation
 
 | Path | What it is |

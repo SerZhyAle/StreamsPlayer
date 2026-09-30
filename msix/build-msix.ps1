@@ -6,6 +6,11 @@
   Publishes the WPF app self-contained for win-x64, copies the product logos,
   fills AppxManifest.xml and packs the resulting application. Use -SelfSign
   only for local testing; Partner Center packages must remain unsigned.
+
+  SP-0156: the package is built only from a clean working tree whose HEAD is
+  exactly at a vYY.MMDD.HHmm tag, and the version comes from that tag - the
+  script refuses a dirty tree and refuses a HEAD off the tag, because the
+  Store once shipped a version no tag carries (26.0806.2225).
 #>
 # Defaults are the PERMANENT reserved Partner Center identity for Store ID 9NBTD5SXB8TB.
 # Do not change them; every Store update must ship these exact three values. See msix/README.md.
@@ -14,7 +19,6 @@ param(
     [string] $IdentityName = 'SZA.StreamsPlayer',
     [string] $Publisher = 'CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD',
     [string] $PublisherDisplayName = 'SZA',
-    [string] $Version,
     [switch] $SelfSign
 )
 
@@ -75,7 +79,17 @@ try {
 finally { Pop-Location }
 if (-not (Test-Path -LiteralPath (Join-Path $publish 'StreamsPlayer.exe'))) { throw "Published StreamsPlayer.exe not found in $publish." }
 
-Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
+# SP-0156 (T-10): the Store package carries the same pinned-natives evidence as every other channel -
+# the native tree present and byte-identical to the package the project pins, not merely present.
+& (Join-Path $root 'scripts/Assert-PinnedNatives.ps1') -Folder $publish -ProjectPath (Join-Path $root 'src/StreamsPlayer.App/StreamsPlayer.App.csproj')
+
+# SP-0157: the stage is overlaid below, so whatever survives this removal is packed. A locked file from an earlier
+# stage fails the build here rather than riding into the Store package.
+if (Test-Path -LiteralPath $stage) {
+    try { Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction Stop }
+    catch { throw "Cannot empty the stage folder $stage - a leftover would be packed: $($_.Exception.Message)" }
+    if (Test-Path -LiteralPath $stage) { throw "Cannot empty the stage folder $stage - it still exists after removal." }
+}
 New-Item -ItemType Directory -Path (Join-Path $stage 'Assets'), $dist -Force | Out-Null
 Copy-Item (Join-Path $publish '*') $stage -Recurse -Force
 Copy-Item (Join-Path $root 'LICENSE') (Join-Path $stage 'LICENSE.txt') -Force

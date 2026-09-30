@@ -12,7 +12,8 @@ namespace StreamsPlayer.App;
 /// <remarks>
 /// The video path reports its own session summary from <see cref="PlayerWindow"/>. Audio plays inside
 /// this window, so its accounting lives here: one summary per station session, in the same field shape,
-/// minus the stall fields - the WPF media element exposes no buffer level and no position telemetry, so
+/// minus the stall fields - the audio path has no stall watchdog and reads no buffer level (it had none
+/// to read under WPF MediaElement, and the LibVLC engine has not been given one since SP-0104), so
 /// "it stuttered for four seconds" is not knowable for audio and must not be implied.
 /// </remarks>
 public partial class MainWindow
@@ -39,12 +40,14 @@ public partial class MainWindow
             RuntimeInformation.OSArchitecture.ToString(),
             DateTimeOffset.UtcNow));
 
-        var outputFolder = CapturedFrameWriter.ResolveFolder(_state.FrameFolder);
+        // A log archive is not a capture (CAPTURE-OUTPUT section 5): it keeps going where it always went - the
+        // frames folder the user chose, else Downloads - and does not follow the frames' new default (SP-0179).
+        var outputFolder = string.IsNullOrWhiteSpace(_state.FrameFolder) ? CaptureFolders.Downloads() : _state.FrameFolder.Trim();
         string archivePath;
         try
         {
             // Copies and compresses files - off the UI thread even though the logs are small, because the
-            // ceiling is 2 MB per log and this runs while the Settings window is open.
+            // ceiling is 2 MB per log and this runs while the Tools window is open.
             archivePath = await Task.Run(() =>
                 DiagnosticArchiveBuilder.Build(_dataDirectory, outputFolder, summary, DateTimeOffset.UtcNow));
         }
@@ -61,10 +64,15 @@ public partial class MainWindow
 
         var fileName = Path.GetFileName(archivePath);
         _log.Event("LOG REPORT", "ok=true", $"bytes={new FileInfo(archivePath).Length}", $"file={fileName}");
+        // SP-0174: the mail body names the archive by file name and folder alias - the prepared draft can
+        // be stored, quoted or forwarded, so it never carries a path under the user's profile. The
+        // confirmation window below still shows the real path: that is what the user needs to attach it.
+        var mailPath = DiagnosticArchiveBuilder.DescribePathForMail(
+            archivePath, DiagnosticPathRedactor.ForCurrentUser(_dataDirectory));
         var composed = LogReportMailer.Compose(
             ProductInfo.AuthorEmail,
             LocalizationService.Format("SendLogsSubject", ProductInfo.Version),
-            LocalizationService.Format("SendLogsBody", archivePath));
+            LocalizationService.Format("SendLogsBody", mailPath));
         if (!composed)
         {
             MessageBox.Show(owner, LocalizationService.Format("SendLogsNoMailClient", archivePath),

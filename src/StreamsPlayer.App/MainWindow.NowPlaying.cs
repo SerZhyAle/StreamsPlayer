@@ -13,7 +13,7 @@ public partial class MainWindow
     private readonly HttpClient _statusHttpClient = CreateStatusHttpClient();
     private CancellationTokenSource? _icyCts;
     private readonly Dictionary<Guid, string?> _pendingNowPlayingHistory = [];
-    private readonly DispatcherTimer _nowPlayingHistorySaveTimer = new() { Interval = TimeSpan.FromSeconds(1) };
+    private readonly DispatcherTimer _nowPlayingHistorySaveTimer = new() { Interval = TimeSpan.FromMinutes(1) };
 
     // Bumped on every start/stop so a marshaled report from a superseded reader is
     // dropped instead of overwriting the current station's now-playing line.
@@ -137,10 +137,12 @@ public partial class MainWindow
     private void QueueNowPlayingHistory(Guid channelId, string? title)
     {
         _pendingNowPlayingHistory[channelId] = title;
-        _nowPlayingHistorySaveTimer.Stop();
-        _nowPlayingHistorySaveTimer.Tick -= NowPlayingHistorySaveTimer_Tick;
-        _nowPlayingHistorySaveTimer.Tick += NowPlayingHistorySaveTimer_Tick;
-        _nowPlayingHistorySaveTimer.Start();
+        if (!_nowPlayingHistorySaveTimer.IsEnabled)
+        {
+            _nowPlayingHistorySaveTimer.Tick -= NowPlayingHistorySaveTimer_Tick;
+            _nowPlayingHistorySaveTimer.Tick += NowPlayingHistorySaveTimer_Tick;
+            _nowPlayingHistorySaveTimer.Start();
+        }
     }
 
     private async void NowPlayingHistorySaveTimer_Tick(object? sender, EventArgs e)
@@ -165,7 +167,7 @@ public partial class MainWindow
 
         var pending = _pendingNowPlayingHistory.ToArray();
         _pendingNowPlayingHistory.Clear();
-        _state = await PersistAsync(state =>
+        await PersistAsync(state =>
         {
             var history = state.ListeningHistory;
             foreach (var (channelId, title) in pending)

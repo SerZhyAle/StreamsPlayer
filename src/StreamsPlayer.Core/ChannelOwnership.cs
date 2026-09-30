@@ -27,7 +27,7 @@ public static class ChannelOwnership
     /// <summary>
     /// Applies a user edit to one row. A bank row becomes <see cref="SourceOrigin.Manual"/> first, so the
     /// merge no longer touches it, and drops its favicon index, which points into a sheet the next merge
-    /// replaces (SP-0125). When the edit moves such a row to another address, the original address is hidden,
+    /// replaces (SP-0125). The edit also clears <see cref="StreamChannel.RetiredAt"/>. When the edit moves such a row to another address, the original address is hidden,
     /// so the bank listing it again adds a hidden row rather than a visible duplicate.
     /// </summary>
     /// <returns><paramref name="state"/> unchanged when no row has <paramref name="channelId"/>.</returns>
@@ -46,7 +46,9 @@ public static class ChannelOwnership
         var owned = bankSourced
             ? current with { SourceOrigin = SourceOrigin.Manual, FaviconIndex = null }
             : current;
-        var replacement = edit(owned) with { Id = current.Id };
+        // SP-0177: retirement says "the bank stopped listing this address". An edited row is the user's, no
+        // bank can ever revive it (the merge never touches a user row), so a kept date would retire it for good.
+        var replacement = edit(owned) with { Id = current.Id, RetiredAt = null };
         var hidden = bankSourced &&
                      !CatalogUrlIdentity.SameIdentity(current.Url, replacement.Url) &&
                      !CatalogUrlIdentity.IsHidden(state.HiddenCatalogUrls, current.Url)

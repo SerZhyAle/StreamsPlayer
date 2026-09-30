@@ -268,24 +268,97 @@ public partial class App : Application
         WakeGuard.Reset();
         if (showNotice)
         {
-            try
-            {
-                MessageBox.Show(
-                    LocalizationService.Format("FatalFaultNotice", AppPaths.DataDirectory),
-                    LocalizationService.Get("ProductName"),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-            catch (Exception noticeFailure)
-            {
-                _log?.Error("Fatal fault notice failed", noticeFailure);
-            }
+            ShowFatalNoticeWithUiHeld();
         }
 
         _log?.Dispose();
         if (exit)
         {
             Environment.Exit(1);
+        }
+    }
+
+    /// <summary>
+    /// SP-0178: a message box shown on the UI thread runs a nested message loop, in which every
+    /// <c>DispatcherTimer</c> still ticks - the volume, browsing-session and now-playing timers among them,
+    /// each of which can save the state SP-0119 forbids saving here. So the UI thread never pumps while the
+    /// notice is open: on the UI thread the notice runs on a thread of its own while this one sleeps, and
+    /// from any other thread the UI thread is first parked inside a Send-priority callback it never leaves,
+    /// which is also where the notice text is read, since resources are UI-thread-affine.
+    /// </summary>
+    private void ShowFatalNoticeWithUiHeld()
+    {
+        string? text = null;
+        string? caption = null;
+        void ReadNotice()
+        {
+            text = LocalizationService.Format("FatalFaultNotice", AppPaths.DataDirectory);
+            caption = LocalizationService.Get("ProductName");
+        }
+
+        try
+        {
+            if (Dispatcher.CheckAccess())
+            {
+                ReadNotice();
+                var noticeThread = new Thread(() => ShowFatalNotice(text, caption)) { IsBackground = true };
+                noticeThread.SetApartmentState(ApartmentState.STA);
+                noticeThread.Start();
+                // Thread.Sleep rather than Join: Join pumps sent messages on an STA thread, Sleep pumps nothing.
+                while (noticeThread.IsAlive)
+                {
+                    Thread.Sleep(50);
+                }
+
+                return;
+            }
+
+            var ready = new ManualResetEventSlim();
+            Dispatcher.BeginInvoke(DispatcherPriority.Send, () =>
+            {
+                try
+                {
+                    ReadNotice();
+                }
+                finally
+                {
+                    ready.Set();
+                }
+
+                // Parked for the rest of the process: the runtime ends it once this handler returns.
+                Thread.Sleep(Timeout.Infinite);
+            });
+            if (!ready.Wait(FatalNoticeUiWait))
+            {
+                _log?.Information("Fatal fault notice skipped: the UI thread did not respond.");
+                return;
+            }
+
+            ShowFatalNotice(text, caption);
+        }
+        catch (Exception noticeFailure)
+        {
+            _log?.Error("Fatal fault notice failed", noticeFailure);
+        }
+    }
+
+    /// <summary>How long a non-UI fault waits for the UI thread to be parked before giving up on the notice.</summary>
+    private static readonly TimeSpan FatalNoticeUiWait = TimeSpan.FromSeconds(5);
+
+    private void ShowFatalNotice(string? text, string? caption)
+    {
+        if (text is null || caption is null)
+        {
+            return;
+        }
+
+        try
+        {
+            MessageBox.Show(text, caption, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        catch (Exception noticeFailure)
+        {
+            _log?.Error("Fatal fault notice failed", noticeFailure);
         }
     }
 

@@ -45,7 +45,8 @@ public static class PlaybackErrorClassifier
             return PlaybackErrorCategory.MediaError;
         }
 
-        // Audio (WPF MediaElement) exception type names and free-text hints.
+        // Exception type names and free-text hints (first written for WPF MediaElement, which radio used
+        // before SP-0104; still matched against the LibVLC and HTTP failure reasons).
         if (Contains(value, "format") || Contains(value, "codec") || Contains(value, "notsupported") || Contains(value, "unsupported"))
         {
             return PlaybackErrorCategory.Unsupported;

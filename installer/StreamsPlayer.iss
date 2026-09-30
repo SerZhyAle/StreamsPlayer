@@ -8,10 +8,11 @@
 ;   /DVersion=26.0820.1828      the release version, house stamp YY.MMDD.HHmm
 ;   /DSourceDir=<absolute path> the staging tree to package
 ;
-; Why a full-tree installer and not a single-file executable: LibVLCSharp resolves its natives from
-; libvlc\win-x64\ *beside* the executable, and those DLLs arrive as MSBuild Content, which
-; PublishSingleFile does not embed. A lone StreamsPlayer.exe dies at startup in
-; VideoFrameCaptureService..ctor. The recursive [Files] line below is what makes this channel work.
+; Why a full-tree installer and not a single executable: LibVLCSharp resolves its natives from
+; libvlc\win-x64\ *beside* the executable, and those DLLs arrive as MSBuild Content that no publish embeds.
+; Every playback path - radio, the video player, grid previews - runs on them. Since SP-0119 a copy without
+; them still starts, with the grid previews switched off and a notice, but it cannot play anything. The
+; recursive [Files] line below is what delivers them.
 
 #ifndef Version
   #error Version is not defined. Pass /DVersion=<version>.
@@ -19,6 +20,13 @@
 #ifndef SourceDir
   #error SourceDir is not defined. Pass /DSourceDir=<absolute path to the staging tree>.
 #endif
+
+; SP-0136: the session-local lock a running copy holds (SP-0118, APP-ACTIVATION rule 2). It is an
+; installer anchor as well as a runtime one: it must equal SingleInstanceIdentity.ProductMutexName
+; character for character (Windows compares mutex names case-sensitively), and
+; InstallerAppMutexTests holds the two together. Only the default profile's name is listed - a
+; relocated test profile (SP-0133) carries a suffix and is not something this installer serves.
+#define AppMutexName "Local\StreamsPlayerSingleInstance"
 
 [Setup]
 ; SP-0092 frozen anchor - generated once on 2026-08-21 and never again. Changing it does not produce an
@@ -62,6 +70,12 @@ SetupIconFile={#SourcePath}\..\assets\streamsplayer.ico
 UninstallDisplayName=STREAMS Player
 UninstallDisplayIcon={app}\StreamsPlayer.exe
 WizardStyle=modern
+; SP-0136: Setup and Uninstall check the running copy's own lock before any file is touched and, while it
+; is held, ask the user to close STREAMS Player and retry (Inno's localized "is currently running"
+; OK/Cancel prompt, naming the product). Nothing is ever closed on the user's behalf. A silent run never
+; reaches that prompt - see InitializeSetup / InitializeUninstall below.
+AppMutex={#AppMutexName}
+; The Restart Manager stays as the second line of defence for files held by some other process.
 CloseApplications=yes
 RestartApplications=no
 
@@ -79,7 +93,11 @@ Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
 Name: "uk"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+; The desktop shortcut is offered checked: a fresh install must leave both a Start menu group and a desktop
+; shortcut (owner decision, 2026-09-27). The user may still untick it in the wizard; a silent run (winget)
+; takes the default and therefore creates it. The Start menu group in [Icons] carries no task - it is
+; always created. InstallerShortcutTests holds both.
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
 ; One recursive line carries the whole self-contained publish, including libvlc\win-x64\ and
@@ -102,3 +120,31 @@ Filename: "{app}\StreamsPlayer.exe"; Description: "{cm:LaunchProgram,STREAMS Pla
 ; and is not ours to remove: uninstalling one distribution channel must not destroy data the user
 ; created through another. Removing it here would be silent data loss, so its absence is a decision,
 ; not an oversight.
+
+; [Code] stays last: Pascal does not read ';' as a comment, so nothing may follow it but code.
+[Code]
+{ SP-0136: a silent run with the application open fails instead of prompting. Both event functions run
+  before Inno's own AppMutex check, so a silent run never reaches the "is currently running" message box -
+  which /VERYSILENT without /SUPPRESSMSGBOXES would still show, and which nobody may be there to answer.
+  Returning False ends Setup with exit code 1 and Uninstall with a non-zero code, before any file is
+  touched; the package manager reports the failure, and the running copy is left alone. }
+
+function InitializeSetup(): Boolean;
+begin
+  Result := True;
+  if WizardSilent and CheckForMutexes('{#AppMutexName}') then
+  begin
+    Log('SP-0136: STREAMS Player is running and this is a silent install - exiting without changes. Close the application and run the installer again.');
+    Result := False;
+  end;
+end;
+
+function InitializeUninstall(): Boolean;
+begin
+  Result := True;
+  if UninstallSilent and CheckForMutexes('{#AppMutexName}') then
+  begin
+    Log('SP-0136: STREAMS Player is running and this is a silent uninstall - exiting without changes. Close the application and run the uninstaller again.');
+    Result := False;
+  end;
+end;

@@ -126,6 +126,127 @@ public sealed class FastMediaSorterBroadcastDescriptorTests
         Assert.Equal(FastMediaSorterBroadcastReadStatus.NotBroadcast, read.Status);
     }
 
+    // SP-0158: nesting helpers. A link level costs "fmsbcast://?payload=" (20 characters), so a link
+    // chain that fits the 64 KiB entry cap tops out near 3,276 levels - the old recursive reader
+    // overflowed the stack inside that. The compressed form needs the test-side gzip writer.
+
+    private static string WrapInLink(string inner) => "fmsbcast://?payload=" + Uri.EscapeDataString(inner);
+
+    private static string WrapInLinkUnescaped(string inner) => "fmsbcast://?payload=" + inner;
+
+    private static string NestLinks(int levels, string innermost)
+    {
+        var text = innermost;
+        for (var level = 0; level < levels; level++)
+        {
+            // The payload is plain letters and link punctuation, so the escape is the identity and the
+            // chain keeps its true per-level cost of 20 characters.
+            text = WrapInLinkUnescaped(text);
+        }
+
+        return text;
+    }
+
+    private static string NestCompressed(int layers, string innermost)
+    {
+        var text = innermost;
+        for (var layer = 0; layer < layers; layer++)
+        {
+            text = Compress(text);
+        }
+
+        return text;
+    }
+
+    /// <summary>
+    /// SP-0158: a link chain deeper than the wrappings limit is the invalid payload it always was -
+    /// refused after the limit, not followed one stack frame per level.
+    /// </summary>
+    [Fact]
+    public void LinkNestedBeyondTheWrappingsLimitIsInvalid()
+    {
+        var read = FastMediaSorterBroadcastDescriptor.Read(NestLinks(FastMediaSorterBroadcastDescriptor.MaximumWrappings + 1, PhoneJson));
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.InvalidPayload, read.Status);
+    }
+
+    [Fact]
+    public void CompressedNestedBeyondTheWrappingsLimitIsInvalid()
+    {
+        var read = FastMediaSorterBroadcastDescriptor.Read(
+            NestCompressed(FastMediaSorterBroadcastDescriptor.MaximumWrappings + 1, PhoneJson));
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.InvalidPayload, read.Status);
+    }
+
+    [Fact]
+    public void MixedLinkAndCompressionNestingBeyondTheLimitIsInvalid()
+    {
+        var text = PhoneJson;
+        for (var level = 0; level <= FastMediaSorterBroadcastDescriptor.MaximumWrappings; level++)
+        {
+            text = level % 2 == 0 ? WrapInLink(text) : Compress(text);
+        }
+
+        var read = FastMediaSorterBroadcastDescriptor.Read(text);
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.InvalidPayload, read.Status);
+    }
+
+    /// <summary>
+    /// SP-0158: the size ceiling is the whole read's. Two layers that each inflate to ~34 KiB - inside
+    /// the old per-layer cap - used to reset the budget at every level; their inflated total (~68 KiB)
+    /// now refuses the input. High-entropy text keeps each outer layer near its inner size, so both
+    /// layers stay small enough to be individually legal.
+    /// </summary>
+    [Fact]
+    public void SmallCompressedLayersWhoseInflatedTotalExceedsTheCeilingAreTooLarge()
+    {
+        var inner = HighEntropyText(34_000);
+        var chain = Compress(Compress(inner));
+
+        var read = FastMediaSorterBroadcastDescriptor.Read(chain);
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.TooLarge, read.Status);
+    }
+
+    /// <summary>A deterministic byte stream that gzip cannot shrink below its 6-bits-per-character entropy.</summary>
+    private static string HighEntropyText(int length)
+    {
+        var bytes = new byte[length];
+        uint state = 0x12345678;
+        for (var i = 0; i < bytes.Length; i++)
+        {
+            state = state * 1664525 + 1013904223;
+            bytes[i] = (byte)(state >> 24);
+        }
+
+        return Convert.ToBase64String(bytes)[..length];
+    }
+
+    /// <summary>
+    /// SP-0158 acceptance: a 100,000-level nesting completes with a bounded refusal. No 100,000-level
+    /// input can exist under the 64 KiB entry cap (every link level costs at least 20 characters), so
+    /// this one is refused by that entry check - the point is that it is refused, instantly, where the
+    /// old reader would have started unwrapping it without end.
+    /// </summary>
+    [Fact]
+    public void AHundredThousandLevelNestingCompletesWithABoundedRefusal()
+    {
+        var read = FastMediaSorterBroadcastDescriptor.Read(NestLinks(100_000, PhoneJson));
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.TooLarge, read.Status);
+    }
+
+    [Fact]
+    public void InLimitDoubleWrappingIsStillAccepted()
+    {
+        var read = FastMediaSorterBroadcastDescriptor.Read(WrapInLink(Compress(PhoneJson)));
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, read.Status);
+        Assert.Equal("Galaxy S25 FE", read.Broadcast!.Title);
+    }
+
     public static TheoryData<string, string> WronglyTypedNumericFields()
     {
         const string root = """"{"schemaVersion":1,"url":"http://192.168.1.97:8768/a.aac","mode":"AUDIO_ONLY"""";

@@ -1,122 +1,122 @@
-# StreamsPlayer - backlog улучшений по итогам анализа конкурентов
+# StreamsPlayer - improvement backlog from the competitor review
 
-Дата исследования: 2026-07-19.
+Research date: 2026-07-19.
 
-## Вывод
+## Conclusion
 
-StreamsPlayer уже закрывает базовый сценарий лучше, чем «каталожный» проигрыватель: явное обновление каталога, локальные данные без аккаунта, фильтры, закрепление, ручные потоки, видео/RTSP и сетка живых превью. Следующий прирост ценности дают не ещё один каталог или дизайн, а надёжность воспроизведения, контекст о текущем эфире и быстрый перенос пользователем своей подборки.
+StreamsPlayer already covers the basic scenario better than a "catalog-first" player: explicit catalog refresh, local data with no account, filters, pinning, manual streams, video/RTSP and a grid of live previews. The next gain in value comes not from yet another catalog or a redesign, but from playback reliability, context about what is on air right now, and letting users move their own selection quickly.
 
-Ниже - предложения для будущих отдельных тикетов. Это не утверждённый план реализации и не меняет текущий контракт банка потоков.
+Below are proposals for future separate tickets. This is not an approved implementation plan and it does not change the current stream-bank contract.
 
-## Стратегические спецификации
+## Strategic specifications
 
-Рекомендации преобразованы в отдельные продуктовые тикеты:
+The recommendations were turned into separate product tickets. They live in the planning archive, which is local to the maintainer and not part of a clone, so they are cited by id rather than linked:
 
-1. [SP-0014 - ICY/Shoutcast now-playing metadata](../../PLAN/SP-0014_icy_now_playing.md)
-2. [SP-0015 - Resilient live-stream recovery](../../PLAN/SP-0015_resilient_live_recovery.md)
-3. [SP-0016 - M3U import and export portability](../../PLAN/SP-0016_m3u_portability.md)
-4. [SP-0017 - Local named channel collections](../../PLAN/SP-0017_named_collections.md)
-5. [SP-0018 - Stream quality details and filtering](../../PLAN/SP-0018_stream_quality_details.md)
-6. [SP-0019 - Local listening history](../../PLAN/SP-0019_listening_history.md)
-7. [SP-0020 - Hidden catalog channels and copyable failure reports](../../PLAN/SP-0020_hidden_channels_and_reports.md)
-8. [SP-0021 - Windows system media controls](../../PLAN/SP-0021_windows_media_controls.md)
-9. [SP-0022 - Audio sleep timer](../../PLAN/SP-0022_audio_sleep_timer.md)
+1. `SP-0014` - ICY/Shoutcast now-playing metadata
+2. `SP-0015` - Resilient live-stream recovery
+3. `SP-0016` - M3U import and export portability
+4. `SP-0017` - Local named channel collections
+5. `SP-0018` - Stream quality details and filtering
+6. `SP-0019` - Local listening history
+7. `SP-0020` - Hidden catalog channels and copyable failure reports
+8. `SP-0021` - Windows system media controls
+9. `SP-0022` - Audio sleep timer
 
-## Приоритет P0 - заметная польза в основном сценарии
+## Priority P0 - visible benefit in the main scenario
 
-### 1. Название трека из ICY/Shoutcast для аудиопотоков
+### 1. Track title from ICY/Shoutcast for audio streams
 
-Показывать «станция - исполнитель - трек» в нижней панели и, при наличии данных, на карточке текущей станции. Хранить только текущую строку в сессии; не запрашивать внешние сервисы и не включать телеметрию. Если поток не отдаёт метаданные, интерфейс остаётся как сейчас.
+Show "station - artist - track" in the bottom panel and, when the data is present, on the card of the current station. Keep only the current line in the session; do not query external services and do not enable telemetry. If the stream sends no metadata, the interface stays as it is today.
 
-Почему: конкурент Audials делает текущую композицию и историю треков заметной частью опыта прослушивания; пользователь сразу понимает, что идёт в эфире. [Audials API](https://audials.com/en/company-audials-ag/audials-api)
+Why: the competitor Audials makes the current song and the track history a visible part of the listening experience; the user immediately understands what is on air. [Audials API](https://audials.com/en/company-audials-ag/audials-api)
 
-Ограничение: это уже предусмотрено исходной спецификацией StreamsPlayer (`streams.txt`, B.5), но ещё не заявлено как реализованное в README. Нужны корректная обработка `Icy-MetaData: 1`, отмена при смене потока и локализация состояний.
+Constraint: this is already foreseen by the original StreamsPlayer specification (`streams.txt`, B.5) but not yet declared as implemented in the README. It needs correct handling of `Icy-MetaData: 1`, cancellation on stream change, and localized states.
 
-### 2. Автовосстановление live-потока с понятным состоянием
+### 2. Automatic live-stream recovery with a clear state
 
-При временной сетевой ошибке, зависании или уходе за live-edge ограниченно повторять подключение с задержкой; отдельно показывать «Буферизация» и «Переподключение». После исчерпания бюджета дать явные действия: повторить, закрыть, удалить только ручной поток.
+On a transient network error, a stall or a drift past the live edge, retry the connection a bounded number of times with a delay; show "Buffering" and "Reconnecting" as separate states. Once the budget is spent, offer explicit actions: retry, close, remove (manual streams only).
 
-Почему: для радио, HLS и RTSP надёжность важнее новых элементов каталога. VLC прямо позиционирует сетевые потоки как ключевой тип входного медиа. [VLC features](https://www.videolan.org/vlc/features.html)
+Why: for radio, HLS and RTSP, reliability matters more than new catalog items. VLC explicitly positions network streams as a key input media type. [VLC features](https://www.videolan.org/vlc/features.html)
 
-Ограничение: использовать уже зафиксированные в `streams.txt` правила live-buffer/retry/watchdog, а не придумывать неограниченные фоновые попытки. Автоматическое обновление каталога по-прежнему запрещено.
+Constraint: use the live-buffer/retry/watchdog rules already fixed in `streams.txt` rather than inventing unbounded background attempts. Automatic catalog refresh remains forbidden.
 
-### 3. Импорт и экспорт пользовательских M3U-подборок
+### 3. Import and export of user M3U selections
 
-Завершить предусмотренный импорт M3U/M3U8 по URL и добавить экспорт только `MANUAL`/`IMPORTED` каналов, избранного либо выбранной коллекции в переносимый M3U-файл. Перед импортом показывать количество новых, совпавших и отклонённых строк; импорт должен оставаться атомарным.
+Finish the planned M3U/M3U8 import by URL and add export of only `MANUAL`/`IMPORTED` channels, favourites, or a chosen collection to a portable M3U file. Before an import, show the number of new, matched and rejected rows; the import must stay atomic.
 
-Почему: пользователь может быстро перенести свою подборку между плеерами без аккаунта. VLC поддерживает сетевые потоки, а формат M3U остаётся практическим способом обмена такими списками. [VLC for Android - network streams](https://images.videolan.org/vlc/download-android.html)
+Why: the user can move their selection between players quickly with no account. VLC supports network streams, and M3U remains the practical way to exchange such lists. [VLC for Android - network streams](https://images.videolan.org/vlc/download-android.html)
 
-Ограничение: соблюдать существующий URL-merge и приоритет `MANUAL`/`IMPORTED`; HLS-манифест нельзя ошибочно импортировать как плейлист каналов.
+Constraint: respect the existing URL merge and the priority of `MANUAL`/`IMPORTED`; an HLS manifest must never be mistakenly imported as a channel playlist.
 
-### 4. Несколько именованных коллекций вместо одного списка закреплённых
+### 4. Several named collections instead of one pinned list
 
-Добавить локальные коллекции: например, «Утро», «Новости», «Камеры». Канал может входить в несколько коллекций; закрепление остаётся быстрым общим списком и не заменяется коллекциями. Перетаскивание и порядок - только внутри конкретной коллекции.
+Add local collections, for example "Morning", "News", "Cameras". A channel can belong to several collections; pinning stays a fast shared list and is not replaced by collections. Drag-and-drop and ordering apply only inside a specific collection.
 
-Почему: Audials предлагает несколько списков избранного для разных сценариев, что полезнее одного плоского списка при большом каталоге. [Руководство Audials Radio](https://audials.com/en/one/tutorial/radio)
+Why: Audials offers several favourites lists for different scenarios, which is more useful than one flat list with a large catalog. [Audials Radio tutorial](https://audials.com/en/one/tutorial/radio)
 
-Ограничение: не добавлять облачную синхронизацию или аккаунт. Модель должна быть в `StreamsPlayer.Core`, а UI - в App.
+Constraint: no cloud sync and no account. The model belongs in `StreamsPlayer.Core`, the UI in App.
 
-## Приоритет P1 - удобство и качество выбора
+## Priority P1 - convenience and quality of choice
 
-### 5. Фильтр качества потока и компактные технические сведения
+### 5. Stream quality filter and compact technical details
 
-Использовать уже получаемые из банка `format`, `bitrate`, `protocol`, `is_live` только как необязательные подсказки: показать формат/битрейт в деталях и дать фильтр «показать потоки с указанным битрейтом». Не обещать фактическое качество: сведения каталога могут устареть.
+Use the `format`, `bitrate`, `protocol` and `is_live` values the bank already provides only as optional hints: show format/bitrate in the details and offer a "show streams with the given bitrate" filter. Do not promise actual quality: catalog data can go stale.
 
-Почему: Audials предоставляет фильтрацию по качеству потока; это особенно полезно при выборе радио на ограниченном соединении. [Audials Play for Windows](https://audials.com/en/apps/audials-play-windows)
+Why: Audials offers filtering by stream quality; this is especially useful when choosing a radio station on a limited connection. [Audials Play for Windows](https://audials.com/en/apps/audials-play-windows)
 
-Ограничение: не менять CSV-контракт и не превращать отсутствие метаданных в ошибку.
+Constraint: do not change the CSV contract, and do not turn missing metadata into an error.
 
-### 6. История прослушивания и «Недавно проигрывалось»
+### 6. Listening history and "Recently played"
 
-Локально хранить ограниченную историю успешных ручных запусков: время, канал и последняя известная строка ICY. Дать отдельный фильтр/раздел и действие «очистить историю». Не записывать неудачные probe/preview-попытки как прослушивание.
+Keep a bounded local history of successful manual starts: time, channel and the last known ICY line. Offer a separate filter/section and a "clear history" action. Do not record failed probe/preview attempts as listening.
 
-Почему: конкуренты делают историю доступной для возврата к эфиру и трекам; это снижает цену случайного переключения. [Audials Play for Windows](https://audials.com/en/apps/audials-play-windows)
+Why: competitors make history available for returning to a station or a track; this lowers the cost of an accidental switch. [Audials Play for Windows](https://audials.com/en/apps/audials-play-windows)
 
-Ограничение: данные остаются на устройстве; срок хранения и лимит записей должны быть явно заданы в будущей спецификации.
+Constraint: data stays on the device; the retention period and the entry limit must be set explicitly in the future specification.
 
-### 7. Скрыть/сообщить о нерабочем каталожном канале
+### 7. Hide or report a broken catalog channel
 
-Добавить в меню канала «Не показывать» (локальный blacklist) и «Скопировать отчёт о проблеме»: URL, название, время и категория ошибки - без автоматической отправки. Опциональная будущая отправка должна быть отдельным явным действием и отдельным решением о приёмнике данных.
+Add "Do not show" (a local blacklist) and "Copy problem report" to the channel menu: URL, name, time and error category - with no automatic sending. An optional future send must be a separate explicit action and a separate decision about the data recipient.
 
-Почему: Audials поддерживает исключение нежелательных станций, а его инфраструктура мониторит недоступные источники. [Audials Radio overview](https://audials.com/en/apps/audials-play-windows), [Audials API](https://audials.com/en/company-audials-ag/audials-api)
+Why: Audials supports excluding unwanted stations, and its infrastructure monitors unavailable sources. [Audials Radio overview](https://audials.com/en/apps/audials-play-windows), [Audials API](https://audials.com/en/company-audials-ag/audials-api)
 
-Ограничение: локальное скрытие не удаляет строку из каталога и должно переживать refresh по URL.
+Constraint: local hiding does not delete the row from the catalog and must survive a refresh by URL.
 
-### 8. Системные медиа-клавиши и компактное управление аудио
+### 8. System media keys and compact audio control
 
-Поддержать мультимедийные клавиши Windows: play/pause, stop, mute, previous/next по текущему представлению/коллекции. В системном медиа-сеансе показывать название станции и текущий ICY-трек, если он есть.
+Support the Windows multimedia keys: play/pause, stop, mute, previous/next within the current view or collection. Show the station name and the current ICY track, when there is one, in the system media session.
 
-Почему: это соответствует привычному поведению настольных аудиоплееров и позволяет управлять радио вне окна приложения.
+Why: this matches the familiar behaviour of desktop audio players and lets the user control the radio outside the application window.
 
-Ограничение: в P0 сначала нужно определить однозначную модель «следующий/предыдущий»; глобальные shortcuts не должны перехватывать обычный текстовый ввод в приложениях.
+Constraint: an unambiguous "next/previous" model has to be defined first; global shortcuts must not intercept ordinary text input in other applications.
 
-### 9. Таймер сна для аудио
+### 9. Sleep timer for audio
 
-Позволить остановить текущий аудиопоток через 15/30/45/60 минут или в заданное время. Таймер должен переживать сворачивание окна, но не обязан переживать перезапуск приложения; отключать его при ручной остановке.
+Allow stopping the current audio stream after 15/30/45/60 minutes or at a set time. The timer must survive minimizing the window but need not survive an application restart; a manual stop cancels it.
 
-Почему: это небольшой, понятный сценарий для радио. Он дополняет, а не усложняет основной live-плеер.
+Why: this is a small, clear scenario for radio. It complements the main live player rather than complicating it.
 
-Ограничение: не добавлять таймер в видео-плеер без отдельного UX-решения; исходная спецификация намеренно исключает sleep timer из его набора controls.
+Constraint: do not add the timer to the video player without a separate UX decision; the original specification deliberately leaves the sleep timer out of its controls.
 
-## Не рекомендовать сейчас
+## Not recommended now
 
-- Запись радио, пакетную запись и автоматическое нарезание песен: Audials строит вокруг этого крупный платный продукт, но для StreamsPlayer это резко расширяет юридическую, продуктовую и техническую поверхность. [Audials One radio features](https://audials.com/en/one/innovations-2026)
-- Подкасты, загрузки эпизодов и подписки: это самостоятельный тип контента с другим каталогом, хранением и lifecycle, не продолжение live-stream playback.
-- Рекомендации, аккаунт, облачная синхронизация и аналитика: противоречат текущей ценности локального приватного приложения без аккаунта.
-- Карта станций: Radio Garden делает её центральной моделью продукта, но она не улучшает основной сценарий StreamsPlayer настолько, чтобы оправдать картографический стек и новый источник данных. [Radio Garden settings](https://radio.garden/settings)
-- Chromecast/кастинг: для Windows и RTSP эффект ограничен; в исходной спецификации это уже помечено как возможное N/A для desktop.
+- Radio recording, batch recording and automatic song splitting: Audials builds a large paid product around this, but for StreamsPlayer it sharply widens the legal, product and technical surface. [Audials One radio features](https://audials.com/en/one/innovations-2026)
+- Podcasts, episode downloads and subscriptions: a content type of its own with a different catalog, storage and lifecycle, not a continuation of live-stream playback.
+- Recommendations, an account, cloud sync and analytics: they contradict the current value of a local, private application with no account.
+- A station map: Radio Garden makes it the central model of its product, but it does not improve the main StreamsPlayer scenario enough to justify a mapping stack and a new data source. [Radio Garden settings](https://radio.garden/settings)
+- Chromecast/casting: the effect is limited for Windows and RTSP; the original specification already marks it as possibly N/A on desktop.
 
-## Рекомендуемый порядок принятия решений
+## Recommended decision order
 
-1. Подготовить отдельный тикет на ICY-метаданные и устойчивое восстановление (пункты 1–2): это закрывает разрыв с заявленной спецификацией и улучшает каждый запуск.
-2. Затем определить контракт M3U import/export и локальных коллекций (пункты 3–4) в `StreamsPlayer.Core`.
-3. После этого выбрать один из UX-улучшателей P1: история, системные клавиши или таймер сна.
+1. Prepare a separate ticket for ICY metadata and resilient recovery (items 1-2): this closes the gap with the declared specification and improves every launch.
+2. Then define the contract for M3U import/export and local collections (items 3-4) in `StreamsPlayer.Core`.
+3. After that, pick one of the P1 UX improvements: history, system keys or the sleep timer.
 
-## Проверенные источники
+## Sources checked
 
-- [StreamsPlayer README](../../README.md) и исходная спецификация потоков - фактический текущий scope и уже принятые ограничения. Эта спецификация (`streams.txt`, копия handoff-брифа) удалена из репозитория 2026-09-22: её единственный дом - `DEVELOPER_PROMPT.md` в общем хранилище контрактов, которое называет `CLAUDE.md`. Ссылки на `streams.txt` ниже по тексту читать как ссылки на него.
-- [Audials Play for Windows](https://audials.com/en/apps/audials-play-windows) - фильтр качества, история треков, радио/TV.
-- [Audials Radio tutorial](https://audials.com/en/one/tutorial/radio) - несколько списков избранного, поиск и запись по расписанию.
-- [Audials API](https://audials.com/en/company-audials-ag/audials-api) - текущая композиция и история треков как конкурентная функция.
-- [VideoLAN VLC features](https://www.videolan.org/vlc/features.html) - воспроизведение сетевых потоков и поддерживаемые протоколы.
-- [Radio Garden settings](https://radio.garden/settings) - модель избранного и принцип map-first продукта.
+- [StreamsPlayer README](../../README.md) and the original stream specification - the actual current scope and the constraints already accepted. That specification (`streams.txt`, a copy of the handoff brief) was removed from the repository on 2026-09-22: its only home is `DEVELOPER_PROMPT.md` in the shared contract store that `CLAUDE.md` names. Read the references to `streams.txt` above as references to it.
+- [Audials Play for Windows](https://audials.com/en/apps/audials-play-windows) - quality filter, track history, radio/TV.
+- [Audials Radio tutorial](https://audials.com/en/one/tutorial/radio) - several favourites lists, search and scheduled recording.
+- [Audials API](https://audials.com/en/company-audials-ag/audials-api) - the current song and track history as a competitive feature.
+- [VideoLAN VLC features](https://www.videolan.org/vlc/features.html) - network stream playback and supported protocols.
+- [Radio Garden settings](https://radio.garden/settings) - the favourites model and the map-first product principle.

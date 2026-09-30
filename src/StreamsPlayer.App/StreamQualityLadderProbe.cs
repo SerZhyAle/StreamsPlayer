@@ -64,8 +64,12 @@ internal static class StreamQualityLadderProbe
                 : new StreamQualityLadderReading([], WhyThereIsNoLadder(text));
         }
         catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or
-                                      InvalidDataException or TimeoutException or InvalidOperationException)
+                                      InvalidDataException or TimeoutException or InvalidOperationException or
+                                      IOException)
         {
+            // IOException covers HttpDownload's short-body HttpIOException: a body that ends before its
+            // declared length must reach the caller as "fetch_failed", not as an exception the
+            // fire-and-forget caller would swallow unwritten (SP-0174).
             return new StreamQualityLadderReading([], "fetch_failed");
         }
     }

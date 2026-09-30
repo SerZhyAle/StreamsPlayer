@@ -24,7 +24,7 @@ Read `AGENTS.md` and the applicable `docs/agent/` method document first, then ro
 ## Delegating to subagents
 - Parallel readers are safe; parallel writers are not - a whole-tree VCS op from one writer reverts every other writer's uncommitted edits. You own VCS/build commands between waves.
 - A report is a claim, not a verdict: re-validate centrally from your own clean state. Delegation has a tail bias - verify each claimed deliverable exists and runs.
-- Budget the fan-out: estimate count and cost, keep a small ceiling (~6–8), get an explicit GO above it, stage find-then-verify. See `docs/agent/COST.md`.
+- Budget the fan-out: estimate count and cost, keep a small ceiling (~6-8), get an explicit GO above it, stage find-then-verify. See `docs/agent/COST.md`.
 
 ## Spec-ticket work
 - One ticket = `PLAN/SP-NNNN_<slug>.md`. Read its `**Status:**` header; never infer status from the filename. Verified strategic tickets and their tactical folders move to `PLAN/DONE/`.

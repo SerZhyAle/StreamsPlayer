@@ -477,11 +477,9 @@
                                                 Tag="{Binding}" Click="OverflowButton_Click" ToolTip="{DynamicResource MoreActionsTip}"
                                                 AutomationProperties.Name="{DynamicResource MoreActionsName}" />
                                     </Grid>
-                                    <TextBlock Grid.Row="1" Margin="0,4,0,0" Text="{Binding Channel.Url}" Foreground="{DynamicResource MutedBrush}"
-                                               FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Channel.Url}" Visibility="Collapsed" />
-                                    <!-- SP-0075: the programme on air from the user's TV schedule. It shares row 1 with
-                                         the collapsed URL and is itself collapsed for every channel without a schedule,
-                                         so an unmatched card keeps the height and look it had before. -->
+                                    <!-- SP-0075: the programme on air from the user's TV schedule. It is collapsed
+                                         for every channel without a schedule, so an unmatched card keeps the height
+                                         and look it had before. -->
                                     <TextBlock Grid.Row="1" Margin="0,3,0,0" Text="{Binding ScheduleNowText}"
                                                Visibility="{Binding ScheduleNowVisibility}" Foreground="{DynamicResource TextBrush}"
                                                FontSize="12" TextTrimming="CharacterEllipsis" ToolTip="{Binding ScheduleNowText}" />

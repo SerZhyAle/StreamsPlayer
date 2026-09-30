@@ -52,6 +52,14 @@ public sealed class LogSinkRedactionSourceTests
     [InlineData(SinkFile, """
         class CurrentLog
         {
+            private readonly DiagnosticPathRedactor _paths;
+            void Write(string severity, string message) { _writer.WriteLine(Flatten(message)); }
+            string Flatten(string message) => CatalogUrlIdentity.RedactText(message).ReplaceLineEndings(" | ");
+        }
+        """)]
+    [InlineData(SinkFile, """
+        class CurrentLog
+        {
             void Write(string message) { _writer.WriteLine(Flatten(message)); _writer.BaseStream.Write(Encoding.UTF8.GetBytes(message)); }
             static string Flatten(string message) => CatalogUrlIdentity.RedactText(message);
         }
@@ -101,6 +109,14 @@ public sealed class LogSinkRedactionSourceTests
             !source.Masked[flatten..flattenEnd].Contains("CatalogUrlIdentity.RedactText(", StringComparison.Ordinal))
         {
             yield return $"{(flatten < 0 ? 1 : source.LineAt(flatten))} Flatten must pass the message through CatalogUrlIdentity.RedactText";
+        }
+
+        // SP-0137: and through the path redactor, so a profile path loses the account name at the sink.
+        if (flatten < 0 || flattenEnd < 0 ||
+            !source.Masked[flatten..flattenEnd].Contains("_paths.Redact(", StringComparison.Ordinal) ||
+            !source.Masked.Contains("DiagnosticPathRedactor _paths", StringComparison.Ordinal))
+        {
+            yield return $"{(flatten < 0 ? 1 : source.LineAt(flatten))} Flatten must pass the message through a DiagnosticPathRedactor _paths";
         }
 
         foreach (var call in source.Invocations("WriteLine").Where(call => call.Arguments.Count > 0))

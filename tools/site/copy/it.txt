@@ -160,7 +160,7 @@ Video live e RTSP si aprono in una finestra del lettore dedicata che mostra il b
 Buffer live di circa 15 secondi, e il video si assesta sulla qualità che la tua connessione regge e riparte da lì la volta dopo.
 
 @@cap-play-5
-Registra il video live o la radio che stai riproducendo direttamente in un file nella cartella dei file salvati, senza interrompere la riproduzione.
+Registra il video live o la radio che stai riproducendo direttamente in un file, senza interrompere la riproduzione: il video va nella cartella Recordings di Video, la radio nella cartella Recordings di Musica o nelle cartelle che scegli.
 
 @@cap-play-6
 Ascolta una trasmissione audio in diretta da un telefono o da un orologio con FastMediaSorter, direttamente sulla tua rete locale - senza server in mezzo.
@@ -313,7 +313,7 @@ L'applicazione si collega solo su tua azione, e solo alla destinazione di cui qu
 Dati locali
 
 @@privacy-local
-STREAMS Player salva in [[appdata]] lo stato del catalogo, i canali che hai aggiunto e importato, i canali fissati, le raccolte, i canali nascosti, la cronologia di ascolto, i contrassegni di riproduzione, i fotogrammi di anteprima nella cache entro un limite di 150 MB, le librerie FFmpeg facoltative se le hai scaricate e i registri diagnostici degli ultimi dieci avvii. Le registrazioni e i fotogrammi salvati finiscono nella cartella dei file salvati che scegli tu (Download per impostazione predefinita). Questi dati restano sul tuo dispositivo, a meno che tu non li copi o ne faccia un backup - oppure a meno che tu non usi «Invia i registri all'autore» in «Strumenti», che comprime quei registri diagnostici insieme alla versione dell'app, alla versione di Windows e alle impostazioni in un archivio e apre il tuo programma di posta perché tu lo alleghi e lo invii a [[email]]. Quell'archivio viene preparato solo quando premi quel pulsante, i registri al suo interno indicano i flussi che sono stati riprodotti e non viene mai inviato nulla senza che tu prema Invia nel tuo programma di posta. Lì sono conservati anche il palinsesto TV scaricato e le tue associazioni dei canali; «Rimuovi palinsesto» in «Strumenti» li elimina entrambi.
+STREAMS Player salva in [[appdata]] lo stato del catalogo, i canali che hai aggiunto e importato, i canali fissati, le raccolte, i canali nascosti, la cronologia di ascolto, i contrassegni di riproduzione, i fotogrammi di anteprima nella cache entro un limite di 150 MB, le librerie FFmpeg facoltative se le hai scaricate e i registri diagnostici degli ultimi dieci avvii. Le registrazioni e i fotogrammi salvati finiscono nelle cartelle che scegli per loro oppure, per impostazione predefinita, in Recordings di Video, Recordings di Musica e Frames di Immagini. Questi dati restano sul tuo dispositivo, a meno che tu non li copi o ne faccia un backup - oppure a meno che tu non usi «Invia i registri all'autore» in «Strumenti», che comprime quei registri diagnostici insieme alla versione dell'app, alla versione di Windows e alle impostazioni in un archivio e apre il tuo programma di posta perché tu lo alleghi e lo invii a [[email]]. Quell'archivio viene preparato solo quando premi quel pulsante, i registri al suo interno indicano i flussi che sono stati riprodotti e non viene mai inviato nulla senza che tu prema Invia nel tuo programma di posta. Lì sono conservati anche il palinsesto TV scaricato e le tue associazioni dei canali; «Rimuovi palinsesto» in «Strumenti» li elimina entrambi.
 
 @@privacy-contact-title
 Contatti

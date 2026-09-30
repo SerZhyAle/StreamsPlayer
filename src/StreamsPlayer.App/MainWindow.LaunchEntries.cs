@@ -24,6 +24,7 @@ public partial class MainWindow
         {
             var path = StreamShortcutService.CreateDesktopShortcut(row.Channel);
             SetStatus("DesktopShortcutCreated", path);
+            ShowIdOnlyLaunchNotice(row.Channel, "CreateDesktopShortcut");
         }
         // The shell writes the file through COM, so a desktop that rejects the path - too long, read-only,
         // a name already held by a directory - arrives as an IOException rather than a COMException.
@@ -44,11 +45,21 @@ public partial class MainWindow
         {
             Clipboard.SetText(StreamShortcutService.BuildLaunchCommand(row.Channel));
             SetStatus("LaunchCommandCopied");
+            ShowIdOnlyLaunchNotice(row.Channel, "MenuCopyLaunchCommand");
         }
         catch (COMException)
         {
             // Another process owns the clipboard.
             SetStatus("LaunchCommandCopyFailed");
+        }
+    }
+
+    private void ShowIdOnlyLaunchNotice(StreamChannel channel, string titleKey)
+    {
+        if (!StreamLaunchArguments.CarriesAddress(channel))
+        {
+            MessageBox.Show(this, LocalizationService.Get("LaunchIdOnlyNotice"),
+                LocalizationService.Get(titleKey), MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

@@ -11,7 +11,9 @@ namespace StreamsPlayer.Core;
 /// a corrupt schedule never touches a MANUAL or IMPORTED channel.</para>
 ///
 /// <para>Reads are tolerant: an absent, unreadable or newer-schema file reads as "no schedule" / "no
-/// bindings". Writes are atomic (temp file then move) and report failure as <c>false</c>.</para>
+/// bindings". Writes are atomic (temp file then move) and report failure as <c>false</c>. One boundary
+/// (SP-0175): a file that could not be read is never written over - the store refuses the save as
+/// <c>false</c> until a read has succeeded, so a transient lock cannot cost every manual binding.</para>
 /// </summary>
 public sealed class TvScheduleStore
 {
@@ -21,6 +23,11 @@ public sealed class TvScheduleStore
 
     private readonly string _directory;
     private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = false };
+
+    // Set by the matching load; read by the matching save. Volatile: loads and saves arrive from
+    // independent UI handlers.
+    private volatile bool _scheduleUnreadable;
+    private volatile bool _bindingsUnreadable;
 
     public TvScheduleStore(string directory)
     {
@@ -32,7 +39,10 @@ public sealed class TvScheduleStore
 
     public async Task<TvScheduleDocument?> LoadScheduleAsync(CancellationToken cancellationToken = default)
     {
-        var document = await ReadAsync<TvScheduleDocument>(SchedulePath, cancellationToken).ConfigureAwait(false);
+        var (document, status, _) = await DurableFile
+            .ReadAsync<TvScheduleDocument>(SchedulePath, _jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
+        _scheduleUnreadable = status == FileReadStatus.Unreadable;
         return document is { SchemaVersion: TvScheduleDocument.CurrentSchemaVersion, Channels: not null }
             ? document
             : null;
@@ -40,15 +50,22 @@ public sealed class TvScheduleStore
 
     public async Task<IReadOnlyList<TvScheduleBinding>> LoadBindingsAsync(CancellationToken cancellationToken = default)
     {
-        var bindings = await ReadAsync<List<TvScheduleBinding>>(BindingsPath, cancellationToken).ConfigureAwait(false);
+        var (bindings, status, _) = await DurableFile
+            .ReadAsync<List<TvScheduleBinding>>(BindingsPath, _jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
+        _bindingsUnreadable = status == FileReadStatus.Unreadable;
         return bindings?.Where(binding => !string.IsNullOrWhiteSpace(binding?.Url)).ToList() ?? [];
     }
 
     public Task<bool> SaveScheduleAsync(TvScheduleDocument document, CancellationToken cancellationToken = default) =>
-        WriteAsync(SchedulePath, document, cancellationToken);
+        _scheduleUnreadable
+            ? Task.FromResult(false)
+            : WriteAsync(SchedulePath, document, cancellationToken);
 
     public Task<bool> SaveBindingsAsync(IReadOnlyList<TvScheduleBinding> bindings, CancellationToken cancellationToken = default) =>
-        WriteAsync(BindingsPath, bindings, cancellationToken);
+        _bindingsUnreadable
+            ? Task.FromResult(false)
+            : WriteAsync(BindingsPath, bindings, cancellationToken);
 
     /// <summary>Removes both files. Returns the number of files that existed and are now gone.</summary>
     /// <exception cref="IOException">A file exists and could not be deleted.</exception>
@@ -70,38 +87,17 @@ public sealed class TvScheduleStore
 
     public bool HasAnyFile => File.Exists(SchedulePath) || File.Exists(BindingsPath);
 
-    private async Task<T?> ReadAsync<T>(string path, CancellationToken cancellationToken) where T : class
-    {
-        try
-        {
-            if (!File.Exists(path))
-            {
-                return null;
-            }
-
-            await using var stream = File.OpenRead(path);
-            return await JsonSerializer.DeserializeAsync<T>(stream, _jsonOptions, cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException
-                                              or NotSupportedException)
-        {
-            return null;
-        }
-    }
-
     private async Task<bool> WriteAsync<T>(string path, T value, CancellationToken cancellationToken)
     {
         var temporaryPath = path + TemporaryFileExtension;
         try
         {
             Directory.CreateDirectory(_directory);
-            await using (var stream = File.Create(temporaryPath))
-            {
-                await JsonSerializer.SerializeAsync(stream, value, _jsonOptions, cancellationToken).ConfigureAwait(false);
-                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            File.Move(temporaryPath, path, overwrite: true);
+            await DurableFile.ReplaceAsync(
+                path,
+                temporaryPath,
+                (stream, token) => JsonSerializer.SerializeAsync(stream, value, _jsonOptions, token),
+                cancellationToken).ConfigureAwait(false);
             return true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

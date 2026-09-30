@@ -38,7 +38,14 @@ internal sealed class LibVlcRecording
     /// <summary>This engine's private staging directory; the instance-wide <c>--input-record-path</c>.</summary>
     internal string InstanceDirectory { get; }
 
-    internal bool IsRecording => _segment is not null;
+    /// <summary>
+    /// SP-0164: whether the engine is writing, from its own staging - a file of the segment's own past the
+    /// grace window. A start LibVLC accepted and later refused keeps no file, and this is the flag that says
+    /// so. Safe without the gate: a reference read and a directory listing, a stale answer corrected next tick.
+    /// </summary>
+    internal bool IsWriting(DateTimeOffset now) =>
+        _segment is { } segment
+        && RecordingWriteProbe.IsWriting(segment.StartedAt, segment.StagingDirectories, segment.PreexistingFiles, now);
 
     /// <summary>
     /// Null when this LibVLC can record; otherwise what is missing, for the log. Checked once per process: the

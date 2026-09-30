@@ -23,6 +23,9 @@ The first `**Status:**` line is authoritative only when the working tree and che
 - Tactical plan: `PLAN/SP-0001_slug/INDEX.md` plus ordered phase files.
 - Strategic specs contain goals, constraints, criteria, and unresolved questions; no classes or paths.
 - Tactical steps contain exact affected paths/symbols, dependency order, and a static verification predicate. A step is not done until its predicate passes in that run.
+- `PLAN/DONE/` holds `Verified` and `Archived` tickets, and - by the owner's decision of 2026-09-26 - `Implemented` and `BlockNeedUserTest` tickets waiting only for a test or an audit. A strategic ticket and its tactical folder move there together once its first `**Status:**` line reads one of those four; the status line, not the folder, still says whether the ticket is finished, so `/streamsplayer-spec-check` and the owner's checks read tickets in `PLAN/DONE/` too. `PLAN/` keeps the work still to be done: `Draft`, `Approved`, `Tactical`, `In Progress`, `Partial`, `Broken` and every `Block*` other than `BlockNeedUserTest`. Fix the relative links of a moved file in the same edit.
+- `PLAN/RELEASE_QUEUE.md` is the one release queue; `PLAN/README.md` only points to it.
+- Tickets are written in English. A legacy ticket written in Russian is translated the first time it is edited for any other reason, not in bulk.
 
 ## Workflow gates
 

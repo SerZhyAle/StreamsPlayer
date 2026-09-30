@@ -87,7 +87,9 @@ public partial class MainWindow
             ScheduleVisiblePreviewUpdate();
             if (_preferencesLoaded)
             {
-                _state = await PersistAsync(state => state with { PinnedSectionCollapsed = PinnedSectionCollapsed });
+                var collapsed = PinnedSectionCollapsed;
+                await PersistAsync(state => state.PinnedSectionCollapsed == collapsed
+                    ? state : state with { PinnedSectionCollapsed = collapsed });
             }
         }
         catch (Exception exception)
@@ -106,7 +108,9 @@ public partial class MainWindow
             ScheduleVisiblePreviewUpdate();
             if (_preferencesLoaded)
             {
-                _state = await PersistAsync(state => state with { MainSectionCollapsed = MainSectionCollapsed });
+                var collapsed = MainSectionCollapsed;
+                await PersistAsync(state => state.MainSectionCollapsed == collapsed
+                    ? state : state with { MainSectionCollapsed = collapsed });
             }
         }
         catch (Exception exception)

@@ -8,6 +8,9 @@ public sealed class CatalogUrlIdentityCredentialTests
     [InlineData("https://alice:s3cr3t@host.example/live.m3u8")]
     [InlineData("https://host.example/live?token=ABC123")]
     [InlineData("https://host.example/live?region=eu&auth=xyz")]
+    [InlineData("http://alice:Top/Secret@camera.example/stream1")]
+    [InlineData("http://alice:Top?Secret@camera.example/stream1")]
+    [InlineData("http://alice:Top#Secret@camera.example/stream1")]
     public void HasCredentials_TrueForUserInfoOrCredentialQuery(string url) =>
         Assert.True(CatalogUrlIdentity.HasCredentials(url));
 

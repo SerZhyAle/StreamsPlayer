@@ -60,20 +60,22 @@ public static class BroadcastText
             }
 
             builder.Append(normalized);
-            if (builder.Length >= maxLength)
+            // Collect past the cap before cutting (SP-0134): whether the cap falls on a character boundary
+            // depends on what follows it - the second half of a surrogate pair, a combining mark, a skin-tone
+            // modifier - so the cut is made on text that still carries those. The bound keeps a hostile
+            // megabyte title from being walked to its end.
+            if (builder.Length - maxLength >= BoundaryLookahead)
             {
                 break;
             }
         }
 
-        // Trim a trailing collapsed space.
-        while (builder.Length > 0 && builder[^1] == ' ')
-        {
-            builder.Length--;
-        }
-
-        return builder.Length == 0 ? null : builder.ToString();
+        var text = TextBoundary.Truncate(builder.ToString(), maxLength).TrimEnd(' ');
+        return text.Length == 0 ? null : text;
     }
+
+    /// <summary>Code units read past the cap so the cut can see the whole character it lands in.</summary>
+    private const int BoundaryLookahead = 16;
 
     // Written as code points rather than as character literals on purpose: these characters are
     // invisible in an editor, so a source file carrying them literally is one re-encoding away from a

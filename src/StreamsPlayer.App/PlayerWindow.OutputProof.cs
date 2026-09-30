@@ -3,10 +3,9 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// SP-0133: the player's evidence that a picture reached the screen. <c>PLAYBACK LIVE</c> is logged when the buffer
-/// fills, which is before any frame has been decoded or shown - a package missing its video output or its codec
-/// plugins still reaches it. <c>PLAYBACK SHOWN</c> is logged once per window, the first time the engine's own
-/// displayed-picture counter moves, and it is the marker <c>scripts/smoke-playback.ps1</c> requires.
+/// SP-0133: the player's evidence that a picture reached the screen. <c>PLAYBACK SHOWN</c> is logged on the
+/// first displayed picture of each leg, and is the marker <c>scripts/smoke-playback.ps1</c> requires.
+/// SP-0163 defers the LibVLC video leg's LIVE verdict until that same picture exists.
 /// <para>No timer and no poll is added: the counter is the one the watchdog already reads for the freeze rule, on
 /// its existing tick. An engine without counters (FlyleafLib) never logs the line, which the gate reads as a
 /// failure - the gate runs on a fresh profile, whose engine is the default LibVLC.</para>

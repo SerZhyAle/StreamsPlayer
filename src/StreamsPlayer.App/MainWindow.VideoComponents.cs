@@ -62,6 +62,15 @@ public partial class MainWindow
             // The user's own choice; the status line already restates what is installed.
             _log.Event("FFMPEG INSTALL", "ok=false", "err=Cancelled");
         }
+        catch (FFmpegComponentsRollbackException exception)
+        {
+            // SP-0178: the only place the preserved folder is ever named to the user. The components folder
+            // is marked incomplete, so no later install sweeps the preserved copy before a set is in place.
+            _log.Event("FFMPEG INSTALL", "ok=false", "err=RollbackFailed",
+                $"preserved={exception.PreservedFolder}", $"msg={exception.InnerException?.Message}");
+            MessageBox.Show(owner, LocalizationService.Format("VideoComponentsRollbackFailed", exception.PreservedFolder),
+                LocalizationService.Get("VideoComponentsTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
         catch (Exception exception) when (exception is HttpRequestException or IOException or InvalidDataException
                                               or UnauthorizedAccessException or TimeoutException
                                               or TaskCanceledException or FFmpegArchiveMismatchException)

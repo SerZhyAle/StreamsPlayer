@@ -3,6 +3,11 @@ name: Release
 # A release builds, stamps and publishes exactly the commit its tag points to, and only a tag on the main
 # line (SP-0122). A manual run names an existing tag; it never creates one and never builds the branch it
 # was dispatched from.
+#
+# SP-0156: a release ships only a gated payload. Before anything is built the workflow requires a completed,
+# green CI run (documentation and site-sync gates included) for the tagged commit, and a committed playback
+# smoke verdict for exactly the tagged version; the published payload must carry the pinned natives; and an
+# already published asset is never replaced with different bytes.
 
 on:
   push:
@@ -16,6 +21,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
@@ -56,6 +62,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+      actions: read
     env:
       RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
@@ -80,6 +87,47 @@ jobs:
           git merge-base --is-ancestor $tagged refs/remotes/origin/main
           if ($LASTEXITCODE -ne 0) { throw "Tagged commit $tagged is not reachable from main." }
           Write-Host "Releasing $env:RELEASE_TAG at $tagged (on main)."
+      # SP-0156: the release waits for the gates that judge the commit. CI carries the documentation gate and
+      # the site-sync check, so one green CI run for exactly the tagged commit is the proof.
+      - name: Require green CI for the tagged commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $sha = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'git rev-parse HEAD failed.' }
+          $deadline = (Get-Date).AddMinutes(6)
+          while ($true) {
+            $runs = @(gh run list -R $env:GITHUB_REPOSITORY -w ci.yml -c $sha --json databaseId,status,conclusion | ConvertFrom-Json)
+            if ($LASTEXITCODE -ne 0) { throw "gh run list failed (exit $LASTEXITCODE)." }
+            if (-not $runs) {
+              if ((Get-Date) -gt $deadline) { throw "No CI run exists for commit $sha. A release ships only a commit CI has judged green." }
+              Start-Sleep -Seconds 20
+              continue
+            }
+            $active = @($runs | Where-Object { $_.status -ne 'completed' })
+            if ($active) {
+              if ((Get-Date) -gt $deadline) { throw "CI for commit $sha is still $($active[0].status). A release waits for it to finish green; re-run this workflow once it is." }
+              Start-Sleep -Seconds 20
+              continue
+            }
+            $latest = $runs | Sort-Object databaseId | Select-Object -Last 1
+            if ($latest.conclusion -ne 'success') { throw "CI for commit $sha concluded '$($latest.conclusion)'. A release ships only a green commit." }
+            Write-Host "CI for commit $sha concluded success."
+            break
+          }
+      # SP-0156: the mandatory pre-flight (SP-0093). The smoke gate runs on the owner's machine; its PASS
+      # travels as a committed verdict naming the version, and the tagged tree must carry it.
+      - name: Require the playback smoke verdict for this version
+        run: |
+          $verdictPath = Join-Path 'release-verdicts' "$env:RELEASE_VERSION.json"
+          if (-not (Test-Path -LiteralPath $verdictPath)) {
+            throw "No smoke verdict for $env:RELEASE_VERSION at $verdictPath in the tagged tree. Run scripts/smoke-playback.ps1 on a clean committed tree, commit release-verdicts/$env:RELEASE_VERSION.json, and put the tag on that commit."
+          }
+          $verdict = Get-Content -LiteralPath $verdictPath -Raw | ConvertFrom-Json
+          if ($verdict.gate -ne 'smoke-playback') { throw "Verdict $verdictPath names gate '$($verdict.gate)', not smoke-playback." }
+          if ($verdict.result -ne 'PASS') { throw "Verdict $verdictPath records result '$($verdict.result)', not PASS." }
+          if ($verdict.version -ne $env:RELEASE_VERSION) { throw "Verdict $verdictPath names version '$($verdict.version)', not the tagged version $env:RELEASE_VERSION." }
+          Write-Host "Smoke verdict for $env:RELEASE_VERSION (commit $($verdict.commit)): PASS, $($verdict.when)."
       - name: Verify version exceeds every published version
         run: |
           ./scripts/assert-release-version.ps1 -Version $env:RELEASE_VERSION
@@ -110,6 +158,12 @@ jobs:
           Compress-Archive -Path stage/StreamsPlayer/* -DestinationPath "dist/$name" -Force
           $hash = (Get-FileHash "dist/$name" -Algorithm SHA256).Hash
           "$hash  $name" | Out-File "dist/$name.sha256" -Encoding ascii
+      # SP-0156 (T-10): the shipping workflow applies the same payload check as the local build - the native
+      # media tree present and byte-identical to the pinned package. One check here covers the archive and
+      # the installer below, which package this same stage.
+      - name: Assert the pinned natives in the payload
+        run: |
+          ./scripts/Assert-PinnedNatives.ps1 -Folder stage/StreamsPlayer -ProjectPath src/StreamsPlayer.App/StreamsPlayer.App.csproj
       - name: Install Inno Setup
         run: |
           choco install innosetup --no-progress -y
@@ -127,7 +181,72 @@ jobs:
           if (-not (Test-Path "dist/$name")) { throw "Installer not produced at dist/$name" }
           $hash = (Get-FileHash "dist/$name" -Algorithm SHA256).Hash
           "$hash  $name" | Out-File "dist/$name.sha256" -Encoding ascii
+      # SP-0156: a published asset is never replaced with different bytes. A re-run (or a manual run against an
+      # already published tag) may proceed only when every existing asset of ours is byte-identical to the fresh
+      # build: identical ones are left alone (or, when some are missing, deleted-and-re-uploaded as identical
+      # bytes); any difference fails the run here, before the release step can touch anything.
+      - name: Guard assets already published for this tag
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $names = @(
+            "StreamsPlayer-$env:RELEASE_VERSION-windows-x64.zip",
+            "StreamsPlayer-$env:RELEASE_VERSION-windows-x64.zip.sha256",
+            "StreamsPlayer-$env:RELEASE_VERSION-windows-x64-setup.exe",
+            "StreamsPlayer-$env:RELEASE_VERSION-windows-x64-setup.exe.sha256"
+          )
+          foreach ($name in $names) {
+            if (-not (Test-Path -LiteralPath (Join-Path 'dist' $name))) { throw "Expected built asset is missing: dist/$name" }
+          }
+          $out = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$env:RELEASE_TAG" 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            $text = $out | Out-String
+            if ($text -notmatch 'HTTP 404') { throw "Could not look up the release for $env:RELEASE_TAG (gh exit $LASTEXITCODE): $text" }
+            Write-Host "No existing release for $env:RELEASE_TAG - publishing fresh."
+            "proceed=true" | Out-File $env:GITHUB_OUTPUT -Append
+            return
+          }
+          $assets = @(($out | ConvertFrom-Json).assets)
+          if (-not $assets) {
+            Write-Host "The release for $env:RELEASE_TAG exists but holds no assets - publishing."
+            "proceed=true" | Out-File $env:GITHUB_OUTPUT -Append
+            return
+          }
+          $temp = Join-Path ([IO.Path]::GetTempPath()) "release-guard-$env:RELEASE_VERSION"
+          New-Item -ItemType Directory -Path $temp -Force | Out-Null
+          $mismatch = $null
+          $presentIdentical = @()
+          foreach ($name in $names) {
+            $remote = $assets | Where-Object { $_.name -eq $name }
+            if (-not $remote) { continue }
+            gh release download $env:RELEASE_TAG -R $env:GITHUB_REPOSITORY -p $name --dir $temp --clobber
+            if ($LASTEXITCODE -ne 0) { throw "Could not download the published asset $name for comparison (exit $LASTEXITCODE)." }
+            $localHash = (Get-FileHash -LiteralPath (Join-Path 'dist' $name) -Algorithm SHA256).Hash
+            $remoteHash = (Get-FileHash -LiteralPath (Join-Path $temp $name) -Algorithm SHA256).Hash
+            if ($localHash -ne $remoteHash) {
+              $mismatch = "asset $name is already published with different bytes (published $remoteHash, this build $localHash)"
+              break
+            }
+            $presentIdentical += $remote
+            Write-Host "$name already published, bytes identical ($localHash)."
+          }
+          if ($mismatch) { throw "$mismatch. A published asset is never replaced silently - cut a new version instead (SP-0156)." }
+          if (@($presentIdentical).Count -eq $names.Count) {
+            Write-Host "All $($names.Count) assets are already published with identical bytes - nothing to change."
+            "proceed=false" | Out-File $env:GITHUB_OUTPUT -Append
+            return
+          }
+          # Some of ours are missing. Every one already published was proven identical above, so removing it
+          # before the upload re-creates the same bytes instead of colliding with them.
+          foreach ($asset in $presentIdentical) {
+            gh api -X DELETE "repos/$env:GITHUB_REPOSITORY/releases/assets/$($asset.id)"
+            if ($LASTEXITCODE -ne 0) { throw "Could not remove the identical asset $($asset.name) ahead of re-upload (exit $LASTEXITCODE)." }
+            Write-Host "Removed the identical $($asset.name); the upload below recreates it."
+          }
+          "proceed=true" | Out-File $env:GITHUB_OUTPUT -Append
       - name: Create GitHub Release
+        if: steps.guard.outputs.proceed != 'false'
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ needs.resolve.outputs.tag }}

@@ -8,6 +8,7 @@ namespace StreamsPlayer.App;
 // raising a modal window, and the record of what is currently playing.
 public partial class MainWindow
 {
+    private readonly List<(Guid ChannelId, bool Started)> _pendingAudioResumeChanges = [];
     // Set for a stream started by the startup resume, cleared the first time that station reaches live.
     // Assigned on every audio start in PlayChannelAsync, so an ordinary user play resets it for free.
     private bool _audioQuiet;
@@ -111,9 +112,9 @@ public partial class MainWindow
             return;
         }
 
-        _state = await PersistAsync(state =>
+        await PersistAsync(state =>
         {
-            if (!state.ResumePlaybackOnStartup || _resumeRecordFrozen)
+            if (!state.ResumePlaybackOnStartup)
             {
                 return state;
             }
@@ -121,5 +122,72 @@ public partial class MainWindow
             var updated = update(state);
             return updated is null ? state : state with { ResumeChannelIds = updated };
         });
+    }
+
+    private void QueueAudioResumeChange(Guid channelId, bool started)
+    {
+        if (_resumeRecordFrozen)
+        {
+            return;
+        }
+
+        _pendingAudioResumeChanges.Add((channelId, started));
+        if (!started)
+        {
+            // On a station switch, the successor is installed before this callback runs and its
+            // outcome takes both changes in one write. A plain Stop has no outcome to wait for.
+            _ = Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (_playingAudio is null)
+                {
+                    HandlerBoundary.Run(nameof(FlushPendingAudioResumeAsync), FlushPendingAudioResumeAsync);
+                }
+            }), System.Windows.Threading.DispatcherPriority.Background);
+        }
+    }
+
+    private (Guid ChannelId, bool Started)[] TakePendingAudioResumeChanges()
+    {
+        var changes = _pendingAudioResumeChanges.ToArray();
+        _pendingAudioResumeChanges.Clear();
+        return changes;
+    }
+
+    private static CatalogState ApplyAudioResumeChanges(
+        CatalogState state, IReadOnlyList<(Guid ChannelId, bool Started)> changes)
+    {
+        if (!state.ResumePlaybackOnStartup || changes.Count == 0)
+        {
+            return state;
+        }
+
+        var ids = new List<Guid>(state.ResumeChannelIds);
+        foreach (var (channelId, started) in changes)
+        {
+            if (started)
+            {
+                if (state.Channels.Any(channel => channel.Id == channelId))
+                {
+                    ids.Add(channelId);
+                }
+            }
+            else
+            {
+                ids.Remove(channelId);
+            }
+        }
+
+        return ids.SequenceEqual(state.ResumeChannelIds) ? state : state with { ResumeChannelIds = ids };
+    }
+
+    private async Task FlushPendingAudioResumeAsync()
+    {
+        if (_pendingAudioResumeChanges.Count == 0)
+        {
+            return;
+        }
+
+        var changes = TakePendingAudioResumeChanges();
+        await PersistAsync(state => ApplyAudioResumeChanges(state, changes));
     }
 }

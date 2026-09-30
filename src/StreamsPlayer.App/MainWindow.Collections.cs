@@ -95,10 +95,11 @@ public partial class MainWindow
             }
 
             var (collectionId, channelId) = pair;
-            await SaveCollectionsAsync(collections => item.IsChecked
+            var member = item.IsChecked;
+            await SaveCollectionsAsync(collections => member
                 ? ChannelCollections.AddChannel(collections, collectionId, channelId)
                 : ChannelCollections.RemoveChannel(collections, collectionId, channelId));
-            _log.Event(item.IsChecked ? "COLLECTION ADD" : "COLLECTION REMOVE", $"collection={collectionId}");
+            _log.Event(member ? "COLLECTION ADD" : "COLLECTION REMOVE", $"collection={collectionId}");
         }
         catch (Exception exception)
         {
@@ -117,7 +118,8 @@ public partial class MainWindow
 
             e.Handled = true;
             var created = Guid.NewGuid();
-            var createdCollection = ChannelCollections.Create(_state.Collections, box.Text, created);
+            var name = box.Text;
+            var createdCollection = ChannelCollections.Create(_state.Collections, name, created);
             if (createdCollection is null)
             {
                 SetStatus("CollectionNameInvalid");
@@ -126,11 +128,11 @@ public partial class MainWindow
 
             await SaveCollectionsAsync(collections =>
             {
-                var createdNow = ChannelCollections.Create(collections, box.Text, created);
+                var createdNow = ChannelCollections.Create(collections, name, created);
                 return createdNow is null ? collections : ChannelCollections.AddChannel(createdNow, created, channelId);
             });
             _log.Event("COLLECTION CREATE", $"collection={created}");
-            SetStatus("CollectionCreated", ChannelCollections.NormalizeName(box.Text)!);
+            SetStatus("CollectionCreated", ChannelCollections.NormalizeName(name)!);
         }
         catch (Exception exception)
         {
@@ -211,7 +213,11 @@ public partial class MainWindow
     private async Task SaveCollectionsAsync(
         Func<IReadOnlyList<ChannelCollection>, IReadOnlyList<ChannelCollection>> mutation)
     {
-        _state = await PersistAsync(state => state with { Collections = [.. mutation(state.Collections)] });
+        await PersistAsync(state =>
+        {
+            var updated = mutation(state.Collections);
+            return ReferenceEquals(updated, state.Collections) ? state : state with { Collections = [.. updated] };
+        });
         PopulateCollectionFilter();
         ApplyFilter();
     }
@@ -233,7 +239,7 @@ public partial class MainWindow
             return;
         }
 
-        _state = await PersistAsync(state => state with
+        await PersistAsync(state => state with
         {
             Collections = [.. ChannelCollections.Prune(state.Collections, state.Channels.Select(channel => channel.Id))]
         });

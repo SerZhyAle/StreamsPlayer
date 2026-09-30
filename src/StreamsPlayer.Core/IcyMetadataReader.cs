@@ -5,7 +5,8 @@ namespace StreamsPlayer.Core;
 
 /// <summary>
 /// Reads ICY/Shoutcast now-playing metadata from an audio stream over a dedicated,
-/// best-effort HTTP(S) connection (WPF <c>MediaElement</c> exposes no ICY API).
+/// best-effort HTTP(S) connection, independent of whichever engine plays the audio (Core has no media
+/// dependency, and the reader predates the LibVLC engine).
 /// Reports each changed <c>StreamTitle</c> and never throws: a missing, malformed,
 /// or unreachable metadata source must not disturb playback.
 /// </summary>

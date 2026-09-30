@@ -104,7 +104,11 @@ public partial class MainWindow
             }
 
             Topmost = item.IsChecked;
-            _state = await PersistAsync(state => state with { MainWindowTopmost = Topmost });
+            var topmost = Topmost;
+            await PersistAsync(state => state.MainWindowTopmost == topmost
+                ? state : state with { MainWindowTopmost = topmost });
+            Topmost = (_stateCommitter?.Requested ?? _state).MainWindowTopmost;
+            item.IsChecked = Topmost;
         }
         catch (Exception exception)
         {

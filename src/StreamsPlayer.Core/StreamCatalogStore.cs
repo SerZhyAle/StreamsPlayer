@@ -23,6 +23,13 @@ public sealed class StreamCatalogStore
 
     private readonly string _directory;
     private readonly string _statePath;
+    // Set by the last load; read by every save. Volatile: the load runs once on the UI thread at
+    // start-up, while saves run under the gate on pool threads.
+    private volatile bool _stateUnreadable;
+
+    // SP-0175: one wording for both halves of the rule - the load that failed and the save it forbids.
+    private const string UnreadableStateMessage =
+        "The catalog state file could not be read, so it is preserved untouched until a read succeeds (SP-0175).";
     // The app saves from many independent UI handlers (scroll debounce, volume, pin, outcome, history).
     // Without this gate, overlapping saves race on File.Move and the loser strands its temp file.
     private readonly SemaphoreSlim _saveGate = new(1, 1);
@@ -100,20 +107,24 @@ public sealed class StreamCatalogStore
 
     public async Task<CatalogState> LoadAsync(CancellationToken cancellationToken = default)
     {
-        if (!File.Exists(_statePath))
-        {
-            return new CatalogState();
-        }
-
         // SP-0067: ConfigureAwait(false) throughout the load and the save. Deserializing 15 MB and
         // serializing it back are the two longest awaits in the application, and resuming them on the
         // Dispatcher put that continuation in front of the user's next keystroke for no reason - none of
         // this touches UI state.
-        await using var stream = File.OpenRead(_statePath);
-        var state = await JsonSerializer
-            .DeserializeAsync<CatalogState>(stream, _jsonOptions, cancellationToken)
-            .ConfigureAwait(false) ?? new CatalogState();
-        return NormalizeUnreadableFaviconSources(state);
+        var (state, status, failure) = await DurableFile
+            .ReadAsync<CatalogState>(_statePath, _jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
+        if (status == FileReadStatus.Unreadable)
+        {
+            // SP-0175: the file's content is unknown, so nothing may save over it - the store refuses
+            // every save until a read has succeeded, which in practice is the restart the start-up
+            // notice already asks for. The real cause travels inside for the log.
+            _stateUnreadable = true;
+            throw new IOException(UnreadableStateMessage, failure);
+        }
+
+        _stateUnreadable = false;
+        return NormalizeUnreadableFaviconSources(state ?? new CatalogState());
     }
 
     private static CatalogState NormalizeUnreadableFaviconSources(CatalogState state)
@@ -164,6 +175,14 @@ public sealed class StreamCatalogStore
         AtlasSlot slot,
         CancellationToken cancellationToken)
     {
+        if (_stateUnreadable)
+        {
+            // SP-0175: never replace a file whose content this session never managed to read. The
+            // committer reports this as a failed save with a pending retry, which stays failed until the
+            // restart the load notice asks for.
+            throw new IOException(UnreadableStateMessage);
+        }
+
         Directory.CreateDirectory(_directory);
         var committedState = state;
         if (replaceAtlas)
@@ -189,15 +208,11 @@ public sealed class StreamCatalogStore
         var temporaryPath = Path.Combine(_directory, $"{TemporaryFilePrefix}{Guid.NewGuid():N}{TemporaryFileExtension}");
         try
         {
-            await using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            {
-                await JsonSerializer
-                    .SerializeAsync(stream, committedState, _jsonOptions, cancellationToken)
-                    .ConfigureAwait(false);
-                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            File.Move(temporaryPath, _statePath, overwrite: true);
+            await DurableFile.ReplaceAsync(
+                _statePath,
+                temporaryPath,
+                (stream, token) => JsonSerializer.SerializeAsync(stream, committedState, _jsonOptions, token),
+                cancellationToken).ConfigureAwait(false);
         }
         catch
         {
@@ -216,27 +231,34 @@ public sealed class StreamCatalogStore
     // every save, whichever one was written - a save of one slot must not sweep another.
     private void RemoveUnreferencedFiles(CatalogState committedState)
     {
-        var staleBefore = DateTime.UtcNow - TemporaryFileRetention;
-        foreach (var path in Directory.EnumerateFiles(_directory))
+        try
         {
-            var name = Path.GetFileName(path);
-            if (IsNamed(name, AtlasFilePrefix, AtlasFileExtension) ||
-                IsNamed(name, SnapshotAtlasFilePrefix, AtlasFileExtension) ||
-                IsNamed(name, ImportedAtlasFilePrefix, AtlasFileExtension))
+            var staleBefore = DateTime.UtcNow - TemporaryFileRetention;
+            foreach (var path in Directory.EnumerateFiles(_directory))
             {
-                if (!name.Equals(committedState.AtlasFileName, StringComparison.OrdinalIgnoreCase) &&
-                    !name.Equals(committedState.SnapshotAtlasFileName, StringComparison.OrdinalIgnoreCase) &&
-                    !name.Equals(committedState.ImportedAtlasFileName, StringComparison.OrdinalIgnoreCase))
+                var name = Path.GetFileName(path);
+                if (IsNamed(name, AtlasFilePrefix, AtlasFileExtension) ||
+                    IsNamed(name, SnapshotAtlasFilePrefix, AtlasFileExtension) ||
+                    IsNamed(name, ImportedAtlasFilePrefix, AtlasFileExtension))
+                {
+                    if (!name.Equals(committedState.AtlasFileName, StringComparison.OrdinalIgnoreCase) &&
+                        !name.Equals(committedState.SnapshotAtlasFileName, StringComparison.OrdinalIgnoreCase) &&
+                        !name.Equals(committedState.ImportedAtlasFileName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        TryDelete(path);
+                    }
+                }
+                else if (IsNamed(name, TemporaryFilePrefix, TemporaryFileExtension) &&
+                    File.GetLastWriteTimeUtc(path) < staleBefore)
                 {
                     TryDelete(path);
                 }
             }
-            else if (IsNamed(name, TemporaryFilePrefix, TemporaryFileExtension) &&
-                File.GetLastWriteTimeUtc(path) < staleBefore)
-            {
-                TryDelete(path);
-            }
         }
+        // The state replacement already succeeded. A cleanup failure may leave an orphan file, but
+        // reporting the save as failed here would leave the committer's memory behind the disk.
+        catch (IOException) { return; }
+        catch (UnauthorizedAccessException) { return; }
     }
 
     private static bool IsNamed(string name, string prefix, string extension) =>

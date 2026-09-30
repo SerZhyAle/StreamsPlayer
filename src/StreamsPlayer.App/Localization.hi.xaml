@@ -268,6 +268,7 @@
     <sys:String x:Key="FailureDialogMessage">"{0}" चलाया नहीं जा सका।</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">"{0}" चलाया नहीं जा सकता: इसका पता http, https या rtsp स्ट्रीम नहीं है।</sys:String>
     <sys:String x:Key="FailureRegionRestricted">सूची इस चैनल को क्षेत्र तक सीमित बताती है: संकलनकर्ता के देश से इसने उत्तर नहीं दिया। जिस क्षेत्र के लिए यह प्रसारित होता है, वहाँ आप हों तो यह काम कर सकता है।</sys:String>
+    <sys:String x:Key="FailureNoNetwork">नेटवर्क कनेक्शन नहीं है, इसलिए इस चैनल तक पहुँचा ही नहीं गया। यह ठीक हो सकता है - अपना कनेक्शन जाँचें और फिर से कोशिश करें।</sys:String>
     <sys:String x:Key="FailureRetry">फिर कोशिश करें</sys:String>
     <sys:String x:Key="FailureHide">छिपाएँ</sys:String>
     <sys:String x:Key="FailureDelete">हटाएँ</sys:String>
@@ -316,6 +317,7 @@
     <sys:String x:Key="SaveFrame">फ़्रेम सहेजें</sys:String>
     <sys:String x:Key="SaveFrameTip">मौजूदा फ़्रेम को चित्र फ़ाइल के रूप में और इस चैनल के आइकॉन के रूप में सहेजें</sys:String>
     <sys:String x:Key="FrameSaved">फ़्रेम सहेजा गया: {0}</sys:String>
+    <sys:String x:Key="FrameSavedElsewhere">{0} में लिखा नहीं जा सका - फ़्रेम {1} में सहेजा गया</sys:String>
     <sys:String x:Key="FrameSaveFailed">फ़्रेम सहेजा नहीं जा सका</sys:String>
     <sys:String x:Key="Record">रिकॉर्ड करें</sys:String>
     <sys:String x:Key="RecordTip">लाइव प्रसारण रिकॉर्ड करें (R)</sys:String>
@@ -333,15 +335,21 @@
     <sys:String x:Key="RecordEndedConnectionLost">रिकॉर्डिंग समाप्त - स्टेशन ने कनेक्शन तोड़ दिया। सहेजा गया: {0} ({1})</sys:String>
     <sys:String x:Key="RecordUnsupportedFormat">इस स्टेशन का स्ट्रीम फ़ॉर्मेट रिकॉर्ड नहीं किया जा सकता</sys:String>
     <sys:String x:Key="RecordWriteFailed">रिकॉर्डिंग रुक गई - {0} में लिखा नहीं जा सका</sys:String>
+    <sys:String x:Key="RecordFellBack">{0} में लिखा नहीं जा सका - {1} में रिकॉर्ड हो रहा है</sys:String>
+    <sys:String x:Key="RecordSavedElsewhere">{0} में लिखा नहीं जा सका - रिकॉर्डिंग {1} में सहेजी गई</sys:String>
     <sys:String x:Key="RecordUnavailableEngine">वीडियो इंजन के इस संस्करण में रिकॉर्डिंग उपलब्ध नहीं है</sys:String>
     <sys:String x:Key="RecordUnavailableFastMediaSorter">FastMediaSorter प्रसारण केवल एक कनेक्शन की अनुमति देता है, जिसे प्लेबैक उपयोग कर रहा है - इसे रिकॉर्ड नहीं किया जा सकता</sys:String>
     <sys:String x:Key="RecordingsRecovered">पिछले सत्र की {0} बिना सहेजी रिकॉर्डिंग {1} में ले जाई गईं</sys:String>
     <sys:String x:Key="RecordingsRecoveryFailed">पिछले सत्र की {0} बिना सहेजी रिकॉर्डिंग ले जाई नहीं जा सकीं - वे {1} में हैं</sys:String>
-    <sys:String x:Key="FrameFolderLabel">सहेजी गई फ़ाइलों का फ़ोल्डर</sys:String>
-    <sys:String x:Key="FrameFolderHint">STREAMS Player यहाँ फ़्रेम और लॉग आर्काइव सहेजता है। डाउनलोड फ़ोल्डर उपयोग करने के लिए इसे खाली छोड़ें।</sys:String>
+    <sys:String x:Key="FrameFolderLabel">फ़्रेम का फ़ोल्डर</sys:String>
+    <sys:String x:Key="FrameFolderHint">सहेजे गए फ़्रेम और लॉग आर्काइव यहाँ जाते हैं। चित्र के अंदर Frames फ़ोल्डर उपयोग करने के लिए इसे खाली छोड़ें; तब लॉग आर्काइव डाउनलोड में जाएँगे।</sys:String>
     <sys:String x:Key="FrameFolderBrowse">फ़ोल्डर चुनें..</sys:String>
-    <sys:String x:Key="FrameFolderReset">डाउनलोड उपयोग करें</sys:String>
+    <sys:String x:Key="FrameFolderReset">डिफ़ॉल्ट फ़ोल्डर उपयोग करें</sys:String>
     <sys:String x:Key="FrameFolderOpen">फ़ोल्डर खोलें</sys:String>
+    <sys:String x:Key="VideoRecordingFolderLabel">वीडियो रिकॉर्डिंग का फ़ोल्डर</sys:String>
+    <sys:String x:Key="VideoRecordingFolderHint">वीडियो स्ट्रीम की रिकॉर्डिंग यहाँ जाती हैं। वीडियो के अंदर Recordings फ़ोल्डर उपयोग करने के लिए इसे खाली छोड़ें।</sys:String>
+    <sys:String x:Key="AudioRecordingFolderLabel">रेडियो रिकॉर्डिंग का फ़ोल्डर</sys:String>
+    <sys:String x:Key="AudioRecordingFolderHint">रेडियो स्टेशनों की रिकॉर्डिंग यहाँ जाती हैं। संगीत के अंदर Recordings फ़ोल्डर उपयोग करने के लिए इसे खाली छोड़ें।</sys:String>
     <sys:String x:Key="VolumeTip">वीडियो की आवाज़</sys:String>
     <sys:String x:Key="VolumeName">वीडियो की आवाज़</sys:String>
     <sys:String x:Key="AudioVolumeTip">ऑडियो की आवाज़</sys:String>
@@ -393,6 +401,7 @@
     <sys:String x:Key="VideoComponentsProgressUnknown">घटक डाउनलोड हो रहे हैं.. {0} MB</sys:String>
     <sys:String x:Key="VideoComponentsInstallDone">घटक {0} में इंस्टॉल किए गए। अगली बार खोले गए प्लेयर में FlyleafLib उपलब्ध रहेगा।</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">घटक डाउनलोड नहीं हो सके। कुछ भी इंस्टॉल नहीं किया गया। {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRollbackFailed">घटक बदले नहीं जा सके, और पिछला संस्करण भी पूरी तरह बहाल नहीं हो सका। दोबारा इंस्टॉल करने तक इनका उपयोग नहीं किया जा सकता। पिछली फ़ाइलें यहाँ रखी गई हैं: {0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">FlyleafLib के घटक हटाएँ? दोबारा डाउनलोड करने तक FlyleafLib काम करना बंद कर देगा; VLC पर कोई असर नहीं पड़ेगा।</sys:String>
     <sys:String x:Key="VideoComponentsRemoveFailed">घटक हटाए नहीं जा सके। खुली हुई प्लेयर विंडो बंद करके फिर कोशिश करें।</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib तैयार नहीं है</sys:String>
@@ -434,6 +443,7 @@
     <sys:String x:Key="CreateDesktopShortcut">डेस्कटॉप शॉर्टकट बनाएँ</sys:String>
     <sys:String x:Key="LaunchCommandCopied">लॉन्च कमांड क्लिपबोर्ड पर कॉपी हो गई।</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows लॉन्च कमांड कॉपी नहीं कर सका।</sys:String>
+    <sys:String x:Key="LaunchIdOnlyNotice">पता हटा दिया गया है। यह शॉर्टकट या कमांड तभी काम करेगा जब चैनल इस लाइब्रेरी में मौजूद हो।</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">साझा करने का टेक्स्ट कॉपी करें</sys:String>
     <sys:String x:Key="MenuCopyLaunchCommand">लॉन्च कमांड कॉपी करें</sys:String>
@@ -595,6 +605,7 @@
     <sys:String x:Key="FmsBroadcastUnsupportedMode">यह प्रसारण मोड अभी समर्थित नहीं है। आपकी सूची नहीं बदली।</sys:String>
     <sys:String x:Key="FmsBroadcastInvalid">यह मान्य FastMediaSorter प्रसारण विवरण नहीं है। आपकी सूची नहीं बदली।</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">यह प्रसारण विवरण 64 KiB से बड़ा है। आपकी सूची नहीं बदली।</sys:String>
+    <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer किसी और काम में व्यस्त है। जब वह काम पूरा हो जाए, तो प्रसारण फिर से आयात करें। आपकी सूची नहीं बदली।</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} पर श्रोताओं की अधिकतम संख्या पहले ही पूरी हो चुकी है। किसी अन्य श्रोता के डिस्कनेक्ट होने पर फिर से प्रयास करें।</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} ने प्रसारण बंद कर दिया है या अब इस नेटवर्क पर उपलब्ध नहीं है।</sys:String>
     <!-- SP-0098 portable stream catalog import -->

@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using LibVLCSharp.Shared;
 using LibVLCSharp.Shared.Structures;
@@ -109,7 +111,13 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
     // VideoView is a ContentControl backed by a foreground overlay window painted above the native
     // VLC surface; its Content is the only WPF layer that stays on top of the video through resizes.
-    public void SetOverlay(FrameworkElement overlay) => _videoView.Content = overlay;
+    public void SetOverlay(FrameworkElement? overlay)
+    {
+        // VideoView moves Content to a private foreground window and resets its own Content to null.
+        // Assigning null again does not fire OnContentChanged, so use an empty element to release the
+        // previous overlay from that window before another per-leg VideoView adopts it.
+        _videoView.Content = overlay ?? new Grid();
+    }
 
     public string EngineName => "libvlc";
 
@@ -151,7 +159,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     public event Action? EndReached;
     public event Action? EncounteredError;
     public event Action? TracksChanged;
-    public event Action<BitmapSource>? SnapshotReady;
+    public event Action<Guid, BitmapSource>? SnapshotReady;
 
     public bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling)
     {
@@ -246,6 +254,15 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         _mediaPlayer.ESSelected -= MediaPlayer_TracksChanged;
         _mediaPlayer.SnapshotTaken -= MediaPlayer_SnapshotTaken;
         _libVlc.Log -= LibVlc_Log;
+        // SP-0134: the engine's log is detached, so no record can follow - whatever count is still owed
+        // is written now or never. The burst that preceded a close is usually the one worth reading.
+        IReadOnlyList<EngineLogRepeatSummary> owed;
+        lock (_logNoiseGate)
+        {
+            owed = _logNoise.FlushAll();
+        }
+
+        WriteRepeatCounts(owed);
 
         // Stop()/Dispose() block until the native VLC worker threads settle; on a flapping stream that
         // can take seconds and would freeze the shared WPF UI thread. Tear down off the UI thread.
@@ -329,7 +346,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         }
     }
 
-    public bool RequestSnapshot(int width)
+    public bool RequestSnapshot(Guid requestId, int width)
     {
         if (IsReleased)
         {
@@ -338,7 +355,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
         try
         {
-            var path = Path.Combine(Path.GetTempPath(), $"streamsplayer_thumb_{Guid.NewGuid():N}.png");
+            var path = Path.Combine(Path.GetTempPath(), $"streamsplayer_thumb_{requestId:N}.png");
             var ok = _mediaPlayer.TakeSnapshot(0, path, (uint)width, 0); // aspect preserved; result arrives via SnapshotTaken
             _log.Event("THUMB SNAPSHOT", $"ok={ok}", $"url={_lastUrl}");
             return ok;
@@ -385,6 +402,16 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             return;
         }
 
+        // SP-0134: the stats tick is the clock that notices an engine burst has ended - the filter itself
+        // only runs when the engine speaks, and a burst ends precisely when it stops speaking.
+        IReadOnlyList<EngineLogRepeatSummary> due;
+        lock (_logNoiseGate)
+        {
+            due = _logNoise.Flush(Stopwatch.GetTimestamp(), Stopwatch.Frequency);
+        }
+
+        WriteRepeatCounts(due);
+
         var leg = Volatile.Read(ref _openedLegs);
         if (leg != _statsLeg)
         {
@@ -423,15 +450,17 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             return;
         }
 
+        // SP-0134: every decimal here in the invariant format, so a STATS line reads and greps the same
+        // on a machine with a comma decimal separator as on the author's.
         _log.Event(tag,
             $"read_bytes={s.ReadBytes}",
-            $"in_bitrate={s.InputBitrate:F4}",
+            string.Create(CultureInfo.InvariantCulture, $"in_bitrate={s.InputBitrate:F4}"),
             $"demux_bytes={s.DemuxReadBytes}",
-            $"demux_bitrate={s.DemuxBitrate:F4}",
-            $"in_kbps={inKbps}",
+            string.Create(CultureInfo.InvariantCulture, $"demux_bitrate={s.DemuxBitrate:F4}"),
+            $"in_kbps={PlaybackStatsFilter.FormatRate(inKbps)}",
             $"decoded_v={s.DecodedVideo}",
             $"displayed={s.DisplayedPictures}",
-            $"disp_fps={dispFps}",
+            $"disp_fps={PlaybackStatsFilter.FormatRate(dispFps)}",
             $"lost_pics={s.LostPictures}",
             $"corrupted={s.DemuxCorrupted}",
             $"discont={s.DemuxDiscontinuity}",
@@ -454,7 +483,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     /// timestamp is <see cref="_rateTicks"/>, so every counter published in one <see cref="LogStats"/>
     /// call is differenced over the same interval.</para>
     /// </summary>
-    private string Rate(ref long previous, long current, double scale)
+    private double? Rate(ref long previous, long current, double scale)
     {
         var previousValue = previous;
         previous = current;
@@ -462,10 +491,10 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         {
             // No prior sample for this leg, or the counter went backwards because the demux restarted
             // underneath us. Report no rate rather than a fabricated or negative one.
-            return "n/a";
+            return null;
         }
 
-        return ((current - previousValue) * scale / _rateSeconds).ToString("F1");
+        return (current - previousValue) * scale / _rateSeconds;
     }
 
     /// <summary>
@@ -623,8 +652,10 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
     public string? RecordUnavailableReason => _recordUnavailableReason;
 
-    // Read without the gate by the UI thread: a reference read, and a stale answer is corrected on the next tick.
-    public bool IsRecording => !IsReleased && _recording.IsRecording;
+    // Read without the gate by the UI thread: a reference read and a staging listing, and a stale answer is
+    // corrected on the next tick. SP-0164: the engine's own truth, not the accepted request - a recording
+    // LibVLC refuses after accepting keeps no file, and the probe says so (S43-02).
+    public bool IsRecording => !IsReleased && _recording.IsWriting(DateTimeOffset.Now);
 
     public event Action<RecordingSegment>? RecordingInterrupted;
 
@@ -697,12 +728,15 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
     private void MediaPlayer_SnapshotTaken(object? sender, MediaPlayerSnapshotTakenEventArgs e)
     {
+        var name = Path.GetFileNameWithoutExtension(e.Filename);
+        var idText = name.StartsWith("streamsplayer_thumb_", StringComparison.Ordinal)
+            ? name["streamsplayer_thumb_".Length..] : string.Empty;
         var frame = LoadFrozenImage(e.Filename);
         _log.Event("THUMB TAKEN", $"loaded={frame is not null}", $"url={_lastUrl}");
         TryDeleteFile(e.Filename);
-        if (frame is not null)
+        if (frame is not null && Guid.TryParseExact(idText, "N", out var requestId))
         {
-            SnapshotReady?.Invoke(frame);
+            SnapshotReady?.Invoke(requestId, frame);
         }
     }
 
@@ -798,7 +832,8 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         EngineLogSample sample;
         lock (_logNoiseGate)
         {
-            sample = _logNoise.Observe(e.Module ?? string.Empty, e.Message, Stopwatch.GetTimestamp(), Stopwatch.Frequency);
+            sample = _logNoise.Observe(e.Module ?? string.Empty, e.Message, Stopwatch.GetTimestamp(), Stopwatch.Frequency,
+                e.Level.ToString());
         }
 
         if (!sample.ShouldLog)
@@ -814,5 +849,16 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         }
 
         _log.Event("VLC", $"level={e.Level}", $"module={e.Module}", $"msg={e.Message}");
+    }
+
+    // A count without a record to carry it: the same VLC line shape as a written record with repeats=, plus
+    // why it was written on its own.
+    private void WriteRepeatCounts(IReadOnlyList<EngineLogRepeatSummary> counts)
+    {
+        foreach (var count in counts)
+        {
+            _log.Event("VLC", $"level={count.Level}", $"module={count.Module}", $"msg={count.Message}",
+                $"repeats={count.Repeats}", $"flushed={count.Reason}");
+        }
     }
 }

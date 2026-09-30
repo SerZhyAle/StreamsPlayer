@@ -25,6 +25,7 @@ asks. The build-versus-release rule itself has one home in the canon
 - `tools/StreamsPlayer.CatalogHarness` - live-bank diagnostic harness.
 - `tools/InterfaceLanguages.ps1` - the single shipped-language list, read from the built assembly and dot-sourced by the site and Store tooling.
 - `tools/site/` and `tools/store/` - generators for the GitHub Pages site and the Store listing/screenshot pipeline.
+- `tools/audit/` - the code-audit campaign tools: slicer, slice-ticket fan-out, campaign summary and their fixture tests (`docs/agent/CODE_AUDIT.md`).
 - `scripts/` - the release-parity check, the release checklist, and the commit-and-build helper.
 - `docs/contracts/` - one pointer per shared contract this product consumes or owes: id, version, home, role.
 - `docs/agent/` - agent workflow and validation guidance.
@@ -47,7 +48,7 @@ code instead of the build's.
 - `pwsh -NoProfile -File ./build.ps1 -Test -Deploy:$false` - restore, build and run tests without touching the local app folders.
 - `pwsh -NoProfile -File ./build.ps1 -Deploy` - build a self-contained Release EXE and copy it to the local SZA app folders; this is not a release.
 - `pwsh -NoProfile -File ./run.ps1` - restore, build and launch the app in Debug, never deploying. `build.ps1 -Run` deploys first and runs Release.
-- `pwsh -NoProfile -File ./scripts/check.ps1` - Release restore, build, and test check.
+- `pwsh -NoProfile -File ./scripts/check.ps1` - the release-parity gate: Release restore, build, test, the documentation gate and the site sync check; ends in one `check: PASS|FAIL|CANNOT VERIFY` line.
 - `pwsh -NoProfile -File ./scripts/smoke-playback.ps1` - plays a live radio station and a live video stream through the shipping binary. Mandatory before a release; `check.ps1` cannot cover it, because it tests this repository's code and SP-0093 broke the runtime beneath it while all 858 tests stayed green.
 - `dotnet format StreamsPlayer.sln --verify-no-changes` - formatting diagnostic; it currently reports a pre-existing line-ending/encoding baseline and is not a passing gate until that baseline is normalized.
 - `dotnet run --project src/StreamsPlayer.App` - run the desktop application.
@@ -56,6 +57,7 @@ code instead of the build's.
 - `pwsh -NoProfile -File ./msix/build-msix.ps1 -SelfSign` - build and locally test an MSIX package; use only for package work.
 - `pwsh -NoProfile -File ./scripts/release.ps1` - print the manual release checklist only; it changes no remote state.
 - `pwsh -NoProfile -File ./tools/site/build-site.ps1 -Check` - fail if `docs/` is stale against the generator, writing nothing.
+- `pwsh -NoProfile -File ./scripts/check-docs.ps1` - the documentation gate (`DOC-INTERNAL-QUALITY`, SP-0140): every `*.md` and generated `docs/**/*.html` declared in `DOCUMENT_REGISTRY.jsonl`, relative links, anchors and images resolve to tracked files, house style in prose, no `http://` or remote embeds. A new document needs its registry entry in the same change.
 
 Never run `scripts/build-local.ps1` unless the user explicitly requests a commit: it runs `git add --all` and commits.
 
@@ -129,7 +131,7 @@ git config pull.rebase false
 - Do not add raw logging to App or Core until a logging facade is deliberately introduced. `Console.WriteLine` is appropriate in the CatalogHarness.
 - Do not introduce trivial comments, broad/empty catches, duplicated values where a constant exists, lifecycle-unsafe async work, live-path stubs, or dead artifacts. Comments explain why, not visible mechanics.
 - Store temporary evidence and backups under `temp/`, organized by ticket (`temp/<ticket>/`, or `temp/scratch/` when none), never at the repository root. The legacy `tmp/` tree is historical local evidence referenced by closed tickets; do not rename it, do not add to it. Record checks as `expected: ... | actual: ...`, and rerun the narrowest meaningful check before declaring completion. A changed GUI action needs run-and-observe evidence, not merely a build.
-- Update user-facing documentation with user-visible behaviour changes. See `docs/agent/` for the lifecycle, research, quality, validation, memory, and cost disciplines.
+- Update user-facing documentation with user-visible behaviour changes. See `docs/agent/` for the lifecycle, research, quality, validation, memory, cost and code-audit disciplines.
 
 ## SZA Unified Rules (canon)
 

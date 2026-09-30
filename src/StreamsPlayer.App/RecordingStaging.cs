@@ -1,4 +1,5 @@
 using System.IO;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
@@ -40,9 +41,17 @@ internal static class RecordingStaging
     /// Moves every file a previous session left in staging into the recordings folder, removes the emptied
     /// directories, and reports what it did. Runs on a worker thread; a single file that cannot be moved is
     /// counted and left where it is, and the result names that place.
+    /// <para>SP-0179: only the LibVLC video engine stages, so a leftover is a <c>stream_video</c> and walks the video
+    /// chain. It is renamed by the contract's grammar with no label - the channel it came from is not known any
+    /// more - and stamped with the file's creation time, the nearest record of when the capture started.</para>
     /// </summary>
-    internal static Task<StagingHandOver> HandOverLeftoversAsync(string targetFolder, CurrentLog log) => Task.Run(() =>
+    internal static Task<StagingHandOver> HandOverLeftoversAsync(IReadOnlyList<string> chain, CurrentLog log) => Task.Run(() =>
     {
+        // SP-0164: first, the partial copies a killed session left in the recordings folders - their staged
+        // originals are what this hand-over files away, and a partial beside a recording's final name is
+        // nothing the user should ever see. Runs even when staging itself is empty.
+        RecordingFinisher.RemoveStalePartials(chain, log, DateTimeOffset.Now);
+
         var root = Root;
         if (!Directory.Exists(root))
         {
@@ -51,6 +60,7 @@ internal static class RecordingStaging
 
         var moved = 0;
         var stranded = 0;
+        var targetFolder = chain[0];
         foreach (var file in SafeEnumerateFiles(root).Where(file => !IsOwnedByThisProcess(Path.GetFullPath(file))))
         {
             try
@@ -61,12 +71,14 @@ internal static class RecordingStaging
                     continue;
                 }
 
-                Directory.CreateDirectory(targetFolder);
-                var destination = RecordingFinisher.MoveIntoFolder(file, targetFolder, Path.GetFileName(file));
-                log.Event("RECORD RECOVERED", $"from={file}", $"to={destination}");
+                var name = CaptureFileName.For(
+                    CaptureKind.StreamVideo, new DateTimeOffset(File.GetCreationTime(file)), null, Path.GetExtension(file));
+                var (destination, skipped) = RecordingFinisher.MoveIntoFirst(file, chain, name);
+                targetFolder = Path.GetDirectoryName(destination) ?? targetFolder;
+                log.Event("RECORD RECOVERED", $"from={file}", $"to={destination}", $"skipped={skipped ?? "none"}");
                 moved++;
             }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            catch (Exception exception) when (CaptureFolders.IsFolderRefusal(exception))
             {
                 log.Event("RECORD RECOVERED", "ok=false", $"path={file}", $"err={exception.Message}");
                 stranded++;

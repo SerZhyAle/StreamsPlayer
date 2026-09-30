@@ -138,18 +138,31 @@ public sealed class WaveParticlesSession
             ref var particle = ref _particles[i];
             particle.X += particle.VelocityX * k;
             particle.Y += particle.VelocityY * k;
-            if (particle.X < 0 || particle.X > Width)
-            {
-                particle.VelocityX = -particle.VelocityX;
-            }
-
-            if (particle.Y < 0 || particle.Y > Height)
-            {
-                particle.VelocityY = -particle.VelocityY;
-            }
+            Reflect(ref particle.X, ref particle.VelocityX, Width);
+            Reflect(ref particle.Y, ref particle.VelocityY, Height);
         }
 
         return WashAlphaFor(k);
+    }
+
+    /// <summary>
+    /// Section 4 as amended in 0.12: an overshoot is mirrored back across the edge it crossed and the
+    /// velocity is pointed inward by that edge, so the position is inside <c>[0, extent]</c> after every
+    /// step whatever <c>k</c> was, and an inward velocity is never flipped outward.
+    /// </summary>
+    private static void Reflect(ref double position, ref double velocity, double extent)
+    {
+        if (position < 0)
+        {
+            position = Math.Min(-position, extent);
+            velocity = Math.Abs(velocity);
+        }
+
+        if (position > extent)
+        {
+            position = Math.Max((2 * extent) - position, 0);
+            velocity = -Math.Abs(velocity);
+        }
     }
 
     /// <summary>

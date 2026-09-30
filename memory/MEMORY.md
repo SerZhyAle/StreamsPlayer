@@ -47,6 +47,16 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
 
 ## Project
 
+- **Two traps in writing redaction/timeout tests (SP-0174, 2026-09-29).** First, `.gitignore` carries
+  `*secret*` (leak pre-emption, line 38) - a test file named `*Secret*` is silently ignored and never
+  committed; name such tests "Audited"/"Credential" instead. Second, a Regex match timeout cannot be
+  forced deterministically by a tiny budget: the constructor rejects `TimeSpan.Zero`, and a 1-tick budget
+  still never fires on a short line because the engine checks the clock only between match attempts - the
+  reliable recipe is size asymmetry (a 1 ms budget; a multi-MB line cannot scan that fast, a short line
+  cannot help finishing). Related line-shape fact: `text.Split('\n')` attaches a CRLF pair's `\r` to the
+  *end* of the preceding element, so a marker that replaces a timed-out line must re-append its `\r` or the
+  marker glues two log lines into one.
+
 - **The FFmpeg natives FlyleafLib publishes are GPLv3, so they can never be bundled.** The `FFmpeg`
   folder inside `Flyleaf_v3.10.4.7z` is built `--enable-gpl --enable-version3` with libx264/libx265;
   its `avutil` reports `GPL version 3 or later`. FlyleafLib *itself* is LGPL-3.0, which is what made
@@ -141,11 +151,12 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   "Sports") appear even without the term in their name - this looks "unfiltered"
   but is by design. User confirmed keeping the broad match (2026-07-20). Do not
   narrow it to name-only without a new product decision.
-- After a strategic `PLAN/SP-NNNN_*.md` ticket reaches `Verified`, move that
-  ticket file and its same-named tactical-plan folder, when present, to
-  `PLAN/DONE/`. Keep active, blocked, Draft, Approved, Tactical, In Progress,
-  Implemented, Partial, and Broken tickets in `PLAN/`; update any affected
-  local links when moving a verified ticket.
+- A strategic `PLAN/SP-NNNN_*.md` ticket moves to `PLAN/DONE/` with its
+  tactical folder once it reads `Verified`, `Archived`, `Implemented` or
+  `BlockNeedUserTest` (owner decision 2026-09-26: implemented-and-awaiting-test
+  work leaves the queue folder). Draft, Approved, Tactical, In Progress,
+  Partial, Broken and the other Block* states stay in `PLAN/`; update any
+  affected local links when moving. Rule home: `docs/agent/SPEC_LIFECYCLE.md`.
 
 - Live recovery (SP-0015): the retry policy is a pure Core state machine
   (`LivePlaybackRecoveryPolicy` + `PlaybackRecoveryClassifier`); App backends feed
@@ -586,6 +597,15 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   green. `BitmapImage` + `CacheOption = OnLoad` + `Freeze()` owns its pixels and works. Only a GUI probe
   of a row that *has* an index catches this - a screen of top rows proves nothing, 70% have no icon.
   `temp/SP-0125/run-refresh-memory.ps1` searches such a row by exact title.
+- **The contract store's registry is rewritten by peer sessions while a sync runs, and two split traps
+  (2026-09-26, the `CAPTURE-OUTPUT` sync).** `_meta/REGISTRY.md` in the store changed twice under this
+  session inside twenty minutes - CRLF became LF, 29 lines arrived, and the row chosen as an insertion
+  anchor was reworded - so an insert must find the section (`## 2. `, `## 3. `) and the last matching
+  table row at run time, never a line number or a remembered row text, and re-check that this product's
+  rows are still absent immediately before writing. Two tool traps, each one round: PowerShell 7
+  `-split "pattern", -1` splits from the *end* - a negative limit is right-to-left, so it returned one
+  piece - use `[regex]::Split`; and in the Bash tool `$'\r'` inside `$( )` inside double quotes is a
+  parse error for the whole call - count CRs in PowerShell.
 
 ## References
 
@@ -716,7 +736,7 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
   padding, on the title line) with the list narrowed to a single row so the click cannot land on the
   wrong channel. Note the consequence for the header's own menus: a `BuildEntry` item's UIA name is its
   **tooltip** key, not its header, so the operations entries are found by their description
-  ("Add a channel someone sent you as text..."), while the overflow entries carry their header text.
+  ("Add a channel someone sent you as text.."), while the overflow entries carry their header text.
   A shutdown-path variant, 2026-08-08 (SP-0065): to observe a *crash on exit* you need the real cursor over
   a real tile at the moment of destruction, so park it with `SetCursorPos` (**two** calls - WPF raises
   `MouseEnter` on a move delta, not on a position), then `PostMessage(hwnd, WM_CLOSE)` and read
@@ -913,7 +933,7 @@ Short index of durable, non-obvious context for future sessions. Add one link pe
 
 - **`wingetcreate ... --submit` needs a synced fork, and syncing the fork needs a token scope the work
   itself does not.** The sync fails with "refusing to allow an OAuth App to create or update workflow
-  ... without `workflow` scope" whenever upstream `winget-pkgs` has touched `.github/workflows/`, which
+  .. without `workflow` scope" whenever upstream `winget-pkgs` has touched `.github/workflows/`, which
   it does constantly. The working path adds no scope at all: branch `SerZhyAle/winget-pkgs` at **its
   own** `master`, PUT the five manifest files through the contents API on that branch, and open the pull
   request from it - GitHub diffs against the merge base, so a fork ~2,900 commits behind still yields a

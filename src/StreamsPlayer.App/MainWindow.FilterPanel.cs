@@ -100,7 +100,7 @@ public partial class MainWindow
     /// </summary>
     private async Task SetFilterPanelVisibleAsync(bool visible)
     {
-        _state = await PersistAsync(state => state with { CatalogFiltersVisible = visible });
+        await PersistAsync(state => state with { CatalogFiltersVisible = visible });
         UpdateFilterPanelChrome();
     }
 

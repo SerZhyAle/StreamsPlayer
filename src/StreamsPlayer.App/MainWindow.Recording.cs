@@ -16,6 +16,9 @@ public partial class MainWindow
 
     private bool _smokeAudioRecording;
 
+    // SP-0179: the first folder of the running recording's chain - named when nothing in the chain was writable.
+    private string _audioRecordingFolder = string.Empty;
+
     /// <summary>The localization key saying why the playing station cannot be recorded, or null when it can.</summary>
     private string? AudioRecordUnavailableReason() =>
         _playingAudio is { } playing && UsesFastMediaSorterAudioRoute(playing.Channel)
@@ -47,10 +50,15 @@ public partial class MainWindow
             return;
         }
 
-        var folder = _smokeAudioRecording && SmokeRecording.Folder is { } smokeFolder ? smokeFolder : _state.FrameFolder;
-        var recorder = StreamAudioRecorder.Start(playing.Channel, RecordedBroadcastWriter.ResolveFolder(folder), _log);
-        recorder.Ended += AudioRecorder_Ended;
+        // SP-0179: the smoke gate's folder is a chain of one - its check reads the file from exactly there.
+        IReadOnlyList<string> chain = _smokeAudioRecording && SmokeRecording.Folder is { } smokeFolder
+            ? new[] { smokeFolder }
+            : CaptureFolders.Chain(CaptureKind.StreamAudio, CaptureFolderChoices.For(_state, CaptureKind.StreamAudio));
+        _audioRecordingFolder = chain[0];
+        var recorder = StreamAudioRecorder.Start(playing.Channel, chain, _log, AudioRecorder_Redirected);
+        // Before subscribing: an end delivered at the subscribe point must still find the session (SP-0164).
         _audioRecorder = recorder;
+        recorder.Ended += AudioRecorder_Ended;
         ApplyAudioTransportState();
         SetStatus("Recording");
     }
@@ -75,6 +83,19 @@ public partial class MainWindow
             ReportAudioRecording(outcome);
         });
     }
+
+    /// <summary>
+    /// The chosen or default folder refused the file and it is being written further down the chain. Worker thread.
+    /// CAPTURE-OUTPUT rule 11: told the moment it happens, naming both folders.
+    /// </summary>
+    private void AudioRecorder_Redirected(string skipped, string folder) =>
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (!_shuttingDown)
+            {
+                SetStatus("RecordFellBack", skipped, folder);
+            }
+        });
 
     /// <summary>The recording ended on its own - the station dropped it, or never sent audio. Worker thread.</summary>
     private void AudioRecorder_Ended(StreamAudioRecorder recorder, AudioRecordingOutcome outcome) =>
@@ -121,7 +142,7 @@ public partial class MainWindow
                 SetStatus("RecordUnsupportedFormat");
                 break;
             case AudioRecordingEnd.WriteFailed:
-                SetStatus("RecordWriteFailed", outcome.Path ?? _state.FrameFolder ?? RecordedBroadcastWriter.ResolveFolder(null));
+                SetStatus("RecordWriteFailed", outcome.Path ?? _audioRecordingFolder);
                 break;
             default:
                 SetStatus("RecordStartFailed");
@@ -175,7 +196,9 @@ public partial class MainWindow
     /// </summary>
     private async Task HandOverStagedRecordingsAsync()
     {
-        var handOver = await RecordingStaging.HandOverLeftoversAsync(RecordedBroadcastWriter.ResolveFolder(_state.FrameFolder), _log);
+        // SP-0179: only the LibVLC video engine stages, so a leftover takes the video recordings' chain.
+        var handOver = await RecordingStaging.HandOverLeftoversAsync(
+            CaptureFolders.Chain(CaptureKind.StreamVideo, CaptureFolderChoices.For(_state, CaptureKind.StreamVideo)), _log);
         if (handOver.Stranded > 0)
         {
             SetStatus("RecordingsRecoveryFailed", handOver.Stranded, handOver.StagingRoot);

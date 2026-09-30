@@ -2,7 +2,7 @@ namespace StreamsPlayer.Core;
 
 /// <summary>
 /// Every number of the portfolio's "particles and lines" backdrop, as <c>WAVE-PARTICLES section 3</c>
-/// fixes it (contract version 0.10). One home: the session reads these and nothing else, and a value
+/// fixes it (contract version 0.12). One home: the session reads these and nothing else, and a value
 /// that ever has to differ is an exception row in the contract registry, not an edit here (rule 18).
 /// </summary>
 public static class WaveParticlesConstants

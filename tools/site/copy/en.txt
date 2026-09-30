@@ -160,7 +160,7 @@ Live video and RTSP open in a focused player window that shows the track on air 
 A ~15-second live buffer, and video that settles at the quality your connection holds, then opens there next time.
 
 @@cap-play-5
-Record the live video or radio you are playing straight to a file in your Saved files folder, without interrupting playback.
+Record the live video or radio you are playing straight to a file, without interrupting playback: video goes to the Recordings folder in Videos, radio to the Recordings folder in Music, or to folders you choose.
 
 @@cap-play-6
 Listen to a live audio broadcast from a FastMediaSorter phone or watch, directly over your local network - no server in between.
@@ -313,7 +313,7 @@ The application connects only on your action, and only to the place that action 
 Local data
 
 @@privacy-local
-STREAMS Player stores its catalog state, your added and imported channels, pins, collections, hidden channels, listening history, playback marks, cached preview frames within a 150 MB budget, the optional FFmpeg libraries if you downloaded them, and the diagnostic logs of the last ten launches under [[appdata]]. Recordings and saved frames go to the Saved files folder you choose (Downloads by default). This data stays on your device unless you copy or back it up - or unless you use Send logs to the author in Tools, which packs those diagnostic logs plus your app version, Windows version and settings into an archive and opens your mail program so you can attach and send it to [[email]]. That archive is prepared only when you press that button, the logs in it name the streams that were played, and nothing is ever sent without you pressing Send in your own mail program. A TV schedule you downloaded and your schedule channel choices are kept there too; Remove schedule in Tools deletes both.
+STREAMS Player stores its catalog state, your added and imported channels, pins, collections, hidden channels, listening history, playback marks, cached preview frames within a 150 MB budget, the optional FFmpeg libraries if you downloaded them, and the diagnostic logs of the last ten launches under [[appdata]]. Recordings and saved frames go to the folders you choose for them, or by default to Recordings in Videos, Recordings in Music and Frames in Pictures. This data stays on your device unless you copy or back it up - or unless you use Send logs to the author in Tools, which packs those diagnostic logs plus your app version, Windows version and settings into an archive and opens your mail program so you can attach and send it to [[email]]. That archive is prepared only when you press that button, the logs in it name the streams that were played, and nothing is ever sent without you pressing Send in your own mail program. A TV schedule you downloaded and your schedule channel choices are kept there too; Remove schedule in Tools deletes both.
 
 @@privacy-contact-title
 Contact

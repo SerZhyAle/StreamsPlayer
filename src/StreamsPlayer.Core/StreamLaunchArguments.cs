@@ -12,8 +12,9 @@ namespace StreamsPlayer.Core;
 /// may delete from the desktop, and an address was already a supported launch argument.</para>
 /// <para>The address is left out, never quoted around, when it could not survive the command line
 /// intact: a quote or whitespace would split or end the argument, and a backslash before the closing
-/// quote would escape it. It is also left out when it would push the arguments past what a shortcut can
-/// store. Such a channel launches by id alone, exactly as every shortcut did before.</para>
+/// quote would escape it, or when the log redactor would strip credentials from it. It is also left
+/// out when it would push the arguments past what a shortcut can store. Such a channel launches by id
+/// alone, exactly as every shortcut did before.</para>
 /// </remarks>
 public static class StreamLaunchArguments
 {
@@ -28,13 +29,20 @@ public static class StreamLaunchArguments
     {
         ArgumentNullException.ThrowIfNull(channel);
         var idOnly = $"--id \"{channel.Id:D}\"";
-        if (!CanCarry(channel.Url))
+        if (!CarriesAddress(channel))
         {
             return idOnly;
         }
 
-        var withAddress = $"{idOnly} --url \"{channel.Url.Trim()}\"";
-        return withAddress.Length <= MaximumLength ? withAddress : idOnly;
+        return $"{idOnly} --url \"{channel.Url.Trim()}\"";
+    }
+
+    /// <summary>Whether this channel's generated arguments contain its address as a fallback.</summary>
+    public static bool CarriesAddress(StreamChannel channel)
+    {
+        ArgumentNullException.ThrowIfNull(channel);
+        return CanCarry(channel.Url) &&
+            $"--id \"{channel.Id:D}\" --url \"{channel.Url.Trim()}\"".Length <= MaximumLength;
     }
 
     /// <summary>
@@ -75,5 +83,7 @@ public static class StreamLaunchArguments
 
     private static bool CanCarry(string? url) =>
         LaunchableAddress.IsLaunchable(url) &&
-        !url!.Trim().Any(character => character is '"' or '\\' || char.IsWhiteSpace(character) || char.IsControl(character));
+        !CatalogUrlIdentity.HasCredentials(url!) &&
+        !url!.Trim().Any(character => character is '"' or '\'' or '<' or '>' or '|' or '\\' ||
+            char.IsWhiteSpace(character) || char.IsControl(character));
 }

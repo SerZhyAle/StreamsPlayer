@@ -35,7 +35,9 @@ public partial class PlayerWindow
         User,
         PlaybackFailed,
         ResumeFailed,
-        Smoke
+        Smoke,
+        // SP-0178: the window closed with a session running - logged as such, not as a user stop.
+        WindowClosed
     }
 
     private void RecordButton_Click(object sender, RoutedEventArgs e) =>
@@ -52,18 +54,45 @@ public partial class PlayerWindow
             return;
         }
 
-        var folder = SmokeRecording.Folder is { } smokeFolder && _smokeRecordingActive ? smokeFolder : _frameFolder();
-        var target = new RecordingTarget(
-            RecordedBroadcastWriter.ResolveFolder(folder),
-            StreamTitleFormatter.Display(_channel.Title));
-        var session = new VideoRecordingSession(target, _log);
+        // SP-0179: the smoke gate's folder is a chain of one - its check reads the file from exactly there.
+        IReadOnlyList<string> chain = SmokeRecording.Folder is { } smokeFolder && _smokeRecordingActive
+            ? new[] { smokeFolder }
+            : CaptureFolders.Chain(CaptureKind.StreamVideo, _captureFolder(CaptureKind.StreamVideo));
         _recordingBusy = true;
-        // Set before the engine is asked, so a re-open that ends the first segment while the start is in flight
-        // finds the session to hand it to.
-        _recordingSession = session;
         try
         {
-            var started = await _backend.StartRecordingAsync(target);
+            // Probed off the UI thread: a folder on a sleeping or unplugged drive can take seconds to refuse.
+            var destination = await Task.Run(() => CaptureFolders.FirstWritable(chain));
+            if (_closing)
+            {
+                return;
+            }
+
+            if (_failureShown || !_reachedLive)
+            {
+                return; // the source changed while the folder probe was in flight
+            }
+
+            if (destination is null)
+            {
+                _log.Event("RECORD SESSION", "state=no_writable_folder", $"engine={_backend.EngineName}", $"folder={chain[0]}", $"url={_channel.Url}");
+                ShowFrameToast(LocalizationService.Format("RecordWriteFailed", chain[0]), RecordingNoticeHoldMs);
+                return;
+            }
+
+            var target = new RecordingTarget(destination.Folder, StreamTitleFormatter.Display(_channel.Title), destination.Rest);
+            var session = new VideoRecordingSession(target, _log);
+            // Set before the engine is asked, so a re-open that ends the first segment while the start is in flight
+            // finds the session to hand it to.
+            _recordingSession = session;
+            var backend = _backend;
+            var started = await backend.StartRecordingAsync(target);
+            if (!ReferenceEquals(backend, _backend))
+            {
+                _recordingResumePending = true;
+                return; // the old leg's segment is collected by its release; resume on the current one
+            }
+
             if (!started)
             {
                 _recordingSession = null;
@@ -78,7 +107,12 @@ public partial class PlayerWindow
 
             _recordingResumePending = false;
             _recordingResumeFailures = 0;
-            _log.Event("RECORD SESSION", "state=started", $"engine={_backend.EngineName}", $"folder={target.Folder}", $"url={_channel.Url}");
+            _log.Event("RECORD SESSION", "state=started", $"engine={_backend.EngineName}", $"folder={target.Folder}", $"skipped={destination.Skipped ?? "none"}", $"url={_channel.Url}");
+            if (destination.Skipped is { } skipped && !_closing)
+            {
+                // CAPTURE-OUTPUT rule 11: the fallback is told when it happens, not when the recording ends.
+                ShowFrameToast(LocalizationService.Format("RecordFellBack", skipped, destination.Folder), RecordingNoticeHoldMs);
+            }
         }
         finally
         {
@@ -134,7 +168,8 @@ public partial class PlayerWindow
 
     private async Task ResumeRecordingAsync()
     {
-        if (_recordingSession is not { } session || !_recordingResumePending || _recordingBusy || _recordingEnding
+        if (_recordingSession is not { } session || !_recordingResumePending || !_previousBackendRelease.IsCompleted
+            || _recordingBusy || _recordingEnding
             || _closing || _failureShown || !_reachedLive || _buffering)
         {
             return;
@@ -144,7 +179,12 @@ public partial class PlayerWindow
         bool started;
         try
         {
-            started = await _backend.StartRecordingAsync(session.Target);
+            var backend = _backend;
+            started = await backend.StartRecordingAsync(session.Target);
+            if (!ReferenceEquals(backend, _backend))
+            {
+                return; // a newer leg still owes the resume
+            }
         }
         finally
         {
@@ -298,18 +338,30 @@ public partial class PlayerWindow
 
     /// <summary>
     /// The window is closing: teardown ends the segment and hands it over, so the session only has to wait for the
-    /// engine and then finish. Nothing is shown - the window is gone - but every outcome is logged, and a file
-    /// that could not be moved is handed to the user at the next start (<see cref="RecordingStaging"/>).
+    /// engine and then finish. The finish task is what the application's close work awaits (SP-0164) - quitting
+    /// gives it the close-work deadline, and a file the deadline outlives is left in staging for the next start
+    /// to hand over (<see cref="RecordingStaging"/>). Nothing is shown - the window is gone - but every outcome
+    /// is logged.
     /// </summary>
+    internal Task? CloseRecordingFinish { get; private set; }
+
     private void FinishRecordingOnClose(Task engineReleased)
     {
-        if (_recordingSession is not { } session || _recordingEnding)
+        if (_recordingSession is not { } session)
         {
             return;
         }
 
+        if (_recordingEnding)
+        {
+            // An end is already finishing this session (a user stop taken by the close); join it so the quit
+            // path waits for its move too. The join only waits - the in-flight end does the reporting.
+            CloseRecordingFinish = session.CompleteAsync();
+            return;
+        }
+
         _recordingEnding = true;
-        _ = FinishAsync();
+        CloseRecordingFinish = FinishAsync();
 
         async Task FinishAsync()
         {
@@ -317,7 +369,7 @@ public partial class PlayerWindow
             {
                 await engineReleased.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
                 var results = await session.CompleteAsync().ConfigureAwait(false);
-                LogRecordingSession(session, results, RecordingEnd.User);
+                LogRecordingSession(session, results, RecordingEnd.WindowClosed);
             }
             catch (Exception exception)
             {
@@ -342,8 +394,13 @@ public partial class PlayerWindow
     {
         var saved = results.Where(result => result.Fate == SegmentFate.Saved && result.Path is not null).ToList();
         var stranded = results.FirstOrDefault(result => result.Fate == SegmentFate.Stranded);
+        // SP-0179: a segment the recording's folder refused by the time it was finished went to a fallback -
+        // told next, because it is not where the user expects it (CAPTURE-OUTPUT rule 11).
+        var elsewhere = saved.FirstOrDefault(result => result.Skipped is not null);
         var body = stranded is not null
             ? LocalizationService.Format("RecordStranded", stranded.Path)
+            : elsewhere is not null
+            ? LocalizationService.Format("RecordSavedElsewhere", elsewhere.Skipped, elsewhere.Path)
             : saved.Count switch
             {
                 0 => LocalizationService.Get("RecordNothingSaved"),

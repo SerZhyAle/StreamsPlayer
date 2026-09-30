@@ -26,7 +26,7 @@ public partial class MainWindow
         }
 
         CatalogPurgeResult? purge = null;
-        _state = await PersistAsync(state =>
+        await PersistAsync(state =>
         {
             purge = CatalogPurge.RemoveDownloaded(state);
             var collections = purge.RemovedChannelIds.Aggregate(
@@ -68,7 +68,7 @@ public partial class MainWindow
         }
 
         CatalogPurgeResult? purge = null;
-        _state = await PersistAsync(state =>
+        await PersistAsync(state =>
         {
             purge = CatalogPurge.RemoveImportedBank(state);
             var collections = purge.RemovedChannelIds.Aggregate(

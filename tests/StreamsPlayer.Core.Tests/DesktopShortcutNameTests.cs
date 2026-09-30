@@ -66,6 +66,36 @@ public sealed class DesktopShortcutNameTests
     }
 
     /// <summary>
+    /// SP-0178: a title cut at the limit must not end in half of an emoji's surrogate pair. Both offsets
+    /// are tried so the limit falls once inside a pair and once on its boundary.
+    /// </summary>
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void PathFor_NeverEndsTheTitleInALoneSurrogate(int padding)
+    {
+        var title = new string('x', padding) + string.Concat(Enumerable.Repeat("\U0001F4FB", 200));
+
+        var path = DesktopShortcutName.PathFor(Desktop, title);
+
+        var name = path[..^DesktopShortcutName.Suffix.Length];
+        Assert.False(char.IsHighSurrogate(name[^1]), "the title ends in a lone high surrogate");
+        Assert.True(path.Length <= 259);
+        for (var i = 0; i < name.Length; i++)
+        {
+            if (char.IsHighSurrogate(name[i]))
+            {
+                Assert.True(i + 1 < name.Length && char.IsLowSurrogate(name[i + 1]), $"lone surrogate at {i}");
+                i++;
+            }
+            else
+            {
+                Assert.False(char.IsLowSurrogate(name[i]), $"lone low surrogate at {i}");
+            }
+        }
+    }
+
+    /// <summary>
     /// A trailing separator on the directory is the same directory, so it must not cost the title a
     /// character or produce a doubled separator.
     /// </summary>

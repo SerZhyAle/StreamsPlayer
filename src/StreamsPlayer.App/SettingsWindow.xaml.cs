@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -20,11 +21,12 @@ namespace StreamsPlayer.App;
 public partial class SettingsWindow : Window
 {
     private readonly AppLanguage _language;
-    // SP-0038: null means "unset", which resolves to Downloads at save time. The text box always shows a
-    // real path so the user can see where frames land either way, hence the separate field.
-    private string? _frameFolder;
+    // SP-0038 / SP-0179: the pending folder per captured kind. Null means "unset", which resolves to the kind's
+    // default folder at capture time. The text box always shows a real path so the user can see where files
+    // land either way, hence the separate values.
+    private readonly Dictionary<CaptureKind, string?> _captureFolders = [];
 
-    public SettingsWindow(AppTheme theme, StreamTileSize tileSize, bool updateStreamPreviews, bool hideAdultContent, bool animatedBackdrop, bool keepAwakeDuringPlayback, bool systemMediaControls, bool resumePlaybackOnStartup, MediaBackend videoBackend, string? frameFolder, AppLanguage language)
+    public SettingsWindow(AppTheme theme, StreamTileSize tileSize, bool updateStreamPreviews, bool hideAdultContent, bool animatedBackdrop, bool keepAwakeDuringPlayback, bool systemMediaControls, bool resumePlaybackOnStartup, MediaBackend videoBackend, string? frameFolder, string? videoRecordingFolder, string? audioRecordingFolder, AppLanguage language)
     {
         InitializeComponent();
         _language = language;
@@ -59,8 +61,13 @@ public partial class SettingsWindow : Window
         VideoBackendBox.ItemsSource = backends;
         VideoBackendBox.SelectedItem = backends.First(item => item.Value == videoBackend.ToString());
         ShowVideoComponents();
-        _frameFolder = frameFolder;
-        ShowFrameFolder();
+        _captureFolders[CaptureKind.VideoFrame] = frameFolder;
+        _captureFolders[CaptureKind.StreamVideo] = videoRecordingFolder;
+        _captureFolders[CaptureKind.StreamAudio] = audioRecordingFolder;
+        foreach (var kind in _captureFolders.Keys)
+        {
+            ShowCaptureFolder(kind);
+        }
         VersionText.Text = ProductInfo.Version;
         AuthorText.Text = ProductInfo.Author;
 
@@ -94,30 +101,61 @@ public partial class SettingsWindow : Window
     public bool ResumePlaybackOnStartup => ResumePlaybackCheckBox.IsChecked == true;
     public MediaBackend SelectedVideoBackend => Enum.Parse<MediaBackend>(((UiOption)VideoBackendBox.SelectedItem).Value);
 
-    /// <summary>The chosen frames folder, or <c>null</c> for "wherever Downloads is at save time".</summary>
-    public string? FrameFolder => _frameFolder;
+    /// <summary>The chosen frames folder, or <c>null</c> for the frames' default folder at capture time.</summary>
+    public string? FrameFolder => _captureFolders[CaptureKind.VideoFrame];
 
-    private void ShowFrameFolder() => FrameFolderBox.Text = CapturedFrameWriter.ResolveFolder(_frameFolder);
+    /// <summary>The chosen video recordings folder, or <c>null</c> for their default folder (SP-0179).</summary>
+    public string? VideoRecordingFolder => _captureFolders[CaptureKind.StreamVideo];
+
+    /// <summary>The chosen radio recordings folder, or <c>null</c> for their default folder (SP-0179).</summary>
+    public string? AudioRecordingFolder => _captureFolders[CaptureKind.StreamAudio];
+
+    /// <summary>The kind a folder button edits: its <c>Tag</c> names it, so the three rows share one set of handlers.</summary>
+    private static CaptureKind KindOf(object sender) =>
+        sender is FrameworkElement { Tag: string tag } && Enum.TryParse<CaptureKind>(tag, out var kind) ? kind : CaptureKind.VideoFrame;
+
+    /// <summary>The folder the kind's files go to now: the pending choice, or the kind's default.</summary>
+    private string ResolvedFolder(CaptureKind kind) => _captureFolders[kind] ?? CaptureFolders.Default(kind);
+
+    private void ShowCaptureFolder(CaptureKind kind)
+    {
+        var box = kind switch
+        {
+            CaptureKind.StreamVideo => VideoRecordingFolderBox,
+            CaptureKind.StreamAudio => AudioRecordingFolderBox,
+            _ => FrameFolderBox
+        };
+        box.Text = ResolvedFolder(kind);
+    }
 
     private void FrameFolderBrowse_Click(object sender, RoutedEventArgs e)
     {
+        var kind = KindOf(sender);
+        var current = ResolvedFolder(kind);
         var dialog = new OpenFolderDialog
         {
-            Title = LocalizationService.Get("FrameFolderLabel"),
-            InitialDirectory = CapturedFrameWriter.ResolveFolder(_frameFolder),
+            Title = LocalizationService.Get(kind switch
+            {
+                CaptureKind.StreamVideo => "VideoRecordingFolderLabel",
+                CaptureKind.StreamAudio => "AudioRecordingFolderLabel",
+                _ => "FrameFolderLabel"
+            }),
+            // A default folder the first capture has not created yet opens at its parent - Pictures, Videos, Music.
+            InitialDirectory = Directory.Exists(current) ? current : Path.GetDirectoryName(current) ?? current,
             Multiselect = false
         };
         if (dialog.ShowDialog(this) == true)
         {
-            _frameFolder = dialog.FolderName;
-            ShowFrameFolder();
+            _captureFolders[kind] = dialog.FolderName;
+            ShowCaptureFolder(kind);
         }
     }
 
     private void FrameFolderReset_Click(object sender, RoutedEventArgs e)
     {
-        _frameFolder = null;
-        ShowFrameFolder();
+        var kind = KindOf(sender);
+        _captureFolders[kind] = null;
+        ShowCaptureFolder(kind);
     }
 
     // Navigation only: opening the folder changes nothing, so it may live beside Cancel. It no longer creates
@@ -125,7 +163,7 @@ public partial class SettingsWindow : Window
     // it is first needed.
     private void FrameFolderOpen_Click(object sender, RoutedEventArgs e)
     {
-        var folder = CapturedFrameWriter.ResolveFolder(_frameFolder);
+        var folder = ResolvedFolder(KindOf(sender));
         if (!LogReportMailer.OpenFolder(folder))
         {
             MessageBox.Show(this, LocalizationService.Format("LogArchiveOpenFolderFailed", folder), Title, MessageBoxButton.OK, MessageBoxImage.Warning);

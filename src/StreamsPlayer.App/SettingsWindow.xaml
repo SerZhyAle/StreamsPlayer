@@ -161,18 +161,48 @@
                         <TextBlock Text="{DynamicResource VideoComponentsWhere}" Foreground="{DynamicResource MutedBrush}"
                                    TextWrapping="Wrap" Margin="0,5,0,0" />
                         <!-- SP-0038: where the player's camera button writes its frames. Read-only text plus a
-                             picker, so the stored path is always one Windows itself produced. -->
+                             picker, so the stored path is always one Windows itself produced. SP-0179: one row per
+                             captured kind (CAPTURE-OUTPUT rule 10); the three rows share the handlers, and each
+                             button's Tag names the kind it edits. -->
                         <TextBlock Text="{DynamicResource FrameFolderLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
                         <TextBox x:Name="FrameFolderBox" IsReadOnly="True" Margin="0,5,0,0" Padding="7,4"
                                  TextWrapping="NoWrap" AutomationProperties.Name="{DynamicResource FrameFolderLabel}" />
                         <TextBlock Text="{DynamicResource FrameFolderHint}" Foreground="{DynamicResource MutedBrush}"
                                    TextWrapping="Wrap" Margin="0,5,0,0" />
                         <WrapPanel Margin="0,6,0,0">
-                            <Button x:Name="FrameFolderBrowseButton" Style="{StaticResource ChooseFolderGlyphButton}"
+                            <Button x:Name="FrameFolderBrowseButton" Tag="VideoFrame" Style="{StaticResource ChooseFolderGlyphButton}"
                                     Content="{DynamicResource FrameFolderBrowse}" Click="FrameFolderBrowse_Click" Margin="0,0,8,0" />
-                            <Button x:Name="FrameFolderResetButton" Style="{StaticResource ResetGlyphButton}"
+                            <Button x:Name="FrameFolderResetButton" Tag="VideoFrame" Style="{StaticResource ResetGlyphButton}"
                                     Content="{DynamicResource FrameFolderReset}" Click="FrameFolderReset_Click" Margin="0,0,8,0" />
-                            <Button x:Name="FrameFolderOpenButton" Style="{StaticResource OpenFolderGlyphButton}"
+                            <Button x:Name="FrameFolderOpenButton" Tag="VideoFrame" Style="{StaticResource OpenFolderGlyphButton}"
+                                    Content="{DynamicResource FrameFolderOpen}" Click="FrameFolderOpen_Click"
+                                    ToolTip="{DynamicResource LogArchiveOpenFolder}" />
+                        </WrapPanel>
+                        <TextBlock Text="{DynamicResource VideoRecordingFolderLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
+                        <TextBox x:Name="VideoRecordingFolderBox" IsReadOnly="True" Margin="0,5,0,0" Padding="7,4"
+                                 TextWrapping="NoWrap" AutomationProperties.Name="{DynamicResource VideoRecordingFolderLabel}" />
+                        <TextBlock Text="{DynamicResource VideoRecordingFolderHint}" Foreground="{DynamicResource MutedBrush}"
+                                   TextWrapping="Wrap" Margin="0,5,0,0" />
+                        <WrapPanel Margin="0,6,0,0">
+                            <Button x:Name="VideoRecordingFolderBrowseButton" Tag="StreamVideo" Style="{StaticResource ChooseFolderGlyphButton}"
+                                    Content="{DynamicResource FrameFolderBrowse}" Click="FrameFolderBrowse_Click" Margin="0,0,8,0" />
+                            <Button x:Name="VideoRecordingFolderResetButton" Tag="StreamVideo" Style="{StaticResource ResetGlyphButton}"
+                                    Content="{DynamicResource FrameFolderReset}" Click="FrameFolderReset_Click" Margin="0,0,8,0" />
+                            <Button x:Name="VideoRecordingFolderOpenButton" Tag="StreamVideo" Style="{StaticResource OpenFolderGlyphButton}"
+                                    Content="{DynamicResource FrameFolderOpen}" Click="FrameFolderOpen_Click"
+                                    ToolTip="{DynamicResource LogArchiveOpenFolder}" />
+                        </WrapPanel>
+                        <TextBlock Text="{DynamicResource AudioRecordingFolderLabel}" FontWeight="SemiBold" Margin="0,16,0,0" />
+                        <TextBox x:Name="AudioRecordingFolderBox" IsReadOnly="True" Margin="0,5,0,0" Padding="7,4"
+                                 TextWrapping="NoWrap" AutomationProperties.Name="{DynamicResource AudioRecordingFolderLabel}" />
+                        <TextBlock Text="{DynamicResource AudioRecordingFolderHint}" Foreground="{DynamicResource MutedBrush}"
+                                   TextWrapping="Wrap" Margin="0,5,0,0" />
+                        <WrapPanel Margin="0,6,0,0">
+                            <Button x:Name="AudioRecordingFolderBrowseButton" Tag="StreamAudio" Style="{StaticResource ChooseFolderGlyphButton}"
+                                    Content="{DynamicResource FrameFolderBrowse}" Click="FrameFolderBrowse_Click" Margin="0,0,8,0" />
+                            <Button x:Name="AudioRecordingFolderResetButton" Tag="StreamAudio" Style="{StaticResource ResetGlyphButton}"
+                                    Content="{DynamicResource FrameFolderReset}" Click="FrameFolderReset_Click" Margin="0,0,8,0" />
+                            <Button x:Name="AudioRecordingFolderOpenButton" Tag="StreamAudio" Style="{StaticResource OpenFolderGlyphButton}"
                                     Content="{DynamicResource FrameFolderOpen}" Click="FrameFolderOpen_Click"
                                     ToolTip="{DynamicResource LogArchiveOpenFolder}" />
                         </WrapPanel>

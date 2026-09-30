@@ -5,6 +5,8 @@ namespace StreamsPlayer.Core;
 /// <summary>
 /// Reads and writes <see cref="BrowsingSession"/> in its own small file (SP-0067), so the paths that
 /// change constantly - a scroll coming to rest, a card click - stop rewriting the channel catalog.
+/// SP-0175: a session file that could not be read is never written over, and a migration save that
+/// fails defers to the next launch instead of failing the load.
 /// </summary>
 public sealed class BrowsingSessionStore
 {
@@ -15,6 +17,14 @@ public sealed class BrowsingSessionStore
 
     private readonly string _directory;
     private readonly string _sessionPath;
+
+    // Set by the last load; read by every save. Volatile: the load runs once on the UI thread at
+    // start-up, while saves run under the gate on pool threads.
+    private volatile bool _sessionUnreadable;
+
+    // SP-0175: one wording for both halves of the rule - the load that failed and the save it forbids.
+    private const string UnreadableSessionMessage =
+        "The browsing-session file could not be read, so it is preserved untouched until a read succeeds (SP-0175).";
 
     // The same reason StreamCatalogStore has one: saves are raised from independent UI handlers and
     // overlapping ones would race on File.Move, stranding the loser's temp file.
@@ -42,9 +52,10 @@ public sealed class BrowsingSessionStore
     /// </summary>
     /// <remarks>
     /// The migration is one-time by construction: it writes the session file as part of the same call,
-    /// so the next load finds it and never looks at <paramref name="migrationSource"/> again. There is
-    /// deliberately no permanent dual-read path (SP-0067 settled question 3) - the old fields stay on
-    /// <see cref="CatalogState"/> so an existing file keeps loading, and stop being written.
+    /// so the next load finds it and never looks at <paramref name="migrationSource"/> again - and when
+    /// that write fails, the file is still absent, so the next launch simply migrates again (SP-0175).
+    /// There is deliberately no permanent dual-read path (SP-0067 settled question 3) - the old fields
+    /// stay on <see cref="CatalogState"/> so an existing file keeps loading, and stop being written.
     /// <para>
     /// <see cref="CatalogState.CatalogScrollAnchorId"/> has no counterpart here: it named a channel and
     /// the session stores a position. It migrates to <c>ScrollOffset = 0</c>, which restores the top of
@@ -53,26 +64,27 @@ public sealed class BrowsingSessionStore
     /// </remarks>
     public async Task<BrowsingSession> LoadAsync(
         CatalogState migrationSource,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        Action<Exception>? onMigrationSaveFailure = null)
     {
-        if (File.Exists(_sessionPath))
+        var (session, status, _) = await DurableFile
+            .ReadAsync<BrowsingSession>(_sessionPath, _jsonOptions, cancellationToken)
+            .ConfigureAwait(false);
+        if (status == FileReadStatus.Read)
         {
-            try
-            {
-                await using var stream = File.OpenRead(_sessionPath);
-                return await JsonSerializer
-                    .DeserializeAsync<BrowsingSession>(stream, _jsonOptions, cancellationToken)
-                    .ConfigureAwait(false) ?? new BrowsingSession();
-            }
-            catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
-            {
-                // Losing the saved filters is recoverable and invisible after one interaction; failing
-                // the launch over them is not. The file is left in place for diagnosis and overwritten
-                // by the next save.
-                return new BrowsingSession();
-            }
+            _sessionUnreadable = false;
+            return session ?? new BrowsingSession();
         }
 
+        if (status == FileReadStatus.Unreadable)
+        {
+            // SP-0175: the file is preserved untouched, and saves are refused until a read has
+            // succeeded, so a scroll position cannot cost the filters the file still holds.
+            _sessionUnreadable = true;
+            return new BrowsingSession();
+        }
+
+        _sessionUnreadable = false;
         var migrated = new BrowsingSession
         {
             SearchQuery = migrationSource.CatalogSearchQuery,
@@ -87,7 +99,19 @@ public sealed class BrowsingSessionStore
             ScrollOffset = 0,
             LastSelectedChannelId = migrationSource.LastSelectedChannelId
         };
-        await SaveAsync(migrated, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await SaveAsync(migrated, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // SP-0175: a migration save that fails - a locked or unwritable state folder - must not fail
+            // the load it is part of, which for two releases read as a catalog load failure (SP-0116
+            // A-18). The session file is still absent, so the next launch migrates again from the same
+            // legacy fields; the callback lets the caller log the deferral.
+            onMigrationSaveFailure?.Invoke(exception);
+        }
+
         return migrated;
     }
 
@@ -106,21 +130,23 @@ public sealed class BrowsingSessionStore
 
     private async Task SaveCoreAsync(BrowsingSession session, CancellationToken cancellationToken)
     {
+        if (_sessionUnreadable)
+        {
+            // SP-0175: never replace a file whose content this session never managed to read. The
+            // caller already absorbs this the way it absorbs any failed local write.
+            throw new IOException(UnreadableSessionMessage);
+        }
+
         Directory.CreateDirectory(_directory);
         var temporaryPath = Path.Combine(
             _directory, $"{TemporaryFilePrefix}{Guid.NewGuid():N}{TemporaryFileExtension}");
         try
         {
-            await using (var stream = new FileStream(
-                temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            {
-                await JsonSerializer
-                    .SerializeAsync(stream, session, _jsonOptions, cancellationToken)
-                    .ConfigureAwait(false);
-                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            File.Move(temporaryPath, _sessionPath, overwrite: true);
+            await DurableFile.ReplaceAsync(
+                _sessionPath,
+                temporaryPath,
+                (stream, token) => JsonSerializer.SerializeAsync(stream, session, _jsonOptions, token),
+                cancellationToken).ConfigureAwait(false);
         }
         catch
         {

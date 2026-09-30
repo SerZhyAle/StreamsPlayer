@@ -16,9 +16,10 @@
         ./tools/build-installer.ps1 -Version 26.0820.1828
             Override the version. Default: the stamp in Directory.Build.props.
 
-    The publish here is deliberately NOT single-file. LibVLCSharp resolves its natives from
-    libvlc\win-x64\ beside the executable, and PublishSingleFile does not embed them - a lone
-    StreamsPlayer.exe dies at startup. The installer exists precisely to deliver the whole tree.
+    The publish here is the whole self-contained folder. LibVLCSharp resolves its natives from
+    libvlc\win-x64\ beside the executable, and no publish embeds them; every playback path runs on
+    them. Since SP-0119 a copy without them starts but plays nothing. The installer exists precisely
+    to deliver the whole tree.
 
     Requires Inno Setup 6 (ISCC.exe). It is not part of the .NET toolchain and is not installed by
     build.ps1; the script names the download if it is missing.
@@ -119,10 +120,10 @@ if (-not (Test-Path -LiteralPath $notices)) {
     throw "THIRD-PARTY-NOTICES.txt is missing from the staging tree. Every distributed package must carry it."
 }
 
-$nativeDir = Join-Path $SourceDir 'libvlc/win-x64'
-if (-not (Test-Path -LiteralPath $nativeDir)) {
-    throw "libvlc/win-x64 is missing from the staging tree. The installed application would fail at startup in VideoFrameCaptureService..ctor. Was this published with PublishSingleFile?"
-}
+# SP-0156 (T-10): the same pinned-natives evidence the local build, the MSIX packager and the release
+# workflow apply - the native tree present and byte-identical to the pinned package, not merely present.
+Write-Host "Asserting the pinned natives in $SourceDir .."
+& (Join-Path $root 'scripts/Assert-PinnedNatives.ps1') -Folder $SourceDir -ProjectPath (Join-Path $root 'src/StreamsPlayer.App/StreamsPlayer.App.csproj')
 
 # ---- compile ----------------------------------------------------------------------------------
 

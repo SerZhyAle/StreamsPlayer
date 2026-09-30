@@ -67,13 +67,23 @@ public sealed class StreamCatalogService
         var outcome = await DownloadAsync(progress, retrying, cancellationToken);
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(ApplyDeadline);
-        var result = outcome.Apply(currentState);
+        var result = await ApplyAsync(outcome, currentState, deadline.Token);
         var state = await _store.SaveAsync(
             result.State,
             outcome.Bank.FaviconAtlas,
             outcome.ReplacesAtlas,
             deadline.Token);
         return result with { State = state };
+    }
+
+    /// <summary>Runs the same bounded merge for direct refreshes and the app's serialized commit.</summary>
+    public static async Task<CatalogRefreshResult> ApplyAsync(
+        CatalogRefreshOutcome outcome, CatalogState currentState, CancellationToken cancellationToken = default)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(ApplyDeadline);
+        return await Task.Run(() => outcome.Apply(currentState), deadline.Token).WaitAsync(deadline.Token)
+            .ConfigureAwait(false);
     }
 
     /// <summary>

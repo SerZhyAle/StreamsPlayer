@@ -13,11 +13,11 @@ public sealed class LivePlaybackRecoveryPolicyTests
     [Fact]
     public void Transient_FollowsExponentialBackoffThenHardFails()
     {
-        // SP-0079: two attempts, not Part D's four. The backoff curve is unchanged, so the budget is the
-        // only thing that moved - and the whole point of moving it is the total wait, which is why the
+        // SP-0079: two attempts, not Part D's four; SP-0041 then halved the curve to 1 / 2 s. The budget is
+        // not the only thing that moved - the whole point of both changes is the total wait, which is why the
         // delays are asserted alongside it rather than left implied.
         var policy = new LivePlaybackRecoveryPolicy();
-        var expected = new[] { 2, 4 };
+        var expected = new[] { 1, 2 };
         for (var i = 0; i < expected.Length; i++)
         {
             var decision = policy.Decide(Transient());
@@ -35,7 +35,7 @@ public sealed class LivePlaybackRecoveryPolicyTests
     public void BehindLiveWindow_FollowsLinearBackoffThenHardFails()
     {
         var policy = new LivePlaybackRecoveryPolicy();
-        foreach (var seconds in new[] { 1, 2, 3 })
+        foreach (var seconds in new[] { 0.5, 1.0, 1.5 })
         {
             var decision = policy.Decide(BehindLive());
             Assert.Equal(RecoveryActionKind.Reconnect, decision.Kind);
@@ -55,7 +55,7 @@ public sealed class LivePlaybackRecoveryPolicyTests
             var decision = policy.Decide(Stall());
             Assert.Equal(RecoveryActionKind.Reconnect, decision.Kind);
             Assert.Equal(RecoveryTrigger.Stall, decision.Trigger);
-            Assert.Equal(TimeSpan.FromSeconds(1), decision.Delay);
+            Assert.Equal(TimeSpan.FromMilliseconds(500), decision.Delay);
         }
 
         Assert.Equal(RecoveryActionKind.HardFail, policy.Decide(Stall()).Kind);
@@ -73,6 +73,7 @@ public sealed class LivePlaybackRecoveryPolicyTests
             Assert.Equal(RecoveryActionKind.Reconnect, decision.Kind);
             Assert.Equal(RecoveryTrigger.StreamEnded, decision.Trigger);
             Assert.Equal(2, decision.Budget);
+            Assert.Equal(TimeSpan.FromMilliseconds(500), decision.Delay); // SP-0041: half of the old 1 s
         }
 
         Assert.Equal(RecoveryActionKind.HardFail, policy.Decide(Ended()).Kind);
@@ -89,7 +90,7 @@ public sealed class LivePlaybackRecoveryPolicyTests
         var decision = policy.Decide(Transient());
         Assert.Equal(RecoveryActionKind.Reconnect, decision.Kind);
         Assert.Equal(1, decision.Attempt);
-        Assert.Equal(TimeSpan.FromSeconds(2), decision.Delay);
+        Assert.Equal(TimeSpan.FromSeconds(1), decision.Delay);
     }
 
     [Fact]
@@ -204,7 +205,7 @@ public sealed class LivePlaybackRecoveryPolicyTests
         Assert.Equal(RecoveryTrigger.OpenTimeout, first.Trigger);
         Assert.Equal(1, first.Attempt);
         Assert.Equal(1, first.Budget);
-        Assert.Equal(TimeSpan.FromSeconds(1), first.Delay);
+        Assert.Equal(TimeSpan.FromMilliseconds(500), first.Delay);
 
         var second = policy.Decide(OpenTimedOut());
         Assert.Equal(RecoveryActionKind.HardFail, second.Kind);
@@ -232,5 +233,33 @@ public sealed class LivePlaybackRecoveryPolicyTests
         Assert.Equal(1, policy.Decide(Transient()).Attempt);
         Assert.Equal(2, policy.Decide(Transient()).Attempt);
         Assert.Equal(RecoveryActionKind.HardFail, policy.Decide(Transient()).Kind);
+    }
+
+    [Fact]
+    public void EveryTrigger_HasANonZeroBudgetOrHardFails()
+    {
+        // SP-0178: a trigger appended to the enum without a budget arm must fail hard, not reconnect forever.
+        foreach (var trigger in Enum.GetValues<RecoveryTrigger>())
+        {
+            var first = new LivePlaybackRecoveryPolicy().Decide(trigger);
+            if (first.Kind == RecoveryActionKind.Reconnect)
+            {
+                Assert.True(first.Budget > 0, $"{trigger} reconnects with budget {first.Budget}");
+                Assert.True(first.Delay > TimeSpan.Zero, $"{trigger} reconnects with no delay");
+            }
+            else
+            {
+                Assert.Equal(RecoveryActionKind.HardFail, first.Kind);
+            }
+        }
+    }
+
+    [Fact]
+    public void UnmappedTrigger_HardFailsOnFirstOccurrence()
+    {
+        var decision = new LivePlaybackRecoveryPolicy().Decide((RecoveryTrigger)999);
+
+        Assert.Equal(RecoveryActionKind.HardFail, decision.Kind);
+        Assert.Equal(0, decision.Budget);
     }
 }

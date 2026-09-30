@@ -268,6 +268,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="FailureDialogMessage">„{0}“ konnte nicht abgespielt werden.</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">„{0}“ kann nicht abgespielt werden: Die Adresse ist kein http-, https- oder rtsp-Stream.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">Der Katalog kennzeichnet diesen Kanal als regional gesperrt: aus dem Land des Betreuers hat er nicht geantwortet. Er kann funktionieren, wenn Sie in der Senderegion sind.</sys:String>
+    <sys:String x:Key="FailureNoNetwork">Es besteht keine Netzwerkverbindung, daher wurde dieser Kanal nie erreicht. Er ist möglicherweise in Ordnung - prüfen Sie Ihre Verbindung und versuchen Sie es erneut.</sys:String>
     <sys:String x:Key="FailureRetry">Wiederholen</sys:String>
     <sys:String x:Key="FailureHide">Ausblenden</sys:String>
     <sys:String x:Key="FailureDelete">Löschen</sys:String>
@@ -316,6 +317,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="SaveFrame">Bild speichern</sys:String>
     <sys:String x:Key="SaveFrameTip">Das aktuelle Bild als Bilddatei und als Symbol dieses Kanals speichern</sys:String>
     <sys:String x:Key="FrameSaved">Bild gespeichert: {0}</sys:String>
+    <sys:String x:Key="FrameSavedElsewhere">In {0} konnte nicht geschrieben werden - Bild in {1} gespeichert</sys:String>
     <sys:String x:Key="FrameSaveFailed">Das Bild konnte nicht gespeichert werden</sys:String>
     <sys:String x:Key="Record">Aufnehmen</sys:String>
     <sys:String x:Key="RecordTip">Live-Übertragung aufnehmen (R)</sys:String>
@@ -333,15 +335,21 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="RecordEndedConnectionLost">Aufnahme beendet - der Sender hat die Verbindung getrennt. Gespeichert: {0} ({1})</sys:String>
     <sys:String x:Key="RecordUnsupportedFormat">Das Streamformat dieses Senders kann nicht aufgenommen werden</sys:String>
     <sys:String x:Key="RecordWriteFailed">Aufnahme gestoppt - in {0} konnte nicht geschrieben werden</sys:String>
+    <sys:String x:Key="RecordFellBack">In {0} konnte nicht geschrieben werden - Aufnahme läuft in {1}</sys:String>
+    <sys:String x:Key="RecordSavedElsewhere">In {0} konnte nicht geschrieben werden - Aufnahme in {1} gespeichert</sys:String>
     <sys:String x:Key="RecordUnavailableEngine">Aufnahme ist mit dieser Version der Video-Engine nicht verfügbar</sys:String>
     <sys:String x:Key="RecordUnavailableFastMediaSorter">Eine FastMediaSorter-Übertragung erlaubt nur eine Verbindung, und die Wiedergabe nutzt sie - sie kann nicht aufgenommen werden</sys:String>
     <sys:String x:Key="RecordingsRecovered">{0} nicht gespeicherte Aufnahme(n) der letzten Sitzung nach {1} verschoben</sys:String>
     <sys:String x:Key="RecordingsRecoveryFailed">{0} nicht gespeicherte Aufnahme(n) der letzten Sitzung konnten nicht verschoben werden - sie liegen in {1}</sys:String>
-    <sys:String x:Key="FrameFolderLabel">Ordner für gespeicherte Dateien</sys:String>
-    <sys:String x:Key="FrameFolderHint">Hier speichert STREAMS Player Bilder und Protokollarchive. Leer lassen, um den Ordner „Downloads“ zu verwenden.</sys:String>
+    <sys:String x:Key="FrameFolderLabel">Ordner für Bilder</sys:String>
+    <sys:String x:Key="FrameFolderHint">Hierhin kommen gespeicherte Bilder und Protokollarchive. Leer lassen für den Ordner „Frames“ unter „Bilder“; Protokollarchive kommen dann in „Downloads“.</sys:String>
     <sys:String x:Key="FrameFolderBrowse">Ordner wählen..</sys:String>
-    <sys:String x:Key="FrameFolderReset">„Downloads“ verwenden</sys:String>
+    <sys:String x:Key="FrameFolderReset">Standardordner verwenden</sys:String>
     <sys:String x:Key="FrameFolderOpen">Ordner öffnen</sys:String>
+    <sys:String x:Key="VideoRecordingFolderLabel">Ordner für Videoaufnahmen</sys:String>
+    <sys:String x:Key="VideoRecordingFolderHint">Hierhin kommen Aufnahmen von Videostreams. Leer lassen für den Ordner „Recordings“ unter „Videos“.</sys:String>
+    <sys:String x:Key="AudioRecordingFolderLabel">Ordner für Radioaufnahmen</sys:String>
+    <sys:String x:Key="AudioRecordingFolderHint">Hierhin kommen Aufnahmen von Radiosendern. Leer lassen für den Ordner „Recordings“ unter „Musik“.</sys:String>
     <sys:String x:Key="VolumeTip">Videolautstärke</sys:String>
     <sys:String x:Key="VolumeName">Videolautstärke</sys:String>
     <sys:String x:Key="AudioVolumeTip">Audiolautstärke</sys:String>
@@ -393,6 +401,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="VideoComponentsProgressUnknown">Komponenten werden geladen.. {0} MB</sys:String>
     <sys:String x:Key="VideoComponentsInstallDone">Komponenten wurden nach {0} installiert. FlyleafLib steht für den nächsten Player bereit, den Sie öffnen.</sys:String>
     <sys:String x:Key="VideoComponentsInstallFailed">Die Komponenten konnten nicht geladen werden. Es wurde nichts installiert. {0}</sys:String>
+    <sys:String x:Key="VideoComponentsRollbackFailed">Die Komponenten konnten nicht ersetzt werden, und die vorherige Version ließ sich nicht vollständig wiederherstellen. Bis zur erneuten Installation sind sie nicht nutzbar. Die vorherigen Dateien wurden aufbewahrt in: {0}</sys:String>
     <sys:String x:Key="VideoComponentsRemoveConfirm">Die FlyleafLib-Komponenten entfernen? FlyleafLib funktioniert dann nicht mehr, bis sie erneut geladen werden; VLC ist nicht betroffen.</sys:String>
     <sys:String x:Key="VideoComponentsRemoveFailed">Die Komponenten konnten nicht entfernt werden. Schließen Sie alle offenen Player-Fenster und versuchen Sie es erneut.</sys:String>
     <sys:String x:Key="VideoComponentsRequiredTitle">FlyleafLib ist nicht bereit</sys:String>
@@ -434,6 +443,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="CreateDesktopShortcut">Desktop-Verknüpfung erstellen</sys:String>
     <sys:String x:Key="LaunchCommandCopied">Der Startbefehl wurde in die Zwischenablage kopiert.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows konnte den Startbefehl nicht kopieren.</sys:String>
+    <sys:String x:Key="LaunchIdOnlyNotice">Die Adresse wurde weggelassen. Diese Verknüpfung oder dieser Befehl funktioniert nur, solange der Sender in dieser Bibliothek vorhanden ist.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Freigabetext kopieren</sys:String>
     <sys:String x:Key="MenuCopyLaunchCommand">Startbefehl kopieren</sys:String>
@@ -595,6 +605,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="FmsBroadcastUnsupportedMode">Dieser Übertragungsmodus wird noch nicht unterstützt. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="FmsBroadcastInvalid">Dies ist keine gültige FastMediaSorter-Übertragungsbeschreibung. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">Diese Übertragungsbeschreibung ist größer als 64 KiB. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer ist mit einem anderen Vorgang beschäftigt. Importieren Sie die Übertragung erneut, sobald der Vorgang abgeschlossen ist. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">„{0}“ hat bereits die maximale Anzahl an Zuhörern. Versuchen Sie es erneut, wenn sich ein anderer Zuhörer abmeldet.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">„{0}“ sendet nicht mehr oder ist in diesem Netzwerk nicht mehr erreichbar.</sys:String>
     <!-- SP-0098 portable stream catalog import -->

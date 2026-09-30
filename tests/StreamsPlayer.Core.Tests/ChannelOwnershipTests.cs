@@ -107,6 +107,21 @@ public sealed class ChannelOwnershipTests
         Assert.Same(state, ChannelOwnership.ApplyEdit(state, Guid.NewGuid(), owned => owned with { Title = "X" }));
     }
 
+    // SP-0177: no merge can revive a user row, so an edit that kept the date would retire the row for good.
+    [Fact]
+    public void Edit_ClearsRetirement()
+    {
+        var state = MergeInto(new CatalogState(), [Entry("Bank", "https://example.test/one")], CatalogMergeOptions.CatalogRefresh);
+        var retired = Assert.Single(state.Channels) with { Pinned = true, RetiredAt = Now };
+        state = state with { Channels = [retired] };
+
+        var edited = ChannelOwnership.ApplyEdit(state, retired.Id, owned => owned with { Url = "https://mirror.test/one" });
+
+        var channel = Assert.Single(edited.Channels);
+        Assert.Null(channel.RetiredAt);
+        Assert.True(channel.Pinned);
+    }
+
     private static CatalogState MergeInto(CatalogState state, IReadOnlyList<CatalogEntry> entries, CatalogMergeOptions options) =>
         state with { Channels = [.. CatalogMerger.Merge(state.Channels, entries, Now, options).Channels] };
 

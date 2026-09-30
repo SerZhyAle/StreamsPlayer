@@ -139,7 +139,9 @@ public sealed class DiagnosticArchiveBuilderTests
             var headLine = "FIRST LINE: STARTUP OK\r\n";
             var text = new StringBuilder();
             text.Append(headLine);
-            var chunk = new string('x', 64 * 1024);
+            // A real log is one record per line; a single 16 MB line would be pathological by
+            // construction and is exactly what the redaction timeout exists to bound.
+            var chunk = new string('x', 64 * 1024) + "\r\n";
             while (text.Length < DiagnosticArchiveBuilder.MaxLogBytes + 128 * 1024)
             {
                 text.Append(chunk);
@@ -182,6 +184,62 @@ public sealed class DiagnosticArchiveBuilderTests
         });
     }
 
+    // SP-0137 done-when 1: a log holding a profile path and a data-directory path - written by a version
+    // whose sink did not yet redact them - reaches the archive without the account name or either raw root,
+    // and with the path tail that makes it a diagnosis.
+    [Fact]
+    public void Build_ReplacesProfileAndDataDirectoryRootsInEveryPackedLog()
+    {
+        RunInTempDirectory(directory =>
+        {
+            const string account = "Zebulon Quarry";
+            var profile = $@"C:\Users\{account}";
+            var appData = $@"{profile}\AppData\Local\StreamsPlayer";
+            File.WriteAllText(
+                Path.Combine(directory, "Session-20260730-0100.log"),
+                $@"2026-07-30T01:00:00Z [Diag] RECORD SAVED | file={profile}\Music\StreamsPlayer\rec.mp3 | ok=true" + "\r\n" +
+                $@"2026-07-30T01:00:01Z [Error] save state: IOException: '{appData}\catalog-state.json' is locked" + "\r\n");
+            File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), "clean");
+
+            var paths = new DiagnosticPathRedactor(appData, profile);
+            using var archive = ZipFile.OpenRead(
+                DiagnosticArchiveBuilder.Build(directory, Path.Combine(directory, "saved-files"), "summary", Stamp, paths));
+
+            var packed = string.Concat(archive.Entries.Select(entry => ReadEntry(archive, entry.FullName)));
+            Assert.DoesNotContain("Zebulon", packed, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(@"C:\Users", packed, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(@"AppData\Local\StreamsPlayer", packed, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(@"file=<USER>\Music\StreamsPlayer\rec.mp3 | ok=true", packed, StringComparison.Ordinal);
+            Assert.Contains(@"'<APP_DATA>\catalog-state.json' is locked", packed, StringComparison.Ordinal);
+        });
+    }
+
+    // The default redactor is the running user's: the real profile and the state directory, as the app calls it.
+    [Fact]
+    public void Build_ByDefaultReplacesTheRunningUsersProfileAndTheStateDirectory()
+    {
+        var profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        Assert.False(string.IsNullOrEmpty(profile));
+        var account = Path.GetFileName(profile.TrimEnd('\\', '/'));
+
+        RunInTempDirectory(directory =>
+        {
+            File.WriteAllText(
+                Path.Combine(directory, DiagnosticLogFiles.CurrentLogName),
+                $@"[Diag] A | file={profile}\Videos\x.mp4" + "\r\n" +
+                $@"[Diag] B | log={Path.Combine(directory, "Session-1.log")}" + "\r\n");
+
+            using var archive = ZipFile.OpenRead(Build(directory, "summary", Stamp));
+
+            var packed = ReadEntry(archive, DiagnosticLogFiles.CurrentLogName);
+            Assert.DoesNotContain(profile, packed, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(directory, packed, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(@"\" + account + @"\", packed, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(@"file=<USER>\Videos\x.mp4", packed, StringComparison.Ordinal);
+            Assert.Contains(@"log=<APP_DATA>\Session-1.log", packed, StringComparison.Ordinal);
+        });
+    }
+
     // A truncation cut that lands inside a URL must not hand the redactor half an address it cannot read.
     [Fact]
     public void Build_TruncationCutsOnLineBoundariesSoASplitUrlCannotLeak()
@@ -206,6 +264,45 @@ public sealed class DiagnosticArchiveBuilderTests
             Assert.All(
                 packed.Split("\r\n", StringSplitOptions.RemoveEmptyEntries).Where(entry => !entry.Contains("LOG TRUNCATED")),
                 entry => Assert.StartsWith("[Diag] PLAYER OPEN | url=rtsp://camera.local/stream1 | n=", entry, StringComparison.Ordinal));
+        });
+    }
+
+    // SP-0174 (S44-02): the mail body names the archive by file name and folder alias. A draft can be
+    // stored, quoted or forwarded, so the default download folder's path must not reach it.
+    [Fact]
+    public void DescribePathForMail_AnArchiveUnderTheUserProfileCarriesNoProfileFolder()
+    {
+        const string account = "Zebulon Quarry";
+        var profile = $@"C:\Users\{account}";
+        var archivePath = $@"{profile}\Downloads\StreamsPlayer-logs-20260929-101500.zip";
+
+        var mailPath = DiagnosticArchiveBuilder.DescribePathForMail(archivePath, new DiagnosticPathRedactor(null, profile));
+
+        Assert.Equal(@"<USER>\Downloads\StreamsPlayer-logs-20260929-101500.zip", mailPath);
+        Assert.DoesNotContain("Users", mailPath, StringComparison.Ordinal);
+        Assert.DoesNotContain(account, mailPath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // SP-0174 run-and-observe's Core half (acceptance 5): a session log that captured an IPTV address
+    // with its password in the path - the ordinary shape an imported playlist produces - packs into an
+    // archive that holds no copy of the password, in any entry, in any form.
+    [Fact]
+    public void Build_AnIptvPathPasswordReachesNoArchiveEntry()
+    {
+        RunInTempDirectory(directory =>
+        {
+            File.WriteAllText(
+                Path.Combine(directory, DiagnosticLogFiles.CurrentLogName),
+                "2026-09-29T10:15:00Z [Diag] PLAYER OPEN | url=http://panel.example:8080/live/KioskUser/Hunter2Pass/12345.ts | backend=libvlc\r\n" +
+                "2026-09-29T10:15:01Z [Error] open: System.Exception: failed 'http://panel.example:8080/movie/KioskUser/Hunter2Pass/9987.mkv?token=Tokn9'\r\n");
+
+            using var archive = ZipFile.OpenRead(Build(directory, "summary", Stamp));
+
+            var packed = string.Concat(archive.Entries.Select(entry => ReadEntry(archive, entry.FullName)));
+            Assert.DoesNotContain("Hunter2Pass", packed, StringComparison.Ordinal);
+            Assert.DoesNotContain("KioskUser", packed, StringComparison.Ordinal);
+            Assert.DoesNotContain("Tokn9", packed, StringComparison.Ordinal);
+            Assert.Contains("url=http://panel.example:8080/live/[REDACTED]/[REDACTED]/12345.ts", packed, StringComparison.Ordinal);
         });
     }
 

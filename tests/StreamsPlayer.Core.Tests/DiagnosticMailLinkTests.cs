@@ -45,10 +45,11 @@ public sealed class DiagnosticMailLinkTests
     [Fact]
     public void Build_CapsAnOverlongBody()
     {
-        var body = new string('x', DiagnosticMailLink.MaxBodyCharacters + 500);
+        // ASCII letters escape to themselves, so here the escaped cap and the character count coincide.
+        var body = new string('x', DiagnosticMailLink.MaxEscapedBodyCharacters + 500);
 
         var link = DiagnosticMailLink.Build("a@b.invalid", "s", body);
 
-        Assert.EndsWith($"&body={new string('x', DiagnosticMailLink.MaxBodyCharacters)}", link, StringComparison.Ordinal);
+        Assert.EndsWith($"&body={new string('x', DiagnosticMailLink.MaxEscapedBodyCharacters)}", link, StringComparison.Ordinal);
     }
 }

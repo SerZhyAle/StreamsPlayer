@@ -324,6 +324,79 @@ public sealed class FFmpegComponentsInstallerTests
     }
 
     [Fact]
+    public void PublishStaging_WhenTheRollbackFailsToo_ReportsNotInstalledAndKeepsThePreservedFolder()
+    {
+        // SP-0178: a move-in failure followed by a failed rollback used to leave a mix of both builds that
+        // counted as installed, which let the next install sweep the folder the exception promised to keep.
+        var directory = Path.Combine(Path.GetTempPath(), $"StreamsPlayer.Tests.{Guid.NewGuid():N}");
+        try
+        {
+            var target = FFmpegComponents.ResolveFolder(directory);
+            WriteOldSet(target);
+            var staging = Path.Combine(directory, "staging");
+            Directory.CreateDirectory(staging);
+            foreach (var library in FFmpegComponents.RequiredLibraries)
+            {
+                File.WriteAllBytes(Path.Combine(staging, library), NewContent);
+            }
+
+            var libraries = FFmpegComponents.RequiredLibraries;
+            // The fourth library cannot be moved in, and the first new library cannot be moved back out -
+            // so the old first library cannot return either, and all seven names are present in the target.
+            void Move(string from, string to)
+            {
+                if (string.Equals(from, Path.Combine(staging, libraries[3]), StringComparison.OrdinalIgnoreCase)
+                    || (string.Equals(from, Path.Combine(target, libraries[0]), StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(to, Path.Combine(staging, libraries[0]), StringComparison.OrdinalIgnoreCase)))
+                {
+                    throw new IOException("injected");
+                }
+
+                File.Move(from, to);
+            }
+
+            var failure = Assert.Throws<FFmpegComponentsRollbackException>(
+                () => FFmpegComponentsInstaller.PublishStaging(staging, target, Move));
+
+            Assert.All(libraries, library => Assert.True(File.Exists(Path.Combine(target, library))));
+            Assert.False(FFmpegComponents.IsInstalled(target));
+            Assert.True(File.Exists(Path.Combine(failure.PreservedFolder, libraries[0])));
+            Assert.Equal(failure.PreservedFolder,
+                File.ReadAllText(Path.Combine(target, FFmpegComponents.IncompleteMarkerName)));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Install_AfterAFailedRollback_KeepsThePreservedFolderAndClearsTheMark()
+    {
+        await WithDataDirectoryAsync(async directory =>
+        {
+            var folder = FFmpegComponents.ResolveFolder(directory);
+            WriteOldSet(folder);
+            File.WriteAllText(Path.Combine(folder, FFmpegComponents.IncompleteMarkerName), "preserved");
+            var preserved = Directory.CreateDirectory($"{folder}.previous-{Guid.NewGuid():N}").FullName;
+            File.WriteAllBytes(Path.Combine(preserved, FFmpegComponents.RequiredLibraries[0]), [1]);
+            Assert.False(FFmpegComponents.IsInstalled(folder));
+
+            var archive = CreateArchive();
+            using var httpClient = Serving(archive);
+            await new FFmpegComponentsInstaller(httpClient, SourceFor(archive)).InstallAsync(directory);
+
+            // The sweep ran before the install, while the set was still marked incomplete.
+            Assert.True(Directory.Exists(preserved));
+            Assert.True(FFmpegComponents.IsInstalled(folder));
+            Assert.False(File.Exists(Path.Combine(folder, FFmpegComponents.IncompleteMarkerName)));
+        });
+    }
+
+    [Fact]
     public void PinnedSource_IsAFixedLgplBuildWithADigest()
     {
         // Guards the licence decision in the strategic ticket: a -gpl- asset would place the user's
