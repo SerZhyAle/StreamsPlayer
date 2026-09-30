@@ -42,6 +42,18 @@ if ($Deploy) {
     $Configuration = 'Release'
 }
 
+# PACKAGE-VERSIONING rules 1 and 6 (docs/contracts/PACKAGE-VERSIONING.md): one instant per invocation, read once from
+# the build machine's local clock, passed on the command line to every dotnet call below - so a local build shows when
+# it was made. Directory.Build.props is never written here: its value stays the release sentinel that a release's
+# hand-set stamp (scripts/release.ps1) or release.yml's tag replaces. A stamp from here is never a release version.
+$buildStamp = (Get-Date).ToString('yy.MMdd.HHmm', [Globalization.CultureInfo]::InvariantCulture)
+$versionArgs = @(
+    "-p:Version=$buildStamp",
+    "-p:AssemblyVersion=$buildStamp",
+    "-p:FileVersion=$buildStamp",
+    "-p:InformationalVersion=$buildStamp"
+)
+
 function Invoke-DotNet {
     param(
         [Parameter(Mandatory)]
@@ -82,7 +94,7 @@ try {
         throw ".NET 10 SDK or newer is required. Found version: $sdkVersion."
     }
 
-    Write-Host "StreamsPlayer - .NET SDK $sdkVersion, configuration $Configuration" -ForegroundColor Green
+    Write-Host "StreamsPlayer - .NET SDK $sdkVersion, configuration $Configuration, stamp $buildStamp" -ForegroundColor Green
 
     if ($Clean) {
         Invoke-DotNet @('clean', $solutionPath, '--configuration', $Configuration)
@@ -92,12 +104,12 @@ try {
         Invoke-DotNet @('restore', $solutionPath)
     }
 
-    Invoke-DotNet @(
+    Invoke-DotNet (@(
         'build',
         $solutionPath,
         '--configuration', $Configuration,
         '--no-restore'
-    )
+    ) + $versionArgs)
 
     if ($Test) {
         Invoke-DotNet @(
@@ -122,7 +134,7 @@ try {
             )
         }
 
-        Invoke-DotNet @(
+        Invoke-DotNet (@(
             'publish',
             $appProjectPath,
             '--configuration', $Configuration,
@@ -130,7 +142,7 @@ try {
             '--self-contained', 'false',
             '--output', $OutputPath,
             '--no-restore'
-        )
+        ) + $versionArgs)
         Write-Host "Готовая публикация: $OutputPath" -ForegroundColor Green
     }
 
@@ -170,8 +182,8 @@ try {
 
         # Emptied first, so nothing an earlier publish left behind can be mirrored out.
         if (Test-Path -LiteralPath $localOutputPath) { Remove-Item -LiteralPath $localOutputPath -Recurse -Force }
-        # The release.yml publish, minus the version stamp only a tag supplies.
-        Invoke-DotNet @(
+        # The release.yml publish, with this invocation's local-clock stamp in place of the tag's version.
+        Invoke-DotNet (@(
             'publish',
             $appProjectPath,
             '--configuration', 'Release',
@@ -179,7 +191,7 @@ try {
             '--self-contained', 'true',
             '--output', $localOutputPath,
             '--no-restore'
-        )
+        ) + $versionArgs)
 
         $localExePath = Join-Path $localOutputPath 'StreamsPlayer.exe'
         if (-not (Test-Path -LiteralPath $localExePath -PathType Leaf)) {
