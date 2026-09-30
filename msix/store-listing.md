@@ -63,6 +63,60 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.1001.0140
+
+Supersedes nothing: the 26.0924.1704 tag shipped as prepared below. Recording to its own folders, the TV schedule, one running copy, fault
+isolation, log redaction and a refreshed snapshot. The three blocks below are the files
+`msix/listing/release-notes/26.1001.0140.*.txt`.
+
+```text
+Version 26.1001.0140
+
+- Recording is safer and clearer: video and radio recordings go to their own folders (Videos and Music, changeable on the Playback tab), a video recording survives reconnects, a radio recording is named after the format the station really sends, and you are told at once what was saved. Quitting while recording no longer loses the file.
+- See what is on a TV channel now and next: paste the address of an XMLTV guide under TV schedule in Tools and press Download schedule. The list and the player show the current and next programme in your local time. Nothing is downloaded in the background.
+- Saved frames have their own folder setting, and a folder that cannot be written sends the file to the next one and tells you where it went.
+- Only one copy of STREAMS Player runs at a time: a second launch, a desktop shortcut or a media key is handed to the running copy instead of opening another window.
+- An error inside one action no longer ends the app. The app says what stopped and keeps working; if it cannot recover it tells you where the diagnostic log is.
+- Logs no longer carry passwords or your Windows user folder name, and an address that is not http, https or rtsp is refused with a clear message instead of being launched.
+- Video components download with a checksum check, can be cancelled, and the previous version is restored if an update fails.
+- Clearer messages when there is no network, and the catalog, radio recovery and stalled-stream detection are more reliable.
+- The compact radio panel can stay on top of other windows, and Random station skips adult channels when they are hidden.
+- The setup asks you to close a running copy before updating or uninstalling.
+- Refreshed the built-in channel list snapshot (18 502 live streams as of 2026-09-23).
+```
+
+```text
+Версия 26.1001.0140
+
+- Запись стала надёжнее и понятнее: видео и радио пишутся в отдельные папки (Видео и Музыка, меняются на вкладке «Воспроизведение»), видеозапись переживает переподключения, радиозапись называется по формату, который станция действительно отдаёт, а о сохранённом вы узнаёте сразу. Выход во время записи больше не теряет файл.
+- Что идёт на ТВ-канале сейчас и дальше: вставьте адрес гида XMLTV в разделе «Телепрограмма» окна «Инструменты» и нажмите «Загрузить программу». Список и плеер показывают текущую и следующую передачу по вашему местному времени. В фоне ничего не скачивается.
+- У сохранённых кадров своя настройка папки, а если в папку писать нельзя, файл уходит в следующую, и вам сообщают куда.
+- Одновременно работает одна копия STREAMS Player: повторный запуск, ярлык на рабочем столе или медиаклавиша передаются работающей копии, а не открывают второе окно.
+- Сбой в одном действии больше не завершает приложение: оно сообщает, что остановилось, и продолжает работать; если восстановиться нельзя, указывает, где лежит диагностический журнал.
+- В журналах больше нет паролей и имени вашей папки пользователя Windows, а адрес не из http, https или rtsp отклоняется с понятным сообщением, а не запускается.
+- Видеокомпоненты скачиваются с проверкой контрольной суммы, загрузку можно отменить, а при сбое обновления возвращается предыдущая версия.
+- Понятнее сообщение об отсутствии сети, надёжнее каталог, восстановление радио и обнаружение зависшего потока.
+- Компактную радиопанель можно держать поверх других окон, а «Случайная станция» обходит взрослые каналы, когда они скрыты.
+- Программа установки просит закрыть работающую копию перед обновлением или удалением.
+- Обновлён встроенный список каналов (18 502 активных потока от 23.09.2026).
+```
+
+```text
+Версія 26.1001.0140
+
+- Запис став надійнішим і зрозумілішим: відео та радіо пишуться в окремі теки (Відео та Музика, змінюються на вкладці «Відтворення»), відеозапис переживає перепідключення, радіозапис називається за форматом, який станція справді віддає, а про збережене ви дізнаєтеся одразу. Вихід під час запису більше не губить файл.
+- Що йде на ТБ-каналі зараз і далі: вставте адресу гіда XMLTV у розділі «Телепрограма» вікна «Інструменти» й натисніть «Завантажити програму». Список і плеєр показують поточну та наступну передачу за вашим місцевим часом. У фоні нічого не завантажується.
+- Для збережених кадрів є власне налаштування теки, а якщо в теку писати не можна, файл іде в наступну, і вам повідомляють куди.
+- Одночасно працює одна копія STREAMS Player: повторний запуск, ярлик на робочому столі або медіаклавіша передаються працюючій копії, а не відкривають друге вікно.
+- Збій в одній дії більше не завершує програму: вона повідомляє, що зупинилося, і працює далі; якщо відновитися не можна, вказує, де лежить діагностичний журнал.
+- У журналах більше немає паролів та імені вашої теки користувача Windows, а адреса не з http, https або rtsp відхиляється зі зрозумілим повідомленням, а не запускається.
+- Відеокомпоненти завантажуються з перевіркою контрольної суми, завантаження можна скасувати, а в разі збою оновлення повертається попередня версія.
+- Зрозуміліше повідомлення про відсутність мережі, надійніші каталог, відновлення радіо та виявлення завислого потоку.
+- Компактну радіопанель можна тримати поверх інших вікон, а «Випадкова станція» оминає дорослі канали, коли вони приховані.
+- Програма встановлення просить закрити працюючу копію перед оновленням або видаленням.
+- Оновлено вбудований список каналів (18 502 активні потоки від 23.09.2026).
+```
+
 ### Prepared for 26.0924.1704
 
 Supersedes 26.0919.1523, which was stamped and never tagged, and 26.0924.1655, whose tag failed its
@@ -114,6 +168,53 @@ Version 26.0924.1704
 - Нова сторінка сайту пояснює попередження Windows «Windows захистила ваш комп'ютер» і як безпечно встановити програму.
 - Сітка більше не намагається знову й знову отримати прев'ю каналу, який його не віддає, а діагностичні звіти лишаються читабельними в довгому сеансі.
 - Оновлено вбудований список каналів (18 506 активних потоків від 23.09.2026).
+```
+
+#### Store-only What's new for 26.1001.0140
+
+The Store still carries 26.0806.2225 unless Partner Center says otherwise, so this block is the accumulated one:
+everything a Store user has not seen yet, folded to stay under 1 500 characters.
+
+```text
+Version 26.1001.0140
+
+- Record video or radio to its own folders, with a safe quit and a clear message about what was saved; listen to a live audio broadcast from a FastMediaSorter phone or watch over your local network.
+- See what is on a TV channel now and next from an XMLTV guide you choose (Tools).
+- A calm animated background behind the playing station, and a compact radio panel with the track, volume, sleep timer, Random station and an always-on-top option.
+- The "now playing" line on more stations, a topic filter, sharing a channel as one line of text, and playback that resumes where the last session left off.
+- A channel the catalog drops keeps your pins, collections and history; a built-in channel list fills the catalog on a first launch with no network.
+- One running copy: a second launch, shortcut or media key goes to it. An error in one action no longer ends the app.
+- Logs carry no passwords or user folder names; only http, https and rtsp addresses are played.
+- A Tools window for catalog, playlist and component work; errors name the cause and what to do.
+- The player says why the picture stopped, re-opens a stalled stream and remembers per channel the quality the connection holds.
+```
+
+```text
+Версия 26.1001.0140
+
+- Запись видео и радио в отдельные папки, безопасный выход и понятное сообщение о сохранённом; прямой звуковой эфир с телефона или часов с FastMediaSorter по локальной сети.
+- Что идёт на ТВ-канале сейчас и дальше - по гиду XMLTV, который вы выбираете («Инструменты»).
+- Спокойный анимированный фон за играющей станцией и компактная радиопанель с треком, громкостью, таймером сна, случайной станцией и режимом «поверх окон».
+- Строка «сейчас в эфире» у большего числа станций, фильтр по темам, отправка канала одной строкой текста и продолжение с места прошлого сеанса.
+- Канал, который каталог убрал, сохраняет закрепления, подборки и историю; встроенный список каналов заполняет каталог при первом запуске без сети.
+- Одна работающая копия: повторный запуск, ярлык или медиаклавиша передаются ей. Сбой в одном действии больше не завершает приложение.
+- В журналах нет паролей и имён папок пользователя; играются только адреса http, https и rtsp.
+- Окно «Инструменты» для каталога, плейлистов и компонентов; ошибки называют причину и что делать.
+- Плеер объясняет, почему картинка остановилась, переоткрывает зависший поток и помнит для канала качество, которое тянет соединение.
+```
+
+```text
+Версія 26.1001.0140
+
+- Запис відео та радіо в окремі теки, безпечний вихід і зрозуміле повідомлення про збережене; прямий звуковий ефір з телефона чи годинника з FastMediaSorter локальною мережею.
+- Що йде на ТБ-каналі зараз і далі - за гідом XMLTV, який ви обираєте («Інструменти»).
+- Спокійне анімоване тло за станцією, що грає, і компактна радіопанель з треком, гучністю, таймером сну, випадковою станцією та режимом «поверх вікон».
+- Рядок «зараз в ефірі» в більшої кількості станцій, фільтр за темами, надсилання каналу одним рядком тексту і продовження з місця попереднього сеансу.
+- Канал, який каталог прибрав, зберігає закріплення, добірки та історію; вбудований список каналів наповнює каталог під час першого запуску без мережі.
+- Одна працююча копія: повторний запуск, ярлик чи медіаклавіша передаються їй. Збій в одній дії більше не завершує програму.
+- У журналах немає паролів та імен тек користувача; відтворюються лише адреси http, https і rtsp.
+- Вікно «Інструменти» для каталогу, плейлистів і компонентів; помилки називають причину й що робити.
+- Плеєр пояснює, чому картинка зупинилась, перевідкриває завислий потік і пам'ятає для каналу якість, яку тягне з'єднання.
 ```
 
 #### Store-only What's new for 26.0924.1704
