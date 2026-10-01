@@ -46,6 +46,10 @@ public sealed class StreamLaunchArgumentsTests
     [InlineData("https://example.test/a'b.mp3?token=abc")]
     [InlineData("https://example.test/dir\\")]
     [InlineData("file:///c:/music.mp3")]
+    [InlineData("https://example.test/$(calc)")]
+    [InlineData("https://example.test/live?x=$HOME")]
+    [InlineData("https://example.test/a`b.mp3")]
+    [InlineData("https://example.test/%USERNAME%.mp3")]
     public void For_LeavesOutAnAddressTheCommandLineCannotCarry(string url)
     {
         var channel = Channel(url);

@@ -143,7 +143,7 @@ try {
             '--output', $OutputPath,
             '--no-restore'
         ) + $versionArgs)
-        Write-Host "Готовая публикация: $OutputPath" -ForegroundColor Green
+        Write-Host "Publish output: $OutputPath" -ForegroundColor Green
     }
 
     if ($Deploy) {

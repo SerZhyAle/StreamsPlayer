@@ -47,6 +47,22 @@ public sealed class IcyTextDecoderTests
         Assert.Equal(IcyTextEncoding.Windows1251, encoding);
     }
 
+    // Release audit 26.1001.0140: a title whose only accented word is a lone accented letter or a short Latin word
+    // must stay Windows-1252, not turn into Cyrillic mojibake.
+    [Theory]
+    [InlineData("StreamTitle='Dov'è - Mina';")]
+    [InlineData("StreamTitle='Ela é linda';")]
+    [InlineData("StreamTitle='L'été - Dalida';")]
+    [InlineData("StreamTitle='Tout à fait';")]
+    [InlineData("StreamTitle='Où est la gare';")]
+    public void ALoneAccentedWesternWordIsNotMistakenForCyrillic(string block)
+    {
+        var text = IcyTextDecoder.Decode(Windows1252.GetBytes(block), out var encoding);
+
+        Assert.Equal(block, text);
+        Assert.Equal(IcyTextEncoding.Windows1252, encoding);
+    }
+
     [Fact]
     public void ZeroPaddingOfTheBlockDoesNotChangeTheChoice()
     {

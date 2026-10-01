@@ -20,7 +20,7 @@ each of them, so a change can be routed:
 | 3 columns by header name | `StreamCatalogCsvParser` |
 | 4 drop rows without `url`/`name`; `media_kind` routes | `StreamCatalogCsvParser`, `StreamMediaKindClassifier` |
 | 5 merge by `url`, absence never deletes | `CatalogMerger`, `UserAuthoredChannels`, `StreamChannel.RetiredAt` |
-| 6 CSV and atlas are one artifact | `StreamCatalogService` |
+| 6 CSV and atlas are one artifact | `CatalogRefreshOutcome` and `CatalogSnapshotOutcome` (the indices are cleared when no usable atlas arrived), then `CatalogMerger` |
 | 7 blank `favicon_index` is no icon, `0` is a tile | `StreamCatalogCsvParser` |
 | 8 bounds-check, degrade to nothing | `StreamBankReader.MaximumAtlasBytes`, the atlas and tile readers |
 | 9 stable artwork names, geometry from the artifact | `ChannelPreviewArtworkService`, `ChannelPreviewTilePack`, `ChannelPreviewCoords` |

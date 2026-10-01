@@ -47,6 +47,13 @@ public sealed record ArtworkFile(string Name, long Size, string Sha256)
 /// </summary>
 public sealed record ArtworkSet(string Stamp, IReadOnlyList<ArtworkFile> Files)
 {
+    /// <summary>
+    /// The declared file with this stable name, or null. STREAM-BANK item L publishes the list for
+    /// diagnosis only, so a set that does not list a file must not fail the import.
+    /// </summary>
+    public ArtworkFile? TryFile(string name) =>
+        Files.FirstOrDefault(file => string.Equals(file.Name, name, StringComparison.Ordinal));
+
     /// <summary>The declared file with this stable name.</summary>
     /// <exception cref="InvalidDataException">The set does not list it.</exception>
     public ArtworkFile File(string name) =>

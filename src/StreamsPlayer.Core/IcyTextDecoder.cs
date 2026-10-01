@@ -56,6 +56,7 @@ public static class IcyTextDecoder
         var westernWords = 0;
         var high = 0;
         var ascii = 0;
+        byte lastHigh = 0;
 
         for (var index = 0; index <= bytes.Length; index++)
         {
@@ -69,28 +70,39 @@ public static class IcyTextDecoder
             if (IsHighLetter(value))
             {
                 high++;
+                lastHigh = value;
                 continue;
             }
 
-            // A word ended.
+            // A word ended. Release audit 26.1001.0140: a word that mixes ASCII letters with high bytes is Western
+            // (an acute e after Beyonc, "Dov'e" with a grave, "ete"); Cyrillic words carry no Latin letters. A
+            // lone high byte is ambiguous between a Western accented word and a one-letter Russian word, so it
+            // votes Cyrillic only when it is a one-letter Russian word no Western language shares (the Italian
+            // "e" and French "a" with a grave read the same bytes as Russian "i" and "a" and stay neutral).
             if (high > 0)
             {
-                if (high > ascii)
-                {
-                    cyrillicWords++;
-                }
-                else
+                if (ascii > 0)
                 {
                     westernWords++;
+                }
+                else if (high > 1 || IsUnambiguousRussianLetterWord(lastHigh))
+                {
+                    cyrillicWords++;
                 }
             }
 
             high = 0;
             ascii = 0;
+            lastHigh = 0;
         }
 
         return cyrillicWords > westernWords;
     }
+
+    // Windows-1251 one-letter Russian words (я в к с о у and their capitals), minus the bytes that are also a
+    // Western one-letter word (0xE0 and 0xE8).
+    private static bool IsUnambiguousRussianLetterWord(byte value) =>
+        value is 0xDF or 0xFF or 0xE2 or 0xEA or 0xF1 or 0xEE or 0xF3 or 0xC2 or 0xCA or 0xD1 or 0xCE or 0xD3 or 0xC8 or 0xC0;
 
     private static bool IsAsciiLetter(byte value) => value is >= (byte)'A' and <= (byte)'Z' or >= (byte)'a' and <= (byte)'z';
 

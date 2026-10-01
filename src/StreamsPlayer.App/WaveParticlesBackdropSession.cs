@@ -41,7 +41,7 @@ public sealed class WaveParticlesBackdropSession
     public WaveParticlesBackdropSession(Guid channelId, WaveParticlesBackdropSession? previous)
     {
         ChannelId = channelId;
-        _inherited = previous?._front;
+        _inherited = previous?._front ?? previous?._inherited;
     }
 
     public Guid ChannelId { get; }

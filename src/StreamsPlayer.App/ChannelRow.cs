@@ -208,7 +208,16 @@ public sealed class ChannelRow : INotifyPropertyChanged
         // _faviconLoaded, so without dropping it the row would keep showing the previous atlas's icon.
         var iconChanged = Channel.FaviconIndex != channel.FaviconIndex ||
             Channel.FaviconSource != channel.FaviconSource;
+        // Release audit 26.1001.0140: the captured still belongs to the address it was taken from. Every
+        // ClearPreview caller looks a row up by URL, and an edited row is re-keyed, so none would reach it.
+        var addressChanged = !string.Equals(Channel.Url, channel.Url, StringComparison.Ordinal);
         Channel = channel;
+        if (addressChanged)
+        {
+            _preview = null;
+            _previewReachable = null;
+        }
+
         if (iconChanged)
         {
             _favicon = null;

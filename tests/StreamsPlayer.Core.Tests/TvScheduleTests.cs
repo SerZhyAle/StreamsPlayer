@@ -503,6 +503,35 @@ public sealed class TvScheduleTests
         }
     }
 
+    // Release audit 26.1001.0140: Remove is the escape from an unreadable file, so it must also clear the refusal,
+    // or every later Bind or Download in the same session still fails with "could not be saved".
+    [Fact]
+    public async Task Delete_ClearsTheRefusalAnUnreadableFileSet()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "sp0175-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new TvScheduleStore(directory);
+            Directory.CreateDirectory(directory);
+            await File.WriteAllTextAsync(store.BindingsPath, "{ not json");
+            await File.WriteAllTextAsync(store.SchedulePath, "{ not json");
+            Assert.Empty(await store.LoadBindingsAsync());
+            Assert.Null(await store.LoadScheduleAsync());
+            Assert.False(await store.SaveBindingsAsync([new TvScheduleBinding("https://a.test/x", null)]));
+
+            Assert.Equal(2, store.Delete());
+
+            Assert.True(await store.SaveBindingsAsync([new TvScheduleBinding("https://a.test/x", null)]));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
     // SP-0175: a document that parses but holds null entries must load as empty rather than throw in the
     // index build; the load already dropped such entries, and this pins it.
     [Fact]

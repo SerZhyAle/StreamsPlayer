@@ -190,8 +190,17 @@ internal static class RecordingFinisher
             }
             catch (IOException) when (attempt < MaxMoveAttempts && File.Exists(destination) && File.Exists(file))
             {
-                // Lost the name to a concurrent move; reserve the next one. The partial is reused by the retry.
+                // Lost the name to a concurrent move; reserve the next one. The next pass names a new partial, so
+                // this one is removed now rather than left a full-size orphan.
+                TryDeletePartial(partial);
                 continue;
+            }
+            catch
+            {
+                // A refused or failed copy (a full disk, a revoked folder) must not leave the truncated partial
+                // behind: the next folder or the stranded file keeps the recording, and this copy only holds space.
+                TryDeletePartial(partial);
+                throw;
             }
 
             // The move is done; the source goes. Best-effort: a failure here leaves the original behind for
@@ -205,6 +214,17 @@ internal static class RecordingFinisher
             }
 
             return destination;
+        }
+    }
+
+    private static void TryDeletePartial(string partial)
+    {
+        try
+        {
+            File.Delete(partial);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
         }
     }
 

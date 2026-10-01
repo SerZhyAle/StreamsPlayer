@@ -80,6 +80,17 @@ public sealed class TvScheduleStore
                 File.Delete(path);
                 removed++;
             }
+
+            // The file is gone, so there is no unreadable document left to protect: a later save may create it.
+            // Cleared per file, so a failure on the second one does not keep the first one's refusal.
+            if (path == SchedulePath)
+            {
+                _scheduleUnreadable = false;
+            }
+            else
+            {
+                _bindingsUnreadable = false;
+            }
         }
 
         return removed;

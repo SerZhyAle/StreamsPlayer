@@ -73,7 +73,7 @@ $appVersion = $tag.Substring(1)
 # The MSIX Identity Version schema forbids leading zeros in any part (e.g. 26.0723.0957.0 is
 # rejected), so convert each component to an integer: 26.0723.0957.0 -> 26.723.957.0. This is
 # still monotonic and unique per minute (MMDD and HHmm as ints preserve ordering).
-$msixVersion = ($appVersion.Split('.') | ForEach-Object { [int]$_ }) -join '.'
+$msixVersion = (($appVersion.Split('.') | ForEach-Object { [int]$_ }) -join '.') + '.0'
 foreach ($part in $msixVersion.Split('.')) { if ([int]$part -gt 65535) { throw "Version part '$part' exceeds 65535." } }
 
 $makeappx = Find-SdkTool 'makeappx.exe'

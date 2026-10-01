@@ -145,7 +145,7 @@ public sealed class ChannelPreviewArtworkService
         // and nothing downstream would notice - that risk is accepted by the owner's 2026-09-26 item L
         // decision, and the mismatch line is what the log keeps.
         var coordsBytes = await GetSmallAsync(CoordsUrl, MaximumCoordsBytes, cancellationToken);
-        CollectDiagnostic(diagnostics, set.File(CoordsFile).Diagnose(coordsBytes));
+        CollectDiagnostic(diagnostics, set.TryFile(CoordsFile)?.Diagnose(coordsBytes));
         var coords = ChannelPreviewCoords.Parse(Encoding.UTF8.GetString(coordsBytes));
         if (coords.Count == 0)
         {
@@ -160,7 +160,7 @@ public sealed class ChannelPreviewArtworkService
         // messages.
         var pack = await HttpDownload.ReadAllBytesAsync(
             packResponse, progress, MaximumTilePackBytes, DownloadIdleTimeout, cancellationToken);
-        CollectDiagnostic(diagnostics, set.File(TilePackFile).Diagnose(pack));
+        CollectDiagnostic(diagnostics, set.TryFile(TilePackFile)?.Diagnose(pack));
 
         return new ChannelPreviewArtwork(set.Stamp, manifest.GeneratedAt, coords, pack, diagnostics);
     }

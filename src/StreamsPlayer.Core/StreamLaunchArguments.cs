@@ -84,6 +84,15 @@ public static class StreamLaunchArguments
     private static bool CanCarry(string? url) =>
         LaunchableAddress.IsLaunchable(url) &&
         !CatalogUrlIdentity.HasCredentials(url!) &&
-        !url!.Trim().Any(character => character is '"' or '\'' or '<' or '>' or '|' or '\\' ||
-            char.IsWhiteSpace(character) || char.IsControl(character));
+        !url!.Trim().Any(character => character is '"' or '\'' or '<' or '>' or '|' or '\\' or '$' or '`' ||
+            char.IsWhiteSpace(character) || char.IsControl(character)) &&
+        // Release audit 26.1001.0140: the copied launch command is pasted into a shell. PowerShell expands $(..)
+        // and $var inside double quotes, and cmd expands %NAME% inside them, so such an address would run or
+        // change. The channel then falls back to its id, which needs nothing quoted.
+        !CmdVariableToken.IsMatch(url!);
+
+    private static readonly System.Text.RegularExpressions.Regex CmdVariableToken = new(
+        "%[A-Za-z_][A-Za-z0-9_()]*%",
+        System.Text.RegularExpressions.RegexOptions.CultureInvariant,
+        TimeSpan.FromMilliseconds(100));
 }
