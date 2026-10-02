@@ -333,12 +333,23 @@ public partial class MainWindow
     // A monitor can disappear while the panel stands on it. The clamp below answers that by asking for
     // the nearest surviving monitor, so the panel comes back rather than staying on a screen that is
     // no longer attached.
+    // SystemEvents raises DisplaySettingsChanged on its own thread, not the dispatcher's: the window's
+    // properties are read and written only after the hop (the same marshalling ThemeService uses), and
+    // the panel is looked up again there because it can have closed in between.
     private void CompactPanel_DisplaySettingsChanged(object? sender, EventArgs e)
     {
-        if (_compactPanel is { } panel)
+        if (Dispatcher is not { HasShutdownStarted: false } dispatcher)
         {
-            ApplyCompactPanelPlacement(panel, MonitorWorkArea.Placement(panel));
+            return;
         }
+
+        _ = dispatcher.BeginInvoke(() =>
+        {
+            if (_compactPanel is { } panel)
+            {
+                ApplyCompactPanelPlacement(panel, MonitorWorkArea.Placement(panel));
+            }
+        });
     }
 
     /// <summary>

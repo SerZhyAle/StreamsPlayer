@@ -15,7 +15,11 @@ public partial class MainWindow
     private void StartFastMediaSorterAudioPlayback(StreamChannel channel, bool reconnecting)
     {
         StopFastMediaSorterAudioPlayback();
-        var playback = new FastMediaSorterAudioPlayback();
+        var playback = new FastMediaSorterAudioPlayback((tag, fields) => _log.Event(tag, fields))
+        {
+            AudioOutputDevice = _state.AudioOutputDevice,
+            AudioChannelMode = _state.AudioChannelMode
+        };
         var generation = ++_fastMediaSorterAudioGeneration;
         // The generation also moves on every stop, so it is no count of legs; the log wants the count.
         _fastMediaSorterAudioLegs = reconnecting ? _fastMediaSorterAudioLegs + 1 : 1;

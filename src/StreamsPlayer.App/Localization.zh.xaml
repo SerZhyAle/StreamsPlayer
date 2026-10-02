@@ -690,10 +690,10 @@
     <sys:String x:Key="LicenceTip">查看许可证文本</sys:String>
     <sys:String x:Key="SettingsWindowBusyClose">有一个操作正在进行。请等待它完成或取消它，然后关闭此窗口。</sys:String>
     <sys:String x:Key="AudioOutputDeviceLabel">音频输出设备</sys:String>
-    <sys:String x:Key="AudioOutputDeviceHint">选择用于广播和视频流播放的音频设备。</sys:String>
+    <sys:String x:Key="AudioOutputDeviceHint">选择用于广播和视频流播放的音频设备。 可选的 FlyleafLib 视频引擎不支持此设置，始终使用系统默认设备。</sys:String>
     <sys:String x:Key="AudioDeviceDefault">默认（系统默认）</sys:String>
     <sys:String x:Key="AudioChannelModeLabel">音频声道输出</sys:String>
-    <sys:String x:Key="AudioChannelModeHint">选择立体声模式或单独声道进行播放。</sys:String>
+    <sys:String x:Key="AudioChannelModeHint">选择立体声模式或单独声道进行播放。 可选的 FlyleafLib 视频引擎不支持此设置，始终使用系统默认设备。</sys:String>
     <sys:String x:Key="AudioChannelStereo">立体声</sys:String>
     <sys:String x:Key="AudioChannelReverseStereo">反转立体声</sys:String>
     <sys:String x:Key="AudioChannelLeft">左声道</sys:String>

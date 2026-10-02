@@ -160,6 +160,16 @@ public sealed class CatalogStateEnumToleranceTests
 
     [Theory]
     [MemberData(nameof(UnreadableValues))]
+    public async Task Load_UnreadableAudioChannelModeFallsBackToStereo(string value)
+    {
+        var state = await LoadWithAsync($"\"audioChannelMode\": {value},");
+
+        Assert.Equal(AudioChannelMode.Stereo, state.AudioChannelMode);
+        AssertUserDataSurvived(state);
+    }
+
+    [Theory]
+    [MemberData(nameof(UnreadableValues))]
     public async Task Load_UnreadableChannelAccessFallsBackToOpen(string value)
     {
         var state = await LoadWithAsync(

@@ -54,6 +54,7 @@ public sealed class StreamCatalogStore
             new TolerantEnumConverter<CatalogViewMode>(CatalogViewMode.List),
             new TolerantEnumConverter<StreamTileSize>(StreamTileSize.Medium),
             new TolerantEnumConverter<MediaBackend>(MediaBackend.LibVlc),
+            new TolerantEnumConverter<AudioChannelMode>(AudioChannelMode.Stereo),
             new TolerantEnumConverter<ChannelAccess>(ChannelAccess.Open),
             new TolerantEnumConverter<MediaKind>(MediaKind.Video),
             new TolerantEnumConverter<SourceOrigin>(SourceOrigin.Manual),

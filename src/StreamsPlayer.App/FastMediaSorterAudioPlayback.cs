@@ -36,8 +36,45 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
     private FastMediaSorterPlaybackConnection? _connection;
     private bool _disposed;
     // SP-0165 (shared rule with StandardAudioPlayback): engines abandoned to stops that never returned are counted,
-    // and past the cap the feature pauses for the rest of the session.
-    private readonly AbandonedEngineBudget _abandoned = new();
+    // and past the cap the feature pauses for the rest of the session. A leg is a new instance on every reconnect,
+    // so the count lives on the type: a per-instance budget could never pass one engine.
+    private static readonly AbandonedEngineBudget Abandoned = new();
+    private readonly Action<string, string[]>? _diagnostics;
+    private string? _audioOutputDevice;
+    private AudioChannelMode _audioChannelMode = AudioChannelMode.Stereo;
+
+    public FastMediaSorterAudioPlayback(Action<string, string[]>? diagnostics = null)
+    {
+        _diagnostics = diagnostics;
+    }
+
+    /// <summary>The output device chosen in Settings; null or empty keeps the system default. Applied to the leg playing now and to every later one.</summary>
+    public string? AudioOutputDevice
+    {
+        get => _audioOutputDevice;
+        set
+        {
+            _audioOutputDevice = value;
+            if (_player is { } player && !string.IsNullOrEmpty(value))
+            {
+                ApplyOutputDevice(player, value);
+            }
+        }
+    }
+
+    /// <summary>The channel routing chosen in Settings. Applied to the leg playing now and to every later one.</summary>
+    public AudioChannelMode AudioChannelMode
+    {
+        get => _audioChannelMode;
+        set
+        {
+            _audioChannelMode = value;
+            if (_player is { } player)
+            {
+                ApplyChannelMode(player, value);
+            }
+        }
+    }
 
     public event EventHandler<FastMediaSorterAudioPlaybackEventArgs>? Playing;
     public event EventHandler<FastMediaSorterAudioPlaybackEventArgs>? Ended;
@@ -49,6 +86,18 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
     {
         ThrowIfDisposed();
         StopPlayback();
+        if (Abandoned.IsPaused)
+        {
+            // SP-0165: past the abandonment cap this feature pauses for the session. The refusal is an ordinary
+            // failed open, which the owner's recovery budget turns into an ended session rather than a retry loop.
+            _diagnostics?.Invoke("AUDIO PLAY REFUSED", ["route=fastmediasorter", "reason=abandoned_engine_cap"]);
+            return new FastMediaSorterAudioOpenResult(
+                null,
+                TimeSpan.Zero,
+                new InvalidOperationException("FastMediaSorter audio is paused for this session after native stops that never returned."),
+                Cancelled: false);
+        }
+
         _openStopwatch.Restart();
         FastMediaSorterPlaybackConnection connection;
         using (var request = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token))
@@ -76,6 +125,12 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         {
             var libVlc = SharedLibVlc.Value;
             _player = new MediaPlayer(libVlc) { Volume = volume };
+            if (!string.IsNullOrEmpty(_audioOutputDevice))
+            {
+                ApplyOutputDevice(_player, _audioOutputDevice);
+            }
+
+            ApplyChannelMode(_player, _audioChannelMode);
             _player.Playing += Player_Playing;
             _player.EndReached += Player_EndReached;
             _player.EncounteredError += Player_EncounteredError;
@@ -162,6 +217,30 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
     private void Player_EncounteredError(object? sender, EventArgs e) =>
         Failed?.Invoke(this, new FastMediaSorterAudioPlaybackEventArgs(ResponseStatusCode, _openStopwatch.Elapsed, _connection?.TransportError));
 
+    private void ApplyOutputDevice(MediaPlayer player, string deviceId)
+    {
+        try
+        {
+            player.SetOutputDevice(deviceId);
+        }
+        catch (Exception exception)
+        {
+            _diagnostics?.Invoke("AUDIO DEVICE REFUSED", ["route=fastmediasorter", $"error={exception.GetType().Name}"]);
+        }
+    }
+
+    private void ApplyChannelMode(MediaPlayer player, AudioChannelMode mode)
+    {
+        try
+        {
+            player.SetChannel(mode.ToLibVlc());
+        }
+        catch (Exception exception)
+        {
+            _diagnostics?.Invoke("AUDIO CHANNEL MODE REFUSED", ["route=fastmediasorter", $"error={exception.GetType().Name}"]);
+        }
+    }
+
     private async Task RetirePlayerAsync(MediaPlayer player)
     {
         var stop = Task.Run(() => player.Stop());
@@ -171,26 +250,45 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         }
         catch (TimeoutException)
         {
-            var pausedNow = _abandoned.RecordAbandoned();
+            var pausedNow = Abandoned.RecordAbandoned();
+            _diagnostics?.Invoke("AUDIO ENGINE ABANDONED", ["route=fastmediasorter", $"outstanding={Abandoned.Outstanding}", $"cap={AbandonedEngineBudget.DefaultCap}"]);
             if (pausedNow)
             {
-                Debug.WriteLine("FASTMEDIA SORTER AUDIO ENGINE ABANDONED and playback paused");
+                _diagnostics?.Invoke("AUDIO PLAYBACK PAUSED", ["route=fastmediasorter", "reason=native_stop_hung", $"abandoned={Abandoned.Outstanding}", "until=session_end"]);
             }
 
             _ = stop.ContinueWith(
                 completed =>
                 {
                     _ = completed.Exception; // a failed stop still ends in the release below
-                    player.Dispose();
-                    _abandoned.RecordReleased();
+                    ReleaseContained(player);
+                    Abandoned.RecordReleased();
                 },
                 CancellationToken.None,
                 TaskContinuationOptions.None,
                 TaskScheduler.Default);
             return;
         }
+        catch (Exception exception)
+        {
+            // The stop itself faulted. The release below still runs: a player that failed to stop is no reason
+            // to keep its native threads and buffers for the rest of the session.
+            _diagnostics?.Invoke("AUDIO ENGINE STOP FAULT", ["route=fastmediasorter", $"error={exception.GetType().Name}"]);
+        }
 
-        player.Dispose();
+        ReleaseContained(player);
+    }
+
+    private void ReleaseContained(MediaPlayer player)
+    {
+        try
+        {
+            player.Dispose();
+        }
+        catch (Exception exception)
+        {
+            _diagnostics?.Invoke("AUDIO ENGINE DISPOSE FAULT", ["route=fastmediasorter", $"error={exception.GetType().Name}"]);
+        }
     }
 
     private void ThrowIfDisposed()

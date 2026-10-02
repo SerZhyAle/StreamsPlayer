@@ -690,10 +690,10 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="LicenceTip">Visualizza il testo della licenza</sys:String>
     <sys:String x:Key="SettingsWindowBusyClose">Un'operazione è in corso. Attendi che termini o annullala, quindi chiudi questa finestra.</sys:String>
     <sys:String x:Key="AudioOutputDeviceLabel">Dispositivo di uscita audio</sys:String>
-    <sys:String x:Key="AudioOutputDeviceHint">Seleziona il dispositivo audio utilizzato per la riproduzione di radio e video.</sys:String>
+    <sys:String x:Key="AudioOutputDeviceHint">Seleziona il dispositivo audio utilizzato per la riproduzione di radio e video. Il motore video opzionale FlyleafLib non lo supporta e usa sempre il dispositivo predefinito del sistema.</sys:String>
     <sys:String x:Key="AudioDeviceDefault">Predefinito (Predefinito di sistema)</sys:String>
     <sys:String x:Key="AudioChannelModeLabel">Canale di uscita audio</sys:String>
-    <sys:String x:Key="AudioChannelModeHint">Seleziona la modalità stereo o i singoli canali per la riproduzione.</sys:String>
+    <sys:String x:Key="AudioChannelModeHint">Seleziona la modalità stereo o i singoli canali per la riproduzione. Il motore video opzionale FlyleafLib non lo supporta e usa sempre il dispositivo predefinito del sistema.</sys:String>
     <sys:String x:Key="AudioChannelStereo">Stereo</sys:String>
     <sys:String x:Key="AudioChannelReverseStereo">Stereo invertito</sys:String>
     <sys:String x:Key="AudioChannelLeft">Canale sinistro</sys:String>

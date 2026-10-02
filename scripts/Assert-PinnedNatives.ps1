@@ -58,43 +58,47 @@ $expectedFileVersion = ($pinned.Split('.') | Select-Object -First 3) -join '.'
 $deployedLibVlcPath = Join-Path $Folder "libvlc\win-x64"
 if (-not (Test-Path -LiteralPath $deployedLibVlcPath)) { throw "expected: $deployedLibVlcPath | actual: missing" }
 
-$referenceLibVlcPath = Join-Path $packageNatives "..\libvlc\win-x64"
-if (-not (Test-Path -LiteralPath $referenceLibVlcPath)) {
-    throw "cannot verify: package $pinned has no libvlc\win-x64 tree; the payload cannot be compared byte for byte."
+$referenceRoot = (Resolve-Path -LiteralPath $packageNatives).Path
+$deployedRoot = (Resolve-Path -LiteralPath $deployedLibVlcPath).Path
+
+# The package's x64 folder also holds include\ and the import libraries, which the package's own targets never
+# copy. The shipped set is exactly what VideoLAN.LibVLC.Windows.targets includes by default:
+# libvlc.*, libvlccore.*, hrtfs\**, lua\**, plugins\**.
+function Get-ShippedRelativePaths([string] $Root) {
+    $top = @(Get-ChildItem -LiteralPath $Root -File | Where-Object { $_.Name -like 'libvlc.*' -or $_.Name -like 'libvlccore.*' })
+    $tree = foreach ($name in 'hrtfs', 'lua', 'plugins') {
+        $dir = Join-Path $Root $name
+        if (Test-Path -LiteralPath $dir) { Get-ChildItem -LiteralPath $dir -Recurse -File }
+    }
+    @($top) + @($tree) | Where-Object { $_ } | ForEach-Object { [IO.Path]::GetRelativePath($Root, $_.FullName) }
 }
 
-# Compare all files in the libvlc\win-x64 tree
-$referenceFiles = Get-ChildItem -LiteralPath $referenceLibVlcPath -Recurse -File
-$deployedFiles = Get-ChildItem -LiteralPath $deployedLibVlcPath -Recurse -File
-
-# Check for extra files in deployed
-$deployedRelative = @($deployedFiles | ForEach-Object { $_.FullName.Substring($deployedLibVlcPath.Length) })
-$referenceRelative = @($referenceFiles | ForEach-Object { $_.FullName.Substring($referenceLibVlcPath.Length) })
+$referenceRelative = @(Get-ShippedRelativePaths $referenceRoot)
+if ($referenceRelative.Count -eq 0) { throw "cannot verify: package $pinned natives at $referenceRoot hold no shipped files." }
+$deployedRelative = @(Get-ChildItem -LiteralPath $deployedRoot -Recurse -File | ForEach-Object { [IO.Path]::GetRelativePath($deployedRoot, $_.FullName) })
 
 $extraFiles = @($deployedRelative | Where-Object { $_ -notin $referenceRelative })
 $missingFiles = @($referenceRelative | Where-Object { $_ -notin $deployedRelative })
 
 if ($extraFiles.Count -gt 0) {
-    throw "found $($extraFiles.Count) extra file(s) in deployed libvlc\win-x64: $($extraFiles -join ', ') compared to package $pinned"
+    throw "found $($extraFiles.Count) extra file(s) in deployed libvlc\win-x64: $($extraFiles -join ', ') compared to package ${pinned}"
 }
 if ($missingFiles.Count -gt 0) {
-    throw "found $($missingFiles.Count) missing file(s) in deployed libvlc\win-x64: $($missingFiles -join ', ') compared to package $pinned"
+    throw "found $($missingFiles.Count) missing file(s) in deployed libvlc\win-x64: $($missingFiles -join ', ') compared to package ${pinned}"
 }
 
-# Compare each file
+# Compare each file byte for byte
 $fileMismatches = @()
-foreach ($refFile in $referenceFiles) {
-    $relativePath = $refFile.FullName.Substring($referenceLibVlcPath.Length)
-    $deployedFilePath = Join-Path $deployedLibVlcPath $relativePath
-    
-    if ((Get-FileHash -LiteralPath $deployedFilePath).Hash -ne (Get-FileHash -LiteralPath $refFile.FullName).Hash) {
-        $fileMismatches += $relativePath
-    }
+foreach ($relativePath in $referenceRelative) {
+    $refHash = (Get-FileHash -LiteralPath (Join-Path $referenceRoot $relativePath) -Algorithm SHA256).Hash
+    $depHash = (Get-FileHash -LiteralPath (Join-Path $deployedRoot $relativePath) -Algorithm SHA256).Hash
+    if ($refHash -ne $depHash) { $fileMismatches += $relativePath }
 }
 
 if ($fileMismatches.Count -gt 0) {
-    throw "found $($fileMismatches.Count) file(s) with different bytes in deployed libvlc\win-x64 compared to package $pinned: $($fileMismatches -join ', ')"
+    throw "found $($fileMismatches.Count) file(s) with different bytes in deployed libvlc\win-x64 compared to package ${pinned}: $($fileMismatches -join ', ')"
 }
+$referenceFiles = $referenceRelative
 
 # Verify version on the key DLLs
 $libvlcDll = Join-Path $deployedLibVlcPath "libvlc.dll"

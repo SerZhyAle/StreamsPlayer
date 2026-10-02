@@ -690,10 +690,10 @@
     <sys:String x:Key="LicenceTip">লাইসেন্সের বিবরণ দেখুন</sys:String>
     <sys:String x:Key="SettingsWindowBusyClose">একটি প্রক্রিয়া চলছে। এটি সমাপ্ত হওয়া পর্যন্ত অপেক্ষা করুন বা বাতিল করুন, তারপর এই উইন্ডোটি বন্ধ করুন।</sys:String>
     <sys:String x:Key="AudioOutputDeviceLabel">অডিও আউটপুট ডিভাইস</sys:String>
-    <sys:String x:Key="AudioOutputDeviceHint">রেডিও এবং ভিডিও স্ট্রিম প্লেব্যাকের জন্য অডিও ডিভাইস নির্বাচন করুন।</sys:String>
+    <sys:String x:Key="AudioOutputDeviceHint">রেডিও এবং ভিডিও স্ট্রিম প্লেব্যাকের জন্য অডিও ডিভাইস নির্বাচন করুন। ঐচ্ছিক FlyleafLib ভিডিও ইঞ্জিন এটি সমর্থন করে না এবং সবসময় সিস্টেমের ডিফল্ট ডিভাইস ব্যবহার করে।</sys:String>
     <sys:String x:Key="AudioDeviceDefault">ডিফল্ট (সিস্টেম ডিফল্ট)</sys:String>
     <sys:String x:Key="AudioChannelModeLabel">অডিও চ্যানেল আউটপুট</sys:String>
-    <sys:String x:Key="AudioChannelModeHint">প্লেব্যাকের জন্য স্টেরিও মোড বা পৃথক চ্যানেল নির্বাচন করুন।</sys:String>
+    <sys:String x:Key="AudioChannelModeHint">প্লেব্যাকের জন্য স্টেরিও মোড বা পৃথক চ্যানেল নির্বাচন করুন। ঐচ্ছিক FlyleafLib ভিডিও ইঞ্জিন এটি সমর্থন করে না এবং সবসময় সিস্টেমের ডিফল্ট ডিভাইস ব্যবহার করে।</sys:String>
     <sys:String x:Key="AudioChannelStereo">স্টেরিও</sys:String>
     <sys:String x:Key="AudioChannelReverseStereo">বিপরীত স্টেরিও</sys:String>
     <sys:String x:Key="AudioChannelLeft">বাম চ্যানেল</sys:String>

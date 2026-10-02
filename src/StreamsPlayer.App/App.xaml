@@ -741,39 +741,15 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <!-- Out of theme (APP-STYLE 5): SP-0187 UI buttons color differentiation. -->
+            <!-- SP-0187: the colour is a palette role on the ordinary control plate, so it follows the theme and keeps its contrast in both; no literal fill, no declared exception (APP-STYLE 5). -->
             <Style x:Key="ListGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
-                <Setter Property="Background" Value="#FF607D8B" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="BorderBrush" Value="#FF455A64" />
+                <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.view.list}" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#FF78909C" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="#FF455A64" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
-            <!-- Out of theme (APP-STYLE 5): SP-0187 UI buttons color differentiation. -->
+            <!-- SP-0187: the colour is a palette role on the ordinary control plate, so it follows the theme and keeps its contrast in both; no literal fill, no declared exception (APP-STYLE 5). -->
             <Style x:Key="GridGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
-                <Setter Property="Background" Value="#FF607D8B" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="BorderBrush" Value="#FF455A64" />
+                <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.view.grid}" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#FF78909C" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="#FF455A64" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
             <Style x:Key="RefreshGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.refresh}" />
@@ -824,22 +800,10 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-            <!-- Out of theme (APP-STYLE 5): SP-0187 UI buttons color differentiation. -->
+            <!-- SP-0187: the colour is a palette role on the ordinary control plate, so it follows the theme and keeps its contrast in both; no literal fill, no declared exception (APP-STYLE 5). -->
             <Style x:Key="SettingsGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
-                <Setter Property="Background" Value="#FF795548" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="BorderBrush" Value="#FF5D4037" />
+                <Setter Property="Foreground" Value="{DynamicResource AccentMarkBrush}" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.app.settings}" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#FF8D6E63" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="#FF5D4037" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
             <Style x:Key="HiddenGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.source.hidden}" />
@@ -914,103 +878,43 @@
                  must not mirror with the layout. Left to inherit, WPF would flip this triangle to point
                  left under Arabic and Urdu, which reads as "rewind". Stop is a square and is pinned for
                  the same reason only so the pair cannot drift apart later. -->
-            <!-- Out of theme (APP-STYLE 5): SP-0187 UI buttons color differentiation. -->
+            <!-- SP-0187: the colour is a palette role on the ordinary control plate, so it follows the theme and keeps its contrast in both; no literal fill, no declared exception (APP-STYLE 5). -->
             <Style x:Key="PlayGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
-                <Setter Property="Background" Value="#FF4CAF50" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="BorderBrush" Value="#FF388E3C" />
+                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.play}" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#FF66BB6A" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="#FF388E3C" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
             <Style x:Key="MoreGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.nav.more}" />
             </Style>
-            <!-- Out of theme (APP-STYLE 5): SP-0187 UI buttons color differentiation. -->
+            <!-- SP-0187: the colour is a palette role on the ordinary control plate, so it follows the theme and keeps its contrast in both; no literal fill, no declared exception (APP-STYLE 5). -->
             <Style x:Key="StopGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
-                <Setter Property="Background" Value="#FF4CAF50" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="BorderBrush" Value="#FF388E3C" />
+                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.stop}" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#FF66BB6A" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="#FF388E3C" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
 
             <!-- SP-0080: the compact panel's row has room for glyphs and nothing else, so the transport
                  pair gets caption-free variants. The shapes and the FlowDirection pin are the ones
                  above, restated here rather than shared, because a style cannot swap only its template
                  without also re-declaring the geometry its base resolved. -->
-            <!-- Out of theme (APP-STYLE 5): SP-0187 UI buttons color differentiation. -->
+            <!-- SP-0187: the colour is a palette role on the ordinary control plate, so it follows the theme and keeps its contrast in both; no literal fill, no declared exception (APP-STYLE 5). -->
             <Style x:Key="PlayGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
-                <Setter Property="Background" Value="#FF4CAF50" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="BorderBrush" Value="#FF388E3C" />
+                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.play}" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#FF66BB6A" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="#FF388E3C" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
-            <!-- Out of theme (APP-STYLE 5): SP-0187 UI buttons color differentiation. -->
+            <!-- SP-0187: the colour is a palette role on the ordinary control plate, so it follows the theme and keeps its contrast in both; no literal fill, no declared exception (APP-STYLE 5). -->
             <Style x:Key="StopGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
-                <Setter Property="Background" Value="#FF4CAF50" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="BorderBrush" Value="#FF388E3C" />
+                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.stop}" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#FF66BB6A" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="#FF388E3C" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
-            <!-- Out of theme (APP-STYLE 5): SP-0187 UI buttons color differentiation. -->
+            <!-- SP-0187: the colour is a palette role on the ordinary control plate, so it follows the theme and keeps its contrast in both; no literal fill, no declared exception (APP-STYLE 5). -->
             <Style x:Key="RecordGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
-                <Setter Property="Background" Value="#FFFF9800" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="BorderBrush" Value="#FFF57C00" />
+                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.media.record}" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#FFFFA726" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="#FFF57C00" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
             <Style x:Key="StopRecordGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
@@ -1018,41 +922,17 @@
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.stop}" />
             </Style>
             <!-- SP-0102: Compact panel previous/next station navigation glyph buttons, pinned to LeftToRight -->
-            <!-- Out of theme (APP-STYLE 5): SP-0187 UI buttons color differentiation. -->
+            <!-- SP-0187: the colour is a palette role on the ordinary control plate, so it follows the theme and keeps its contrast in both; no literal fill, no declared exception (APP-STYLE 5). -->
             <Style x:Key="PrevGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
-                <Setter Property="Background" Value="#FF9C27B0" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="BorderBrush" Value="#FF7B1FA2" />
+                <Setter Property="Foreground" Value="{DynamicResource AccentMarkBrush}" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.previous}" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#FFAB47BC" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="#FF7B1FA2" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
-            <!-- Out of theme (APP-STYLE 5): SP-0187 UI buttons color differentiation. -->
+            <!-- SP-0187: the colour is a palette role on the ordinary control plate, so it follows the theme and keeps its contrast in both; no literal fill, no declared exception (APP-STYLE 5). -->
             <Style x:Key="NextGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
-                <Setter Property="Background" Value="#FF2196F3" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="BorderBrush" Value="#FF1976D2" />
+                <Setter Property="Foreground" Value="{DynamicResource AccentMarkBrush}" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.next}" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="#FF42A5F5" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="#FF1976D2" />
-                        <Setter Property="Foreground" Value="White" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
             <!-- SP-0113: media.random - the die, not the shuffle arrows (a shuffle reorders a list; this
                  draws one station). -->

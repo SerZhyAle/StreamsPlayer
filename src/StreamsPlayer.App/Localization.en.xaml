@@ -706,10 +706,10 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="LicenceTip">View the licence text</sys:String>
     <sys:String x:Key="SettingsWindowBusyClose">An operation is running. Wait for it to finish or cancel it, then close this window.</sys:String>
     <sys:String x:Key="AudioOutputDeviceLabel">Audio output device</sys:String>
-    <sys:String x:Key="AudioOutputDeviceHint">Select the audio device used for radio and video stream playback.</sys:String>
+    <sys:String x:Key="AudioOutputDeviceHint">Select the audio device used for radio and video stream playback. The optional FlyleafLib video engine does not support this and always uses the system default.</sys:String>
     <sys:String x:Key="AudioDeviceDefault">Default (System default)</sys:String>
     <sys:String x:Key="AudioChannelModeLabel">Audio channel output</sys:String>
-    <sys:String x:Key="AudioChannelModeHint">Select stereo mode, mono routing, or individual channels for playback.</sys:String>
+    <sys:String x:Key="AudioChannelModeHint">Select stereo mode, mono routing, or individual channels for playback. The optional FlyleafLib video engine does not support this and always uses the system default.</sys:String>
     <sys:String x:Key="AudioChannelStereo">Stereo</sys:String>
     <sys:String x:Key="AudioChannelReverseStereo">Reverse stereo</sys:String>
     <sys:String x:Key="AudioChannelLeft">Left channel</sys:String>

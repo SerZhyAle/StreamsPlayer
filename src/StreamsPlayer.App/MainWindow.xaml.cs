@@ -494,7 +494,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
         // SP-0052: outside the busy block, because accepting the offer runs its own busy cycle. The
         // stored catalog is untouched at this point whichever way the user answers.
-        if (failure is not null)
+        if (failure is not null && !_shuttingDown)
         {
             // SP-0132: through the gate, because the listener may have collapsed to the panel mid-refresh.
             await WhenCatalogShownAsync(() => OfferSnapshotAfterFailedRefreshAsync(failure));

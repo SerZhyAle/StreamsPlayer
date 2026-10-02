@@ -131,8 +131,12 @@ public sealed class EnginesNeverBlockSourceTests
         Assert.Contains("RecordAbandoned", retire);
         Assert.Contains("Task.Run", retire);
 
-        // The native stop and dispose happen in the retirement method.
+        // The native stop happens in the retirement method; the dispose is the contained release it calls on every
+        // exit path (a faulted stop included), and the abandonment budget is shared across legs.
         Assert.Contains("player.Stop()", retire);
-        Assert.Contains("player.Dispose()", retire);
+        Assert.Contains("ReleaseContained(player)", retire);
+        Assert.Contains("player.Dispose()", Body(source, "ReleaseContained"));
+        Assert.Contains("Abandoned.RecordAbandoned", retire);
+        Assert.Contains("Abandoned.IsPaused", Body(source, "StartAsync"));
     }
 }

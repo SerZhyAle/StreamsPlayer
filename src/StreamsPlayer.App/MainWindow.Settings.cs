@@ -143,6 +143,11 @@ public partial class MainWindow
         if (changed)
         {
             _standardAudioPlayback.AudioOutputDevice = deviceId;
+            if (_fastMediaSorterAudioPlayback is { } broadcast)
+            {
+                broadcast.AudioOutputDevice = deviceId;
+            }
+
             foreach (var player in _playerWindows)
             {
                 player.ApplyAudioOutputSettings(deviceId, _state.AudioChannelMode);
@@ -157,6 +162,11 @@ public partial class MainWindow
         if (changed)
         {
             _standardAudioPlayback.AudioChannelMode = channelMode;
+            if (_fastMediaSorterAudioPlayback is { } broadcast)
+            {
+                broadcast.AudioChannelMode = channelMode;
+            }
+
             foreach (var player in _playerWindows)
             {
                 player.ApplyAudioOutputSettings(_state.AudioOutputDevice, channelMode);

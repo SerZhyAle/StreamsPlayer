@@ -690,10 +690,10 @@
     <sys:String x:Key="LicenceTip">عرض نص الترخيص</sys:String>
     <sys:String x:Key="SettingsWindowBusyClose">هناك عملية قيد التشغيل. انتظر حتى تنتهي أو قم بإلغائها، ثم أغلق هذه النافذة.</sys:String>
     <sys:String x:Key="AudioOutputDeviceLabel">جهاز إخراج الصوت</sys:String>
-    <sys:String x:Key="AudioOutputDeviceHint">حدد جهاز الصوت المستخدم لتشغيل بث الراديو والفيديو.</sys:String>
+    <sys:String x:Key="AudioOutputDeviceHint">حدد جهاز الصوت المستخدم لتشغيل بث الراديو والفيديو. محرك الفيديو الاختياري FlyleafLib لا يدعم هذا ويستخدم دائمًا الجهاز الافتراضي للنظام.</sys:String>
     <sys:String x:Key="AudioDeviceDefault">الافتراضي (افتراضي النظام)</sys:String>
     <sys:String x:Key="AudioChannelModeLabel">مخرج قناة الصوت</sys:String>
-    <sys:String x:Key="AudioChannelModeHint">حدد وضع الستيريو أو القنوات الفردية للتشغيل.</sys:String>
+    <sys:String x:Key="AudioChannelModeHint">حدد وضع الستيريو أو القنوات الفردية للتشغيل. محرك الفيديو الاختياري FlyleafLib لا يدعم هذا ويستخدم دائمًا الجهاز الافتراضي للنظام.</sys:String>
     <sys:String x:Key="AudioChannelStereo">ستيريو</sys:String>
     <sys:String x:Key="AudioChannelReverseStereo">ستيريو عكسي</sys:String>
     <sys:String x:Key="AudioChannelLeft">القناة اليسرى</sys:String>

@@ -690,10 +690,10 @@
     <sys:String x:Key="LicenceTip">Переглянути текст ліцензії</sys:String>
     <sys:String x:Key="SettingsWindowBusyClose">Виконується операція. Дочекайтеся її завершення або скасуйте її, тоді закрийте це вікно.</sys:String>
     <sys:String x:Key="AudioOutputDeviceLabel">Пристрій виведення звуку</sys:String>
-    <sys:String x:Key="AudioOutputDeviceHint">Виберіть аудіопристрій для відтворення радіо та відеопотоків.</sys:String>
+    <sys:String x:Key="AudioOutputDeviceHint">Виберіть аудіопристрій для відтворення радіо та відеопотоків. Додатковий відеодвигун FlyleafLib цього не підтримує й завжди використовує пристрій за замовчуванням.</sys:String>
     <sys:String x:Key="AudioDeviceDefault">За замовчуванням (Системний пристрій)</sys:String>
     <sys:String x:Key="AudioChannelModeLabel">Режим аудіоканалу</sys:String>
-    <sys:String x:Key="AudioChannelModeHint">Виберіть режим стерео, розділення каналів або виведення звуку.</sys:String>
+    <sys:String x:Key="AudioChannelModeHint">Виберіть режим стерео, розділення каналів або виведення звуку. Додатковий відеодвигун FlyleafLib цього не підтримує й завжди використовує пристрій за замовчуванням.</sys:String>
     <sys:String x:Key="AudioChannelStereo">Стерео</sys:String>
     <sys:String x:Key="AudioChannelReverseStereo">Зворотне стерео</sys:String>
     <sys:String x:Key="AudioChannelLeft">Лівий канал</sys:String>

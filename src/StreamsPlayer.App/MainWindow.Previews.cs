@@ -407,6 +407,11 @@ public partial class MainWindow
         // SP-0120: before any await, for the same reason: a recovery backoff that ends during the saves below
         // would otherwise restart a station in a window that is closing.
         _audioRecoveryCts?.Cancel();
+        // The window's own download (catalog refresh, import, TV schedule, preview artwork) is abandoned like a
+        // user cancel before the clients below are disposed under it: a disposed client would otherwise surface
+        // as a failure, and a failure raises a dialog on a window that has just closed. Its finally block owns
+        // the dispose of the source.
+        _cancellableOperation?.Cancel();
         CloseWork = RunCloseWorkAsync();
     }
 

@@ -127,7 +127,20 @@ jobs:
           if ($verdict.gate -ne 'smoke-playback') { throw "Verdict $verdictPath names gate '$($verdict.gate)', not smoke-playback." }
           if ($verdict.result -ne 'PASS') { throw "Verdict $verdictPath records result '$($verdict.result)', not PASS." }
           if ($verdict.version -ne $env:RELEASE_VERSION) { throw "Verdict $verdictPath names version '$($verdict.version)', not the tagged version $env:RELEASE_VERSION." }
-          Write-Host "Smoke verdict for $env:RELEASE_VERSION (commit $($verdict.commit)): PASS, $($verdict.when)."
+          # SP-0183 D2: the verdict binds the code it judged. Its commit must be a full id that is HEAD or an
+          # ancestor of it, and nothing outside release-verdicts/ may have changed since - otherwise a PASS recorded
+          # for other code (same version stamp, older tree) would unlock this build.
+          $smokeCommit = [string]$verdict.commit
+          if ($smokeCommit -notmatch '^[0-9a-f]{40}$') { throw "Verdict $verdictPath names commit '$smokeCommit', which is not a full commit id." }
+          git merge-base --is-ancestor $smokeCommit HEAD
+          if ($LASTEXITCODE -ne 0) { throw "The smoke verdict's commit $smokeCommit is not the tagged commit or an ancestor of it." }
+          $changedSinceSmoke = @(git diff --name-only $smokeCommit HEAD)
+          if ($LASTEXITCODE -ne 0) { throw "git diff $smokeCommit HEAD failed (exit $LASTEXITCODE)." }
+          $materialSinceSmoke = @($changedSinceSmoke | Where-Object { $_ -notlike 'release-verdicts/*' })
+          if ($materialSinceSmoke.Count -gt 0) {
+            throw "$($materialSinceSmoke.Count) file(s) changed after the smoke-tested commit $smokeCommit outside release-verdicts/ (first: $(($materialSinceSmoke | Select-Object -First 5) -join ', ')). The smoke judged different code; run scripts/smoke-playback.ps1 again."
+          }
+          Write-Host "Smoke verdict for $env:RELEASE_VERSION (commit $smokeCommit): PASS, $($verdict.when)."
       # SP-0180: the release is also the audited release. The audit's outcome travels as a committed verdict
       # (PLAN/ is not tracked); the gate checks it names this version, covers every in-scope file, leaves no
       # High/Medium finding unresolved, and that no code changed after the audited commit.

@@ -690,10 +690,10 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="LicenceTip">Afficher le texte de la licence</sys:String>
     <sys:String x:Key="SettingsWindowBusyClose">Une opération est en cours. Attendez qu'elle se termine ou annulez-la, puis fermez cette fenêtre.</sys:String>
     <sys:String x:Key="AudioOutputDeviceLabel">Périphérique de sortie audio</sys:String>
-    <sys:String x:Key="AudioOutputDeviceHint">Sélectionnez le périphérique audio utilisé pour la lecture radio et vidéo.</sys:String>
+    <sys:String x:Key="AudioOutputDeviceHint">Sélectionnez le périphérique audio utilisé pour la lecture radio et vidéo. Le moteur vidéo facultatif FlyleafLib ne le prend pas en charge et utilise toujours le périphérique par défaut du système.</sys:String>
     <sys:String x:Key="AudioDeviceDefault">Par défaut (Système par défaut)</sys:String>
     <sys:String x:Key="AudioChannelModeLabel">Canal de sortie audio</sys:String>
-    <sys:String x:Key="AudioChannelModeHint">Sélectionnez le mode stéréo ou les canaux individuels pour la lecture.</sys:String>
+    <sys:String x:Key="AudioChannelModeHint">Sélectionnez le mode stéréo ou les canaux individuels pour la lecture. Le moteur vidéo facultatif FlyleafLib ne le prend pas en charge et utilise toujours le périphérique par défaut du système.</sys:String>
     <sys:String x:Key="AudioChannelStereo">Stéréo</sys:String>
     <sys:String x:Key="AudioChannelReverseStereo">Stéréo inversée</sys:String>
     <sys:String x:Key="AudioChannelLeft">Canal gauche</sys:String>

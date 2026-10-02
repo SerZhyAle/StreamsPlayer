@@ -690,10 +690,10 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="LicenceTip">Lizenztext anzeigen</sys:String>
     <sys:String x:Key="SettingsWindowBusyClose">Ein Vorgang wird ausgeführt. Warten Sie, bis er beendet ist, oder brechen Sie ihn ab und schließen Sie dann dieses Fenster.</sys:String>
     <sys:String x:Key="AudioOutputDeviceLabel">Audioausgabegerät</sys:String>
-    <sys:String x:Key="AudioOutputDeviceHint">Wählen Sie das Audiogerät für die Radio- und Videowiedergabe aus.</sys:String>
+    <sys:String x:Key="AudioOutputDeviceHint">Wählen Sie das Audiogerät für die Radio- und Videowiedergabe aus. Die optionale Videoengine FlyleafLib unterstützt dies nicht und verwendet immer das Systemstandardgerät.</sys:String>
     <sys:String x:Key="AudioDeviceDefault">Standard (Systemstandard)</sys:String>
     <sys:String x:Key="AudioChannelModeLabel">Audiokanal-Ausgabe</sys:String>
-    <sys:String x:Key="AudioChannelModeHint">Wählen Sie den Stereomodus oder einzelne Kanäle für die Wiedergabe aus.</sys:String>
+    <sys:String x:Key="AudioChannelModeHint">Wählen Sie den Stereomodus oder einzelne Kanäle für die Wiedergabe aus. Die optionale Videoengine FlyleafLib unterstützt dies nicht und verwendet immer das Systemstandardgerät.</sys:String>
     <sys:String x:Key="AudioChannelStereo">Stereo</sys:String>
     <sys:String x:Key="AudioChannelReverseStereo">Umgekehrtes Stereo</sys:String>
     <sys:String x:Key="AudioChannelLeft">Linker Kanal</sys:String>

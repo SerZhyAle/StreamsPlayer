@@ -690,10 +690,10 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="LicenceTip">Exibir o texto da licença</sys:String>
     <sys:String x:Key="SettingsWindowBusyClose">Uma operação está em andamento. Aguarde o término ou cancele-a e feche esta janela depois.</sys:String>
     <sys:String x:Key="AudioOutputDeviceLabel">Dispositivo de saída de áudio</sys:String>
-    <sys:String x:Key="AudioOutputDeviceHint">Selecione o dispositivo de áudio usado para reprodução de rádio e vídeo.</sys:String>
+    <sys:String x:Key="AudioOutputDeviceHint">Selecione o dispositivo de áudio usado para reprodução de rádio e vídeo. O mecanismo de vídeo opcional FlyleafLib não oferece suporte a isso e sempre usa o dispositivo padrão do sistema.</sys:String>
     <sys:String x:Key="AudioDeviceDefault">Padrão (Padrão do sistema)</sys:String>
     <sys:String x:Key="AudioChannelModeLabel">Canal de saída de áudio</sys:String>
-    <sys:String x:Key="AudioChannelModeHint">Selecione o modo estéreo ou canais individuais para reprodução.</sys:String>
+    <sys:String x:Key="AudioChannelModeHint">Selecione o modo estéreo ou canais individuais para reprodução. O mecanismo de vídeo opcional FlyleafLib não oferece suporte a isso e sempre usa o dispositivo padrão do sistema.</sys:String>
     <sys:String x:Key="AudioChannelStereo">Estéreo</sys:String>
     <sys:String x:Key="AudioChannelReverseStereo">Estéreo invertido</sys:String>
     <sys:String x:Key="AudioChannelLeft">Canal esquerdo</sys:String>

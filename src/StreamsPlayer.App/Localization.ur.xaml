@@ -690,10 +690,10 @@
     <sys:String x:Key="LicenceTip">لائسنس کا متن دیکھیں</sys:String>
     <sys:String x:Key="SettingsWindowBusyClose">ایک عمل جاری ہے۔ اس کے مکمل ہونے کا انتظار کریں یا اسے منسوخ کریں، پھر یہ ونڈو بند کریں۔</sys:String>
     <sys:String x:Key="AudioOutputDeviceLabel">آڈیو آؤٹ پٹ ڈیوائس</sys:String>
-    <sys:String x:Key="AudioOutputDeviceHint">ریڈیو اور ویڈیو اسٹریم پلے بیک کے لیے استعمال ہونے والا آڈیو آلہ منتخب کریں۔</sys:String>
+    <sys:String x:Key="AudioOutputDeviceHint">ریڈیو اور ویڈیو اسٹریم پلے بیک کے لیے استعمال ہونے والا آڈیو آلہ منتخب کریں۔ اختیاری FlyleafLib ویڈیو انجن اسے سپورٹ نہیں کرتا اور ہمیشہ سسٹم کا ڈیفالٹ آلہ استعمال کرتا ہے۔</sys:String>
     <sys:String x:Key="AudioDeviceDefault">ڈیفالٹ (سسٹم ڈیفالٹ)</sys:String>
     <sys:String x:Key="AudioChannelModeLabel">آڈیو چینل آؤٹ پٹ</sys:String>
-    <sys:String x:Key="AudioChannelModeHint">پلے بیک کے لیے سٹیریو موڈ یا الگ الگ چینلز منتخب کریں۔</sys:String>
+    <sys:String x:Key="AudioChannelModeHint">پلے بیک کے لیے سٹیریو موڈ یا الگ الگ چینلز منتخب کریں۔ اختیاری FlyleafLib ویڈیو انجن اسے سپورٹ نہیں کرتا اور ہمیشہ سسٹم کا ڈیفالٹ آلہ استعمال کرتا ہے۔</sys:String>
     <sys:String x:Key="AudioChannelStereo">سٹیریو</sys:String>
     <sys:String x:Key="AudioChannelReverseStereo">ریورس سٹیریو</sys:String>
     <sys:String x:Key="AudioChannelLeft">بایاں چینل</sys:String>
