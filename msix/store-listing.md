@@ -63,15 +63,16 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
-### Prepared for 26.1002.2330
+### Prepared for 26.1003.0030
 
-Supersedes nothing: the 26.1001.0140 tag shipped as prepared below. One Settings window in place of Settings and
+Supersedes 26.1002.2330, whose tag failed its release job on the installer script (a brace comment closed early) and
+published nothing; its lines are carried here. The 26.1001.0140 tag shipped as prepared below. One Settings window in place of Settings and
 Tools, the audio output device and channel mode, radio failures that keep their cause, a "Delete downloaded" that
 keeps what the user made, a non-blocking stop of a FastMediaSorter broadcast and a guarded setup wipe. The three
-blocks below are the files `msix/listing/release-notes/26.1002.2330.*.txt`.
+blocks below are the files `msix/listing/release-notes/26.1003.0030.*.txt`.
 
 ```text
-Version 26.1002.2330
+Version 26.1003.0030
 
 - Settings and Tools are now one Settings window with six pages: General, Library, Playback, Audio, Files and About. Catalog, playlists, hidden channels, the TV schedule and video components moved into it, every setting has a short hint, and a change takes effect as soon as you touch the control.
 - Choose the audio output device and the channel mode (stereo, reversed stereo, left, right or Dolby Surround) for playback in Settings, on the Audio page.
@@ -83,7 +84,7 @@ Version 26.1002.2330
 ```
 
 ```text
-Версия 26.1002.2330
+Версия 26.1003.0030
 
 - «Настройки» и «Инструменты» теперь одно окно «Настройки» из шести страниц: «Общие», «Библиотека», «Воспроизведение», «Звук», «Файлы» и «О программе». Каталог, плейлисты, скрытые каналы, телепрограмма и видеокомпоненты переехали в него, у каждой настройки есть короткая подсказка, а изменение вступает в силу, как только вы тронули элемент.
 - Выбирайте устройство вывода звука и режим каналов (стерео, обратное стерео, левый, правый или Dolby Surround) для воспроизведения в «Настройках» на странице «Звук».
@@ -95,7 +96,7 @@ Version 26.1002.2330
 ```
 
 ```text
-Версія 26.1002.2330
+Версія 26.1003.0030
 
 - «Налаштування» та «Інструменти» тепер одне вікно «Налаштування» з шести сторінок: «Загальні», «Бібліотека», «Відтворення», «Звук», «Файли» та «Про програму». Каталог, плейлисти, приховані канали, телепрограма та відеокомпоненти переїхали до нього, кожне налаштування має коротку підказку, а зміна набуває чинності, щойно ви торкнулися елемента.
 - Обирайте пристрій виведення звуку та режим каналів (стерео, зворотне стерео, лівий, правий чи Dolby Surround) для відтворення в «Налаштуваннях» на сторінці «Звук».
@@ -106,13 +107,13 @@ Version 26.1002.2330
 - Вбудований список каналів актуальний (18 502 активні потоки від 23.09.2026).
 ```
 
-#### Store-only What's new for 26.1002.2330
+#### Store-only What's new for 26.1003.0030
 
 The Store still carries 26.0806.2225 unless Partner Center says otherwise, so this block is the accumulated one:
 everything a Store user has not seen yet, folded to stay under 1 500 characters.
 
 ```text
-Version 26.1002.2330
+Version 26.1003.0030
 
 - One Settings window with pages for General, Library, Playback, Audio, Files and About; pick the audio output device and channel mode.
 - Record video or radio to its own folders, with a safe quit and a clear message about what was saved; listen to a live audio broadcast from a FastMediaSorter phone or watch over your local network.
@@ -127,7 +128,7 @@ Version 26.1002.2330
 ```
 
 ```text
-Версия 26.1002.2330
+Версия 26.1003.0030
 
 - Одно окно «Настройки» со страницами «Общие», «Библиотека», «Воспроизведение», «Звук», «Файлы» и «О программе»; выбор устройства вывода звука и режима каналов.
 - Запись видео и радио в отдельные папки, безопасный выход и понятное сообщение о сохранённом; прямой звуковой эфир с телефона или часов с FastMediaSorter по локальной сети.
@@ -142,7 +143,7 @@ Version 26.1002.2330
 ```
 
 ```text
-Версія 26.1002.2330
+Версія 26.1003.0030
 
 - Одне вікно «Налаштування» зі сторінками «Загальні», «Бібліотека», «Відтворення», «Звук», «Файли» та «Про програму»; вибір пристрою виведення звуку та режиму каналів.
 - Запис відео та радіо в окремі теки, безпечний вихід і зрозуміле повідомлення про збережене; прямий звуковий ефір з телефона чи годинника з FastMediaSorter локальною мережею.

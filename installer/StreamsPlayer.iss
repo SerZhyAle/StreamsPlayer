@@ -159,7 +159,8 @@ begin
   end;
 end;
 
-{ SP-0183 D6: guard the [InstallDelete] wipe so it runs only when {app} holds a previous installation. }
+// SP-0183 D6: guard the [InstallDelete] wipe so it runs only when the app folder holds a previous installation.
+// A line comment on purpose: a brace comment ends at the first closing brace, and the folder constant has one.
 function FileExistsInApp(FileName: String): Boolean;
 begin
   Result := FileExists(ExpandConstant('{app}\' + FileName));

@@ -1,4 +1,4 @@
-Version 26.1002.2330
+Version 26.1003.0030
 
 - Settings and Tools are now one Settings window with six pages: General, Library, Playback, Audio, Files and About. Catalog, playlists, hidden channels, the TV schedule and video components moved into it, every setting has a short hint, and a change takes effect as soon as you touch the control.
 - Choose the audio output device and the channel mode (stereo, reversed stereo, left, right or Dolby Surround) for playback in Settings, on the Audio page.

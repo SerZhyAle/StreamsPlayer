@@ -31,4 +31,19 @@ public sealed class InstallerCleanUpgradeTests
 
         Assert.True(checkFunction.Success, "installer/StreamsPlayer.iss no longer guards the wipe with FileExistsInApp - Setup may delete a folder it did not install.");
     }
+
+    // A Pascal brace comment ends at the first closing brace, so one that names an Inno constant such as the app
+    // folder ends early and the rest of the sentence is read as code: ISCC stops with "'BEGIN' expected". The
+    // 26.1002.2330 release job failed on exactly that, after every local gate had passed - none of them compiles
+    // the installer. Line comments carry constants safely, so a brace comment holding a brace is the thing to refuse.
+    [Fact]
+    public void CodeSection_HasNoBraceCommentThatContainsAnotherBrace()
+    {
+        var code = Script[Script.IndexOf("[Code]", StringComparison.Ordinal)..];
+        var offenders = Regex.Matches(code, @"^[ \t]*\{[^}\r\n]*\{", RegexOptions.Multiline)
+            .Select(match => match.Value.Trim())
+            .ToList();
+
+        Assert.True(offenders.Count == 0, "A brace comment in [Code] contains a brace and would end early: " + string.Join(" | ", offenders));
+    }
 }
