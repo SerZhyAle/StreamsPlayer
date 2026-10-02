@@ -91,6 +91,10 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
             // SP-0165: past the abandonment cap this feature pauses for the session. The refusal is an ordinary
             // failed open, which the owner's recovery budget turns into an ended session rather than a retry loop.
             _diagnostics?.Invoke("AUDIO PLAY REFUSED", ["route=fastmediasorter", "reason=abandoned_engine_cap"]);
+            // Like every other outcome of this method the refusal arrives after the caller has published the
+            // session, never inside the call that starts it: a synchronous failure would stop the station before
+            // the caller queued its resume record, and the refused station would then be resumed at next launch.
+            await Task.Yield();
             return new FastMediaSorterAudioOpenResult(
                 null,
                 TimeSpan.Zero,

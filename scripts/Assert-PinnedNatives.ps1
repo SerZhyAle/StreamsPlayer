@@ -70,12 +70,15 @@ function Get-ShippedRelativePaths([string] $Root) {
         $dir = Join-Path $Root $name
         if (Test-Path -LiteralPath $dir) { Get-ChildItem -LiteralPath $dir -Recurse -File }
     }
-    @($top) + @($tree) | Where-Object { $_ } | ForEach-Object { [IO.Path]::GetRelativePath($Root, $_.FullName) }
+    # Substring, not [IO.Path]::GetRelativePath: build.ps1 may run this under Windows PowerShell 5.1, which lacks it.
+    $prefixLength = $Root.TrimEnd('\').Length + 1
+    @($top) + @($tree) | Where-Object { $_ } | ForEach-Object { $_.FullName.Substring($prefixLength) }
 }
 
 $referenceRelative = @(Get-ShippedRelativePaths $referenceRoot)
 if ($referenceRelative.Count -eq 0) { throw "cannot verify: package $pinned natives at $referenceRoot hold no shipped files." }
-$deployedRelative = @(Get-ChildItem -LiteralPath $deployedRoot -Recurse -File | ForEach-Object { [IO.Path]::GetRelativePath($deployedRoot, $_.FullName) })
+$deployedPrefixLength = $deployedRoot.TrimEnd('\').Length + 1
+$deployedRelative = @(Get-ChildItem -LiteralPath $deployedRoot -Recurse -File | ForEach-Object { $_.FullName.Substring($deployedPrefixLength) })
 
 $extraFiles = @($deployedRelative | Where-Object { $_ -notin $referenceRelative })
 $missingFiles = @($referenceRelative | Where-Object { $_ -notin $deployedRelative })

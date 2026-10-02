@@ -422,7 +422,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                     outcome.Bank.FaviconAtlas,
                     outcome.ReplacesAtlas,
                     cancellationToken),
-                _cancellableOperation.Token);
+                // SP-0161: merge and save are not cancellable. Closing the window cancels the transfer only; this
+                // phase runs to its end so the outcome is either written whole or not at all.
+                CancellationToken.None);
             // The download is over and the outcome is about to be written, so no further report may touch
             // the status line.
             _reportingProgress = false;
@@ -505,7 +507,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // answer to the question it asks. Out here for the same reason as the offer above - accepting it
         // runs its own busy cycle, and the modal must not open over a window still showing this one's
         // progress bar.
-        if (imported)
+        if (imported && !_shuttingDown)
         {
             await WhenCatalogShownAsync(OfferChannelPreviewsAsync);
         }
