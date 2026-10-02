@@ -87,7 +87,8 @@ public partial class PlaybackFailureDialog : Window
                 LocalizationService.Get("FailureConfirmDelete"),
                 LocalizationService.Get("StreamUnavailableTitle"),
                 MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
             if (confirm != MessageBoxResult.Yes)
             {
                 return;

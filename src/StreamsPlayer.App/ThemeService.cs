@@ -46,7 +46,7 @@ public static class ThemeService
             // (a channel's last play outcome, the stop-recording glyph). Each pair is darker on the light
             // surfaces and lighter on the dark ones, so the mark keeps its contrast in both themes.
             ["SuccessBrush"] = (Color.FromRgb(30, 126, 52), Color.FromRgb(86, 196, 110)),
-            ["WarningBrush"] = (Color.FromRgb(176, 122, 0), Color.FromRgb(230, 180, 60)),
+            ["WarningBrush"] = (Color.FromRgb(239, 108, 0), Color.FromRgb(230, 180, 60)),
             ["DangerBrush"] = (Color.FromRgb(178, 34, 34), Color.FromRgb(255, 107, 107))
         };
 

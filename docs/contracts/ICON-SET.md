@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-SET` (with `ICON-RENDER`, `ICON-EXTERNAL`) |
-| **Version** | 0.16 / 0.13 / 0.10 (draft) |
+| **Version** | 0.17 / 0.15 / 0.11 (draft) |
 | **Home** | `Contracts/iconography/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | **consumer** - amends by `PROPOSAL-*` beside the contract, never by edit |

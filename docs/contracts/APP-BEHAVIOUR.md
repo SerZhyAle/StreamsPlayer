@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-BEHAVIOUR` |
-| **Version** | 0.10 (draft - it may change shape until every consumer has confirmed it) |
+| **Version** | 0.12 (draft) |
 | **Home** | `Contracts/desktop-app-ux/README.md`, with the evidence per rule in `APP-BEHAVIOUR.md` |
 | **Owner** | **this product**. StreamsPlayer writes the amendments and answers the questions |
 | **This product's role** | **producer and consumer** - the rules were read from this code, and this code is bound by them |

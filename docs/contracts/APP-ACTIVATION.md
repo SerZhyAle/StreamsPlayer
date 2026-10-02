@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-ACTIVATION` |
-| **Version** | 0.9.1 (draft) |
+| **Version** | 0.11 (draft) |
 | **Home** | `Contracts/app-activation/README.md` |
 | **Owner** | CyrFlip |
 | **This product's role** | **consumer** |

@@ -32,8 +32,8 @@
     literal path, because a clone elsewhere has no such drive.
 
 .EXAMPLE
-    pwsh -NoProfile -File ./tools/Sync-IconGlyphs.ps1 -CatalogRoot P:\Contracts
-    pwsh -NoProfile -File ./tools/Sync-IconGlyphs.ps1 -Check -CatalogRoot P:\Contracts
+    pwsh -NoProfile -File ./tools/Sync-IconGlyphs.ps1 -CatalogRoot $env:SZA_CONTRACTS_ROOT
+    pwsh -NoProfile -File ./tools/Sync-IconGlyphs.ps1 -Check -CatalogRoot $env:SZA_CONTRACTS_ROOT
 #>
 [CmdletBinding()]
 param(

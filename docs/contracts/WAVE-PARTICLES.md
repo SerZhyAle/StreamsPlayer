@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `WAVE-PARTICLES` |
-| **Version** | 0.12 (draft) |
+| **Version** | 0.14 (draft) |
 | **Home** | `Contracts/animated-backdrop/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | **consumer** - one more implementation of the "particles and lines" backdrop |

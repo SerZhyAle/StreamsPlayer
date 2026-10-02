@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `PACKAGE-VERSIONING` |
-| **Version** | 0.1 (draft) |
+| **Version** | 0.2 (draft) |
 | **Home** | `Contracts/package-versioning/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | **consumer** |

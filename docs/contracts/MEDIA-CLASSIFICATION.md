@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `MEDIA-CLASSIFICATION` |
-| **Version** | 0.9 (draft) |
+| **Version** | 0.10 (draft) |
 | **Home** | `Contracts/media-classification/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | **consumer** |

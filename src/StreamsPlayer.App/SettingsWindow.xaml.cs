@@ -195,7 +195,8 @@ public partial class SettingsWindow : Window
                 LocalizationService.Get("VideoComponentsRequiredBody"),
                 LocalizationService.Get("VideoComponentsRequiredTitle"),
                 MessageBoxButton.OKCancel,
-                MessageBoxImage.Warning) != MessageBoxResult.OK)
+                MessageBoxImage.Warning,
+                MessageBoxResult.Cancel) != MessageBoxResult.OK)
         {
             return;
         }

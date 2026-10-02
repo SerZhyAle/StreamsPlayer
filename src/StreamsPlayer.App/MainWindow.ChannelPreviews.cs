@@ -52,7 +52,8 @@ public partial class MainWindow
                 LocalizationService.Get("ChannelPreviewsOfferTip"),
             LocalizationService.Get("ChannelPreviewsDownload"),
             MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
+            MessageBoxImage.Question,
+            MessageBoxResult.No);
         _log.Event("CHANNEL PREVIEWS", "op=offer",
             $"result={(answer == MessageBoxResult.Yes ? "accepted" : "declined")}");
         if (answer != MessageBoxResult.Yes)

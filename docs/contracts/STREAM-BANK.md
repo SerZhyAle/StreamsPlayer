@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `STREAM-BANK` |
-| **Version** | 2.1 (active) |
+| **Version** | 2.2 (active) |
 | **Home** | `Contracts/stream-catalog/README.md`, with the detail in `01_delivery_contract.md`, `03_catalog_format.md`, `04_favicon_atlas.md`, `09_logo_and_preview_atlases.md` and the dated amendments `10_` and `12_` |
 | **Owner** | FastMediaSorter Android - StreamsPlayer neither publishes the bank nor amends the contract |
 | **This product's role** | **consumer** of the published ZIP and of the on-demand artwork set |

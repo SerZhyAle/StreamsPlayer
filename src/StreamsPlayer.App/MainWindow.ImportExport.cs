@@ -391,8 +391,8 @@ public partial class MainWindow
 
         if (rows.Any(channel => CatalogUrlIdentity.HasCredentials(channel.Url)) &&
             MessageBox.Show(owner, LocalizationService.Get("ExportCredentialWarning"),
-                LocalizationService.Get("ExportListPlain"), MessageBoxButton.YesNo, MessageBoxImage.Warning)
-                != MessageBoxResult.Yes)
+                LocalizationService.Get("ExportListPlain"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
         {
             return;
         }

@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `INSTALL-TRUST` |
-| **Version** | 1.0 (active) |
+| **Version** | 1.1 (active) |
 | **Home** | `Contracts/install-trust/README.md`, with the reference rendering in `TRUST_GUIDE.md` |
 | **Owner** | shared - amendments through the home page |
 | **This product's role** | **producer**, adopted 2026-09-24 (SP-0105) |

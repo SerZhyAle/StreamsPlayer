@@ -47,7 +47,8 @@ public partial class MainWindow
                 LocalizationService.Get("CatalogSnapshotOfferTip"),
             LocalizationService.Get("CatalogSnapshotTitle"),
             MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
+            MessageBoxImage.Question,
+            MessageBoxResult.No);
         if (answer == MessageBoxResult.Yes)
         {
             await ApplyBundledSnapshotAsync(this);
@@ -120,7 +121,8 @@ public partial class MainWindow
             LocalizationService.Format("CatalogSnapshotAfterFailure", cause),
             LocalizationService.Get("CatalogUpdateFailedTitle"),
             MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
+            MessageBoxImage.Warning,
+            MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes)
         {
             return;

@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `PAGE-CONTENT` (with `PAGE-STYLE`, `SITE-FAMILY-MAP`) |
-| **Version** | 1.1 / 1.1 / 1.1 |
+| **Version** | 1.2 / 1.2 / 1.2 |
 | **Home** | `Contracts/product-web-pages/README.md` |
 | **Owner** | sza.od.ua hub |
 | **This product's role** | **consumer** |

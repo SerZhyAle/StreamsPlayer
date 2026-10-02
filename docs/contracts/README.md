@@ -1,7 +1,7 @@
 # docs/contracts/
 
 Pointers, never copies. Every file here names one shared contract: its id, its version, its home in the
-cross-project contract store (`P:\Contracts`), this product's role, and what this repository must do to stay conformant.
+cross-project contract store, this product's role, and what this repository must do to stay conformant.
 
 The contract store's location is named in exactly one tracked file - `CLAUDE.md`, first line. Everything
 here cites a contract by its path under `Contracts/`, and source comments cite it by document and item -

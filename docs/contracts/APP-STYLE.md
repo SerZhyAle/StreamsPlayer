@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-STYLE` |
-| **Version** | 0.10 (draft) |
+| **Version** | 0.11 (draft) |
 | **Home** | `Contracts/desktop-app-ux/README.md`, with the detail in `APP-STYLE.md` |
 | **Owner** | **this product** |
 | **This product's role** | **producer and consumer** |

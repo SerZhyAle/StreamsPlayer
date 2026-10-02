@@ -76,8 +76,8 @@ public partial class MainWindow
         if (MessageBox.Show(owner,
                 LocalizationService.Format("FmsBroadcastConfirm", planned.Channel.Title,
                     CatalogUrlIdentity.Redact(planned.Channel.Url)),
-                LocalizationService.Get("FmsBroadcastTitle"), MessageBoxButton.YesNo, MessageBoxImage.Question)
-            != MessageBoxResult.Yes)
+                LocalizationService.Get("FmsBroadcastTitle"), MessageBoxButton.YesNo, MessageBoxImage.Question,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
         {
             return;
         }

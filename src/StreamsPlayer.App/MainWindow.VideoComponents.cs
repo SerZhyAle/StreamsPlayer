@@ -39,7 +39,8 @@ public partial class MainWindow
                     FFmpegComponentsInstaller.SourceDescription),
                 LocalizationService.Get("VideoComponentsTitle"),
                 MessageBoxButton.YesNo,
-                MessageBoxImage.Question) != MessageBoxResult.Yes)
+                MessageBoxImage.Question,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
         {
             return;
         }
@@ -91,8 +92,8 @@ public partial class MainWindow
     private Task RemoveVideoComponentsAsync(Window owner)
     {
         if (MessageBox.Show(owner, LocalizationService.Get("VideoComponentsRemoveConfirm"),
-                LocalizationService.Get("VideoComponentsTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning)
-            != MessageBoxResult.Yes)
+                LocalizationService.Get("VideoComponentsTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
         {
             return Task.CompletedTask;
         }

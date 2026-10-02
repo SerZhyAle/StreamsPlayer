@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CAPTURE-OUTPUT` |
-| **Version** | 0.2 (draft - being drawn; a product supplements it by proposal) |
+| **Version** | 0.3 (draft - being drawn; a product supplements it by proposal) |
 | **Home** | `Contracts/capture-output/README.md` |
 | **Owner** | FastMediaSorter Android - amended by a `PROPOSAL-*` beside the contract, never by edit |
 | **This product's role** | **producer** of `video_frame`, `stream_video` and `stream_audio`; it reads none |

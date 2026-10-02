@@ -75,7 +75,8 @@ public partial class ListeningHistoryWindow : Window
                 LocalizationService.Get("HistoryClearConfirm"),
                 LocalizationService.Get("HistoryTitle"),
                 MessageBoxButton.OKCancel,
-                MessageBoxImage.Warning);
+                MessageBoxImage.Warning,
+                MessageBoxResult.Cancel);
             if (confirmed != MessageBoxResult.OK)
             {
                 return;

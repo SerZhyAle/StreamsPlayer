@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `USER-PLAYLIST` |
-| **Version** | 0.11 (draft) |
+| **Version** | 0.12 (draft) |
 | **Home** | `Contracts/user-playlist/README.md` |
 | **Owner** | **this product**. StreamsPlayer defines the specification and conformance vectors |
 | **This product's role** | **producer and consumer** |

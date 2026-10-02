@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `REPO-STAMP` (with `HARNESS-PROFILE`, `REPO-LAYOUT`, `RULE-DELIVERY`) |
-| **Version** | 0.9 (draft) |
+| **Version** | 0.11 / 0.10 / 0.10 / 0.11 (draft) |
 | **Home** | `Contracts/rule-adoption/README.md` |
 | **Owner** | sza-unified-rules |
 | **This product's role** | **consumer and producer** |

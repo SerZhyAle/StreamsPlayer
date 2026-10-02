@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `UPDATE-MANIFEST` |
-| **Version** | 0.9 (draft) |
+| **Version** | 0.10 (draft) |
 | **Home** | `Contracts/app-update-feed/README.md` |
 | **Owner** | sza.od.ua hub |
 | **This product's role** | **consumer** |

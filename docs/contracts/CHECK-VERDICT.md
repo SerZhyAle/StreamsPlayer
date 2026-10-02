@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CHECK-VERDICT` (with `CHECK-BASELINE`, `CHECK-PLACEMENT`, `BUILD-EVIDENCE`) |
-| **Version** | 0.10 / 0.9 / 0.10 / 0.9 (draft) |
+| **Version** | 0.11 / 0.10 / 0.11 / 0.10 (draft) |
 | **Home** | `Contracts/automated-checks/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | **consumer** |

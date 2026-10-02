@@ -240,6 +240,7 @@ public sealed class WaveParticlesBackdrop : FrameworkElement
             && IsVisible
             && _window?.WindowState != WindowState.Minimized
             && !BackdropEnvironment.HighContrast
+            && BackdropEnvironment.AnimationEffectsEnabled
             && !BackdropEnvironment.PowerFreezes(Intent)
             && IsInViewport();
         if (shouldTick == _timer.IsEnabled)

@@ -19,8 +19,8 @@ public partial class MainWindow
         }
 
         if (MessageBox.Show(owner, LocalizationService.Format("DeleteDownloadedConfirm", downloaded),
-                LocalizationService.Get("DeleteDownloadedTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning)
-            != MessageBoxResult.Yes)
+                LocalizationService.Get("DeleteDownloadedTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
         {
             return;
         }
@@ -61,8 +61,8 @@ public partial class MainWindow
         }
 
         if (MessageBox.Show(owner, LocalizationService.Format("DeleteImportedCatalogConfirm", count),
-                LocalizationService.Get("DeleteImportedCatalogTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning)
-            != MessageBoxResult.Yes)
+                LocalizationService.Get("DeleteImportedCatalogTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
         {
             return;
         }

@@ -23,8 +23,8 @@ public partial class MainWindow
         // easier leak path than a file the user chose where to save.
         if (CatalogUrlIdentity.HasCredentials(row.Channel.Url) &&
             MessageBox.Show(DialogOwner, LocalizationService.Get("ShareCredentialWarning"),
-                LocalizationService.Get("MenuCopyShareText"), MessageBoxButton.YesNo, MessageBoxImage.Warning)
-                != MessageBoxResult.Yes)
+                LocalizationService.Get("MenuCopyShareText"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
         {
             return;
         }
@@ -118,8 +118,8 @@ public partial class MainWindow
         }
 
         if (MessageBox.Show(this, LocalizationService.Format("PasteChannelHidden", title),
-                LocalizationService.Get("PasteChannelPlain"), MessageBoxButton.YesNo, MessageBoxImage.Question)
-            != MessageBoxResult.Yes)
+                LocalizationService.Get("PasteChannelPlain"), MessageBoxButton.YesNo, MessageBoxImage.Question,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
         {
             return;
         }
@@ -144,8 +144,8 @@ public partial class MainWindow
         // list-shaped preview reads wrong for a single channel.
         if (MessageBox.Show(this,
                 LocalizationService.Format("PasteChannelConfirm", title, CatalogUrlIdentity.Redact(url)),
-                LocalizationService.Get("PasteChannelPlain"), MessageBoxButton.YesNo, MessageBoxImage.Question)
-            != MessageBoxResult.Yes)
+                LocalizationService.Get("PasteChannelPlain"), MessageBoxButton.YesNo, MessageBoxImage.Question,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
         {
             return;
         }

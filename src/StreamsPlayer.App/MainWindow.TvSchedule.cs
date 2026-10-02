@@ -144,7 +144,8 @@ public partial class MainWindow
         }
 
         var answer = MessageBox.Show(owner, LocalizationService.Format("TvScheduleConfirm", source.Host),
-            LocalizationService.Get("TvScheduleTitle"), MessageBoxButton.YesNo, MessageBoxImage.Question);
+            LocalizationService.Get("TvScheduleTitle"), MessageBoxButton.YesNo, MessageBoxImage.Question,
+            MessageBoxResult.No);
         _log.Event("TV SCHEDULE", "op=consent", $"host={source.Host}",
             $"result={(answer == MessageBoxResult.Yes ? "accepted" : "declined")}");
         if (answer != MessageBoxResult.Yes)
@@ -229,8 +230,8 @@ public partial class MainWindow
         }
 
         if (MessageBox.Show(owner, LocalizationService.Get("TvScheduleRemoveConfirm"),
-                LocalizationService.Get("TvScheduleTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning)
-            != MessageBoxResult.Yes)
+                LocalizationService.Get("TvScheduleTitle"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
         {
             return Task.CompletedTask;
         }

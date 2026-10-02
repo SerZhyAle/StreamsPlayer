@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `LAN-DISCOVERY` |
-| **Version** | 0.9 (draft) |
+| **Version** | 0.10 (draft) |
 | **Home** | `Contracts/lan-discovery/README.md` |
 | **Owner** | shared (candidate owner FMS Companion) |
 | **This product's role** | **consumer** |

@@ -211,7 +211,7 @@ public partial class CollectionsWindow : Window
             }
 
             if (MessageBox.Show(this, LocalizationService.Format("CollectionDeleteConfirm", row.Name), Title,
-                    MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
             {
                 return;
             }

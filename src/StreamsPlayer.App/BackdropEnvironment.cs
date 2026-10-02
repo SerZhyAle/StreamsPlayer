@@ -8,11 +8,11 @@ using Windows.System.Power;
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// The system states the animated backdrop answers to (SP-0110): high contrast (no backdrop at all - a
-/// product placement decision the contract leaves to us) and energy saver (<c>WAVE-PARTICLES</c> rule 11).
+/// The system states the animated backdrop answers to (SP-0110, SP-0186): high contrast (no backdrop at all - a
+/// product placement decision the contract leaves to us), animation effects (<c>WAVE-PARTICLES</c> rule 9), and
+/// energy saver (<c>WAVE-PARTICLES</c> rule 11).
 /// Each is read live and re-announced on change, so flipping a Windows setting reaches a running backdrop
-/// without a restart. Windows "Animation effects" is deliberately not among them - the app's own switch
-/// governs motion (owner decision 2026-09-23, a dated exception to rule 9 in the contract registry).
+/// without a restart.
 /// </summary>
 /// <remarks>
 /// Static because each of these is one machine-wide fact; the subscriptions are made once, on the UI
@@ -29,6 +29,8 @@ internal static class BackdropEnvironment
     public static event EventHandler? Changed;
 
     public static bool HighContrast => SystemParameters.HighContrast;
+
+    public static bool AnimationEffectsEnabled => SystemParameters.ClientAreaAnimation;
 
     /// <summary>
     /// Rule 11 mapped onto the one power-saving switch Windows exposes: a decorative backdrop freezes as
@@ -72,7 +74,7 @@ internal static class BackdropEnvironment
 
     private static void SystemParameters_StaticPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(SystemParameters.HighContrast))
+        if (e.PropertyName is nameof(SystemParameters.HighContrast) or nameof(SystemParameters.ClientAreaAnimation))
         {
             Changed?.Invoke(null, EventArgs.Empty);
         }
