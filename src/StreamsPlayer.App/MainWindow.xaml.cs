@@ -272,6 +272,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                     CultureInfo.InstalledUICulture);
                 LocalizationService.Apply(language);
                 WakeGuard.Enabled = _state.KeepAwakeDuringPlayback;
+                _standardAudioPlayback.AudioOutputDevice = _state.AudioOutputDevice;
+                _standardAudioPlayback.AudioChannelMode = _state.AudioChannelMode;
                 Topmost = _state.MainWindowTopmost;
                 if (savedLanguage is null && !_catalogStateUnreadable)
                 {
@@ -1222,8 +1224,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
 
             var row = _playingAudio;
-            var reason = e.Exception?.GetType().Name ?? "unknown";
-            _log.Event("AUDIO FAIL", $"reason={reason}", $"url={row?.Channel.Url ?? "n/a"}");
+            var reason = e.Reason;
+            // SP-0189: the engine's own words, redacted at the sink like every other line.
+            _log.Event("AUDIO FAIL", $"reason={reason}", $"cause={e.Cause ?? "none"}", $"url={row?.Channel.Url ?? "n/a"}");
             if (row is null)
             {
                 return;
@@ -1236,7 +1239,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
             // Stop the failed session but keep the recovery policy/CTS alive so this channel can reconnect.
             _standardAudioPlayback.StopPlayback();
-            await RecoverAudioAsync(row.Channel, reason);
+            await RecoverAudioAsync(row.Channel, reason, localEngineFailure: e.LocalEngineFailure);
         })), DispatcherPriority.Normal);
     }
 
@@ -1599,7 +1602,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             kind => CaptureFolderChoices.For(_state, kind),
             _state.VideoBackend,
             startFullscreen,
-            quiet) { Owner = this };
+            quiet,
+            (_stateCommitter?.Requested ?? _state).AudioOutputDevice,
+            (_stateCommitter?.Requested ?? _state).AudioChannelMode) { Owner = this };
         AttachTvSchedule(window, channel);
         _openPlayerWindows++;
         _playerWindows.Add(window);

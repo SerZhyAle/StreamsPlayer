@@ -268,8 +268,7 @@ Ouvrez le menu [[glyph:nav.more]] à trois points d'une chaîne enregistrée et 
 Signaler un problème avec les journaux
 
 @@use-5-text
-Ouvrez « Outils » depuis le menu [[glyph:nav.more]] « Actions » et appuyez sur « Envoyer les journaux à l'auteur ». L'application compresse les journaux de diagnostic des dix derniers lancements avec un bref résumé de votre version, de Windows et des réglages dans le dossier des fichiers enregistrés (Téléchargements par défaut), puis ouvre votre logiciel de messagerie avec le message préparé. La confirmation montre le chemin complet et peut ouvrir ce dossier sur demande ; vous joignez l'archive et appuyez sur Envoyer.
-
+Ouvrez Paramètres depuis l’icône d’engrenage dans l’en-tête (ou le menu [[glyph:nav.more]] Opérations) et appuyez sur « Envoyer les journaux à l’auteur » sur la page À propos. L’application rassemble les journaux de diagnostic des dix derniers lancements avec un résumé de votre version, de Windows et des paramètres dans le dossier des fichiers enregistrés (Téléchargements par défaut), puis ouvre votre messagerie avec le message prêt. La confirmation affiche le chemin complet et peut ouvrir ce dossier ; vous joignez l’archive et appuyez sur Envoyer.
 @@distribution-title
 Distribution
 
@@ -307,14 +306,12 @@ STREAMS Player n'a ni compte, ni publicité, ni analyse d'usage, ni télémétri
 Accès au réseau
 
 @@privacy-network
-L'application ne se connecte que sur votre action, et uniquement à la destination dont cette action a besoin : au catalogue public de flux et au pack d'aperçus facultatif proposé ensuite, téléchargés depuis GitHub quand vous importez le catalogue ou acceptez le pack ; au fournisseur d'un flux que vous lisez, enregistrez ou dont vous ouvrez « À propos de la chaîne », ou dont l'aperçu vidéo s'actualise pendant que la vue en grille est visible ; à un téléphone ou une montre équipés de FastMediaSorter que vous avez importés, joints directement sur votre réseau local ; et, uniquement si vous les demandez dans « Outils », aux bibliothèques FFmpeg facultatives pour le moteur expérimental FlyleafLib, téléchargées depuis un projet GitHub tiers (BtbN/FFmpeg-Builds). Chaque requête va directement à cette destination et relève de ses politiques ; aucune ne passe par un service exploité par l'auteur. Un programme TV n'est téléchargé que depuis l'adresse que vous saisissez vous-même dans « Outils », une fois à chaque appui sur « Télécharger le programme », et jamais en arrière-plan.
-
+L’application ne se connecte que lors de vos actions et uniquement vers les destinations nécessaires : le catalogue public de flux et le pack d’aperçus facultatif sur GitHub lors de l’importation ; le fournisseur d’un flux que vous lisez, enregistrez ou consultez dans « À propos de la chaîne », ou dont l’aperçu s’actualise en mode grille ; un appareil FastMediaSorter sur votre réseau local ; et, uniquement si vous les demandez dans Paramètres sur la page Lecture, les bibliothèques FFmpeg facultatives pour le moteur expérimental FlyleafLib (BtbN/FFmpeg-Builds). Chaque requête va directement à destination ; aucun intermédiaire n’est géré par l’auteur. Le programme TV est téléchargé uniquement depuis l’adresse saisie dans Paramètres sur la page Bibliothèque, une seule fois lors du clic sur « Télécharger le programme », et jamais en arrière-plan.
 @@privacy-local-title
 Données locales
 
 @@privacy-local
-STREAMS Player enregistre dans [[appdata]] l'état de son catalogue, les chaînes que vous avez ajoutées et importées, les épinglages, les collections, les chaînes masquées, l'historique d'écoute, les marques de lecture, les images d'aperçu en cache dans une limite de 150 Mo, les bibliothèques FFmpeg facultatives si vous les avez téléchargées et les journaux de diagnostic des dix derniers lancements. Les enregistrements et les images sauvegardées vont dans les dossiers que vous choisissez pour eux, ou par défaut dans Recordings de Vidéos, Recordings de Musique et Frames d'Images. Ces données restent sur votre appareil, sauf si vous les copiez ou les sauvegardez - ou sauf si vous utilisez « Envoyer les journaux à l'auteur » dans « Outils », qui compresse ces journaux de diagnostic ainsi que la version de l'application, la version de Windows et vos réglages dans une archive et ouvre votre logiciel de messagerie pour que vous puissiez la joindre et l'envoyer à [[email]]. Cette archive n'est préparée que lorsque vous appuyez sur ce bouton, les journaux qu'elle contient nomment les flux qui ont été lus, et rien n'est jamais envoyé sans que vous appuyiez sur Envoyer dans votre propre logiciel de messagerie. Le programme TV téléchargé et vos associations de chaînes y sont aussi conservés ; « Supprimer le programme » dans « Outils » efface les deux.
-
+STREAMS Player stocke l’état du catalogue, vos chaînes ajoutées et importées, épingles, collections, chaînes masquées, historique d’écoute, repères de lecture, aperçus mis en cache dans une limite de 150 Mo, les bibliothèques FFmpeg facultatives et les journaux de diagnostic des dix derniers lancements sous [[appdata]]. Les enregistrements et captures vont dans les dossiers choisis (par défaut Videos/Recordings, Music/Recordings et Pictures/Frames). Ces données restent sur votre appareil sauf si vous utilisez « Envoyer les journaux à l’auteur » dans Paramètres sur la page À propos pour les transmettre à [[email]]. Le programme TV téléchargé et vos correspondances y sont aussi conservés ; « Supprimer le programme » dans Paramètres supprime les deux.
 @@privacy-contact-title
 Contact
 
@@ -415,14 +412,12 @@ Il n'a jamais besoin de droits d'administrateur pour s'installer ou fonctionner,
 Il n'a ni compte, ni publicité, ni analyse d'usage, ni télémétrie, ni service géré par l'auteur par lequel transiteraient vos données.
 
 @@trust-never-3
-Il ne se connecte que sur votre action, et uniquement à ce dont cette action a besoin : le catalogue public de flux et son pack d'aperçus facultatif sur GitHub, le fournisseur d'un flux que vous lisez, enregistrez ou prévisualisez, un téléphone ou une montre équipés de FastMediaSorter sur votre propre réseau, et les bibliothèques FFmpeg facultatives si vous les demandez dans « Outils ». Un programme TV n'est téléchargé que depuis une adresse que vous saisissez vous-même, et seulement quand vous appuyez sur « Télécharger le programme ».
-
+Elle ne se connecte que lors d’une action et uniquement pour ce qui est nécessaire : le catalogue public et ses aperçus sur GitHub, le fournisseur d’un flux lu, enregistré ou prévisualisé, un appareil FastMediaSorter sur votre réseau et les bibliothèques FFmpeg si vous les demandez dans Paramètres. Le programme TV n’est récupéré que depuis l’adresse que vous saisissez au moment où vous appuyez sur « Télécharger le programme ».
 @@trust-never-4
 Il ne télécharge jamais le catalogue de lui-même - une actualisation n'a lieu que lorsque vous la demandez.
 
 @@trust-never-5
-Il n'envoie jamais vos données ni vos journaux nulle part de lui-même. « Envoyer les journaux à l'auteur » dans « Outils » se contente de préparer une archive et un message dans votre propre logiciel de messagerie ; rien ne part tant que vous n'y avez pas appuyé sur Envoyer.
-
+Elle n’envoie jamais vos données ni journaux d’elle-même. « Envoyer les journaux à l’auteur » sur la page À propos dans Paramètres ne fait que préparer une archive et un courriel dans votre messagerie ; rien ne part tant que vous n’appuyez pas sur Envoyer.
 @@trust-never-6
 Le désinstaller ne supprime jamais vos chaînes, vos épingles ni votre historique - ils restent dans [[appdata]] jusqu'à ce que vous supprimiez ce dossier vous-même.
 

@@ -5,30 +5,50 @@ using System.Xml.Linq;
 namespace StreamsPlayer.Core.Tests;
 
 /// <summary>
-/// SP-0109: two <c>APP-BEHAVIOUR</c> rules this product owns and had broken, turned from a reading of the
-/// code into a gate so neither can quietly come back.
+/// SP-0109 / SP-0188: <c>APP-SETTINGS</c> and <c>APP-BEHAVIOUR</c> conformance rules for the unified
+/// settings surface. Values apply on touch; irreversible operations sit behind explicit buttons with
+/// confirmations; Close is the sole exit and is mapped to Escape.
 /// </summary>
-/// <remarks>
-/// Rule 12 - a settings window commits on its own button: nothing in the window that offers Save and
-/// Cancel may do anything before Save. Rule 6 - a failure is a set of actions: the exception's own text
-/// goes to the log, never into what the user reads. The application's sources are read as test data, the
-/// way <see cref="TabAutomationNameTests"/> and the call-site gate read them.
-/// </remarks>
 public sealed class DesktopUxConformanceTests
 {
     /// <summary>
-    /// Every event handler the Settings markup may name, and why each one is allowed beside Cancel. A new
-    /// handler fails this gate until it is added here with its reason - which is the moment to ask whether
-    /// it edits a pending value or does something, and to put it in the Tools window if it does something.
+    /// Every event handler the Settings markup may name, and why each one is allowed. A new handler
+    /// fails this gate until it is added here with its reason.
     /// </summary>
     private static readonly IReadOnlyDictionary<string, string> SettingsHandlers = new Dictionary<string, string>(StringComparer.Ordinal)
     {
-        ["FrameFolderBrowse_Click"] = "edits the pending frame folder",
-        ["FrameFolderReset_Click"] = "edits the pending frame folder",
+        ["LanguageBox_SelectionChanged"] = "applies the language choice on touch",
+        ["ThemeBox_SelectionChanged"] = "applies the theme choice on touch",
+        ["TileSizeBox_SelectionChanged"] = "applies the tile size on touch",
+        ["AnimatedBackdropCheckBox_Click"] = "applies the animated backdrop setting on touch",
+        ["HideAdultContentCheckBox_Click"] = "applies the adult content filter on touch",
+        ["UpdatePreviewsCheckBox_Click"] = "applies the thumbnail preview update setting on touch",
+        ["KeepAwakeCheckBox_Click"] = "applies the keep awake setting on touch",
+        ["SystemMediaControlsCheckBox_Click"] = "applies the system media controls setting on touch",
+        ["ResumePlaybackCheckBox_Click"] = "applies the resume playback setting on touch",
+        ["VideoBackendBox_SelectionChanged"] = "applies the video backend choice on touch",
+        ["VideoComponentsInstall_Click"] = "operation button to install FlyleafLib components",
+        ["VideoComponentsRemove_Click"] = "operation button to remove FlyleafLib components",
+        ["FrameFolderBrowse_Click"] = "edits the capture folder",
+        ["FrameFolderReset_Click"] = "resets the capture folder",
         ["FrameFolderOpen_Click"] = "opens the folder in Explorer and changes nothing",
+        ["ImportCatalogFromFile_Click"] = "operation button to import catalog archive",
+        ["ApplyCatalogSnapshot_Click"] = "operation button to apply bundled catalog snapshot",
+        ["DeleteDownloaded_Click"] = "operation button with confirmation to delete downloaded catalog streams",
+        ["DeleteImportedCatalog_Click"] = "operation button with confirmation to delete imported catalog streams",
+        ["ImportFromFile_Click"] = "operation button to import playlist from file",
+        ["ImportFromUrl_Click"] = "operation button to import playlist from URL",
+        ["ExportAll_Click"] = "operation button to export all user channels",
+        ["ExportPinned_Click"] = "operation button to export pinned channels",
+        ["ManageHidden_Click"] = "operation button to manage hidden channels",
+        ["TvScheduleDownload_Click"] = "operation button with confirmation to download TV schedule",
+        ["TvScheduleRemove_Click"] = "operation button with confirmation to remove TV schedule",
+        ["SendLogs_Click"] = "operation button for diagnostic log report",
         ["OpenLink_Click"] = "opens a web page and changes nothing",
-        ["Save_Click"] = "the commit",
-        ["Cancel_Click"] = "the no-action exit"
+        ["VideoComponentsCancel_Click"] = "cancels ongoing components download",
+        ["AudioDeviceBox_SelectionChanged"] = "applies the audio output device choice on touch",
+        ["AudioChannelBox_SelectionChanged"] = "applies the audio channel mode on touch",
+        ["Window_KeyDown"] = "closes the settings window on Escape key"
     };
 
     private static readonly HashSet<string> EventAttributes = new(StringComparer.Ordinal)
@@ -38,8 +58,20 @@ public sealed class DesktopUxConformanceTests
         "LostFocus", "DropDownClosed"
     };
 
+    private static readonly HashSet<string> ValueChangingEvents = new(StringComparer.Ordinal)
+    {
+        "SelectionChanged", "TextChanged", "ValueChanged", "Checked", "Unchecked"
+    };
+
+    private static readonly HashSet<string> IrreversibleHandlers = new(StringComparer.Ordinal)
+    {
+        "DeleteDownloaded_Click",
+        "DeleteImportedCatalog_Click",
+        "TvScheduleRemove_Click"
+    };
+
     [Fact]
-    public void TheSettingsWindowNamesOnlyHandlersThatChangeNothingBeforeSave()
+    public void TheSettingsWindowNamesOnlyDeclaredHandlersAndAttachesNoIrreversibleActionToValueControls()
     {
         var markup = SettingsMarkup();
         var problems = new List<string>();
@@ -54,8 +86,14 @@ public sealed class DesktopUxConformanceTests
                 {
                     problems.Add(
                         $"SettingsWindow.xaml:{((IXmlLineInfo)attribute).LineNumber}: {attribute.Name.LocalName}=\"{attribute.Value}\" " +
-                        "is not on the list of handlers that change nothing before Save. An operation that commits " +
-                        "on its own belongs in the Tools window, where no Cancel promises to undo it.");
+                        "is not on the list of declared settings handlers.");
+                }
+
+                if (ValueChangingEvents.Contains(attribute.Name.LocalName) && IrreversibleHandlers.Contains(attribute.Value))
+                {
+                    problems.Add(
+                        $"SettingsWindow.xaml:{((IXmlLineInfo)attribute).LineNumber}: {attribute.Name.LocalName}=\"{attribute.Value}\" " +
+                        "attaches an irreversible operation to a value control. Irreversible actions must be explicit buttons with confirmations.");
                 }
             }
         }
@@ -65,22 +103,15 @@ public sealed class DesktopUxConformanceTests
     }
 
     [Fact]
-    public void TheSettingsCancelButtonIsAlsoEscape()
+    public void TheSettingsWindowMapsEscapeAndHasNoSaveOrCancel()
     {
-        var cancel = Assert.Single(SettingsMarkup().Descendants(), element =>
-            element.Attribute("Click")?.Value == "Cancel_Click");
+        var markup = SettingsMarkup();
+        // APP-BEHAVIOUR rule 1 / APP-SETTINGS rule 4: Escape is mapped to close the window.
+        Assert.Equal("Window_KeyDown", markup.Root?.Attribute("KeyDown")?.Value);
 
-        // Rule 1: Escape, the close box and Cancel are one path. Without IsCancel the button works and
-        // Escape silently does nothing, which is exactly how this window shipped until SP-0109.
-        Assert.Equal("True", cancel.Attribute("IsCancel")?.Value);
-    }
-
-    [Fact]
-    public void TheSettingsWindowIsGivenNoWayToRunAnOperation()
-    {
-        var code = Assert.Single(AppSourceFile.LoadAll("SettingsWindow.xaml.cs"));
-
-        Assert.DoesNotContain("ToolsAction", code.Masked, StringComparison.Ordinal);
+        // SP-0188: Save and Cancel are eliminated; all reversible settings apply immediately on touch.
+        Assert.DoesNotContain(markup.Descendants(), element => element.Attribute("Click")?.Value == "Save_Click");
+        Assert.DoesNotContain(markup.Descendants(), element => element.Attribute("Click")?.Value == "Cancel_Click");
     }
 
     [Fact]

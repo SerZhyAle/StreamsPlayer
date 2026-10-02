@@ -1,0 +1,9 @@
+Version 26.1002.2330
+
+- Settings and Tools are now one Settings window with six pages: General, Library, Playback, Audio, Files and About. Catalog, playlists, hidden channels, the TV schedule and video components moved into it, every setting has a short hint, and a change takes effect as soon as you touch the control.
+- Choose the audio output device and the channel mode (stereo, reversed stereo, left, right or Dolby Surround) for playback in Settings, on the Audio page.
+- When a radio station fails, the app keeps the real cause and no longer gives up on the station because of a generic wrapper error.
+- "Delete downloaded" keeps the channels you pinned, put into a collection or listened to, instead of deleting them.
+- Stopping a FastMediaSorter broadcast no longer freezes the window.
+- The setup wipes its install folder only when that folder holds a previous copy of STREAMS Player.
+- The built-in channel list is current (18 502 live streams as of 2026-09-23).

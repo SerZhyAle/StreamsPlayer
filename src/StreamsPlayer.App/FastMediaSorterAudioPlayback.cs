@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using LibVLCSharp.Shared;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
@@ -11,6 +12,9 @@ namespace StreamsPlayer.App;
 internal sealed class FastMediaSorterAudioPlayback : IDisposable
 {
     internal const int BufferTargetMilliseconds = 200;
+
+    // SP-0165: how long the retirement worker waits for the native stop before it abandons the engine.
+    private static readonly TimeSpan NativeStopTimeout = StandardAudioPlayback.NativeStopTimeout;
 
     // One engine for every leg: creating a LibVLC instance loads its plugin set, which is time taken out
     // of the one-second open budget on each reconnect for no benefit. It lives as long as the process.
@@ -31,6 +35,9 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
     private StreamMediaInput? _input;
     private FastMediaSorterPlaybackConnection? _connection;
     private bool _disposed;
+    // SP-0165 (shared rule with StandardAudioPlayback): engines abandoned to stops that never returned are counted,
+    // and past the cap the feature pauses for the rest of the session.
+    private readonly AbandonedEngineBudget _abandoned = new();
 
     public event EventHandler<FastMediaSorterAudioPlaybackEventArgs>? Playing;
     public event EventHandler<FastMediaSorterAudioPlaybackEventArgs>? Ended;
@@ -122,8 +129,9 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         _connection = null;
         if (player is not null)
         {
-            player.Stop();
-            player.Dispose();
+            // Route the native Stop and Dispose through the retire-under-deadline pattern to prevent
+            // hanging the UI thread on a flapping stream.
+            _ = RetirePlayerAsync(player);
         }
 
         _media?.Dispose();
@@ -153,6 +161,37 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
 
     private void Player_EncounteredError(object? sender, EventArgs e) =>
         Failed?.Invoke(this, new FastMediaSorterAudioPlaybackEventArgs(ResponseStatusCode, _openStopwatch.Elapsed, _connection?.TransportError));
+
+    private async Task RetirePlayerAsync(MediaPlayer player)
+    {
+        var stop = Task.Run(() => player.Stop());
+        try
+        {
+            await stop.WaitAsync(NativeStopTimeout);
+        }
+        catch (TimeoutException)
+        {
+            var pausedNow = _abandoned.RecordAbandoned();
+            if (pausedNow)
+            {
+                Debug.WriteLine("FASTMEDIA SORTER AUDIO ENGINE ABANDONED and playback paused");
+            }
+
+            _ = stop.ContinueWith(
+                completed =>
+                {
+                    _ = completed.Exception; // a failed stop still ends in the release below
+                    player.Dispose();
+                    _abandoned.RecordReleased();
+                },
+                CancellationToken.None,
+                TaskContinuationOptions.None,
+                TaskScheduler.Default);
+            return;
+        }
+
+        player.Dispose();
+    }
 
     private void ThrowIfDisposed()
     {

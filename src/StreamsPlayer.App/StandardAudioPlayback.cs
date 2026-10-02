@@ -23,6 +23,8 @@ internal sealed class StandardAudioPlayback : IDisposable
         return new LibVLC("--no-video", "--no-video-title-show", "--no-osd", "--quiet", "--clock-jitter=0");
     });
 
+    internal static LibVLC SharedLibVlcInstance => SharedLibVlc.Value;
+
     /// <summary>
     /// SP-0165: how long the retirement worker waits for the native stop before it abandons the engine. The
     /// same measured bound the preview captures hold their stops to (SP-0120): LibVLC's stop blocks on a
@@ -34,11 +36,53 @@ internal sealed class StandardAudioPlayback : IDisposable
     private Leg? _leg;
     private Media? _media;
     private bool _disposed;
+    private string? _audioOutputDevice;
+    private AudioChannelMode _audioChannelMode = AudioChannelMode.Stereo;
+
+    public string? AudioOutputDevice
+    {
+        get => _audioOutputDevice;
+        set
+        {
+            _audioOutputDevice = value;
+            if (_leg?.Player is { } player && !string.IsNullOrEmpty(value))
+            {
+                try
+                {
+                    player.SetOutputDevice(value);
+                }
+                catch { }
+            }
+        }
+    }
+
+    public AudioChannelMode AudioChannelMode
+    {
+        get => _audioChannelMode;
+        set
+        {
+            _audioChannelMode = value;
+            if (_leg?.Player is { } player)
+            {
+                try
+                {
+                    player.SetChannel(value.ToLibVlc());
+                }
+                catch { }
+            }
+        }
+    }
+
     // SP-0165: where the abandonment of a hung engine is told; null keeps the feature silent as before.
     private readonly Action<string, string[]>? _diagnostics;
     // SP-0165 (shared rule with SP-0166 R3): engines abandoned to stops that never returned are counted,
     // and past the cap the feature pauses for the rest of the session.
     private readonly AbandonedEngineBudget _abandoned = new();
+    // SP-0189: what the engine said about the connection now open, so its failure is logged with a cause. Fed by the
+    // shared instance's log on engine threads, cleared as each connection opens, read when that connection fails.
+    private readonly object _logFailureTrailGate = new();
+    private readonly EngineFailureTrail _logFailureTrail = new();
+    private LibVLC? _engineLog;
 
     public StandardAudioPlayback(Action<string, string[]>? diagnostics = null, AbandonedEngineBudget? abandoned = null)
     {
@@ -69,30 +113,89 @@ internal sealed class StandardAudioPlayback : IDisposable
             // user and, through the recovery budget, ends the session instead of retrying for ever.
             var refused = _connections.Open();
             _diagnostics?.Invoke("AUDIO PLAY REFUSED", ["reason=abandoned_engine_cap"]);
-            Failed?.Invoke(this, new StandardAudioFailedEventArgs(
-                refused, new InvalidOperationException("The audio engine was abandoned to a hung stop earlier in this session.")));
+            Failed?.Invoke(this, StandardAudioFailedEventArgs.Local(
+                refused, StandardAudioFailedEventArgs.PlayRejectedReason, "abandoned_engine_cap"));
             return;
         }
 
         var connection = _connections.Open();
+        ForgetEngineErrors();
 
         try
         {
             var libVlc = SharedLibVlc.Value;
+            ListenToEngineLog(libVlc);
             _leg = new Leg(this, connection, new MediaPlayer(libVlc) { Volume = volume });
+            if (!string.IsNullOrEmpty(_audioOutputDevice))
+            {
+                try
+                {
+                    _leg.Player.SetOutputDevice(_audioOutputDevice);
+                }
+                catch { }
+            }
+            _leg.Player.SetChannel(_audioChannelMode.ToLibVlc());
             _media = new Media(libVlc, uri, ":clock-jitter=0");
             if (!_leg.Player.Play(_media))
             {
                 ReleaseLeg();
-                Failed?.Invoke(this, new StandardAudioFailedEventArgs(connection, new InvalidOperationException("LibVLC rejected audio playback.")));
+                Failed?.Invoke(this, StandardAudioFailedEventArgs.Local(
+                    connection, StandardAudioFailedEventArgs.PlayRejectedReason, DescribeEngineErrors()));
             }
         }
         catch (Exception ex)
         {
             // Released but still current: the owner handles this failure after it returns, and a failure nobody
             // may act on would leave the station connecting for ever. Its StopPlayback is what ends the identity.
+            // The engine, its player or its media could not be created: local, whatever the exception is.
             ReleaseLeg();
-            Failed?.Invoke(this, new StandardAudioFailedEventArgs(connection, ex));
+            Failed?.Invoke(this, StandardAudioFailedEventArgs.Local(connection, ex.GetType().Name, FaultLogFields.TextOf(ex)));
+        }
+    }
+
+    /// <summary>
+    /// SP-0189: listens to the shared engine's log once, for the life of this instance. The video backend keeps the
+    /// same subscription on its own engine for whole sessions; a playing station logs a few dozen lines a second.
+    /// </summary>
+    private void ListenToEngineLog(LibVLC libVlc)
+    {
+        if (_engineLog is not null)
+        {
+            return;
+        }
+
+        _engineLog = libVlc;
+        libVlc.Log += EngineLog_Logged;
+    }
+
+    // Engine threads. Only error-level lines ever explained a failed open in the SP-0189 research, so everything
+    // else - nearly every line - returns before the lock.
+    private void EngineLog_Logged(object? sender, LogEventArgs e)
+    {
+        if (e.Level != LogLevel.Error)
+        {
+            return;
+        }
+
+        lock (_logFailureTrailGate)
+        {
+            _logFailureTrail.Observe(e.Module, e.Message);
+        }
+    }
+
+    private void ForgetEngineErrors()
+    {
+        lock (_logFailureTrailGate)
+        {
+            _logFailureTrail.Clear();
+        }
+    }
+
+    private string? DescribeEngineErrors()
+    {
+        lock (_logFailureTrailGate)
+        {
+            return _logFailureTrail.Describe();
         }
     }
 
@@ -178,6 +281,11 @@ internal sealed class StandardAudioPlayback : IDisposable
 
         _disposed = true;
         StopPlayback();
+        if (_engineLog is { } engineLog)
+        {
+            engineLog.Log -= EngineLog_Logged;
+            _engineLog = null;
+        }
     }
 
     private void ReleaseLeg()
@@ -268,8 +376,9 @@ internal sealed class StandardAudioPlayback : IDisposable
             Player = player;
             _playing = (_, _) => owner.Playing?.Invoke(owner, new StandardAudioEventArgs(connection));
             _ended = (_, _) => owner.Ended?.Invoke(owner, new StandardAudioEventArgs(connection));
-            _error = (_, _) => owner.Failed?.Invoke(owner, new StandardAudioFailedEventArgs(
-                connection, new InvalidOperationException("LibVLC encountered error during audio playback.")));
+            // SP-0189: the engine logs its cause before it raises this event, so the trail already holds it.
+            _error = (_, _) => owner.Failed?.Invoke(owner, StandardAudioFailedEventArgs.EngineError(
+                connection, owner.DescribeEngineErrors()));
             player.Playing += _playing;
             player.EndReached += _ended;
             player.EncounteredError += _error;
@@ -303,10 +412,40 @@ internal class StandardAudioEventArgs(PlaybackConnectionId connection) : EventAr
     public PlaybackConnectionId Connection { get; } = connection;
 }
 
-internal sealed class StandardAudioFailedEventArgs(PlaybackConnectionId connection, Exception exception)
-    : StandardAudioEventArgs(connection)
+/// <summary>
+/// A failed connection, as the engine reported it (SP-0189) - never an exception made up to carry the news: the
+/// recovery classifier used to read that exception's type name as the cause, and judged every network failure final.
+/// </summary>
+internal sealed class StandardAudioFailedEventArgs : StandardAudioEventArgs
 {
-    public Exception Exception { get; } = exception;
+    /// <summary>The engine's error event. Every one seen in the SP-0189 research was an open the network or the server refused.</summary>
+    public const string EngineErrorReason = "encountered_error";
+
+    /// <summary>The engine refused to start the connection at all.</summary>
+    public const string PlayRejectedReason = "play_rejected";
+
+    private StandardAudioFailedEventArgs(PlaybackConnectionId connection, string reason, string? cause, bool localEngineFailure)
+        : base(connection)
+    {
+        Reason = reason;
+        Cause = cause;
+        LocalEngineFailure = localEngineFailure;
+    }
+
+    /// <summary>The token the recovery and report classifiers read.</summary>
+    public string Reason { get; }
+
+    /// <summary>What the engine said about the failure, as one bounded line, or null when it said nothing. For the log only.</summary>
+    public string? Cause { get; }
+
+    /// <summary>Established here: the engine itself could not start, so no re-open of the stream can succeed.</summary>
+    public bool LocalEngineFailure { get; }
+
+    public static StandardAudioFailedEventArgs EngineError(PlaybackConnectionId connection, string? cause) =>
+        new(connection, EngineErrorReason, cause, localEngineFailure: false);
+
+    public static StandardAudioFailedEventArgs Local(PlaybackConnectionId connection, string reason, string? cause) =>
+        new(connection, reason, cause, localEngineFailure: true);
 }
 
 /// <summary>SP-0133: a connection's output so far, as monotonic totals from the engine's own statistics.</summary>

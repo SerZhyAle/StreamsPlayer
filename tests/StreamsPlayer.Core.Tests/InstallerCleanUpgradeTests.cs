@@ -17,9 +17,18 @@ public sealed class InstallerCleanUpgradeTests
     {
         var wipe = Regex.Match(
             Script,
-            @"^\[InstallDelete\]\s*\r?\nType: filesandordirs; Name: ""\{app\}""\s*$",
+            @"^\[InstallDelete\]\s*\r?\nType: filesandordirs; Name: \x22\{app\}\x22; Check: FileExistsInApp\('StreamsPlayer\.exe'\) or FileExistsInApp\('unins000\.exe'\)\s*$",
             RegexOptions.Multiline);
 
         Assert.True(wipe.Success, "installer/StreamsPlayer.iss no longer wipes {app} before installing - an upgrade would keep files the new payload dropped.");
+    }
+
+    [Fact]
+    public void Upgrade_WipeIsGuardedByPreviousInstallationCheck()
+    {
+        // SP-0183: Check that the FileExistsInApp function exists to guard the wipe
+        var checkFunction = Regex.Match(Script, @"function\s+FileExistsInApp\s*\(\s*FileName:\s*String\s*\)\s*:\s*Boolean");
+
+        Assert.True(checkFunction.Success, "installer/StreamsPlayer.iss no longer guards the wipe with FileExistsInApp - Setup may delete a folder it did not install.");
     }
 }

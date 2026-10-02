@@ -10,7 +10,7 @@ public partial class MainWindow
 {
     private async Task DeleteDownloadedChannelsAsync(Window owner)
     {
-        var downloaded = CatalogPurge.CountDownloaded(_state.Channels);
+        var downloaded = CatalogPurge.CountDownloaded(_state);
         if (downloaded == 0)
         {
             MessageBox.Show(owner, LocalizationService.Get("DeleteDownloadedNone"),

@@ -19,12 +19,11 @@ private fix there.
 **It is bound by them.** The two deviations this product declared against itself on 2026-09-22 were
 closed on 2026-09-23 by SP-0109, and both closures are recorded in the store's `_meta/REGISTRY.md`:
 
-- rule 12 - the settings window holds values only; every operation lives in the Close-only Tools window
-  (Operations menu) or, for one channel, in that channel's menu;
+- rule 12 - settings and operations are unified into a single screen of pages (`SettingsWindow.xaml`) under the second commit model (`APP-SETTINGS` rule 4 / `APP-BEHAVIOUR` rule 12 0.11 amendment): reversible values apply on touch, Close is the sole exit (`IsCancel="True"`), and irreversible actions require confirmation with safe default button focus (rule 5);
 - rule 6 - no site shows an exception's text; the user gets a cause read from the exception's type and an
   action, and the exception goes to the log.
 
-Keep it that way when adding a control: an operation goes in `ToolsWindow`, never in `SettingsWindow`, and
+Keep it that way when adding a control: value controls apply reversible changes on touch, irreversible operations sit behind explicit buttons with safe confirmations, and
 a failure message is built with `FailureCauseText`, never from `exception.Message`.
 
 **No open deviations.** The two the contract sync found on 2026-09-24 were closed the same day by

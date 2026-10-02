@@ -16,6 +16,8 @@ public partial class MainWindow
     public double GridTileHeight => GridTileWidth * 9 / 16;
     public bool IsVerySmallTile => _state.TileSize == StreamTileSize.VerySmall;
 
+    internal CatalogState State => _state;
+
     /// <summary>
     /// Deliberately not gated on <c>_preferencesLoaded</c> (SP-0050). The interface language moved in
     /// here from the header, and it has to stay reachable when the catalog load fails: on a failed load
@@ -23,113 +25,153 @@ public partial class MainWindow
     /// the language changes for the session. That was the header button's behaviour and the ticket's
     /// first constraint requires keeping it.
     /// </summary>
-    private async void SettingsButton_Click(object sender, RoutedEventArgs e)
+    private void SettingsButton_Click(object sender, RoutedEventArgs e) =>
+        OpenSettings();
+
+    internal void OpenSettings(int? initialPage = null)
     {
         try
         {
-            var dialog = new SettingsWindow(_state.Theme, _state.TileSize, _state.UpdateStreamPreviews, _state.HideAdultContent, _state.AnimatedBackdrop, _state.KeepAwakeDuringPlayback, _state.SystemMediaControls, _state.ResumePlaybackOnStartup, _state.VideoBackend, _state.FrameFolder, _state.VideoRecordingFolder, _state.AudioRecordingFolder, LocalizationService.CurrentLanguage)
+            var dialog = new SettingsWindow(this, RunToolsActionAsync, () => _tvSchedule, initialPage)
             {
                 Owner = this
             };
-            if (dialog.ShowDialog() != true)
-            {
-                return;
-            }
-
-            var tileSizeChanged = dialog.SelectedTileSize != _state.TileSize;
-            var previewsChanged = dialog.UpdateStreamPreviews != _state.UpdateStreamPreviews;
-            var hideAdultContentChanged = dialog.HideAdultContent != _state.HideAdultContent;
-            var systemMediaControlsChanged = dialog.SystemMediaControls != _state.SystemMediaControls;
-            var animatedBackdropChanged = dialog.AnimatedBackdrop != _state.AnimatedBackdrop;
-            // SP-0062: the launch already gates on the preference, so clearing is not what makes the switch
-            // work - it is that a list of what the user was listening to should not outlive their decision to
-            // stop the feature from using it.
-            var resumeTurnedOff = _state.ResumePlaybackOnStartup && !dialog.ResumePlaybackOnStartup;
-            // Null means "the language already in use", so the settings save stays a single write.
-            var chosenLanguage = dialog.SelectedLanguage;
-            var settings = (
-                Theme: dialog.SelectedTheme,
-                TileSize: dialog.SelectedTileSize,
-                UpdateStreamPreviews: dialog.UpdateStreamPreviews,
-                HideAdultContent: dialog.HideAdultContent,
-                AnimatedBackdrop: dialog.AnimatedBackdrop,
-                KeepAwakeDuringPlayback: dialog.KeepAwakeDuringPlayback,
-                SystemMediaControls: dialog.SystemMediaControls,
-                ResumePlaybackOnStartup: dialog.ResumePlaybackOnStartup,
-                VideoBackend: dialog.SelectedVideoBackend,
-                FrameFolder: dialog.FrameFolder,
-                VideoRecordingFolder: dialog.VideoRecordingFolder,
-                AudioRecordingFolder: dialog.AudioRecordingFolder);
-            await PersistAsync(state => state with
-            {
-                Language = chosenLanguage ?? state.Language,
-                Theme = settings.Theme,
-                TileSize = settings.TileSize,
-                UpdateStreamPreviews = settings.UpdateStreamPreviews,
-                HideAdultContent = settings.HideAdultContent,
-                AnimatedBackdrop = settings.AnimatedBackdrop,
-                KeepAwakeDuringPlayback = settings.KeepAwakeDuringPlayback,
-                SystemMediaControls = settings.SystemMediaControls,
-                // Read at launch, so this needs no side effect applied below - it takes effect next time.
-                ResumePlaybackOnStartup = settings.ResumePlaybackOnStartup,
-                ResumeChannelIds = resumeTurnedOff ? [] : state.ResumeChannelIds,
-                // Takes effect on the next player window opened; an already-open player keeps its engine.
-                VideoBackend = settings.VideoBackend,
-                // Read per capture, so an open player window picks this up without being reopened (SP-0038).
-                FrameFolder = settings.FrameFolder,
-                VideoRecordingFolder = settings.VideoRecordingFolder,
-                AudioRecordingFolder = settings.AudioRecordingFolder,
-                // SP-0179: these are per-kind choices now; a later launch must not carry FrameFolder over again.
-                CaptureFoldersSchema = CaptureFolderChoices.CurrentSchema
-            });
-
-            ThemeService.Apply(_state.Theme);
-
-            if (chosenLanguage is { } language)
-            {
-                LocalizationService.Apply(language);
-                RefreshLocalizedInterface();
-            }
-            else if (hideAdultContentChanged)
-            {
-                PopulateFacets();
-                ApplyFilter();
-            }
-
-            // Toggling off releases an active wake lock immediately; toggling on re-acquires it for any
-            // session already playing (the guard recomputes from its live request counts).
-            WakeGuard.Enabled = _state.KeepAwakeDuringPlayback;
-
-            if (systemMediaControlsChanged)
-            {
-                ApplySystemMediaControlsSetting();
-            }
-
-            if (animatedBackdropChanged)
-            {
-                ApplyBackdrop();
-            }
-
-            if (tileSizeChanged)
-            {
-                PropertyChanged?.Invoke(this, new(nameof(GridTileWidth)));
-                PropertyChanged?.Invoke(this, new(nameof(GridTileHeight)));
-                PropertyChanged?.Invoke(this, new(nameof(IsVerySmallTile)));
-                _catalogColumns = 0;
-                UpdateCatalogColumns();
-            }
-
-            if (previewsChanged)
-            {
-                await ApplyPreviewPreferenceAsync();
-            }
-            UpdateViewModeControls();
-            SetStatus("SettingsApplied");
+            dialog.ShowDialog();
         }
         catch (Exception exception)
         {
-            HandlerBoundary.Report(nameof(SettingsButton_Click), exception);
+            HandlerBoundary.Report(nameof(OpenSettings), exception);
         }
+    }
+
+    internal async Task ChangeLanguageFromSettingsAsync(AppLanguage language)
+    {
+        await PersistAsync(state => state with { Language = language });
+        LocalizationService.Apply(language);
+        RefreshLocalizedInterface();
+    }
+
+    internal async Task ApplyThemeFromSettingsAsync(AppTheme theme)
+    {
+        await PersistAsync(state => state with { Theme = theme });
+        ThemeService.Apply(_state.Theme);
+    }
+
+    internal async Task ApplyTileSizeFromSettingsAsync(StreamTileSize tileSize)
+    {
+        var changed = tileSize != _state.TileSize;
+        await PersistAsync(state => state with { TileSize = tileSize });
+        if (changed)
+        {
+            PropertyChanged?.Invoke(this, new(nameof(GridTileWidth)));
+            PropertyChanged?.Invoke(this, new(nameof(GridTileHeight)));
+            PropertyChanged?.Invoke(this, new(nameof(IsVerySmallTile)));
+            _catalogColumns = 0;
+            UpdateCatalogColumns();
+        }
+    }
+
+    internal async Task ApplyHideAdultContentFromSettingsAsync(bool hide)
+    {
+        var changed = hide != _state.HideAdultContent;
+        await PersistAsync(state => state with { HideAdultContent = hide });
+        if (changed)
+        {
+            PopulateFacets();
+            ApplyFilter();
+        }
+    }
+
+    internal async Task ApplyUpdatePreviewsFromSettingsAsync(bool update)
+    {
+        var changed = update != _state.UpdateStreamPreviews;
+        await PersistAsync(state => state with { UpdateStreamPreviews = update });
+        if (changed)
+        {
+            await ApplyPreviewPreferenceAsync();
+        }
+    }
+
+    internal async Task ApplyAnimatedBackdropFromSettingsAsync(bool animated)
+    {
+        var changed = animated != _state.AnimatedBackdrop;
+        await PersistAsync(state => state with { AnimatedBackdrop = animated });
+        if (changed)
+        {
+            ApplyBackdrop();
+        }
+    }
+
+    internal async Task ApplyKeepAwakeFromSettingsAsync(bool keepAwake)
+    {
+        await PersistAsync(state => state with { KeepAwakeDuringPlayback = keepAwake });
+        WakeGuard.Enabled = _state.KeepAwakeDuringPlayback;
+    }
+
+    internal async Task ApplySystemMediaControlsFromSettingsAsync(bool smtc)
+    {
+        var changed = smtc != _state.SystemMediaControls;
+        await PersistAsync(state => state with { SystemMediaControls = smtc });
+        if (changed)
+        {
+            ApplySystemMediaControlsSetting();
+        }
+    }
+
+    internal async Task ApplyResumePlaybackFromSettingsAsync(bool resume)
+    {
+        await PersistAsync(state => state with { ResumePlaybackOnStartup = resume });
+    }
+
+    internal async Task ClearResumeHistoryIfDisabledAsync()
+    {
+        if (!_state.ResumePlaybackOnStartup && _state.ResumeChannelIds.Count > 0)
+        {
+            await PersistAsync(state => state with { ResumeChannelIds = [] });
+        }
+    }
+
+    internal async Task ApplyVideoBackendFromSettingsAsync(MediaBackend backend)
+    {
+        await PersistAsync(state => state with { VideoBackend = backend });
+    }
+
+    internal async Task ApplyAudioOutputDeviceFromSettingsAsync(string? deviceId)
+    {
+        var changed = deviceId != _state.AudioOutputDevice;
+        await PersistAsync(state => state with { AudioOutputDevice = deviceId });
+        if (changed)
+        {
+            _standardAudioPlayback.AudioOutputDevice = deviceId;
+            foreach (var player in _playerWindows)
+            {
+                player.ApplyAudioOutputSettings(deviceId, _state.AudioChannelMode);
+            }
+        }
+    }
+
+    internal async Task ApplyAudioChannelModeFromSettingsAsync(AudioChannelMode channelMode)
+    {
+        var changed = channelMode != _state.AudioChannelMode;
+        await PersistAsync(state => state with { AudioChannelMode = channelMode });
+        if (changed)
+        {
+            _standardAudioPlayback.AudioChannelMode = channelMode;
+            foreach (var player in _playerWindows)
+            {
+                player.ApplyAudioOutputSettings(_state.AudioOutputDevice, channelMode);
+            }
+        }
+    }
+
+    internal async Task ApplyCaptureFolderFromSettingsAsync(CaptureKind kind, string? folder)
+    {
+        await PersistAsync(state => kind switch
+        {
+            CaptureKind.StreamVideo => state with { VideoRecordingFolder = folder, CaptureFoldersSchema = CaptureFolderChoices.CurrentSchema },
+            CaptureKind.StreamAudio => state with { AudioRecordingFolder = folder, CaptureFoldersSchema = CaptureFolderChoices.CurrentSchema },
+            _ => state with { FrameFolder = folder, CaptureFoldersSchema = CaptureFolderChoices.CurrentSchema }
+        });
     }
 
     private async Task ApplyPreviewPreferenceAsync()

@@ -13,6 +13,7 @@ public static class ProductInfo
     public const string SourceUrl = "https://github.com/SerZhyAle/StreamsPlayer";
     public const string WebsiteUrl = "https://serzhyale.github.io/StreamsPlayer/";
     public const string PrivacyUrl = "https://serzhyale.github.io/StreamsPlayer/privacy.html";
+    public const string LicenceUrl = "https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE";
 
     public static string Version =>
         (Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion

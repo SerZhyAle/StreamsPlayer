@@ -268,8 +268,7 @@ Apri il menu [[glyph:nav.more]] a tre punti di un canale salvato e usa «Copia c
 Segnalare un problema con i registri
 
 @@use-5-text
-Apri «Strumenti» dal menu [[glyph:nav.more]] «Azioni» e premi «Invia i registri all'autore». L'app comprime i registri diagnostici degli ultimi dieci avvii con un breve riepilogo della versione, di Windows e delle impostazioni nella cartella dei file salvati (Download per impostazione predefinita), poi apre il programma di posta con il messaggio già pronto. La conferma mostra il percorso completo e può aprire la cartella su richiesta; alleghi l'archivio e premi Invia.
-
+Apri Impostazioni dal pulsante a forma di ingranaggio nell’intestazione (o dal menu [[glyph:nav.more]] Operazioni) e premi «Invia registri all’autore» nella pagina Informazioni. L’app raccoglie i registri diagnostici degli ultimi dieci avvii con un breve riepilogo della versione, di Windows e delle impostazioni nella cartella dei file salvati (Download per impostazione predefinita), quindi apre il programma di posta con il messaggio pronto. La conferma mostra il percorso completo e può aprire tale cartella su richiesta; alleghi l’archivio e premi Invia.
 @@distribution-title
 Distribuzione
 
@@ -307,14 +306,12 @@ STREAMS Player non ha account, pubblicità, analisi, telemetria né servizi gest
 Accesso alla rete
 
 @@privacy-network
-L'applicazione si collega solo su tua azione, e solo alla destinazione di cui quell'azione ha bisogno: al catalogo pubblico dei flussi e al pacchetto di anteprime facoltativo proposto dopo di esso, scaricati da GitHub quando importi il catalogo o accetti il pacchetto; al fornitore di un flusso che riproduci, registri o di cui apri «Informazioni sul canale», o la cui anteprima video si aggiorna mentre la vista griglia è visibile; a un telefono o a un orologio con FastMediaSorter che hai importato, raggiunto direttamente sulla tua rete locale; e, solo se le richiedi in «Strumenti», alle librerie FFmpeg facoltative per il motore sperimentale FlyleafLib, scaricate da un progetto GitHub di terze parti (BtbN/FFmpeg-Builds). Ogni richiesta va direttamente a quella destinazione ed è soggetta alle sue politiche; nessuna passa per un servizio gestito dall'autore. Un palinsesto TV viene scaricato solo dall'indirizzo che inserisci tu in «Strumenti», una volta a ogni pressione di «Scarica palinsesto», e mai in background.
-
+L’applicazione si connette solo su tua azione e unicamente verso la destinazione richiesta: il catalogo pubblico dei flussi e il pacchetto di anteprime opzionale su GitHub all’importazione; il provider di un flusso che riproduci, registri o consulti in «Informazioni sul canale», o la cui anteprima si aggiorna in modalità griglia; un dispositivo FastMediaSorter sulla tua rete locale; e, solo se richiesto in Impostazioni nella pagina Riproduzione, le librerie FFmpeg opzionali per il motore sperimentale FlyleafLib (BtbN/FFmpeg-Builds). Ogni richiesta va direttamente a destinazione ; nessun dato transita per server dell’autore. La guida TV viene scaricata solo dall’indirizzo inserito in Impostazioni nella pagina Libreria, una volta premuto «Scarica guida», e mai in background.
 @@privacy-local-title
 Dati locali
 
 @@privacy-local
-STREAMS Player salva in [[appdata]] lo stato del catalogo, i canali che hai aggiunto e importato, i canali fissati, le raccolte, i canali nascosti, la cronologia di ascolto, i contrassegni di riproduzione, i fotogrammi di anteprima nella cache entro un limite di 150 MB, le librerie FFmpeg facoltative se le hai scaricate e i registri diagnostici degli ultimi dieci avvii. Le registrazioni e i fotogrammi salvati finiscono nelle cartelle che scegli per loro oppure, per impostazione predefinita, in Recordings di Video, Recordings di Musica e Frames di Immagini. Questi dati restano sul tuo dispositivo, a meno che tu non li copi o ne faccia un backup - oppure a meno che tu non usi «Invia i registri all'autore» in «Strumenti», che comprime quei registri diagnostici insieme alla versione dell'app, alla versione di Windows e alle impostazioni in un archivio e apre il tuo programma di posta perché tu lo alleghi e lo invii a [[email]]. Quell'archivio viene preparato solo quando premi quel pulsante, i registri al suo interno indicano i flussi che sono stati riprodotti e non viene mai inviato nulla senza che tu prema Invia nel tuo programma di posta. Lì sono conservati anche il palinsesto TV scaricato e le tue associazioni dei canali; «Rimuovi palinsesto» in «Strumenti» li elimina entrambi.
-
+STREAMS Player memorizza lo stato del catalogo, i canali aggiunti e importati, i preferiti, le raccolte, i canali nascosti, la cronologia di ascolto, i segnalibri di riproduzione, i fotogrammi di anteprima entro 150 MB, le librerie FFmpeg opzionali e i registri diagnostici degli ultimi dieci avvii in [[appdata]]. Registrazioni e fotogrammi vanno nelle cartelle scelte (per impostazione predefinita Videos/Recordings, Music/Recordings e Pictures/Frames). Questi dati restano sul dispositivo a meno che non si utilizzi «Invia registri all’autore» in Impostazioni nella pagina Informazioni per inviarli a [[email]]. La guida TV scaricata e le relative associazioni sono conservate anch’esse lì; «Rimuovi guida» in Impostazioni le elimina entrambe.
 @@privacy-contact-title
 Contatti
 
@@ -415,14 +412,12 @@ Non ha mai bisogno dei diritti di amministratore per installarsi o funzionare, n
 Non ha account, pubblicità, analisi né telemetria, e nessun servizio gestito dall'autore attraverso cui passino i tuoi dati.
 
 @@trust-never-3
-Si collega solo su tua azione, e solo a ciò di cui quell'azione ha bisogno: il catalogo pubblico dei flussi e il suo pacchetto di anteprime facoltativo su GitHub, il fornitore di un flusso che riproduci, registri o visualizzi in anteprima, un telefono o un orologio con FastMediaSorter sulla tua rete, e le librerie FFmpeg facoltative se le richiedi in «Strumenti». Un palinsesto TV viene scaricato solo da un indirizzo che inserisci tu, e solo quando premi «Scarica palinsesto».
-
+Si connette solo quando agisci e unicamente per ciò che l’azione richiede: catalogo pubblico e anteprime su GitHub, provider del flusso in riproduzione, registrazione o anteprima, dispositivo FastMediaSorter in rete locale e librerie FFmpeg opzionali se richieste in Impostazioni. La guida TV è scaricata solo dall’indirizzo inserito quando premi «Scarica guida».
 @@trust-never-4
 Non scarica mai il catalogo di sua iniziativa - un aggiornamento avviene solo quando lo chiedi tu.
 
 @@trust-never-5
-Non invia mai i tuoi dati o i tuoi registri da nessuna parte di sua iniziativa. «Invia i registri all'autore» in «Strumenti» prepara solo un archivio e un messaggio nel tuo programma di posta; nulla parte finché non premi Invia lì.
-
+Non invia mai dati o registri autonomamente. «Invia registri all’autore» nella pagina Informazioni in Impostazioni prepara solo un archivio e un messaggio nel programma di posta; nulla viene trasmesso finché non premi Invia.
 @@trust-never-6
 Disinstallarlo non cancella mai i tuoi canali, i canali fissati o la cronologia - restano in [[appdata]] finché non elimini tu stesso quella cartella.
 

@@ -157,11 +157,11 @@ public partial class MainWindow
             return;
         }
 
-        // SP-0161: the transfer runs on this window's bar, where its Cancel button lives - a modal Tools
+        // SP-0161 / SP-0188: the transfer runs on this window's bar, where its Cancel button lives - a modal Settings
         // window would sit over that button for the whole download (the TV-schedule download made the
-        // same move in SP-0128). The Tools window closes itself through CloseForRunningAction, so every
+        // same move in SP-0128). The Settings window closes itself through CloseForRunningAction, so every
         // dialog below is owned by this window, never by the one the action closed.
-        (owner as ToolsWindow)?.CloseForRunningAction();
+        (owner as SettingsWindow)?.CloseForRunningAction();
         await RunImportUrlDownloadAsync(prompt.PlaylistUrl);
     }
 

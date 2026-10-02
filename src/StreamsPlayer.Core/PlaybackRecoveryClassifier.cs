@@ -8,6 +8,13 @@ public static class PlaybackRecoveryClassifier
 {
     public static RecoveryTrigger Classify(PlaybackFailureSignal signal)
     {
+        // SP-0189 (SP-0103's purpose): an engine that cannot start is not brought back by re-opening the stream,
+        // and nothing below can outweigh a fact the player established itself.
+        if (signal.LocalEngineFailure)
+        {
+            return RecoveryTrigger.HardFail;
+        }
+
         if (signal.Stall)
         {
             return RecoveryTrigger.Stall;
@@ -50,6 +57,9 @@ public static class PlaybackRecoveryClassifier
 
         // Malformed manifest / unsupported container / local engine failure -> non-retryable, unless the text is clearly a
         // network fault (a transport error naming a codec should still be treated as transient).
+        // The engine tokens are exception type names a backend actually threw or refused with - today the
+        // FastMediaSorter route's rejected play. SP-0189: the radio no longer reports through type names; it used to
+        // stamp InvalidOperationException on every LibVLC error, and every network failure inherited this verdict.
         if (ContainsAny(reason, "unsupported", "not supported", "notsupported", "malformed", "codec", "container",
                 "invalidoperation", "comexception", "audiodevice", "directshow")
             && !ContainsAny(reason, "timeout", "connection", "network", "socket", "dns", "refused", "reset"))

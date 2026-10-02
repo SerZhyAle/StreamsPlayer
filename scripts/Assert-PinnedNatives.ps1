@@ -54,21 +54,57 @@ if (-not $packageNatives) {
 }
 $expectedFileVersion = ($pinned.Split('.') | Select-Object -First 3) -join '.'
 
-foreach ($name in 'libvlc.dll', 'libvlccore.dll') {
-    $deployed = Join-Path $Folder "libvlc\win-x64\$name"
-    if (-not (Test-Path -LiteralPath $deployed)) { throw "expected: $deployed | actual: missing" }
-    $version = (Get-Item -LiteralPath $deployed).VersionInfo
+# SP-0183: compare the whole libvlc\win-x64 tree (plugins included) against the pinned package
+$deployedLibVlcPath = Join-Path $Folder "libvlc\win-x64"
+if (-not (Test-Path -LiteralPath $deployedLibVlcPath)) { throw "expected: $deployedLibVlcPath | actual: missing" }
+
+$referenceLibVlcPath = Join-Path $packageNatives "..\libvlc\win-x64"
+if (-not (Test-Path -LiteralPath $referenceLibVlcPath)) {
+    throw "cannot verify: package $pinned has no libvlc\win-x64 tree; the payload cannot be compared byte for byte."
+}
+
+# Compare all files in the libvlc\win-x64 tree
+$referenceFiles = Get-ChildItem -LiteralPath $referenceLibVlcPath -Recurse -File
+$deployedFiles = Get-ChildItem -LiteralPath $deployedLibVlcPath -Recurse -File
+
+# Check for extra files in deployed
+$deployedRelative = @($deployedFiles | ForEach-Object { $_.FullName.Substring($deployedLibVlcPath.Length) })
+$referenceRelative = @($referenceFiles | ForEach-Object { $_.FullName.Substring($referenceLibVlcPath.Length) })
+
+$extraFiles = @($deployedRelative | Where-Object { $_ -notin $referenceRelative })
+$missingFiles = @($referenceRelative | Where-Object { $_ -notin $deployedRelative })
+
+if ($extraFiles.Count -gt 0) {
+    throw "found $($extraFiles.Count) extra file(s) in deployed libvlc\win-x64: $($extraFiles -join ', ') compared to package $pinned"
+}
+if ($missingFiles.Count -gt 0) {
+    throw "found $($missingFiles.Count) missing file(s) in deployed libvlc\win-x64: $($missingFiles -join ', ') compared to package $pinned"
+}
+
+# Compare each file
+$fileMismatches = @()
+foreach ($refFile in $referenceFiles) {
+    $relativePath = $refFile.FullName.Substring($referenceLibVlcPath.Length)
+    $deployedFilePath = Join-Path $deployedLibVlcPath $relativePath
+    
+    if ((Get-FileHash -LiteralPath $deployedFilePath).Hash -ne (Get-FileHash -LiteralPath $refFile.FullName).Hash) {
+        $fileMismatches += $relativePath
+    }
+}
+
+if ($fileMismatches.Count -gt 0) {
+    throw "found $($fileMismatches.Count) file(s) with different bytes in deployed libvlc\win-x64 compared to package $pinned: $($fileMismatches -join ', ')"
+}
+
+# Verify version on the key DLLs
+$libvlcDll = Join-Path $deployedLibVlcPath "libvlc.dll"
+if (Test-Path -LiteralPath $libvlcDll) {
+    $version = (Get-Item -LiteralPath $libvlcDll).VersionInfo
     $actualFileVersion = "$($version.FileMajorPart).$($version.FileMinorPart).$($version.FileBuildPart)"
     if ($actualFileVersion -ne $expectedFileVersion) {
-        throw "expected: $name $expectedFileVersion (package $pinned) | actual: $actualFileVersion in $Folder"
+        throw "expected: libvlc.dll $expectedFileVersion (package $pinned) | actual: $actualFileVersion in $Folder"
     }
-
-    $reference = Join-Path $packageNatives $name
-    if (-not (Test-Path -LiteralPath $reference)) {
-        throw "cannot verify: package $pinned has no $reference; the payload $name cannot be compared byte for byte."
-    }
-    if ((Get-FileHash -LiteralPath $deployed).Hash -ne (Get-FileHash -LiteralPath $reference).Hash) {
-        throw "expected: $name identical to package $pinned | actual: different bytes in $Folder"
-    }
-    Write-Host "    expected: $name $expectedFileVersion (package $pinned), bytes of $reference | actual: $actualFileVersion, identical" -ForegroundColor Green
+    Write-Host "    libvlc.dll version: $actualFileVersion (package $pinned)" -ForegroundColor Green
 }
+
+Write-Host "    libvlc\win-x64 tree: $($referenceFiles.Count) files compared, identical to package $pinned" -ForegroundColor Green

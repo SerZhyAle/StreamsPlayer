@@ -35,6 +35,7 @@ de:TopicOldies      # "Oldies" is the standard German radio format name.
 
 de:LiveLabel        # "Live" is the standard German broadcast term.
 de:AudioOption      # "Audio" is German.
+de:SettingsAudio    # "Audio" is German.
 de:KindAudio        # Same word, upper-cased badge.
 de:AudioTracks      # "Audio" heads the German label too.
 de:VideoOption      # "Video" is German.
@@ -47,10 +48,13 @@ de:VersionLabel     # "Version" is German.
 de:Website          # "Website" is the common German usage.
 de:FieldTitle       # "Name" is German.
 de:FrameRateValue   # "fps" is what German media software prints for frames per second.
+de:AudioChannelStereo # "Stereo" is German.
 
 # --- Italian ---
 it:LiveLabel        # "Live" is standard Italian broadcast usage.
 it:AudioOption      # "Audio" is Italian.
+it:SettingsAudio    # "Audio" is Italian.
+it:AudioChannelStereo # "Stereo" is Italian.
 it:KindAudio        # Same word, upper-cased badge.
 it:AudioTracks      # "Audio" heads the Italian label too.
 it:VideoOption      # "Video" is Italian.
@@ -90,12 +94,14 @@ zh:FrameRateValue   # "fps" is written in Latin script in Chinese media software
 
 # --- Spanish ---
 es:AudioOption      # "Audio" is Spanish; the filter option keeps it.
+es:SettingsAudio    # "Audio" is Spanish.
 es:KindAudio        # Same word, upper-cased badge.
 es:AudioTracks      # "Audio" heads the Spanish label too, matching "pista de audio" in its tooltip.
 es:MediaKindAuto    # "Auto" is the usual Spanish abbreviation for automatic.
 es:AboutValueNo     # "No" is the Spanish word for no.
 es:FrameRateValue   # "fps" is what Spanish media software prints for frames per second.
 es:TopicGeneral     # "General" is the Spanish word, spelled identically.
+es:SettingsGeneral  # "General" is the Spanish word, spelled identically.
 es:TopicPop         # Genre name, written the same way.
 es:TopicRock        # Genre name, written the same way.
 es:TopicMetal       # Genre name, written the same way.
@@ -105,10 +111,12 @@ es:TopicReggae      # Genre name, written the same way.
 
 # --- French ---
 fr:AudioOption      # "Audio" is French; the filter option keeps it.
+fr:SettingsAudio    # "Audio" is French.
 fr:KindAudio        # Same word, upper-cased badge.
 fr:AudioTracks      # "Audio" heads the French label too, matching "piste audio" in its tooltip.
 fr:MediaKindAuto    # "Auto" is the usual French abbreviation for automatique.
 fr:VersionLabel     # "Version" is French.
+fr:LicenceLabel     # "Licence" is French.
 fr:FieldType        # "Type" is French.
 fr:FieldFormat      # "Format" is French.
 fr:SleepTimerMinutes # "minutes" is the same word in French; only the placeholder precedes it.

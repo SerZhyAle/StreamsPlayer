@@ -169,6 +169,15 @@ public enum MediaBackend
     Flyleaf
 }
 
+public enum AudioChannelMode
+{
+    Stereo,
+    Left,
+    Right,
+    ReverseStereo,
+    DolbySurround
+}
+
 /// <summary>
 /// Persisted facts supplied by a FastMediaSorter broadcast hand-off. Its presence means the source came
 /// through that hand-off and is consequently live, even when a producer's optional marker is absent or
@@ -410,6 +419,8 @@ public sealed record CatalogState
     public int VideoVolume { get; init; } = 100;
     public bool VideoMuted { get; init; }
     public int AudioVolume { get; init; } = 100;
+    public string? AudioOutputDevice { get; init; }
+    public AudioChannelMode AudioChannelMode { get; init; } = AudioChannelMode.Stereo;
 
     /// <summary>
     /// When true (default), the app holds a Windows power request while a stream is actively

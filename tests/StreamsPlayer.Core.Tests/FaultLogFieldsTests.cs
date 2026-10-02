@@ -44,4 +44,15 @@ public sealed class FaultLogFieldsTests
 
         Assert.Equal("err=".Length + FaultLogFields.MaximumMessageLength, fields[1].Length);
     }
+
+    [Fact]
+    public void TextOf_IsTheErrFieldsValueAlone()
+    {
+        // SP-0189: a line that names the fault's kind its own way takes the text alone, cleaned the same way.
+        var exception = new InvalidOperationException("first\r\nsecond " + new string('x', 5000));
+
+        Assert.Equal(FaultLogFields.Of(exception)[1], "err=" + FaultLogFields.TextOf(exception));
+        Assert.Equal(FaultLogFields.MaximumMessageLength, FaultLogFields.TextOf(exception).Length);
+        Assert.StartsWith("first second ", FaultLogFields.TextOf(exception));
+    }
 }

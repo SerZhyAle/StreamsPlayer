@@ -149,6 +149,9 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         }
     }
 
+    public string? AudioOutputDevice { set { } }
+    public AudioChannelMode AudioChannelMode { set { } }
+
     public string? RecordUnavailableReason => null;
 
     // Both halves: the segment says a recording was asked for, the player says it is still being written. The

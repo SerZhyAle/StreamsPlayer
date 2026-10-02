@@ -14,6 +14,7 @@ amendment is written in the store, not here.
 | File | Contract ID | Function | Role |
 | --- | --- | --- | --- |
 | [APP-BEHAVIOUR.md](APP-BEHAVIOUR.md) | `APP-BEHAVIOUR` | Desktop Application UX Behavior (12 shared moments) | **Owner**, P/C |
+| [APP-SETTINGS.md](APP-SETTINGS.md) | `APP-SETTINGS` | Desktop Application Settings Surface Anatomy & Layout | Consumer (adopted 2026-10-02, SP-0188) |
 | [APP-STYLE.md](APP-STYLE.md) | `APP-STYLE` | Desktop Palette Vocabulary and Dynamic Theming | **Owner**, P/C |
 | [USER-PLAYLIST.md](USER-PLAYLIST.md) | `USER-PLAYLIST` | User Stream Playlists & Extended M3U8 Interchange | **Owner**, P/C |
 | [DIAGNOSTIC-REPORT.md](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | Diagnostic Bundle, Environment Summary & Redaction | **Owner**, P/C |

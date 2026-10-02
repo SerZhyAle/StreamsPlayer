@@ -499,9 +499,9 @@ public sealed class FFmpegComponentsInstallerTests
             return;
         }
 
-        Assert.Empty(Directory.EnumerateFileSystemEntries(directory)
-            .Select(Path.GetFileName)
-            .Where(name => name != FFmpegComponents.FolderName));
+        Assert.DoesNotContain(
+            Directory.EnumerateFileSystemEntries(directory).Select(Path.GetFileName),
+            name => name != FFmpegComponents.FolderName);
     }
 
     private static FFmpegComponentsSource SourceFor(byte[] archive) =>

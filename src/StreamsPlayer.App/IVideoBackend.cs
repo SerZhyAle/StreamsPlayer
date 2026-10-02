@@ -44,6 +44,8 @@ internal interface IVideoBackend
 
     int Volume { set; }
     bool Mute { set; }
+    string? AudioOutputDevice { set; }
+    AudioChannelMode AudioChannelMode { set; }
 
     /// <summary>
     /// Opens and plays a live URL. <paramref name="cacheMilliseconds"/> sizes the live buffer

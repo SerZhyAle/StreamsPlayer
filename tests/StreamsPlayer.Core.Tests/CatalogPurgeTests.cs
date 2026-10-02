@@ -18,9 +18,15 @@ public sealed class CatalogPurgeTests
 
         var result = CatalogPurge.RemoveDownloaded(state);
 
-        Assert.Equal([manual, imported, localCatalog], result.State.Channels);
-        Assert.Equal([catalogOne.Id, catalogTwo.Id], result.RemovedChannelIds);
+        // SP-0183: pinned catalog channel (catalogTwo) should be preserved
+        Assert.Equal(4, result.State.Channels.Count);
+        Assert.Contains(manual, result.State.Channels);
+        Assert.Contains(imported, result.State.Channels);
+        Assert.Contains(localCatalog, result.State.Channels);
+        Assert.Contains(catalogTwo, result.State.Channels);
+        Assert.Equal([catalogOne.Id], result.RemovedChannelIds);
         Assert.True(result.State.Channels.Single(channel => channel.Id == manual.Id).Pinned);
+        Assert.True(result.State.Channels.Single(channel => channel.Id == catalogTwo.Id).Pinned);
     }
 
     [Fact]
@@ -102,17 +108,38 @@ public sealed class CatalogPurgeTests
     [Fact]
     public void CountDownloaded_CountsOnlyCatalogRows()
     {
-        StreamChannel[] channels =
-        [
+        // SP-0183: CountDownloaded now takes a CatalogState and excludes user-authored channels
+        var channels = new List<StreamChannel>
+        {
             Channel("https://example.test/one", SourceOrigin.Catalog),
             Channel("https://example.test/two", SourceOrigin.Catalog),
             Channel("rtsp://example.test/camera", SourceOrigin.Manual),
             Channel("https://example.test/imported", SourceOrigin.Imported),
             Channel("https://example.test/local-catalog", SourceOrigin.LocalCatalog)
-        ];
+        };
+        
+        var state = new CatalogState { Channels = channels };
+        
+        // Without any user-authored content, both catalog channels should be counted
+        Assert.Equal(2, CatalogPurge.CountDownloaded(state));
+        
+        // Test with empty state
+        var emptyState = new CatalogState { Channels = [] };
+        Assert.Equal(0, CatalogPurge.CountDownloaded(emptyState));
+    }
 
-        Assert.Equal(2, CatalogPurge.CountDownloaded(channels));
-        Assert.Equal(0, CatalogPurge.CountDownloaded([]));
+    [Fact]
+    public void CountDownloaded_ExcludesUserAuthoredChannels()
+    {
+        // SP-0183: user-authored channels (pinned) should not be counted for removal
+        var pinnedChannel = Channel("https://example.test/pinned", SourceOrigin.Catalog) with { Pinned = true };
+        var catalogChannel = Channel("https://example.test/regular", SourceOrigin.Catalog);
+        
+        var channels = new List<StreamChannel> { pinnedChannel, catalogChannel };
+        var state = new CatalogState { Channels = channels };
+        
+        // Only the non-pinned catalog channel should be counted
+        Assert.Equal(1, CatalogPurge.CountDownloaded(state));
     }
 
     [Fact]

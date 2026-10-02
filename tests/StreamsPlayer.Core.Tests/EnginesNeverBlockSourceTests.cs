@@ -115,4 +115,24 @@ public sealed class EnginesNeverBlockSourceTests
         var measure = Body(source, "MeasureCoreAsync");
         Assert.Contains("IsPaused", measure);
     }
+
+    [Fact]
+    public void TheFastMediaSorterAudioStopNeverCallsTheEngineFromTheCallingThread()
+    {
+        var source = Source("FastMediaSorterAudioPlayback.cs");
+
+        // StopPlayback must not reach the native stop or release directly.
+        Assert.DoesNotContain("player.Stop()", Body(source, "StopPlayback"));
+        Assert.DoesNotContain("player.Dispose()", Body(source, "StopPlayback"));
+
+        // The retirement worker is where the blocking stop runs, under a deadline, with abandonment counted.
+        var retire = Body(source, "RetirePlayerAsync");
+        Assert.Contains("WaitAsync", retire);
+        Assert.Contains("RecordAbandoned", retire);
+        Assert.Contains("Task.Run", retire);
+
+        // The native stop and dispose happen in the retirement method.
+        Assert.Contains("player.Stop()", retire);
+        Assert.Contains("player.Dispose()", retire);
+    }
 }

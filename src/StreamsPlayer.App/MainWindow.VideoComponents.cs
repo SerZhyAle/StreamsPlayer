@@ -15,7 +15,7 @@ public partial class MainWindow
 {
     private async Task InstallVideoComponentsAsync(Window owner)
     {
-        var tools = owner as ToolsWindow;
+        var settings = owner as SettingsWindow;
         var target = FFmpegComponents.ResolveFolder(_dataDirectory);
 
         // SP-0128: FFmpeg's libraries stay mapped until the process exits, so a set the engine already
@@ -48,8 +48,8 @@ public partial class MainWindow
         // SP-0128: the catalog client, whose requests carry explicit bounds rather than a client timeout.
         // The installer bounds the head and the body's silence itself, and the user can cancel.
         var installer = new FFmpegComponentsInstaller(_catalogHttpClient);
-        var progress = new Progress<FFmpegInstallProgress>(report => tools?.ShowInstallProgress(report));
-        var cancellation = tools?.BeginVideoComponentsInstall() ?? CancellationToken.None;
+        var progress = new Progress<FFmpegInstallProgress>(report => settings?.ShowInstallProgress(report));
+        var cancellation = settings?.BeginVideoComponentsInstall() ?? CancellationToken.None;
         _log.Event("FFMPEG INSTALL", "action=start", $"url={FFmpegComponentsInstaller.SourceUrl}");
         try
         {
@@ -85,7 +85,7 @@ public partial class MainWindow
         }
         finally
         {
-            tools?.EndVideoComponentsInstall();
+            settings?.EndVideoComponentsInstall();
         }
     }
 

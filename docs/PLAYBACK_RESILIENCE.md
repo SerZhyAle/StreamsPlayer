@@ -305,6 +305,30 @@ Audio has its own parallel path in `MainWindow` (`AUDIO RECOVER`), same policy t
   played for `LivePlaybackRecoveryPolicy.SustainedLiveAfter` (30 s, the stall's own silence not counted), so a
   station that connects and drops within seconds reaches the terminal dialog after its budget.
 
+**A radio failure is judged by what the engine said, not by how it was wrapped (SP-0189).** The radio engine
+(`StandardAudioPlayback`) used to turn every LibVLC error into an `InvalidOperationException` of its own making,
+and SP-0103 had taught the classifier that this type name means a local audio-device fault - true of the WPF
+`MediaElement` the radio played through before SP-0104, false of everything LibVLC raises. Every network failure
+of a radio re-open was therefore final at attempt 0 of budget 0; the owner's log of 2026-10-01 ended a
+seventeen-hour session that way. The engine now reports a reason token and the player's own verdict:
+
+| What happened | Reason | Verdict |
+|---|---|---|
+| LibVLC's error event | `encountered_error` | the classifier's default: `Transient`, bounded by its budget; the status probe's 4xx still fails at once |
+| `Play` refused, or the SP-0165 abandoned-engine cap | `play_rejected` | `LocalEngineFailure`: `HardFail`, no attempt spent |
+| The engine, its player or its media could not be created | the exception's type name | `LocalEngineFailure`: `HardFail` |
+
+The error event is not local because, measured against LibVLC 3.0.23 with the radio engine's own options, it is
+raised only for an input that could not be opened - a refused connection, a name that does not resolve, an HTTP
+error, a TLS failure, a reset before the headers. A stream that drops mid-play is `EndReached`; an audio output
+that cannot start raises nothing at all and is caught by `AUDIO SILENT` (SP-0133). The engine logs the cause
+before it raises the event, so `EngineFailureTrail` (Core) keeps the last distinct error lines of the current
+connection - without LibVLC's generic "Your input can't be opened" pair, which names no cause and carries the
+whole address, and without the audio-output family - and `AUDIO FAIL` carries them as `cause=`. The text is
+logged, never classified: an engine line names the host, and a host called `codec-fm` must not turn a refused
+connection into a hard failure. The FastMediaSorter route still reports a play its engine refused as
+`InvalidOperationException`, a genuine local refusal, so SP-0103's token stays in the classifier for it.
+
 A terminal failure never clears the sleep timer: it stops through `StopAudioKeepingSleepTimer`, not
 `StopAudio`, because only a manual Stop, Cancel or exit clear it (SP-0022).
 
@@ -496,6 +520,7 @@ look the same in an archive.
 | `PLAYBACK WATCHDOG` | `kind=frozen` or `kind=stuck_buffer` |
 | `PLAYBACK GIVEUP` | `rule=dead_source\|deadline`, `at_ms=`, `leg=`, `bytes=` - §3a decided this leg is not going to open |
 | `AUDIO GIVEUP` | `rule=deadline`, `at_ms=` - the radio's half of §3a |
+| `AUDIO FAIL` | `reason=encountered_error\|play_rejected\|<exception type>`, `cause=` - the engine's own error lines for this connection, or the exception's text, or `none` when it said nothing (SP-0189) |
 | `AUDIO STALL` | `silent_ms=`, `read_bytes=` - a radio connection that stayed open but read no bytes for that long (SP-0169); followed by `AUDIO RECOVER trigger=Stall` |
 | `PLAYBACK RECOVER` | `trigger=`, `action=`, `attempt=`, budget, delay |
 | `PLAYBACK QUALITY` | `action=recall\|ladder\|down\|up\|hold\|memory\|rendition`, `from=`, `to=`, `ceiling=`, `starvations=`, `memory=`, `within=`, `leg=` |
@@ -541,6 +566,7 @@ Core (platform-neutral, all unit-tested)
   LivePlaybackRecoveryPolicy.cs  §4  reconnect or give up, and after how long
   PlaybackRecoveryClassifier.cs  §4  engine event -> RecoveryTrigger
   PlaybackFailureSignal.cs           the input record
+  EngineFailureTrail.cs          §4  what the engine said about a failed open - the AUDIO FAIL cause (SP-0189)
   SignalHealthMonitor.cs         §6  green / yellow / red
   PlaybackInterruption.cs        §6  what the caption says, and when it may appear
   StreamQualityLadder.cs         §5  HLS master playlist -> rungs
@@ -608,6 +634,7 @@ App (forwards observations, applies answers, owns all I/O)
 | `SP-0078` | holding the distance to the live edge | **Implemented** - the half-hour live run is not done |
 | `SP-0079` | shorter reconnect budget | **Implemented** |
 | `SP-0096` | a stream that never opens is given up on | **Implemented** - the run-and-observe phase is not done |
+| `DONE/SP-0189` | a radio failure keeps its cause and is not judged final by its wrapper | **Implemented** |
 
 Three of those headers disagree with the folder they sit in. Status comes from the header, never from the
 path - recorded here so the disagreement is visible rather than inherited.

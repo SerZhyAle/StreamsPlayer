@@ -135,7 +135,7 @@ public partial class MainWindow
 
     private async Task DownloadTvScheduleAsync(Window owner)
     {
-        var address = (owner as ToolsWindow)?.TvScheduleAddress;
+        var address = (owner as SettingsWindow)?.TvScheduleAddress;
         if (!TvScheduleService.TryParseSource(address, out var source))
         {
             MessageBox.Show(owner, LocalizationService.Get("TvScheduleInvalidAddress"),
@@ -154,10 +154,10 @@ public partial class MainWindow
         }
 
         // The download reports on the main window's bar, where its Cancel button lives (APP-BEHAVIOUR
-        // rule 3). Left open, the modal Tools window would sit over that button for the whole transfer.
-        // SP-0161: through CloseForRunningAction, so the close is the action's own and the running flag
+        // rule 3). Left open, the modal Settings window would sit over that button for the whole transfer.
+        // SP-0161 / SP-0188: through CloseForRunningAction, so the close is the action's own and the running flag
         // lets it through; every dialog this action shows later is owned by the main window.
-        (owner as ToolsWindow)?.CloseForRunningAction();
+        (owner as SettingsWindow)?.CloseForRunningAction();
         await RunTvScheduleDownloadAsync(source);
     }
 

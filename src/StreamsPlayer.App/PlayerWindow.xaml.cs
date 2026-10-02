@@ -128,6 +128,8 @@ public partial class PlayerWindow : Window
     private ResizeMode _restoredResizeMode;
     private WindowState _restoredWindowState;
     private IDisposable? _wake;
+    private string? _audioOutputDevice;
+    private AudioChannelMode _audioChannelMode = AudioChannelMode.Stereo;
 
     internal PlayerWindow(
         StreamChannel channel,
@@ -148,7 +150,9 @@ public partial class PlayerWindow : Window
         Func<CaptureKind, string?> captureFolder,
         MediaBackend backend,
         bool startFullscreen = false,
-        bool quietUntilLive = false)
+        bool quietUntilLive = false,
+        string? audioOutputDevice = null,
+        AudioChannelMode audioChannelMode = AudioChannelMode.Stereo)
     {
         InitializeComponent();
         _channel = channel;
@@ -167,7 +171,11 @@ public partial class PlayerWindow : Window
         _startFullscreen = startFullscreen;
         _quietUntilLive = quietUntilLive;
         _backendSelection = backend;
+        _audioOutputDevice = audioOutputDevice;
+        _audioChannelMode = audioChannelMode;
         _backend = VideoBackendFactory.Create(backend, volume, muted, log);
+        _backend.AudioOutputDevice = audioOutputDevice;
+        _backend.AudioChannelMode = audioChannelMode;
         VideoHost.Children.Add(_backend.View);
         // Move the control overlay out of the WPF root and into the backend's native video surface so
         // it floats above the video (airspace) and is not covered by the video on window resize.
@@ -200,6 +208,14 @@ public partial class PlayerWindow : Window
         RefreshWindowTitle();
         Loaded += PlayerWindow_Loaded;
         Closed += PlayerWindow_Closed;
+    }
+
+    internal void ApplyAudioOutputSettings(string? deviceId, AudioChannelMode channelMode)
+    {
+        _audioOutputDevice = deviceId;
+        _audioChannelMode = channelMode;
+        _backend.AudioOutputDevice = deviceId;
+        _backend.AudioChannelMode = channelMode;
     }
 
     /// <summary>Re-renders the text this window cannot express as a <c>DynamicResource</c>.</summary>

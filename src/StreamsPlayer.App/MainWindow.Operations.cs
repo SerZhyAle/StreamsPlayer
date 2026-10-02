@@ -54,8 +54,8 @@ public partial class MainWindow
         menu.Items.Add(BuildEntry("HistoryOpen", "HistoryTip", "HistoryTip", HistoryButton_Click));
         menu.Items.Add(BuildEntry("AddStreamPlain", "AddStreamTip", "AddStreamTip", AddButton_Click));
         menu.Items.Add(BuildEntry("PasteChannelPlain", "PasteChannelTip", "PasteChannelTip", PasteChannelButton_Click));
-        // SP-0109: the operations that used to run from inside Settings, where Cancel could not undo them.
-        menu.Items.Add(BuildEntry("ToolsOpen", "ToolsTip", "ToolsTip", ToolsMenuItem_Click));
+        // SP-0188: the operations menu opens the unified settings window on the Library page.
+        menu.Items.Add(BuildEntry("LibrarySettings", "LibrarySettingsTip", "LibrarySettingsTip", LibrarySettingsMenuItem_Click));
 
         // The catalog refresh keeps the emphasis it had as a header button: last, fenced off, and the
         // only entry allowed to carry the accent. It is the one action a first-time user is looking for.
@@ -67,8 +67,8 @@ public partial class MainWindow
 
     // Like Settings, not gated on the state load: PersistAsync already discards writes until the load has
     // finished, and the log report inside is exactly what a user whose load failed is told to send.
-    private void ToolsMenuItem_Click(object sender, RoutedEventArgs e) =>
-        new ToolsWindow(RunToolsActionAsync, () => _tvSchedule) { Owner = this }.ShowDialog();
+    private void LibrarySettingsMenuItem_Click(object sender, RoutedEventArgs e) =>
+        OpenSettings(1);
 
     private static MenuItem BuildEntry(string headerKey, string tooltipKey, string nameKey, RoutedEventHandler handler)
     {

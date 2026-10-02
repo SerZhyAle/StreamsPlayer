@@ -24,3 +24,8 @@ type: project
   - For throughput measurement on HLS/DASH, measure delta of `demux_bytes` (access module `read_bytes` and `in_bitrate` remain frozen).
 - **Flyleaf live latency control (SP-0078):**
   - Setting `Player.Speed` directly forces rebuffering and stalls. Use `Config.Player.MaxLatency` for non-stuttering pacing corrections.
+- **What LibVLC 3.0.23 reports when a radio open fails (SP-0189, measured 2026-10-02):**
+  - `--quiet` does not silence the `LibVLC.Log` callback, and `LibVLC.LastLibVLCError` stays empty for playback failures - the cause is only in the Error-level log lines, written *before* `EncounteredError` fires.
+  - `EncounteredError` comes only from an input that could not be opened (refused, DNS, HTTP 4xx/5xx, TLS, reset before headers). A mid-stream drop - even a TCP reset - is `EndReached`; HTML or random bytes served as audio "play" and end; an audio output that cannot start raises no event at all (only `AUDIO SILENT` catches it).
+  - Why it matters: an engine error event is never evidence of a local device fault. How to apply: never classify a radio failure by a wrapper's type name; read the trail for the log, decide by the event and the app's own probes.
+- **The smoke's audio round depends on the machine having a default audio output (2026-10-02):** with none, LibVLC logs `mmdevice: cannot get default device (error 0x80070490)` and `AUDIO SILENT` shows `decoded_blocks>0, played_buffers=0` for *any* build. Before blaming a change, run the same round against a pre-change binary (`smoke-playback.ps1 -AppPath ..`).

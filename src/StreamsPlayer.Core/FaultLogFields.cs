@@ -15,7 +15,17 @@ public static class FaultLogFields
     public static string[] Of(Exception exception)
     {
         ArgumentNullException.ThrowIfNull(exception);
-        return [$"type={exception.GetType().Name}", $"err={Clean(exception.Message)}", $"at={Origin(exception)}"];
+        return [$"type={exception.GetType().Name}", $"err={TextOf(exception)}", $"at={Origin(exception)}"];
+    }
+
+    /// <summary>
+    /// The exception's own text alone, as one log value - for a line that already names the fault's kind its own way
+    /// (SP-0189: the radio's <c>AUDIO FAIL</c> line, whose reason is the type name).
+    /// </summary>
+    public static string TextOf(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        return Clean(exception.Message);
     }
 
     private static string Origin(Exception exception)

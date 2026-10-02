@@ -61,7 +61,8 @@ public partial class MainWindow
         bool stall = false,
         int? firstResponseStatusCode = null,
         bool hasFirstResponseStatus = false,
-        FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure = null)
+        FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure = null,
+        bool localEngineFailure = false)
     {
         var policy = _audioRecovery;
         var cts = _audioRecoveryCts;
@@ -84,7 +85,7 @@ public partial class MainWindow
         try
         {
             await RecoverAudioInFlightAsync(channel, reason, policy, cts, endReached, openTimedOut, stall,
-                firstResponseStatusCode, hasFirstResponseStatus, fastMediaSorterFailure);
+                firstResponseStatusCode, hasFirstResponseStatus, fastMediaSorterFailure, localEngineFailure);
         }
         finally
         {
@@ -105,7 +106,8 @@ public partial class MainWindow
         bool stall,
         int? firstResponseStatusCode,
         bool hasFirstResponseStatus,
-        FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure)
+        FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure,
+        bool localEngineFailure)
     {
         // SP-0169: the leg that just ended hands back the budget only if it played long enough. Settled here,
         // once per recovery (the in-flight guard above admits one), and before the policy is consulted so the
@@ -148,7 +150,8 @@ public partial class MainWindow
             return;
         }
 
-        var decision = policy.Decide(new PlaybackFailureSignal(reason, EndReached: endReached, HttpStatusCode: status, OpenTimedOut: openTimedOut, Stall: stall));
+        var decision = policy.Decide(new PlaybackFailureSignal(reason, EndReached: endReached, HttpStatusCode: status, OpenTimedOut: openTimedOut, Stall: stall,
+            LocalEngineFailure: localEngineFailure));
         _log.Event("AUDIO RECOVER",
             $"trigger={decision.Trigger}",
             $"action={decision.Kind}",

@@ -37,6 +37,8 @@ public partial class PlayerWindow
     {
         // The old engine's callbacks keep their old instance even if they have already queued a UI action.
         var replacement = VideoBackendFactory.Create(_backendSelection, (int)VolumeSlider.Value, _isMuted, _log);
+        replacement.AudioOutputDevice = _audioOutputDevice;
+        replacement.AudioChannelMode = _audioChannelMode;
         var previous = _backend;
         try
         {

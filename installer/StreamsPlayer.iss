@@ -105,9 +105,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; carrying the same payload as the archive it is published beside. Everything the user owns lives in
 ; %LOCALAPPDATA%\StreamsPlayer (see the [UninstallDelete] note below), so nothing user-made is here to
 ; lose. The wipe runs after the AppMutex checks above, so a running copy is asked about and never
-; deleted out from under.
+; deleted out from under. SP-0183 D6: only when {app} contains a previous StreamsPlayer.exe or unins000.exe.
 [InstallDelete]
-Type: filesandordirs; Name: "{app}"
+Type: filesandordirs; Name: "{app}"; Check: FileExistsInApp('StreamsPlayer.exe') or FileExistsInApp('unins000.exe')
 
 [Files]
 ; One recursive line carries the whole self-contained publish, including libvlc\win-x64\ and
@@ -157,4 +157,10 @@ begin
     Log('SP-0136: STREAMS Player is running and this is a silent uninstall - exiting without changes. Close the application and run the uninstaller again.');
     Result := False;
   end;
+end;
+
+{ SP-0183 D6: guard the [InstallDelete] wipe so it runs only when {app} holds a previous installation. }
+function FileExistsInApp(FileName: String): Boolean;
+begin
+  Result := FileExists(ExpandConstant('{app}\' + FileName));
 end;

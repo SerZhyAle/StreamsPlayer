@@ -47,7 +47,9 @@ public sealed class LocalizationParityTests
             "SampleRateValue",
             // Names a third-party library.
             "VideoBackendFlyleaf",
-            "VideoBackendLibVlc"
+            "VideoBackendLibVlc",
+            // Brand name / audio technology.
+            "AudioChannelDolby"
         },
         // Endonyms are identical in all dictionaries on purpose: a picker that renamed a language when
         // you switched locale would be unusable for the person trying to get back.

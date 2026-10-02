@@ -2,21 +2,30 @@ namespace StreamsPlayer.Core;
 
 /// <summary>
 /// SP-0030 & SP-0098: explicit, user-confirmed removal of catalog rows:
-/// - <see cref="RemoveDownloaded"/> removes only <see cref="SourceOrigin.Catalog"/> rows.
+/// - <see cref="RemoveDownloaded"/> removes only <see cref="SourceOrigin.Catalog"/> rows that are not user-authored.
 /// - <see cref="RemoveImportedBank"/> removes only <see cref="SourceOrigin.LocalCatalog"/> rows.
-/// Neither touches user-authored rows (Manual/Imported).
+/// User-authored content (pinned channels, collection memberships, listening history) is preserved.
 /// </summary>
 public static class CatalogPurge
 {
-    public static int CountDownloaded(IEnumerable<StreamChannel> channels) =>
-        channels.Count(channel => channel.SourceOrigin == SourceOrigin.Catalog);
+    public static int CountDownloaded(CatalogState state)
+    {
+        // SP-0183: only count downloadable channels that are not user-authored
+        var authoredIds = UserAuthoredChannels.Identify(state);
+        return state.Channels.Count(channel => 
+            channel.SourceOrigin == SourceOrigin.Catalog && !authoredIds.Contains(channel.Id));
+    }
 
     public static CatalogPurgeResult RemoveDownloaded(CatalogState state)
     {
-        var removedIds = state.Channels
-            .Where(channel => channel.SourceOrigin == SourceOrigin.Catalog)
-            .Select(channel => channel.Id)
+        // SP-0183: do not delete user-authored content - channels marked by UserAuthoredChannels
+        var authoredIds = UserAuthoredChannels.Identify(state);
+        
+        var removableChannels = state.Channels
+            .Where(channel => channel.SourceOrigin == SourceOrigin.Catalog && !authoredIds.Contains(channel.Id))
             .ToList();
+            
+        var removedIds = removableChannels.Select(channel => channel.Id).ToList();
 
         if (removedIds.Count == 0)
         {
@@ -24,7 +33,7 @@ public static class CatalogPurge
         }
 
         var kept = state.Channels
-            .Where(channel => channel.SourceOrigin != SourceOrigin.Catalog)
+            .Where(channel => channel.SourceOrigin != SourceOrigin.Catalog || authoredIds.Contains(channel.Id))
             .ToList();
 
         // SP-0177: the downloaded rows' bookkeeping leaves with them - the atlases nothing indexes any more

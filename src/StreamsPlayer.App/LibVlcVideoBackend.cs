@@ -131,6 +131,22 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
 
     public bool Mute { set => ApplyAudio(player => player.Mute = value, "mute"); }
 
+    public string? AudioOutputDevice
+    {
+        set => ApplyAudio(player =>
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                player.SetOutputDevice(value);
+            }
+        }, "audio-device");
+    }
+
+    public AudioChannelMode AudioChannelMode
+    {
+        set => ApplyAudio(player => player.SetChannel(value.ToLibVlc()), "audio-channel");
+    }
+
     // Both setters are driven from the UI thread while teardown may already be running on a worker
     // thread, and a native call on a stopped or disposed MediaPlayer ends the process without a managed
     // exception for the log to carry. An unwritten audio setting is worth far less than the session.

@@ -63,6 +63,99 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.1002.2330
+
+Supersedes nothing: the 26.1001.0140 tag shipped as prepared below. One Settings window in place of Settings and
+Tools, the audio output device and channel mode, radio failures that keep their cause, a "Delete downloaded" that
+keeps what the user made, a non-blocking stop of a FastMediaSorter broadcast and a guarded setup wipe. The three
+blocks below are the files `msix/listing/release-notes/26.1002.2330.*.txt`.
+
+```text
+Version 26.1002.2330
+
+- Settings and Tools are now one Settings window with six pages: General, Library, Playback, Audio, Files and About. Catalog, playlists, hidden channels, the TV schedule and video components moved into it, every setting has a short hint, and a change takes effect as soon as you touch the control.
+- Choose the audio output device and the channel mode (stereo, reversed stereo, left, right or Dolby Surround) for playback in Settings, on the Audio page.
+- When a radio station fails, the app keeps the real cause and no longer gives up on the station because of a generic wrapper error.
+- "Delete downloaded" keeps the channels you pinned, put into a collection or listened to, instead of deleting them.
+- Stopping a FastMediaSorter broadcast no longer freezes the window.
+- The setup wipes its install folder only when that folder holds a previous copy of STREAMS Player.
+- The built-in channel list is current (18 502 live streams as of 2026-09-23).
+```
+
+```text
+Версия 26.1002.2330
+
+- «Настройки» и «Инструменты» теперь одно окно «Настройки» из шести страниц: «Общие», «Библиотека», «Воспроизведение», «Звук», «Файлы» и «О программе». Каталог, плейлисты, скрытые каналы, телепрограмма и видеокомпоненты переехали в него, у каждой настройки есть короткая подсказка, а изменение вступает в силу, как только вы тронули элемент.
+- Выбирайте устройство вывода звука и режим каналов (стерео, обратное стерео, левый, правый или Dolby Surround) для воспроизведения в «Настройках» на странице «Звук».
+- Когда радиостанция даёт сбой, приложение сохраняет настоящую причину и больше не отказывается от станции из-за общей ошибки-обёртки.
+- «Удалить загруженные» оставляет каналы, которые вы закрепили, добавили в подборку или слушали, а не удаляет их.
+- Остановка эфира FastMediaSorter больше не подвешивает окно.
+- Программа установки очищает свою папку, только если в ней лежит прежняя копия STREAMS Player.
+- Встроенный список каналов актуален (18 502 активных потока от 23.09.2026).
+```
+
+```text
+Версія 26.1002.2330
+
+- «Налаштування» та «Інструменти» тепер одне вікно «Налаштування» з шести сторінок: «Загальні», «Бібліотека», «Відтворення», «Звук», «Файли» та «Про програму». Каталог, плейлисти, приховані канали, телепрограма та відеокомпоненти переїхали до нього, кожне налаштування має коротку підказку, а зміна набуває чинності, щойно ви торкнулися елемента.
+- Обирайте пристрій виведення звуку та режим каналів (стерео, зворотне стерео, лівий, правий чи Dolby Surround) для відтворення в «Налаштуваннях» на сторінці «Звук».
+- Коли радіостанція дає збій, застосунок зберігає справжню причину й більше не відмовляється від станції через загальну помилку-обгортку.
+- «Видалити завантажені» залишає канали, які ви закріпили, додали до добірки чи слухали, а не видаляє їх.
+- Зупинка ефіру FastMediaSorter більше не підвішує вікно.
+- Програма встановлення очищає свою теку, лише якщо в ній лежить попередня копія STREAMS Player.
+- Вбудований список каналів актуальний (18 502 активні потоки від 23.09.2026).
+```
+
+#### Store-only What's new for 26.1002.2330
+
+The Store still carries 26.0806.2225 unless Partner Center says otherwise, so this block is the accumulated one:
+everything a Store user has not seen yet, folded to stay under 1 500 characters.
+
+```text
+Version 26.1002.2330
+
+- One Settings window with pages for General, Library, Playback, Audio, Files and About; pick the audio output device and channel mode.
+- Record video or radio to its own folders, with a safe quit and a clear message about what was saved; listen to a live audio broadcast from a FastMediaSorter phone or watch over your local network.
+- See what is on a TV channel now and next from an XMLTV guide you choose.
+- A calm animated background behind the playing station, and a compact radio panel with the track, volume, sleep timer, Random station and an always-on-top option.
+- The "now playing" line on more stations, a topic filter, sharing a channel as one line of text, and playback that resumes where the last session left off.
+- A channel the catalog drops keeps your pins, collections and history, and "Delete downloaded" keeps what you made; a built-in channel list fills the catalog on a first launch with no network.
+- One running copy: a second launch, shortcut or media key goes to it. An error in one action no longer ends the app.
+- Logs carry no passwords or user folder names; only http, https and rtsp addresses are played.
+- Errors name the cause and what to do; a failed radio station keeps its real cause.
+- The player says why the picture stopped, re-opens a stalled stream and remembers per channel the quality the connection holds.
+```
+
+```text
+Версия 26.1002.2330
+
+- Одно окно «Настройки» со страницами «Общие», «Библиотека», «Воспроизведение», «Звук», «Файлы» и «О программе»; выбор устройства вывода звука и режима каналов.
+- Запись видео и радио в отдельные папки, безопасный выход и понятное сообщение о сохранённом; прямой звуковой эфир с телефона или часов с FastMediaSorter по локальной сети.
+- Что идёт на ТВ-канале сейчас и дальше - по гиду XMLTV, который вы выбираете.
+- Спокойный анимированный фон за играющей станцией и компактная радиопанель с треком, громкостью, таймером сна, случайной станцией и режимом «поверх окон».
+- Строка «сейчас в эфире» у большего числа станций, фильтр по темам, отправка канала одной строкой текста и продолжение с места прошлого сеанса.
+- Канал, который каталог убрал, сохраняет закрепления, подборки и историю, а «Удалить загруженные» оставляет созданное вами; встроенный список каналов заполняет каталог при первом запуске без сети.
+- Одна работающая копия: повторный запуск, ярлык или медиаклавиша передаются ей. Сбой в одном действии больше не завершает приложение.
+- В журналах нет паролей и имён папок пользователя; играются только адреса http, https и rtsp.
+- Ошибки называют причину и что делать; сбой радиостанции сохраняет настоящую причину.
+- Плеер объясняет, почему картинка остановилась, переоткрывает зависший поток и помнит для канала качество, которое тянет соединение.
+```
+
+```text
+Версія 26.1002.2330
+
+- Одне вікно «Налаштування» зі сторінками «Загальні», «Бібліотека», «Відтворення», «Звук», «Файли» та «Про програму»; вибір пристрою виведення звуку та режиму каналів.
+- Запис відео та радіо в окремі теки, безпечний вихід і зрозуміле повідомлення про збережене; прямий звуковий ефір з телефона чи годинника з FastMediaSorter локальною мережею.
+- Що йде на ТБ-каналі зараз і далі - за гідом XMLTV, який ви обираєте.
+- Спокійне анімоване тло за станцією, що грає, і компактна радіопанель з треком, гучністю, таймером сну, випадковою станцією та режимом «поверх вікон».
+- Рядок «зараз в ефірі» в більшої кількості станцій, фільтр за темами, надсилання каналу одним рядком тексту і продовження з місця попереднього сеансу.
+- Канал, який каталог прибрав, зберігає закріплення, добірки та історію, а «Видалити завантажені» залишає створене вами; вбудований список каналів наповнює каталог під час першого запуску без мережі.
+- Одна працююча копія: повторний запуск, ярлик чи медіаклавіша передаються їй. Збій в одній дії більше не завершує програму.
+- У журналах немає паролів та імен тек користувача; відтворюються лише адреси http, https і rtsp.
+- Помилки називають причину й що робити; збій радіостанції зберігає справжню причину.
+- Плеєр пояснює, чому картинка зупинилась, перевідкриває завислий потік і пам'ятає для каналу якість, яку тягне з'єднання.
+```
+
 ### Prepared for 26.1001.0140
 
 Supersedes nothing: the 26.0924.1704 tag shipped as prepared below. Recording to its own folders, the TV schedule, one running copy, fault
@@ -1127,7 +1220,7 @@ Individual third-party streams can be offline or use formats unsupported by the 
 ## runFullTrust justification
 
 ```text
-StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. runFullTrust is required to launch the desktop executable and use its Windows and LibVLC-based media and thumbnail components. Network requests occur only for an explicit catalog refresh and the optional preview artwork the user accepts after it, selected stream playback and recording, enabled Grid thumbnail updates, a FastMediaSorter broadcast the user imported (a device on the same local network), and the optional FFmpeg libraries the user downloads from Tools. The app has no account, advertising, analytics, telemetry, or personal-data collection. Source code: https://github.com/SerZhyAle/StreamsPlayer
+StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. runFullTrust is required to launch the desktop executable and use its Windows and LibVLC-based media and thumbnail components. Network requests occur only for an explicit catalog refresh and the optional preview artwork the user accepts after it, selected stream playback and recording, enabled Grid thumbnail updates, a FastMediaSorter broadcast the user imported (a device on the same local network), and the optional FFmpeg libraries the user downloads from Settings. The app has no account, advertising, analytics, telemetry, or personal-data collection. Source code: https://github.com/SerZhyAle/StreamsPlayer
 ```
 
 ## Privacy and age-rating declarations
@@ -1141,7 +1234,7 @@ StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. run
   author-run service. Network destinations, each on a user action only - the catalog and the optional
   preview artwork (GitHub release assets); the stream provider of a channel the user plays, previews,
   measures or records; a FastMediaSorter device on the local network the user imported; the FFmpeg
-  libraries from `github.com/BtbN` when requested in Tools. Stored locally only - catalog state,
+  libraries from `github.com/BtbN` when requested in Settings. Stored locally only - catalog state,
   added and imported channels, pins, collections, hidden channels, history, playback marks, cached
   previews within 150 MB, and the diagnostic logs of the last ten launches. **Send logs to the author**
   prepares an archive and a mail message; the user sends it, the app never does.
@@ -1155,7 +1248,7 @@ composed cards or extra captures without unrelated windows or unsupported claims
 
 1. Grid of video channels with live preview frames - the lead screenshot, `DesktopScreenshot1`.
 2. Catalog in List mode.
-3. Compact Settings window showing tile size, thumbnail preference, version, and links.
+3. Settings window showing pages, language, theme, tile size, version, licence and links.
 4. Video player showing always-on-top and fullscreen controls.
 5. Optional Add stream dialog and filtering example.
 

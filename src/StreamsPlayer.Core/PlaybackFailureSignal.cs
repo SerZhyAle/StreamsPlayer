@@ -15,4 +15,9 @@ public sealed record PlaybackFailureSignal(
     // itself, not read off the engine - which is exactly why it is a flag and not a reason token: a
     // reason string saying "open_timeout" would be classified by the substring rules as an ordinary
     // transient timeout and would spend the wrong budget.
-    bool OpenTimedOut = false);
+    bool OpenTimedOut = false,
+    // SP-0189: the player established that its own engine failed - it refused to start the connection, or the
+    // engine, its player or its media could not be created - so no re-open can succeed. A flag for the same
+    // reason as OpenTimedOut: the radio used to say this with an exception type name it stamped on every engine
+    // error, network ones included, and the classifier could not tell the two apart.
+    bool LocalEngineFailure = false);
