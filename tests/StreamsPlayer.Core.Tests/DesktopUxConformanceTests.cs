@@ -48,6 +48,13 @@ public sealed class DesktopUxConformanceTests
         ["VideoComponentsCancel_Click"] = "cancels ongoing components download",
         ["AudioDeviceBox_SelectionChanged"] = "applies the audio output device choice on touch",
         ["AudioChannelBox_SelectionChanged"] = "applies the audio channel mode on touch",
+        ["NavList_SelectionChanged"] = "switches the visible settings page; private navigation context, commits nothing (SP-0191)",
+        ["SettingsSearch_TextChanged"] = "filters the settings search inventory; private navigation, commits nothing (SP-0191, WINDOWS-UI 3.5)",
+        ["SettingsSearchBox_KeyDown"] = "lets Escape leave the search before the window and Enter activate a result (SP-0191)",
+        ["SearchResultsList_KeyDown"] = "keyboard activation of a search result (Enter/Space) and Escape back to the search box (SP-0191, WINDOWS-UI 3.4/3.5)",
+        ["SearchResultsList_Click"] ="navigates to the chosen setting: page, expanded group, scrolled and focused editor (SP-0191, WINDOWS-UI 3.4)",
+        ["SettingsExpandAll_Click"] = "changes group visibility only; commits nothing (SP-0191, WINDOWS-UI 2.3)",
+        ["SettingsCollapseAll_Click"] = "changes group visibility only; commits nothing (SP-0191, WINDOWS-UI 2.3)",
         ["Window_KeyDown"] = "closes the settings window on Escape key"
     };
 
@@ -112,6 +119,87 @@ public sealed class DesktopUxConformanceTests
         // SP-0188: Save and Cancel are eliminated; all reversible settings apply immediately on touch.
         Assert.DoesNotContain(markup.Descendants(), element => element.Attribute("Click")?.Value == "Save_Click");
         Assert.DoesNotContain(markup.Descendants(), element => element.Attribute("Click")?.Value == "Cancel_Click");
+    }
+
+    /// <summary>
+    /// SP-0191: <c>APP-SETTINGS</c> rule 2, read statically - About is the last destination of the
+    /// settings navigation, in the same place in every language. The check reads the declared
+    /// automation names, which are resource references, so it cannot drift with a retranslation.
+    /// The navigation is a list box since the WINDOWS-UI rework; the declaration is what matters,
+    /// never the control class.
+    /// </summary>
+    [Fact]
+    public void TheSettingsNavigationEndsWithAbout()
+    {
+        var markup = SettingsMarkup();
+        var pages = markup.Descendants()
+            .Where(element => element.Name.LocalName == "ListBoxItem")
+            .Select(element => element.Attribute("AutomationProperties.Name")?.Value)
+            .ToList();
+
+        Assert.True(pages.Count >= 2, "The settings navigation has no pages.");
+        Assert.Equal("{DynamicResource SettingsAbout}", pages.Last());
+        Assert.Equal(pages.Count, pages.Distinct().Count());
+    }
+
+    /// <summary>
+    /// SP-0191: every collapsible settings group carries a stable internal ID (<c>WINDOWS-UI</c>
+    /// section 3.3) - the key the group's expansion and the page viewport are remembered by. A group
+    /// without one cannot be restored, and a duplicate would make two groups share one memory.
+    /// </summary>
+    [Fact]
+    public void EverySettingsGroupHasAStableUniqueId()
+    {
+        var markup = SettingsMarkup();
+        var ids = markup.Descendants()
+            .Where(element => element.Name.LocalName == "Expander")
+            .Select(element => element.Attributes()
+                .Single(attribute => attribute.Name.LocalName == "SettingsUiProperties.GroupId").Value)
+            .ToList();
+
+        Assert.NotEmpty(ids);
+        Assert.DoesNotContain(ids, string.IsNullOrEmpty);
+        Assert.Equal(ids.Count, ids.Distinct().Count());
+    }
+
+    /// <summary>
+    /// SP-0191: a value row (<c>WINDOWS-UI</c> section 4) is a two-column grid - caption and hint in
+    /// the leading column, the editor in the trailing one. A child left without a column attribute
+    /// lands in column 0 and draws over the caption, which no compiler or binding error reports; the
+    /// first audit found eight editors placed that way.
+    /// </summary>
+    [Fact]
+    public void EveryValueRowPutsItsEditorInTheTrailingColumn()
+    {
+        var markup = SettingsMarkup();
+        var rows = markup.Descendants()
+            .Where(element => element.Name.LocalName == "Grid"
+                && element.Attribute("Style")?.Value == "{StaticResource ValueRow}")
+            .ToList();
+        var problems = new List<string>();
+
+        foreach (var row in rows)
+        {
+            var children = row.Elements().Where(element => !element.Name.LocalName.StartsWith("Grid.", StringComparison.Ordinal)).ToList();
+            if (children.Count != 2)
+            {
+                problems.Add($"SettingsWindow.xaml:{((IXmlLineInfo)row).LineNumber}: a value row holds {children.Count} children, not caption + editor.");
+                continue;
+            }
+
+            if (children[0].Attribute("Grid.Column") is { } leading && leading.Value != "0")
+            {
+                problems.Add($"SettingsWindow.xaml:{((IXmlLineInfo)children[0]).LineNumber}: the caption is not in the leading column.");
+            }
+
+            if (children[1].Attribute("Grid.Column")?.Value != "1")
+            {
+                problems.Add($"SettingsWindow.xaml:{((IXmlLineInfo)children[1]).LineNumber}: the editor is not in the trailing column (Grid.Column=\"1\").");
+            }
+        }
+
+        Assert.NotEmpty(rows);
+        Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
     }
 
     [Fact]

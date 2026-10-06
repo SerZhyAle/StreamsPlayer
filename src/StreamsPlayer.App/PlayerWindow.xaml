@@ -73,6 +73,12 @@
                     <Button x:Name="RecordButton" Style="{StaticResource PlayerOverlayRecordGlyphButton}"
                             Click="RecordButton_Click" ToolTip="{DynamicResource RecordTip}"
                             AutomationProperties.Name="{DynamicResource Record}" />
+                    <!-- SP-0191: pin the control panel so it stays over the video (WINDOWS-UI 8.4). The glyph
+                         shows the toggle's state: the declared off form when not pinned, action.pin when
+                         pinned. The accessible name is the toggle's one meaning either way. -->
+                    <Button x:Name="PinControlsButton" Style="{StaticResource PlayerOverlayControlsUnpinnedGlyphButton}"
+                            Click="PinControlsButton_Click" ToolTip="{DynamicResource PlayerPinControlsName}"
+                            AutomationProperties.Name="{DynamicResource PlayerPinControlsName}" />
                     <Button x:Name="FullscreenButton" Style="{StaticResource PlayerOverlayFullscreenGlyphButton}" Content="{DynamicResource Fullscreen}" Click="FullscreenButton_Click"
                             ToolTip="{DynamicResource FullscreenTip}" />
                     <Button x:Name="ActionsButton" Style="{StaticResource PlayerOverlayActionsGlyphButton}" Click="ActionsButton_Click"

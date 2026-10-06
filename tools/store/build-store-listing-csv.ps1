@@ -283,6 +283,19 @@ foreach ($column in $languageColumns) {
         Language = $language
         Deck     = Read-Deck -Path $deckPath
     })
+
+    # WINDOWS-STORE rule 9. Partner Center drops a whole language over one long cell and names only the field.
+    # Refuse here, where the deck line is known: Feature rows allow 200 characters (rejected on 2026-10-02 for
+    # fr Feature6 at 206), the short description 1,000 and the description 10,000 (msix/listing/README.md).
+    # The numbers are observed, and Partner Center's own message is the authority over them.
+    $lastDeck = $targets[$targets.Count - 1].Deck
+    foreach ($key in @($lastDeck.Keys)) {
+        $limit = if ($key -match '^Feature\d+$') { 200 } elseif ($key -eq 'ShortDescription') { 1000 } elseif ($key -eq 'Description') { 10000 } else { 0 }
+        $length = "$($lastDeck[$key])".Trim().Length
+        if ($limit -gt 0 -and $length -gt $limit) {
+            $failures.Add("${column}: $key is $length characters; Partner Center allows $limit (msix/listing/$($language.ListingCode).txt).")
+        }
+    }
 }
 
 $missing = @($languages | Where-Object { $languageColumns -notcontains $_.ListingCode })

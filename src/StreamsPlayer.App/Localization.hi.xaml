@@ -361,6 +361,14 @@
     <sys:String x:Key="SettingsName">सेटिंग खोलें</sys:String>
     <sys:String x:Key="SettingsWindowTitle">STREAMS Player सेटिंग</sys:String>
     <sys:String x:Key="DiagnosticsHeading">निदान</sys:String>
+    <sys:String x:Key="SettingsExpandAll">सभी समूह विस्तारित करें</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">सभी समूह संकुचित करें</sys:String>
+    <sys:String x:Key="SettingsContentFilters">सामग्री फ़िल्टर</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">प्लेबैक नियंत्रण पिन करें</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">मूल सेटिंग्स</sys:String>
+    <sys:String x:Key="SettingsGeneralView">कैटलॉग उपस्थिति</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">सेटिंग्स खोजें</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">कोई मेल खाती सेटिंग नहीं</sys:String>
     <sys:String x:Key="GridSettings">ग्रिड</sys:String>
     <sys:String x:Key="ThemeLabel">रंग थीम</sys:String>
     <sys:String x:Key="ThemeSystem">सिस्टम सेटिंग का पालन करें</sys:String>

@@ -361,6 +361,14 @@
     <sys:String x:Key="SettingsName">Відкрити налаштування</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Налаштування «Трансляцій»</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Діагностика</sys:String>
+    <sys:String x:Key="SettingsExpandAll">Розгорнути всі групи</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">Згорнути всі групи</sys:String>
+    <sys:String x:Key="SettingsContentFilters">Фільтри вмісту</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">Закріпити панель керування</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">Основні налаштування</sys:String>
+    <sys:String x:Key="SettingsGeneralView">Вигляд каталогу</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">Пошук у налаштуваннях</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">Відповідних налаштувань немає</sys:String>
     <sys:String x:Key="GridSettings">Сітка</sys:String>
     <sys:String x:Key="ThemeLabel">Колірна тема</sys:String>
     <sys:String x:Key="ThemeSystem">Слідувати системним налаштуванням</sys:String>

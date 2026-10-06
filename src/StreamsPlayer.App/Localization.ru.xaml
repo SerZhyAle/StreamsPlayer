@@ -358,6 +358,14 @@
     <sys:String x:Key="SettingsName">Открыть настройки</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Настройки Трансляции</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Диагностика</sys:String>
+    <sys:String x:Key="SettingsExpandAll">Развернуть все группы</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">Свернуть все группы</sys:String>
+    <sys:String x:Key="SettingsContentFilters">Фильтры содержимого</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">Закрепить панель управления</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">Основные настройки</sys:String>
+    <sys:String x:Key="SettingsGeneralView">Вид каталога</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">Поиск по настройкам</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">Подходящих настроек нет</sys:String>
     <sys:String x:Key="GridSettings">Сетка</sys:String>
     <sys:String x:Key="ThemeLabel">Цветовая тема</sys:String>
     <sys:String x:Key="ThemeSystem">Следовать настройкам системы</sys:String>

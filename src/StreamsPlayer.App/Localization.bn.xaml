@@ -361,6 +361,14 @@
     <sys:String x:Key="SettingsName">সেটিংস খুলুন</sys:String>
     <sys:String x:Key="SettingsWindowTitle">STREAMS Player সেটিংস</sys:String>
     <sys:String x:Key="DiagnosticsHeading">সমস্যা নির্ণয়</sys:String>
+    <sys:String x:Key="SettingsExpandAll">সব গ্রুপ প্রসারিত করুন</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">সব গ্রুপ সংকুচিত করুন</sys:String>
+    <sys:String x:Key="SettingsContentFilters">কন্টেন্ট ফিল্টার</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">প্লেব্যাক নিয়ন্ত্রণ পিন করুন</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">মূল সেটিংস</sys:String>
+    <sys:String x:Key="SettingsGeneralView">ক্যাটালগ চেহারা</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">সেটিংস খুঁজুন</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">কোনো মিল পাওয়া যায়নি</sys:String>
     <sys:String x:Key="GridSettings">গ্রিড</sys:String>
     <sys:String x:Key="ThemeLabel">রঙের থিম</sys:String>
     <sys:String x:Key="ThemeSystem">সিস্টেম সেটিং অনুসরণ করুন</sys:String>

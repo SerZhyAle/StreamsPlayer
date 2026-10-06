@@ -14,8 +14,9 @@ amendment is written in the store, not here.
 | File | Contract ID | Function | Role |
 | --- | --- | --- | --- |
 | [APP-BEHAVIOUR.md](APP-BEHAVIOUR.md) | `APP-BEHAVIOUR` | Desktop Application UX Behavior (12 shared moments) | **Owner**, P/C |
-| [APP-SETTINGS.md](APP-SETTINGS.md) | `APP-SETTINGS` | Desktop Application Settings Surface Anatomy & Layout | Consumer (adopted 2026-10-02, SP-0188) |
+| [APP-SETTINGS.md](APP-SETTINGS.md) | `APP-SETTINGS` | Desktop Application Settings Surface Anatomy & Layout | Consumer (adopted 2026-10-02, SP-0188; re-verified at 0.2, SP-0191) |
 | [APP-STYLE.md](APP-STYLE.md) | `APP-STYLE` | Desktop Palette Vocabulary and Dynamic Theming | **Owner**, P/C |
+| [WINDOWS-UI.md](WINDOWS-UI.md) | `WINDOWS-UI` | Shared Windows settings, dialogs and working-viewer profile | Consumer (adopted 2026-10-05, SP-0191) |
 | [USER-PLAYLIST.md](USER-PLAYLIST.md) | `USER-PLAYLIST` | User Stream Playlists & Extended M3U8 Interchange | **Owner**, P/C |
 | [DIAGNOSTIC-REPORT.md](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | Diagnostic Bundle, Environment Summary & Redaction | **Owner**, P/C |
 | [STREAM-BANK.md](STREAM-BANK.md) | `STREAM-BANK` | Published Stream Catalog ZIP & Artwork Atlas | Consumer |
@@ -34,8 +35,9 @@ amendment is written in the store, not here.
 | [CAPTURE-OUTPUT.md](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | Produced Files: Kind, Prefix, Name, Folder and Format | Producer (read 2026-09-26; deviations by exception, aligned by SP-0179) |
 | [PACKAGE-VERSIONING.md](PACKAGE-VERSIONING.md) | `PACKAGE-VERSIONING` | Package Version Timestamping & Parity | Consumer |
 | [INPUT-PARITY.md](INPUT-PARITY.md) | `INPUT-PARITY` | Device Input Parity & Media Key Controls | Consumer (media keys contributor) |
+| [WINDOWS-STORE.md](WINDOWS-STORE.md) | `WINDOWS-STORE` | Microsoft Store Package, Listing Import File & Listing Content | **Owner**, P (written 2026-10-03; rungs 3-4 open, registry exception until 2026-11-03) |
 
-Four of these are **owned here** (`APP-BEHAVIOUR`, `APP-STYLE`, `USER-PLAYLIST`, `DIAGNOSTIC-REPORT`). That changes what a disagreement means: for a contract this product only
+Five of these are **owned here** (`APP-BEHAVIOUR`, `APP-STYLE`, `USER-PLAYLIST`, `DIAGNOSTIC-REPORT`, `WINDOWS-STORE`). That changes what a disagreement means: for a contract this product only
 consumes, a difference is this repository's defect until the owner says otherwise; for one it owns, a
 difference is an amendment this repository has to write, in the store, before the code moves - including
 when the defect was found in somebody else's product.

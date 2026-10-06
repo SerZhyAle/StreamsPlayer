@@ -361,6 +361,14 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="SettingsName">Einstellungen öffnen</sys:String>
     <sys:String x:Key="SettingsWindowTitle">STREAMS Player Einstellungen</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Diagnose</sys:String>
+    <sys:String x:Key="SettingsExpandAll">Alle Gruppen aufklappen</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">Alle Gruppen einklappen</sys:String>
+    <sys:String x:Key="SettingsContentFilters">Inhaltsfilter</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">Wiedergabesteuerung anheften</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">Grundeinstellungen</sys:String>
+    <sys:String x:Key="SettingsGeneralView">Katalogansicht</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">Einstellungen durchsuchen</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">Keine passenden Einstellungen</sys:String>
     <sys:String x:Key="GridSettings">Raster</sys:String>
     <sys:String x:Key="ThemeLabel">Farbdesign</sys:String>
     <sys:String x:Key="ThemeSystem">Systemeinstellung verwenden</sys:String>

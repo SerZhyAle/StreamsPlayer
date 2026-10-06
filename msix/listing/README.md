@@ -28,6 +28,17 @@ pwsh -NoProfile -File tools/store/write-release-notes.ps1 `
   -Export ~/Downloads/listingData-9NBTD5SXB8TB-<id>.csv -Version 26.0806.2225
 ```
 
+The two tools run in this order, because the notes writer matches the raw export's own row (an unquoted
+`ReleaseNotes,3,Text,` line) and the builder quotes every field on the way out. Copy the export into
+`msix/dist/store-listing-export.csv` first, then:
+
+```powershell
+pwsh -NoProfile -File tools/store/write-release-notes.ps1 -Export msix/dist/store-listing-export.csv `
+  -Version <version> -Out msix/dist/store-listing-with-notes.csv
+pwsh -NoProfile -File tools/store/build-store-listing-csv.ps1 -Export msix/dist/store-listing-with-notes.csv `
+  -Out msix/dist/store-listing-import.csv        # add -ReplaceCopy when a claim has changed
+```
+
 Everything a submission needs is assembled in `msix/dist`: the MSIX, this CSV, and the screenshot
 payload. Never hand Partner Center a file from the download folder - the export sitting there carries a
 BOM the import rejects, and nothing tells you that is why.

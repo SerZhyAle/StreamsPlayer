@@ -172,10 +172,10 @@ Assista do seu jeito
 Mantenha a janela principal ou o player sempre visível, ou vá para tela cheia sem bordas com F11 (Esc sai).
 
 @@cap-window-2
-O player é uma janela própria - minimize o catálogo e a imagem continua.
+O player é uma janela própria - minimize o catálogo e a imagem continua. Fixe o painel de controles para que ele não se esconda.
 
 @@cap-window-3
-Blocos de transmissão de muito pequenos a grandes, uma janela de configurações redimensionável e um tema claro, escuro ou o do Windows.
+Blocos de transmissão de muito pequenos a grandes, um tema claro, escuro ou o do Windows e uma janela de configurações com pesquisa e grupos recolhíveis que reabre onde você parou.
 
 @@cap-window-4
 Guarde o quadro atual como JPEG.

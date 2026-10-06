@@ -172,10 +172,10 @@ Regarder à votre façon
 Gardez la fenêtre principale ou le lecteur au premier plan, ou passez en plein écran sans bordure avec F11 (Esc pour quitter).
 
 @@cap-window-2
-Le lecteur est une fenêtre à part - réduisez le catalogue, l'image continue.
+Le lecteur est une fenêtre à part - réduisez le catalogue, l'image continue. Épinglez le panneau de commandes pour qu'il reste affiché.
 
 @@cap-window-3
-Vignettes de flux de très petites à grandes, une fenêtre de réglages redimensionnable et un thème clair, sombre ou celui de Windows.
+Vignettes de flux de très petites à grandes, un thème clair, sombre ou celui de Windows, et une fenêtre de réglages avec recherche et groupes repliables qui rouvre là où vous l'avez laissée.
 
 @@cap-window-4
 Enregistrez l'image en cours au format JPEG.

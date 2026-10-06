@@ -108,9 +108,10 @@ code or features.
   video to a borderless full screen with the button or `F11` (`Esc` exits). The
   player's three-dot actions menu keeps its own always-on-top switch alongside
   pinning and adding the stream to an existing or new collection. In either
-  windowed or full screen mode, the player's control panel disappears after ten
+  windowed or full screen mode, the player's control panel disappears after four
   seconds without input; click the video to bring it back without interrupting
-  playback. The player is a top-level window in its own right: minimizing or
+  playback, or press the pin on the panel to keep it on screen - the pin applies
+  to every player window and is remembered. The player is a top-level window in its own right: minimizing or
   restoring the catalog no longer takes the picture with it, while quitting the
   catalog still closes every player.
 - Switch between the list and a persisted visual grid with one header button that
@@ -126,16 +127,25 @@ code or features.
   where the row carries one. It appears in the list and on the grid tile, in the
   light and the dark theme alike; where a captured preview frame exists, the
   frame is still what you see.
-- Open Settings from the gear button in the header (or from **Library settings** in the **Operations** menu) to configure preferences and run maintenance actions across 6 organized pages:
+- Open Settings from the gear button in the header (or from **Library settings** in the **Operations** menu)
+  to configure preferences and run maintenance actions. Six pages are listed down the side of the window,
+  each with its own coloured glyph; the page you are on carries an accent bar, and its title and a short
+  description head the page. Related settings sit in named groups that you collapse one at a time, or all
+  at once with the two buttons beside the search box. Each setting shows its name and a short hint with its
+  control beside them, and a checkbox stays next to its caption. Type in **Search settings** to find a
+  setting by its name or its hint: every result names its page and group, and choosing one - a click, or
+  `Down` and `Enter` - opens that page, expands the group and puts the cursor on the setting. The pages:
   - **General**: choose the interface language (**Language**, marked with a globe; 13 languages, endonyms only), colour theme (**Follow system**, **Light**, or **Dark**), stream tile size (**Very Small**, **Small**, **Medium**, or **Large**), and animated backdrop;
   - **Library**: hide adult channels, toggle automatic thumbnail updates, import external catalog archives, apply the built-in channel snapshot, cleanly delete downloaded or imported catalogs with a confirmation, import and export M3U playlists, manage hidden channels, and configure the TV schedule;
   - **Playback**: keep the computer awake, show system media controls, resume playback on startup, choose the video engine (**VLC** or experimental **FlyleafLib**), and download or remove FlyleafLib components;
-  - **Audio**: audio output device configuration and playback health;
+  - **Audio**: choose the audio output device and the channel mode (stereo, reversed stereo, left, right, or Dolby Surround);
   - **Files**: choose folders for saved frames, video recordings, and radio recordings, with quick buttons to browse, reset to default, or open the folder;
   - **About**: view product details and `YY.MMDD.HHmm` version, view the MIT licence, open documentation, source, website, privacy, and author links, and generate diagnostic log bundles with **Send logs to the author**.
-  Settings apply immediately upon touch, and **Close** (or Escape) is the sole exit.
+  Settings apply immediately upon touch, and closing the window (or `Esc`; in the search box the first `Esc` clears the search) is the
+  sole exit. Settings reopens on the page you left, with the same groups open, scrolled back to where you
+  were, and at the size and position you gave it.
 - Save the frame you are watching from the player's camera button: a JPEG named
-  `video_frame_YYMMDD_HHmmss_<channel>` lands in the frames folder set on the **Files** tab,
+  `video_frame_YYMMDD_HHmmss_<channel>` lands in the frames folder set on the **Files** page,
   or in the Frames folder inside Pictures when that is empty, and the same frame becomes the
   channel icon. A second frame in the same second gets ` (2)`; a folder that cannot be written
   sends the file to the next one - the default, then Downloads - and the message says where it went.
@@ -144,7 +154,7 @@ code or features.
   interrupting playback, and shows the saved file name on stop. A video recording is named
   `stream_video_YYMMDD_HHmmss_<channel>` and goes to the Recordings folder inside Videos, a radio
   recording `stream_audio_..` to the Recordings folder inside Music, unless you chose other
-  folders on the **Files** tab.
+  folders on the **Files** page.
   A video recording survives reconnects - each connection becomes its own file and all of
   them are reported at the end; a radio recording is named after the format the station
   really sends and follows a `.pls`/`.m3u` link to the stream, and when the station drops
@@ -155,7 +165,7 @@ code or features.
 - Answer a failed stream from the failure dialog - **Retry**, **Copy report**,
   **Keep**, or remove it: a catalog channel is hidden and a channel of your own is
   deleted after a confirmation. Hidden catalog channels survive a refresh and come
-  back from **Hidden** on the **Library** tab in **Settings**.
+  back from **Hidden** on the **Library** page in **Settings**.
 - Add a stream manually and keep local playback outcome marks.
 - Ask **About channel**, from a channel's three-dot menu or from the player's
   actions menu, to see one page of everything known about it: what the channel is
@@ -171,7 +181,7 @@ code or features.
   a channel you removed stays as a non-playable label.
 - See what is on a TV channel now and next from a TV schedule you choose: paste
   the address of an XMLTV guide (`.xml` or `.xml.gz`, for example one from the
-  iptv-org/epg project) under **TV schedule** on the **Library** tab in **Settings** and press **Download
+  iptv-org/epg project) under **TV schedule** on the **Library** page in **Settings** and press **Download
   schedule**. The channel list then shows the current programme under each
   matched channel, and the player shows the current and next programme with
   their times, in your local time. Channels are matched by exact name; a name the
@@ -220,15 +230,15 @@ code or features.
   reachable instead of an endless "Connecting". The app does not amplify a quiet
   microphone: the volume is whatever the device sends.
 - Delete every downloaded catalog stream in one confirmed action from the
-  **Library** tab in **Settings** and keep only your own `MANUAL`/`IMPORTED`
+  **Library** page in **Settings** and keep only your own `MANUAL`/`IMPORTED`
   channels; **Import channels from the internet** downloads them again whenever
   you want them back.
 - Switch the complete interface between thirteen languages from the **Language**
-  selector on the **General** tab in Settings - marked with a globe - including right-to-left
+  selector on the **General** page in Settings - marked with a globe - including right-to-left
   layout for Arabic and Urdu; the choice is restored on the next launch, and the
   first launch follows Windows.
 - Choose whether the interface follows the Windows colour theme, stays light,
-  or stays dark from the **General** tab in Settings; following Windows is the
+  or stays dark from the **General** page in Settings; following Windows is the
   default, an explicit choice is restored on the next launch, and the system
   choice updates in the same session when Windows changes.
 - Group channels into local named collections, browse one collection at a time
@@ -283,10 +293,10 @@ code or features.
   logs of the last ten launches under `%LOCALAPPDATA%\StreamsPlayer` -
   `Current.log` for the running session, `Session-<date>-<time>.log` for the
   nine before it.
-- Report a problem with **Send logs to the author** on the **About** tab in **Settings**:
+- Report a problem with **Send logs to the author** on the **About** page in **Settings**:
   it packs those diagnostic logs plus a short summary of your app
   version, Windows version and settings into one archive in the **frames folder**
-  when you chose one on the **Files** tab, or in Downloads, then opens
+  when you chose one on the **Files** page, or in Downloads, then opens
   your mail program with the message prepared. Its confirmation shows the complete
   path and can open that folder when you ask. Nothing is sent automatically - you
   attach the archive and press Send. The logs name the streams that were played, so
@@ -316,7 +326,7 @@ one.
 
 Video and RTSP can also run on a second, experimental engine, FlyleafLib, chosen
 in **Settings → Playback** as a fallback for a stream that misbehaves under VLC.
-It needs FFmpeg libraries that are not shipped with the application; that tab
+It needs FFmpeg libraries that are not shipped with the application; that page
 states whether they are installed, downloads them on request, and VLC
 stays the default until you change it.
 
@@ -380,7 +390,7 @@ channel remains in your library; its address is never placed in the shortcut or 
 Recreate shortcuts made by older versions to remove any address they already stored.
 
 An ordinary launch without arguments starts nothing. Turn on **Resume playback on startup** on the
-Playback tab in Settings and a launch brings back whatever was playing when you last closed the app -
+Playback page in Settings and a launch brings back whatever was playing when you last closed the app -
 the radio station and every player window alike. It is off by default.
 
 ## Development
@@ -418,9 +428,9 @@ it offers afterwards (both from GitHub); when you play, record or ask **About
 channel** for a stream, or keep Grid mode active while visible video previews
 refresh (all to that stream's own provider); when you listen to a
 FastMediaSorter broadcast you imported (directly to that device on your local
-network); and when you download the optional FFmpeg libraries in **Tools**
+network); and when you download the optional FFmpeg libraries in **Settings (Playback)**
 (from a third-party GitHub project, `BtbN/FFmpeg-Builds`); and when you press
-**Download schedule** in **Tools** (from the TV schedule address you entered
+**Download schedule** in **Settings (Library)** (from the TV schedule address you entered
 yourself). Local data leaves your device only if you
 send it yourself - **Send logs to the author** prepares an archive and a message in
 your own mail program, and never sends anything on its own. See the

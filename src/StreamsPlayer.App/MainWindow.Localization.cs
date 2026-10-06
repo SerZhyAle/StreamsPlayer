@@ -147,6 +147,22 @@ public partial class MainWindow
         }
     }
 
+    // SP-0191: the keep-the-player-controls-visible preference is global; persisting it also applies
+    // it to every player window that is already open (WINDOWS-UI 8.4).
+    private async Task SetKeepPlayerControlsVisibleAsync(bool visible)
+    {
+        if ((_stateCommitter?.Requested ?? _state).KeepPlayerControlsVisible == visible)
+        {
+            return;
+        }
+
+        await PersistAsync(state => state with { KeepPlayerControlsVisible = visible });
+        foreach (var window in _playerWindows)
+        {
+            window.ApplyControlsPin(visible);
+        }
+    }
+
     private async Task SaveVideoAudioPreferencesAsync(int volume, bool muted)
     {
         var requested = _stateCommitter?.Requested ?? _state;

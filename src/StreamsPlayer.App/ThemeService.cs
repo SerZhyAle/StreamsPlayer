@@ -47,7 +47,19 @@ public static class ThemeService
             // surfaces and lighter on the dark ones, so the mark keeps its contrast in both themes.
             ["SuccessBrush"] = (Color.FromRgb(30, 126, 52), Color.FromRgb(86, 196, 110)),
             ["WarningBrush"] = (Color.FromRgb(239, 108, 0), Color.FromRgb(230, 180, 60)),
-            ["DangerBrush"] = (Color.FromRgb(178, 34, 34), Color.FromRgb(255, 107, 107))
+            ["DangerBrush"] = (Color.FromRgb(178, 34, 34), Color.FromRgb(255, 107, 107)),
+            // SP-0191: the settings navigation's per-destination identity inks (ICON-RENDER 0.16
+            // section 11, WINDOWS-UI 6.6). One table, light and dark values per destination, every
+            // pair measured at 3:1 or better against every surface the nav row actually draws -
+            // ControlBrush, ControlHoverBrush and CardSelectedBrush in both themes (gated in
+            // IconographyConformanceTests alongside the ordinary glyph roles). Selection and the
+            // accent bar stay palette roles; the ink identifies the destination, never the state.
+            ["NavInkGeneral"] = (Color.FromRgb(35, 100, 170), Color.FromRgb(120, 189, 255)),
+            ["NavInkLibrary"] = (Color.FromRgb(22, 110, 58), Color.FromRgb(96, 211, 126)),
+            ["NavInkPlayback"] = (Color.FromRgb(168, 48, 59), Color.FromRgb(255, 118, 118)),
+            ["NavInkAudio"] = (Color.FromRgb(122, 44, 160), Color.FromRgb(214, 143, 255)),
+            ["NavInkFiles"] = (Color.FromRgb(150, 82, 18), Color.FromRgb(255, 190, 112)),
+            ["NavInkAbout"] = (Color.FromRgb(90, 101, 122), Color.FromRgb(196, 208, 224))
         };
 
     private static AppTheme _preference = AppTheme.System;

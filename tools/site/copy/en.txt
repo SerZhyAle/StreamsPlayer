@@ -172,10 +172,10 @@ Watch your way
 Keep the main window or player always on top, or go borderless full screen with F11 (Esc exits).
 
 @@cap-window-2
-The player is a window of its own - minimize the catalog and the picture keeps playing.
+The player is a window of its own - minimize the catalog and the picture keeps playing. Pin its control panel to keep it on screen.
 
 @@cap-window-3
-Very Small to Large stream tiles, a resizable Settings window, and a light, dark or Windows-matching theme.
+Very Small to Large stream tiles, a light, dark or Windows-matching theme, and a Settings window with search and collapsible groups that reopens where you left it.
 
 @@cap-window-4
 Save the frame you are watching as a JPEG.

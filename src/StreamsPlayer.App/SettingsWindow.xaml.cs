@@ -12,24 +12,49 @@ namespace StreamsPlayer.App;
 /// <summary>
 /// SP-0188: the unified settings surface holding both values and operations across 6 topic pages,
 /// laid out by <c>APP-SETTINGS</c> and <c>APP-BEHAVIOUR</c>. Values apply on touch; Close is the sole exit.
+/// <para>
+/// SP-0191: the window also keeps its private navigation context (<c>WINDOWS-UI</c> section 3.3) -
+/// the last page, each group's expansion and each page's viewport anchor, plus the user's normal
+/// window rectangle (<c>APP-BEHAVIOUR</c> rule 10) - in <c>settings-ui.json</c>, a sibling document
+/// outside <see cref="CatalogState"/>. Context is navigation state only: restoring it never fires an
+/// edit handler, and saving it costs one small file, never the catalog document. That context lives in
+/// <c>SettingsWindow.Context.cs</c>, the settings search in <c>SettingsWindow.Search.cs</c>.
+/// </para>
 /// </summary>
 public partial class SettingsWindow : Window
 {
-    private static int s_lastSelectedPageIndex = 0;
+    private static readonly string[] PageNameKeys =
+        ["SettingsGeneral", "SettingsLibrary", "SettingsPlayback", "SettingsAudio", "SettingsFiles", "SettingsAbout"];
+
+    private static readonly string[] PageDescKeys =
+        ["SettingsGeneralDesc", "SettingsLibraryDesc", "SettingsPlaybackDesc", "SettingsAudioDesc", "SettingsFilesDesc", "SettingsAboutDesc"];
 
     private readonly MainWindow _mainWindow;
     private readonly Func<ToolsAction, Window, Task> _runAction;
     private readonly Func<TvScheduleIndex> _tvSchedule;
     private readonly Dictionary<CaptureKind, string?> _captureFolders = [];
     private readonly bool _initialResumePlaybackOnStartup;
+    private readonly SettingsUiStateStore _uiContextStore;
+    private SettingsUiState _uiContext = new();
     private bool _initializing = true;
+    private bool _restoringContext;
+    private bool _syncingNav;
+    private int _currentPageIndex;
     private bool _actionRunning;
     private bool _closeByRunningAction;
+    private bool _placedFromMemory;
     private CancellationTokenSource? _installCancellation;
 
     internal SettingsWindow(MainWindow mainWindow, Func<ToolsAction, Window, Task> runAction, Func<TvScheduleIndex> tvSchedule, int? initialPageIndex = null)
     {
         InitializeComponent();
+
+        // The context decides the initial page, the group expansion and the window rectangle, and all
+        // three have to be settled before the window is shown; a constructor cannot await, and the
+        // file is a few kilobytes (see SettingsUiStateStore.LoadSync).
+        _uiContextStore = new SettingsUiStateStore(AppPaths.DataDirectory);
+        _uiContext = _uiContextStore.LoadSync();
+
         _mainWindow = mainWindow;
         _runAction = runAction;
         _tvSchedule = tvSchedule;
@@ -57,12 +82,45 @@ public partial class SettingsWindow : Window
             ApplyCatalogSnapshotButton.Visibility = Visibility.Collapsed;
         }
 
-        var targetPageIndex = initialPageIndex ?? s_lastSelectedPageIndex;
-        if (targetPageIndex >= 0 && targetPageIndex < SettingsTabControl.Items.Count)
+        foreach (var expander in AllExpanders())
         {
-            SettingsTabControl.SelectedIndex = targetPageIndex;
+            expander.Expanded += Group_ExpandedChanged;
+            expander.Collapsed += Group_ExpandedChanged;
         }
 
+        _restoringContext = true;
+        var targetPageIndex = initialPageIndex
+            ?? (_uiContext.LastPageIndex >= 0 && _uiContext.LastPageIndex < PageNameKeys.Length
+                ? _uiContext.LastPageIndex
+                : 0);
+        foreach (var expander in AllExpanders())
+        {
+            if (_uiContext.Groups.TryGetValue(SettingsUiProperties.GetGroupId(expander) ?? string.Empty, out var expanded))
+            {
+                expander.IsExpanded = expanded;
+            }
+        }
+        NavVersionText.Text = ProductInfo.Version;
+        _currentPageIndex = Math.Clamp(targetPageIndex, 0, PageNameKeys.Length - 1);
+        SyncHeader();
+        ShowPageOnly(_currentPageIndex);
+        NavList.SelectedIndex = _currentPageIndex;
+        _restoringContext = false;
+
+        if (_uiContext.Window is { } remembered && remembered.IsUsable)
+        {
+            // Placed before it is seen, then fitted to the surviving work area once the window has a
+            // transform of its own (OnSourceInitialized) - the two passes a DPI change between
+            // sessions requires (APP-BEHAVIOUR rule 10).
+            _placedFromMemory = true;
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = remembered.Left;
+            Top = remembered.Top;
+            Width = remembered.Width;
+            Height = remembered.Height;
+        }
+
+        Loaded += SettingsWindow_Loaded;
         _initializing = false;
     }
 
@@ -135,7 +193,11 @@ public partial class SettingsWindow : Window
         PopulateOptions();
         ShowTvSchedule();
         ShowVideoComponents();
+        SyncHeader();
         _initializing = false;
+        // The language change re-measured every caption; the viewport anchor is a group ID precisely
+        // so the same group can be brought back to the top after the heights above it moved.
+        RestoreViewportSoon();
     }
 
     private void LanguageBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -443,8 +505,6 @@ public partial class SettingsWindow : Window
 
     protected override void OnClosing(CancelEventArgs e)
     {
-        s_lastSelectedPageIndex = SettingsTabControl.SelectedIndex;
-
         if (_actionRunning && !_closeByRunningAction)
         {
             if (_installCancellation is not null)
@@ -464,6 +524,11 @@ public partial class SettingsWindow : Window
                 base.OnClosing(e);
                 return;
             }
+        }
+
+        if (!e.Cancel)
+        {
+            SaveNavigationContext();
         }
 
         if (!e.Cancel && _initialResumePlaybackOnStartup && !_mainWindow.State.ResumePlaybackOnStartup)
@@ -589,6 +654,8 @@ public partial class SettingsWindow : Window
     {
         if (e.Key == System.Windows.Input.Key.Escape)
         {
+            // The search owns the first Escape while its results are open (SettingsSearchBox_KeyDown
+            // handles that before this bubbling handler runs); a clear window closes.
             Close();
             e.Handled = true;
         }

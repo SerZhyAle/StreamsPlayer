@@ -361,6 +361,14 @@
     <sys:String x:Key="SettingsName">打开设置</sys:String>
     <sys:String x:Key="SettingsWindowTitle">STREAMS Player 设置</sys:String>
     <sys:String x:Key="DiagnosticsHeading">诊断</sys:String>
+    <sys:String x:Key="SettingsExpandAll">展开所有分组</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">折叠所有分组</sys:String>
+    <sys:String x:Key="SettingsContentFilters">内容筛选</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">固定播放控件</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">基本设置</sys:String>
+    <sys:String x:Key="SettingsGeneralView">目录外观</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">搜索设置</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">没有匹配的设置</sys:String>
     <sys:String x:Key="GridSettings">网格</sys:String>
     <sys:String x:Key="ThemeLabel">颜色主题</sys:String>
     <sys:String x:Key="ThemeSystem">跟随系统设置</sys:String>

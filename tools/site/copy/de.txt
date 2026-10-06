@@ -172,10 +172,10 @@ Ansicht nach Ihrem Wunsch
 Hauptfenster oder Player immer im Vordergrund halten oder randloses Vollbild per F11 (Esc beendet es).
 
 @@cap-window-2
-Der Player ist ein eigenes Fenster - minimieren Sie den Katalog, das Bild läuft weiter.
+Der Player ist ein eigenes Fenster - minimieren Sie den Katalog, das Bild läuft weiter. Heften Sie die Steuerleiste an, damit sie sichtbar bleibt.
 
 @@cap-window-3
-Kacheln von sehr klein bis groß, ein größenveränderbares Einstellungsfenster und ein helles, dunkles oder Windows-eigenes Farbschema.
+Kacheln von sehr klein bis groß, ein helles, dunkles oder Windows-eigenes Farbschema und ein Einstellungsfenster mit Suche und einklappbaren Gruppen, das dort wieder öffnet, wo Sie aufgehört haben.
 
 @@cap-window-4
 Aktuelles Bild als JPEG speichern.

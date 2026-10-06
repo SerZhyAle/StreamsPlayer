@@ -361,6 +361,14 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="SettingsName">Apri le impostazioni</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Impostazioni di STREAMS Player</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Diagnostica</sys:String>
+    <sys:String x:Key="SettingsExpandAll">Espandi tutti i gruppi</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">Comprimi tutti i gruppi</sys:String>
+    <sys:String x:Key="SettingsContentFilters">Filtri dei contenuti</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">Blocca i controlli di riproduzione</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">Impostazioni di base</sys:String>
+    <sys:String x:Key="SettingsGeneralView">Aspetto del catalogo</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">Cerca nelle impostazioni</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">Nessuna impostazione corrispondente</sys:String>
     <sys:String x:Key="GridSettings">Griglia</sys:String>
     <sys:String x:Key="ThemeLabel">Tema colore</sys:String>
     <sys:String x:Key="ThemeSystem">Segui le impostazioni di sistema</sys:String>

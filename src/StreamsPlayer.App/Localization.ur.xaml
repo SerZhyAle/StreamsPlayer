@@ -361,6 +361,14 @@
     <sys:String x:Key="SettingsName">ترتیبات کھولیں</sys:String>
     <sys:String x:Key="SettingsWindowTitle">STREAMS Player کی ترتیبات</sys:String>
     <sys:String x:Key="DiagnosticsHeading">تشخیص</sys:String>
+    <sys:String x:Key="SettingsExpandAll">تمام گروپس کھولیں</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">تمام گروپس بند کریں</sys:String>
+    <sys:String x:Key="SettingsContentFilters">مواد کے فلٹر</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">پلے بیک کنٹرولز کو پن کریں</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">بنیادی ترتیبات</sys:String>
+    <sys:String x:Key="SettingsGeneralView">کیٹلاگ کی شکل</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">ترتیبات تلاش کریں</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">کوئی میچنگ ترتیب نہیں</sys:String>
     <sys:String x:Key="GridSettings">گرڈ</sys:String>
     <sys:String x:Key="ThemeLabel">رنگ تھیم</sys:String>
     <sys:String x:Key="ThemeSystem">سسٹم کی ترتیب پر عمل کریں</sys:String>

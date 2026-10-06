@@ -58,6 +58,10 @@ public partial class PlayerWindow : Window
     private readonly Func<bool> _isPinned;
     // Pins/unpins this channel in the catalog; the owner (MainWindow) persists and re-filters.
     private readonly Func<bool, Task> _savePinned;
+    // SP-0191: persists the keep-the-controls-visible preference; the owner (MainWindow) persists it
+    // and applies it to the other open player windows.
+    private readonly Func<bool, Task>? _saveKeepControlsVisible;
+    private bool _controlsPinned;
     private readonly Func<IReadOnlyList<ChannelCollection>> _getCollections;
     private readonly Func<Guid, bool, Task> _saveCollectionMembership;
     private readonly Func<string, Task<bool>> _createCollection;
@@ -152,7 +156,9 @@ public partial class PlayerWindow : Window
         bool startFullscreen = false,
         bool quietUntilLive = false,
         string? audioOutputDevice = null,
-        AudioChannelMode audioChannelMode = AudioChannelMode.Stereo)
+        AudioChannelMode audioChannelMode = AudioChannelMode.Stereo,
+        bool keepControlsVisible = false,
+        Func<bool, Task>? saveKeepControlsVisible = null)
     {
         InitializeComponent();
         _channel = channel;
@@ -187,6 +193,10 @@ public partial class PlayerWindow : Window
         UpdateMuteButton();
         _controlsHideTimer = new DispatcherTimer { Interval = ControlsHideTimeout };
         _controlsHideTimer.Tick += ControlsHideTimer_Tick;
+        // SP-0191: a pinned panel stays over the video (WINDOWS-UI 8.4); the preference is global and
+        // reaches the other open player windows through MainWindow.
+        _saveKeepControlsVisible = saveKeepControlsVisible;
+        ApplyControlsPin(keepControlsVisible);
         _statsTimer = new DispatcherTimer { Interval = StatsSampleInterval };
         _statsTimer.Tick += StatsTimer_Tick;
         _volumeSaveTimer = new DispatcherTimer { Interval = VolumeSaveDelay };
@@ -1282,6 +1292,13 @@ public partial class PlayerWindow : Window
         }
 
         ControlPanel.Visibility = Visibility.Visible;
+        if (_controlsPinned)
+        {
+            // SP-0191: the panel is pinned - visible is its resting state, and nothing counts down.
+            _controlsHideTimer.Stop();
+            return;
+        }
+
         _controlsHideTimer.Stop();
         _controlsHideTimer.Start();
     }
@@ -1289,6 +1306,11 @@ public partial class PlayerWindow : Window
     private void ControlsHideTimer_Tick(object? sender, EventArgs e)
     {
         _controlsHideTimer.Stop();
+        if (_controlsPinned)
+        {
+            return;
+        }
+
         if (_openControlPanelMenus.Count > 0)
         {
             _controlsHideTimer.Start();
@@ -1296,6 +1318,43 @@ public partial class PlayerWindow : Window
         }
 
         ControlPanel.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>
+    /// SP-0191: applies the keep-visible preference and draws the toggle's state
+    /// (<c>ICON-RENDER</code> 3 rule 4). The style swap and the name re-point live in the same block:
+    /// the name is the one meaning both states share, and it is carried by resource so a language
+    /// change follows it.
+    /// </summary>
+    internal void ApplyControlsPin(bool pinned)
+    {
+        _controlsPinned = pinned;
+        PinControlsButton.Style = (Style)FindResource(pinned
+            ? "PlayerOverlayControlsPinnedGlyphButton"
+            : "PlayerOverlayControlsUnpinnedGlyphButton");
+        PinControlsButton.SetResourceReference(FrameworkElement.ToolTipProperty, "PlayerPinControlsName");
+        PinControlsButton.SetResourceReference(System.Windows.Automation.AutomationProperties.NameProperty, "PlayerPinControlsName");
+        if (pinned)
+        {
+            ShowControls();
+        }
+        else if (ControlPanel.Visibility == Visibility.Visible)
+        {
+            _controlsHideTimer.Stop();
+            _controlsHideTimer.Start();
+        }
+    }
+
+    private void PinControlsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_saveKeepControlsVisible is { } save)
+        {
+            HandlerBoundary.Run("PinControlsButton_Click", () => save(!_controlsPinned));
+        }
+        else
+        {
+            ApplyControlsPin(!_controlsPinned);
+        }
     }
 
     private void Window_KeyDown(object sender, KeyEventArgs e)

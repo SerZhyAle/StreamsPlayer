@@ -361,6 +361,14 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="SettingsName">Ouvrir les paramètres</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Paramètres de STREAMS Player</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Diagnostic</sys:String>
+    <sys:String x:Key="SettingsExpandAll">Déplier tous les groupes</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">Replier tous les groupes</sys:String>
+    <sys:String x:Key="SettingsContentFilters">Filtres de contenu</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">Épingler les commandes de lecture</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">Réglages de base</sys:String>
+    <sys:String x:Key="SettingsGeneralView">Apparence du catalogue</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">Rechercher dans les paramètres</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">Aucun paramètre correspondant</sys:String>
     <sys:String x:Key="GridSettings">Grille</sys:String>
     <sys:String x:Key="ThemeLabel">Thème de couleur</sys:String>
     <sys:String x:Key="ThemeSystem">Suivre les paramètres système</sys:String>

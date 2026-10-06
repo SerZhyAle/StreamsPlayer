@@ -377,6 +377,14 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="SettingsName">Open Settings</sys:String>
     <sys:String x:Key="SettingsWindowTitle">STREAMS Player settings</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Diagnostics</sys:String>
+    <sys:String x:Key="SettingsExpandAll">Expand all groups</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">Collapse all groups</sys:String>
+    <sys:String x:Key="SettingsContentFilters">Content filters</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">Pin the playback controls</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">Basic settings</sys:String>
+    <sys:String x:Key="SettingsGeneralView">Catalog view</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">Search settings</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">No matching settings</sys:String>
     <sys:String x:Key="GridSettings">Grid</sys:String>
     <sys:String x:Key="ThemeLabel">Colour theme</sys:String>
     <sys:String x:Key="ThemeSystem">Follow system</sys:String>

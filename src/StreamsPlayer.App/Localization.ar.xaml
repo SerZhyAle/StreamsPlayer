@@ -361,6 +361,14 @@
     <sys:String x:Key="SettingsName">فتح الإعدادات</sys:String>
     <sys:String x:Key="SettingsWindowTitle">إعدادات STREAMS Player</sys:String>
     <sys:String x:Key="DiagnosticsHeading">التشخيص</sys:String>
+    <sys:String x:Key="SettingsExpandAll">توسيع جميع المجموعات</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">طي جميع المجموعات</sys:String>
+    <sys:String x:Key="SettingsContentFilters">عوامل تصفية المحتوى</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">تثبيت عناصر التحكم في التشغيل</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">الإعدادات الأساسية</sys:String>
+    <sys:String x:Key="SettingsGeneralView">مظهر الدليل</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">البحث في الإعدادات</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">لا توجد إعدادات مطابقة</sys:String>
     <sys:String x:Key="GridSettings">الشبكة</sys:String>
     <sys:String x:Key="ThemeLabel">سمة الألوان</sys:String>
     <sys:String x:Key="ThemeSystem">اتباع إعدادات النظام</sys:String>

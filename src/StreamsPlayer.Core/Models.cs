@@ -416,6 +416,16 @@ public sealed record CatalogState
 
     public bool MainWindowTopmost { get; init; }
     public bool PlayerWindowTopmost { get; init; }
+
+    /// <summary>
+    /// When true, a player window's floating control panel stays visible until the user unpins it;
+    /// when false (default) it hides after its idle delay, as before (SP-0191, <c>WINDOWS-UI</c>
+    /// section 8.4: each floating panel can be pinned, and a global keep-visible preference is
+    /// meaningful across them). A global preference rather than a per-channel one: the pin describes
+    /// how the user watches, not which channel they watch. An older state file lacking this key
+    /// deserializes to the initializer default, preserving the auto-hide behaviour.
+    /// </summary>
+    public bool KeepPlayerControlsVisible { get; init; }
     public int VideoVolume { get; init; } = 100;
     public bool VideoMuted { get; init; }
     public int AudioVolume { get; init; } = 100;

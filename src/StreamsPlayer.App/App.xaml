@@ -33,6 +33,14 @@
             <SolidColorBrush x:Key="SuccessBrush" Color="#FF1E7E34" />
             <SolidColorBrush x:Key="WarningBrush" Color="#FFEF6C00" />
             <SolidColorBrush x:Key="DangerBrush" Color="#FFB22222" />
+            <!-- SP-0191: the settings navigation's identity inks (design-time defaults; the live pairs
+                 are ThemeService's NavInk* table). -->
+            <SolidColorBrush x:Key="NavInkGeneral" Color="#FF2364AA" />
+            <SolidColorBrush x:Key="NavInkLibrary" Color="#FF166E3A" />
+            <SolidColorBrush x:Key="NavInkPlayback" Color="#FFA8303B" />
+            <SolidColorBrush x:Key="NavInkAudio" Color="#FF7A2CA0" />
+            <SolidColorBrush x:Key="NavInkFiles" Color="#FF965212" />
+            <SolidColorBrush x:Key="NavInkAbout" Color="#FF5A657A" />
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
             </Style>
@@ -171,8 +179,11 @@
                                 <Border x:Name="CheckBorder" Width="15" Height="15" Margin="0,0,6,0"
                                         VerticalAlignment="Center" Background="{DynamicResource ControlBrush}"
                                         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="2">
+                                    <!-- Never mirrored (SP-0113): a right-to-left window flips the box's
+                                         position, not the check mark drawn inside it. -->
                                     <Path x:Name="CheckMark" Data="{StaticResource Chrome.check-box}" Stroke="{DynamicResource AccentBrush}"
-                                          StrokeThickness="2" StrokeLineJoin="Round" Visibility="Collapsed" />
+                                          StrokeThickness="2" StrokeLineJoin="Round" Visibility="Collapsed"
+                                          FlowDirection="LeftToRight" />
                                 </Border>
                                 <ContentPresenter Grid.Column="1" VerticalAlignment="Center" Content="{TemplateBinding Content}"
                                                   ContentTemplate="{TemplateBinding ContentTemplate}" />
@@ -346,6 +357,63 @@
             <Style TargetType="TabControl">
                 <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            </Style>
+            <!-- SP-0191: an independently collapsible settings group (WINDOWS-UI 3.1-3.2), drawn as the
+                 reference draws it: a full-width soft bar carries the disclosure glyph and the bold
+                 caption, the whole bar is the activation target, and the chevron shows the action a
+                 click performs (nav.expand when collapsed, nav.collapse when open). Collapse changes
+                 visibility only; the Expander's automation peer carries the expand/collapse state. -->
+            <Style x:Key="SettingsGroup" TargetType="Expander">
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Margin" Value="0,0,0,6" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Expander">
+                            <StackPanel>
+                                <ToggleButton x:Name="HeaderSite" FocusVisualStyle="{StaticResource ThemedFocusVisualInset}"
+                                              IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border x:Name="HeaderBorder" Background="{DynamicResource CardSelectedBrush}"
+                                                    CornerRadius="4" Padding="10,9" SnapsToDevicePixels="True">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Viewbox Width="14" Height="14" VerticalAlignment="Center" Margin="0,0,9,0"
+                                                             FlowDirection="LeftToRight">
+                                                        <Path x:Name="Disclosure" Data="{StaticResource Icon.nav.collapse}"
+                                                              Width="24" Height="24" Fill="{DynamicResource MutedBrush}" />
+                                                    </Viewbox>
+                                                    <ContentPresenter ContentSource="Content" VerticalAlignment="Center"
+                                                                      TextElement.FontWeight="SemiBold" />
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="False">
+                                                    <Setter TargetName="Disclosure" Property="Data" Value="{StaticResource Icon.nav.expand}" />
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource ControlHoverBrush}" />
+                                                    <Setter TargetName="Disclosure" Property="Fill" Value="{DynamicResource TextBrush}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                    <ContentPresenter ContentSource="Header" />
+                                </ToggleButton>
+                                <ContentPresenter x:Name="ExpandSite" ContentSource="Content" Margin="2,10,2,2" Visibility="Collapsed" />
+                            </StackPanel>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsExpanded" Value="True">
+                                    <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.55" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
             <Style TargetType="TabItem">
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
@@ -973,6 +1041,29 @@
             </Style>
             <Style x:Key="ChooseFolderGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.action.choose-folder}" />
+            </Style>
+            <!-- SP-0191: the settings header's expand/collapse-all commands (WINDOWS-UI 2.3). Glyph-only,
+                 so each carries a localized accessible name and tooltip at the call site. These sit after
+                 GlyphOnlyButton on purpose: a StaticResource BasedOn resolves against this dictionary in
+                 order, and a forward reference surfaces only when the first window that uses the style
+                 parses - as a XamlParseException on open. -->
+            <Style x:Key="SettingsExpandAllGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="Padding" Value="7,6" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.nav.expand}" />
+            </Style>
+            <Style x:Key="SettingsCollapseAllGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="Padding" Value="7,6" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.nav.collapse}" />
+            </Style>
+            <!-- SP-0191: the player control panel's pin (WINDOWS-UI 8.4). A toggle draws its state: the
+                 pin glyph when the panel is pinned, the declared off form when it is not. Out of theme
+                 with every player overlay style (the panel sits over live video); the accessible name is
+                 the one meaning either way and is re-pointed by resource wherever the style is swapped. -->
+            <Style x:Key="PlayerOverlayControlsUnpinnedGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphOnlyButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.pin--off}" />
+            </Style>
+            <Style x:Key="PlayerOverlayControlsPinnedGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphOnlyButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.pin}" />
             </Style>
 
 

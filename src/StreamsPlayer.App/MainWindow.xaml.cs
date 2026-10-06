@@ -1606,7 +1606,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             startFullscreen,
             quiet,
             (_stateCommitter?.Requested ?? _state).AudioOutputDevice,
-            (_stateCommitter?.Requested ?? _state).AudioChannelMode) { Owner = this };
+            (_stateCommitter?.Requested ?? _state).AudioChannelMode,
+            (_stateCommitter?.Requested ?? _state).KeepPlayerControlsVisible,
+            SetKeepPlayerControlsVisibleAsync) { Owner = this };
         AttachTvSchedule(window, channel);
         _openPlayerWindows++;
         _playerWindows.Add(window);

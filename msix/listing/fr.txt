@@ -32,7 +32,7 @@ Vues en liste et en grille visuelle, avec tailles de vignettes au choix et vigne
 Station de radio tirée au hasard dans tout le catalogue - si elle reste muette, la suivante prend le relais
 
 @@Feature6
-Panneau radio compact avec la station, le titre, le volume, la minuterie de veille, les stations précédente et suivante et l'enregistrement - au-dessus des autres fenêtres jusqu'à ce que vous le désactiviez
+Panneau radio compact avec station, titre, volume, minuterie de veille, stations précédente et suivante et enregistrement - au-dessus des autres fenêtres tant que vous le souhaitez
 
 @@Feature7
 Mode « toujours au premier plan » indépendant pour l'application et le lecteur vidéo, et plein écran sans bordure avec F11 et Escape

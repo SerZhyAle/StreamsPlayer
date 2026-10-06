@@ -172,10 +172,10 @@ Guardare come vuoi
 Mantieni la finestra principale o il lettore sempre in primo piano, oppure passa a schermo intero senza bordi con F11 (Esc esce).
 
 @@cap-window-2
-Il lettore è una finestra a sé - riduci a icona il catalogo e l'immagine continua.
+Il lettore è una finestra a sé - riduci a icona il catalogo e l'immagine continua. Fissa il pannello dei controlli perché resti visibile.
 
 @@cap-window-3
-Riquadri dei flussi da molto piccoli a grandi, una finestra delle impostazioni ridimensionabile e un tema chiaro, scuro o quello di Windows.
+Riquadri dei flussi da molto piccoli a grandi, un tema chiaro, scuro o quello di Windows e una finestra delle impostazioni con ricerca e gruppi comprimibili che si riapre dove l'hai lasciata.
 
 @@cap-window-4
 Salva il fotogramma corrente come JPEG.

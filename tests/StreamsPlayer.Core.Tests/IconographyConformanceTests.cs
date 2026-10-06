@@ -160,9 +160,11 @@ public sealed class IconographyConformanceTests
     {
         // ICON-RENDER 3. The roles a glyph is painted in, on every surface a glyph sits on, in both themes.
         // The pressed fills are left out: they last as long as the mouse button is down and are feedback,
-        // not a surface a glyph is read on.
+        // not a surface a glyph is read on. The NavInk* roles are the settings navigation's identity
+        // inks (SP-0191, ICON-RENDER 0.16 section 11): their surface set is the same theme table, which
+        // includes every fill a nav row actually draws (Control, ControlHover, CardSelected).
         var palette = Palette();
-        string[] roles = ["TextBrush", "MutedBrush", "DangerBrush"];
+        string[] roles = ["TextBrush", "MutedBrush", "DangerBrush", "NavInkGeneral", "NavInkLibrary", "NavInkPlayback", "NavInkAudio", "NavInkFiles", "NavInkAbout"];
         string[] surfaces = ["WindowBackground", "SurfaceBrush", "ControlBrush", "ControlHoverBrush", "CardBrush", "CardSelectedBrush", "SectionBrush"];
         var problems = new List<string>();
         for (var theme = 0; theme < 2; theme++)

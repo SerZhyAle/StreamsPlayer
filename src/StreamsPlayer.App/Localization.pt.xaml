@@ -361,6 +361,14 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="SettingsName">Abrir as configurações</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Configurações do STREAMS Player</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Diagnóstico</sys:String>
+    <sys:String x:Key="SettingsExpandAll">Expandir todos os grupos</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">Recolher todos os grupos</sys:String>
+    <sys:String x:Key="SettingsContentFilters">Filtros de conteúdo</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">Fixar os controlos de reprodução</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">Configurações básicas</sys:String>
+    <sys:String x:Key="SettingsGeneralView">Aparência do catálogo</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">Procurar nas definições</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">Sem definições correspondentes</sys:String>
     <sys:String x:Key="GridSettings">Grade</sys:String>
     <sys:String x:Key="ThemeLabel">Tema de cor</sys:String>
     <sys:String x:Key="ThemeSystem">Seguir as definições do sistema</sys:String>

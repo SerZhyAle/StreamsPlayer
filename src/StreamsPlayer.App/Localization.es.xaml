@@ -361,6 +361,14 @@
     <sys:String x:Key="SettingsName">Abrir los ajustes</sys:String>
     <sys:String x:Key="SettingsWindowTitle">Ajustes de STREAMS Player</sys:String>
     <sys:String x:Key="DiagnosticsHeading">Diagnóstico</sys:String>
+    <sys:String x:Key="SettingsExpandAll">Desplegar todos los grupos</sys:String>
+    <sys:String x:Key="SettingsCollapseAll">Contraer todos los grupos</sys:String>
+    <sys:String x:Key="SettingsContentFilters">Filtros de contenido</sys:String>
+    <sys:String x:Key="PlayerPinControlsName">Fijar los controles de reproducción</sys:String>
+    <sys:String x:Key="SettingsGeneralBasics">Ajustes básicos</sys:String>
+    <sys:String x:Key="SettingsGeneralView">Aspecto del catálogo</sys:String>
+    <sys:String x:Key="SettingsSearchWatermark">Buscar en los ajustes</sys:String>
+    <sys:String x:Key="SettingsSearchNoResults">No hay ajustes que coincidan</sys:String>
     <sys:String x:Key="GridSettings">Cuadrícula</sys:String>
     <sys:String x:Key="ThemeLabel">Tema de color</sys:String>
     <sys:String x:Key="ThemeSystem">Seguir la configuración del sistema</sys:String>
