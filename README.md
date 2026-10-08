@@ -215,11 +215,16 @@ code or features.
   and asks before adding; files over 64 KiB are refused. The broadcast becomes an
   `IMPORTED` row marked **Live**, and importing again from the same device updates
   that row - address, port, title - instead of adding a duplicate, so pins,
-  collections and history stay; a catalog refresh never removes it. Only audio
-  broadcasts (`AUDIO_ONLY`) play today: a video mode is refused with an
-  explanation, and a descriptor from a newer FastMediaSorter asks you to update
-  StreamsPlayer. The connection is direct over the same local network (LAN) as
-  the device, never through a server. Playback takes a separate low-latency path
+  collections and history stay; a catalog refresh never removes it. Audio and camera
+  broadcasts play. A descriptor may list several ways to reach the same broadcast,
+  and the app tries them in the order the device listed, starting again at the top
+  on a reconnect: the LAN address first; then, when the descriptor names one, your
+  exchange server's relay - an HTTPS stream whose self-signed certificate is checked
+  against the pin the descriptor carries, relayed by a temporary local proxy on
+  127.0.0.1 when the player engine cannot check the pin itself, and never with
+  checking off; then a tunnel. Video reaches the player window over RTSP or, on
+  the LAN, as MPEG-TS; audio keeps its own low-latency connection. Playback takes
+  a separate low-latency path
   aimed at sound within about a second and no more than two seconds behind the
   device; after a dropout it reconnects a bounded number of times and rejoins the
   live moment instead of replaying what was missed. A watch allows only four
@@ -427,8 +432,10 @@ action: when you import the public catalog or accept the optional preview pack
 it offers afterwards (both from GitHub); when you play, record or ask **About
 channel** for a stream, or keep Grid mode active while visible video previews
 refresh (all to that stream's own provider); when you listen to a
-FastMediaSorter broadcast you imported (directly to that device on your local
-network); and when you download the optional FFmpeg libraries in **Settings (Playback)**
+FastMediaSorter broadcast you imported (to that device on your local network, or -
+when the descriptor names it and the LAN address is unreachable - through your
+exchange server's relay over TLS, relayed by a temporary local proxy on 127.0.0.1
+while it plays); and when you download the optional FFmpeg libraries in **Settings (Playback)**
 (from a third-party GitHub project, `BtbN/FFmpeg-Builds`); and when you press
 **Download schedule** in **Settings (Library)** (from the TV schedule address you entered
 yourself). Local data leaves your device only if you

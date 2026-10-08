@@ -51,10 +51,12 @@ public partial class MainWindow
     {
         // SP-0203: the leg walks the descriptor's attempts in the producer's listed order, skipping a
         // transport it cannot open; a reconnect calls this path afresh, which is the restart at the
-        // top. A row with no descriptor (the recognisable legacy address) stays the single attempt
-        // it always was.
-        var attempts = channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints()
-            ?? [new FastMediaSorterBroadcastEndpoint(channel.Url, "HTTP", null, null, null, null, null, null, null)];
+        // top. A row with no descriptor, or one stored before endpoints were listed, stays the single
+        // attempt at its own address that it always was.
+        var listed = channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints();
+        var attempts = listed is { Count: > 0 }
+            ? listed
+            : (IReadOnlyList<FastMediaSorterBroadcastEndpoint>)[new FastMediaSorterBroadcastEndpoint(channel.Url, "HTTP", null, null, null, null, null, null, null)];
 
         var volume = _pendingAudioVolume ?? (_stateCommitter?.Requested ?? _state).AudioVolume;
         FastMediaSorterAudioOpenResult result = new(null, TimeSpan.Zero, null, Cancelled: false);

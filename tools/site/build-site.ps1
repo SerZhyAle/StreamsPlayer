@@ -620,7 +620,7 @@ if ($Check) {
                 if ($language.DictionaryCode -eq 'en') { $page.File } else { "$($language.DictionaryCode)/$($page.File)" }
             }
         }
-        'site.js', 'sitemap.xml', 'robots.txt'
+        '404.html', 'site.js', 'sitemap.xml', 'robots.txt'
     )
     $heldProblems = @(Get-HeldAddressProblem -Root $root -BaseUrl $BaseUrl -GeneratedFile $generatedFiles)
 

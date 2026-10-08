@@ -167,7 +167,7 @@ Buffer ao vivo de cerca de 15 segundos, e o vídeo assenta na qualidade que sua 
 Grave o vídeo ao vivo ou o rádio que está tocando direto em um arquivo, sem interromper a reprodução: o vídeo vai para a pasta Recordings em Vídeos, o rádio para a pasta Recordings em Músicas ou para as pastas que você escolher.
 
 @@cap-play-6
-Ouça uma transmissão de áudio ou vídeo ao vivo de um celular ou relógio com FastMediaSorter, direto pela sua rede local - sem servidor no meio.
+Ouça uma transmissão de áudio ou vídeo ao vivo de um celular ou relógio com FastMediaSorter - pela sua rede local ou pelo retransmissor do seu servidor de troca quando a transmissão oferecer um.
 
 @@cap-window-title
 Assista do seu jeito
@@ -310,7 +310,7 @@ Nenhuma conta é necessária para a reprodução normal. A conta de troca opcion
 Acesso à rede
 
 @@privacy-network
-O aplicativo conecta-se apenas sob sua ação e somente ao destino necessário: o catálogo público de transmissões e o pacote de prévias opcional no GitHub ao importar; o provedor de uma transmissão que você reproduz, grava ou consulta em «Sobre o canal», ou cuja prévia atualiza na grade; um dispositivo FastMediaSorter na sua rede local; e, apenas se solicitado em Configurações na página Reprodução, as bibliotecas FFmpeg opcionais para o mecanismo experimental FlyleafLib (BtbN/FFmpeg-Builds). Cada solicitação vai diretamente ao destino e sujeita-se às políticas dele; nenhuma passa por serviços do autor. O guia de TV é baixado apenas do endereço inserido em Configurações na página Biblioteca, uma vez ao clicar em «Baixar guia», e nunca em segundo plano. A fonte de troca opcional nas configurações da biblioteca conecta-se ao seu servidor por TLS. Envia nome de usuário e senha ou código de pareamento uma vez para o registro, depois identidade do dispositivo, versão do produto, recursos de recepção e token. Mantém uma conexão de controle com sinais de atividade e reconexões enquanto estiver ativada; desativar fecha a conexão. Cada certificado exige aprovação explícita, inclusive após renovação. 
+O aplicativo conecta-se apenas sob sua ação e somente ao destino necessário: o catálogo público de transmissões e o pacote de prévias opcional no GitHub ao importar; o provedor de uma transmissão que você reproduz, grava ou consulta em «Sobre o canal», ou cuja prévia atualiza na grade; um dispositivo FastMediaSorter na sua rede local; e, apenas se solicitado em Configurações na página Reprodução, as bibliotecas FFmpeg opcionais para o mecanismo experimental FlyleafLib (BtbN/FFmpeg-Builds). Cada solicitação vai diretamente ao destino e sujeita-se às políticas dele; nenhuma passa por serviços do autor. O guia de TV é baixado apenas do endereço inserido em Configurações na página Biblioteca, uma vez ao clicar em «Baixar guia», e nunca em segundo plano. A fonte de troca opcional nas configurações da biblioteca conecta-se ao seu servidor por TLS. Envia nome de usuário e senha ou código de pareamento uma vez para o registro, depois identidade do dispositivo, versão do produto, recursos de recepção e token. Mantém uma conexão de controle com sinais de atividade e reconexões enquanto estiver ativada; desativar fecha a conexão. Cada certificado exige aprovação explícita, inclusive após renovação.  Quando uma transmissão é reproduzida através do retransmissor do seu servidor de troca com um certificado fixado, esse fluxo passa por um proxy local temporário em 127.0.0.1 que existe apenas enquanto a transmissão é reproduzida e só é acessível deste dispositivo.
 
 @@privacy-site-title
 Este site

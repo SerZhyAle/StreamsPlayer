@@ -179,10 +179,13 @@ public partial class PlayerWindow
         // SP-0096: one leg, one open budget. A re-open is entitled to its own, which is what makes the
         // budget a per-leg quantity rather than a session-wide one.
         // SP-0203: the leg walks the attempt list from the top (requirement 1's restart rule - a
-        // reconnect is a fresh leg), and the dead-source slice is the first attempt's own.
-        _attemptPlan = _channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints() ?? [SingleAttempt(_channel)];
+        // reconnect is a fresh leg), and the dead-source slice is the first attempt's own. A channel
+        // with no descriptor, or one stored before endpoints were listed, stays the single attempt at
+        // its own address that it always was.
+        var listed = _channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints();
+        _attemptPlan = listed is { Count: > 0 } ? listed : [SingleAttempt(_channel)];
         _attemptIndex = 0;
-        _openBudget = new PlaybackOpenBudget(AttemptSlice(_attemptPlan[0]));
+        _openBudget = new PlaybackOpenBudget(AttemptSlice(_attemptPlan[0], hasSuccessor: _attemptPlan.Count > 1));
         _attemptClock.Restart();
         _firstByteLogged = false;
         _openBudget.Reset();
@@ -313,7 +316,7 @@ public partial class PlayerWindow
         // SP-0096/SP-0208: the new media restarts the engine's counters, so the freeze baseline, the
         // open budget and the attempt clock all start over with this endpoint's rules.
         _freeze.Reset();
-        _openBudget = new PlaybackOpenBudget(AttemptSlice(endpoint));
+        _openBudget = new PlaybackOpenBudget(AttemptSlice(endpoint, hasSuccessor: true));
         _attemptClock.Restart();
         _firstByteLogged = false;
         _buffering = false;
@@ -361,12 +364,24 @@ public partial class PlayerWindow
         _relayProxy = null;
     }
 
-    private static TimeSpan AttemptSlice(FastMediaSorterBroadcastEndpoint endpoint) =>
-        endpoint.Transport is not null &&
+    /// <summary>
+    /// The attempt's dead-source slice: the short LAN bound exists to hand the list to the next
+    /// endpoint, so a last attempt - and any single-attempt channel, catalog rows included - keeps
+    /// the measured eight seconds SP-0096 chose against 311 openings.
+    /// </summary>
+    private static TimeSpan AttemptSlice(FastMediaSorterBroadcastEndpoint endpoint, bool hasSuccessor)
+    {
+        if (!hasSuccessor)
+        {
+            return PlaybackOpenBudget.DeadSourceAfter;
+        }
+
+        return endpoint.Transport is not null &&
             (endpoint.Transport.Equals("RELAY", StringComparison.OrdinalIgnoreCase) ||
              endpoint.Transport.Equals("TUNNEL", StringComparison.OrdinalIgnoreCase))
             ? PlaybackOpenBudget.DeadSourceAfter
             : LanAttemptSlice;
+    }
 
     private static FastMediaSorterBroadcastEndpoint SingleAttempt(StreamChannel channel) =>
         new(
