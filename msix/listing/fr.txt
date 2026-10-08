@@ -1,5 +1,5 @@
 @@ShortDescription
-Parcourez des radios sur Internet et des vidéos en direct dans un lecteur Windows épuré, avec catalogue prêt à l'emploi, favoris locaux, vignettes en direct dans la grille, interface en français et sans compte ni publicité.
+Parcourez des radios sur Internet et des vidéos en direct dans un lecteur Windows épuré, avec catalogue prêt à l'emploi, favoris locaux, vignettes en direct dans la grille, interface en français et sans compte obligatoire ni publicité.
 
 @@Description
 STREAMS Player est une application de bureau Windows indépendante pour parcourir et lire des radios sur Internet, des vidéos en direct et des adresses de flux RTSP.
@@ -10,11 +10,11 @@ Choisissez une liste compacte ou une grille visuelle. En vue en grille, l'applic
 
 Enregistrez dans un fichier la vidéo en direct ou la radio en cours de lecture, sans l'interrompre. Réduisez le catalogue à un panneau radio compact pendant qu'une station joue. Écoutez une diffusion audio en direct depuis un téléphone ou une montre équipés de FastMediaSorter, directement sur votre réseau local. Rangez vos chaînes dans vos propres collections, retrouvez-les grâce à un historique d'écoute privé, et importez ou exportez des listes de lecture M3U.
 
-Le catalogue ne se télécharge que lorsque vous choisissez « Importer des chaînes depuis internet ». STREAMS Player n'a ni compte, ni publicité, ni analyse d'usage, ni télémétrie. L'état du catalogue, les entrées ajoutées à la main, les favoris, les marques de lecture, les paramètres et les vignettes en cache restent dans votre profil Windows.
+Le catalogue ne se télécharge que lorsque vous choisissez « Importer des chaînes depuis internet ». STREAMS Player n'a aucun compte obligatoire, ni publicité, ni analyse d'usage, ni télémétrie. L'état du catalogue, les entrées ajoutées à la main, les favoris, les marques de lecture, les paramètres et les vignettes en cache restent dans votre profil Windows.
 
 La compatibilité de lecture dépend du fournisseur du flux, de la disponibilité du réseau, du protocole et des codecs pris en charge par les composants LibVLC inclus. STREAMS Player n'héberge pas et ne contrôle pas le contenu des flux tiers.
 
-STREAMS Player est un logiciel open source sous licence MIT.
+STREAMS Player est un logiciel open source sous licence MIT. La source d’échange facultative dans les paramètres de bibliothèque se connecte à votre serveur par TLS. Elle envoie l’identifiant et le mot de passe ou le code d’association une fois pour l’inscription, puis l’identité de l’appareil, la version du produit, ses capacités de réception et son jeton. Elle maintient une connexion de contrôle avec messages de présence et reconnexions tant qu’elle est activée ; la désactiver ferme la connexion. Chaque certificat exige votre accord explicite, y compris après renouvellement. Le mot de passe et le code sont supprimés. Le compte, le jeton et l’empreinte sont protégés pour votre utilisateur Windows dans un fichier séparé ; supprimer le compte les efface. Les archives de diagnostic excluent ce fichier et masquent les valeurs du compte. Les connexions d’échange commencent seulement après votre configuration explicite de la source.
 
 @@Feature1
 Catalogue prêt à l'emploi de radios sur Internet, de vidéos en direct et d'adresses RTSP
@@ -44,7 +44,7 @@ Treize langues d'interface, avec mise en page de droite à gauche là où il le 
 Actualisation du catalogue à votre demande uniquement, sans téléchargement surprise en arrière-plan
 
 @@Feature10
-Ni compte, ni publicité, ni analyse d'usage, ni télémétrie
+Compte non requis ; aucune publicité, aucune analyse d'usage, aucune télémétrie
 
 @@Feature11
 Enregistrez dans un fichier la vidéo en direct ou la radio en cours de lecture, sans interrompre la lecture

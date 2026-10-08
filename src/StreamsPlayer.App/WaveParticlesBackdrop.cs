@@ -17,11 +17,10 @@ namespace StreamsPlayer.App;
 /// <para>Draws frames only while somebody can see them (rule 10): the element visible, its window not
 /// minimized, and - inside a scrolling list - inside the viewport. Hidden, it advances no clock, and
 /// coming back resumes the same session.</para>
-/// <para>Motion is replaced by the settled still frame when a power policy freezes this intent (rule 9),
-/// and the backdrop disappears entirely in high contrast mode. Windows "Animation effects" deliberately
-/// does not stop it: the owner decided on 2026-09-23 (SP-0110) that the app's own "Animated background"
-/// switch is the one that governs, and the difference from rule 9 is a dated exception in the contract
-/// registry.</para>
+/// <para>Motion is replaced by the settled still frame when Windows "Animation effects" is off or a power
+/// policy freezes this intent (rule 9), and the backdrop disappears entirely in high contrast mode. The system
+/// animation setting wins over the app's own "Animated background" switch, which can only add stillness
+/// (SP-0186; the earlier dated exception to rule 9 is closed).</para>
 /// <para>Ticks on a dispatcher timer rather than on every composition frame: subscribing to the
 /// composition clock keeps WPF composing at the display's full rate for the whole window, and the
 /// contract's elapsed-time pacing makes the lower rate look the same.</para>
@@ -272,6 +271,13 @@ public sealed class WaveParticlesBackdrop : FrameworkElement
 
         var elapsed = Math.Min(_clock.Elapsed.TotalSeconds, MaximumStepSeconds);
         _clock.Restart();
+        if (WindowCloaking.IsCloaked(_window))
+        {
+            // Rule 10 (0.13): a window on another virtual desktop is cloaked, not minimized. Advance nothing and
+            // draw nothing; the timer keeps asking, which is one cheap DWM call, until it is shown again.
+            return;
+        }
+
         var wash = WashColour();
         session.Step(elapsed, width, height, wash, IsLight(wash));
         InvalidateVisual();

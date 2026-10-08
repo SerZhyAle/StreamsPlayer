@@ -7,7 +7,7 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.App;
 
 /// <summary>Resolves the saved choice to an application palette without leaking Windows APIs into Core.</summary>
-public static class ThemeService
+public static partial class ThemeService
 {
     private const string PersonalizeKey = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
     private const string AppsUseLightThemeValue = "AppsUseLightTheme";
@@ -67,10 +67,22 @@ public static class ThemeService
 
     // SP-0132: what the palette currently holds. UserPreferenceChanged fires for wallpaper, power, locale and
     // a dozen other categories, and each used to re-create every palette brush and re-resolve every
-    // DynamicResource in every window; only a change of this value is worth that.
-    private static bool? _appliedDark;
+    // DynamicResource in every window; only a change of this value is worth that. SP-0211 widens it from
+    // "dark or light" to the whole resolved palette, so a switch of high-contrast theme (same mode, other
+    // colours) is also a change and nothing else is.
+    private static string? _appliedSignature;
 
     public static AppTheme Preference => _preference;
+
+    /// <summary>True when the palette currently held is a dark one; false for light and for high contrast.</summary>
+    public static bool IsDark { get; private set; }
+
+    /// <summary>
+    /// Raised on the UI thread after the palette brushes were replaced - a chosen theme, a system theme
+    /// change or a high-contrast switch. A window that paints something outside the resource tree (the
+    /// native title bar) re-applies it here.
+    /// </summary>
+    public static event Action? PaletteChanged;
 
     public static void Initialize()
     {
@@ -80,7 +92,7 @@ public static class ThemeService
     public static void Apply(AppTheme preference)
     {
         _preference = Enum.IsDefined(preference) ? preference : AppTheme.System;
-        UpdateSystemThemeSubscription();
+        Subscribe();
         ApplyResolvedTheme();
     }
 
@@ -92,52 +104,86 @@ public static class ThemeService
         }
 
         SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+        SystemParameters.StaticPropertyChanged -= SystemParameters_StaticPropertyChanged;
         _listening = false;
     }
 
-    private static void UpdateSystemThemeSubscription()
+    // SP-0211: high contrast is followed whatever the chosen mode (APP-SETTINGS rule 6, WINDOWS-UI 6.5), so
+    // the subscription no longer depends on the preference being System.
+    private static void Subscribe()
     {
-        if (_preference == AppTheme.System && !_listening)
-        {
-            SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
-            _listening = true;
-        }
-        else if (_preference != AppTheme.System && _listening)
-        {
-            Shutdown();
-        }
-    }
-
-    private static void SystemEvents_UserPreferenceChanged(object? sender, UserPreferenceChangedEventArgs e)
-    {
-        if (_preference != AppTheme.System || Application.Current?.Dispatcher is not { HasShutdownStarted: false } dispatcher)
+        if (_listening)
         {
             return;
         }
 
-        _ = dispatcher.BeginInvoke(DispatcherPriority.Normal, ApplyResolvedTheme);
+        SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
+        SystemParameters.StaticPropertyChanged += SystemParameters_StaticPropertyChanged;
+        _listening = true;
+    }
+
+    private static void SystemEvents_UserPreferenceChanged(object? sender, UserPreferenceChangedEventArgs e)
+    {
+        if (e.Category is UserPreferenceCategory.Color or UserPreferenceCategory.General
+            or UserPreferenceCategory.VisualStyle or UserPreferenceCategory.Accessibility)
+        {
+            ReapplySoon();
+        }
+    }
+
+    private static void SystemParameters_StaticPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(SystemParameters.HighContrast))
+        {
+            ReapplySoon();
+        }
+    }
+
+    /// <summary>
+    /// Background priority, so the framework's own cache of system colours and parameters has been
+    /// invalidated by the same settings message before the palette reads it.
+    /// </summary>
+    private static void ReapplySoon()
+    {
+        if (Application.Current?.Dispatcher is not { HasShutdownStarted: false } dispatcher)
+        {
+            return;
+        }
+
+        _ = dispatcher.BeginInvoke(DispatcherPriority.Background, ApplyResolvedTheme);
     }
 
     private static void ApplyResolvedTheme()
     {
-        var isDark = _preference switch
+        var highContrast = SystemParameters.HighContrast;
+        var isDark = !highContrast && _preference switch
         {
             AppTheme.Dark => true,
             AppTheme.Light => false,
             _ => !SystemUsesLightTheme()
         };
 
-        if (_appliedDark == isDark)
+        var system = highContrast ? HighContrastColours() : null;
+        var signature = system is null
+            ? (isDark ? "dark" : "light")
+            : "contrast:" + string.Join(',', system.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => pair.Value));
+        if (_appliedSignature == signature)
         {
             return;
         }
 
-        _appliedDark = isDark;
+        _appliedSignature = signature;
+        IsDark = isDark;
         var resources = Application.Current.Resources;
         foreach (var (key, colors) in Palette)
         {
-            resources[key] = new SolidColorBrush(isDark ? colors.Dark : colors.Light);
+            var color = system is not null && system.TryGetValue(key, out var systemColor)
+                ? systemColor
+                : isDark ? colors.Dark : colors.Light;
+            resources[key] = new SolidColorBrush(color);
         }
+
+        PaletteChanged?.Invoke();
     }
 
     private static bool SystemUsesLightTheme()

@@ -58,14 +58,21 @@ internal static class PlayerGeometryFile
     /// </summary>
     internal static Task RecordAsync(string url, ScreenRect rectangle, DateTimeOffset now)
     {
-        var updated = PlayerWindowGeometry.Record(_cache, url, rectangle, now);
-        if (ReferenceEquals(updated, _cache))
+        while (true)
         {
-            return Task.CompletedTask; // refused as not a rectangle - nothing to write
-        }
+            var current = _cache;
+            var updated = PlayerWindowGeometry.Record(current, url, rectangle, now);
+            if (ReferenceEquals(updated, current))
+            {
+                return Task.CompletedTask; // refused as not a rectangle - nothing to write
+            }
 
-        _cache = updated;
-        return FlushAsync(updated);
+            // Compare-exchange because a reload that leaves the unreadable state replaces the cache from a worker.
+            if (ReferenceEquals(Interlocked.CompareExchange(ref _cache, updated, current), current))
+            {
+                return FlushAsync(updated);
+            }
+        }
     }
 
     private static async Task FlushAsync(IReadOnlyList<ChannelWindowGeometry> entries)
@@ -73,13 +80,41 @@ internal static class PlayerGeometryFile
         await Gate.WaitAsync().ConfigureAwait(false);
         try
         {
-            // Deliberately writes the list handed in rather than re-reading: this process is the only
-            // writer, and the cache it came from is already the merge of every window that has closed.
+            // Writes the list handed in rather than re-reading: this process is the only writer, and the
+            // cache it came from is already the merge of every window that has closed. The one exception
+            // is a file that could not be read at startup (SP-0184): the store refuses every save until a
+            // read succeeds, so each flush retries the read and folds in what the session recorded since.
+            if (Store.IsUnreadable)
+            {
+                entries = await ReloadAsync(entries).ConfigureAwait(false);
+            }
+
             await Store.SaveAsync(entries).ConfigureAwait(false);
         }
         finally
         {
             Gate.Release();
+        }
+    }
+
+    // Under Gate. Returns the list to write: the merge of the file and the session once the file reads, or
+    // the list handed in when it still does not (the store then refuses the save and the file stays intact).
+    private static async Task<IReadOnlyList<ChannelWindowGeometry>> ReloadAsync(IReadOnlyList<ChannelWindowGeometry> entries)
+    {
+        var stored = await Store.LoadAsync().ConfigureAwait(false);
+        if (Store.IsUnreadable)
+        {
+            return entries;
+        }
+
+        while (true)
+        {
+            var current = _cache;
+            var merged = PlayerWindowGeometry.Merge(stored, current);
+            if (ReferenceEquals(Interlocked.CompareExchange(ref _cache, merged, current), current))
+            {
+                return merged;
+            }
         }
     }
 }

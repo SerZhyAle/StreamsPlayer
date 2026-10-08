@@ -77,7 +77,7 @@ if ($commit -match '^[0-9a-f]{40}$') {
     if ($LASTEXITCODE -ne 0) {
         $problems.Add("audited commit $commit is not $Ref or an ancestor of it.")
     } else {
-        $changed = @(git -C $Root diff --name-only "$commit" "$Ref")
+        $changed = @(git -C $Root diff --no-renames --name-only "$commit" "$Ref")
         if ($LASTEXITCODE -ne 0) { throw "git diff $commit $Ref failed (exit $LASTEXITCODE)." }
         $material = @($changed | Where-Object { $_ -notlike 'release-verdicts/*' })
         if ($material.Count -gt 0) {

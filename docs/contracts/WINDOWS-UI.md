@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `WINDOWS-UI` |
-| **Version** | 0.1 (draft) |
+| **Version** | 0.3 (draft) |
 | **Home** | `Contracts/desktop-app-ux/WINDOWS-UI.md` |
 | **Owner** | Fast Media Sorter & Sharing for Windows (the reference viewer); portfolio-wide opt-in decided 2026-10-05 |
 | **This product's role** | **consumer** (opted in by the same portfolio decision; adopted and audited by SP-0191, 2026-10-05) |
@@ -48,3 +48,13 @@ SP-0191 adoption notes, per section:
   backend's native video surface (SP-0072), which keeps it out of every UI Automation tree; its
   buttons therefore could not be driven by the tooling in this environment, and the pin's
   run-and-observe acceptance is recorded for the owner's manual pass (SP-0191).
+
+**0.3, read 2026-10-07 (SP-0206).**
+
+- **2, item 6 (nested navigation rows)** - does not arise: the settings navigation list is flat (six rows, no group
+  headers); the collapsible groups are Expanders inside a page.
+- **5 (show a page with one layout pass; 150 / 500 / 500 ms)** - structurally the shape WPF gives: every page is built
+  once in `InitializeComponent`, `ShowPageOnly` flips visibility, and the remembered scroll is restored at
+  `DispatcherPriority.Loaded`, after layout (`SettingsWindow.Context.cs`). **Not measured**: section 9's first-visit and
+  repeat-visit timings and the comparison with an unoptimized render have not been run, so this row stays at what was
+  read, not at what was timed.

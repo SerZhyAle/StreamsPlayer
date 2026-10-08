@@ -20,6 +20,36 @@ public sealed class CatalogUrlIdentityTests
         Assert.Equal("https://example.com/Live/Feed.m3u8?Token=AbC", result);
     }
 
+    // SP-0184 (S12-3): userinfo is not part of the identity, by design.
+    [Fact]
+    public void Normalize_DropsUserInfoSoALoginDoesNotChangeTheIdentity()
+    {
+        Assert.Equal("http://host.example:8080/x?q=1", CatalogUrlIdentity.Normalize("HTTP://user:secret@Host.Example:8080/x?q=1"));
+        Assert.True(CatalogUrlIdentity.SameIdentity("http://u:p@host/x", "http://host/x"));
+    }
+
+    // SP-0184 (S12-2): a digits-only password containing "/" reads as host:port plus a path.
+    [Theory]
+    [InlineData("http://user:1234/ab@host.example/live.m3u8", "http://host.example/live.m3u8")]
+    [InlineData("rtsp://cam:99/7@cam.example:554/x", "rtsp://cam.example:554/x")]
+    public void RedactText_DropsANumericPasswordThatContainsASlash(string input, string expected)
+    {
+        Assert.Equal(expected, CatalogUrlIdentity.RedactText(input));
+        Assert.Equal(expected, CatalogUrlIdentity.Redact(input));
+        Assert.True(CatalogUrlIdentity.HasCredentials(input));
+        Assert.DoesNotContain("1234", CatalogUrlIdentity.Redact(input));
+    }
+
+    [Theory]
+    [InlineData("http://host.example:8080/path/a.m3u8")]
+    [InlineData("http://host.example:8080/watch?mail=a@b.example")]
+    [InlineData("http://host.example:8080/watch?x=1#frag@b.example")]
+    public void RedactText_LeavesAHostWithAPortAlone(string input)
+    {
+        Assert.Equal(input, CatalogUrlIdentity.RedactText(input));
+        Assert.False(CatalogUrlIdentity.HasCredentials(input));
+    }
+
     [Fact]
     public void IsHidden_MatchesReAddedCatalogUrl()
     {

@@ -105,7 +105,15 @@ public partial class MainWindow
     {
         // SP-0158: while busy the import is refused, so advertising Copy here would promise a copy the
         // window will not perform.
-        e.Effects = !_busy && TryGetBroadcastFile(e, out _) ? DragDropEffects.Copy : DragDropEffects.None;
+        if (!TryGetBroadcastFile(e, out _))
+        {
+            // Not a drag this window accepts: advertise nothing, but leave the event unhandled so a control
+            // with a drop of its own (a text box taking dropped text) still gets to answer it.
+            e.Effects = DragDropEffects.None;
+            return;
+        }
+
+        e.Effects = _busy ? DragDropEffects.None : DragDropEffects.Copy;
         e.Handled = true;
     }
 

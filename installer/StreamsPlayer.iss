@@ -105,9 +105,11 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; carrying the same payload as the archive it is published beside. Everything the user owns lives in
 ; %LOCALAPPDATA%\StreamsPlayer (see the [UninstallDelete] note below), so nothing user-made is here to
 ; lose. The wipe runs after the AppMutex checks above, so a running copy is asked about and never
-; deleted out from under. SP-0183 D6: only when {app} contains a previous StreamsPlayer.exe or unins000.exe.
+; deleted out from under. SP-0183 D6: only when {app} contains a previous StreamsPlayer.exe. SP-0184 (R3-1): or an
+; unins000.exe that this product's own uninstall record claims - every Inno product writes that file name, so
+; its presence alone says nothing about whose folder it is.
 [InstallDelete]
-Type: filesandordirs; Name: "{app}"; Check: FileExistsInApp('StreamsPlayer.exe') or FileExistsInApp('unins000.exe')
+Type: filesandordirs; Name: "{app}"; Check: HoldsPreviousInstallation
 
 [Files]
 ; One recursive line carries the whole self-contained publish, including libvlc\win-x64\ and
@@ -164,4 +166,24 @@ end;
 function FileExistsInApp(FileName: String): Boolean;
 begin
   Result := FileExists(ExpandConstant('{app}\' + FileName));
+end;
+
+// SP-0184 (R3-1): the wipe may run only over a folder this product installed. StreamsPlayer.exe says so by itself.
+// unins000.exe does not: it is the uninstaller name of every Inno Setup product, so a folder holding another
+// program would pass. It counts only when this AppId's uninstall record (the key Inno derives from AppId, with the
+// "_is1" suffix) names this very folder as its install location, per-user or machine-wide.
+function UninstallRecordNamesThisFolder(RootKey: Integer): Boolean;
+var
+  Location: String;
+begin
+  Result := False;
+  if RegQueryStringValue(RootKey, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{15F4F08C-E78B-41B7-9039-6A3332D7D080}_is1', 'Inno Setup: App Path', Location) then
+    Result := SameText(RemoveBackslash(Location), RemoveBackslash(ExpandConstant('{app}')));
+end;
+
+function HoldsPreviousInstallation(): Boolean;
+begin
+  Result := FileExistsInApp('StreamsPlayer.exe');
+  if (not Result) and FileExistsInApp('unins000.exe') then
+    Result := UninstallRecordNamesThisFolder(HKCU) or UninstallRecordNamesThisFolder(HKLM);
 end;

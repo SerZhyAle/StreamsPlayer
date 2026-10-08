@@ -34,7 +34,11 @@ public partial class MainWindow
             return;
         }
 
-        await PersistAsync(state => state with { HiddenCatalogUrls = [.. state.HiddenCatalogUrls, channel.Url] });
+        if (!await TryPersistAsync(state => state with { HiddenCatalogUrls = [.. state.HiddenCatalogUrls, channel.Url] }))
+        {
+            return;
+        }
+
         ForgetRow(channel.Id);
         _log.Event("CHANNEL HIDE", $"url={channel.Url}");
         PopulateFacets();
@@ -51,11 +55,15 @@ public partial class MainWindow
 
         // Rebuild the list without this row, matching strictly by Id so a colliding-URL row is never touched.
         // SP-0017: the same save drops its collection memberships; the collections themselves stay.
-        await PersistAsync(state => state with
+        if (!await TryPersistAsync(state => state with
+            {
+                Channels = state.Channels.Where(item => item.Id != channel.Id).ToList(),
+                Collections = [.. ChannelCollections.RemoveChannelEverywhere(state.Collections, channel.Id)]
+            }))
         {
-            Channels = state.Channels.Where(item => item.Id != channel.Id).ToList(),
-            Collections = [.. ChannelCollections.RemoveChannelEverywhere(state.Collections, channel.Id)]
-        });
+            return;
+        }
+
         ForgetRow(channel.Id);
         _log.Event("CHANNEL DELETE", $"url={channel.Url}");
         PopulateFacets();
@@ -87,13 +95,29 @@ public partial class MainWindow
     /// <summary>Restore a hidden catalog channel. Only the hidden set changes; the channel record is untouched.</summary>
     private async Task UnhideAsync(string url)
     {
-        await PersistAsync(state => state with
+        if (!await TryPersistAsync(state => state with
+            {
+                HiddenCatalogUrls = state.HiddenCatalogUrls.Where(hidden => !CatalogUrlIdentity.SameIdentity(hidden, url)).ToList()
+            }))
         {
-            HiddenCatalogUrls = state.HiddenCatalogUrls.Where(hidden => !CatalogUrlIdentity.SameIdentity(hidden, url)).ToList()
-        });
+            return;
+        }
+
         _log.Event("CHANNEL UNHIDE", $"url={url}");
         PopulateFacets();
         ApplyFilter();
+    }
+
+    /// <summary>
+    /// Commits one mutation and reports whether it reached the disk. <c>CommitStateAsync</c>
+    /// has already logged the failure and queued the "state not saved" status, so a caller only has to stop:
+    /// carrying on would forget a row, or report a success, for a change that did not persist (SP-0184 A11-3).
+    /// </summary>
+    private async Task<bool> TryPersistAsync(Func<CatalogState, CatalogState> mutation)
+    {
+        var commit = await CommitStateAsync(
+            mutation, (state, cancellationToken) => _store.SaveAsync(state, cancellationToken: cancellationToken));
+        return commit.Saved;
     }
 
     /// <summary>Drop cached UI state for a channel that is leaving the visible set.</summary>
@@ -118,7 +142,8 @@ public partial class MainWindow
             _selectedRow = null;
         }
 
-        if (_playingAudio?.Channel.Id == id)
+        // SP-0184 S11-3: the stop funnel also drops a paused station, so a deleted row cannot stay resumable.
+        if (_playingAudio?.Channel.Id == id || _audioPausedChannelId == id)
         {
             StopAudioPlayback();
         }

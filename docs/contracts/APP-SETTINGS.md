@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-SETTINGS` |
-| **Version** | 0.2 (draft) |
+| **Version** | 0.3 (draft) |
 | **Home** | `Contracts/desktop-app-ux/README.md`, with the rules in `APP-SETTINGS.md` |
 | **Owner** | CyrFlip |
 | **This product's role** | **consumer** (opted in by SP-0188, 2026-10-02) |
@@ -21,3 +21,8 @@ The twelve rules are in the home page and are not repeated here. Repo-local fact
 - **Rule 7 & 8: Scaling & Sizing.** Derives sizes from font and content; hit targets comply with pointer floors; tested from 100% to 200% scale.
 - **Rule 10: Accessibility.** Sensible tab order, visible focus indicators, automation names for all glyph controls and page tabs.
 - **Rule 12: About page.** Shows version, MIT licence link, privacy link, author, and user-initiated diagnostic bundle export button.
+
+**0.3, read 2026-10-07 (SP-0206).** Section 9 (an irreversible operation on a surface with no Commit sits behind a dedicated
+button with `APP-BEHAVIOUR` rule 5's confirmation, never on a value control) is how the Settings window already works: the
+operation buttons are in `SettingsWindow.xaml.cs` and their confirmations default to the safe answer. Gate:
+`DesktopUxConformanceTests` (its handler list names three of the operation buttons; widening it to every one is optional).

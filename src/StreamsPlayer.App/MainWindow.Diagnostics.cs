@@ -38,7 +38,8 @@ public partial class MainWindow
             ProductInfo.Version,
             RuntimeInformation.OSDescription,
             RuntimeInformation.OSArchitecture.ToString(),
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow,
+            HostFacts()));
 
         // A log archive is not a capture (CAPTURE-OUTPUT section 5): it keeps going where it always went - the
         // frames folder the user chose, else Downloads - and does not follow the frames' new default (SP-0179).
@@ -84,6 +85,42 @@ public partial class MainWindow
     }
 
     /// <summary>
+    /// What the log reader otherwise has to ask: which media engine build played, whether the output device was
+    /// the user's own choice, and whether traffic goes through a proxy. Shape only - never a device name or a
+    /// proxy address, because the summary is mailed to a person (SP-0040 criterion 3).
+    /// </summary>
+    private List<KeyValuePair<string, string>> HostFacts() =>
+    [
+        new("runtime", RuntimeInformation.FrameworkDescription),
+        new("libvlc_version", Probe(() => StandardAudioPlayback.SharedLibVlcInstance.Version)),
+        new("audio_device", string.IsNullOrWhiteSpace(_state.AudioOutputDevice) ? "default" : "custom"),
+        new("audio_channel_mode", _state.AudioChannelMode.ToString()),
+        new("system_proxy", Probe(() =>
+        {
+            if (!LaunchableAddress.TryParse("http://example.invalid/", out var probe))
+            {
+                return "none";
+            }
+
+            return System.Net.Http.HttpClient.DefaultProxy.GetProxy(probe) is { } via && via != probe ? "configured" : "none";
+        })),
+        new("utc_offset", TimeZoneInfo.Local.GetUtcOffset(DateTimeOffset.UtcNow).ToString())
+    ];
+
+    // A fact that cannot be read is stated as unreadable; it must never cost the user the whole report.
+    private static string Probe(Func<string?> read)
+    {
+        try
+        {
+            return read() ?? "unknown";
+        }
+        catch (Exception exception)
+        {
+            return $"unreadable_{exception.GetType().Name}";
+        }
+    }
+
+    /// <summary>
     /// SP-0067: opens a measurement of one catalog-list operation. Pair it with
     /// <see cref="CatalogPerf"/>, which stamps the elapsed milliseconds and writes the record.
     /// </summary>
@@ -111,6 +148,9 @@ public partial class MainWindow
     private int _audioReconnectCount;
     private long _audioFirstLiveMs = -1;
     private string _audioSessionOutcome = "closed";
+    private string _audioLastReason = "none";
+    private string _audioLastHttp = "n/a";
+    private string _audioLastReach = "n/a";
 
     private void BeginAudioSession(StreamChannel channel)
     {
@@ -119,6 +159,9 @@ public partial class MainWindow
         _audioReconnectCount = 0;
         _audioFirstLiveMs = -1;
         _audioSessionOutcome = "closed";
+        _audioLastReason = "none";
+        _audioLastHttp = "n/a";
+        _audioLastReach = "n/a";
         _audioSessionClock.Restart();
     }
 
@@ -138,6 +181,17 @@ public partial class MainWindow
         _audioSessionOutcome = "live";
     }
 
+    /// <summary>
+    /// The last interruption's own words, kept so the one-line session summary says why a session ended without
+    /// the reader having to join it to the AUDIO FAIL, AUDIO REACH and AUDIO RECOVER lines around it.
+    /// </summary>
+    private void NoteAudioFault(string reason, int? httpStatus, PlaybackReachability reachability)
+    {
+        _audioLastReason = reason;
+        _audioLastHttp = httpStatus?.ToString() ?? "n/a";
+        _audioLastReach = reachability.ToString();
+    }
+
     private void NoteAudioTerminalFailure() => _audioSessionOutcome = "failed";
 
     private void EndAudioSession()
@@ -154,6 +208,9 @@ public partial class MainWindow
             $"ttff_ms={_audioFirstLiveMs}",
             $"legs={_audioLegCount}",
             $"reconnects={_audioReconnectCount}",
+            $"last_reason={_audioLastReason}",
+            $"last_http={_audioLastHttp}",
+            $"last_reach={_audioLastReach}",
             $"url={url}");
         _audioSessionUrl = null;
     }

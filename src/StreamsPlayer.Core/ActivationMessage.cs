@@ -45,7 +45,7 @@ public static class ActivationMessage
             writer.WriteStartArray("args");
             foreach (var argument in arguments)
             {
-                writer.WriteStringValue(argument);
+                writer.WriteStringValue(ScrubLoneSurrogates(argument));
             }
 
             writer.WriteEndArray();
@@ -56,6 +56,14 @@ public static class ActivationMessage
         buffer.WriteByte((byte)'\n');
         return buffer.ToArray();
     }
+
+    /// <summary>
+    /// A lone surrogate cannot be written as JSON text - the writer throws on it, and a sender that promised
+    /// never to throw for a payload fault would die on an unpaired half in a file name (SP-0184, S13-2).
+    /// Replaced with U+FFFD, which is what the receiving copy's own decoder would have produced.
+    /// </summary>
+    private static string ScrubLoneSurrogates(string value) =>
+        value.Any(char.IsSurrogate) ? Utf8.GetString(Utf8.GetBytes(value)) : value;
 
     /// <summary>
     /// SP-0170: <see cref="Serialize"/> for a sender that has to honour the receiver's limits. <see langword="false"/>
@@ -137,15 +145,23 @@ public static class ActivationMessage
                         return false;
                     }
 
-                    values.Add(argument.GetString()!);
+                    var value = argument.GetString()!;
+                    if (value.Any(char.IsSurrogate) && !string.Equals(value, ScrubLoneSurrogates(value), StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+
+                    values.Add(value);
                 }
             }
 
             arguments = values;
             return true;
         }
-        catch (JsonException)
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException or ArgumentException)
         {
+            // InvalidOperationException: a string escape that is a lone surrogate parses as JSON but cannot
+            // be read back as text (SP-0184, S13-2).
             return false;
         }
     }

@@ -59,7 +59,7 @@ public sealed class DiagnosticPathRedactor
     {
     }
 
-    /// <param name="matchTimeout">Per line. Tests inject <see cref="TimeSpan.Zero"/> to force the timeout path.</param>
+    /// <param name="matchTimeout">Per line. Tests inject a one-millisecond value to force the timeout path (a regex timeout must be positive; zero throws).</param>
     internal DiagnosticPathRedactor(string? appDataDirectory, string? userProfileDirectory, TimeSpan matchTimeout)
     {
         _anyProfile = new Regex(AnyProfilePattern.ToString(), AnyProfilePattern.Options, matchTimeout);

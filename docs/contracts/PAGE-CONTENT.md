@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `PAGE-CONTENT` (with `PAGE-STYLE`, `SITE-FAMILY-MAP`) |
-| **Version** | 1.2 / 1.2 / 1.2 |
+| **Version** | 1.4 / 1.6 / 1.4 |
 | **Home** | `Contracts/product-web-pages/README.md` |
 | **Owner** | sza.od.ua hub |
 | **This product's role** | **consumer** |
@@ -14,4 +14,29 @@
 2. **Design System & Family Map:** Render unified header, theme toggle, multi-language switcher, and cross-product footer links referencing `SITE-FAMILY-MAP`.
 3. **Automated Site Parity Gate:** `pwsh -NoProfile -File ./tools/site/build-site.ps1 -Check` verifies that `docs/` remains fresh against generator templates.
 
-Evidence: `docs/index.html`, `tools/site/build-site.ps1`, `tools/site/template.html`.
+Evidence: `docs/index.html`, `tools/site/build-site.ps1`, `tools/site/templates/`.
+
+**Read 2026-10-07 (SP-0206).** `PAGE-CONTENT` 1.4 / `PAGE-STYLE` 1.6 / `SITE-FAMILY-MAP` 1.3:
+
+- Rules 13 and 14 (fills the screen; the landing's seven things): held - the kit is served byte-identical (14521 bytes, SHA-256
+  `aea958f8..`), `--wide` is `100%`, no wrapper has a `max-width`.
+- `SITE-FAMILY-MAP` 1.3: the Android row's Tool cell is **Fast Media Sorter & Organizer**; the footer template now says so
+  (`tools/site/templates/_footer.html`, regenerated, `build-site.ps1 -Check` exit 0).
+- `PAGE-STYLE` 1.4 (44 px for every pointer; a visible theme-control label) is owed with the kit revision: SP-0209.
+  1.5 (reduced motion reaches pseudo-elements) holds in `docs/style.css`. 1.6's language picker is optional and not used (the
+  segmented control is). `PAGE-CONTENT` 1.4's "Download kit (.zip)" label is for a documentation page and does not arise.
+
+**Update, 2026-10-07 (SP-0209).** `PAGE-STYLE` 1.4's 44 px under every pointer is held in the tree: `docs/style.css` gives `.button`,
+`.seg a` and `.theme-button` a 44 px minimum height (the last two a 44 px minimum width). Not re-measured in a browser this date. Still
+owed with the kit revision: a visible theme-control label and the `nav.expand` disclosure marker.
+
+**Update, 2026-10-07 (SP-0209, kit revision published).** The owed revision of `reference/sza-kit.css` was published in the catalog
+and re-vendored here: `docs/assets/sza-kit.css` is byte-identical at 15661 bytes, SHA-256 `27501a10..` (`tools/site/kit-provenance.txt`),
+copied byte for byte to the hub's `kit/sza-kit.css` too. It carries the four owed changes: reduced motion reaches pseudo-elements (1.5,
+the page layer dropped its copy), 44 px for every pointer (1.4), the `details.sec` marker drawn as `nav.expand`/`nav.collapse` (1.4; this
+site has no disclosure group, so nothing renders it here), and the labelled theme control (1.4) - the header button now shows the
+`app.theme` glyph beside the visible localized name, `@@theme-name` in every deck, the word each language's app UI uses. `build-site.ps1`
+and its `-Check` pass; `check-docs.ps1` passes. `SITE-FAMILY-MAP` went to 1.4 (corrective): the StreamsPlayer row's `Tool` cell reads
+**STREAMS Player**, the app's own English identity (`ProductName`, window titles since SP-0023, the installer's `AppName`), instead of
+the repository's technical name - so this page's hero and header brand, which already read `STREAMS Player`, conform; the open question
+SP-0209 posed about the hero's casing is resolved in favour of the page.

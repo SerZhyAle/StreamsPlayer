@@ -62,8 +62,13 @@
                                 <TextBlock x:Name="MonogramText" Grid.Row="0" Foreground="White" FontSize="14" FontWeight="SemiBold"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 <Border x:Name="CountryCodeBadge" Grid.Row="1" Background="#59000000" Visibility="Collapsed">
-                                    <TextBlock x:Name="CountryCodeText" Foreground="White" FontSize="8" LineHeight="10"
-                                               LineStackingStrategy="BlockLineHeight" HorizontalAlignment="Center" />
+                                    <Grid Height="10">
+                                        <Image x:Name="CountryFlagImage" Height="8" Stretch="Uniform" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" Visibility="Collapsed"
+                                               RenderOptions.BitmapScalingMode="HighQuality" />
+                                        <TextBlock x:Name="CountryCodeText" Foreground="White" FontSize="8" LineHeight="10"
+                                                   LineStackingStrategy="BlockLineHeight" HorizontalAlignment="Center" />
+                                    </Grid>
                                 </Border>
                             </Grid>
                         </Border>

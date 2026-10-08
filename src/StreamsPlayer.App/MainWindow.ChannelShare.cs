@@ -29,6 +29,16 @@ public partial class MainWindow
             return;
         }
 
+        // SP-0201 requirement 5: a relay or tunnel address is the capability to listen, so handing it on is
+        // told as what it is before the clipboard ever holds it.
+        if (BroadcastCapabilityAddress.CarriesCapability(row.Channel.Url) &&
+            MessageBox.Show(DialogOwner, LocalizationService.Get("BroadcastCapabilityWarning"),
+                LocalizationService.Get("MenuCopyShareText"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
         try
         {
             Clipboard.SetText(ChannelShareText.Format(row.Channel.Url));

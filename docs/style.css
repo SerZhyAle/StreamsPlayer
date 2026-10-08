@@ -1,51 +1,27 @@
+/* SP-0195: the colour, type and radius tokens come from the kit (assets/sza-kit.css, linked before this file),
+   so a kit revision reaches the site without a second edit. What is declared here is only this layer: the
+   colour-scheme, and the older names this stylesheet uses for kit tokens. */
 :root {
   color-scheme: dark;
-  --bg: #0a0f0a;
-  --bg-2: #0f1610;
-  --bg-3: #131c14;
-  --card: rgb(255 255 255 / 3.5%);
-  --card-hover: rgb(255 255 255 / 6%);
-  --border: rgb(255 255 255 / 8%);
-  --border-hover: rgb(63 185 80 / 35%);
-  --text: #f1f5ee;
-  --text-2: #c3ccbc;
-  --muted: #94a08c;
-  --accent: #3fb950;
-  --accent-strong: #56d364;
-  --accent-ink: #04130c;
-  --gold: #e3b341;
-  --gold-strong: #f0c862;
-  --gold-ink: #1c1403;
-  --shadow: 0 10px 30px rgb(0 0 0 / 45%);
-  --glow: 0 0 26px rgb(63 185 80 / 28%);
-  --wide: 1180px;
-  --radius: 16px;
-  --radius-small: 10px;
-  --radius-pill: 30px;
-  --font-heading: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-body: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --accent: var(--acc);
+  --accent-strong: var(--acc-strong);
+  --accent-ink: var(--acc-ink);
+  --radius-small: var(--radius-sm);
+  /* A plate: the page colour at 78 %, so text on it keeps the contrast of the plain page while the backdrop
+     shows through. */
+  --plate: color-mix(in srgb, var(--bg) 78%, transparent);
+  /* Full width (PAGE-CONTENT 1.3 "Layout contract"): the kit's --wide is 100%, so no cap is declared or
+     overridden here. Never add a max-width to a page wrapper. */
 }
 
 html[data-theme="light"] {
   color-scheme: light;
-  --bg: #eef3ea;
-  --bg-2: #fff;
-  --bg-3: #e4ecdf;
-  --card: rgb(255 255 255 / 70%);
-  --card-hover: rgb(255 255 255 / 92%);
-  --border: rgb(16 40 20 / 12%);
-  --border-hover: rgb(47 143 58 / 40%);
-  --text: #16210f;
-  --text-2: #384534;
-  --muted: #5f6b54;
-  --accent: #2f8f3a;
-  --accent-strong: #267a30;
-  --accent-ink: #fff;
-  --gold: #9a6a13;
-  --gold-strong: #7e560f;
-  --gold-ink: #fff;
-  --shadow: 0 6px 24px rgb(20 40 20 / 10%);
-  --glow: 0 0 26px rgb(47 143 58 / 18%);
+  /* SP-0197 (SITE-EXPERIENCE rule 17): the kit's light accent #2f8f3a gives white ink only 4.11 : 1. This layer
+     darkens the accent so a filled button measures 5.37 : 1 and accent text on the page 4.77 : 1; the strong
+     accent (links, hover, text on a tinted badge) measures 6.66 : 1 on white and 5.05 : 1 on the badge tint.
+     Declared here, after the kit, until the kit's light accent is revised (a dated registry exception). */
+  --acc: #267a30;
+  --acc-strong: #1f6a29;
 }
 
 * {
@@ -110,8 +86,7 @@ code {
 }
 
 /* SP-0034: layout that a mirrored page depends on uses logical properties, so the Arabic and Urdu
-   pages need no direction-specific rules. The two .glow blobs below are deliberately left physical -
-   they are aria-hidden background decoration and carry no layout. */
+   pages need no direction-specific rules. The backdrop canvas is fixed and aria-hidden, so it carries no layout. */
 
 .skip-link {
   position: fixed;
@@ -130,50 +105,24 @@ code {
   transform: translateY(0);
 }
 
-.background-glow {
+/* The brand backdrop (WAVE-PARTICLES, assets/wave-particles.js): a canvas behind everything. It is
+   decorative, so it is kept pale and slow (data-intensity / data-speed on the canvas) and never sits
+   behind bare text: every block of text below stands on a semi-transparent plate. */
+.backdrop {
   position: fixed;
   inset: 0;
   z-index: -1;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-}
-
-.glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.13;
-}
-
-.glow-one {
-  top: -90px;
-  left: -60px;
-  width: 420px;
-  height: 420px;
-  background: radial-gradient(circle, var(--accent), transparent 70%);
-  animation: drift 22s infinite alternate ease-in-out;
-}
-
-.glow-two {
-  top: 38%;
-  right: -120px;
-  width: 460px;
-  height: 460px;
-  background: radial-gradient(circle, var(--gold), transparent 70%);
-  animation: drift 28s infinite alternate-reverse ease-in-out;
-}
-
-@keyframes drift {
-  to {
-    transform: translate(36px, 28px) scale(1.08);
-  }
 }
 
 .container {
   position: relative;
   z-index: 1;
-  width: min(var(--wide), calc(100% - 40px));
+  width: calc(100% - 2 * var(--gutter));
   margin-inline: auto;
+  padding: 0;
 }
 
 .site-header {
@@ -183,7 +132,7 @@ code {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: min(var(--wide), calc(100% - 40px));
+  width: calc(100% - 2 * var(--gutter));
   margin: 14px auto;
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -196,6 +145,7 @@ code {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
+  margin-right: 0;
   margin-inline-end: auto;
   color: var(--text);
   font-family: var(--font-heading);
@@ -211,6 +161,18 @@ code {
 .brand img {
   width: 30px;
   height: 30px;
+}
+
+/* The landing header carries the short name as text (PAGE-CONTENT 1.3); the documentation link stays on a
+   narrow screen, where the section links are hidden. */
+.header-docs {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.header-docs:hover {
+  color: var(--text);
 }
 
 .brand-dot {
@@ -234,43 +196,39 @@ code {
   color: var(--text);
 }
 
-/* Thirteen languages do not fit in a row of pills, so the switcher is one compact select whose
-   options carry their own target URL. Each page is a real URL, so the list is also a set of links
-   for anyone without JavaScript. */
-.language-switcher {
-  display: flex;
+/* PAGE-STYLE section 4.2: RU EN UA are the kit's segmented control (.seg). The kit draws its buttons;
+   here each is a link to a standalone page, so the same look is given to the anchors. */
+.seg a {
+  display: inline-flex;
   align-items: center;
-}
-
-.language-switcher select {
-  max-width: 11rem;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  background: rgb(255 255 255 / 4%);
+  border-radius: 14px;
   color: var(--muted);
-  cursor: pointer;
   font-family: var(--font-heading);
-  font-size: 0.72rem;
+  font-size: 11px;
   font-weight: 700;
-  padding: 6px 10px;
+  letter-spacing: 0.04em;
+  padding: 5px 10px;
 }
 
-.language-switcher select:hover {
-  border-color: var(--border-hover);
+.seg a:hover {
   color: var(--text);
 }
 
-.language-switcher option {
-  /* The native dropdown ignores the page palette on some platforms; set both so the endonyms stay
-     legible in either theme. */
-  background: var(--bg);
-  color: var(--text);
+.seg a[aria-current="page"] {
+  background: var(--acc);
+  color: var(--acc-ink);
+}
+
+/* The further locales: a secondary text-only row of two-letter codes, below the header and above the
+   H1 (PAGE-STYLE section 4.2). */
+.language-row {
+  margin-bottom: 0.4rem;
 }
 
 .language-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem 0.7rem;
+  gap: 0.2rem 0.3rem;
   margin: 0;
   list-style: none;
   padding: 0;
@@ -278,27 +236,44 @@ code {
 }
 
 .language-list a {
+  display: inline-block;
+  border-radius: var(--radius-small);
   color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.5rem;
 }
 
+.language-list a:hover,
+.language-list a[aria-current="page"] {
+  color: var(--text);
+}
+
+/* SP-0199 (SITE-EXPERIENCE rule 17): the note was drawn at opacity 0.85, which took the muted ink to 3.6 : 1 on the
+   light plate. Its quiet look comes from the muted colour and the small size; the ink is not faded further. */
 .machine-note {
   margin-top: 1.2rem;
   color: var(--muted);
   font-size: 0.74rem;
-  opacity: 0.85;
 }
 
+/* PAGE-STYLE section 4.3 (1.4), carried by the 2026-10-07 kit revision: the control is labelled - the
+   app.theme glyph beside its visible name - so it is a pill in the .seg family. This page's own name for
+   the kit's .theme-btn, drawn like the kit's. */
 .theme-button {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   border: 1px solid var(--border);
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 5px 10px;
 }
 
 .theme-button:hover {
@@ -364,28 +339,14 @@ code {
 
 .hero {
   display: grid;
+  text-align: start;
   grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
   align-items: center;
   gap: clamp(2rem, 6vw, 5rem);
   padding: clamp(2.2rem, 5vw, 3.6rem) 0 2.4rem;
 }
 
-.product-id {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
 .product-icon {
-  width: 68px;
-  height: 68px;
-  flex: none;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--bg-2);
-  box-shadow: var(--glow);
-  padding: 7px;
   animation: icon-in 0.7s cubic-bezier(0.34, 1.2, 0.4, 1) both;
 }
 
@@ -408,9 +369,9 @@ code {
 }
 
 .hero h1 {
-  max-width: 760px;
   font-size: clamp(2.1rem, 5vw, 3.5rem);
   font-weight: 800;
+  margin-bottom: 0;
 }
 
 .kicker {
@@ -425,13 +386,21 @@ code {
 }
 
 .lead {
-  max-width: 780px;
   color: var(--muted);
   font-size: 1rem;
 }
 
+/* The kit styles .hero .kicker and .hero .lead with higher specificity than the plain classes above, so
+   the values this page uses are restated at the same specificity. */
+.hero .kicker {
+  margin: 0.5rem 0 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.13em;
+}
+
 .hero .lead {
-  margin-top: 1.15rem;
+  margin: 1.15rem 0 0;
+  font-size: 1rem;
 }
 
 .button-group {
@@ -536,7 +505,6 @@ code {
 }
 
 .section-description {
-  max-width: 800px;
   margin-bottom: 1.5rem;
   color: var(--muted);
   font-size: 0.94rem;
@@ -568,7 +536,7 @@ code {
   border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
   border-radius: 12px;
   background: color-mix(in srgb, var(--accent) 12%, transparent);
-  color: var(--accent);
+  color: var(--accent-strong);
   font-family: var(--font-heading);
   font-size: 0.76rem;
   font-weight: 800;
@@ -624,6 +592,7 @@ code {
 
 .pill {
   display: inline-flex;
+  letter-spacing: normal;
   margin-top: 0.2rem;
   border: 1px solid color-mix(in srgb, var(--gold) 26%, transparent);
   border-radius: var(--radius-pill);
@@ -692,7 +661,7 @@ code {
   border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
   border-radius: 9px;
   background: color-mix(in srgb, var(--accent) 12%, transparent);
-  color: var(--accent);
+  color: var(--accent-strong);
   font-family: var(--font-heading);
   font-size: 0.66rem;
   font-weight: 800;
@@ -775,6 +744,7 @@ code {
 }
 
 .step pre {
+  font-size: 13px;
   overflow-x: auto;
   margin-top: 0.55rem;
   border: 1px solid var(--border);
@@ -810,14 +780,12 @@ code {
 }
 
 .privacy-intro {
-  max-width: 760px;
   margin-bottom: 1.8rem;
   color: var(--muted);
   font-size: 1.02rem;
 }
 
 .privacy-card {
-  max-width: 860px;
   padding: clamp(1.35rem, 4vw, 2.2rem);
 }
 
@@ -864,6 +832,33 @@ code {
   padding: 2rem 0;
 }
 
+/* SP-0199 (SITE-EXPERIENCE rule 17): the heading stood on the bare backdrop, where a line passing behind the small
+   muted type took it to 3.9 : 1. Like every other block of text it stands on a plate. */
+.footer-heading {
+  display: inline-block;
+  margin: 0 0 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--plate);
+  backdrop-filter: blur(10px) saturate(120%);
+  padding: 0.2rem 0.8rem;
+  color: var(--muted);
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.site-footer .tools-grid {
+  margin-bottom: 1.2rem;
+}
+
+.site-footer .tools-grid a {
+  background: var(--plate);
+  backdrop-filter: blur(10px) saturate(120%);
+}
+
 .footer-row {
   display: flex;
   align-items: center;
@@ -890,12 +885,13 @@ code {
 
 .to-top {
   position: fixed;
+  right: auto;
   inset-inline-end: 18px;
   bottom: 18px;
   z-index: 40;
   display: none;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   place-items: center;
   border: 0;
   border-radius: 50%;
@@ -925,6 +921,51 @@ code {
   height: 24px;
 }
 
+/* Plates: every block of running text stands on a semi-transparent plate, so the backdrop shows through
+   between and around the blocks and never runs behind a line of copy at full strength. */
+.hero,
+.section,
+.privacy-main,
+.footer-row,
+.machine-note,
+.language-list {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--plate);
+  backdrop-filter: blur(10px) saturate(120%);
+}
+
+.hero,
+.section,
+.privacy-main {
+  padding-inline: clamp(1.1rem, 3vw, 2.2rem);
+}
+
+.hero,
+.section,
+.hero-shot {
+  margin-bottom: 1.2rem;
+}
+
+.section {
+  padding-block: 2rem;
+}
+
+.footer-row,
+.machine-note {
+  padding: 0.9rem clamp(1.1rem, 3vw, 2.2rem);
+}
+
+.language-list {
+  display: inline-flex;
+  border-radius: var(--radius-pill);
+  padding: 0.1rem 0.5rem;
+}
+
+.site-footer {
+  border-top: 0;
+}
+
 @media (max-width: 860px) {
   .header-links {
     display: none;
@@ -933,10 +974,6 @@ code {
   .hero {
     grid-template-columns: 1fr;
     gap: 1.5rem;
-  }
-
-  .status-card {
-    max-width: 560px;
   }
 
   .cap-grid {
@@ -951,7 +988,7 @@ code {
 @media (max-width: 620px) {
   .container,
   .site-header {
-    width: min(100% - 24px, var(--wide));
+    width: calc(100% - 24px);
   }
 
   .site-header {
@@ -959,7 +996,11 @@ code {
     padding-inline: 10px;
   }
 
-  .brand span:not(.brand-dot) {
+  .brand img + span {
+    display: none;
+  }
+
+  .site-header > .button {
     display: none;
   }
 
@@ -974,16 +1015,6 @@ code {
 
   .step {
     padding: 0.9rem 1rem;
-  }
-
-  .product-id {
-    align-items: flex-start;
-  }
-
-  .product-icon {
-    width: 54px;
-    height: 54px;
-    border-radius: 15px;
   }
 
   .hero h1 {
@@ -1004,20 +1035,66 @@ code {
   }
 }
 
+/* SP-0197 (SITE-EXPERIENCE rule 17): every interactive element is at least 28 px on a mouse or pen, and 44 px on a
+   touch screen. A text link keeps its inline width; only its hit area grows. */
+.brand,
+.header-link,
+.footer-row a,
+.language-list a,
+.seg a,
+.theme-button,
+.button-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+}
+
+/* SP-0209 (PAGE-STYLE 1.4, kit revision of 2026-10-07): the button, the segmented-control items and the
+   theme control are 44 px for every pointer, not only a touch screen - this product's names for the kit's
+   .btn, .seg button and .theme-btn, restated here because the kit's selectors do not reach them. */
+.button,
+.seg a,
+.theme-button {
+  min-height: 44px;
+}
+
+.seg a,
+.theme-button {
+  min-width: 44px;
+}
+
 @media (pointer: coarse) {
   .button,
-  .language-switcher select,
+  .button-small,
+  .brand,
+  .header-link,
+  .footer-row a,
+  .language-list a,
+  .seg a,
   .theme-button {
     min-height: 44px;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation: none !important;
-    transition: none !important;
+  /* SP-0199: on the privacy, trust and not-found pages the brand is the icon alone (30 px wide below 620 px). */
+  .brand,
+  .header-link,
+  .footer-row a,
+  .language-list a,
+  .seg a,
+  .theme-button {
+    min-width: 44px;
   }
 }
+
+/* SP-0197: gold text on a light badge. The kit's light gold (#9a6a13) measures 3.83 : 1 on the pill and
+   3.91 : 1 on the channel mark; its strong gold (#7e560f) is the readable ink there. The dark theme keeps
+   --gold, which already clears 4.5 : 1. */
+html[data-theme="light"] .pill,
+html[data-theme="light"] .channel-mark {
+  color: var(--gold-strong);
+}
+
+/* Reduced motion is the kit's own rule since the 2026-10-07 revision: it selects *, *::before and *::after
+   (PAGE-STYLE section 5, 1.5), so the page layer no longer carries a copy of it. */

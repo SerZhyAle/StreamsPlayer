@@ -86,7 +86,31 @@ public partial class PlayerWindow
             // finds the session to hand it to.
             _recordingSession = session;
             var backend = _backend;
-            var started = await backend.StartRecordingAsync(target);
+            bool started;
+            try
+            {
+                started = await backend.StartRecordingAsync(target);
+            }
+            catch
+            {
+                // SP-0184: the engine answers a refusal with false; an exception is unexpected, and the session set
+                // above would otherwise outlive it with no segment behind it - a badge claiming a recording nothing
+                // writes. A session that already took a segment from a re-open stays, owed a resume.
+                if (ReferenceEquals(_recordingSession, session))
+                {
+                    if (session.SegmentCount == 0)
+                    {
+                        _recordingSession = null;
+                    }
+                    else
+                    {
+                        _recordingResumePending = true;
+                    }
+                }
+
+                throw;
+            }
+
             if (!ReferenceEquals(backend, _backend))
             {
                 _recordingResumePending = true;

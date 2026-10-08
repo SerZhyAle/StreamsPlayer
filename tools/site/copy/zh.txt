@@ -6,6 +6,8 @@
 #   [[email]]   - the contact address
 #   [[hash]]    - the Get-FileHash command that checks a download against its .sha256 file
 #   [[installdir]] - the per-user install folder, %LOCALAPPDATA%\Programs\StreamsPlayer
+#   [[languages]] - how many interface languages ship (rendered from the language registry, never typed)
+#   [[windows]]   - the minimum Windows, as the site names it (rendered from the project, never typed)
 # machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
 # but the key is present in every file so the key sets stay comparable.
 
@@ -41,6 +43,8 @@ GitHub
 
 @@theme-label
 切换配色主题
+@@theme-name
+主题
 
 @@lang-label
 网站语言
@@ -52,7 +56,7 @@ GitHub
 STREAMS Player 图标
 
 @@hero-eyebrow
-STREAMS Player · Windows 10 / 11
+[[windows]]
 
 @@hero-title
 广播、直播视频和 RTSP，都在一个播放器里。
@@ -61,13 +65,13 @@ STREAMS Player · Windows 10 / 11
 网络广播 · 直播视频 · RTSP
 
 @@hero-description
-一款专注的 Windows 桌面应用：浏览现成的精选目录，添加自己的流，然后播放 - 无需账户，没有广告，也不会有您没有要求的后台活动。
+一款专注的 Windows 桌面应用：浏览现成的精选目录，添加自己的流，然后播放 - 无需强制账户，没有广告，也不会有您没有要求的后台活动。
 
 @@facts-label
 关键信息
 
 @@fact-windows
-Windows 10 / 11
+[[windows]]
 
 @@fact-free
 免费 · MIT 源代码
@@ -79,7 +83,7 @@ Windows 10 / 11
 无遥测
 
 @@fact-langs
-13 种界面语言
+[[languages]] 种界面语言
 
 @@hero-download
 下载 (.exe)
@@ -100,7 +104,7 @@ Windows 10 / 11
 已发布
 
 @@status-description
-STREAMS Player 已发布，并且免费。可运行 GitHub 上最新发布页里的安装程序，从 Microsoft Store 获取，下载便携版 ZIP，或使用 winget 安装 - 无需账户，没有广告，没有遥测。
+STREAMS Player 已发布，并且免费。可运行 GitHub 上最新发布页里的安装程序，从 Microsoft Store 获取，下载便携版 ZIP，或使用 winget 安装 - 无需强制账户，没有广告，没有遥测。
 
 @@status-source
 Microsoft Store
@@ -118,7 +122,7 @@ STREAMS Player：以视频频道网格显示的目录，每个图块显示其直
 STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、直播视频和 RTSP 网络摄像头。它会读取一份公开的精选流目录，因此首次运行就能得到一份可用的频道列表 - 之后您可以搜索、排序、置顶，也可以添加自己的频道，全部保存在您自己的机器上。
 
 @@what-p2
-它追求的是安静：播放器只做播放器该做的事。目录只在您要求时才更新，您手动添加和导入的流绝不会被更新覆盖，也没有账户、广告、分析统计或作者运营的服务。您的电脑上运行的，只有您自己启动的东西。
+它追求的是安静：播放器只做播放器该做的事。目录只在您要求时才更新，您手动添加和导入的流绝不会被更新覆盖，也不强制要求账户，没有广告、分析统计或作者运营的服务。您的电脑上运行的，只有您自己启动的东西。
 
 @@features-title
 它能做什么
@@ -202,7 +206,7 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 按自己的方式定制
 
 @@cap-yours-1
-用 URL 添加流，无需账户。
+用 URL 添加流，无需强制账户。
 
 @@cap-yours-2
 您添加和导入的流不会因目录更新而丢失。您置顶或播放过的目录频道，在目录不再收录它时会被保留，而不是删除。
@@ -211,7 +215,7 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 保留本地的播放标记：成功 / 失败。
 
 @@cap-yours-4
-整个界面可在十三种语言之间切换，选择会被保留。
+整个界面可在[[languages]]种语言之间切换，选择会被保留。
 
 @@cap-yours-5
 把频道归入您自己命名的收藏集，并一次浏览一个收藏集。
@@ -273,7 +277,7 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 分发渠道
 
 @@distribution-description
-四种获取方式都已可用。可运行 GitHub 上最新发布页里的安装程序，从 Microsoft Store 获取，下载便携版 ZIP，或使用 [[command]] 安装。
+所有获取方式都已可用。可运行 GitHub 上最新发布页里的安装程序，从 Microsoft Store 获取，下载便携版 ZIP，或使用 [[command]] 安装。
 
 @@channel-setup
 安装程序（.exe）
@@ -300,18 +304,25 @@ STREAMS Player · 隐私
 默认保护隐私。
 
 @@privacy-intro
-STREAMS Player 没有账户、广告、分析统计、遥测，也没有由作者运营的服务。
+普通播放无需账户。可选的交换账户属于您自己的服务器。没有广告、分析、遥测或作者运营的服务。
 
 @@privacy-network-title
 网络访问
 
 @@privacy-network
-应用程序仅在您执行操作时连接网络，且仅连接至该操作所需的目标：在导入目录或接受图片包时从 GitHub 下载的公共流媒体目录及可选预览包；您播放、录制或查看“关于频道”的流媒体提供商，或在网格模式下刷新预览的提供商；局域网内导入的 FastMediaSorter 手机或手表；以及仅在“设置”的“播放”页面请求时从第三方 GitHub 项目 (BtbN/FFmpeg-Builds) 下载的实验性 FlyleafLib 引擎可选 FFmpeg 库。每个请求均直达目标并受其政策约束；没有任何数据经过作者运行的服务。电视节目单仅在您于“设置”的“资料库”页面输入地址并点击“下载节目单”时下载一次，绝不在后台自动下载。
+应用程序仅在您执行操作时连接网络，且仅连接至该操作所需的目标：在导入目录或接受图片包时从 GitHub 下载的公共流媒体目录及可选预览包；您播放、录制或查看“关于频道”的流媒体提供商，或在网格模式下刷新预览的提供商；局域网内导入的 FastMediaSorter 手机或手表；以及仅在“设置”的“播放”页面请求时从第三方 GitHub 项目 (BtbN/FFmpeg-Builds) 下载的实验性 FlyleafLib 引擎可选 FFmpeg 库。每个请求均直达目标并受其政策约束；没有任何数据经过作者运行的服务。电视节目单仅在您于“设置”的“资料库”页面输入地址并点击“下载节目单”时下载一次，绝不在后台自动下载。 资料库设置中的可选交换来源通过 TLS 连接到您自己的服务器。注册时仅发送一次登录名和密码或配对码，之后发送设备身份、产品版本、接收能力及设备令牌。启用时保持一个控制连接，发送保活消息并自动重连；禁用后关闭连接。每张服务器证书都需您明确批准，包括续期后。
+
+@@privacy-site-title
+本网站
+
+@@privacy-site
+本节说明的是网站，而不是应用程序。每个页面都从 Google Fonts 加载字体：浏览器向 fonts.googleapis.com 请求样式表，向 fonts.gstatic.com 请求字体文件，因此 Google 会收到您的 IP 地址、浏览器信息以及您正在阅读的页面地址。主页还会向 api.github.com 查询一次最新版本，使安装程序按钮指向当前文件；GitHub 会收到您的 IP 地址和浏览器信息。页面本身由 GitHub Pages（serzhyale.github.io）提供。本网站没有统计分析、广告或跟踪，不设置 cookie，只在浏览器本地存储中保存您选择的主题和语言。上述每项服务都适用其各自的政策，均不由作者运营。
 @@privacy-local-title
 本地数据
 
 @@privacy-local
-STREAMS Player 将目录状态、添加和导入的频道、固定项、合集、隐藏频道、收听历史、播放标记、150 MB 预算内的缓存预览帧、可选 FFmpeg 库以及最近十次启动的诊断日志存储在 [[appdata]] 下。录制和保存的帧存储在您选择的文件夹中（默认为 Videos/Recordings、Music/Recordings 和 Pictures/Frames）。除非您在“设置”的“关于”页面使用“向作者发送日志”将其发送至 [[email]]，否则这些数据始终保留在您的设备上。下载的电视节目单及其频道绑定也保存在该处；在“设置”中点击“移除节目单”将同时删除两者。
+STREAMS Player 将目录状态、添加和导入的频道、固定项、合集、隐藏频道、收听历史、播放标记、150 MB 预算内的缓存预览帧、可选 FFmpeg 库以及最近十次启动的诊断日志存储在 [[appdata]] 下。录制和保存的帧存储在您选择的文件夹中（默认为 Videos/Recordings、Music/Recordings 和 Pictures/Frames）。除非您在“设置”的“关于”页面使用“向作者发送日志”将其发送至 [[email]]，否则这些数据始终保留在您的设备上。下载的电视节目单及其频道绑定也保存在该处；在“设置”中点击“移除节目单”将同时删除两者。 密码和配对码随后清除。账户、令牌及证书指纹保存在单独文件中，仅供当前 Windows 用户解密；移除账户后清除这些内容。诊断压缩包不包含此文件，并隐藏账户信息。只有您明确设置此来源后才会连接交换服务器。
+
 @@privacy-contact-title
 联系方式
 
@@ -409,7 +420,7 @@ STREAMS Player 绝不会做的事
 它安装和运行都从不需要管理员权限，从不把自己加入 Windows 启动项，也不安装任何后台服务。
 
 @@trust-never-2
-它没有账户、广告、分析统计或遥测，也没有任何由作者运营、会经手您数据的服务。
+普通播放无需账户。可选的交换账户属于您自己的服务器。没有广告、分析、遥测或作者运营的服务。
 
 @@trust-never-3
 它仅在您操作时连接网络，且仅用于该操作所需的内容：GitHub 上的公共流媒体目录及预览包、所播放/录制/预览的流媒体提供商、局域网内的 FastMediaSorter 设备以及在“设置”中请求的可选 FFmpeg 库。电视节目单仅在您点击“下载节目单”时从您自行输入的地址获取。
@@ -425,10 +436,43 @@ STREAMS Player 绝不会做的事
 阅读隐私页面
 
 @@footer-rights
-© 2026 Serhii Zhyhunenko
+© 2026
 
 @@footer-tools
 更多工具
+
+@@footer-author
+Serhii Zhyhunenko
+
+@@footer-download
+下载
+
+@@nav-docs
+文档
+
+@@type-ai-method
+AI 开发方法
+
+@@type-android-sorter
+Android 媒体整理工具
+
+@@type-ebook-converter
+Windows 电子书转换工具
+
+@@type-layout-fixer
+Windows 键盘布局修正工具
+
+@@type-portfolio
+作品集
+
+@@type-storage-cli
+Windows 存储命令行工具
+
+@@type-tray-launcher
+Windows 托盘启动器
+
+@@type-windows-sorter
+Windows 媒体整理工具
 
 @@to-top
 返回顶部

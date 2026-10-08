@@ -1,12 +1,18 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Net.Security;
+using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
 /// <summary>
 /// Opens one FastMediaSorter broadcast leg and exposes both its first HTTP response and body.
 /// The caller owns the returned connection until playback ends; no status or metadata request is made.
+/// <para>SP-0203: an attempt can carry its own connect bound (short on the LAN, contract file 12
+/// section 6.2) and its own certificate decision - the leaf pin of the descriptor's
+/// <c>certFingerprint</c> through <see cref="ExchangeCertificatePin.Accepts"/>, never checking off.
+/// Such attempts run on their own handler, whose lifetime moves into the connection.</para>
 /// </summary>
 internal sealed class FastMediaSorterPlaybackTransport
 {
@@ -15,14 +21,50 @@ internal sealed class FastMediaSorterPlaybackTransport
     /// <summary>How long the broadcaster may take to answer with a response head.</summary>
     internal static readonly TimeSpan HeaderTimeout = TimeSpan.FromSeconds(15);
 
-    public async Task<FastMediaSorterPlaybackConnection> OpenAsync(Uri endpoint, CancellationToken cancellationToken)
+    /// <summary>
+    /// The LAN connect bound of file 12 section 6.2 - the only number on record. A LAN address that
+    /// cannot be reached in it hands the attempt list over to the next endpoint.
+    /// </summary>
+    internal static readonly TimeSpan LanConnectTimeout = TimeSpan.FromSeconds(1.5);
+
+    public Task<FastMediaSorterPlaybackConnection> OpenAsync(Uri endpoint, CancellationToken cancellationToken) =>
+        OpenAsync(endpoint, connectTimeout: null, certFingerprint: null, cancellationToken);
+
+    public async Task<FastMediaSorterPlaybackConnection> OpenAsync(
+        Uri endpoint,
+        TimeSpan? connectTimeout,
+        string? certFingerprint,
+        CancellationToken cancellationToken)
     {
         var stopwatch = Stopwatch.StartNew();
         using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
         request.Headers.UserAgent.ParseAdd("StreamsPlayer/0.1");
 
+        HttpClient? scoped = null;
         try
         {
+            HttpClient client = Client;
+            if (connectTimeout is not null || !string.IsNullOrWhiteSpace(certFingerprint))
+            {
+                var handler = new SocketsHttpHandler
+                {
+                    AllowAutoRedirect = false,
+                    UseCookies = false,
+                    ConnectTimeout = connectTimeout ?? TimeSpan.FromSeconds(15)
+                };
+                if (!string.IsNullOrWhiteSpace(certFingerprint))
+                {
+                    handler.SslOptions = new SslClientAuthenticationOptions
+                    {
+                        RemoteCertificateValidationCallback = (_, certificate, _, chainErrors) =>
+                            ExchangeCertificatePin.Accepts(certificate, certFingerprint, chainErrors)
+                    };
+                }
+
+                scoped = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
+                client = scoped;
+            }
+
             // SP-0129: the client has no timeout, so the head gets its own bound. Its expiry is a
             // cancellation the caller did not ask for, which lands in the transport-error branch below
             // exactly as a refused connection does. The body is the live broadcast, and the playback
@@ -31,28 +73,30 @@ internal sealed class FastMediaSorterPlaybackTransport
             using (var headers = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
             {
                 headers.CancelAfter(HeaderTimeout);
-                response = await Client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, headers.Token);
+                response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, headers.Token);
             }
 
             var elapsed = stopwatch.Elapsed;
             if (!response.IsSuccessStatusCode)
             {
-                return new FastMediaSorterPlaybackConnection(endpoint, (int)response.StatusCode, elapsed, response, null, null);
+                return new FastMediaSorterPlaybackConnection(endpoint, (int)response.StatusCode, elapsed, response, null, null, scoped);
             }
 
             try
             {
                 var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-                return new FastMediaSorterPlaybackConnection(endpoint, (int)response.StatusCode, elapsed, response, stream, null);
+                return new FastMediaSorterPlaybackConnection(endpoint, (int)response.StatusCode, elapsed, response, stream, null, scoped);
             }
             catch (Exception ex) when (ex is HttpRequestException or IOException or OperationCanceledException)
             {
                 response.Dispose();
+                scoped?.Dispose();
                 return new FastMediaSorterPlaybackConnection(endpoint, (int)response.StatusCode, elapsed, null, null, ex);
             }
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or OperationCanceledException)
         {
+            scoped?.Dispose();
             return new FastMediaSorterPlaybackConnection(endpoint, null, stopwatch.Elapsed, null, null, ex);
         }
     }
@@ -76,6 +120,7 @@ internal sealed class FastMediaSorterPlaybackConnection : IDisposable
 {
     private HttpResponseMessage? _response;
     private Stream? _stream;
+    private readonly IDisposable? _owner;
 
     internal FastMediaSorterPlaybackConnection(
         Uri endpoint,
@@ -83,7 +128,8 @@ internal sealed class FastMediaSorterPlaybackConnection : IDisposable
         TimeSpan responseElapsed,
         HttpResponseMessage? response,
         Stream? stream,
-        Exception? transportError)
+        Exception? transportError,
+        IDisposable? owner = null)
     {
         Endpoint = endpoint;
         StatusCode = statusCode;
@@ -91,6 +137,7 @@ internal sealed class FastMediaSorterPlaybackConnection : IDisposable
         _response = response;
         _stream = stream is null ? null : new ObservedReadStream(stream, OnEndOfStream, OnReadError);
         TransportError = transportError;
+        _owner = owner;
     }
 
     public Uri Endpoint { get; }
@@ -110,6 +157,7 @@ internal sealed class FastMediaSorterPlaybackConnection : IDisposable
         _stream = null;
         _response?.Dispose();
         _response = null;
+        _owner?.Dispose();
     }
 
     private sealed class ObservedReadStream(Stream inner, Action endOfStream, Action<Exception> readError) : Stream

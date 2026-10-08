@@ -1,5 +1,5 @@
 @@ShortDescription
-Browse internet radio and live video in a focused Windows player with a curated catalog, local favorites, live grid previews, and no account or advertising.
+Browse internet radio and live video in a focused Windows player with a curated catalog, local favorites, live grid previews, and no required account or advertising.
 
 @@Description
 STREAMS Player is an independent Windows desktop application for browsing and playing internet radio, live video, and RTSP stream addresses.
@@ -10,11 +10,11 @@ Choose a compact list or a visual grid. Grid mode can capture current thumbnails
 
 Record the live video or radio you are playing to a file without interrupting it. Shrink the catalog to a compact radio panel while a station plays. Listen to a live audio broadcast from a FastMediaSorter phone or watch, directly over your local network. Keep channels in your own collections, return to them from a private listening history, and import or export M3U playlists.
 
-Catalog downloads happen only when you choose Import channels from the internet. STREAMS Player has no account, advertising, analytics, or telemetry. Catalog state, manual entries, favorites, playback marks, settings, and cached thumbnails stay in your Windows profile.
+Catalog downloads happen only when you choose Import channels from the internet. STREAMS Player requires no account and has no advertising, analytics, or telemetry. Catalog state, manual entries, favorites, playback marks, settings, and cached thumbnails stay in your Windows profile.
 
 Playback compatibility depends on the stream provider, network availability, protocol, and the media codecs supported by the included LibVLC components. STREAMS Player does not host or control third-party stream content.
 
-STREAMS Player is open source under the MIT License.
+STREAMS Player is open source under the MIT License. The optional Exchange source in Library settings connects to your own server over TLS. Enrollment sends your login, password or pairing code, device identity, product version and receiver capabilities. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Every certificate leaf needs your explicit approval, including after renewal. The password and pairing code are discarded. The account, token and certificate pin are protected for your Windows user in a separate file; removing the account forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
 
 @@Feature1
 Curated catalog for internet radio, live video, and RTSP addresses
@@ -44,7 +44,7 @@ Thirteen interface languages, with right-to-left layout where it belongs
 Explicit catalog refresh with no surprise background catalog downloads
 
 @@Feature10
-No account, advertising, analytics, or telemetry
+No account required; no advertising, analytics, or telemetry
 
 @@Feature11
 Record the live video or radio you are playing to a file, without interrupting playback

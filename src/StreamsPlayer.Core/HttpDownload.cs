@@ -92,7 +92,7 @@ public static class HttpDownload
         TimeSpan idleTimeout,
         CancellationToken cancellationToken)
     {
-        using var buffer = new MemoryStream(PreSize(response.Content.Headers.ContentLength));
+        using var buffer = new MemoryStream(PreSize(response.Content.Headers.ContentLength, ceilingBytes));
         await CopyToAsync(response, buffer, progress, ceilingBytes, idleTimeout, cancellationToken);
         return buffer.ToArray();
     }
@@ -185,8 +185,26 @@ public static class HttpDownload
     /// over-declared length must not turn into a matching allocation, and growing from the cap is cheap
     /// next to the transfer that would have to arrive to reach it.
     /// </summary>
-    private static int PreSize(long? declaredLength) =>
-        declaredLength is > 0 ? (int)Math.Min(declaredLength.Value, MaximumPreSizeBytes) : 0;
+    /// <remarks>
+    /// Also capped by <paramref name="ceilingBytes"/>: <see cref="ReadAllBytesAsync"/> sizes the buffer
+    /// before <see cref="CopyToAsync"/> refuses a body that declares more than the ceiling, so without
+    /// this a refused body would still have cost a cap-sized allocation first.
+    /// </remarks>
+    internal static int PreSize(long? declaredLength, long? ceilingBytes = null)
+    {
+        if (declaredLength is not > 0)
+        {
+            return 0;
+        }
+
+        var size = Math.Min(declaredLength.Value, MaximumPreSizeBytes);
+        if (ceilingBytes is not null)
+        {
+            size = Math.Min(size, Math.Max(ceilingBytes.Value, 0));
+        }
+
+        return (int)size;
+    }
 
     private const int MaximumPreSizeBytes = 64 * 1024 * 1024;
 }

@@ -64,6 +64,14 @@
     <Content Include="localization-loanwords.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- The country facet offers a country with a flag or not at all, so the flag folder and the name table
+       are checked against each other. Test DATA on the same terms as the dictionaries above: files, never loaded. -->
+  <ItemGroup>
+    <Content Include="..\..\src\StreamsPlayer.App\Assets\Flags\*.png"
+             Link="flags\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <!--
     There used to be a third Content item here: a copy of the LIVE-BROADCAST contract document, copied to
     the test output so one test could assert the repository was holding the real thing. Both are gone. The

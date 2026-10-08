@@ -197,6 +197,37 @@ public partial class SettingsWindow
     }
 
     /// <summary>
+    /// The work area of the monitor the owner is on - the proxy for "where the user is" (APP-SETTINGS
+    /// rule 1). A minimized owner reports a parked position, so its restore rectangle is read instead.
+    /// </summary>
+    private static ScreenRect OwnerWorkArea(Window owner)
+    {
+        var bounds = owner.WindowState == WindowState.Minimized
+            ? new ScreenRect(owner.RestoreBounds.Left, owner.RestoreBounds.Top, owner.RestoreBounds.Width, owner.RestoreBounds.Height)
+            : MonitorWorkArea.Placement(owner);
+        return MonitorWorkArea.Around(bounds, owner);
+    }
+
+    /// <summary>
+    /// A first open has no remembered rectangle, so the size the markup declares is only what the content
+    /// would like; it is capped to the work area of the monitor the user is working on, with a margin so the
+    /// caption and every edge stay reachable on a small or scaled-up display (APP-SETTINGS rules 7 and 8).
+    /// Done before the window is shown, so the owner-centred start position is computed from the final size.
+    /// </summary>
+    private void FitFirstOpenSizeToWorkArea(Window owner)
+    {
+        const double edgeMargin = 24;
+        var area = OwnerWorkArea(owner);
+        if (area.Width <= 0 || area.Height <= 0)
+        {
+            return;
+        }
+
+        Width = Math.Min(Width, Math.Max(MinWidth, area.Width - 2 * edgeMargin));
+        Height = Math.Min(Height, Math.Max(MinHeight, area.Height - 2 * edgeMargin));
+    }
+
+    /// <summary>
     /// The second placement pass, once the window has a DPI transform of its own (APP-BEHAVIOUR
     /// rule 10): a rectangle remembered at one scale is fitted to the work area at the current one,
     /// and a monitor that is gone has already been exchanged for the nearest surviving one.

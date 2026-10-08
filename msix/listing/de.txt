@@ -1,5 +1,5 @@
 @@ShortDescription
-Internetradio und Live-Video in einem schlanken Windows-Player durchsuchen: gepflegter Katalog, lokale Favoriten, Live-Vorschauen im Raster, deutsche Benutzeroberfläche, kein Konto und keine Werbung.
+Internetradio und Live-Video in einem schlanken Windows-Player durchsuchen: gepflegter Katalog, lokale Favoriten, Live-Vorschauen im Raster, deutsche Benutzeroberfläche, keine Kontopflicht und keine Werbung.
 
 @@Description
 STREAMS Player ist eine unabhängige Windows-Desktop-Anwendung, um Internetradio, Live-Video und RTSP-Stream-Adressen zu durchsuchen und abzuspielen.
@@ -10,11 +10,11 @@ Wählen Sie eine kompakte Liste oder ein visuelles Raster. Im Raster kann die Ap
 
 Nehmen Sie das laufende Live-Video oder Radio in eine Datei auf, ohne es zu unterbrechen. Verkleinern Sie den Katalog zu einem kompakten Radiofenster, während ein Sender läuft. Hören Sie eine Live-Audioübertragung von einem Telefon oder einer Uhr mit FastMediaSorter, direkt über Ihr lokales Netzwerk. Ordnen Sie Kanäle in eigenen Sammlungen, kehren Sie über einen privaten Hörverlauf zu ihnen zurück, und importieren oder exportieren Sie M3U-Wiedergabelisten.
 
-Der Katalog wird nur geladen, wenn Sie „Kanäle aus dem Internet importieren“ wählen. STREAMS Player hat kein Konto, keine Werbung, keine Analyse und keine Telemetrie. Katalogzustand, manuelle Einträge, Favoriten, Wiedergabemarken, Einstellungen und zwischengespeicherte Miniaturbilder bleiben in Ihrem Windows-Profil.
+Der Katalog wird nur geladen, wenn Sie „Kanäle aus dem Internet importieren“ wählen. STREAMS Player hat keine Kontopflicht, keine Werbung, keine Analyse und keine Telemetrie. Katalogzustand, manuelle Einträge, Favoriten, Wiedergabemarken, Einstellungen und zwischengespeicherte Miniaturbilder bleiben in Ihrem Windows-Profil.
 
 Die Wiedergabefähigkeit hängt vom Stream-Anbieter, der Netzwerkverfügbarkeit, dem Protokoll und den Mediencodecs ab, die von den mitgelieferten LibVLC-Komponenten unterstützt werden. STREAMS Player hostet oder kontrolliert keine Stream-Inhalte Dritter.
 
-STREAMS Player ist Open Source unter der MIT-Lizenz.
+STREAMS Player ist Open Source unter der MIT-Lizenz. Die optionale Austauschquelle in den Bibliothekseinstellungen verbindet sich über TLS mit Ihrem eigenen Server. Zur Registrierung sendet sie Anmeldename und Passwort oder Kopplungscode, danach Geräteidentität, Produktversion, Empfangsfähigkeiten und Gerätetoken. Solange sie aktiviert ist, hält sie eine Kontrollverbindung mit Lebenszeichen und Wiederverbindung; Deaktivieren schließt sie. Jedes Serverzertifikat benötigt Ihre ausdrückliche Zustimmung, auch nach Erneuerung. Passwort und Code werden verworfen. Konto, Token und Zertifikatabdruck sind in einer separaten Datei für Ihren Windows-Benutzer geschützt; Konto entfernen löscht sie. Diagnosearchive lassen diese Datei weg und schwärzen Kontowerte. Austauschverbindungen beginnen erst nach Ihrer ausdrücklichen Einrichtung der Quelle.
 
 @@Feature1
 Gepflegter Katalog für Internetradio, Live-Video und RTSP-Adressen
@@ -44,7 +44,7 @@ Dreizehn Oberflächensprachen, mit Layout von rechts nach links, wo es hingehör
 Katalogaktualisierung nur auf Ihren Befehl, ohne überraschende Downloads im Hintergrund
 
 @@Feature10
-Kein Konto, keine Werbung, keine Analyse, keine Telemetrie
+Kein Konto erforderlich, keine Werbung, keine Analyse, keine Telemetrie
 
 @@Feature11
 Das laufende Live-Video oder Radio in eine Datei aufnehmen, ohne die Wiedergabe zu unterbrechen

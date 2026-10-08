@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CAPTURE-OUTPUT` |
-| **Version** | 0.3 (draft - being drawn; a product supplements it by proposal) |
+| **Version** | 0.5 (draft - being drawn; a product supplements it by proposal) |
 | **Home** | `Contracts/capture-output/README.md` |
 | **Owner** | FastMediaSorter Android - amended by a `PROPOSAL-*` beside the contract, never by edit |
 | **This product's role** | **producer** of `video_frame`, `stream_video` and `stream_audio`; it reads none |
@@ -36,10 +36,14 @@ The rules are in the home page. Repo-local: which code holds each one, so a chan
 | 10 per-kind choice | `CatalogState.FrameFolder`, `VideoRecordingFolder`, `AudioRecordingFolder` (Settings, Playback tab); `CaptureFolderChoices.Split` carried the old single choice over once |
 | 11 fallback, told | `CaptureFolderChain` (chosen, default, Downloads) walked by `CapturedFrameWriter`, `StreamAudioRecorder`, `RecordingFinisher` and the recording start; the notices `FrameSavedElsewhere`, `RecordFellBack`, `RecordSavedElsewhere` name both folders |
 | 12 visible when complete | a frame is written as `~<name>.partial` and renamed; recordings grow in place (allowed since 0.2) or, on LibVLC, stage privately and move; leftovers are handed over at the next start |
-| 16 the capture time inside | the frame's EXIF `DateTimeOriginal`; the recordings' container time is the engine's |
+| 16 the capture time inside | the frame's EXIF `DateTimeOriginal` (local wall clock, `CapturedFrameWriter`); the recordings' container time is the engine's. 0.5's PNG `tIME` clause does not arise: the product writes no PNG capture (`CaptureFileName` - no PNG choice); a PNG option would owe a `tIME` chunk with the local second the name was formed from |
 
 **Conformance evidence.** The contract has no vectors yet. Rung 1 of its ladder runs in `dotnet test`:
 `CaptureFileNameTests` (every kind at a fixed instant in ar-SA, fa-IR, hi-IN and th-TH, the ordinal
 included), `CaptureFolderChainTests`, `CaptureFolderChoicesTests`.
 
 **Deviations** are recorded in the store's `_meta/REGISTRY.md`, never here.
+
+**0.4, read 2026-10-07 (SP-0206).** Section 5's new line - the contract that owns an export's format decides the file's place
+as well as its name - is informational here: the M3U export (`USER-PLAYLIST`) and the log archive (`DIAGNOSTIC-REPORT`) are
+this product's own contracts and neither names a destination folder yet. If one is wanted, it is written in the store first.

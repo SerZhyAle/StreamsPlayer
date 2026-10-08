@@ -221,8 +221,10 @@ public partial class MainWindow
                 continue;
             }
 
+            // The option's value is the normalized code, so the row is compared the same way: "Germany",
+            // "de" and "DE" are one country, and so are "UK" and "GB".
             if (country is not (null or AllValue) &&
-                !string.Equals(channel.Country, country, StringComparison.OrdinalIgnoreCase))
+                !string.Equals(CatalogCountries.Normalize(channel.Country), country, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }

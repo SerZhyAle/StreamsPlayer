@@ -190,6 +190,36 @@ public sealed record FastMediaSorterBroadcastInfo
     public string? SelectedTransport { get; init; }
     public IReadOnlyList<FastMediaSorterBroadcastEndpoint> Endpoints { get; init; } = [];
     public long? TargetLatencyMs { get; init; }
+
+    // SP-0201: set only on a channel the exchange directory created. The directory's one act on a row it
+    // did not create is the sourceId replacement, so a row that keeps its identity from a manual entry, a
+    // file or a pasted link never gains these members and is never marked ended by a record leaving.
+    public string? DirectoryBroadcastId { get; init; }
+
+    // SP-0201 requirement 4: a directory record that left the account marks its channel ended - kept, with
+    // its title, its collections and its history - and a later record with the same sourceId clears it.
+    // Null means the broadcast this row came from is live, including on every row written before SP-0201.
+    public DateTimeOffset? DirectoryEndedAt { get; init; }
+
+    public bool IsVideoMode =>
+        Mode is FastMediaSorterBroadcastDescriptor.VideoAudioMode or FastMediaSorterBroadcastDescriptor.VideoOnlyMode;
+
+    public FastMediaSorterBroadcastEndpoint SelectPlaybackEndpoint(string fallbackUrl = "") =>
+        IsVideoMode ? SelectVideoEndpoint(fallbackUrl) : SelectAudioEndpoint(fallbackUrl);
+
+    public FastMediaSorterBroadcastEndpoint SelectAudioEndpoint(string fallbackUrl = "") =>
+        FastMediaSorterBroadcastAttempts.SelectAudio(Mode, fallbackUrl, isLive: true, TargetLatencyMs, Endpoints);
+
+    public FastMediaSorterBroadcastEndpoint SelectVideoEndpoint(string fallbackUrl = "") =>
+        FastMediaSorterBroadcastAttempts.SelectVideo(Mode, fallbackUrl, isLive: true, TargetLatencyMs, Endpoints);
+
+    /// <summary>
+    /// SP-0203: the endpoints this build can play, in the producer's listed order - what every
+    /// playback leg walks, restarting at the top on a reconnect. The list may be empty (a descriptor
+    /// with no endpoint this build plays); the caller falls back to the channel's own address.
+    /// </summary>
+    public IReadOnlyList<FastMediaSorterBroadcastEndpoint> PlaybackAttemptEndpoints() =>
+        FastMediaSorterBroadcastAttempts.PlaybackAttempts(Mode, Endpoints);
 }
 
 public sealed record StreamChannel

@@ -172,7 +172,11 @@ public partial class CompactPanelWindow : Window
             MonogramText.Foreground = row.MonogramForeground;
             CountryCodeBadge.Visibility = row.CountryCodeVisibility;
             CountryCodeText.Text = row.CountryCode;
+            CountryCodeText.Visibility = row.CountryCodeTextVisibility;
             CountryCodeText.Foreground = row.MonogramForeground;
+            CountryFlagImage.Source = row.CountryFlag;
+            CountryFlagImage.Visibility = row.CountryFlagVisibility;
+            CountryCodeBadge.ToolTip = row.CountryName;
         }
 
         PlayingIndicator.Visibility = playing ? Visibility.Visible : Visibility.Collapsed;

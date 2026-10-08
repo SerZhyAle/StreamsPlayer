@@ -1,6 +1,6 @@
 {
   "about": "SP-0113. This product's map to the portfolio icon vocabulary (ICON-SET, ICON-RENDER, ICON-EXTERNAL, consumer). Every glyph the application, its READMEs and its site draw is listed here once: a vocabulary meaning, a meaning asked for by proposal and pending, product chrome or illustration, or an external picture. Glyphs.xaml is generated from this file and assets/glyphs/ by tools/Sync-IconGlyphs.ps1; IconographyConformanceTests hold the three against each other.",
-  "contracts": { "ICON-SET": "0.16", "ICON-RENDER": "0.13", "ICON-EXTERNAL": "0.10" },
+  "contracts": { "ICON-SET": "0.28", "ICON-RENDER": "0.18", "ICON-EXTERNAL": "0.12" },
   "meanings": [
     { "id": "view.list", "name": "List view", "surfaces": [ "style:ListGlyphButton" ] },
     { "id": "view.grid", "name": "Grid view", "surfaces": [ "style:GridGlyphButton", "SettingsWindow.xaml tab GridSettings" ] },
@@ -28,7 +28,7 @@
     { "id": "media.mute", "name": "Mute", "surfaces": [ "style:PlayerOverlayMuteGlyphButton" ], "nameKeys": [ "Mute" ] },
     { "id": "media.fullscreen", "name": "Fullscreen", "surfaces": [ "style:PlayerOverlayFullscreenGlyphButton" ], "nameKeys": [ "Fullscreen" ] },
     { "id": "media.exit-fullscreen", "name": "Exit fullscreen", "surfaces": [ "style:PlayerOverlayExitFullscreenGlyphButton" ], "nameKeys": [ "ExitFullscreen" ] },
-    { "id": "media.picture-in-picture", "name": "Picture in picture", "surfaces": [ "style:PictureInPictureGlyphOnlyButton" ], "note": "The compact radio panel: keeps playing in a small floating window. Its name is the question in PROPOSAL-2026-09-24-streamsplayer-meanings.md item 4." },
+    { "id": "media.picture-in-picture", "name": "Picture in picture", "surfaces": [ "style:PictureInPictureGlyphOnlyButton" ], "note": "The compact radio panel: keeps playing in a small floating window. The catalog declares the qualified label 'Compact panel' for a floating panel without video (ICON-SET 0.22 item E.2, answering proposal item 4); the label's forms in other languages are this product's own." },
     { "id": "action.filter", "name": "Filter", "surfaces": [ "style:FilterGlyphButton" ] },
     { "id": "content.video", "name": "Video", "surfaces": [ "style:QuickVideoFilterButton" ], "nameKeys": [ "QuickVideoTip" ] },
     { "id": "content.audio", "name": "Audio", "surfaces": [ "style:QuickAudioFilterButton", "MainWindow.xaml now-playing badge (list and grid)", "CompactPanelWindow.xaml now-playing badge" ], "nameKeys": [ "QuickAudioTip" ] },
@@ -40,21 +40,20 @@
     { "id": "nav.dropdown", "name": "Choose from list", "surfaces": [ "App.xaml ComboBox" ] },
     { "id": "app.info", "name": "Information", "surfaces": [ "SettingsWindow.xaml tab About" ] },
     { "id": "nav.open-external", "name": "Open in new window", "rtl": "mirror", "surfaces": [ "style:OpenFolderGlyphButton" ], "note": "Opens a capture folder in File Explorer." },
-    { "id": "nav.scroll-top", "name": "Scroll to top", "surfaces": [ "site _footer.html back-to-top" ] }
+    { "id": "nav.scroll-top", "name": "Scroll to top", "surfaces": [ "site _footer.html back-to-top" ] },
+    { "id": "media.record", "name": "Record", "surfaces": [ "style:RecordGlyphOnlyButton", "style:PlayerOverlayRecordGlyphButton" ], "nameKeys": [ "Record", "RecordTip" ] },
+    { "id": "media.capture-frame", "name": "Save frame", "surfaces": [ "style:PlayerOverlaySaveFrameGlyphButton" ], "nameKeys": [ "SaveFrame", "SaveFrameTip" ] },
+    { "id": "nav.minimize", "name": "Minimize", "surfaces": [ "style:MinimizeGlyphOnlyButton" ], "nameKeys": [ "CompactPanelMinimizeTip" ], "note": "The compact panel's window button, labelled 'Свернуть окно' / 'Згорнути вікно' - never the bare 'Свернуть' of nav.collapse (ICON-SET 0.22 item E.1)." },
+    { "id": "media.exit-picture-in-picture", "name": "Full window", "surfaces": [ "style:FullWindowGlyphOnlyButton" ], "nameKeys": [ "ExpandFromPanelName", "ExpandFromPanelTip" ] },
+    { "id": "source.own", "name": "My channels", "surfaces": [ "style:QuickOwnFilterButton" ], "nameKeys": [ "QuickOwnTip" ] },
+    { "id": "source.hidden", "name": "Hidden", "surfaces": [ "style:HiddenGlyphButton" ], "nameKeys": [ "ManageHiddenOpen", "ManageHiddenTip" ] },
+    { "id": "app.language", "name": "Interface language", "surfaces": [ "SettingsWindow.xaml tab Language" ] },
+    { "id": "action.choose-folder", "name": "Choose folder", "surfaces": [ "style:ChooseFolderGlyphButton" ], "nameKeys": [ "FrameFolderBrowse" ], "note": "The label's '..' that says a dialog follows is the label's, not the name's (the record's note)." },
+    { "id": "app.theme", "name": "Theme", "site": true, "surfaces": [ "site theme switch" ] }
   ],
-  "pending": [
-    { "key": "media.record", "name": "Record", "proposal": "PROPOSAL-2026-09-24-streamsplayer-meanings.md item 1", "surfaces": [ "style:RecordGlyphOnlyButton", "style:PlayerOverlayRecordGlyphButton" ] },
-    { "key": "media.capture-frame", "name": "Save frame", "proposal": "PROPOSAL-2026-09-24-streamsplayer-meanings.md item 2", "surfaces": [ "style:PlayerOverlaySaveFrameGlyphButton" ] },
-    { "key": "window.minimize", "name": "Minimize", "proposal": "PROPOSAL-2026-09-24-streamsplayer-meanings.md item 3", "surfaces": [ "style:MinimizeGlyphOnlyButton" ] },
-    { "key": "media.exit-picture-in-picture", "name": "Full window", "proposal": "PROPOSAL-2026-09-24-streamsplayer-meanings.md item 4", "surfaces": [ "style:FullWindowGlyphOnlyButton" ] },
-    { "key": "source.own", "name": "My channels", "proposal": "PROPOSAL-2026-09-24-streamsplayer-meanings.md item 5", "surfaces": [ "style:QuickOwnFilterButton" ] },
-    { "key": "source.hidden", "name": "Hidden", "proposal": "PROPOSAL-2026-09-24-streamsplayer-meanings.md item 6", "surfaces": [ "style:HiddenGlyphButton" ] },
-    { "key": "app.language", "name": "Interface language", "proposal": "PROPOSAL-2026-09-24-fms-windows-meanings.md item 6 (co-signed by item 7 of this product's proposal)", "surfaces": [ "SettingsWindow.xaml tab Language" ] },
-    { "key": "action.choose-folder", "name": "Choose folder..", "proposal": "PROPOSAL-2026-09-24-fms-windows-meanings.md item 8 (co-signed by item 7 of this product's proposal)", "surfaces": [ "style:ChooseFolderGlyphButton" ] },
-    { "key": "app.theme", "name": "Theme", "proposal": "PROPOSAL-2026-09-24-fms-windows-meanings.md item 7 and PROPOSAL-2026-09-24-fms-page-style-kit-symbols.md", "site": true, "surfaces": [ "site theme switch - keeps the PAGE-STYLE symbol until the record lands" ] }
-  ],
+  "pending": [],
   "private": [
-    { "key": "Chrome.scroll-up", "reason": "scroll bar line button - platform chrome restyled for the dark theme, not a command (proposal item 8 asks whether the vocabulary wants it)" },
+    { "key": "Chrome.scroll-up", "reason": "scroll bar line button - a part of a standard control, which the vocabulary puts out of its scope (ICON-SET 0.22 item E.3, answering proposal question 9); this product's dark-theme template draws it, declared chrome here, never a meaning" },
     { "key": "Chrome.scroll-down", "reason": "scroll bar line button" },
     { "key": "Chrome.scroll-left", "reason": "scroll bar line button" },
     { "key": "Chrome.scroll-right", "reason": "scroll bar line button" },

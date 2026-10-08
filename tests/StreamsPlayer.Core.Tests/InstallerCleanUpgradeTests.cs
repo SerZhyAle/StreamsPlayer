@@ -17,7 +17,7 @@ public sealed class InstallerCleanUpgradeTests
     {
         var wipe = Regex.Match(
             Script,
-            @"^\[InstallDelete\]\s*\r?\nType: filesandordirs; Name: \x22\{app\}\x22; Check: FileExistsInApp\('StreamsPlayer\.exe'\) or FileExistsInApp\('unins000\.exe'\)\s*$",
+            @"^\[InstallDelete\]\s*\r?\nType: filesandordirs; Name: \x22\{app\}\x22; Check: HoldsPreviousInstallation\s*$",
             RegexOptions.Multiline);
 
         Assert.True(wipe.Success, "installer/StreamsPlayer.iss no longer wipes {app} before installing - an upgrade would keep files the new payload dropped.");
@@ -30,6 +30,29 @@ public sealed class InstallerCleanUpgradeTests
         var checkFunction = Regex.Match(Script, @"function\s+FileExistsInApp\s*\(\s*FileName:\s*String\s*\)\s*:\s*Boolean");
 
         Assert.True(checkFunction.Success, "installer/StreamsPlayer.iss no longer guards the wipe with FileExistsInApp - Setup may delete a folder it did not install.");
+    }
+
+    // SP-0184 (R3-1): unins000.exe is the uninstaller name of every Inno Setup product, so it may unlock the wipe only
+    // together with this product's own uninstall record, and that record's key must be the one AppId derives.
+    [Fact]
+    public void Upgrade_WipeAcceptsTheGenericUninstallerOnlyWithThisAppIdsUninstallRecord()
+    {
+        var appId = Regex.Match(Script, @"^AppId=\{\{(?<guid>[0-9A-F\-]{36})\}\s*$", RegexOptions.Multiline);
+        Assert.True(appId.Success, "installer/StreamsPlayer.iss no longer declares its AppId in the escaped GUID form.");
+
+        var guard = Regex.Match(Script, @"function HoldsPreviousInstallation\(\): Boolean;(?s).*?\nend;");
+        Assert.True(guard.Success, "installer/StreamsPlayer.iss no longer defines HoldsPreviousInstallation.");
+        Assert.Contains("FileExistsInApp('StreamsPlayer.exe')", guard.Value, StringComparison.Ordinal);
+        Assert.Contains("FileExistsInApp('unins000.exe')", guard.Value, StringComparison.Ordinal);
+        Assert.Contains("UninstallRecordNamesThisFolder", guard.Value, StringComparison.Ordinal);
+
+        var record = Regex.Match(Script, @"function UninstallRecordNamesThisFolder\(RootKey: Integer\): Boolean;(?s).*?\nend;");
+        Assert.True(record.Success, "installer/StreamsPlayer.iss no longer defines UninstallRecordNamesThisFolder.");
+        Assert.Contains(
+            @"Uninstall\{" + appId.Groups["guid"].Value + "}_is1",
+            record.Value,
+            StringComparison.Ordinal);
+        Assert.Contains("RemoveBackslash(ExpandConstant('{app}'))", record.Value, StringComparison.Ordinal);
     }
 
     // A Pascal brace comment ends at the first closing brace, so one that names an Inno constant such as the app

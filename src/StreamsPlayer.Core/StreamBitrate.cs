@@ -9,10 +9,13 @@ namespace StreamsPlayer.Core;
 /// </summary>
 public static class StreamBitrate
 {
+    /// <summary>One gigabit per second; no radio or video stream in a bank claims more and means it.</summary>
+    public const int MaximumPlausibleKbps = 1_000_000;
+
     /// <summary>
     /// Parses a leading decimal number with an optional unit token into kilobits per second.
     /// Bare / <c>k</c> / <c>kb</c> / <c>kbps</c> are kbps; <c>m</c> / <c>mb</c> / <c>mbps</c> are ×1000.
-    /// Returns false (and 0) for null, empty, or a value without a leading number.
+    /// Returns false (and 0) for null, empty, a value without a leading number, or a claim above <see cref="MaximumPlausibleKbps"/>.
     /// </summary>
     public static bool TryParseKbps(string? raw, out int kbps)
     {
@@ -48,7 +51,16 @@ public static class StreamBitrate
             return false;
         }
 
-        kbps = (int)Math.Round(value * multiplier);
+        // SP-0184 (S15-2): the claim is untrusted text. An absurd one ("99999999999", or enough digits to
+        // overflow a double) must not be cast into a saturated int that clears every minimum; it is no
+        // better than an unreadable claim.
+        var scaled = Math.Round(value * multiplier);
+        if (!double.IsFinite(scaled) || scaled > MaximumPlausibleKbps)
+        {
+            return false;
+        }
+
+        kbps = (int)scaled;
         return true;
     }
 

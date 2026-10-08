@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `DOC-INTERNAL-QUALITY` (adopted); `DOC-EXTERNAL-QUALITY` (not adopted - see below) |
-| **Version** | 0.9 / 0.10 (draft) |
+| **Version** | 0.9 (draft); the external contract is 0.10 and not adopted |
 | **Home** | `Contracts/documentation-quality/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | **consumer** (adopted 2026-09-26, gated by `SP-0140`) |

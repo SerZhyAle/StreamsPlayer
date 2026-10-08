@@ -32,7 +32,11 @@ param(
     # The repository the verdict is about. Defaults to the one this script lives in; the worktree form is
     # for observing the writer against a clean checkout that cannot yet carry the (uncommitted) writer
     # itself, on the -PublishedVersions terms of assert-release-version.ps1.
-    [string] $Root
+    [string] $Root,
+
+    # SP-0184 (A2-4): the checks this run did not make (-SkipVideo, -SkipRecording). A PASS that skipped something
+    # is recorded as such, and release.yml refuses it: the switches are for a developer machine, not for a release.
+    [string[]] $Skipped = @()
 )
 
 Set-StrictMode -Version Latest
@@ -68,6 +72,7 @@ $verdict = [ordered]@{
     version = $version
     commit  = $commit
     when    = (Get-Date).ToString('yyyy-MM-ddTHH:mm:sszzz')
+    skipped = @($Skipped)
 }
 $folder = Join-Path $Root 'release-verdicts'
 New-Item -ItemType Directory -Path $folder -Force | Out-Null

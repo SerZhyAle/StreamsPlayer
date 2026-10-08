@@ -572,13 +572,16 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         {
             var urlAtRead = _lastUrl;
             string? title = null;
+            // S4-2: false when the context lock stayed busy for the whole bounded wait; the previous title then
+            // stands, since "could not look" says nothing about what is on air.
+            var sampled = true;
             try
             {
                 lock (_mediaGate)
                 {
                     if (!IsReleased && !_disposed)
                     {
-                        title = ReadNowPlayingUnderLock();
+                        title = ReadNowPlayingUnderLock(out sampled);
                     }
                 }
             }
@@ -591,7 +594,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
             }
 
             // A leg switch during the read means the answer describes a station that is already gone.
-            if (ReferenceEquals(urlAtRead, _lastUrl))
+            if (sampled && ReferenceEquals(urlAtRead, _lastUrl))
             {
                 _publishedNowPlaying = title;
             }
@@ -600,16 +603,35 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         }
     }
 
-    /// <summary>One demuxer read under FlyleafLib's own context lock. Runs on the sampler's pool thread only.</summary>
-    private unsafe string? ReadNowPlayingUnderLock()
+    /// <summary>
+    /// How long the sampler waits for FlyleafLib's context lock while holding <see cref="_mediaGate"/>. The library
+    /// holds that lock for as long as an open or a read takes, and an unbounded wait here kept a Play or a teardown
+    /// queued on the gate behind it for the same time (S4-2). Lock order is unchanged: gate, then context lock.
+    /// </summary>
+    private static readonly TimeSpan ContextLockWait = TimeSpan.FromMilliseconds(250);
+
+    /// <summary>
+    /// One demuxer read under FlyleafLib's own context lock. Runs on the sampler's pool thread only.
+    /// <paramref name="read"/> is false when the lock could not be taken within <see cref="ContextLockWait"/>
+    /// (the result is then meaningless and the next period tries again).
+    /// </summary>
+    private unsafe string? ReadNowPlayingUnderLock(out bool read)
     {
+        read = true;
         var demuxer = _player.MainDemuxer;
         if (demuxer is null)
         {
             return null;
         }
 
-        lock (demuxer.lockFmtCtx)
+        var contextLock = demuxer.lockFmtCtx;
+        if (!Monitor.TryEnter(contextLock, ContextLockWait))
+        {
+            read = false;
+            return null;
+        }
+
+        try
         {
             var context = demuxer.FormatContext;
             if (context is null)
@@ -620,6 +642,10 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
             var block = ReadOption(context->pb, "icy_metadata_packet");
             var title = block is null ? null : IcyMetadataParser.ExtractStreamTitle(block);
             return title ?? ReadDictionary(context->metadata, "StreamTitle");
+        }
+        finally
+        {
+            Monitor.Exit(contextLock);
         }
     }
 

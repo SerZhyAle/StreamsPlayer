@@ -45,14 +45,24 @@ internal sealed class StandardAudioPlayback : IDisposable
         set
         {
             _audioOutputDevice = value;
-            if (_leg?.Player is { } player && !string.IsNullOrEmpty(value))
+            // A6-1: the empty id is the system default and must reach the playing station too - skipping it left
+            // the station on the device the user had just chosen away from until the next Play.
+            if (_leg?.Player is { } player)
             {
-                try
-                {
-                    player.SetOutputDevice(value);
-                }
-                catch { }
+                ApplyOutputDevice(player, value ?? string.Empty);
             }
+        }
+    }
+
+    private void ApplyOutputDevice(MediaPlayer player, string deviceId)
+    {
+        try
+        {
+            player.SetOutputDevice(deviceId);
+        }
+        catch (Exception exception)
+        {
+            _diagnostics?.Invoke("AUDIO DEVICE REFUSED", ["route=standard", $"error={exception.GetType().Name}"]);
         }
     }
 
@@ -128,11 +138,7 @@ internal sealed class StandardAudioPlayback : IDisposable
             _leg = new Leg(this, connection, new MediaPlayer(libVlc) { Volume = volume });
             if (!string.IsNullOrEmpty(_audioOutputDevice))
             {
-                try
-                {
-                    _leg.Player.SetOutputDevice(_audioOutputDevice);
-                }
-                catch { }
+                ApplyOutputDevice(_leg.Player, _audioOutputDevice);
             }
             _leg.Player.SetChannel(_audioChannelMode.ToLibVlc());
             _media = new Media(libVlc, uri, ":clock-jitter=0");

@@ -21,6 +21,10 @@ public sealed class StreamBitrateTests
     [InlineData(null)]
     [InlineData("high")]
     [InlineData("kbps")]
+    [InlineData("9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999")]
+    [InlineData("99999999999")]
+    [InlineData("5000000 kbps")]
+    [InlineData("99999999 Mbps")]
     public void TryParseKbps_RejectsMissingOrMalformed(string? raw)
     {
         Assert.False(StreamBitrate.TryParseKbps(raw, out var kbps));
@@ -32,6 +36,8 @@ public sealed class StreamBitrateTests
     [InlineData("96", 128, false)]
     [InlineData(null, 128, false)]
     [InlineData("garbage", 1, false)]
+    [InlineData("99999999999", 128, false)]
+    [InlineData("1000000", 128, true)]
     public void MeetsMinimum_ExcludesUnknownUnderActiveMinimum(string? raw, int minimum, bool expected)
     {
         Assert.Equal(expected, StreamBitrate.MeetsMinimum(raw, minimum));

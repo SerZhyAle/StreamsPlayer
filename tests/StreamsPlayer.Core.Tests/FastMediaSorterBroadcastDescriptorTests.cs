@@ -163,6 +163,41 @@ public sealed class FastMediaSorterBroadcastDescriptorTests
         Assert.Equal(FastMediaSorterBroadcastReadStatus.InvalidPayload, read.Status);
     }
 
+    /// <summary>S9-2: a descriptor file saved with a UTF-8 BOM is the same descriptor, on every entry point.</summary>
+    [Fact]
+    public void Utf8ByteOrderMarkIsStrippedOnEveryEntryPoint()
+    {
+        var withBom = new byte[] { 0xEF, 0xBB, 0xBF }.Concat(Encoding.UTF8.GetBytes(PhoneJson)).ToArray();
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, FastMediaSorterBroadcastDescriptor.Read(withBom).Status);
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, FastMediaSorterBroadcastDescriptor.Read("\uFEFF" + PhoneJson).Status);
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, FastMediaSorterBroadcastDescriptor.Read("\uFEFF" + Compress(PhoneJson)).Status);
+    }
+
+    /// <summary>A9-1: the stored address must be one the product launches; a path, share or foreign scheme is not.</summary>
+    [Theory]
+    [InlineData("file:///C:/Windows/notepad.exe")]
+    [InlineData("\\\\\\\\server\\\\share\\\\a.aac")]
+    [InlineData("ftp://192.168.1.97/live")]
+    [InlineData("not an address")]
+    public void ANonLaunchableDescriptorAddressIsAnInvalidPayload(string url)
+    {
+        var json = $$"""{"schemaVersion":1,"url":"{{url}}","mode":"AUDIO_ONLY"}""";
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.InvalidPayload, FastMediaSorterBroadcastDescriptor.Read(json).Status);
+    }
+
+    [Fact]
+    public void ANonLaunchableEndpointIsDroppedAndTheLaunchableOneKept()
+    {
+        var read = FastMediaSorterBroadcastDescriptor.Read(
+            """{"schemaVersion":1,"url":"http://192.168.1.97:8768/live-audio.aac","mode":"AUDIO_ONLY","endpoints":[{"url":"file:///C:/x.aac","transport":"HTTP","mode":"AUDIO_ONLY"},{"url":"http://192.168.1.97:8768/live-audio.aac","transport":"HTTP","mode":"AUDIO_ONLY"}]}""");
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, read.Status);
+        var endpoint = Assert.Single(read.Broadcast!.Endpoints);
+        Assert.Equal("http://192.168.1.97:8768/live-audio.aac", endpoint.Url);
+    }
+
     [Fact]
     public void InvalidUtf8IsRefused()
     {
@@ -347,6 +382,72 @@ public sealed class FastMediaSorterBroadcastDescriptorTests
         Assert.Equal(
             FastMediaSorterBroadcastReadStatus.InvalidPayload,
             FastMediaSorterBroadcastDescriptor.Read("""{"schemaVersion":"2.2"}""").Status);
+
+    [Fact]
+    public void TunnelEndpointWithInnerAndCertFingerprintIsAccepted()
+    {
+        var json = """
+            {
+                "schemaVersion": 1,
+                "url": "http://192.168.1.97:8768/live-audio.aac",
+                "title": "Kitchen",
+                "mode": "AUDIO_ONLY",
+                "sourceId": "AAECAwQFBgcICQoLDA0ODw",
+                "isLive": true,
+                "targetLatencyMs": 1000,
+                "endpoints": [
+                    {
+                        "url": "fmsx://exchange.example.net:44022/b/ICEiIyQlJicoKSorLC0uLw/http",
+                        "transport": "TUNNEL",
+                        "inner": "http://192.168.1.97:8768/live-audio.aac",
+                        "mode": "AUDIO_ONLY",
+                        "audioCodec": "AAC",
+                        "sampleRate": 44100,
+                        "isLive": true,
+                        "targetLatencyMs": 2000,
+                        "certFingerprint": "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk"
+                    }
+                ]
+            }
+            """;
+
+        var read = FastMediaSorterBroadcastDescriptor.Read(json);
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, read.Status);
+        Assert.NotNull(read.Broadcast);
+        var endpoint = Assert.Single(read.Broadcast.Endpoints);
+        Assert.Equal("TUNNEL", endpoint.Transport);
+        Assert.Equal("fmsx://exchange.example.net:44022/b/ICEiIyQlJicoKSorLC0uLw/http", endpoint.Url);
+        Assert.Equal("http://192.168.1.97:8768/live-audio.aac", endpoint.Inner);
+        Assert.Equal("SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk", endpoint.CertFingerprint);
+        Assert.Equal("fmsx://exchange.example.net:44022/b/ICEiIyQlJicoKSorLC0uLw/http", read.Broadcast.SelectAudioEndpoint().Url);
+    }
+
+    [Fact]
+    public void TunnelEndpointWithUnlaunchableInnerIsDropped()
+    {
+        var json = """
+            {
+                "schemaVersion": 1,
+                "url": "http://192.168.1.97:8768/live-audio.aac",
+                "title": "Kitchen",
+                "mode": "AUDIO_ONLY",
+                "endpoints": [
+                    {
+                        "url": "fmsx://exchange.example.net:44022/b/b1/http",
+                        "transport": "TUNNEL",
+                        "inner": "file:///C:/test.aac",
+                        "mode": "AUDIO_ONLY"
+                    }
+                ]
+            }
+            """;
+
+        var read = FastMediaSorterBroadcastDescriptor.Read(json);
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, read.Status);
+        Assert.Empty(read.Broadcast!.Endpoints);
+    }
 
     // A test used to read a copy of the LIVE-BROADCAST document out of this repository and assert it
     // carried the wire shapes above. The copy is gone: the contract has one home, the shared store that

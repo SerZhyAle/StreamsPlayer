@@ -146,7 +146,7 @@ public sealed class CatalogPurgeTests
     public void RemoveImportedBank_DropsLocalCatalogRowsAndCleansImportedAtlas()
     {
         var localOne = Channel("https://example.test/local-one", SourceOrigin.LocalCatalog);
-        var localTwo = Channel("https://example.test/local-two", SourceOrigin.LocalCatalog) with { Pinned = true };
+        var localTwo = Channel("https://example.test/local-two", SourceOrigin.LocalCatalog);
         var catalog = Channel("https://example.test/catalog", SourceOrigin.Catalog);
         var manual = Channel("rtsp://example.test/camera", SourceOrigin.Manual) with { Pinned = true };
         var imported = Channel("https://example.test/imported", SourceOrigin.Imported);
@@ -163,6 +163,72 @@ public sealed class CatalogPurgeTests
         Assert.Equal([localOne.Id, localTwo.Id], result.RemovedChannelIds);
         Assert.Null(result.State.ImportedAtlasFileName);
         Assert.Equal("favicon-atlas.png", result.State.AtlasFileName);
+    }
+
+    // SP-0184 A14-1: pinned, collected and listened-to imported rows are the user's work and survive the purge.
+    [Fact]
+    public void RemoveImportedBank_KeepsPinnedCollectedAndListenedRows()
+    {
+        var plain = Channel("https://example.test/plain", SourceOrigin.LocalCatalog);
+        var pinned = Channel("https://example.test/pinned", SourceOrigin.LocalCatalog) with { Pinned = true };
+        var collected = Channel("https://example.test/collected", SourceOrigin.LocalCatalog);
+        var listened = Channel("https://example.test/listened", SourceOrigin.LocalCatalog);
+        var state = new CatalogState
+        {
+            Channels = [plain, pinned, collected, listened],
+            Collections = [new ChannelCollection { Id = Guid.NewGuid(), Name = "Mine", ChannelIds = [collected.Id] }],
+            ListeningHistory = [new ListeningHistoryEntry
+            {
+                ChannelId = listened.Id,
+                Title = "Played",
+                MediaKind = MediaKind.Audio,
+                LastPlayedAt = Now
+            }]
+        };
+
+        Assert.Equal(1, CatalogPurge.CountImportedBank(state));
+
+        var result = CatalogPurge.RemoveImportedBank(state);
+
+        Assert.Equal([plain.Id], result.RemovedChannelIds);
+        Assert.Equal([pinned, collected, listened], result.State.Channels);
+    }
+
+    [Fact]
+    public void RemoveImportedBank_KeepsTheImportedAtlasWhileAKeptRowStillIndexesIt()
+    {
+        var keptRow = Channel("https://example.test/kept", SourceOrigin.LocalCatalog) with
+        {
+            Pinned = true,
+            FaviconSource = FaviconSource.Imported,
+            FaviconIndex = 0
+        };
+        var state = new CatalogState
+        {
+            Channels = [keptRow, Channel("https://example.test/gone", SourceOrigin.LocalCatalog)],
+            ImportedAtlasFileName = "imported-atlas-123.png"
+        };
+
+        var result = CatalogPurge.RemoveImportedBank(state);
+
+        Assert.Equal([keptRow], result.State.Channels);
+        Assert.Equal("imported-atlas-123.png", result.State.ImportedAtlasFileName);
+    }
+
+    [Fact]
+    public void RemoveImportedBank_WithOnlyAuthoredRowsIsANoOp()
+    {
+        var state = new CatalogState
+        {
+            Channels = [Channel("https://example.test/pinned", SourceOrigin.LocalCatalog) with { Pinned = true }],
+            ImportedAtlasFileName = "imported-atlas-123.png"
+        };
+
+        var result = CatalogPurge.RemoveImportedBank(state);
+
+        Assert.Same(state, result.State);
+        Assert.Empty(result.RemovedChannelIds);
+        Assert.Equal(0, CatalogPurge.CountImportedBank(state));
     }
 
     [Fact]
@@ -183,17 +249,20 @@ public sealed class CatalogPurgeTests
     [Fact]
     public void CountImportedBank_CountsOnlyLocalCatalogRows()
     {
-        StreamChannel[] channels =
-        [
-            Channel("https://example.test/one", SourceOrigin.Catalog),
-            Channel("https://example.test/two", SourceOrigin.LocalCatalog),
-            Channel("https://example.test/three", SourceOrigin.LocalCatalog),
-            Channel("rtsp://example.test/camera", SourceOrigin.Manual),
-            Channel("https://example.test/imported", SourceOrigin.Imported)
-        ];
+        var state = new CatalogState
+        {
+            Channels =
+            [
+                Channel("https://example.test/one", SourceOrigin.Catalog),
+                Channel("https://example.test/two", SourceOrigin.LocalCatalog),
+                Channel("https://example.test/three", SourceOrigin.LocalCatalog),
+                Channel("rtsp://example.test/camera", SourceOrigin.Manual),
+                Channel("https://example.test/imported", SourceOrigin.Imported)
+            ]
+        };
 
-        Assert.Equal(2, CatalogPurge.CountImportedBank(channels));
-        Assert.Equal(0, CatalogPurge.CountImportedBank([]));
+        Assert.Equal(2, CatalogPurge.CountImportedBank(state));
+        Assert.Equal(0, CatalogPurge.CountImportedBank(new CatalogState { Channels = [] }));
     }
 
     private static StreamChannel Channel(string url, SourceOrigin origin) => new()

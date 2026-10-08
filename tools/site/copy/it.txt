@@ -6,6 +6,8 @@
 #   [[email]]   - the contact address
 #   [[hash]]    - the Get-FileHash command that checks a download against its .sha256 file
 #   [[installdir]] - the per-user install folder, %LOCALAPPDATA%\Programs\StreamsPlayer
+#   [[languages]] - how many interface languages ship (rendered from the language registry, never typed)
+#   [[windows]]   - the minimum Windows, as the site names it (rendered from the project, never typed)
 # machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
 # but the key is present in every file so the key sets stay comparable.
 
@@ -41,6 +43,8 @@ GitHub
 
 @@theme-label
 Cambia tema di colore
+@@theme-name
+Tema
 
 @@lang-label
 Lingua del sito
@@ -52,7 +56,7 @@ Navigazione principale
 Icona di STREAMS Player
 
 @@hero-eyebrow
-STREAMS Player · Windows 10 / 11
+[[windows]]
 
 @@hero-title
 Radio, video live e RTSP in un solo lettore.
@@ -61,25 +65,25 @@ Radio, video live e RTSP in un solo lettore.
 Radio via internet · Video live · RTSP
 
 @@hero-description
-Un'app desktop essenziale per Windows: sfoglia un catalogo già pronto, aggiungi i tuoi flussi e riproducili - senza account, senza pubblicità e senza niente che lavori in background a tua insaputa.
+Un'app desktop essenziale per Windows: sfoglia un catalogo già pronto, aggiungi i tuoi flussi e riproducili - senza account obbligatorio, senza pubblicità e senza niente che lavori in background a tua insaputa.
 
 @@facts-label
 In breve
 
 @@fact-windows
-Windows 10 / 11
+[[windows]]
 
 @@fact-free
 Gratuito · Sorgenti MIT
 
 @@fact-account
-Nessun account
+Nessun account obbligatorio
 
 @@fact-telemetry
 Nessuna telemetria
 
 @@fact-langs
-13 lingue dell'interfaccia
+[[languages]] lingue dell'interfaccia
 
 @@hero-download
 Scarica (.exe)
@@ -100,7 +104,7 @@ Stato attuale
 Rilasciato
 
 @@status-description
-STREAMS Player è rilasciato e gratuito. Avvia l'installer dall'ultima release su GitHub, scaricalo dal Microsoft Store, prendi lo ZIP portatile, oppure installalo con winget - senza account, senza pubblicità, senza telemetria.
+STREAMS Player è rilasciato e gratuito. Avvia l'installer dall'ultima release su GitHub, scaricalo dal Microsoft Store, prendi lo ZIP portatile, oppure installalo con winget - senza account obbligatorio, senza pubblicità, senza telemetria.
 
 @@status-source
 Microsoft Store
@@ -118,7 +122,7 @@ Cos'è e perché
 STREAMS Player è un'app desktop indipendente per Windows dedicata alla radio via internet, al video live e alle telecamere di rete RTSP. Legge un catalogo pubblico curato, così al primo avvio hai già un elenco di canali funzionante - poi cerchi, ordini, fissi e aggiungi i tuoi canali, con tutto salvato in locale sul tuo computer.
 
 @@what-p2
-L'idea è la calma: un lettore che resta un lettore. Il catalogo si aggiorna solo quando lo chiedi, i flussi aggiunti a mano e importati non vengono mai sovrascritti da un aggiornamento, e non esistono account, pubblicità, analisi o servizi gestiti dall'autore. Sul tuo PC gira solo quello che hai avviato.
+L'idea è la calma: un lettore che resta un lettore. Il catalogo si aggiorna solo quando lo chiedi, i flussi aggiunti a mano e importati non vengono mai sovrascritti da un aggiornamento, e non esistono account obbligatori, pubblicità, analisi o servizi gestiti dall'autore. Sul tuo PC gira solo quello che hai avviato.
 
 @@features-title
 Cosa sa fare
@@ -202,7 +206,7 @@ L'aggiornamento automatico delle anteprime si può disattivare.
 Personalizzalo
 
 @@cap-yours-1
-Aggiungi un flusso tramite URL, senza account.
+Aggiungi un flusso tramite URL, senza account obbligatorio.
 
 @@cap-yours-2
 I flussi che aggiungi e importi sopravvivono agli aggiornamenti del catalogo. Un canale del catalogo che hai fissato o ascoltato viene conservato, non cancellato, quando il catalogo smette di elencarlo.
@@ -211,7 +215,7 @@ I flussi che aggiungi e importi sopravvivono agli aggiornamenti del catalogo. Un
 Contrassegni di riproduzione locali: OK o errore.
 
 @@cap-yours-4
-Cambia l'intera interfaccia tra tredici lingue; la scelta viene ripristinata.
+Cambia l'intera interfaccia tra [[languages]] lingue; la scelta viene ripristinata.
 
 @@cap-yours-5
 Raggruppa i canali in raccolte tue, con il nome che scegli, e sfogliale una alla volta.
@@ -273,7 +277,7 @@ Apri Impostazioni dal pulsante a forma di ingranaggio nell’intestazione (o dal
 Distribuzione
 
 @@distribution-description
-Tutti e quattro i canali di distribuzione sono disponibili. Avvia l'installer dall'ultima release su GitHub, scaricalo dal Microsoft Store, prendi lo ZIP portatile oppure installalo con [[command]].
+Tutti i canali di distribuzione sono disponibili. Avvia l'installer dall'ultima release su GitHub, scaricalo dal Microsoft Store, prendi lo ZIP portatile oppure installalo con [[command]].
 
 @@channel-setup
 Installer (.exe)
@@ -300,18 +304,25 @@ STREAMS Player · Privacy
 Privato per impostazione predefinita.
 
 @@privacy-intro
-STREAMS Player non ha account, pubblicità, analisi, telemetria né servizi gestiti dall'autore.
+Non serve un account per la riproduzione normale. L’account di scambio facoltativo appartiene al tuo server. Non ci sono pubblicità, analisi, telemetria o servizi gestiti dall’autore.
 
 @@privacy-network-title
 Accesso alla rete
 
 @@privacy-network
-L’applicazione si connette solo su tua azione e unicamente verso la destinazione richiesta: il catalogo pubblico dei flussi e il pacchetto di anteprime opzionale su GitHub all’importazione; il provider di un flusso che riproduci, registri o consulti in «Informazioni sul canale», o la cui anteprima si aggiorna in modalità griglia; un dispositivo FastMediaSorter sulla tua rete locale; e, solo se richiesto in Impostazioni nella pagina Riproduzione, le librerie FFmpeg opzionali per il motore sperimentale FlyleafLib (BtbN/FFmpeg-Builds). Ogni richiesta va direttamente a destinazione ; nessun dato transita per server dell’autore. La guida TV viene scaricata solo dall’indirizzo inserito in Impostazioni nella pagina Libreria, una volta premuto «Scarica guida», e mai in background.
+L’applicazione si connette solo su tua azione e unicamente verso la destinazione richiesta: il catalogo pubblico dei flussi e il pacchetto di anteprime opzionale su GitHub all’importazione; il provider di un flusso che riproduci, registri o consulti in «Informazioni sul canale», o la cui anteprima si aggiorna in modalità griglia; un dispositivo FastMediaSorter sulla tua rete locale; e, solo se richiesto in Impostazioni nella pagina Riproduzione, le librerie FFmpeg opzionali per il motore sperimentale FlyleafLib (BtbN/FFmpeg-Builds). Ogni richiesta va direttamente a destinazione ; nessun dato transita per server dell’autore. La guida TV viene scaricata solo dall’indirizzo inserito in Impostazioni nella pagina Libreria, una volta premuto «Scarica guida», e mai in background. La fonte di scambio facoltativa nelle impostazioni della libreria si collega al tuo server tramite TLS. Invia nome utente e password o codice di abbinamento una volta per la registrazione, poi identità del dispositivo, versione del prodotto, capacità di ricezione e token. Mantiene una connessione di controllo con segnali di presenza e riconnessioni mentre è attiva; disattivarla chiude la connessione. Ogni certificato richiede approvazione esplicita, anche dopo il rinnovo. 
+
+@@privacy-site-title
+Questo sito web
+
+@@privacy-site
+Questa sezione riguarda il sito web, non l'applicazione. Ogni pagina carica i propri caratteri da Google Fonts: il browser richiede un foglio di stile a fonts.googleapis.com e i file dei caratteri a fonts.gstatic.com, quindi Google riceve il tuo indirizzo IP, i dati del browser e l'indirizzo della pagina che stai leggendo. La pagina iniziale interroga inoltre una volta api.github.com per conoscere l'ultima versione, in modo che il pulsante dell'installer punti al file attuale; GitHub riceve il tuo indirizzo IP e i dati del browser. Le pagine stesse sono servite da GitHub Pages (serzhyale.github.io). Il sito non ha analisi, pubblicità né tracciamento, non imposta cookie e conserva nella memoria locale del browser solo la scelta di tema e lingua. Ciascuno di questi servizi è soggetto alla propria informativa; nessuno è gestito dall'autore.
 @@privacy-local-title
 Dati locali
 
 @@privacy-local
-STREAMS Player memorizza lo stato del catalogo, i canali aggiunti e importati, i preferiti, le raccolte, i canali nascosti, la cronologia di ascolto, i segnalibri di riproduzione, i fotogrammi di anteprima entro 150 MB, le librerie FFmpeg opzionali e i registri diagnostici degli ultimi dieci avvii in [[appdata]]. Registrazioni e fotogrammi vanno nelle cartelle scelte (per impostazione predefinita Videos/Recordings, Music/Recordings e Pictures/Frames). Questi dati restano sul dispositivo a meno che non si utilizzi «Invia registri all’autore» in Impostazioni nella pagina Informazioni per inviarli a [[email]]. La guida TV scaricata e le relative associazioni sono conservate anch’esse lì; «Rimuovi guida» in Impostazioni le elimina entrambe.
+STREAMS Player memorizza lo stato del catalogo, i canali aggiunti e importati, i preferiti, le raccolte, i canali nascosti, la cronologia di ascolto, i segnalibri di riproduzione, i fotogrammi di anteprima entro 150 MB, le librerie FFmpeg opzionali e i registri diagnostici degli ultimi dieci avvii in [[appdata]]. Registrazioni e fotogrammi vanno nelle cartelle scelte (per impostazione predefinita Videos/Recordings, Music/Recordings e Pictures/Frames). Questi dati restano sul dispositivo a meno che non si utilizzi «Invia registri all’autore» in Impostazioni nella pagina Informazioni per inviarli a [[email]]. La guida TV scaricata e le relative associazioni sono conservate anch’esse lì; «Rimuovi guida» in Impostazioni le elimina entrambe. Password e codice vengono eliminati. Account, token e impronta sono protetti per il tuo utente Windows in un file separato; rimuovere l’account li cancella. Gli archivi diagnostici escludono quel file e oscurano i dati dell’account. Le connessioni di scambio iniziano solo dopo la tua configurazione esplicita della fonte.
+
 @@privacy-contact-title
 Contatti
 
@@ -409,7 +420,7 @@ Cosa STREAMS Player non fa mai
 Non ha mai bisogno dei diritti di amministratore per installarsi o funzionare, non si aggiunge mai all'avvio di Windows e non installa alcun servizio in background.
 
 @@trust-never-2
-Non ha account, pubblicità, analisi né telemetria, e nessun servizio gestito dall'autore attraverso cui passino i tuoi dati.
+Non serve un account per la riproduzione normale. L’account di scambio facoltativo appartiene al tuo server. Non ci sono pubblicità, analisi, telemetria o servizi gestiti dall’autore.
 
 @@trust-never-3
 Si connette solo quando agisci e unicamente per ciò che l’azione richiede: catalogo pubblico e anteprime su GitHub, provider del flusso in riproduzione, registrazione o anteprima, dispositivo FastMediaSorter in rete locale e librerie FFmpeg opzionali se richieste in Impostazioni. La guida TV è scaricata solo dall’indirizzo inserito quando premi «Scarica guida».
@@ -425,10 +436,43 @@ Disinstallarlo non cancella mai i tuoi canali, i canali fissati o la cronologia 
 Leggi la pagina sulla privacy
 
 @@footer-rights
-© 2026 Serhii Zhyhunenko
+© 2026
 
 @@footer-tools
 Altri strumenti
+
+@@footer-author
+Serhii Zhyhunenko
+
+@@footer-download
+Scarica
+
+@@nav-docs
+Documentazione
+
+@@type-ai-method
+Metodo di sviluppo con IA
+
+@@type-android-sorter
+Ordinatore di file multimediali per Android
+
+@@type-ebook-converter
+Convertitore di ebook per Windows
+
+@@type-layout-fixer
+Correttore del layout di tastiera per Windows
+
+@@type-portfolio
+Portfolio
+
+@@type-storage-cli
+Strumento da riga di comando per l'archiviazione su Windows
+
+@@type-tray-launcher
+Avvio dall'area di notifica per Windows
+
+@@type-windows-sorter
+Ordinatore di file multimediali per Windows
 
 @@to-top
 Torna su

@@ -44,6 +44,13 @@ public sealed class PlayerWindowGeometryStore
     public string FilePath => _path;
 
     /// <summary>
+    /// True while the last load could not read an existing file, which is also the state in which
+    /// <see cref="SaveAsync"/> refuses to write. A caller that holds placements this session made reloads
+    /// to leave it (SP-0184).
+    /// </summary>
+    public bool IsUnreadable => _unreadable;
+
+    /// <summary>
     /// Everything remembered, or an empty list when the file is absent, empty, or unreadable. A corrupt
     /// file is left untouched on disk; the store refuses writes until a read has succeeded (SP-0175).
     /// </summary>

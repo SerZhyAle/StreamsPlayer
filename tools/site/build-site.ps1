@@ -4,6 +4,7 @@
     Input : tools/site/templates/*.html + site.js, and one copy deck per language in
             tools/site/copy/<dictionary-code>.txt.
     Output: docs/index.html, docs/privacy.html and docs/trust.html (English - the canonical root),
+            docs/404.html (the not-found page, SP-0194),
             plus the same three files under docs/<code>/ for every other language, and docs/site.js.
 
     Why static pages rather than the previous client-side swap: hreflang needs one URL per language.
@@ -15,7 +16,14 @@
 
     Usage:
       pwsh -NoProfile -File tools/site/build-site.ps1
-      pwsh -NoProfile -File tools/site/build-site.ps1 -Check   # fail if docs/ is stale, write nothing
+      pwsh -NoProfile -File tools/site/build-site.ps1 -Check   # fail if docs/ is stale, a held address
+                                                               # (tools/site/held-addresses.json) does not
+                                                               # resolve, or a fact or a pillar disagrees with
+                                                               # its source (tools/site/site-facts.json,
+                                                               # POSITIONING.md); write nothing
+
+    The language count and the minimum Windows are rendered into the copy decks from their sources (SP-0198):
+    a deck carries [[languages]] and [[windows]], never the number.
 #>
 [CmdletBinding()]
 param(
@@ -28,6 +36,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 . "$PSScriptRoot/../InterfaceLanguages.ps1"
+. "$PSScriptRoot/HeldAddresses.ps1"
+. "$PSScriptRoot/SiteFacts.ps1"
 
 $root = Get-RepositoryRoot
 $copyDirectory = Join-Path $root 'tools/site/copy'
@@ -48,6 +58,32 @@ $pages = @(
 # the page. A new language is machine-translated until someone puts it in this list - the safe
 # direction for an honesty notice.
 $humanAuthored = @('en', 'ru', 'uk')
+
+# PAGE-STYLE section 4.2: the three locales of the segmented header control, in this order, with the
+# visible label and the key `sza-lang` holds (UA labels and keys `ua`; the ISO code stays `uk`).
+$coreLocales = @(
+    [pscustomobject]@{ Code = 'ru'; Key = 'ru'; Label = 'RU' }
+    [pscustomobject]@{ Code = 'en'; Key = 'en'; Label = 'EN' }
+    [pscustomobject]@{ Code = 'uk'; Key = 'ua'; Label = 'UA' }
+)
+
+# PAGE-STYLE section 0 step 1 (SITE-EXPERIENCE rule 1) and WAVE-PARTICLES section 7: the served kit and the
+# served backdrop script are byte-identical to the pinned catalog files. A hand edit, or a line-ending
+# rewrite, fails here before it reaches the site.
+$vendoredPins = @{}
+foreach ($line in Get-Content -LiteralPath (Join-Path $root 'tools/site/kit-provenance.txt')) {
+    if ($line -match '^(?<file>[\w.\-]+)\s+(?<hash>[0-9A-Fa-f]{64})\s*$') { $vendoredPins[$Matches['file']] = $Matches['hash'].ToUpperInvariant() }
+}
+foreach ($vendored in 'sza-kit.css', 'wave-particles.js') {
+    if (-not $vendoredPins.ContainsKey($vendored)) { throw "tools/site/kit-provenance.txt has no $vendored pin." }
+    $vendoredPath = Join-Path $root "docs/assets/$vendored"
+    if (-not (Test-Path -LiteralPath $vendoredPath)) { throw "docs/assets/$vendored is missing (vendor it: tools/site/kit-provenance.txt)." }
+    $vendoredHash = (Get-FileHash -LiteralPath $vendoredPath -Algorithm SHA256).Hash
+    if ($vendoredHash -ne $vendoredPins[$vendored]) {
+        throw "docs/assets/$vendored is not the pinned file (SHA-256 $vendoredHash, pinned $($vendoredPins[$vendored])). Vendored files are never edited in this repository."
+    }
+}
+
 
 # Inline replacements a copy deck may carry. They keep a command, a path and an address out of the
 # translated prose and give each one a left-to-right island, which is what makes the Arabic and Urdu
@@ -206,6 +242,16 @@ function Get-HrefLang {
     return $Language.DictionaryCode
 }
 
+function Get-DocsUrl {
+    param([Parameter(Mandatory)] [string] $Code)
+
+    # PAGE-CONTENT "The landing always carries" item 4: a product with no documentation portal links the one
+    # page that documents it - the README mirror of the visitor's language, as ProductInfo.InstructionsUrl does
+    # (README.ru.md, README.uk.md, README.md for every other language).
+    $name = switch ($Code) { 'ru' { 'README.ru.md' } 'uk' { 'README.uk.md' } default { 'README.md' } }
+    return "https://github.com/SerZhyAle/StreamsPlayer/blob/main/$name"
+}
+
 function Get-RelativeUrl {
     param(
         [Parameter(Mandatory)] [AllowEmptyString()] [string] $FromCode,
@@ -225,6 +271,14 @@ function Get-RelativeUrl {
 # ---------------------------------------------------------------- load and validate the copy decks
 
 $languages = Get-InterfaceLanguages
+
+# SP-0198 (SITE-REPRESENTATION rule 3): the language count and the minimum Windows are never typed in a deck.
+# Each is a placeholder the decks carry and this renders from the fact's source; they join the
+# markup table before the decks are compared, so a deck that types a number in its place fails the parity below.
+$siteFacts = Get-SiteFactValue -Root $root -LanguageCount $languages.Count
+$inlineMarkup['[[languages]]'] = [string] $siteFacts.Languages
+$inlineMarkup['[[windows]]'] = $siteFacts.Windows
+
 $decks = [ordered]@{}
 $problems = [System.Collections.Generic.List[string]]::new()
 
@@ -290,7 +344,7 @@ Write-Host ("Copy decks: {0} languages x {1} keys" -f $decks.Count, $english.Key
 # --------------------------------------------------------------------------------------- rendering
 
 $templates = @{}
-foreach ($name in 'head', 'switcher', 'footer') {
+foreach ($name in 'head', 'switcher', 'languagerow', 'footer') {
     $templates[$name] = [System.IO.File]::ReadAllText((Join-Path $templateDirectory "_$name.html")).Replace("`r`n", "`n").TrimEnd("`n")
 }
 
@@ -337,7 +391,7 @@ foreach ($language in $languages) {
     foreach ($page in $pages) {
         $template = [System.IO.File]::ReadAllText((Join-Path $templateDirectory $page.Template)).Replace("`r`n", "`n")
 
-        foreach ($name in 'head', 'switcher', 'footer') {
+        foreach ($name in 'head', 'switcher', 'languagerow', 'footer') {
             $template = $template.Replace("{{include:$name}}", $templates[$name])
         }
         $template = Expand-Glyphs -Html $template
@@ -350,17 +404,27 @@ foreach ($language in $languages) {
         $leafForDefault = if ($page.File -eq 'index.html') { '' } else { $page.File }
         $alternates += '    <link rel="alternate" hreflang="x-default" href="{0}{1}">' -f $BaseUrl, $leafForDefault
 
+        # PAGE-STYLE section 4.2: RU EN UA are the segmented control in the header, in that order, on every
+        # page; every further locale is a text-only link in a secondary row under the header. Each is a
+        # link to a standalone page, so both work without script.
         $languageUrls = [ordered]@{}
-        $options = [System.Collections.Generic.List[string]]::new()
+        $coreLinks = [System.Collections.Generic.List[string]]::new()
         $links = [System.Collections.Generic.List[string]]::new()
         foreach ($other in $languages) {
-            $url = Get-RelativeUrl -FromCode $urlCode -ToCode ($(if ($other.DictionaryCode -eq 'en') { '' } else { $other.DictionaryCode })) -File $page.File
-            $languageUrls[$other.DictionaryCode] = $url
-            $selected = if ($other.DictionaryCode -eq $code) { ' selected' } else { '' }
-            $options.Add(('          <option value="{0}" data-code="{1}" lang="{2}"{3}>{4}</option>' -f
-                (ConvertTo-HtmlText $url), $other.DictionaryCode, (Get-HrefLang -Language $other), $selected, (ConvertTo-HtmlText $other.Endonym)))
-            $links.Add(('            <li><a href="{0}" lang="{1}">{2}</a></li>' -f
-                (ConvertTo-HtmlText $url), (Get-HrefLang -Language $other), (ConvertTo-HtmlText $other.Endonym)))
+            $languageUrls[$other.DictionaryCode] = Get-RelativeUrl -FromCode $urlCode -ToCode ($(if ($other.DictionaryCode -eq 'en') { '' } else { $other.DictionaryCode })) -File $page.File
+        }
+        foreach ($core in $coreLocales) {
+            $other = $languages | Where-Object { $_.DictionaryCode -eq $core.Code }
+            if (-not $other) { throw "The core locale '$($core.Code)' of PAGE-STYLE section 4.2 is not in the shipped language list." }
+            $current = if ($core.Code -eq $code) { ' aria-current="page"' } else { '' }
+            $coreLinks.Add(('        <a href="{0}" data-lang="{1}" lang="{2}" hreflang="{2}" title="{3}"{4}>{5}</a>' -f
+                (ConvertTo-HtmlText $languageUrls[$core.Code]), $core.Key, (Get-HrefLang -Language $other), (ConvertTo-HtmlText $other.Endonym), $current, $core.Label))
+        }
+        foreach ($other in $languages) {
+            if ($coreLocales.Code -contains $other.DictionaryCode) { continue }
+            $current = if ($other.DictionaryCode -eq $code) { ' aria-current="page"' } else { '' }
+            $links.Add(('        <li><a href="{0}" data-locale="{1}" lang="{2}" hreflang="{2}" title="{3}"{4}>{5}</a></li>' -f
+                (ConvertTo-HtmlText $languageUrls[$other.DictionaryCode]), $other.DictionaryCode, (Get-HrefLang -Language $other), (ConvertTo-HtmlText $other.Endonym), $current, $other.DictionaryCode.ToUpperInvariant()))
         }
 
         $machineNote = if ($humanAuthored -contains $code) {
@@ -384,10 +448,11 @@ foreach ($language in $languages) {
             '{{page.home}}'           = Get-RelativeUrl -FromCode $urlCode -ToCode $urlCode -File 'index.html'
             '{{page.privacy}}'        = 'privacy.html'
             '{{page.trust}}'          = 'trust.html'
+            '{{page.docs}}'           = Get-DocsUrl -Code $code
             '{{page.canonical}}'      = $canonical
             '{{page.alternates}}'     = $alternates -join "`n"
             '{{page.languageUrls}}'   = ($languageUrls | ConvertTo-Json -Compress)
-            '{{page.languageOptions}}' = $options -join "`n"
+            '{{page.languageCore}}'   = $coreLinks -join "`n"
             '{{page.languageLinks}}'  = $links -join "`n"
             '{{page.machineNote}}'    = $machineNote
             '{{page.title}}'          = ConvertTo-HtmlText $deck.Values["title-$($page.Name)"]
@@ -412,6 +477,71 @@ foreach ($language in $languages) {
         Save-Generated -Path $target -Content $template
     }
 }
+
+# SP-0194 (SITE-STRUCTURE rules 2 and 15): the not-found page. GitHub Pages serves docs/404.html for any
+# address nothing answers, at any depth, so a relative link on it would break one folder down - every
+# address here is built from the base URL. A root 404 cannot know the visitor's locale, so it carries the
+# core three (en, ru, uk), one block each, from its own small decks. Search and a portal home do not exist
+# at this tier; the landing is the way back. noindex, and absent from the sitemap.
+$notFoundCodes = @('en', 'ru', 'uk')
+$notFoundDecks = [ordered]@{}
+foreach ($code in $notFoundCodes) {
+    $path = Join-Path $copyDirectory "notfound/$code.txt"
+    if (-not (Test-Path -LiteralPath $path)) { throw "tools/site/copy/notfound/$code.txt is missing." }
+    $notFoundDecks[$code] = Read-CopyDeck -Path $path
+}
+foreach ($code in $notFoundCodes) {
+    $missing = @($notFoundDecks['en'].Keys | Where-Object { -not $notFoundDecks[$code].Values.Contains($_) -or [string]::IsNullOrWhiteSpace($notFoundDecks[$code].Values[$_]) })
+    $extra = @($notFoundDecks[$code].Keys | Where-Object { -not $notFoundDecks['en'].Values.Contains($_) })
+    if ($missing.Count -or $extra.Count) {
+        throw "tools/site/copy/notfound/$code.txt does not match English (missing/empty: $($missing -join ', '); extra: $($extra -join ', '))."
+    }
+}
+
+$notFoundEn = $notFoundDecks['en'].Values
+$notFoundBlocks = [System.Collections.Generic.List[string]]::new()
+$notFoundBlocks.Add('      <span class="eyebrow">404</span>')
+$notFoundBlocks.Add(('      <h1>{0}</h1>' -f (ConvertTo-HtmlText $notFoundEn['heading'])))
+$notFoundBlocks.Add(('      <p class="privacy-intro">{0}</p>' -f (ConvertTo-HtmlText $notFoundEn['text'])))
+$notFoundBlocks.Add(('      <div class="button-group"><a class="button button-primary" href="{0}">{1}</a></div>' -f $BaseUrl, (ConvertTo-HtmlText $notFoundEn['home'])))
+$notFoundBlocks.Add('      <div class="privacy-card">')
+foreach ($code in ($notFoundCodes | Where-Object { $_ -ne 'en' })) {
+    $values = $notFoundDecks[$code].Values
+    $notFoundBlocks.Add(('        <section class="privacy-section" lang="{0}">' -f $code))
+    $notFoundBlocks.Add(('          <h2>{0}</h2>' -f (ConvertTo-HtmlText $values['heading'])))
+    $notFoundBlocks.Add(('          <p>{0}</p>' -f (ConvertTo-HtmlText $values['text'])))
+    $notFoundBlocks.Add(('          <div class="button-group"><a class="button button-ghost button-small" href="{0}">{1}</a></div>' -f $BaseUrl, (ConvertTo-HtmlText $values['home'])))
+    $notFoundBlocks.Add('        </section>')
+}
+$notFoundBlocks.Add('      </div>')
+
+$notFoundPage = [System.IO.File]::ReadAllText((Join-Path $templateDirectory '404.html')).Replace("`r`n", "`n")
+$notFoundPage = $notFoundPage.Replace('{{include:footer}}', $templates['footer'])
+$notFoundPage = Expand-Glyphs -Html $notFoundPage
+$notFoundStructural = [ordered]@{
+    '{{page.title}}'          = ConvertTo-HtmlText $notFoundEn['title']
+    '{{page.description}}'    = ConvertTo-HtmlText $notFoundEn['description']
+    '{{page.base}}'           = $BaseUrl
+    '{{page.home}}'           = $BaseUrl
+    '{{page.privacy}}'        = "${BaseUrl}privacy.html"
+    '{{page.trust}}'          = "${BaseUrl}trust.html"
+    '{{page.docs}}'           = Get-DocsUrl -Code 'en'
+    '{{page.machineNote}}'    = ''
+    '{{page.notFoundBlocks}}' = $notFoundBlocks -join "`n"
+}
+foreach ($entry in $notFoundStructural.GetEnumerator()) {
+    $notFoundPage = $notFoundPage.Replace($entry.Key, [string] $entry.Value)
+}
+foreach ($key in $english.Keys) {
+    $notFoundPage = $notFoundPage.Replace("{{t.$key}}", (ConvertTo-HtmlText $english.Values[$key]))
+}
+$notFoundLeftover = [regex]::Matches($notFoundPage, '\{\{[^}]+\}\}') | ForEach-Object { $_.Value } | Sort-Object -Unique
+if ($notFoundLeftover) { throw "404.html: unresolved template token(s): $($notFoundLeftover -join ', ')" }
+# SITE-STRUCTURE rule 15, observed on the output: noindex, and no address that depends on the folder depth.
+if ($notFoundPage -notmatch '<meta name="robots" content="noindex">') { throw '404.html must carry <meta name="robots" content="noindex">.' }
+$relativeAddress = [regex]::Matches($notFoundPage, '(?:href|src)="(?!https://|mailto:|#)[^"]*"') | ForEach-Object { $_.Value }
+if ($relativeAddress) { throw "404.html holds a relative address (it is served at any depth): $($relativeAddress -join ', ')" }
+Save-Generated -Path (Join-Path $outputDirectory '404.html') -Content $notFoundPage
 
 Save-Generated -Path (Join-Path $outputDirectory 'site.js') `
     -Content ([System.IO.File]::ReadAllText((Join-Path $templateDirectory 'site.js')).Replace("`r`n", "`n"))
@@ -482,12 +612,48 @@ foreach ($directory in Get-ChildItem -LiteralPath $outputDirectory -Directory) {
 }
 
 if ($Check) {
+    # SP-0193 (SITE-STRUCTURE rule 8): every address a surface outside docs/ holds resolves against the
+    # page set just generated, and no surface holds one the list does not know.
+    $generatedFiles = @(
+        foreach ($language in $languages) {
+            foreach ($page in $pages) {
+                if ($language.DictionaryCode -eq 'en') { $page.File } else { "$($language.DictionaryCode)/$($page.File)" }
+            }
+        }
+        'site.js', 'sitemap.xml', 'robots.txt'
+    )
+    $heldProblems = @(Get-HeldAddressProblem -Root $root -BaseUrl $BaseUrl -GeneratedFile $generatedFiles)
+
+    # SP-0198 (SITE-REPRESENTATION rules 1 to 3): the facts the copy states agree with their sources, and the
+    # surfaces list the pillars of POSITIONING.md in its order.
+    $deckValues = [ordered]@{}
+    foreach ($code in $decks.Keys) { $deckValues[$code] = $decks[$code].Values }
+    $factProblems = @(Get-SiteFactProblem -Root $root -Deck $deckValues)
+
     if ($stale.Count) {
         Write-Host "Stale generated files:" -ForegroundColor Red
         $stale | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+    }
+    if ($heldProblems.Count) {
+        Write-Host "Held site addresses (tools/site/held-addresses.json):" -ForegroundColor Red
+        $heldProblems | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+    }
+    if ($factProblems.Count) {
+        Write-Host "Site facts and positioning (tools/site/site-facts.json, POSITIONING.md):" -ForegroundColor Red
+        $factProblems | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+    }
+    if ($stale.Count) {
         throw "docs/ does not match the generator ($($stale.Count) file(s)). Run tools/site/build-site.ps1 and commit the result."
     }
+    if ($heldProblems.Count) {
+        throw "The held-address list and the site disagree ($($heldProblems.Count) problem(s))."
+    }
+    if ($factProblems.Count) {
+        throw "The site copy and its fact sources disagree ($($factProblems.Count) problem(s))."
+    }
     Write-Host "docs/ is up to date." -ForegroundColor Green
+    Write-Host ("Held addresses: {0} listed, all resolve." -f (@((Get-Content -LiteralPath (Join-Path $root 'tools/site/held-addresses.json') -Raw | ConvertFrom-Json).addresses).Count)) -ForegroundColor Green
+    Write-Host ("Site facts: {0} languages, {1} - rendered from their sources; channels and pillars hold on every surface." -f $siteFacts.Languages, $siteFacts.Windows) -ForegroundColor Green
     return
 }
 

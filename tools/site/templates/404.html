@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="dark" data-entry="false">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <meta name="description" content="{{page.description}}">
+    <meta name="theme-color" content="#0a0f0a">
+    <title>{{page.title}}</title>
+    <link rel="icon" href="{{page.base}}assets/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="{{page.base}}assets/apple-touch-icon.png">
+    <script>
+(function(){try{
+  var t=localStorage.getItem('sza-theme');
+  if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  var l=localStorage.getItem('sza-lang');
+  if(l==='uk')l='ua';
+  if(l!=='ru'&&l!=='en'&&l!=='ua'){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+  document.documentElement.setAttribute('data-lang',l);
+}catch(e){}})();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{page.base}}assets/sza-kit.css">
+    <link rel="stylesheet" href="{{page.base}}style.css">
+    <script src="{{page.base}}assets/wave-particles.js" defer></script>
+    <script src="{{page.base}}site.js" defer></script>
+  </head>
+  <body data-page="not-found">
+    <a class="skip-link" href="#content">{{t.skip-content}}</a>
+    <!-- The brand backdrop (WAVE-PARTICLES): behind everything, decorative, slow and pale; every block of text
+         sits on a semi-transparent plate (style.css). Settings: SP-0195 follow-up, registry exception. -->
+    <canvas class="backdrop" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.3" data-speed="0.5" aria-hidden="true"></canvas>
+
+    <header class="site-header">
+      <a class="brand" href="{{page.home}}">
+        <img src="{{page.base}}assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <button class="theme-button" id="themeButton" type="button" aria-label="{{t.theme-label}}">{{glyph:app.theme}}<span>{{t.theme-name}}</span></button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">{{t.header-github}}</a>
+    </header>
+
+    <main class="container privacy-main" id="content">
+{{page.notFoundBlocks}}
+    </main>
+
+{{include:footer}}
+  </body>
+</html>

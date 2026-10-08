@@ -10,12 +10,6 @@ public partial class MainWindow
     // The session (_audioRecoveryCts) whose recovery is running, or null; see RecoverAudioAsync.
     private CancellationTokenSource? _audioRecoveryInFlightFor;
 
-    /// <summary>
-    /// SP-0120: an event raised by a radio connection that has since been stopped or replaced. The three radio
-    /// handlers run on the UI thread some time after the engine raised them, and they act on whatever is playing
-    /// when they run - so a failure queued by the previous connection used to stop its successor and spend the
-    /// recovery budget a second time. Asked here, on the UI thread, where connections are opened and stopped.
-    /// </summary>
     // SP-0169: when the leg now running reached live, on the monotonic clock; null until it does. Cleared as each
     // leg opens, so one leg's playing time never counts towards the next.
     private long? _audioLegLiveSince;
@@ -38,6 +32,12 @@ public partial class MainWindow
         return played;
     }
 
+    /// <summary>
+    /// SP-0120: an event raised by a radio connection that has since been stopped or replaced. The three radio
+    /// handlers run on the UI thread some time after the engine raised them, and they act on whatever is playing
+    /// when they run - so a failure queued by the previous connection used to stop its successor and spend the
+    /// recovery budget a second time. Asked here, on the UI thread, where connections are opened and stopped.
+    /// </summary>
     private bool IsSupersededAudioEvent(StandardAudioEventArgs e, string kind)
     {
         if (_standardAudioPlayback.IsCurrent(e.Connection))
@@ -143,6 +143,7 @@ public partial class MainWindow
             return; // stopped or switched while probing - do not relabel or restart
         }
 
+        NoteAudioFault(reason, status, reachability);
         if (!PlaybackReachabilityRules.SpendsRecoveryBudget(reachability))
         {
             // Decisions 3 and 4: the policy is never consulted, so no attempt is spent.

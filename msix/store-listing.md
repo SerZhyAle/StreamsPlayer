@@ -1221,24 +1221,30 @@ Individual third-party streams can be offline or use formats unsupported by the 
 ## runFullTrust justification
 
 ```text
-StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. runFullTrust is required to launch the desktop executable and use its Windows and LibVLC-based media and thumbnail components. Network requests occur only for an explicit catalog refresh and the optional preview artwork the user accepts after it, selected stream playback and recording, enabled Grid thumbnail updates, a FastMediaSorter broadcast the user imported (a device on the same local network), and the optional FFmpeg libraries the user downloads from Settings. The app has no account, advertising, analytics, telemetry, or personal-data collection. Source code: https://github.com/SerZhyAle/StreamsPlayer
+StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. runFullTrust is required to launch the desktop executable and use its Windows and LibVLC-based media and thumbnail components. An enabled Exchange source holds a TLS control connection to the user-configured server. Other network requests occur for an explicit catalog refresh and the optional preview artwork the user accepts after it, selected stream playback and recording, enabled Grid thumbnail updates, a FastMediaSorter broadcast the user imported (a device on the same local network), and the optional FFmpeg libraries the user downloads from Settings. The app requires no account and has no advertising, analytics, telemetry, or author-side personal-data collection. Source code: https://github.com/SerZhyAle/StreamsPlayer
 ```
+
+The optional Exchange source in Library settings connects to your own server over TLS. Enrollment sends your login, password or pairing code, device identity, product version and receiver capabilities. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Every certificate leaf needs your explicit approval, including after renewal. The password and pairing code are discarded. The account, token and certificate pin are protected for your Windows user in a separate file; removing the account forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
 
 ## Privacy and age-rating declarations
 
 - Declare the network capability and answer Partner Center privacy questions from actual package behavior. Provide the privacy URL even if Partner Center considers it optional.
 - Complete the IARC questionnaire accurately for an app that can open third-party live audio/video URLs. Do not copy a rating from this document.
-- The app does not provide user accounts, chat, purchases, advertising, location, or user-to-user content publishing.
+- The app supports an optional account on a user-owned exchange server. It provides no author-run account service, chat, purchases, advertising, location or content publishing.
 - Data-safety answers, kept identical to the privacy page (`tools/site/copy/<code>.txt`, keys
   `privacy-network` and `privacy-local`) and to the install trust page's "never does" list (keys
   `trust-never-*`, contract `INSTALL-TRUST` rule 6): no data is collected by the author or sent to an
-  author-run service. Network destinations, each on a user action only - the catalog and the optional
+  author-run service. The enabled optional exchange source maintains a TLS control connection to the user-configured server. Other network destinations, each on a user action only - the catalog and the optional
   preview artwork (GitHub release assets); the stream provider of a channel the user plays, previews,
   measures or records; a FastMediaSorter device on the local network the user imported; the FFmpeg
   libraries from `github.com/BtbN` when requested in Settings. Stored locally only - catalog state,
   added and imported channels, pins, collections, hidden channels, history, playback marks, cached
   previews within 150 MB, and the diagnostic logs of the last ten launches. **Send logs to the author**
-  prepares an archive and a mail message; the user sends it, the app never does.
+  prepares an archive and a mail message; the user sends it, the app never does. The product
+  website, not the app, loads its fonts from Google Fonts and asks `api.github.com` for the latest
+  release on its home page; the privacy page's "This website" section (key `privacy-site`) says so.
+
+The optional Exchange source in Library settings connects to your own server over TLS. Enrollment sends your login, password or pairing code, device identity, product version and receiver capabilities. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Every certificate leaf needs your explicit approval, including after renewal. The password and pairing code are discarded. The account, token and certificate pin are protected for your Windows user in a separate file; removing the account forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
 
 ## Screenshot set
 

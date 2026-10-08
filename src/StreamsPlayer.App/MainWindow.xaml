@@ -33,6 +33,17 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <!-- The country facet's lead block (the countries of the interface language) is ruled off from the full
+             alphabetical list below it. A border on the container, not a Separator item, for the same reason as
+             TopicFacetItem; the container is not the closed box, so a selected lead country shows no rule there. -->
+        <Style x:Key="CountryFacetItem" TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EndsFeatured}" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                    <Setter Property="BorderThickness" Value="0,0,0,1" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
         <!-- SP-0102: Search box with integrated watermark and search icon, removing external label -->
         <Style x:Key="SearchTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="Padding" Value="24,5,6,5" />
@@ -147,6 +158,16 @@
                                 ToolTip="{DynamicResource GridTip}" AutomationProperties.Name="{DynamicResource GridName}" />
                     </StackPanel>
                 </Border>
+                <Button x:Name="ExchangeSourceStatusButton" Click="ExchangeSourceStatus_Click" Visibility="Collapsed" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource ExchangeTitle}" />
+                        <TextBlock x:Name="ExchangeSourceStatusText" FontSize="11" />
+                    </StackPanel>
+                </Button>
+                <!-- SP-0201: the account's live broadcasts, grouped by device. Shown once the device is
+                     enrolled; the account section is where a device without an account is told why. -->
+                <Button x:Name="BroadcastsButton" Content="{DynamicResource BroadcastsTitle}"
+                        Click="BroadcastsButton_Click" Visibility="Collapsed" Margin="0,0,8,0" />
                 <Button x:Name="SettingsButton" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource Settings}" Click="SettingsButton_Click"
                         ToolTip="{DynamicResource SettingsTip}" AutomationProperties.Name="{DynamicResource SettingsName}" />
                 <!-- SP-0050: the rare and the mode-conditional actions live here. The menu is rebuilt on
@@ -199,8 +220,21 @@
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,3,14,3">
                         <TextBlock Text="{DynamicResource Country}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
-                        <ComboBox x:Name="CountryFilter" Width="80" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Country}"
-                                  AutomationProperties.Name="{DynamicResource CountryFilterName}" />
+                        <!-- The full name in the interface language beside its flag; the option's value stays the
+                             ISO code. TextSearch lets a typed letter jump to the name rather than to the code. -->
+                        <ComboBox x:Name="CountryFilter" Width="190" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Country}"
+                                  TextSearch.TextPath="Label" ItemContainerStyle="{StaticResource CountryFacetItem}"
+                                  AutomationProperties.Name="{DynamicResource CountryFilterName}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="{Binding Icon}" Width="20" Height="14" Stretch="Uniform" Margin="0,0,7,0"
+                                               RenderOptions.BitmapScalingMode="HighQuality" />
+                                        <TextBlock Text="{Binding Label}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                 </WrapPanel>
                 <!-- Row 1: Technical & collection facets, sort order and actions -->
@@ -403,10 +437,20 @@
                                                         <TextBlock Grid.Row="0" Text="{Binding MonogramText}" Foreground="{Binding MonogramForeground}"
                                                                    FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"
                                                                    VerticalAlignment="Center" />
-                                                        <Border Grid.Row="1" Background="#59000000" Visibility="{Binding CountryCodeVisibility}">
-                                                            <TextBlock Text="{Binding CountryCode}" Foreground="{Binding MonogramForeground}"
-                                                                       FontSize="7" LineHeight="9" LineStackingStrategy="BlockLineHeight"
-                                                                       HorizontalAlignment="Center" />
+                                                        <!-- The country as its flag; the full name is the tooltip. A country with no flag
+                                                             keeps the code as text. -->
+                                                        <Border Grid.Row="1" Background="#59000000" Visibility="{Binding CountryCodeVisibility}"
+                                                                ToolTip="{Binding CountryName}">
+                                                            <Grid Height="9">
+                                                                <Image Source="{Binding CountryFlag}" Height="7" Stretch="Uniform"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                       Visibility="{Binding CountryFlagVisibility}"
+                                                                       RenderOptions.BitmapScalingMode="HighQuality" />
+                                                                <TextBlock Text="{Binding CountryCode}" Foreground="{Binding MonogramForeground}"
+                                                                           Visibility="{Binding CountryCodeTextVisibility}"
+                                                                           FontSize="7" LineHeight="9" LineStackingStrategy="BlockLineHeight"
+                                                                           HorizontalAlignment="Center" />
+                                                            </Grid>
                                                         </Border>
                                                     </Grid>
                                                 </Border>
@@ -545,9 +589,30 @@
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="{Binding Metadata}" Foreground="{DynamicResource InfoBrush}"
-                                                       VerticalAlignment="Center"
-                                                       FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding Metadata}" />
+                                            <!-- The country is its flag, between the kind/rubric and the language; the tooltip spells
+                                                 the whole line out, country included. Only the language run trims. -->
+                                            <Grid Grid.Column="0" VerticalAlignment="Center" ToolTip="{Binding Metadata}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding MetadataHead}" Foreground="{DynamicResource InfoBrush}"
+                                                           VerticalAlignment="Center" FontSize="11" />
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
+                                                            Visibility="{Binding CountryInlineVisibility}">
+                                                    <TextBlock Text="{Binding CountrySeparator}" Foreground="{DynamicResource InfoBrush}"
+                                                               VerticalAlignment="Center" FontSize="11" />
+                                                    <Image Source="{Binding CountryFlag}" Height="11" Stretch="Uniform" VerticalAlignment="Center"
+                                                           Visibility="{Binding CountryFlagVisibility}"
+                                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                                    <TextBlock Text="{Binding CountryInlineText}" Foreground="{DynamicResource InfoBrush}"
+                                                               Visibility="{Binding CountryInlineTextVisibility}"
+                                                               VerticalAlignment="Center" FontSize="11" />
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="{Binding MetadataTail}" Foreground="{DynamicResource InfoBrush}"
+                                                           VerticalAlignment="Center" FontSize="11" TextTrimming="CharacterEllipsis" />
+                                            </Grid>
                                             <Border Grid.Column="1" Margin="7,0,0,0" Padding="7,2" CornerRadius="9"
                                                     Background="{DynamicResource GeoHintBrush}" VerticalAlignment="Center"
                                                     Visibility="{Binding RegionRestrictedVisibility}"
@@ -615,8 +680,13 @@
                                                     <StackPanel>
                                                         <TextBlock Text="{Binding MonogramText}" Foreground="{Binding MonogramForeground}"
                                                                    FontSize="48" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                                        <Image Source="{Binding CountryFlag}" Height="14" Stretch="Uniform"
+                                                               HorizontalAlignment="Center" Margin="0,2,0,0"
+                                                               Visibility="{Binding CountryFlagVisibility}" ToolTip="{Binding CountryName}"
+                                                               RenderOptions.BitmapScalingMode="HighQuality" />
                                                         <TextBlock Text="{Binding CountryCode}" Foreground="{Binding MonogramForeground}"
-                                                                   Visibility="{Binding CountryCodeVisibility}" Opacity="0.75"
+                                                                   Visibility="{Binding CountryCodeTextVisibility}" Opacity="0.75"
+                                                                   ToolTip="{Binding CountryName}"
                                                                    FontSize="16" HorizontalAlignment="Center" />
                                                     </StackPanel>
                                                 </Viewbox>

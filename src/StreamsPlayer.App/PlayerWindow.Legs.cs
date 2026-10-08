@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -9,6 +10,20 @@ namespace StreamsPlayer.App;
 public partial class PlayerWindow
 {
     private static readonly TimeSpan OpenCallDeadline = TimeSpan.FromSeconds(20);
+
+    /// <summary>
+    /// SP-0203: file 12 section 6.2's 1.5 s connect bound cannot be seen from inside the engine, so
+    /// the bytes-based dead-source slice is its honest proxy. A LAN attempt gets this short slice and
+    /// the list moves on; an exchange attempt keeps the measured 8 s default - the relay is the
+    /// endpoint expected to answer.
+    /// </summary>
+    private static readonly TimeSpan LanAttemptSlice = TimeSpan.FromSeconds(4);
+
+    private IReadOnlyList<FastMediaSorterBroadcastEndpoint> _attemptPlan = [];
+    private int _attemptIndex;
+    private ExchangeTunnelForwarder? _tunnelForwarder;
+    private ExchangeRelayProxy? _relayProxy;
+    private readonly Stopwatch _attemptClock = Stopwatch.StartNew();
 
     private void AttachBackendEvents(IVideoBackend backend)
     {
@@ -156,11 +171,20 @@ public partial class PlayerWindow
             _probeLegPending = false; // SP-0130: only a quality re-open can carry a probe
         }
 
+        DisposeAttemptResource();
+
         // SP-0070: same reason as the health baseline below - the new media restarts the engine's
         // progress counters from zero, and differencing across that boundary would invent a freeze.
         _freeze.Reset();
         // SP-0096: one leg, one open budget. A re-open is entitled to its own, which is what makes the
         // budget a per-leg quantity rather than a session-wide one.
+        // SP-0203: the leg walks the attempt list from the top (requirement 1's restart rule - a
+        // reconnect is a fresh leg), and the dead-source slice is the first attempt's own.
+        _attemptPlan = _channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints() ?? [SingleAttempt(_channel)];
+        _attemptIndex = 0;
+        _openBudget = new PlaybackOpenBudget(AttemptSlice(_attemptPlan[0]));
+        _attemptClock.Restart();
+        _firstByteLogged = false;
         _openBudget.Reset();
         _buffering = false;
         _bufferFullPending = false;
@@ -171,11 +195,16 @@ public partial class PlayerWindow
         // not differenced into a fabricated disturbance. The health state itself is left alone - a
         // reconnect must stay red while it is in progress.
         NotifySignalHealthOpening();
-        var cacheMs = reason == "initial" ? LiveCacheMilliseconds : ReconnectCacheMilliseconds;
+        // SP-0208: a FastMediaSorter video/RTSP broadcast opens with the latency its producer states, not the
+        // catalog's fixed buffer - the buffer is also the wait before the first picture (LIVE-BROADCAST rules 1, 2).
+        // SP-0203: the endpoint the attempt opens, not the channel, states the latency.
+        var cacheMs = BroadcastLiveCache.For(_channel, _attemptPlan[0])
+            ?? (reason == "initial" ? LiveCacheMilliseconds : ReconnectCacheMilliseconds);
         _liveCacheMs = cacheMs;
         _log.Event("PLAYBACK OPEN",
             $"reason={reason}",
             $"kind={_channel.MediaKind}",
+            $"attempt=0/{_attemptPlan.Count}",
             $"cache_ms={cacheMs}",
             $"engine={_backend.EngineName}",       // SP-0071: which engine received the ceiling below
             $"ceiling={Describe(qualityCeiling)}", // SP-0071: every leg says what it was opened with
@@ -191,11 +220,67 @@ public partial class PlayerWindow
             return;
         }
 
-        // SP-0124: the catalog refuses an unlaunchable address before this window exists; this keeps the
-        // window total on its own - such an address ends in the failure outcome, never in an exception.
-        if (!LaunchableAddress.TryParse(_channel.Url, out var address))
+        if (_attemptIndex >= _attemptPlan.Count)
         {
-            ShowPlaybackFailure("unsupported_address");
+            ReportOpenFailure(backend, "unsupported_address");
+            return;
+        }
+
+        var endpoint = _attemptPlan[_attemptIndex];
+        Uri? address = null;
+
+        if (endpoint is { Transport: "TUNNEL", Inner: { Length: > 0 } inner } &&
+            ExchangeTunnelUrl.TryParse(endpoint.Url, out var tunnelUrl))
+        {
+            try
+            {
+                var forwarder = ExchangeTunnelForwarder.Start(tunnelUrl, inner, endpoint.CertFingerprint);
+                _tunnelForwarder = forwarder;
+                if (LaunchableAddress.TryParse(forwarder.LoopbackUrl, out var loopbackAddress))
+                {
+                    address = loopbackAddress;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Event("PLAYBACK TUNNEL ERROR", $"err={ex.Message}", $"url={endpoint.Url}");
+            }
+        }
+        else if (LaunchableAddress.TryParse(endpoint.Url, out var directAddress))
+        {
+            if (endpoint.Transport?.Equals("RELAY", StringComparison.OrdinalIgnoreCase) == true &&
+                !string.IsNullOrWhiteSpace(endpoint.CertFingerprint))
+            {
+                // SP-0203: a pinned relay endpoint plays through the loopback proxy - the engines
+                // cannot pin (the phase 0 spike), and checking is never turned off. The proxy exists
+                // for this attempt only and is disposed with it.
+                try
+                {
+                    var proxy = ExchangeRelayProxy.Start(endpoint.Url, endpoint.CertFingerprint);
+                    proxy.Failed += failureReason =>
+                        _log.Event("PLAYBACK RELAY PROXY", $"reason={failureReason}", $"url={endpoint.Url}");
+                    _relayProxy = proxy;
+                    if (LaunchableAddress.TryParse(proxy.LoopbackUrl, out var proxyAddress))
+                    {
+                        address = proxyAddress;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _log.Event("PLAYBACK RELAY ERROR", $"err={ex.Message}", $"url={endpoint.Url}");
+                }
+            }
+            else
+            {
+                // A relay endpoint without a pin is the platform's own validation, in the engine.
+                address = directAddress;
+            }
+        }
+
+        if (address is null)
+        {
+            DisposeAttemptResource();
+            ReportOpenFailure(backend, "unsupported_address");
             return;
         }
 
@@ -203,14 +288,126 @@ public partial class PlayerWindow
         {
             if (!backend.Play(address, cacheMs, rtspOverTcp: true, softwareDecode: true, qualityCeiling))
             {
-                ShowPlaybackFailure("play_rejected");
+                ReportOpenFailure(backend, "play_rejected");
             }
         }
         catch (Exception exception)
         {
             _log.Event("PLAYBACK OPEN", "ok=false", $"err={exception.Message}", $"url={_channel.Url}");
-            ShowPlaybackFailure("engine_open_error");
+            ReportOpenFailure(backend, "engine_open_error");
         }
+    }
+
+    /// <summary>
+    /// SP-0203: the attempt failed before it went live - a rejected open, an engine error, a
+    /// dead-source slice or the leg deadline - and the producer's list has another endpoint. The
+    /// same backend re-opens on the next attempt's address with that endpoint's own buffer and
+    /// slice; the leg keeps its identity, and recovery is never spent on a transport the producer
+    /// ranked behind a working one.
+    /// </summary>
+    private async Task AdvanceAttemptAsync(IVideoBackend backend, string reason)
+    {
+        DisposeAttemptResource();
+        _attemptIndex++;
+        var endpoint = _attemptPlan[_attemptIndex];
+        // SP-0096/SP-0208: the new media restarts the engine's counters, so the freeze baseline, the
+        // open budget and the attempt clock all start over with this endpoint's rules.
+        _freeze.Reset();
+        _openBudget = new PlaybackOpenBudget(AttemptSlice(endpoint));
+        _attemptClock.Restart();
+        _firstByteLogged = false;
+        _buffering = false;
+        _bufferFullPending = false;
+        var cacheMs = BroadcastLiveCache.For(_channel, endpoint) ?? LiveCacheMilliseconds;
+        _liveCacheMs = cacheMs;
+        _log.Event("PLAYBACK ATTEMPT",
+            $"attempt={_attemptIndex}/{_attemptPlan.Count}",
+            $"transport={endpoint.Transport ?? "n/a"}",
+            $"reason={reason}",
+            $"cache_ms={cacheMs}",
+            // The sink redacts a relay address's broadcast id; the transport and host stay useful.
+            $"url={endpoint.Url}");
+
+        var open = Task.Run(() => OpenLeg(backend, cacheMs, QualityCeiling));
+        using var deadlineCts = CancellationTokenSource.CreateLinkedTokenSource(_sessionCts.Token);
+        var deadline = Task.Delay(OpenCallDeadline, deadlineCts.Token);
+        if (await Task.WhenAny(open, deadline) == open)
+        {
+            deadlineCts.Cancel();
+            await open;
+        }
+        else if (!_closing && ReferenceEquals(backend, _backend))
+        {
+            _log.Event("PLAYBACK OPEN TIMEOUT", $"leg={_legCount}", $"attempt={_attemptIndex}",
+                $"after_ms={OpenCallDeadline.TotalMilliseconds:F0}", $"url={_channel.Url}");
+            ShowPlaybackFailure("engine_open_timeout");
+        }
+    }
+
+    /// <summary>Whether a pre-live failure may still move to the producer's next endpoint.</summary>
+    private bool CanAdvanceAttempt() =>
+        !_closing && !_failureShown && !_probeLegPending && _attemptIndex + 1 < _attemptPlan.Count;
+
+    /// <summary>The address the current attempt opens - for the log line, redacted by the sink.</summary>
+    private string AttemptUrl() =>
+        _attemptIndex < _attemptPlan.Count ? _attemptPlan[_attemptIndex].Url : _channel.Url;
+
+    /// <summary>The per-attempt resource - a tunnel forwarder or a relay pin proxy - belongs to the attempt, not the leg.</summary>
+    private void DisposeAttemptResource()
+    {
+        _tunnelForwarder?.Dispose();
+        _tunnelForwarder = null;
+        _relayProxy?.Dispose();
+        _relayProxy = null;
+    }
+
+    private static TimeSpan AttemptSlice(FastMediaSorterBroadcastEndpoint endpoint) =>
+        endpoint.Transport is not null &&
+            (endpoint.Transport.Equals("RELAY", StringComparison.OrdinalIgnoreCase) ||
+             endpoint.Transport.Equals("TUNNEL", StringComparison.OrdinalIgnoreCase))
+            ? PlaybackOpenBudget.DeadSourceAfter
+            : LanAttemptSlice;
+
+    private static FastMediaSorterBroadcastEndpoint SingleAttempt(StreamChannel channel) =>
+        new(
+            channel.Url,
+            channel.Url.StartsWith("rtsp", StringComparison.OrdinalIgnoreCase) ? "RTSP" : "HTTP",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+
+    /// <summary>
+    /// SP-0184: a refusal from <paramref name="backend"/> is a verdict on that engine's leg. The call can return
+    /// after a newer leg replaced the engine - the replaced one is stopped, so it refuses or throws - and that
+    /// stale answer must not fail the live leg, the same guard the open-deadline verdict applies. The comparison
+    /// is made on the UI thread, where <c>_backend</c> is replaced. SP-0203: while the producer's list has
+    /// another endpoint, the refusal moves the attempt forward instead of ending the leg.
+    /// </summary>
+    private void ReportOpenFailure(IVideoBackend backend, string reason)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(() => ReportOpenFailure(backend, reason));
+            return;
+        }
+
+        if (!ReferenceEquals(backend, _backend))
+        {
+            _log.Event("PLAYBACK FAIL IGNORED", $"reason={reason}", "why=superseded_leg", $"url={_channel.Url}");
+            return;
+        }
+
+        if (CanAdvanceAttempt())
+        {
+            _ = AdvanceAttemptAsync(backend, reason);
+            return;
+        }
+
+        ShowPlaybackFailure(reason);
     }
 
     /// <summary>
@@ -224,6 +421,7 @@ public partial class PlayerWindow
         _watchdogTimer.Stop();
         _wake?.Dispose();
         _wake = null;
+        DisposeAttemptResource();
         var failureStop = _backend.StopPlaybackAsync();
         // SP-0121: a recording ends visibly with the playback it records, and its segments are saved and announced.
         EndRecordingAfterFailure(failureStop);

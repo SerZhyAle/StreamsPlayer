@@ -87,9 +87,32 @@ public static class CatalogCountries
 
         if (trimmed.Length == 2 && char.IsAsciiLetter(trimmed[0]) && char.IsAsciiLetter(trimmed[1]))
         {
-            return trimmed.ToUpperInvariant();
+            var upper = trimmed.ToUpperInvariant();
+            return upper switch
+            {
+                // `STREAM-BANK` section 3: the `uk` alias folds to the code. UK is not an ISO 3166-1 code;
+                // left alone it listed the same country twice beside GB.
+                "UK" => "GB",
+                // The bank's own placeholder for "unknown": not a country, so no honest answer.
+                "XX" => null,
+                _ => upper
+            };
         }
 
         return SpelledOut.TryGetValue(trimmed, out var code) ? code : null;
     }
+
+    /// <summary>
+    /// The identity a country filter option and a row are compared by (contract: the uppercased ISO code).
+    /// A value this class cannot resolve stays verbatim, trimmed - the contract's visible fallback - and
+    /// blank stays <c>null</c>, so the fallback never invents a filter id.
+    /// </summary>
+    public static string? Normalize(string? value)
+    {
+        var trimmed = value?.Trim();
+        return string.IsNullOrEmpty(trimmed) ? null : ToCode(trimmed) ?? (IsPlaceholder(trimmed) ? null : trimmed);
+    }
+
+    private static bool IsPlaceholder(string trimmed) =>
+        trimmed.Equals("XX", StringComparison.OrdinalIgnoreCase);
 }

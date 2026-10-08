@@ -36,3 +36,12 @@ docs/assets/glyphs/*.svg -text
 # it as binary anyway, but "almost certainly" on an archive whose bytes the reader validates is not a
 # guarantee worth relying on - a single normalized byte would reach users as an unreadable list.
 *.zip binary
+
+# SP-0195 (PAGE-STYLE section 0 step 1, SITE-EXPERIENCE rule 1): the vendored web kit is served
+# byte-identical to the catalog's reference stylesheet, pinned by SHA-256 in tools/site/kit-provenance.txt
+# and checked by tools/site/build-site.ps1 -Check. Line-ending normalization would change what the site serves.
+docs/assets/sza-kit.css -text
+
+# SP-0195 follow-up: the vendored WAVE-PARTICLES reference implementation is served byte-identical too
+# (pinned in tools/site/kit-provenance.txt, checked by tools/site/build-site.ps1).
+docs/assets/wave-particles.js -text

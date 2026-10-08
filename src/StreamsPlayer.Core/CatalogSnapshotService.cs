@@ -19,11 +19,6 @@ public sealed class CatalogSnapshotService
         _store = store;
     }
 
-    /// <summary>Reads the build's embedded snapshot and applies it.</summary>
-    public Task<CatalogSnapshotApplyResult> ApplyBundledAsync(
-        CatalogState currentState,
-        CancellationToken cancellationToken = default) =>
-        ApplyAsync(BundledCatalogSnapshot.Read(), currentState, cancellationToken);
 
     /// <summary>Validates a snapshot and returns an outcome that can be applied to the latest state.</summary>
     public static CatalogSnapshotOutcome Prepare(CatalogSnapshot snapshot)

@@ -6,6 +6,8 @@
 #   [[email]]   - the contact address
 #   [[hash]]    - the Get-FileHash command that checks a download against its .sha256 file
 #   [[installdir]] - the per-user install folder, %LOCALAPPDATA%\Programs\StreamsPlayer
+#   [[languages]] - how many interface languages ship (rendered from the language registry, never typed)
+#   [[windows]]   - the minimum Windows, as the site names it (rendered from the project, never typed)
 # machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
 # but the key is present in every file so the key sets stay comparable.
 
@@ -41,6 +43,8 @@ GitHub
 
 @@theme-label
 Farbthema wechseln
+@@theme-name
+Design
 
 @@lang-label
 Sprache der Website
@@ -52,7 +56,7 @@ Hauptnavigation
 Symbol von STREAMS Player
 
 @@hero-eyebrow
-STREAMS Player · Windows 10 / 11
+[[windows]]
 
 @@hero-title
 Radio, Live-Video und RTSP in einem Player.
@@ -61,25 +65,25 @@ Radio, Live-Video und RTSP in einem Player.
 Internetradio · Live-Video · RTSP
 
 @@hero-description
-Eine schlanke Windows-Desktop-App: einen fertigen Katalog durchsuchen, eigene Streams hinzufügen und abspielen - ohne Konto, ohne Werbung, ohne Hintergrundaktivität, die Sie nicht gestartet haben.
+Eine schlanke Windows-Desktop-App: einen fertigen Katalog durchsuchen, eigene Streams hinzufügen und abspielen - ohne Kontopflicht, ohne Werbung, ohne Hintergrundaktivität, die Sie nicht gestartet haben.
 
 @@facts-label
 Auf einen Blick
 
 @@fact-windows
-Windows 10 / 11
+[[windows]]
 
 @@fact-free
 Kostenlos · Quellcode unter MIT
 
 @@fact-account
-Kein Konto
+Kein Konto erforderlich
 
 @@fact-telemetry
 Keine Telemetrie
 
 @@fact-langs
-13 Oberflächensprachen
+[[languages]] Oberflächensprachen
 
 @@hero-download
 Herunterladen (.exe)
@@ -100,7 +104,7 @@ Aktueller Status
 Veröffentlicht
 
 @@status-description
-STREAMS Player ist veröffentlicht und kostenlos. Starten Sie das Installationsprogramm aus dem neuesten Release auf GitHub, holen Sie ihn im Microsoft Store, nehmen Sie das portable ZIP oder installieren Sie über winget - ohne Konto, ohne Werbung, ohne Telemetrie.
+STREAMS Player ist veröffentlicht und kostenlos. Starten Sie das Installationsprogramm aus dem neuesten Release auf GitHub, holen Sie ihn im Microsoft Store, nehmen Sie das portable ZIP oder installieren Sie über winget - ohne Kontopflicht, ohne Werbung, ohne Telemetrie.
 
 @@status-source
 Microsoft Store
@@ -118,7 +122,7 @@ Was es ist und warum
 STREAMS Player ist eine unabhängige Windows-Desktop-App für Internetradio, Live-Video und RTSP-Netzwerkkameras. Sie liest einen gepflegten öffentlichen Stream-Katalog, sodass schon beim ersten Start eine funktionierende Kanalliste bereitsteht - danach suchen, sortieren und heften Sie Kanäle an oder fügen eigene hinzu, alles lokal auf Ihrem Rechner gespeichert.
 
 @@what-p2
-Der Sinn ist Ruhe: ein Player, der ein Player bleibt. Der Katalog wird nur aktualisiert, wenn Sie es verlangen, Ihre manuell hinzugefügten und importierten Streams werden von einer Aktualisierung nie überschrieben, und es gibt kein Konto, keine Werbung, keine Analyse und keinen vom Autor betriebenen Dienst. Auf Ihrem PC läuft nur, was Sie gestartet haben.
+Der Sinn ist Ruhe: ein Player, der ein Player bleibt. Der Katalog wird nur aktualisiert, wenn Sie es verlangen, Ihre manuell hinzugefügten und importierten Streams werden von einer Aktualisierung nie überschrieben, und es gibt keine Kontopflicht, keine Werbung, keine Analyse und keinen vom Autor betriebenen Dienst. Auf Ihrem PC läuft nur, was Sie gestartet haben.
 
 @@features-title
 Was es kann
@@ -202,7 +206,7 @@ Die automatische Aktualisierung der Vorschau lässt sich abschalten.
 Machen Sie es zu Ihrem
 
 @@cap-yours-1
-Stream per URL hinzufügen, ohne Konto.
+Stream per URL hinzufügen, ohne Kontopflicht.
 
 @@cap-yours-2
 Ihre hinzugefügten und importierten Streams überleben Katalogaktualisierungen. Ein Katalogkanal, den Sie angeheftet oder gespielt haben, bleibt erhalten und wird nicht gelöscht, wenn der Katalog ihn nicht mehr führt.
@@ -211,7 +215,7 @@ Ihre hinzugefügten und importierten Streams überleben Katalogaktualisierungen.
 Lokale Wiedergabemarken: OK oder Fehler.
 
 @@cap-yours-4
-Die gesamte Benutzeroberfläche zwischen dreizehn Sprachen umschalten; die Wahl wird wiederhergestellt.
+Die gesamte Benutzeroberfläche zwischen [[languages]] Sprachen umschalten; die Wahl wird wiederhergestellt.
 
 @@cap-yours-5
 Fassen Sie Kanäle in eigenen, selbst benannten Sammlungen zusammen und sehen Sie sie einzeln durch.
@@ -273,7 +277,7 @@ Ein Problem mithilfe der Protokolle melden
 Bezugswege
 
 @@distribution-description
-Alle vier Wege sind verfügbar. Starten Sie das Installationsprogramm aus dem neuesten Release auf GitHub, holen Sie ihn im Microsoft Store, laden Sie das portable ZIP herunter oder installieren Sie ihn mit [[command]].
+Alle Wege sind verfügbar. Starten Sie das Installationsprogramm aus dem neuesten Release auf GitHub, holen Sie ihn im Microsoft Store, laden Sie das portable ZIP herunter oder installieren Sie ihn mit [[command]].
 
 @@channel-setup
 Installationsprogramm (.exe)
@@ -300,18 +304,25 @@ STREAMS Player · Datenschutz
 Privat als Standard.
 
 @@privacy-intro
-STREAMS Player hat kein Konto, keine Werbung, keine Analyse, keine Telemetrie und keinen vom Autor betriebenen Dienst.
+Für die normale Wiedergabe ist kein Konto erforderlich. Das optionale Austauschkonto gehört zu Ihrem eigenen Server. Es gibt keine Werbung, Analyse, Telemetrie oder vom Autor betriebenen Dienste.
 
 @@privacy-network-title
 Netzwerkzugriff
 
 @@privacy-network
-Die Anwendung verbindet sich nur auf Ihre Aktion hin und nur mit dem Ort, den diese Aktion erfordert: dem öffentlichen Stream-Katalog und dem optionalen Vorschau-Paket auf GitHub beim Importieren oder Annehmen; dem Anbieter eines Streams, den Sie abspielen, aufnehmen oder für den Sie «Über den Kanal» öffnen, oder dessen Videovorschau im Rastermodus aktualisiert wird; einem FastMediaSorter-Telefon oder einer -Uhr in Ihrem lokalen Netzwerk; und, nur wenn Sie diese in den Einstellungen auf der Seite «Wiedergabe» anfordern, den optionalen FFmpeg-Bibliotheken für die experimentelle FlyleafLib-Engine von GitHub (BtbN/FFmpeg-Builds). Jede Anfrage geht direkt an dieses Ziel und unterliegt dessen Richtlinien; keine läuft über einen vom Autor betriebenen Dienst. Ein TV-Programm wird nur von der Adresse heruntergeladen, die Sie selbst in den Einstellungen auf der Seite «Bibliothek» eingeben, jeweils einmal beim Drücken von «Programm herunterladen» und niemals im Hintergrund.
+Die Anwendung verbindet sich nur auf Ihre Aktion hin und nur mit dem Ort, den diese Aktion erfordert: dem öffentlichen Stream-Katalog und dem optionalen Vorschau-Paket auf GitHub beim Importieren oder Annehmen; dem Anbieter eines Streams, den Sie abspielen, aufnehmen oder für den Sie «Über den Kanal» öffnen, oder dessen Videovorschau im Rastermodus aktualisiert wird; einem FastMediaSorter-Telefon oder einer -Uhr in Ihrem lokalen Netzwerk; und, nur wenn Sie diese in den Einstellungen auf der Seite «Wiedergabe» anfordern, den optionalen FFmpeg-Bibliotheken für die experimentelle FlyleafLib-Engine von GitHub (BtbN/FFmpeg-Builds). Jede Anfrage geht direkt an dieses Ziel und unterliegt dessen Richtlinien; keine läuft über einen vom Autor betriebenen Dienst. Ein TV-Programm wird nur von der Adresse heruntergeladen, die Sie selbst in den Einstellungen auf der Seite «Bibliothek» eingeben, jeweils einmal beim Drücken von «Programm herunterladen» und niemals im Hintergrund. Die optionale Austauschquelle in den Bibliothekseinstellungen verbindet sich über TLS mit Ihrem eigenen Server. Zur Registrierung sendet sie Anmeldename und Passwort oder Kopplungscode, danach Geräteidentität, Produktversion, Empfangsfähigkeiten und Gerätetoken. Solange sie aktiviert ist, hält sie eine Kontrollverbindung mit Lebenszeichen und Wiederverbindung; Deaktivieren schließt sie. Jedes Serverzertifikat benötigt Ihre ausdrückliche Zustimmung, auch nach Erneuerung. 
+
+@@privacy-site-title
+Diese Website
+
+@@privacy-site
+Dieser Abschnitt betrifft die Website, nicht die Anwendung. Jede Seite lädt ihre Schriften von Google Fonts: Ihr Browser fordert ein Stylesheet von fonts.googleapis.com und die Schriftdateien von fonts.gstatic.com an, sodass Google Ihre IP-Adresse, Ihre Browserangaben und die Adresse der gelesenen Seite erhält. Die Startseite fragt außerdem einmal bei api.github.com die neueste Version ab, damit die Installer-Schaltfläche auf die aktuelle Datei zeigt; GitHub erhält Ihre IP-Adresse und Ihre Browserangaben. Die Seiten selbst liefert GitHub Pages (serzhyale.github.io) aus. Die Website hat keine Analyse, Werbung oder Verfolgung, setzt keine Cookies und speichert in Ihrem Browser nur Ihre Wahl von Design und Sprache im lokalen Speicher. Für jeden dieser Dienste gilt seine eigene Richtlinie; keiner wird vom Autor betrieben.
 @@privacy-local-title
 Lokale Daten
 
 @@privacy-local
-STREAMS Player speichert den Katalogstatus, Ihre hinzugefügten und importierten Kanäle, Pins, Sammlungen, ausgeblendeten Kanäle, den Hörverlauf, Wiedergabemarkierungen, zwischengespeicherte Vorschaubilder im Rahmen eines 150-MB-Budgets, die optionalen FFmpeg-Bibliotheken und die Diagnoseprotokolle der letzten zehn Starts unter [[appdata]]. Aufnahmen und gespeicherte Bilder gelangen in die von Ihnen gewählten Ordner (standardmäßig Videos/Recordings, Music/Recordings und Pictures/Frames). Diese Daten verbleiben auf Ihrem Gerät, es sei denn, Sie verwenden «Protokolle an den Autor senden» in den Einstellungen auf der Seite «Über», wodurch diese Protokolle samt App-Version, Windows-Version und Einstellungen gepackt und zur Weiterleitung an [[email]] bereitgestellt werden. Das TV-Programm und Ihre Kanalzuordnungen werden dort ebenfalls gespeichert; «Programm entfernen» in den Einstellungen löscht beides.
+STREAMS Player speichert den Katalogstatus, Ihre hinzugefügten und importierten Kanäle, Pins, Sammlungen, ausgeblendeten Kanäle, den Hörverlauf, Wiedergabemarkierungen, zwischengespeicherte Vorschaubilder im Rahmen eines 150-MB-Budgets, die optionalen FFmpeg-Bibliotheken und die Diagnoseprotokolle der letzten zehn Starts unter [[appdata]]. Aufnahmen und gespeicherte Bilder gelangen in die von Ihnen gewählten Ordner (standardmäßig Videos/Recordings, Music/Recordings und Pictures/Frames). Diese Daten verbleiben auf Ihrem Gerät, es sei denn, Sie verwenden «Protokolle an den Autor senden» in den Einstellungen auf der Seite «Über», wodurch diese Protokolle samt App-Version, Windows-Version und Einstellungen gepackt und zur Weiterleitung an [[email]] bereitgestellt werden. Das TV-Programm und Ihre Kanalzuordnungen werden dort ebenfalls gespeichert; «Programm entfernen» in den Einstellungen löscht beides. Passwort und Code werden verworfen. Konto, Token und Zertifikatabdruck sind in einer separaten Datei für Ihren Windows-Benutzer geschützt; Konto entfernen löscht sie. Diagnosearchive lassen diese Datei weg und schwärzen Kontowerte. Austauschverbindungen beginnen erst nach Ihrer ausdrücklichen Einrichtung der Quelle.
+
 @@privacy-contact-title
 Kontakt
 
@@ -409,7 +420,7 @@ Was STREAMS Player nie tut
 Die App braucht nie Administratorrechte, um installiert zu werden oder zu laufen, trägt sich nie in den Windows-Autostart ein und installiert keinen Hintergrunddienst.
 
 @@trust-never-2
-Sie hat kein Konto, keine Werbung, keine Analyse und keine Telemetrie, und es gibt keinen vom Autor betriebenen Dienst, über den Ihre Daten laufen.
+Für die normale Wiedergabe ist kein Konto erforderlich. Das optionale Austauschkonto gehört zu Ihrem eigenen Server. Es gibt keine Werbung, Analyse, Telemetrie oder vom Autor betriebenen Dienste.
 
 @@trust-never-3
 Sie stellt nur dann eine Verbindung her, wenn Sie handeln, und nur für das, was diese Aktion erfordert: den öffentlichen Stream-Katalog und das optionale Vorschau-Paket auf GitHub, den Anbieter eines Streams, den Sie abspielen, aufnehmen oder in der Vorschau anzeigen, ein FastMediaSorter-Gerät in Ihrem Netzwerk und die optionalen FFmpeg-Bibliotheken, wenn Sie diese in den Einstellungen anfordern. Ein TV-Programm wird nur von einer von Ihnen selbst eingegebenen Adresse abgerufen, wenn Sie auf «Programm herunterladen» drücken.
@@ -425,10 +436,43 @@ Beim Deinstallieren werden Ihre Kanäle, Anheftungen und Ihr Verlauf nie gelösc
 Datenschutzseite lesen
 
 @@footer-rights
-© 2026 Serhii Zhyhunenko
+© 2026
 
 @@footer-tools
 Weitere Werkzeuge
+
+@@footer-author
+Serhii Zhyhunenko
+
+@@footer-download
+Download
+
+@@nav-docs
+Dokumentation
+
+@@type-ai-method
+KI-Entwicklungsmethode
+
+@@type-android-sorter
+Medien-Sortierer für Android
+
+@@type-ebook-converter
+E-Book-Konverter für Windows
+
+@@type-layout-fixer
+Tastaturlayout-Korrektur für Windows
+
+@@type-portfolio
+Portfolio
+
+@@type-storage-cli
+Speicher-Kommandozeilenwerkzeug für Windows
+
+@@type-tray-launcher
+Tray-Starter für Windows
+
+@@type-windows-sorter
+Medien-Sortierer für Windows
 
 @@to-top
 Nach oben

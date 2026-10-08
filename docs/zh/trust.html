@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-Hans" dir="ltr" data-theme="dark" data-lang="zh" data-entry="false">
+<html lang="zh-Hans" dir="ltr" data-theme="dark" data-entry="false">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -38,23 +38,26 @@
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../trust.html","ru":"../ru/trust.html","uk":"../uk/trust.html","de":"../de/trust.html","it":"../it/trust.html","es":"../es/trust.html","fr":"../fr/trust.html","pt":"../pt/trust.html","zh":"../zh/trust.html","hi":"../hi/trust.html","bn":"../bn/trust.html","ar":"../ar/trust.html","ur":"../ur/trust.html"}</script>
+    <!-- PAGE-STYLE section 7 pre-paint resolver: the same text on every page, before the first stylesheet.
+         sza-theme and sza-lang are shared with every product page on this origin, so they hold exactly
+         dark/light and ru/en/ua. -->
+    <script>
+(function(){try{
+  var t=localStorage.getItem('sza-theme');
+  if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  var l=localStorage.getItem('sza-lang');
+  if(l==='uk')l='ua';
+  if(l!=='ru'&&l!=='en'&&l!=='ua'){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+  document.documentElement.setAttribute('data-lang',l);
+}catch(e){}})();
+    </script>
     <script>
       (function () {
-        var root = document.documentElement;
-        var systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-        var theme = systemTheme;
-        var stored = null;
-        try {
-          theme = localStorage.getItem("streamsplayer-theme") || systemTheme;
-          stored = localStorage.getItem("streamsplayer-lang");
-        } catch (error) {
-          theme = systemTheme;
-        }
-        root.dataset.theme = theme;
-
         // Language redirect. Only the canonical English root redirects: a visitor who asked for
         // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
         // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
+        var root = document.documentElement;
         if (root.dataset.entry !== "true") {
           return;
         }
@@ -64,10 +67,30 @@
         } catch (error) {
           return;
         }
+        // sza-lang holds only ru, en or ua (PAGE-STYLE section 7), so a further locale chosen here is
+        // remembered in a key of this product, together with the shared value current at that moment:
+        // it counts only while nobody has changed the shared language since.
+        var shared = null;
+        var further = "";
+        try {
+          shared = localStorage.getItem("sza-lang");
+          further = localStorage.getItem("streamsplayer-locale") || "";
+        } catch (error) {
+          // No storage: the browser's own preference decides below.
+        }
+        if (shared === "uk") {
+          shared = "ua";
+        }
+        if (shared !== "ru" && shared !== "en" && shared !== "ua") {
+          shared = null;
+        }
         var target = null;
-        if (stored && urls[stored]) {
-          target = stored;
-        } else if (!stored) {
+        var parts = further.split("@");
+        if (parts.length === 2 && urls[parts[0]] && parts[1] === (shared || "")) {
+          target = parts[0];
+        } else if (shared) {
+          target = shared === "ua" ? "uk" : shared;
+        } else {
           // Walk the visitor's preference list in order and match on the base subtag, so de-AT
           // reaches the German page. The table comes from the generated page, never from a list
           // written here.
@@ -81,7 +104,7 @@
             }
           }
         }
-        if (target && target !== root.dataset.lang) {
+        if (target && target !== "en" && urls[target]) {
           window.location.replace(urls[target]);
         }
       })();
@@ -89,15 +112,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/sza-kit.css">
     <link rel="stylesheet" href="../style.css">
+    <script src="../assets/wave-particles.js" defer></script>
     <script src="../site.js" defer></script>
   </head>
   <body data-page="trust">
     <a class="skip-link" href="#content">跳到正文</a>
-    <div class="background-glow" aria-hidden="true">
-      <div class="glow glow-one"></div>
-      <div class="glow glow-two"></div>
-    </div>
+    <!-- The brand backdrop (WAVE-PARTICLES): behind everything, decorative, slow and pale; every block of text
+         sits on a semi-transparent plate (style.css). Settings: SP-0195 follow-up, registry exception. -->
+    <canvas class="backdrop" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.3" data-speed="0.5" aria-hidden="true"></canvas>
 
     <header class="site-header">
       <a class="brand" href="../zh/">
@@ -109,43 +133,28 @@
         <a class="header-link" href="trust.html" aria-current="page">安装帮助</a>
         <a class="header-link" href="privacy.html">隐私</a>
       </nav>
-      <div class="language-switcher">
-        <select id="languageSelect" aria-label="网站语言">
-          <option value="../trust.html" data-code="en" lang="en">English</option>
-          <option value="../ru/trust.html" data-code="ru" lang="ru">Русский</option>
-          <option value="../uk/trust.html" data-code="uk" lang="uk">Українська</option>
-          <option value="../de/trust.html" data-code="de" lang="de">Deutsch</option>
-          <option value="../it/trust.html" data-code="it" lang="it">Italiano</option>
-          <option value="../es/trust.html" data-code="es" lang="es">Español</option>
-          <option value="../fr/trust.html" data-code="fr" lang="fr">Français</option>
-          <option value="../pt/trust.html" data-code="pt" lang="pt">Português (Brasil)</option>
-          <option value="../zh/trust.html" data-code="zh" lang="zh-Hans" selected>简体中文</option>
-          <option value="../hi/trust.html" data-code="hi" lang="hi">हिन्दी</option>
-          <option value="../bn/trust.html" data-code="bn" lang="bn">বাংলা</option>
-          <option value="../ar/trust.html" data-code="ar" lang="ar">العربية</option>
-          <option value="../ur/trust.html" data-code="ur" lang="ur">اردو</option>
-        </select>
-        <noscript>
-          <ul class="language-list">
-            <li><a href="../trust.html" lang="en">English</a></li>
-            <li><a href="../ru/trust.html" lang="ru">Русский</a></li>
-            <li><a href="../uk/trust.html" lang="uk">Українська</a></li>
-            <li><a href="../de/trust.html" lang="de">Deutsch</a></li>
-            <li><a href="../it/trust.html" lang="it">Italiano</a></li>
-            <li><a href="../es/trust.html" lang="es">Español</a></li>
-            <li><a href="../fr/trust.html" lang="fr">Français</a></li>
-            <li><a href="../pt/trust.html" lang="pt">Português (Brasil)</a></li>
-            <li><a href="../zh/trust.html" lang="zh-Hans">简体中文</a></li>
-            <li><a href="../hi/trust.html" lang="hi">हिन्दी</a></li>
-            <li><a href="../bn/trust.html" lang="bn">বাংলা</a></li>
-            <li><a href="../ar/trust.html" lang="ar">العربية</a></li>
-            <li><a href="../ur/trust.html" lang="ur">اردو</a></li>
-          </ul>
-        </noscript>
+      <div class="seg" role="group" aria-label="网站语言">
+        <a href="../ru/trust.html" data-lang="ru" lang="ru" hreflang="ru" title="Русский">RU</a>
+        <a href="../trust.html" data-lang="en" lang="en" hreflang="en" title="English">EN</a>
+        <a href="../uk/trust.html" data-lang="ua" lang="uk" hreflang="uk" title="Українська">UA</a>
       </div>
-      <button class="theme-button" id="themeButton" type="button" aria-label="切换配色主题">◐</button>
+      <button class="theme-button" id="themeButton" type="button" aria-label="切换配色主题"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z" fill="currentColor"/></svg><span>主题</span></button>
       <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">GitHub</a>
     </header>
+    <nav class="container language-row" aria-label="网站语言">
+      <ul class="language-list">
+        <li><a href="../de/trust.html" data-locale="de" lang="de" hreflang="de" title="Deutsch">DE</a></li>
+        <li><a href="../it/trust.html" data-locale="it" lang="it" hreflang="it" title="Italiano">IT</a></li>
+        <li><a href="../es/trust.html" data-locale="es" lang="es" hreflang="es" title="Español">ES</a></li>
+        <li><a href="../fr/trust.html" data-locale="fr" lang="fr" hreflang="fr" title="Français">FR</a></li>
+        <li><a href="../pt/trust.html" data-locale="pt" lang="pt" hreflang="pt" title="Português (Brasil)">PT</a></li>
+        <li><a href="../zh/trust.html" data-locale="zh" lang="zh-Hans" hreflang="zh-Hans" title="简体中文" aria-current="page">ZH</a></li>
+        <li><a href="../hi/trust.html" data-locale="hi" lang="hi" hreflang="hi" title="हिन्दी">HI</a></li>
+        <li><a href="../bn/trust.html" data-locale="bn" lang="bn" hreflang="bn" title="বাংলা">BN</a></li>
+        <li><a href="../ar/trust.html" data-locale="ar" lang="ar" hreflang="ar" title="العربية">AR</a></li>
+        <li><a href="../ur/trust.html" data-locale="ur" lang="ur" hreflang="ur" title="اردو">UR</a></li>
+      </ul>
+    </nav>
 
     <!-- SP-0105, contract INSTALL-TRUST rule 1: four sections, in this order - what the warning is, why
          it appears, what to click, what the app never does. The order and the ids are pinned by
@@ -196,7 +205,7 @@
           <h2 id="trust-never-title">STREAMS Player 绝不会做的事</h2>
           <ul class="trust-list">
             <li>它安装和运行都从不需要管理员权限，从不把自己加入 Windows 启动项，也不安装任何后台服务。</li>
-            <li>它没有账户、广告、分析统计或遥测，也没有任何由作者运营、会经手您数据的服务。</li>
+            <li>普通播放无需账户。可选的交换账户属于您自己的服务器。没有广告、分析、遥测或作者运营的服务。</li>
             <li>它仅在您操作时连接网络，且仅用于该操作所需的内容：GitHub 上的公共流媒体目录及预览包、所播放/录制/预览的流媒体提供商、局域网内的 FastMediaSorter 设备以及在“设置”中请求的可选 FFmpeg 库。电视节目单仅在您点击“下载节目单”时从您自行输入的地址获取。</li>
             <li>它从不自行下载目录 - 只有在您要求时才会更新。</li>
             <li>它绝不会自动发送您的数据或日志。“设置”中“关于”页面的“向作者发送日志”仅在您的邮件客户端中准备归档和邮件；在您自行点击发送前，任何内容都不会离开您的设备。</li>
@@ -211,12 +220,28 @@
     </main>
 
     <footer class="site-footer">
+      <!-- PAGE-CONTENT "The landing always carries" items 5 and 6: every sibling tool of SITE-FAMILY-MAP section 2
+           except this product, name and type; then the author's links. -->
+      <div class="container">
+        <h2 class="footer-heading">更多工具</h2>
+        <div class="tools-grid">
+          <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>Fast Media Sorter &amp; Organizer</b><span>Android 媒体整理工具</span></a>
+          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>Windows 媒体整理工具</span></a>
+          <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Windows 键盘布局修正工具</span></a>
+          <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows 电子书转换工具</span></a>
+          <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows 存储命令行工具</span></a>
+          <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>Windows 托盘启动器</span></a>
+          <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI 开发方法</span></a>
+          <a href="https://sza.od.ua/"><b>SZA</b><span>作品集</span></a>
+        </div>
+      </div>
       <div class="container footer-row">
-        <span>© 2026 Serhii Zhyhunenko</span>
+        <span>© 2026 <a href="https://sza.od.ua/">Serhii Zhyhunenko</a></span>
         <span class="footer-links">
+          <a href="../zh/#distribution">下载</a>
+          <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">文档</a>
           <a href="privacy.html">隐私</a>
           <a href="trust.html">安装帮助</a>
-          <a href="https://sza.od.ua/">更多工具</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
           <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
         </span>

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ur" dir="rtl" data-theme="dark" data-lang="ur" data-entry="false">
+<html lang="ur" dir="rtl" data-theme="dark" data-entry="false">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -38,23 +38,26 @@
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../privacy.html","ru":"../ru/privacy.html","uk":"../uk/privacy.html","de":"../de/privacy.html","it":"../it/privacy.html","es":"../es/privacy.html","fr":"../fr/privacy.html","pt":"../pt/privacy.html","zh":"../zh/privacy.html","hi":"../hi/privacy.html","bn":"../bn/privacy.html","ar":"../ar/privacy.html","ur":"../ur/privacy.html"}</script>
+    <!-- PAGE-STYLE section 7 pre-paint resolver: the same text on every page, before the first stylesheet.
+         sza-theme and sza-lang are shared with every product page on this origin, so they hold exactly
+         dark/light and ru/en/ua. -->
+    <script>
+(function(){try{
+  var t=localStorage.getItem('sza-theme');
+  if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  var l=localStorage.getItem('sza-lang');
+  if(l==='uk')l='ua';
+  if(l!=='ru'&&l!=='en'&&l!=='ua'){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+  document.documentElement.setAttribute('data-lang',l);
+}catch(e){}})();
+    </script>
     <script>
       (function () {
-        var root = document.documentElement;
-        var systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-        var theme = systemTheme;
-        var stored = null;
-        try {
-          theme = localStorage.getItem("streamsplayer-theme") || systemTheme;
-          stored = localStorage.getItem("streamsplayer-lang");
-        } catch (error) {
-          theme = systemTheme;
-        }
-        root.dataset.theme = theme;
-
         // Language redirect. Only the canonical English root redirects: a visitor who asked for
         // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
         // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
+        var root = document.documentElement;
         if (root.dataset.entry !== "true") {
           return;
         }
@@ -64,10 +67,30 @@
         } catch (error) {
           return;
         }
+        // sza-lang holds only ru, en or ua (PAGE-STYLE section 7), so a further locale chosen here is
+        // remembered in a key of this product, together with the shared value current at that moment:
+        // it counts only while nobody has changed the shared language since.
+        var shared = null;
+        var further = "";
+        try {
+          shared = localStorage.getItem("sza-lang");
+          further = localStorage.getItem("streamsplayer-locale") || "";
+        } catch (error) {
+          // No storage: the browser's own preference decides below.
+        }
+        if (shared === "uk") {
+          shared = "ua";
+        }
+        if (shared !== "ru" && shared !== "en" && shared !== "ua") {
+          shared = null;
+        }
         var target = null;
-        if (stored && urls[stored]) {
-          target = stored;
-        } else if (!stored) {
+        var parts = further.split("@");
+        if (parts.length === 2 && urls[parts[0]] && parts[1] === (shared || "")) {
+          target = parts[0];
+        } else if (shared) {
+          target = shared === "ua" ? "uk" : shared;
+        } else {
           // Walk the visitor's preference list in order and match on the base subtag, so de-AT
           // reaches the German page. The table comes from the generated page, never from a list
           // written here.
@@ -81,7 +104,7 @@
             }
           }
         }
-        if (target && target !== root.dataset.lang) {
+        if (target && target !== "en" && urls[target]) {
           window.location.replace(urls[target]);
         }
       })();
@@ -89,15 +112,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/sza-kit.css">
     <link rel="stylesheet" href="../style.css">
+    <script src="../assets/wave-particles.js" defer></script>
     <script src="../site.js" defer></script>
   </head>
   <body data-page="privacy">
     <a class="skip-link" href="#content">مواد پر جائیں</a>
-    <div class="background-glow" aria-hidden="true">
-      <div class="glow glow-one"></div>
-      <div class="glow glow-two"></div>
-    </div>
+    <!-- The brand backdrop (WAVE-PARTICLES): behind everything, decorative, slow and pale; every block of text
+         sits on a semi-transparent plate (style.css). Settings: SP-0195 follow-up, registry exception. -->
+    <canvas class="backdrop" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.3" data-speed="0.5" aria-hidden="true"></canvas>
 
     <header class="site-header">
       <a class="brand" href="../ur/">
@@ -108,57 +132,46 @@
         <a class="header-link" href="../ur/#features">خصوصیات</a>
         <a class="header-link" href="privacy.html" aria-current="page">رازداری</a>
       </nav>
-      <div class="language-switcher">
-        <select id="languageSelect" aria-label="سائٹ کی زبان">
-          <option value="../privacy.html" data-code="en" lang="en">English</option>
-          <option value="../ru/privacy.html" data-code="ru" lang="ru">Русский</option>
-          <option value="../uk/privacy.html" data-code="uk" lang="uk">Українська</option>
-          <option value="../de/privacy.html" data-code="de" lang="de">Deutsch</option>
-          <option value="../it/privacy.html" data-code="it" lang="it">Italiano</option>
-          <option value="../es/privacy.html" data-code="es" lang="es">Español</option>
-          <option value="../fr/privacy.html" data-code="fr" lang="fr">Français</option>
-          <option value="../pt/privacy.html" data-code="pt" lang="pt">Português (Brasil)</option>
-          <option value="../zh/privacy.html" data-code="zh" lang="zh-Hans">简体中文</option>
-          <option value="../hi/privacy.html" data-code="hi" lang="hi">हिन्दी</option>
-          <option value="../bn/privacy.html" data-code="bn" lang="bn">বাংলা</option>
-          <option value="../ar/privacy.html" data-code="ar" lang="ar">العربية</option>
-          <option value="../ur/privacy.html" data-code="ur" lang="ur" selected>اردو</option>
-        </select>
-        <noscript>
-          <ul class="language-list">
-            <li><a href="../privacy.html" lang="en">English</a></li>
-            <li><a href="../ru/privacy.html" lang="ru">Русский</a></li>
-            <li><a href="../uk/privacy.html" lang="uk">Українська</a></li>
-            <li><a href="../de/privacy.html" lang="de">Deutsch</a></li>
-            <li><a href="../it/privacy.html" lang="it">Italiano</a></li>
-            <li><a href="../es/privacy.html" lang="es">Español</a></li>
-            <li><a href="../fr/privacy.html" lang="fr">Français</a></li>
-            <li><a href="../pt/privacy.html" lang="pt">Português (Brasil)</a></li>
-            <li><a href="../zh/privacy.html" lang="zh-Hans">简体中文</a></li>
-            <li><a href="../hi/privacy.html" lang="hi">हिन्दी</a></li>
-            <li><a href="../bn/privacy.html" lang="bn">বাংলা</a></li>
-            <li><a href="../ar/privacy.html" lang="ar">العربية</a></li>
-            <li><a href="../ur/privacy.html" lang="ur">اردو</a></li>
-          </ul>
-        </noscript>
+      <div class="seg" role="group" aria-label="سائٹ کی زبان">
+        <a href="../ru/privacy.html" data-lang="ru" lang="ru" hreflang="ru" title="Русский">RU</a>
+        <a href="../privacy.html" data-lang="en" lang="en" hreflang="en" title="English">EN</a>
+        <a href="../uk/privacy.html" data-lang="ua" lang="uk" hreflang="uk" title="Українська">UA</a>
       </div>
-      <button class="theme-button" id="themeButton" type="button" aria-label="رنگوں کا تھیم بدلیں">◐</button>
+      <button class="theme-button" id="themeButton" type="button" aria-label="رنگوں کا تھیم بدلیں"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z" fill="currentColor"/></svg><span>تھیم</span></button>
       <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">GitHub</a>
     </header>
+    <nav class="container language-row" aria-label="سائٹ کی زبان">
+      <ul class="language-list">
+        <li><a href="../de/privacy.html" data-locale="de" lang="de" hreflang="de" title="Deutsch">DE</a></li>
+        <li><a href="../it/privacy.html" data-locale="it" lang="it" hreflang="it" title="Italiano">IT</a></li>
+        <li><a href="../es/privacy.html" data-locale="es" lang="es" hreflang="es" title="Español">ES</a></li>
+        <li><a href="../fr/privacy.html" data-locale="fr" lang="fr" hreflang="fr" title="Français">FR</a></li>
+        <li><a href="../pt/privacy.html" data-locale="pt" lang="pt" hreflang="pt" title="Português (Brasil)">PT</a></li>
+        <li><a href="../zh/privacy.html" data-locale="zh" lang="zh-Hans" hreflang="zh-Hans" title="简体中文">ZH</a></li>
+        <li><a href="../hi/privacy.html" data-locale="hi" lang="hi" hreflang="hi" title="हिन्दी">HI</a></li>
+        <li><a href="../bn/privacy.html" data-locale="bn" lang="bn" hreflang="bn" title="বাংলা">BN</a></li>
+        <li><a href="../ar/privacy.html" data-locale="ar" lang="ar" hreflang="ar" title="العربية">AR</a></li>
+        <li><a href="../ur/privacy.html" data-locale="ur" lang="ur" hreflang="ur" title="اردو" aria-current="page">UR</a></li>
+      </ul>
+    </nav>
 
     <main class="container privacy-main" id="content">
       <span class="eyebrow">STREAMS Player · رازداری</span>
       <h1>بطورِ طے شدہ نجی۔</h1>
-      <p class="privacy-intro">STREAMS Player میں کوئی اکاؤنٹ، اشتہار، تجزیات، ٹیلی میٹری یا مصنف کی چلائی ہوئی سروس نہیں ہے۔</p>
+      <p class="privacy-intro">عام پلے بیک کے لیے اکاؤنٹ ضروری نہیں۔ اختیاری ایکسچینج اکاؤنٹ آپ کے اپنے سرور کا ہے۔ کوئی اشتہار، تجزیات، ٹیلی میٹری یا مصنف کی چلائی ہوئی سروس نہیں۔</p>
 
       <div class="privacy-card">
         <section class="privacy-section">
           <h2>نیٹ ورک تک رسائی</h2>
-          <p>ایپلیکیشن صرف آپ کے عمل پر اور صرف اسی جگہ سے رابطہ کرتی ہے جہاں اس عمل کی ضرورت ہوتی ہے: درآمد کرتے وقت GitHub سے عوامی اسٹریم کیٹلاگ اور اختیاری پیش نظارہ پیک؛ جس اسٹریم کو آپ چلاتے ہیں، ریکارڈ کرتے ہیں یا چینل کی تفصیل کھولتے ہیں اس کا فراہم کنندہ؛ مقامی نیٹ ورک پر FastMediaSorter ڈیوائس؛ اور صرف اگر آپ ترتیبات میں ‘پلے بیک’ صفحے پر طلب کریں، تو FlyleafLib انجن کے لیے اختیاری FFmpeg لائبریریاں (BtbN/FFmpeg-Builds)۔ ہر درخواست براہ راست منزل پر جاتی ہے؛ مصنف کی کسی سروس سے کچھ نہیں گزرتا۔ ٹی وی شیڈول صرف اس پتے سے ڈاؤن لوڈ ہوتا ہے جو آپ ترتیبات کے ‘لائبریری’ صفحے پر خود درج کرتے ہیں، ‘شیڈول ڈاؤن لوڈ کریں’ دبانے پر ایک بار، اور کبھی بھی پس منظر میں نہیں۔</p>
+          <p>ایپلیکیشن صرف آپ کے عمل پر اور صرف اسی جگہ سے رابطہ کرتی ہے جہاں اس عمل کی ضرورت ہوتی ہے: درآمد کرتے وقت GitHub سے عوامی اسٹریم کیٹلاگ اور اختیاری پیش نظارہ پیک؛ جس اسٹریم کو آپ چلاتے ہیں، ریکارڈ کرتے ہیں یا چینل کی تفصیل کھولتے ہیں اس کا فراہم کنندہ؛ مقامی نیٹ ورک پر FastMediaSorter ڈیوائس؛ اور صرف اگر آپ ترتیبات میں ‘پلے بیک’ صفحے پر طلب کریں، تو FlyleafLib انجن کے لیے اختیاری FFmpeg لائبریریاں (BtbN/FFmpeg-Builds)۔ ہر درخواست براہ راست منزل پر جاتی ہے؛ مصنف کی کسی سروس سے کچھ نہیں گزرتا۔ ٹی وی شیڈول صرف اس پتے سے ڈاؤن لوڈ ہوتا ہے جو آپ ترتیبات کے ‘لائبریری’ صفحے پر خود درج کرتے ہیں، ‘شیڈول ڈاؤن لوڈ کریں’ دبانے پر ایک بار، اور کبھی بھی پس منظر میں نہیں۔ لائبریری کی ترتیبات میں اختیاری ایکسچینج ماخذ TLS کے ذریعے آپ کے سرور سے جڑتا ہے۔ رجسٹریشن کے لیے لاگ ان اور پاس ورڈ یا جوڑا بنانے کا کوڈ ایک بار بھیجتا ہے، پھر آلے کی شناخت، پروڈکٹ ورژن، وصول کرنے کی صلاحیتیں اور ٹوکن بھیجتا ہے۔ فعال ہونے پر سرگرمی کے پیغامات اور دوبارہ رابطے کے ساتھ ایک کنٹرول کنکشن رکھتا ہے؛ بند کرنے پر رابطہ ختم ہوتا ہے۔ ہر سرٹیفکیٹ کو واضح منظوری چاہیے، تجدید کے بعد بھی۔</p>
+        </section>
+        <section class="privacy-section">
+          <h2>یہ ویب سائٹ</h2>
+          <p>یہ حصہ ویب سائٹ کے بارے میں ہے، ایپلی کیشن کے بارے میں نہیں۔ ہر صفحہ اپنے فونٹس Google Fonts سے لوڈ کرتا ہے: آپ کا براؤزر fonts.googleapis.com سے اسٹائل شیٹ اور fonts.gstatic.com سے فونٹ فائلیں طلب کرتا ہے، اس لیے Google کو آپ کا IP ایڈریس، براؤزر کی معلومات اور اس صفحے کا پتا ملتا ہے جو آپ پڑھ رہے ہیں۔ ہوم پیج ایک بار api.github.com سے تازہ ترین ریلیز بھی دریافت کرتا ہے تاکہ انسٹالر کا بٹن موجودہ فائل کی طرف اشارہ کرے؛ GitHub کو آپ کا IP ایڈریس اور براؤزر کی معلومات ملتی ہیں۔ صفحات خود GitHub Pages (serzhyale.github.io) سے فراہم کیے جاتے ہیں۔ سائٹ پر کوئی اینالیٹکس، اشتہار یا ٹریکنگ نہیں ہے، یہ کوئی کوکی سیٹ نہیں کرتی، اور آپ کے براؤزر کے لوکل اسٹوریج میں صرف تھیم اور زبان کا انتخاب رکھتی ہے۔ ان میں سے ہر سروس اپنی پالیسی کے تابع ہے؛ کوئی بھی مصنف کی چلائی ہوئی نہیں ہے۔</p>
         </section>
         <section class="privacy-section">
           <h2>مقامی معلومات</h2>
-          <p>STREAMS Player کیٹلاگ کی حالت، آپ کے شامل اور درآمد کردہ چینلز، پنز، مجموعے، پوشیدہ چینلز، سننے کی تاریخ، 150 MB کے اندر پیش نظارہ فریمز، اختیاری FFmpeg لائبریریاں اور آخری دس سیشنز کے تشخیصی لاگز کو <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code> کے تحت محفوظ کرتا ہے۔ ریکارڈنگز اور فریمز منتخب فولڈرز میں جاتے ہیں (ڈیفالٹ ویڈیوز، میوزک اور پکچرز)۔ یہ ڈیٹا آپ کے آلے پر رہتا ہے الا یہ کہ آپ ترتیبات میں ‘کے بارے میں’ صفحے پر ‘مصنف کو لاگز بھیجیں’ کا استعمال کرتے ہوئے اسے <span dir="ltr">serzhyale@gmail.com</span> پر بھیجیں۔ ڈاؤن لوڈ کردہ ٹی وی شیڈول بھی وہاں رہتا ہے؛ ترتیبات میں ‘شیڈول ہٹائیں’ دونوں کو حذف کر دیتا ہے۔</p>
+          <p>STREAMS Player کیٹلاگ کی حالت، آپ کے شامل اور درآمد کردہ چینلز، پنز، مجموعے، پوشیدہ چینلز، سننے کی تاریخ، 150 MB کے اندر پیش نظارہ فریمز، اختیاری FFmpeg لائبریریاں اور آخری دس سیشنز کے تشخیصی لاگز کو <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code> کے تحت محفوظ کرتا ہے۔ ریکارڈنگز اور فریمز منتخب فولڈرز میں جاتے ہیں (ڈیفالٹ ویڈیوز، میوزک اور پکچرز)۔ یہ ڈیٹا آپ کے آلے پر رہتا ہے الا یہ کہ آپ ترتیبات میں ‘کے بارے میں’ صفحے پر ‘مصنف کو لاگز بھیجیں’ کا استعمال کرتے ہوئے اسے <span dir="ltr">serzhyale@gmail.com</span> پر بھیجیں۔ ڈاؤن لوڈ کردہ ٹی وی شیڈول بھی وہاں رہتا ہے؛ ترتیبات میں ‘شیڈول ہٹائیں’ دونوں کو حذف کر دیتا ہے۔ پاس ورڈ اور کوڈ مٹا دیے جاتے ہیں۔ اکاؤنٹ، ٹوکن اور فنگرپرنٹ الگ فائل میں آپ کے Windows صارف کے لیے محفوظ رہتے ہیں؛ اکاؤنٹ ہٹانے پر مٹ جاتے ہیں۔ تشخیصی آرکائیو میں وہ فائل شامل نہیں ہوتی اور اکاؤنٹ کی معلومات چھپا دی جاتی ہیں۔ ایکسچینج رابطہ صرف آپ کی واضح ماخذ ترتیب کے بعد شروع ہوتا ہے۔</p>
         </section>
         <section class="privacy-section">
           <h2>رابطہ</h2>
@@ -172,12 +185,28 @@
     </main>
 
     <footer class="site-footer">
+      <!-- PAGE-CONTENT "The landing always carries" items 5 and 6: every sibling tool of SITE-FAMILY-MAP section 2
+           except this product, name and type; then the author's links. -->
+      <div class="container">
+        <h2 class="footer-heading">مزید اوزار</h2>
+        <div class="tools-grid">
+          <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>Fast Media Sorter &amp; Organizer</b><span>Android میڈیا سارٹر</span></a>
+          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>Windows میڈیا سارٹر</span></a>
+          <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Windows کی بورڈ لے آؤٹ درست کرنے والا</span></a>
+          <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows ای بک کنورٹر</span></a>
+          <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows اسٹوریج کمانڈ لائن ٹول</span></a>
+          <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>Windows ٹرے لانچر</span></a>
+          <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI ڈیولپمنٹ کا طریقہ</span></a>
+          <a href="https://sza.od.ua/"><b>SZA</b><span>پورٹ فولیو</span></a>
+        </div>
+      </div>
       <div class="container footer-row">
-        <span>© 2026 Serhii Zhyhunenko</span>
+        <span>© 2026 <a href="https://sza.od.ua/">Serhii Zhyhunenko</a></span>
         <span class="footer-links">
+          <a href="../ur/#distribution">ڈاؤن لوڈ</a>
+          <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">دستاویزات</a>
           <a href="privacy.html">رازداری</a>
           <a href="trust.html">انسٹال میں مدد</a>
-          <a href="https://sza.od.ua/">مزید اوزار</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
           <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
         </span>

@@ -48,7 +48,8 @@ public partial class ChannelInfoWindow : Window
     {
         try
         {
-            _storedFacts = ChannelFactSheet.Describe(_channel, _collectionNames);
+            _storedFacts = ChannelFactSheet.Describe(
+                _channel, _collectionNames, countryLanguage: LocalizationService.CurrentLanguage);
             ChannelFacts.ItemsSource = Rows(ChannelFactGroup.Channel);
             CatalogFacts.ItemsSource = Rows(ChannelFactGroup.Catalog);
             ShowTransmission([ChannelFactSheet.Status("AboutMeasuring")]);

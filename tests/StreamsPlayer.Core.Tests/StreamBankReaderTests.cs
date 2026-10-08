@@ -83,6 +83,37 @@ public sealed class StreamBankReaderTests
         Assert.Null(bank.FaviconAtlas);
     }
 
+    // SP-0184 (A16-3): the header, not the byte count, declares what a decode will allocate.
+    [Theory]
+    [InlineData(100_000, 100_000)]
+    [InlineData(16_384, 16_384)]
+    public void Read_DropsAnAtlasWhoseHeaderDeclaresMorePixelsThanTheCeiling(int width, int height)
+    {
+        using var zip = CreateZip(csvFirst: true, atlasBytes: PngHeaderOnly(width, height));
+
+        var bank = StreamBankReader.Read(zip);
+
+        Assert.Single(bank.Entries);
+        Assert.Null(bank.FaviconAtlas);
+    }
+
+    [Fact]
+    public void Read_KeepsAnAtlasTheSizeOfAFullBank()
+    {
+        // 16 tiles of 32 pixels per row, one row per 16 channels: 100 000 channels.
+        var atlas = PngHeaderOnly(512, 200_000);
+        using var zip = CreateZip(csvFirst: true, atlasBytes: atlas);
+
+        Assert.Equal(atlas, StreamBankReader.Read(zip).FaviconAtlas);
+    }
+
+    private static byte[] PngHeaderOnly(int width, int height)
+    {
+        var bytes = (byte[])ValidPngAtlas.Clone();
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(bytes.AsSpan(16, 4), width);
+        System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(bytes.AsSpan(20, 4), height);
+        return bytes;
+    }
     [Fact]
     public void Read_RejectsInvalidUtf8Bytes()
     {
@@ -93,7 +124,8 @@ public sealed class StreamBankReaderTests
         };
 
         using var zip = CreateZipFromBytes(csvFirst: true, csvBytes: invalidUtf8, atlasBytes: null);
-        Assert.Throws<InvalidDataException>(() => StreamBankReader.Read(zip));
+        var failure = Assert.Throws<InvalidDataException>(() => StreamBankReader.Read(zip));
+        Assert.IsAssignableFrom<DecoderFallbackException>(failure.InnerException);
     }
 
     [Fact]
@@ -102,7 +134,21 @@ public sealed class StreamBankReaderTests
         const string brokenCsv = "name,url\n\"Unclosed quote,https://example.test/broken";
         using var zip = CreateZip(csvFirst: true, atlasBytes: null, csvContent: brokenCsv);
 
-        Assert.Throws<InvalidDataException>(() => StreamBankReader.Read(zip));
+        var failure = Assert.Throws<InvalidDataException>(() => StreamBankReader.Read(zip));
+        Assert.IsAssignableFrom<FormatException>(failure.InnerException);
+    }
+
+    // SP-0184 S11-1: callers map "too big" by this type, not by the message text.
+    [Fact]
+    public void Read_RejectsAnOversizedCsvWithTheLimitException()
+    {
+        var oversized = new byte[StreamBankReader.MaximumCsvBytes + 1];
+        Array.Fill(oversized, (byte)'a');
+
+        using var zip = CreateZipFromBytes(csvFirst: true, csvBytes: oversized, atlasBytes: null);
+
+        var failure = Assert.Throws<InvalidDataException>(() => StreamBankReader.Read(zip));
+        Assert.IsType<StreamBankLimitException>(failure.InnerException);
     }
 
     [Fact]

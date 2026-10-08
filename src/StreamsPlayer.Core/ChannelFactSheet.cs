@@ -66,9 +66,15 @@ public static class ChannelFactSheet
     public static IReadOnlyList<ChannelFact> Describe(
         StreamChannel channel,
         IReadOnlyList<string> collectionNames,
-        IFormatProvider? formats = null)
+        IFormatProvider? formats = null,
+        AppLanguage? countryLanguage = null)
     {
         var culture = formats ?? CultureInfo.CurrentCulture;
+        // With a language the country reads as its full name in that language; without one the bank's own
+        // value is shown as stored. A value that resolves to no code stays as written either way.
+        var country = countryLanguage is { } language && CatalogCountries.Normalize(channel.Country) is { } countryId
+            ? CountryNames.Label(countryId, language)
+            : channel.Country;
         return
         [
             new ChannelFact(ChannelFactGroup.Channel, "FieldTitle", channel.Title),
@@ -84,7 +90,7 @@ public static class ChannelFactSheet
             TopicFact(channel.Topic),
             new ChannelFact(ChannelFactGroup.Catalog, "Category", Clean(channel.Category)),
             new ChannelFact(ChannelFactGroup.Catalog, "Language", Clean(channel.Language)),
-            new ChannelFact(ChannelFactGroup.Catalog, "Country", Clean(channel.Country)),
+            new ChannelFact(ChannelFactGroup.Catalog, "Country", Clean(country)),
             new ChannelFact(ChannelFactGroup.Catalog, "FieldHomepage", Clean(channel.Homepage)),
             new ChannelFact(ChannelFactGroup.Catalog, "FieldProtocol", Clean(channel.Protocol)),
             new ChannelFact(ChannelFactGroup.Catalog, "FieldFormat", Clean(channel.Format)),

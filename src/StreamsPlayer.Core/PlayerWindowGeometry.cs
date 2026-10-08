@@ -109,10 +109,47 @@ public static class PlayerWindowGeometry
 
         // Newest write kept. Ordering here rather than trusting the file's order, because the file is the
         // one thing on disk a user can edit by hand.
-        return kept
-            .OrderByDescending(entry => entry.UpdatedAt)
+        return TrimNewest(kept, now);
+    }
+
+    /// <summary>
+    /// The <see cref="MaxChannels"/> newest records, newest first by <see cref="ChannelWindowGeometry.UpdatedAt"/>.
+    /// SP-0184 (S15-1): a stamp later than <paramref name="now"/> - a hand-edited file, or a clock that was
+    /// wrong when the record was written - cannot be believed, and trusted at face value it would outrank
+    /// every real record forever and keep its channel while the ones actually being watched were evicted. Such
+    /// a record ranks below every dated one, so it is the first to go when the list is over the cap. Ties go to
+    /// the later entry in the list, which is the record just written (<see cref="Record"/>) or the session's
+    /// (<see cref="Merge"/>).
+    /// </summary>
+    private static List<ChannelWindowGeometry> TrimNewest(List<ChannelWindowGeometry> entries, DateTimeOffset now) =>
+        entries
+            .Select((entry, index) => (Entry: entry, Index: index))
+            .OrderByDescending(item => item.Entry.UpdatedAt > now ? DateTimeOffset.MinValue : item.Entry.UpdatedAt)
+            .ThenByDescending(item => item.Index)
             .Take(MaxChannels)
+            .Select(item => item.Entry)
             .ToList();
+
+    /// <summary>
+    /// SP-0184: the placements a file finally yielded combined with the ones this session recorded while it
+    /// could not be read. A channel present in both keeps the session's record - it is the newer one - and the
+    /// list is trimmed to <see cref="MaxChannels"/> newest first, as <see cref="Record"/> does.
+    /// </summary>
+    public static IReadOnlyList<ChannelWindowGeometry> Merge(
+        IReadOnlyList<ChannelWindowGeometry> stored,
+        IReadOnlyList<ChannelWindowGeometry> session,
+        DateTimeOffset? now = null)
+    {
+        var sessionKeys = session
+            .Select(entry => CatalogUrlIdentity.Normalize(entry.Url))
+            .ToHashSet(StringComparer.Ordinal);
+        var merged = stored
+            .Where(entry => !sessionKeys.Contains(CatalogUrlIdentity.Normalize(entry.Url)))
+            .Concat(session)
+            .ToList();
+        return merged.Count <= MaxChannels
+            ? merged
+            : TrimNewest(merged, now ?? DateTimeOffset.UtcNow);
     }
 
     /// <summary>

@@ -245,7 +245,9 @@ public partial class MainWindow
             return;
         }
 
-        _audioPausedChannelId = null;
+        // The paused id is not cleared here. PlayChannelAsync refuses an unlaunchable address or an
+        // offline machine before any session opens, and a cleared id left a Paused session nothing could
+        // resume; a start that goes ahead clears it in StopAudioPlayback, after reading it for the backdrop.
         _ = PlayChannelAsync(channel, rememberSelection: true);
     }
 

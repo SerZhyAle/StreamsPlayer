@@ -3,7 +3,12 @@
 
       tests         dotnet test over the solution
       docs-quality  scripts/check-docs.ps1 - document registry, coverage, links, style, offline (SP-0140)
-      site-sync     tools/site/build-site.ps1 -Check - docs/ matches its copy decks (DOC-INTERNAL-QUALITY rule 4)
+      site-sync     tools/site/build-site.ps1 -Check - docs/ matches its copy decks (DOC-INTERNAL-QUALITY rule 4),
+                    every held site address resolves (SITE-STRUCTURE rule 8, SP-0193), and the facts the copy states
+                    and the pillars of POSITIONING.md agree with their sources (SITE-REPRESENTATION rules 1 to 3, SP-0198)
+      held-addresses-test  tools/site/Test-HeldAddresses.ps1 - the held-address gate's own fixture tests
+      site-facts-test      tools/site/Test-SiteFacts.ps1 - the site-facts and positioning gate's own fixture tests
+      msix-gate     msix/Test-AssertMsixPackage.ps1 - the Store package read-back refuses what it must (SP-0190)
 
     Exit codes (CHECK-VERDICT): 0 passed, 1 a check failed, 2 a check could not verify. A failed restore or
     build stops the run (nothing after it can be judged); every later check runs even when an earlier one
@@ -34,6 +39,12 @@ try {
     $results['docs-quality'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'tools/site/build-site.ps1') -Check
     $results['site-sync'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'tools/site/Test-HeldAddresses.ps1')
+    $results['held-addresses-test'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'tools/site/Test-SiteFacts.ps1')
+    $results['site-facts-test'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'msix/Test-AssertMsixPackage.ps1')
+    $results['msix-gate'] = $LASTEXITCODE
 
     $failed = @($results.Keys | Where-Object { $results[$_] -ne 0 -and $results[$_] -ne 2 })
     $unverified = @($results.Keys | Where-Object { $results[$_] -eq 2 })

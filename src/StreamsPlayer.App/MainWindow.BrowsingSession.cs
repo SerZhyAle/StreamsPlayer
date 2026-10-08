@@ -19,7 +19,9 @@ public partial class MainWindow
             SelectOptionValue(CategoryFilter, _session.CategoryFilter, AllValue);
             SelectOptionValue(TopicFilter, _session.TopicFilter, AllValue);
             SelectOptionValue(LanguageFilter, _session.LanguageFilter, AllValue);
-            SelectOptionValue(CountryFilter, _session.CountryFilter, AllValue);
+            // A session saved before the facet was keyed by ISO code holds the spelling the bank had
+            // ("Germany", "UK"); it resolves to the same option the code does.
+            SelectOptionValue(CountryFilter, CatalogCountries.Normalize(_session.CountryFilter), AllValue);
             SelectOptionValue(MinBitrateFilter, _session.MinBitrateFilter, AllValue);
             SelectOptionValue(CollectionFilter, _session.CollectionFilter, AllValue);
             SelectOptionValue(SortMode, _session.SortMode, "Name");

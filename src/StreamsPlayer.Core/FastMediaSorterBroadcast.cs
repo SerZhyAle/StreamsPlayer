@@ -26,7 +26,9 @@ public sealed record FastMediaSorterBroadcastEndpoint(
     long? SampleRate,
     long? Bitrate,
     bool? IsLive,
-    long? TargetLatencyMs);
+    long? TargetLatencyMs,
+    string? CertFingerprint = null,
+    string? Inner = null);
 
 /// <summary>The supported, forward-compatible portion of a FastMediaSorter live-broadcast descriptor.</summary>
 public sealed record FastMediaSorterBroadcast(
@@ -39,56 +41,40 @@ public sealed record FastMediaSorterBroadcast(
     IReadOnlyList<FastMediaSorterBroadcastEndpoint> Endpoints)
 {
     /// <summary>Whether the descriptor describes one of the contract's camera/video kinds (§2.3, §2.4).</summary>
-    public bool IsVideoMode =>
-        Mode is FastMediaSorterBroadcastDescriptor.VideoAudioMode or FastMediaSorterBroadcastDescriptor.VideoOnlyMode;
+    public bool IsVideoMode => FastMediaSorterBroadcastDescriptor.IsVideoMode(Mode);
 
     /// <summary>
-    /// Returns the endpoint this product plays: the explicitly declared HTTP audio endpoint for the audio
-    /// mode, the declared RTSP endpoint for a video mode, or the legacy top-level address when no
-    /// compatible endpoint is declared. The transport is read from a declaration, never guessed from the
+    /// Returns the endpoint this product plays: the first playable attempt of the producer's list
+    /// (SP-0203) for this descriptor's mode, or the legacy top-level address when no compatible
+    /// endpoint is declared. The transport is read from a declaration, never guessed from the
     /// mode - so an audio descriptor never falls into a video endpoint and the reverse.
     /// </summary>
     public FastMediaSorterBroadcastEndpoint SelectPlaybackEndpoint() =>
-        IsVideoMode ? SelectVideoEndpoint() : SelectAudioEndpoint();
+        IsVideoMode
+            ? FastMediaSorterBroadcastAttempts.SelectVideo(Mode, Url, IsLive, TargetLatencyMs, Endpoints)
+            : FastMediaSorterBroadcastAttempts.SelectAudio(Mode, Url, IsLive, TargetLatencyMs, Endpoints);
 
     /// <summary>
-    /// Returns the first explicitly declared HTTP audio endpoint, or the legacy top-level address when
-    /// no compatible endpoint is declared. A video endpoint is never an implicit fallback.
+    /// Returns the first playable audio attempt in the listed order, or the legacy top-level address
+    /// when no compatible endpoint is declared. A video endpoint is never an implicit fallback.
     /// </summary>
     public FastMediaSorterBroadcastEndpoint SelectAudioEndpoint() =>
-        Endpoints.FirstOrDefault(IsHttpAudio) ?? LegacyEndpoint();
+        FastMediaSorterBroadcastAttempts.SelectAudio(Mode, Url, IsLive, TargetLatencyMs, Endpoints);
 
-    private FastMediaSorterBroadcastEndpoint SelectVideoEndpoint() =>
-        Endpoints.FirstOrDefault(IsDeclaredRtspEndpoint) ?? LegacyEndpoint();
-
-    private FastMediaSorterBroadcastEndpoint LegacyEndpoint() =>
-        new(
-            Url,
-            InferTransport(Url),
-            Mode,
-            null,
-            null,
-            null,
-            null,
-            IsLive,
-            TargetLatencyMs);
-
-    private static bool IsHttpAudio(FastMediaSorterBroadcastEndpoint endpoint) =>
-        string.Equals(endpoint.Mode, FastMediaSorterBroadcastDescriptor.AudioOnlyMode, StringComparison.Ordinal) &&
-        string.Equals(endpoint.Transport, "HTTP", StringComparison.OrdinalIgnoreCase) &&
-        Uri.TryCreate(endpoint.Url, UriKind.Absolute, out var uri) &&
-        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
-
-    private bool IsDeclaredRtspEndpoint(FastMediaSorterBroadcastEndpoint endpoint) =>
-        string.Equals(endpoint.Mode, Mode, StringComparison.Ordinal) &&
-        string.Equals(endpoint.Transport, "RTSP", StringComparison.OrdinalIgnoreCase) &&
-        Uri.TryCreate(endpoint.Url, UriKind.Absolute, out var uri) &&
-        uri.Scheme.Equals("rtsp", StringComparison.OrdinalIgnoreCase);
-
-    private static string? InferTransport(string url) =>
-        Uri.TryCreate(url, UriKind.Absolute, out var uri)
-            ? uri.Scheme.ToUpperInvariant()
-            : null;
+    /// <summary>
+    /// SP-0203: the endpoints this build can play, in the producer's listed order - the order every
+    /// playback leg tries them in, and the order a reconnect restarts at. A transport this build
+    /// does not implement (`P2P` stays reserved) and an endpoint of another mode drop silently, as
+    /// section 3.2 requires; a descriptor with no compatible list falls back to the legacy
+    /// top-level address as the single attempt.
+    /// </summary>
+    public IReadOnlyList<FastMediaSorterBroadcastEndpoint> PlaybackAttemptEndpoints()
+    {
+        var attempts = FastMediaSorterBroadcastAttempts.PlaybackAttempts(Mode, Endpoints);
+        return attempts.Count > 0
+            ? attempts
+            : [FastMediaSorterBroadcastAttempts.Legacy(Url, Mode, IsLive, TargetLatencyMs)];
+    }
 }
 
 /// <summary>The outcome of parsing a FastMediaSorter broadcast hand-off without opening the network.</summary>
@@ -127,6 +113,10 @@ public static class FastMediaSorterBroadcastDescriptor
     /// </summary>
     public static bool IsSupportedMode(string mode) =>
         mode is AudioOnlyMode or VideoAudioMode or VideoOnlyMode;
+
+    /// <summary>SP-0203: whether the mode is one of the contract's camera/video kinds.</summary>
+    public static bool IsVideoMode(string mode) =>
+        mode is VideoAudioMode or VideoOnlyMode;
 
     private static readonly UTF8Encoding StrictUtf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
@@ -181,6 +171,11 @@ public static class FastMediaSorterBroadcastDescriptor
         var inflatedBytes = 0L;
         while (true)
         {
+            // S9-2: a file saved by a Windows editor opens with a UTF-8 BOM, which the strict decode keeps
+            // as U+FEFF and string.Trim does not treat as white space - so the layer no longer started
+            // with '{' or a known prefix and a valid descriptor read as "not a broadcast". Every layer
+            // (outer, unwrapped link payload, inflated text) is cleaned the same way.
+            text = text.TrimStart('﻿').Trim();
             if (text.StartsWith(CompressedPrefix, StringComparison.Ordinal))
             {
                 if (wrappingsLeft == 0)
@@ -300,6 +295,13 @@ public static class FastMediaSorterBroadcastDescriptor
                 return new(FastMediaSorterBroadcastReadStatus.UnsupportedMode);
             }
 
+            // A9-1: the address is persisted and later handed to a playback engine, so it must be one the
+            // product launches anywhere else (http, https, rtsp with a host) - never a file path or share.
+            if (!LaunchableAddress.IsLaunchable(url))
+            {
+                return new(FastMediaSorterBroadcastReadStatus.InvalidPayload);
+            }
+
             var title = TryGetString(root, "title") ?? string.Empty;
             var sourceId = TryGetString(root, "sourceId");
             var isLive = TryGetBoolean(root, "isLive") ?? true;
@@ -325,21 +327,37 @@ public static class FastMediaSorterBroadcastDescriptor
         var result = new List<FastMediaSorterBroadcastEndpoint>();
         foreach (var endpoint in endpoints.EnumerateArray())
         {
-            if (endpoint.ValueKind != JsonValueKind.Object || !TryGetNonBlankString(endpoint, "url", out var url))
+            if (endpoint.ValueKind != JsonValueKind.Object ||
+                !TryGetNonBlankString(endpoint, "url", out var url))
+            {
+                continue;
+            }
+
+            var transport = TryGetString(endpoint, "transport");
+            var inner = TryGetString(endpoint, "inner");
+            var isTunnel = string.Equals(transport, "TUNNEL", StringComparison.OrdinalIgnoreCase)
+                && ExchangeTunnelUrl.TryParse(url, out _)
+                && !string.IsNullOrWhiteSpace(inner)
+                && LaunchableAddress.IsLaunchable(inner);
+
+            // A9-1: an endpoint nobody can launch is dropped rather than stored beside the usable ones.
+            if (!isTunnel && !LaunchableAddress.IsLaunchable(url))
             {
                 continue;
             }
 
             result.Add(new FastMediaSorterBroadcastEndpoint(
                 url,
-                TryGetString(endpoint, "transport"),
+                transport,
                 TryGetString(endpoint, "mode"),
                 TryGetString(endpoint, "videoCodec"),
                 TryGetString(endpoint, "audioCodec"),
                 ReadInt64(endpoint, "sampleRate"),
                 ReadInt64(endpoint, "bitrate"),
                 TryGetBoolean(endpoint, "isLive"),
-                ReadInt64(endpoint, "targetLatencyMs")));
+                ReadInt64(endpoint, "targetLatencyMs"),
+                TryGetString(endpoint, "certFingerprint"),
+                inner));
         }
 
         return result;

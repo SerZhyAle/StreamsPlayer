@@ -75,6 +75,21 @@ public sealed class ChannelRow : INotifyPropertyChanged
     public Visibility CountryCodeVisibility =>
         CountryCode is null ? Visibility.Collapsed : Visibility.Visible;
 
+    // The flag stands in for the code on the monogram plate; a country this build has no flag for keeps the
+    // code as text, so a known country never disappears from the plate. The full name, in the interface
+    // language, is the tooltip. Not cached: the language can change while the row lives, the lookup is a
+    // dictionary read, and CountryFlags caches the decoded bitmap itself.
+    public ImageSource? CountryFlag => CountryFlags.For(CountryCode);
+
+    public Visibility CountryFlagVisibility =>
+        CountryFlag is null ? Visibility.Collapsed : Visibility.Visible;
+
+    public Visibility CountryCodeTextVisibility =>
+        CountryCode is not null && CountryFlag is null ? Visibility.Visible : Visibility.Collapsed;
+
+    public string? CountryName =>
+        CountryCode is { } code ? CountryNames.Label(code, LocalizationService.CurrentLanguage) : null;
+
     public bool IsSelected
     {
         get => _isSelected;
@@ -291,6 +306,8 @@ public sealed class ChannelRow : INotifyPropertyChanged
     // that already exist to say "this row now renders differently": UpdateChannel and
     // RefreshLocalization. There is no third invalidation point to remember.
     private string? _metadata;
+    private string? _metadataHead;
+    private string? _metadataTail;
     private string? _tags;
     private string? _technicalDetails;
     // SP-0087: the monogram and the country code are derived from Channel in exactly the same way, so
@@ -302,8 +319,35 @@ public sealed class ChannelRow : INotifyPropertyChanged
 
     // SP-0061: the rubric is shown translated; an identifier outside the bank's closed set falls through
     // as written. RefreshLocalization re-renders the row when the interface language changes.
+    // The card draws the country as a flag between two text runs (MetadataHead, then the flag cell, then
+    // MetadataTail), so no single string can hold its line; Metadata is the same line as plain text, with
+    // the country spelled out, for the tooltip - the full name is what the flag stands for.
     public string Metadata => _metadata ??= string.Join("  ·  ",
-        new[] { KindLabel, Tags }.Where(value => !string.IsNullOrWhiteSpace(value)));
+        new[] { KindLabel, TopicLabels.Text(Channel.Topic), CountryName ?? Channel.Country?.Trim(), Channel.Language }
+            .Where(value => !string.IsNullOrWhiteSpace(value)));
+
+    /// <summary>What precedes the country on the card: the media kind and the rubric.</summary>
+    public string MetadataHead => _metadataHead ??= string.Join("  ·  ",
+        new[] { KindLabel, TopicLabels.Text(Channel.Topic) }.Where(value => !string.IsNullOrWhiteSpace(value)));
+
+    /// <summary>What follows the country on the card: the broadcast language, led by its separator when anything precedes it.</summary>
+    public string MetadataTail => _metadataTail ??=
+        string.IsNullOrWhiteSpace(Channel.Language)
+            ? string.Empty
+            : (MetadataHead.Length > 0 || !string.IsNullOrWhiteSpace(Channel.Country) ? "  ·  " : string.Empty) + Channel.Language.Trim();
+
+    /// <summary>The country cell: its separator, then the flag - or the code as text when this build has no flag for it.</summary>
+    public Visibility CountryInlineVisibility =>
+        string.IsNullOrWhiteSpace(Channel.Country) ? Visibility.Collapsed : Visibility.Visible;
+
+    public string CountrySeparator => MetadataHead.Length > 0 ? "  ·  " : string.Empty;
+
+    /// <summary>The country as text, only when there is no flag to draw: the code, or the bank's own spelling when it resolves to none.</summary>
+    public string? CountryInlineText =>
+        CountryFlag is null ? CountryCode ?? Channel.Country?.Trim() : null;
+
+    public Visibility CountryInlineTextVisibility =>
+        string.IsNullOrWhiteSpace(CountryInlineText) ? Visibility.Collapsed : Visibility.Visible;
 
     // The station's own descriptors without the media kind. The compact panel shows only radio, so the
     // kind would be the same word on every station; the card prefixes it through Metadata above.
@@ -327,6 +371,8 @@ public sealed class ChannelRow : INotifyPropertyChanged
     private void InvalidateDerivedText()
     {
         _metadata = null;
+        _metadataHead = null;
+        _metadataTail = null;
         _tags = null;
         _technicalDetails = null;
         _monogram = null;
@@ -347,8 +393,12 @@ public sealed class ChannelRow : INotifyPropertyChanged
     }
 
     // SP-0099: a FastMediaSorter hand-off or phone/watch address is live by contract, whatever its row says.
+    // SP-0201 requirement 4: a channel that came from the directory and whose broadcast left stays in the
+    // library, marked ended - the one word the row says about it, in place of the live label it carried.
     private string? LiveLabel() => FastMediaSorterBroadcastImport.IsFastMediaSorterBroadcast(Channel)
-        ? LocalizationService.Get("LiveLabel")
+        ? Channel.FastMediaSorterBroadcast?.DirectoryEndedAt is null
+            ? LocalizationService.Get("LiveLabel")
+            : LocalizationService.Get("EndedLabel")
         : Channel.IsLive switch
     {
         true => LocalizationService.Get("LiveLabel"),

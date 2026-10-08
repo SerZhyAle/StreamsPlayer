@@ -171,7 +171,14 @@ public partial class MainWindow
         {
             var progress = OnDispatcher<DownloadProgress>(report => ShowDownloadProgress(
                 report, "TvScheduleDownloadProgress", "TvScheduleDownloadProgressUnknown", "TvScheduleReading"));
-            var document = await new TvScheduleService(_catalogHttpClient)
+            // S6-3: the service follows redirects itself, and only on the host the user agreed to - the
+            // shared catalog client would follow one to any host. Timeout and agent as that client has them.
+            using var scheduleClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
+            {
+                Timeout = Timeout.InfiniteTimeSpan,
+            };
+            scheduleClient.DefaultRequestHeaders.UserAgent.ParseAdd("StreamsPlayer/0.1");
+            var document = await new TvScheduleService(scheduleClient)
                 .DownloadAsync(source, DateTimeOffset.Now, progress, _cancellableOperation.Token);
             _reportingProgress = false;
             // SP-0161: the transfer is over, so the run can no longer be stopped - the Cancel button goes

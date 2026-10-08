@@ -14,8 +14,9 @@ internal static class StreamShortcutService
 
     private static readonly Lazy<bool> IsPackaged = new(DetectPackageIdentity);
 
+    /// <summary>SP-0184: the line copied to the clipboard - written for PowerShell, the shell a Windows 11 terminal opens in.</summary>
     public static string BuildLaunchCommand(StreamChannel channel) =>
-        $"\"{LaunchExecutablePath}\" {StreamLaunchArguments.For(channel)}";
+        StreamLaunchArguments.ForPowerShell(LaunchExecutablePath, channel);
 
     /// <summary>
     /// Writes the channel's shortcut to the desktop and returns its path. SP-0127: a name another

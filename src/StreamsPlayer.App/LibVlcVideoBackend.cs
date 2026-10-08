@@ -37,6 +37,8 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     private readonly object _mediaGate = new();
     private Media? _media;
     private string _lastUrl = string.Empty;
+    // The output device last sent to the player; empty is the system default a new player starts on. UI thread only.
+    private string _outputDevice = string.Empty;
     // Baselines for the per-second rates published by LogStats, reset per open so a reconnect does not report
     // the previous leg's counters as a spike. UI-thread state only: Play runs on a worker for every re-open, so
     // it merely counts the leg (_openedLegs) and LogStats, on the stats tick, notices the new count and resets
@@ -78,33 +80,66 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         // The freeze watchdog reconnects if the pipeline fully deadlocks. (--no-ts-trust-pcr was tried
         // and reverted: it removes the clock reference entirely and deadlocks the vout at 0 fps.)
         _recording = new LibVlcRecording(log);
-        _libVlc = new LibVLC(
-            "--no-video-title-show",
-            "--no-osd",
-            "--no-snapshot-preview",
-            "--rtsp-tcp",
-            $"--clock-jitter={ClockJitterMilliseconds}",
-            "--avcodec-hw=none",
-            $"--input-record-path={_recording.InstanceDirectory}");
-        _libVlc.Log += LibVlc_Log;
-        _mediaPlayer = new MediaPlayer(_libVlc);
-        _mediaPlayer.Volume = Math.Clamp(volume, 0, 100);
-        _mediaPlayer.Mute = muted;
-        _mediaPlayer.Buffering += MediaPlayer_Buffering;
-        _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
-        _mediaPlayer.Opening += MediaPlayer_Opening;
-        _mediaPlayer.Playing += MediaPlayer_Playing;
-        _mediaPlayer.Paused += MediaPlayer_Paused;
-        _mediaPlayer.Stopped += MediaPlayer_Stopped;
-        _mediaPlayer.EndReached += MediaPlayer_EndReached;
-        _mediaPlayer.ESAdded += MediaPlayer_TracksChanged;
-        _mediaPlayer.ESSelected += MediaPlayer_TracksChanged;
-        _mediaPlayer.SnapshotTaken += MediaPlayer_SnapshotTaken;
-        _videoView = new LibVLCSharp.WPF.VideoView { MediaPlayer = _mediaPlayer };
-        // SP-0121: decided before Record is ever offered, from the engine that was actually loaded.
-        var probeFailure = LibVlcRecording.Probe(_libVlc.Version);
-        _recordUnavailableReason = probeFailure is null ? null : "RecordUnavailableEngine";
-        _log.Event("RECORD PROBE", "engine=libvlc", $"ok={probeFailure is null}", $"version={_libVlc.Version}", $"detail={probeFailure ?? "none"}");
+        try
+        {
+            _libVlc = new LibVLC(
+                "--no-video-title-show",
+                "--no-osd",
+                "--no-snapshot-preview",
+                "--rtsp-tcp",
+                $"--clock-jitter={ClockJitterMilliseconds}",
+                "--avcodec-hw=none",
+                $"--input-record-path={_recording.InstanceDirectory}");
+            _libVlc.Log += LibVlc_Log;
+            _mediaPlayer = new MediaPlayer(_libVlc);
+            _mediaPlayer.Volume = Math.Clamp(volume, 0, 100);
+            _mediaPlayer.Mute = muted;
+            _mediaPlayer.Buffering += MediaPlayer_Buffering;
+            _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
+            _mediaPlayer.Opening += MediaPlayer_Opening;
+            _mediaPlayer.Playing += MediaPlayer_Playing;
+            _mediaPlayer.Paused += MediaPlayer_Paused;
+            _mediaPlayer.Stopped += MediaPlayer_Stopped;
+            _mediaPlayer.EndReached += MediaPlayer_EndReached;
+            _mediaPlayer.ESAdded += MediaPlayer_TracksChanged;
+            _mediaPlayer.ESSelected += MediaPlayer_TracksChanged;
+            _mediaPlayer.SnapshotTaken += MediaPlayer_SnapshotTaken;
+            _videoView = new LibVLCSharp.WPF.VideoView { MediaPlayer = _mediaPlayer };
+            // SP-0121: decided before Record is ever offered, from the engine that was actually loaded.
+            var probeFailure = LibVlcRecording.Probe(_libVlc.Version);
+            _recordUnavailableReason = probeFailure is null ? null : "RecordUnavailableEngine";
+            _log.Event("RECORD PROBE", "engine=libvlc", $"ok={probeFailure is null}", $"version={_libVlc.Version}", $"detail={probeFailure ?? "none"}");
+        }
+        catch (Exception exception)
+        {
+            // S4-3: no owner exists yet to call StopAndDisposeAsync, so a throw part-way would strand the native
+            // engine, its player and the view. What was built is released here, newest first; the original
+            // exception is what the caller sees.
+            _log.Event("ENGINE CTOR FAILED", [.. FaultLogFields.Of(exception)]);
+            ReleaseAfterFailedConstruction();
+            throw;
+        }
+    }
+
+    // Fields not yet assigned when the constructor threw are null at run time, whatever their declared type says.
+    private void ReleaseAfterFailedConstruction()
+    {
+        TryRelease(() => _videoView?.Dispose());
+        TryRelease(() => _mediaPlayer?.Dispose());
+        TryRelease(() => _libVlc?.Dispose());
+
+        void TryRelease(Action release)
+        {
+            try
+            {
+                release();
+            }
+            catch (Exception exception)
+            {
+                // A fault in cleanup must not replace the construction failure it is cleaning up after.
+                _log.Event("ENGINE CTOR CLEANUP FAULT", [.. FaultLogFields.Of(exception)]);
+            }
+        }
     }
 
     public FrameworkElement View => _videoView;
@@ -135,9 +170,15 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     {
         set => ApplyAudio(player =>
         {
-            if (!string.IsNullOrEmpty(value))
+            // A4-1: the empty id is the system default and must reach an open player too, so a choice back to it
+            // is not skipped. Only a change is sent - a fresh backend starts on the default, and re-sending it on
+            // every open would touch the output for nothing. A refusal propagates to ApplyAudio's log line and
+            // leaves the recorded device unchanged.
+            var device = value ?? string.Empty;
+            if (device != _outputDevice)
             {
-                player.SetOutputDevice(value);
+                player.SetOutputDevice(device);
+                _outputDevice = device;
             }
         }, "audio-device");
     }

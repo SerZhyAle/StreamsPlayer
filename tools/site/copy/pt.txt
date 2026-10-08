@@ -6,6 +6,8 @@
 #   [[email]]   - the contact address
 #   [[hash]]    - the Get-FileHash command that checks a download against its .sha256 file
 #   [[installdir]] - the per-user install folder, %LOCALAPPDATA%\Programs\StreamsPlayer
+#   [[languages]] - how many interface languages ship (rendered from the language registry, never typed)
+#   [[windows]]   - the minimum Windows, as the site names it (rendered from the project, never typed)
 # machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
 # but the key is present in every file so the key sets stay comparable.
 
@@ -41,6 +43,8 @@ GitHub
 
 @@theme-label
 Alternar o tema de cores
+@@theme-name
+Tema
 
 @@lang-label
 Idioma do site
@@ -52,7 +56,7 @@ Navegação principal
 Ícone do STREAMS Player
 
 @@hero-eyebrow
-STREAMS Player · Windows 10 / 11
+[[windows]]
 
 @@hero-title
 Rádio, vídeo ao vivo e RTSP em um só player.
@@ -61,25 +65,25 @@ Rádio, vídeo ao vivo e RTSP em um só player.
 Rádio online · Vídeo ao vivo · RTSP
 
 @@hero-description
-Um aplicativo de desktop enxuto para Windows: explore um catálogo pronto, adicione suas próprias transmissões e reproduza - sem conta, sem anúncios e sem nada rodando em segundo plano que você não tenha pedido.
+Um aplicativo de desktop enxuto para Windows: explore um catálogo pronto, adicione suas próprias transmissões e reproduza - sem conta obrigatória, sem anúncios e sem nada rodando em segundo plano que você não tenha pedido.
 
 @@facts-label
 Fatos principais
 
 @@fact-windows
-Windows 10 / 11
+[[windows]]
 
 @@fact-free
 Gratuito · Código-fonte MIT
 
 @@fact-account
-Sem conta
+Sem conta obrigatória
 
 @@fact-telemetry
 Sem telemetria
 
 @@fact-langs
-13 idiomas de interface
+[[languages]] idiomas de interface
 
 @@hero-download
 Baixar (.exe)
@@ -100,7 +104,7 @@ Status atual
 Lançado
 
 @@status-description
-O STREAMS Player está lançado e é gratuito. Execute o instalador do último lançamento no GitHub, instale pela Microsoft Store, baixe o ZIP portátil ou instale com winget - sem conta, sem anúncios, sem telemetria.
+O STREAMS Player está lançado e é gratuito. Execute o instalador do último lançamento no GitHub, instale pela Microsoft Store, baixe o ZIP portátil ou instale com winget - sem conta obrigatória, sem anúncios, sem telemetria.
 
 @@status-source
 Microsoft Store
@@ -202,7 +206,7 @@ A atualização automática das pré-visualizações pode ser desligada.
 Deixe do seu jeito
 
 @@cap-yours-1
-Adicione uma transmissão por URL, sem conta.
+Adicione uma transmissão por URL, sem conta obrigatória.
 
 @@cap-yours-2
 Suas transmissões adicionadas e importadas sobrevivem às atualizações do catálogo. Um canal do catálogo que você fixou ou tocou é mantido, e não excluído, quando o catálogo deixa de listá-lo.
@@ -211,7 +215,7 @@ Suas transmissões adicionadas e importadas sobrevivem às atualizações do cat
 Mantenha marcas locais de reprodução: OK / falha.
 
 @@cap-yours-4
-Troque toda a interface entre treze idiomas; a escolha é restaurada.
+Troque toda a interface entre [[languages]] idiomas; a escolha é restaurada.
 
 @@cap-yours-5
 Agrupe canais em coleções suas, com o nome que quiser, e navegue por uma de cada vez.
@@ -273,7 +277,7 @@ Abra Configurações no botão de engrenagem no cabeçalho (ou no menu [[glyph:n
 Distribuição
 
 @@distribution-description
-As quatro formas de instalação estão disponíveis. Execute o instalador do último lançamento no GitHub, instale pela Microsoft Store, baixe o ZIP portátil ou instale com [[command]].
+As formas de instalação estão disponíveis. Execute o instalador do último lançamento no GitHub, instale pela Microsoft Store, baixe o ZIP portátil ou instale com [[command]].
 
 @@channel-setup
 Instalador (.exe)
@@ -300,18 +304,25 @@ STREAMS Player · Privacidade
 Privado por padrão.
 
 @@privacy-intro
-O STREAMS Player não tem conta, publicidade, análise de uso, telemetria nem serviço operado pelo autor.
+Nenhuma conta é necessária para a reprodução normal. A conta de troca opcional pertence ao seu próprio servidor. Não há publicidade, análise, telemetria ou serviço operado pelo autor.
 
 @@privacy-network-title
 Acesso à rede
 
 @@privacy-network
-O aplicativo conecta-se apenas sob sua ação e somente ao destino necessário: o catálogo público de transmissões e o pacote de prévias opcional no GitHub ao importar; o provedor de uma transmissão que você reproduz, grava ou consulta em «Sobre o canal», ou cuja prévia atualiza na grade; um dispositivo FastMediaSorter na sua rede local; e, apenas se solicitado em Configurações na página Reprodução, as bibliotecas FFmpeg opcionais para o mecanismo experimental FlyleafLib (BtbN/FFmpeg-Builds). Cada solicitação vai diretamente ao destino e sujeita-se às políticas dele; nenhuma passa por serviços do autor. O guia de TV é baixado apenas do endereço inserido em Configurações na página Biblioteca, uma vez ao clicar em «Baixar guia», e nunca em segundo plano.
+O aplicativo conecta-se apenas sob sua ação e somente ao destino necessário: o catálogo público de transmissões e o pacote de prévias opcional no GitHub ao importar; o provedor de uma transmissão que você reproduz, grava ou consulta em «Sobre o canal», ou cuja prévia atualiza na grade; um dispositivo FastMediaSorter na sua rede local; e, apenas se solicitado em Configurações na página Reprodução, as bibliotecas FFmpeg opcionais para o mecanismo experimental FlyleafLib (BtbN/FFmpeg-Builds). Cada solicitação vai diretamente ao destino e sujeita-se às políticas dele; nenhuma passa por serviços do autor. O guia de TV é baixado apenas do endereço inserido em Configurações na página Biblioteca, uma vez ao clicar em «Baixar guia», e nunca em segundo plano. A fonte de troca opcional nas configurações da biblioteca conecta-se ao seu servidor por TLS. Envia nome de usuário e senha ou código de pareamento uma vez para o registro, depois identidade do dispositivo, versão do produto, recursos de recepção e token. Mantém uma conexão de controle com sinais de atividade e reconexões enquanto estiver ativada; desativar fecha a conexão. Cada certificado exige aprovação explícita, inclusive após renovação. 
+
+@@privacy-site-title
+Este site
+
+@@privacy-site
+Esta seção trata do site, não do aplicativo. Cada página carrega suas fontes do Google Fonts: o navegador pede uma folha de estilos a fonts.googleapis.com e os arquivos de fonte a fonts.gstatic.com, de modo que o Google recebe seu endereço IP, os dados do navegador e o endereço da página que você está lendo. A página inicial também consulta uma vez api.github.com para saber a versão mais recente, para que o botão do instalador aponte para o arquivo atual; o GitHub recebe seu endereço IP e os dados do navegador. As próprias páginas são servidas pelo GitHub Pages (serzhyale.github.io). O site não tem análise, publicidade nem rastreamento, não define cookies e guarda no armazenamento local do navegador apenas a sua escolha de tema e idioma. Cada um desses serviços está sujeito à sua própria política; nenhum é operado pelo autor.
 @@privacy-local-title
 Dados locais
 
 @@privacy-local
-O STREAMS Player armazena o estado do catálogo, canais adicionados e importados, fixados, coleções, canais ocultos, histórico de reprodução, marcas, quadros de prévia em até 150 MB, bibliotecas FFmpeg opcionais e registros de diagnóstico dos últimos dez inícios em [[appdata]]. Gravações e quadros vão para as pastas escolhidas (por padrão Videos/Recordings, Music/Recordings e Pictures/Frames). Esses dados permanecem no dispositivo a menos que use «Enviar registros ao autor» em Configurações na página Sobre para enviá-los a [[email]]. O guia de TV baixado e suas associações também ficam salvos lá; «Remover guia» em Configurações exclui ambos.
+O STREAMS Player armazena o estado do catálogo, canais adicionados e importados, fixados, coleções, canais ocultos, histórico de reprodução, marcas, quadros de prévia em até 150 MB, bibliotecas FFmpeg opcionais e registros de diagnóstico dos últimos dez inícios em [[appdata]]. Gravações e quadros vão para as pastas escolhidas (por padrão Videos/Recordings, Music/Recordings e Pictures/Frames). Esses dados permanecem no dispositivo a menos que use «Enviar registros ao autor» em Configurações na página Sobre para enviá-los a [[email]]. O guia de TV baixado e suas associações também ficam salvos lá; «Remover guia» em Configurações exclui ambos. A senha e o código são descartados. Conta, token e impressão são protegidos para seu usuário do Windows em um arquivo separado; remover a conta os apaga. Os arquivos de diagnóstico excluem esse arquivo e ocultam os dados da conta. As conexões de troca começam somente após sua configuração explícita da fonte.
+
 @@privacy-contact-title
 Contato
 
@@ -409,7 +420,7 @@ O que o STREAMS Player nunca faz
 Ele nunca precisa de direitos de administrador para ser instalado ou executado, nunca se adiciona à inicialização do Windows e não instala nenhum serviço em segundo plano.
 
 @@trust-never-2
-Ele não tem conta, publicidade, análise de uso nem telemetria, nem serviço operado pelo autor pelo qual os seus dados passem.
+Nenhuma conta é necessária para a reprodução normal. A conta de troca opcional pertence ao seu próprio servidor. Não há publicidade, análise, telemetria ou serviço operado pelo autor.
 
 @@trust-never-3
 Conecta-se apenas quando você age e somente para o que for necessário: catálogo público e prévias no GitHub, provedor da transmissão reproduzida, gravada ou pré-visualizada, dispositivo FastMediaSorter na rede local e bibliotecas FFmpeg opcionais se solicitadas em Configurações. O guia de TV é baixado apenas do endereço inserido quando você clica em «Baixar guia».
@@ -425,10 +436,43 @@ Desinstalá-lo nunca apaga os seus canais, fixações ou histórico - eles ficam
 Ler a página de privacidade
 
 @@footer-rights
-© 2026 Serhii Zhyhunenko
+© 2026
 
 @@footer-tools
 Mais ferramentas
+
+@@footer-author
+Serhii Zhyhunenko
+
+@@footer-download
+Baixar
+
+@@nav-docs
+Documentação
+
+@@type-ai-method
+Método de desenvolvimento com IA
+
+@@type-android-sorter
+Organizador de mídia para Android
+
+@@type-ebook-converter
+Conversor de e-books para Windows
+
+@@type-layout-fixer
+Corretor de layout de teclado para Windows
+
+@@type-portfolio
+Portfólio
+
+@@type-storage-cli
+Ferramenta de linha de comando de armazenamento para Windows
+
+@@type-tray-launcher
+Inicializador na bandeja para Windows
+
+@@type-windows-sorter
+Organizador de mídia para Windows
 
 @@to-top
 Voltar ao topo

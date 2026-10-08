@@ -93,7 +93,18 @@ public static class LocalizationService
         LocalizedFormat.Apply(CultureInfo.CurrentUICulture, Get(key), arguments);
 }
 
-public sealed record UiOption(string Value, string Label)
+/// <param name="Value">What the option stands for in data (a catalog identifier), never translated.</param>
+/// <param name="Label">What the person reads.</param>
+/// <param name="Icon">An optional picture drawn beside the label, for a facet that has one (the country flag).</param>
+/// <param name="Featured">Whether this is the lead copy of an option a facet lifts above its alphabetical list.
+/// The copy inside the list is a different record, so the two never compare equal and a combo box can tell them apart.</param>
+/// <param name="EndsFeatured">Whether the lead block ends here, so the list can rule a line under it.</param>
+public sealed record UiOption(
+    string Value,
+    string Label,
+    System.Windows.Media.ImageSource? Icon = null,
+    bool Featured = false,
+    bool EndsFeatured = false)
 {
     public override string ToString() => Label;
 }

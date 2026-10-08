@@ -1,14 +1,13 @@
 <!doctype html>
-<html lang="{{page.lang}}" dir="{{page.dir}}" data-theme="dark" data-lang="{{page.code}}" data-entry="{{page.entry}}">
+<html lang="{{page.lang}}" dir="{{page.dir}}" data-theme="dark" data-entry="{{page.entry}}">
   <head>
 {{include:head}}
   </head>
   <body data-page="trust">
     <a class="skip-link" href="#content">{{t.skip-content}}</a>
-    <div class="background-glow" aria-hidden="true">
-      <div class="glow glow-one"></div>
-      <div class="glow glow-two"></div>
-    </div>
+    <!-- The brand backdrop (WAVE-PARTICLES): behind everything, decorative, slow and pale; every block of text
+         sits on a semi-transparent plate (style.css). Settings: SP-0195 follow-up, registry exception. -->
+    <canvas class="backdrop" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.3" data-speed="0.5" aria-hidden="true"></canvas>
 
     <header class="site-header">
       <a class="brand" href="{{page.home}}">
@@ -21,9 +20,10 @@
         <a class="header-link" href="{{page.privacy}}">{{t.nav-privacy}}</a>
       </nav>
 {{include:switcher}}
-      <button class="theme-button" id="themeButton" type="button" aria-label="{{t.theme-label}}">◐</button>
+      <button class="theme-button" id="themeButton" type="button" aria-label="{{t.theme-label}}">{{glyph:app.theme}}<span>{{t.theme-name}}</span></button>
       <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">{{t.header-github}}</a>
     </header>
+{{include:languagerow}}
 
     <!-- SP-0105, contract INSTALL-TRUST rule 1: four sections, in this order - what the warning is, why
          it appears, what to click, what the app never does. The order and the ids are pinned by

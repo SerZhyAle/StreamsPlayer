@@ -71,11 +71,13 @@ public sealed class NativeCallbackContainmentSourceTests
     [Fact]
     public void TheCaptureAcquiresEveryNativeObjectInsideTheGuardThatReleasesIt()
     {
-        var body = Body(Source("VideoFrameCaptureService.cs"), "CaptureAsync");
+        // CaptureAsync is the hold-counting wrapper around the disposal of the shared engine (S4-1); the capture
+        // proper, and the guard these native objects live in, is CaptureCoreAsync.
+        var body = Body(Source("VideoFrameCaptureService.cs"), "CaptureCoreAsync");
         var tryMatch = Regex.Match(body, @"\btry\b");
         var guard = tryMatch.Success ? tryMatch.Index : -1;
 
-        Assert.True(guard >= 0, "CaptureAsync has no try block.");
+        Assert.True(guard >= 0, "CaptureCoreAsync has no try block.");
         foreach (var acquisition in new[] { "GCHandle.Alloc(", "new VlcMediaPlayer(", "new Media(" })
         {
             var at = body.IndexOf(acquisition, StringComparison.Ordinal);

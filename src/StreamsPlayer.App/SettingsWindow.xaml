@@ -31,6 +31,40 @@
         <Style x:Key="ValueRow" TargetType="Grid">
             <Setter Property="Margin" Value="0,0,0,12" />
         </Style>
+        <!-- SP-0211: the pointer hit-target floor, 28 px under a mouse or a pen (APP-SETTINGS 7, ICON-RENDER
+             3.5). The painted box or text is smaller than the target a click may land on, so the control is
+             given the floor as its minimum height - the drawing stays where it was. Scoped to this window:
+             the same controls elsewhere keep the compact size their own surfaces were laid out for. -->
+        <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+            <Setter Property="MinHeight" Value="28" />
+        </Style>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <!-- SP-0211: a link that opens a web page, as a button so its target is the 28 px floor rather than
+             the height of one line of text. The look is the link's own: link ink, underlined, no chrome. -->
+        <Style x:Key="SettingsLinkButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{DynamicResource LinkBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0,5" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisualInset}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <TextBlock Text="{TemplateBinding Content}" TextDecorations="Underline"
+                                       Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <!-- SP-0191: the settings search box (WINDOWS-UI 2.3/3.5), the catalog search's template with
              this surface's own watermark. -->
         <Style x:Key="SettingsSearchBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
@@ -103,6 +137,7 @@
                                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                                 <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisualInset}" />
                                 <Setter Property="Padding" Value="1" />
+                                <Setter Property="MinHeight" Value="28" />
                                 <Setter Property="Margin" Value="2,1" />
                                 <Setter Property="Template">
                                     <Setter.Value>
@@ -156,7 +191,7 @@
                         </ListBoxItem>
                         <ListBoxItem AutomationProperties.Name="{DynamicResource SettingsFiles}">
                             <StackPanel Orientation="Horizontal">
-                                <Path Style="{StaticResource NavIcon}" FlowDirection="LeftToRight" Data="{StaticResource Icon.pending.action.choose-folder}" Fill="{DynamicResource NavInkFiles}" />
+                                <Path Style="{StaticResource NavIcon}" FlowDirection="LeftToRight" Data="{StaticResource Icon.action.choose-folder}" Fill="{DynamicResource NavInkFiles}" />
                                 <TextBlock Text="{DynamicResource SettingsFiles}" VerticalAlignment="Center" />
                             </StackPanel>
                         </ListBoxItem>
@@ -223,7 +258,7 @@
                                             <StackPanel>
                                                 <StackPanel Orientation="Horizontal">
                                                     <Path Style="{StaticResource NavIcon}" FlowDirection="LeftToRight"
-                                                          Data="{StaticResource Icon.pending.app.language}" Fill="{DynamicResource NavInkGeneral}" />
+                                                          Data="{StaticResource Icon.app.language}" Fill="{DynamicResource NavInkGeneral}" />
                                                     <TextBlock Text="{DynamicResource Language}" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" />
                                                 </StackPanel>
                                                 <TextBlock Text="{DynamicResource MachineTranslationNotice}" Foreground="{DynamicResource MutedBrush}"
@@ -367,6 +402,44 @@
                                     </StackPanel>
                                 </Expander>
 
+                                <Expander Style="{StaticResource SettingsGroup}" local:SettingsUiProperties.GroupId="library.exchange" IsExpanded="True">
+                                    <Expander.Header><TextBlock Text="{DynamicResource ExchangeTitle}" /></Expander.Header>
+                                    <StackPanel>
+                                        <TextBlock Text="{DynamicResource ExchangeHint}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                        <Grid Style="{StaticResource ValueRow}">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                            <TextBlock Text="{DynamicResource ExchangeAddress}" VerticalAlignment="Center" />
+                                            <TextBox x:Name="ExchangeAddressBox" Grid.Column="1" AutomationProperties.Name="{DynamicResource ExchangeAddress}" />
+                                        </Grid>
+                                        <Grid Style="{StaticResource ValueRow}">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                            <TextBlock Text="{DynamicResource ExchangePort}" VerticalAlignment="Center" />
+                                            <TextBox x:Name="ExchangePortBox" Grid.Column="1" AutomationProperties.Name="{DynamicResource ExchangePort}" />
+                                        </Grid>
+                                        <Grid Style="{StaticResource ValueRow}">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                            <TextBlock Text="{DynamicResource ExchangeLogin}" VerticalAlignment="Center" />
+                                            <TextBox x:Name="ExchangeLoginBox" Grid.Column="1" AutomationProperties.Name="{DynamicResource ExchangeLogin}" />
+                                        </Grid>
+                                        <Grid Style="{StaticResource ValueRow}">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                            <ComboBox x:Name="ExchangeMethodBox" SelectedIndex="0" Margin="0,0,8,0" AutomationProperties.Name="{DynamicResource ExchangePassword}">
+                                                <ComboBoxItem Content="{DynamicResource ExchangePassword}" />
+                                                <ComboBoxItem Content="{DynamicResource ExchangePairingCode}" />
+                                            </ComboBox>
+                                            <PasswordBox x:Name="ExchangeSecretBox" Grid.Column="1" MinHeight="28" AutomationProperties.Name="{DynamicResource ExchangePassword}" />
+                                        </Grid>
+                                        <CheckBox x:Name="ExchangeEnabledCheckBox" Content="{DynamicResource ExchangeEnabled}" Checked="ExchangeEnabled_Click" Unchecked="ExchangeEnabled_Click" Margin="0,0,0,8" />
+                                        <CheckBox x:Name="ExchangeAutoAcceptCastsCheckBox" Content="{DynamicResource ExchangeAutoAcceptCasts}" Checked="ExchangeAutoAcceptCasts_Click" Unchecked="ExchangeAutoAcceptCasts_Click" Margin="0,0,0,8" />
+                                        <WrapPanel>
+                                            <Button x:Name="ExchangeEnrollButton" Content="{DynamicResource ExchangeEnroll}" Click="ExchangeEnroll_Click" Margin="0,0,8,8" />
+                                            <Button x:Name="ExchangeForgetButton" Content="{DynamicResource ExchangeForget}" Click="ExchangeForget_Click" Margin="0,0,8,8" />
+                                            <Button x:Name="ExchangeTrustButton" Content="{DynamicResource ExchangeTrust}" Click="ExchangeTrust_Click" Margin="0,0,8,8" Visibility="Collapsed" />
+                                        </WrapPanel>
+                                        <TextBlock x:Name="ExchangeStatusText" TextWrapping="Wrap" />
+                                        <TextBlock x:Name="ExchangeFingerprintText" TextWrapping="Wrap" FlowDirection="LeftToRight" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </Expander>
                                 <Expander Style="{StaticResource SettingsGroup}" local:SettingsUiProperties.GroupId="library.tv" IsExpanded="True">
                                     <Expander.Header>
                                         <TextBlock Text="{DynamicResource TvScheduleTitle}" />
@@ -623,50 +696,32 @@
                                             <TextBlock Grid.Row="1" Text="{DynamicResource AuthorLabel}" FontWeight="SemiBold" Margin="0,0,10,5" />
                                             <TextBlock x:Name="AuthorText" Grid.Row="1" Grid.Column="1" Margin="0,0,0,5" TextWrapping="Wrap" />
                                             <TextBlock Grid.Row="2" Text="{DynamicResource LicenceLabel}" FontWeight="SemiBold" Margin="0,0,10,0" />
-                                            <TextBlock Grid.Row="2" Grid.Column="1">
-                                                <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Licence"
-                                                           Click="OpenLink_Click" ToolTip="{DynamicResource LicenceTip}"
-                                                           AutomationProperties.Name="{DynamicResource Licence}">
-                                                    <Run Text="{DynamicResource Licence}" />
-                                                </Hyperlink>
-                                            </TextBlock>
+                                            <Button Grid.Row="2" Grid.Column="1" Style="{StaticResource SettingsLinkButton}" Tag="Licence"
+                                                    Click="OpenLink_Click" ToolTip="{DynamicResource LicenceTip}"
+                                                    AutomationProperties.Name="{DynamicResource Licence}"
+                                                    Content="{DynamicResource Licence}" />
                                         </Grid>
                                         <WrapPanel>
-                                            <TextBlock Margin="0,0,18,8">
-                                                <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Instructions"
-                                                           Click="OpenLink_Click" ToolTip="{DynamicResource DocumentationTip}"
-                                                           AutomationProperties.Name="{DynamicResource Documentation}">
-                                                    <Run Text="{DynamicResource Documentation}" />
-                                                </Hyperlink>
-                                            </TextBlock>
-                                            <TextBlock Margin="0,0,18,8">
-                                                <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Source"
-                                                           Click="OpenLink_Click" ToolTip="{DynamicResource SourceCodeTip}"
-                                                           AutomationProperties.Name="{DynamicResource SourceCode}">
-                                                    <Run Text="{DynamicResource SourceCode}" />
-                                                </Hyperlink>
-                                            </TextBlock>
-                                            <TextBlock Margin="0,0,18,8">
-                                                <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Website"
-                                                           Click="OpenLink_Click" ToolTip="{DynamicResource WebsiteTip}"
-                                                           AutomationProperties.Name="{DynamicResource Website}">
-                                                    <Run Text="{DynamicResource Website}" />
-                                                </Hyperlink>
-                                            </TextBlock>
-                                            <TextBlock Margin="0,0,18,8">
-                                                <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Privacy"
-                                                           Click="OpenLink_Click" ToolTip="{DynamicResource PrivacyTip}"
-                                                           AutomationProperties.Name="{DynamicResource Privacy}">
-                                                    <Run Text="{DynamicResource Privacy}" />
-                                                </Hyperlink>
-                                            </TextBlock>
-                                            <TextBlock Margin="0,0,18,8">
-                                                <Hyperlink Foreground="{DynamicResource LinkBrush}" TextDecorations="Underline" Tag="Author"
-                                                           Click="OpenLink_Click" ToolTip="{DynamicResource AuthorPageTip}"
-                                                           AutomationProperties.Name="{DynamicResource AuthorPage}">
-                                                    <Run Text="{DynamicResource AuthorPage}" />
-                                                </Hyperlink>
-                                            </TextBlock>
+                                            <Button Style="{StaticResource SettingsLinkButton}" Tag="Instructions" Margin="0,0,18,0"
+                                                    Click="OpenLink_Click" ToolTip="{DynamicResource DocumentationTip}"
+                                                    AutomationProperties.Name="{DynamicResource Documentation}"
+                                                    Content="{DynamicResource Documentation}" />
+                                            <Button Style="{StaticResource SettingsLinkButton}" Tag="Source" Margin="0,0,18,0"
+                                                    Click="OpenLink_Click" ToolTip="{DynamicResource SourceCodeTip}"
+                                                    AutomationProperties.Name="{DynamicResource SourceCode}"
+                                                    Content="{DynamicResource SourceCode}" />
+                                            <Button Style="{StaticResource SettingsLinkButton}" Tag="Website" Margin="0,0,18,0"
+                                                    Click="OpenLink_Click" ToolTip="{DynamicResource WebsiteTip}"
+                                                    AutomationProperties.Name="{DynamicResource Website}"
+                                                    Content="{DynamicResource Website}" />
+                                            <Button Style="{StaticResource SettingsLinkButton}" Tag="Privacy" Margin="0,0,18,0"
+                                                    Click="OpenLink_Click" ToolTip="{DynamicResource PrivacyTip}"
+                                                    AutomationProperties.Name="{DynamicResource Privacy}"
+                                                    Content="{DynamicResource Privacy}" />
+                                            <Button Style="{StaticResource SettingsLinkButton}" Tag="Author"
+                                                    Click="OpenLink_Click" ToolTip="{DynamicResource AuthorPageTip}"
+                                                    AutomationProperties.Name="{DynamicResource AuthorPage}"
+                                                    Content="{DynamicResource AuthorPage}" />
                                         </WrapPanel>
                                     </StackPanel>
                                 </Expander>

@@ -1,0 +1,63 @@
+{
+  "about": "SITE-STRUCTURE rule 8: every address of the product site that a surface outside docs/ holds. tools/site/Test-HeldAddresses.ps1 resolves each entry against the generated page set and fails on a miss; it also fails when a tracked file holds a site address that is not listed here. Edit this file when a holder is added, moved or removed - never to silence the gate.",
+  "ignore": [
+    {
+      "path": "tools/site/build-site.ps1",
+      "why": "The generator owns the base address (its -BaseUrl default); it is the source of the site, not a holder of one."
+    },
+    {
+      "path": "manifests",
+      "why": "Version-pinned copies of manifest sets already submitted to winget-pkgs; frozen history. The templates under winget/templates/ are the held source."
+    }
+  ],
+  "addresses": [
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/",
+      "heldBy": [
+        ".github/ISSUE_TEMPLATE/config.yml",
+        "AGENTS.md",
+        "Directory.Build.props",
+        "README.md",
+        "README.ru.md",
+        "README.uk.md",
+        "msix/store-listing.md",
+        "src/StreamsPlayer.App/ProductInfo.cs",
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.en-US.yaml",
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.ru-RU.yaml",
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.uk-UA.yaml"
+      ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/privacy.html",
+      "heldBy": [
+        "README.md",
+        "README.ru.md",
+        "README.uk.md",
+        "STORE_PUBLISHING.md",
+        "msix/store-listing.md",
+        "src/StreamsPlayer.App/ProductInfo.cs",
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.en-US.yaml",
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.ru-RU.yaml",
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.uk-UA.yaml"
+      ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/trust.html",
+      "heldBy": [
+        "README.md"
+      ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/ru/trust.html",
+      "heldBy": [
+        "README.ru.md"
+      ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/uk/trust.html",
+      "heldBy": [
+        "README.uk.md"
+      ]
+    }
+  ]
+}

@@ -55,9 +55,11 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         set
         {
             _audioOutputDevice = value;
-            if (_player is { } player && !string.IsNullOrEmpty(value))
+            // R2-4: the empty id is the system default and must reach the playing leg too - skipping it left
+            // that leg on the device the user had just chosen away from. A failure is logged by ApplyOutputDevice.
+            if (_player is { } player)
             {
-                ApplyOutputDevice(player, value);
+                ApplyOutputDevice(player, value ?? string.Empty);
             }
         }
     }
@@ -82,7 +84,12 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
 
     public int? ResponseStatusCode => _connection?.StatusCode;
 
-    public async Task<FastMediaSorterAudioOpenResult> StartAsync(Uri endpoint, int volume, CancellationToken cancellationToken)
+    public async Task<FastMediaSorterAudioOpenResult> StartAsync(
+        Uri endpoint,
+        int volume,
+        CancellationToken cancellationToken,
+        TimeSpan? connectTimeout = null,
+        string? certFingerprint = null)
     {
         ThrowIfDisposed();
         StopPlayback();
@@ -106,7 +113,7 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         FastMediaSorterPlaybackConnection connection;
         using (var request = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token))
         {
-            connection = await _transport.OpenAsync(endpoint, request.Token);
+            connection = await _transport.OpenAsync(endpoint, connectTimeout, certFingerprint, request.Token);
         }
 
         // Disposed while the request was out: the owner has already moved on, and starting an engine

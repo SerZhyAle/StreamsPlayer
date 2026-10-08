@@ -129,6 +129,9 @@ public partial class MainWindow
         {
             if (_shuttingDown || !IsVisible)
             {
+                // The notice was not shown, so the latch must not claim it was: a window that is not yet
+                // visible leaves the next call free to ask again.
+                _gridPreviewsUnavailableReported = _shuttingDown;
                 return;
             }
 

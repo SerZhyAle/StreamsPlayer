@@ -17,6 +17,8 @@ public partial class App : Application
     /// </summary>
     private static readonly TimeSpan CloseWorkDeadline = TimeSpan.FromSeconds(4);
 
+    internal ExchangeSourceService Exchange { get; private set; } = null!;
+
     private CurrentLog? _log;
     private SingleInstanceLock? _instanceLock;
     private ActivationPipeListener? _activationListener;
@@ -52,6 +54,14 @@ public partial class App : Application
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         ThemeService.Initialize();
         _log.Information("Application startup.");
+        // A user-sent archive holds the last ten launches, which can span several builds, while its
+        // environment summary names only the build that packed it. This line is what ties a session to its build.
+        _log.Event("SESSION START",
+            $"version={ProductInfo.Version}",
+            $"os={System.Runtime.InteropServices.RuntimeInformation.OSDescription}",
+            $"arch={System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}",
+            $"runtime={System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}",
+            $"utc_offset={TimeZoneInfo.Local.GetUtcOffset(DateTimeOffset.UtcNow)}");
         // SP-0133: a relocated profile is announced first, and so is a refused relocation - a smoke run whose
         // variable was ignored is running against the owner's profile, and only this line says so.
         if (AppPaths.RequestedDataDirectory is { } requested)
@@ -65,7 +75,11 @@ public partial class App : Application
         _activationListener = new ActivationPipeListener(identity.PipeName, OnForwardedLaunch, OnForwardedLaunchRejected);
         _activationListener.Start();
 
+        Exchange = new ExchangeSourceService(AppPaths.DataDirectory);
+        Exchange.Start();
+
         var window = new MainWindow(_log, StreamLaunchRequest.Parse(e.Args));
+        window.InitializeExchangeStatus(Exchange);
         _mainWindow = window;
         MainWindow = window;
         // Registered after the window's own Closed handler, which is what starts the close work read below.
@@ -174,6 +188,11 @@ public partial class App : Application
         if (Interlocked.Exchange(ref _exitCompleted, 1) != 0)
         {
             return;
+        }
+
+        if (Exchange is not null)
+        {
+            WaitPumping(Exchange.StopAsync(), TimeSpan.FromSeconds(2));
         }
 
         if (_activationListener is not null)

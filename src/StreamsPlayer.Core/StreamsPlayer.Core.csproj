@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -12,6 +12,8 @@
        other than the one embedded in the build. -->
   <ItemGroup>
     <InternalsVisibleTo Include="StreamsPlayer.Core.Tests" />
+    <InternalsVisibleTo Include="StreamsPlayer.Exchange.Tests" />
+    <InternalsVisibleTo Include="StreamsPlayer.App" />
   </ItemGroup>
 
   <!-- SP-0052: the bundled catalog snapshot. An embedded resource rather than a file beside the
@@ -31,6 +33,12 @@
        an MSBuild copy failure. -->
   <ItemGroup Condition="Exists('$(BundledCatalogSnapshotPath)')">
     <EmbeddedResource Include="Resources\catalog-snapshot.zip" LogicalName="catalog-snapshot.zip" />
+  </ItemGroup>
+
+  <!-- The country names for the facet and the row (tools/build-country-names.ps1, from Unicode CLDR).
+       Embedded for the same reason as the snapshot: it travels inside the assembly in every packaging shape. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\country-names.json" LogicalName="country-names.json" />
   </ItemGroup>
 
   <Target Name="RequireBundledCatalogSnapshot" BeforeTargets="BeforeBuild"

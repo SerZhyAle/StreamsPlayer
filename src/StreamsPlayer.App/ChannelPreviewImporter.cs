@@ -45,6 +45,12 @@ internal sealed class ChannelPreviewImporter
     // Progress is reported in whole tiles; batching keeps the marshaling cost off the hot loop.
     private const int ProgressInterval = 25;
 
+    /// <summary>
+    /// Largest decoded tile accepted, in pixels: the published 240 x 135 geometry with the same x16 slack
+    /// <see cref="ChannelPreviewTilePack.MaximumTileBytes"/> allows, so a legitimate re-tiling still fits.
+    /// </summary>
+    private const long MaximumTilePixels = 240L * 135 * 16;
+
     private readonly PreviewFrameStore _store;
     private readonly CurrentLog _log;
 
@@ -187,27 +193,38 @@ internal sealed class ChannelPreviewImporter
     /// probes once and reports the verdict, or counts failures across thousands of tiles, and a log line
     /// per tile would bury the run.
     /// </summary>
+    /// <remarks>
+    /// S8-3: the pack bounds a tile's compressed size, not what it inflates to, so a few hundred bytes of
+    /// WebP can declare a canvas of gigapixels. The header is read first (<see cref="BitmapCacheOption.None"/>
+    /// decodes nothing yet), a tile over <see cref="MaximumTilePixels"/> is refused, and only then are the
+    /// pixels pulled into memory.
+    /// </remarks>
     private static BitmapSource? TryDecodeTile(byte[] bytes)
     {
         try
         {
             using var stream = new MemoryStream(bytes, writable: false);
-            var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+            var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.None);
             var frame = decoder.Frames[0];
-            frame.Freeze(); // OnLoad + Freeze is what lets the encode happen off this thread later
-            return frame;
+            if (frame.PixelWidth <= 0 || frame.PixelHeight <= 0 ||
+                (long)frame.PixelWidth * frame.PixelHeight > MaximumTilePixels)
+            {
+                return null;
+            }
+
+            // The copy completes inside the constructor, while the stream above is still open.
+            var loaded = new CachedBitmap(frame, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+            loaded.Freeze(); // OnLoad + Freeze is what lets the encode happen off this thread later
+            return loaded;
         }
-        catch (FileFormatException)
+        // A truncated or mispublished tile reads as an invalid image rather than a crash. WIC reports its
+        // failures as a mix of managed and COM exceptions, so the whole decode set is named here: the
+        // invalid-operation case is a missing or unregistered codec, the COM/IO/overflow cases a corrupt
+        // stream or a canvas the allocator refuses. Anything outside this set is a real fault and propagates.
+        catch (Exception exception) when (exception is FileFormatException or NotSupportedException
+            or ArgumentException or InvalidOperationException or IOException or OverflowException
+            or OutOfMemoryException or System.Runtime.InteropServices.ExternalException)
         {
-            return null;
-        }
-        catch (NotSupportedException)
-        {
-            return null;
-        }
-        catch (ArgumentException)
-        {
-            // A truncated or mispublished tile reads as an invalid image rather than a crash.
             return null;
         }
     }

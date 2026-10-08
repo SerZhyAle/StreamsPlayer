@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="rtl" data-theme="dark" data-lang="ar" data-entry="false">
+<html lang="ar" dir="rtl" data-theme="dark" data-entry="false">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -38,23 +38,26 @@
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
+    <!-- PAGE-STYLE section 7 pre-paint resolver: the same text on every page, before the first stylesheet.
+         sza-theme and sza-lang are shared with every product page on this origin, so they hold exactly
+         dark/light and ru/en/ua. -->
+    <script>
+(function(){try{
+  var t=localStorage.getItem('sza-theme');
+  if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  var l=localStorage.getItem('sza-lang');
+  if(l==='uk')l='ua';
+  if(l!=='ru'&&l!=='en'&&l!=='ua'){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+  document.documentElement.setAttribute('data-lang',l);
+}catch(e){}})();
+    </script>
     <script>
       (function () {
-        var root = document.documentElement;
-        var systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-        var theme = systemTheme;
-        var stored = null;
-        try {
-          theme = localStorage.getItem("streamsplayer-theme") || systemTheme;
-          stored = localStorage.getItem("streamsplayer-lang");
-        } catch (error) {
-          theme = systemTheme;
-        }
-        root.dataset.theme = theme;
-
         // Language redirect. Only the canonical English root redirects: a visitor who asked for
         // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
         // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
+        var root = document.documentElement;
         if (root.dataset.entry !== "true") {
           return;
         }
@@ -64,10 +67,30 @@
         } catch (error) {
           return;
         }
+        // sza-lang holds only ru, en or ua (PAGE-STYLE section 7), so a further locale chosen here is
+        // remembered in a key of this product, together with the shared value current at that moment:
+        // it counts only while nobody has changed the shared language since.
+        var shared = null;
+        var further = "";
+        try {
+          shared = localStorage.getItem("sza-lang");
+          further = localStorage.getItem("streamsplayer-locale") || "";
+        } catch (error) {
+          // No storage: the browser's own preference decides below.
+        }
+        if (shared === "uk") {
+          shared = "ua";
+        }
+        if (shared !== "ru" && shared !== "en" && shared !== "ua") {
+          shared = null;
+        }
         var target = null;
-        if (stored && urls[stored]) {
-          target = stored;
-        } else if (!stored) {
+        var parts = further.split("@");
+        if (parts.length === 2 && urls[parts[0]] && parts[1] === (shared || "")) {
+          target = parts[0];
+        } else if (shared) {
+          target = shared === "ua" ? "uk" : shared;
+        } else {
           // Walk the visitor's preference list in order and match on the base subtag, so de-AT
           // reaches the German page. The table comes from the generated page, never from a list
           // written here.
@@ -81,7 +104,7 @@
             }
           }
         }
-        if (target && target !== root.dataset.lang) {
+        if (target && target !== "en" && urls[target]) {
           window.location.replace(urls[target]);
         }
       })();
@@ -89,19 +112,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/sza-kit.css">
     <link rel="stylesheet" href="../style.css">
+    <script src="../assets/wave-particles.js" defer></script>
     <script src="../site.js" defer></script>
   </head>
   <body data-page="home">
     <a class="skip-link" href="#content">تخطَّ إلى المحتوى</a>
-    <div class="background-glow" aria-hidden="true">
-      <div class="glow glow-one"></div>
-      <div class="glow glow-two"></div>
-    </div>
+    <!-- The brand backdrop (WAVE-PARTICLES): behind everything, decorative, slow and pale; every block of text
+         sits on a semi-transparent plate (style.css). Settings: SP-0195 follow-up, registry exception. -->
+    <canvas class="backdrop" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.3" data-speed="0.5" aria-hidden="true"></canvas>
 
     <header class="site-header">
       <a class="brand" href="../ar/">
-        <img src="../assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
         <span>STREAMS Player<span class="brand-dot">.</span></span>
       </a>
       <nav class="header-links" aria-label="التنقل الرئيسي">
@@ -110,60 +133,49 @@
         <a class="header-link" href="#use">كيف تستخدمه</a>
         <a class="header-link" href="privacy.html">الخصوصية</a>
       </nav>
-      <div class="language-switcher">
-        <select id="languageSelect" aria-label="لغة الموقع">
-          <option value="../" data-code="en" lang="en">English</option>
-          <option value="../ru/" data-code="ru" lang="ru">Русский</option>
-          <option value="../uk/" data-code="uk" lang="uk">Українська</option>
-          <option value="../de/" data-code="de" lang="de">Deutsch</option>
-          <option value="../it/" data-code="it" lang="it">Italiano</option>
-          <option value="../es/" data-code="es" lang="es">Español</option>
-          <option value="../fr/" data-code="fr" lang="fr">Français</option>
-          <option value="../pt/" data-code="pt" lang="pt">Português (Brasil)</option>
-          <option value="../zh/" data-code="zh" lang="zh-Hans">简体中文</option>
-          <option value="../hi/" data-code="hi" lang="hi">हिन्दी</option>
-          <option value="../bn/" data-code="bn" lang="bn">বাংলা</option>
-          <option value="../ar/" data-code="ar" lang="ar" selected>العربية</option>
-          <option value="../ur/" data-code="ur" lang="ur">اردو</option>
-        </select>
-        <noscript>
-          <ul class="language-list">
-            <li><a href="../" lang="en">English</a></li>
-            <li><a href="../ru/" lang="ru">Русский</a></li>
-            <li><a href="../uk/" lang="uk">Українська</a></li>
-            <li><a href="../de/" lang="de">Deutsch</a></li>
-            <li><a href="../it/" lang="it">Italiano</a></li>
-            <li><a href="../es/" lang="es">Español</a></li>
-            <li><a href="../fr/" lang="fr">Français</a></li>
-            <li><a href="../pt/" lang="pt">Português (Brasil)</a></li>
-            <li><a href="../zh/" lang="zh-Hans">简体中文</a></li>
-            <li><a href="../hi/" lang="hi">हिन्दी</a></li>
-            <li><a href="../bn/" lang="bn">বাংলা</a></li>
-            <li><a href="../ar/" lang="ar">العربية</a></li>
-            <li><a href="../ur/" lang="ur">اردو</a></li>
-          </ul>
-        </noscript>
+      <a class="header-link header-docs" href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">التوثيق</a>
+      <div class="seg" role="group" aria-label="لغة الموقع">
+        <a href="../ru/" data-lang="ru" lang="ru" hreflang="ru" title="Русский">RU</a>
+        <a href="../" data-lang="en" lang="en" hreflang="en" title="English">EN</a>
+        <a href="../uk/" data-lang="ua" lang="uk" hreflang="uk" title="Українська">UA</a>
       </div>
-      <button class="theme-button" id="themeButton" type="button" aria-label="تغيير سمة الألوان">◐</button>
+      <button class="theme-button" id="themeButton" type="button" aria-label="تغيير سمة الألوان"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z" fill="currentColor"/></svg><span>السمة</span></button>
       <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">GitHub</a>
     </header>
+    <nav class="container language-row" aria-label="لغة الموقع">
+      <ul class="language-list">
+        <li><a href="../de/" data-locale="de" lang="de" hreflang="de" title="Deutsch">DE</a></li>
+        <li><a href="../it/" data-locale="it" lang="it" hreflang="it" title="Italiano">IT</a></li>
+        <li><a href="../es/" data-locale="es" lang="es" hreflang="es" title="Español">ES</a></li>
+        <li><a href="../fr/" data-locale="fr" lang="fr" hreflang="fr" title="Français">FR</a></li>
+        <li><a href="../pt/" data-locale="pt" lang="pt" hreflang="pt" title="Português (Brasil)">PT</a></li>
+        <li><a href="../zh/" data-locale="zh" lang="zh-Hans" hreflang="zh-Hans" title="简体中文">ZH</a></li>
+        <li><a href="../hi/" data-locale="hi" lang="hi" hreflang="hi" title="हिन्दी">HI</a></li>
+        <li><a href="../bn/" data-locale="bn" lang="bn" hreflang="bn" title="বাংলা">BN</a></li>
+        <li><a href="../ar/" data-locale="ar" lang="ar" hreflang="ar" title="العربية" aria-current="page">AR</a></li>
+        <li><a href="../ur/" data-locale="ur" lang="ur" hreflang="ur" title="اردو">UR</a></li>
+      </ul>
+    </nav>
 
     <main class="container" id="content">
       <section class="hero" aria-labelledby="hero-title">
         <div>
-          <div class="product-id">
-            <img class="product-icon" src="../assets/streamsplayer-icon-256.png" alt="أيقونة STREAMS Player" width="68" height="68">
+          <!-- PAGE-CONTENT "The landing always carries" item 1: the application icon and the full name in
+               display type open the hero; the eyebrow stands under the name, the outcome H1 follows. -->
+          <div class="identity">
+            <img class="product-icon" src="../assets/streamsplayer-icon-256.png" alt="أيقونة STREAMS Player" width="104" height="104">
             <div>
-              <span class="eyebrow">STREAMS Player · Windows 10 / 11</span>
-              <h1 id="hero-title">الراديو والفيديو المباشر و RTSP في مشغل واحد.</h1>
-              <span class="kicker">راديو الإنترنت · فيديو مباشر · RTSP</span>
+              <span class="product-name">STREAMS Player</span>
+              <span class="eyebrow">Windows 10 / 11</span>
             </div>
           </div>
-          <p class="lead">تطبيق سطح مكتب مركّز لنظام Windows: استعرض كتالوجًا منسَّقًا، وأضف عمليات بثك الخاصة، وشغّلها - بلا حساب، وبلا إعلانات، وبلا أي شيء يعمل في الخلفية دون أن تطلبه.</p>
+          <h1 id="hero-title">الراديو والفيديو المباشر و RTSP في مشغل واحد.</h1>
+          <span class="kicker">راديو الإنترنت · فيديو مباشر · RTSP</span>
+          <p class="lead">تطبيق سطح مكتب مركّز لنظام Windows: استعرض كتالوجًا منسَّقًا، وأضف عمليات بثك الخاصة، وشغّلها - بلا حساب إلزامي، وبلا إعلانات، وبلا أي شيء يعمل في الخلفية دون أن تطلبه.</p>
           <div class="facts" aria-label="حقائق أساسية">
             <span class="fact">Windows 10 / 11</span>
             <span class="fact">مجاني · كود مصدري MIT</span>
-            <span class="fact">بلا حساب</span>
+            <span class="fact">لا يلزم حساب</span>
             <span class="fact">بلا قياس عن بُعد</span>
             <span class="fact">13 لغة واجهة</span>
           </div>
@@ -183,7 +195,7 @@
         <aside class="status-card" aria-labelledby="status-title">
           <span class="status-label">الحالة الحالية</span>
           <h2 id="status-title">تم الإصدار</h2>
-          <p>تم إصدار STREAMS Player وهو مجاني. شغّل المثبِّت من أحدث إصدار على GitHub، أو احصل عليه من Microsoft Store، أو خذ ملف ZIP المحمول، أو ثبّته عبر winget - بلا حساب، وبلا إعلانات، وبلا قياس عن بُعد.</p>
+          <p>تم إصدار STREAMS Player وهو مجاني. شغّل المثبِّت من أحدث إصدار على GitHub، أو احصل عليه من Microsoft Store، أو خذ ملف ZIP المحمول، أو ثبّته عبر winget - بلا حساب إلزامي، وبلا إعلانات، وبلا قياس عن بُعد.</p>
           <div class="status-links">
             <a class="button button-primary button-small" href="https://apps.microsoft.com/detail/9NBTD5SXB8TB">Microsoft Store</a>
             <a class="button button-ghost button-small" href="#distribution">من أين تحصل عليه</a>
@@ -201,7 +213,7 @@
       <section class="section" id="what" aria-labelledby="what-title">
         <h2 class="section-heading" id="what-title"><span class="hash">#</span><span>ما هو ولماذا</span></h2>
         <p class="section-description">STREAMS Player تطبيق سطح مكتب مستقل لنظام Windows، لراديو الإنترنت والفيديو المباشر وكاميرات شبكة RTSP. يقرأ كتالوج بث عامًّا ومنسَّقًا، فتحصل على قائمة قنوات جاهزة للعمل من أول تشغيل - ثم تبحث وترتّب وتثبّت وتضيف قنواتك الخاصة، وكل ذلك محفوظ محليًا على جهازك.</p>
-        <p class="section-description">الهدف هو الهدوء: مشغل يبقى مشغلًا. لا يُحدَّث الكتالوج إلا عندما تطلب ذلك، ولا يستبدل أي تحديث عمليات البث التي أضفتها يدويًا أو استوردتها، ولا وجود لحساب أو إعلانات أو تحليلات أو خدمة يديرها المؤلف. ما يعمل على حاسوبك هو ما شغّلته أنت.</p>
+        <p class="section-description">الهدف هو الهدوء: مشغل يبقى مشغلًا. لا يُحدَّث الكتالوج إلا عندما تطلب ذلك، ولا يستبدل أي تحديث عمليات البث التي أضفتها يدويًا أو استوردتها، ولا حاجة لحساب ولا وجود لإعلانات أو تحليلات أو خدمة يديرها المؤلف. ما يعمل على حاسوبك هو ما شغّلته أنت.</p>
       </section>
 
       <section class="section" id="features" aria-labelledby="features-title">
@@ -251,10 +263,10 @@
           <article class="card cap">
             <h3><span class="tag">05</span><span>اجعله لك</span></h3>
             <ul>
-              <li>أضف بثًا بعنوان URL، بلا حساب.</li>
+              <li>أضف بثًا بعنوان URL، بلا حساب إلزامي.</li>
               <li>عمليات البث التي أضفتها واستوردتها تبقى بعد تحديثات الكتالوج. وقناة الكتالوج التي ثبَّتها أو شغّلتها تُحفظ ولا تُحذف حين يتوقف الكتالوج عن إدراجها.</li>
               <li>احفظ علامات التشغيل محليًا: نجح أو فشل.</li>
-              <li>بدّل الواجهة كلها بين ثلاث عشرة لغة؛ ويُستعاد اختيارك.</li>
+              <li>بدّل الواجهة كلها بين 13 لغة؛ ويُستعاد اختيارك.</li>
               <li>اجمع القنوات في مجموعات خاصة بك تسمّيها بنفسك، واستعرض مجموعة واحدة في كل مرة.</li>
               <li>سجل خاص «المشغَّلة حديثًا» لآخر 100 قناة، مع المقطع الذي كان يُذاع حينها - يُحفظ على حاسوبك ويُمسح عندما تطلب ذلك.</li>
               <li>استورد القنوات من ملف M3U أو من عنوان URL لقائمة تشغيل، مع معاينة قبل إضافة أي شيء، وصدّر قنواتك الخاصة أو المثبَّتة إلى M3U.</li>
@@ -309,11 +321,14 @@
             </div>
           </li>
         </ol>
+        <div class="button-group">
+          <a class="button button-gold button-small" href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">التوثيق</a>
+        </div>
       </section>
 
       <section class="section" id="distribution" aria-labelledby="distribution-title">
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>التوزيع</span></h2>
-        <p class="section-description">طرق التوزيع الأربع كلها متاحة. شغّل المثبِّت من أحدث إصدار على GitHub، أو احصل عليه من Microsoft Store، أو نزّل ملف ZIP المحمول، أو ثبّته بالأمر <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
+        <p class="section-description">طرق التوزيع كلها متاحة. شغّل المثبِّت من أحدث إصدار على GitHub، أو احصل عليه من Microsoft Store، أو نزّل ملف ZIP المحمول، أو ثبّته بالأمر <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
         <div class="distribution-grid">
           <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
             <span class="channel-mark">EXE</span>
@@ -342,12 +357,28 @@
     </main>
 
     <footer class="site-footer">
+      <!-- PAGE-CONTENT "The landing always carries" items 5 and 6: every sibling tool of SITE-FAMILY-MAP section 2
+           except this product, name and type; then the author's links. -->
+      <div class="container">
+        <h2 class="footer-heading">أدوات أخرى</h2>
+        <div class="tools-grid">
+          <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>Fast Media Sorter &amp; Organizer</b><span>فارز وسائط لنظام Android</span></a>
+          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>فارز وسائط لنظام Windows</span></a>
+          <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>مصحح تخطيط لوحة المفاتيح لنظام Windows</span></a>
+          <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>محوّل كتب إلكترونية لنظام Windows</span></a>
+          <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>أداة سطر أوامر للتخزين على Windows</span></a>
+          <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>مشغّل في علبة النظام لنظام Windows</span></a>
+          <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>منهجية التطوير بالذكاء الاصطناعي</span></a>
+          <a href="https://sza.od.ua/"><b>SZA</b><span>معرض الأعمال</span></a>
+        </div>
+      </div>
       <div class="container footer-row">
-        <span>© 2026 Serhii Zhyhunenko</span>
+        <span>© 2026 <a href="https://sza.od.ua/">Serhii Zhyhunenko</a></span>
         <span class="footer-links">
+          <a href="../ar/#distribution">التنزيل</a>
+          <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">التوثيق</a>
           <a href="privacy.html">الخصوصية</a>
           <a href="trust.html">مساعدة التثبيت</a>
-          <a href="https://sza.od.ua/">أدوات أخرى</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
           <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
         </span>

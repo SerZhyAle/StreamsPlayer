@@ -377,7 +377,8 @@
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
                                             <Border x:Name="HeaderBorder" Background="{DynamicResource CardSelectedBrush}"
-                                                    CornerRadius="4" Padding="10,9" SnapsToDevicePixels="True">
+                                                    CornerRadius="4" Padding="10,9" SnapsToDevicePixels="True"
+                                                    BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderBrush}">
                                                 <StackPanel Orientation="Horizontal">
                                                     <Viewbox Width="14" Height="14" VerticalAlignment="Center" Margin="0,0,9,0"
                                                              FlowDirection="LeftToRight">
@@ -720,13 +721,13 @@
                 </Setter>
             </Style>
             <Style x:Key="PlayerOverlaySaveFrameGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphOnlyButton}">
-                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.media.capture-frame}" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.capture-frame}" />
             </Style>
             <Style x:Key="PlayerOverlayRecordGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphOnlyButton}">
                 <Setter Property="Background" Value="#FFFF9800" />
                 <Setter Property="Foreground" Value="White" />
                 <Setter Property="BorderBrush" Value="#FFF57C00" />
-                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.media.record}" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.record}" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="Background" Value="#FFFFA726" />
@@ -874,7 +875,7 @@
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.app.settings}" />
             </Style>
             <Style x:Key="HiddenGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
-                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.source.hidden}" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.source.hidden}" />
             </Style>
             <Style x:Key="ClearInputGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.clear-input}" />
@@ -929,7 +930,7 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
-            <!-- SP-0113: content.video, content.audio and (pending) the own-channels mark. -->
+            <!-- SP-0113: content.video, content.audio and the own-channels mark, source.own. -->
             <Style x:Key="QuickVideoFilterButton" TargetType="Button" BasedOn="{StaticResource QuickMediaFilterButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.content.video}" />
             </Style>
@@ -937,10 +938,9 @@
             <Style x:Key="QuickAudioFilterButton" TargetType="Button" BasedOn="{StaticResource QuickMediaFilterButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.content.audio}" />
             </Style>
-            <!-- SP-0100: "the channels I brought", added by hand or imported. Pending in the vocabulary
-                 (Glyphs.map.json), so it keeps this product's drawing until the owner decides. -->
+            <!-- SP-0100: "the channels I brought", added by hand or imported - the source.own glyph. -->
             <Style x:Key="QuickOwnFilterButton" TargetType="Button" BasedOn="{StaticResource QuickMediaFilterButton}">
-                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.source.own}" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.source.own}" />
             </Style>
             <!-- SP-0034 decision 2: media transport glyphs are direction-independent by convention and
                  must not mirror with the layout. Left to inherit, WPF would flip this triangle to point
@@ -982,7 +982,7 @@
             <Style x:Key="RecordGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
                 <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
-                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.media.record}" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.record}" />
             </Style>
             <Style x:Key="StopRecordGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
@@ -1009,20 +1009,20 @@
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.random}" />
             </Style>
             <!-- SP-0113: the compact panel is media.picture-in-picture ("keep playing in a small floating
-                 window"); the way back is pending in the vocabulary. The four corners these two drew are
-                 media.fullscreen and media.exit-fullscreen, which the player already shows. -->
+                 window") and the way back is media.exit-picture-in-picture. The four corners these two drew
+                 are media.fullscreen and media.exit-fullscreen, which the player already shows. -->
             <Style x:Key="PictureInPictureGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.picture-in-picture}" />
             </Style>
             <Style x:Key="FullWindowGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="FlowDirection" Value="LeftToRight" />
-                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.media.exit-picture-in-picture}" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.exit-picture-in-picture}" />
             </Style>
             <!-- The compact panel has no system caption, so it carries its own window buttons
                  (SP-0182: always-on-top is an entry of its overflow menu, not a button). -->
             <Style x:Key="MinimizeGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
-                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.window.minimize}" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.nav.minimize}" />
             </Style>
             <Style x:Key="CloseGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.nav.close}" />
@@ -1040,7 +1040,7 @@
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.reset}" />
             </Style>
             <Style x:Key="ChooseFolderGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
-                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.action.choose-folder}" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.choose-folder}" />
             </Style>
             <!-- SP-0191: the settings header's expand/collapse-all commands (WINDOWS-UI 2.3). Glyph-only,
                  so each carries a localized accessible name and tooltip at the call site. These sit after

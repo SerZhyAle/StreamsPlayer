@@ -95,7 +95,9 @@ function Get-CoreContract {
 # success, @{ Window = <cause> } when the attempt hit the publish window (a 404, a body shorter than declared,
 # a ZIP that does not open), and throws on anything else - the same split PublishWindowRetry.Classify makes.
 function Receive-BankOnce {
-    param([System.Net.Http.HttpClient] $Client, [string] $Url, [long] $MaximumBytes)
+    # SP-0184 (S2-6): HttpClient.Timeout ends with the response headers under ResponseHeadersRead, so the body read
+    # carries a deadline of its own - a stalled server would otherwise hold the release script forever.
+    param([System.Net.Http.HttpClient] $Client, [string] $Url, [long] $MaximumBytes, [int] $BodyTimeoutSeconds = 300)
 
     $response = $Client.GetAsync($Url, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).GetAwaiter().GetResult()
     try {
@@ -110,10 +112,14 @@ function Receive-BankOnce {
         $buffer = [System.IO.MemoryStream]::new()
         $chunk = [byte[]]::new(81920)
         $source = $response.Content.ReadAsStream()
+        $deadline = [System.Threading.CancellationTokenSource]::new([TimeSpan]::FromSeconds($BodyTimeoutSeconds))
         try {
             while ($true) {
-                try { $read = $source.Read($chunk, 0, $chunk.Length) }
+                try { $read = $source.ReadAsync($chunk, 0, $chunk.Length, $deadline.Token).GetAwaiter().GetResult() }
                 catch {
+                    if ($_.Exception -is [System.OperationCanceledException]) {
+                        throw "$Url did not finish sending within $BodyTimeoutSeconds seconds; download stopped."
+                    }
                     for ($e = $_.Exception; $e; $e = $e.InnerException) {
                         if ($e -is [System.IO.IOException]) { return [pscustomobject]@{ Window = 'ShortRead' } }
                     }
@@ -126,7 +132,7 @@ function Receive-BankOnce {
                 $buffer.Write($chunk, 0, $read)
             }
         }
-        finally { $source.Dispose() }
+        finally { $deadline.Dispose(); $source.Dispose() }
         if ($null -ne $declared -and $buffer.Length -ne $declared) { return [pscustomobject]@{ Window = 'ShortRead' } }
 
         $bytes = $buffer.ToArray()
@@ -322,9 +328,13 @@ function Write-SnapshotZip {
 
     $directory = Split-Path -Parent $Path
     if (-not (Test-Path -LiteralPath $directory)) { New-Item -ItemType Directory -Path $directory | Out-Null }
-    if (Test-Path -LiteralPath $Path) { Remove-Item -LiteralPath $Path -Force }
 
-    $stream = [System.IO.File]::Open($Path, [System.IO.FileMode]::CreateNew)
+    # SP-0184 (S2-5): the archive is written beside the target and moved over it only when complete, so a failure
+    # part-way never leaves the tracked snapshot deleted or half-written.
+    $temporary = "$Path.tmp"
+    if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Force }
+
+    $stream = [System.IO.File]::Open($temporary, [System.IO.FileMode]::CreateNew)
     try {
         $archive = New-Object System.IO.Compression.ZipArchive($stream, [System.IO.Compression.ZipArchiveMode]::Create)
         try {
@@ -335,7 +345,13 @@ function Write-SnapshotZip {
         }
         finally { $archive.Dispose() }
     }
-    finally { $stream.Dispose() }
+    catch {
+        $stream.Dispose()
+        Remove-Item -LiteralPath $temporary -Force -ErrorAction SilentlyContinue
+        throw
+    }
+    $stream.Dispose()
+    [System.IO.File]::Move($temporary, $Path, $true)
 }
 
 function Add-ZipEntry {
@@ -422,6 +438,9 @@ function Test-Snapshot {
             }
 
             $rows = Measure-CsvChannels -Csv ([System.Text.Encoding]::UTF8.GetString((Read-ZipEntryBytes -Archive $archive -Name 'streams.csv')))
+            # SP-0184 (S2-4): a snapshot with no channels is structurally valid and useless - the first-run window
+            # would offer nothing - so the check fails it rather than reporting "OK, 0 channels".
+            if ($rows -le 0) { throw 'The catalog snapshot holds no channels: streams.csv has no record with both a name and a url.' }
             Write-Host "Catalog snapshot OK: $size bytes of $MaximumBytes, $rows channels, taken $($parsed.ToString('yyyy-MM-dd'))."
             if ($null -ne $PublishedDate) {
                 Write-Host "Not older than the published bank (published $(([datetimeoffset] $PublishedDate).ToString('u')))."

@@ -37,6 +37,18 @@ public static class StreamLaunchArguments
         return $"{idOnly} --url \"{channel.Url.Trim()}\"";
     }
 
+    /// <summary>
+    /// SP-0184: the line to paste into PowerShell, where a quoted path alone is an expression rather than a
+    /// command and needs the call operator. The path is single-quoted so a <c>$</c> or a backtick in a user-profile
+    /// folder name is not expanded; the arguments need no escaping because <see cref="CanCarry"/> already keeps
+    /// every character PowerShell treats specially out of the address.
+    /// </summary>
+    public static string ForPowerShell(string executablePath, StreamChannel channel)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(executablePath);
+        return $"& '{executablePath.Replace("'", "''", StringComparison.Ordinal)}' {For(channel)}";
+    }
+
     /// <summary>Whether this channel's generated arguments contain its address as a fallback.</summary>
     public static bool CarriesAddress(StreamChannel channel)
     {
@@ -89,10 +101,38 @@ public static class StreamLaunchArguments
         // Release audit 26.1001.0140: the copied launch command is pasted into a shell. PowerShell expands $(..)
         // and $var inside double quotes, and cmd expands %NAME% inside them, so such an address would run or
         // change. The channel then falls back to its id, which needs nothing quoted.
-        !CmdVariableToken.IsMatch(url!);
+        !ContainsCmdVariable(url!);
 
+    /// <summary>
+    /// A candidate <c>%NAME%</c>. The closing percent is only looked ahead at, not consumed, so two tokens
+    /// that share a percent sign are both examined.
+    /// </summary>
     private static readonly System.Text.RegularExpressions.Regex CmdVariableToken = new(
-        "%[A-Za-z_][A-Za-z0-9_()]*%",
+        "%[A-Za-z_][A-Za-z0-9_()]*(?=%)",
         System.Text.RegularExpressions.RegexOptions.CultureInvariant,
         TimeSpan.FromMilliseconds(100));
+
+    /// <summary>
+    /// SP-0184 (A16-2): whether the address holds a <c>%NAME%</c> that cmd would expand. A percent-encoded
+    /// path (<c>caf%C3%A9</c>, <c>%C3%A9t%C3%A9</c>) also reads as <c>%NAME%</c> to the pattern, but there both
+    /// percent signs begin a valid <c>%HH</c> escape, and an address that merely contains non-ASCII text lost
+    /// its shortcut fallback for it. A token whose opening and closing percent each start a hex pair is an
+    /// escape sequence; <c>%DATE%</c> and <c>%CD%</c> followed by anything else still count as variables.
+    /// </summary>
+    private static bool ContainsCmdVariable(string url)
+    {
+        foreach (System.Text.RegularExpressions.Match token in CmdVariableToken.Matches(url))
+        {
+            var closing = token.Index + token.Length;
+            if (!(StartsHexPair(url, token.Index + 1) && StartsHexPair(url, closing + 1)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool StartsHexPair(string text, int index) =>
+        index + 1 < text.Length && char.IsAsciiHexDigit(text[index]) && char.IsAsciiHexDigit(text[index + 1]);
 }

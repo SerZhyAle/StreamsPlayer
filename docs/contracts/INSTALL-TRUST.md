@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `INSTALL-TRUST` |
-| **Version** | 1.1 (active) |
+| **Version** | 1.2 (active) |
 | **Home** | `Contracts/install-trust/README.md`, with the reference rendering in `TRUST_GUIDE.md` |
 | **Owner** | shared - amendments through the home page |
 | **This product's role** | **producer**, adopted 2026-09-24 (SP-0105) |
@@ -27,3 +27,8 @@ quoted dialogs, and no rule-4 instruction in the English source. Rule 5 is met b
 "Install for all users" elevation - the one the installer's install-mode dialog allows - and rule 6 by the
 `trust-never-*` list, which says what the `privacy-*` keys and the Store data-safety answers
 (`msix/store-listing.md`) say. Change one of those three and the other two change in the same edit.
+
+**1.2, read 2026-10-07 (SP-0206).** Item K: the per-file "Unblock" checkbox is not a permitted instruction. No page, README, installer
+text or localization carries one (the word appears only in the English template comment, which is not rendered text, and in two
+unrelated source comments). `InstallTrustPageTests` now also fails on an "unblock" instruction in the English deck. Item L (the
+reference rendering restructured) changes nothing here: the page already has the four sections in the contract's order.

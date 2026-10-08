@@ -20,6 +20,12 @@ public sealed class VideoFrameCaptureService : IAsyncDisposable
     // SP-0166: how many capture players a hung stop may leave behind before capture pauses for the session.
     private readonly AbandonedEngineBudget _abandoned;
     private readonly Action<string, string[]>? _diagnostics;
+    // S4-1: the LibVLC instance must outlive every capture still inside it - a worker the coordinator's stop
+    // gave up on, and a player abandoned to a hung native stop. Each holds the instance; DisposeAsync only
+    // marks the service, and the last hold to be released (or DisposeAsync itself, when none is held) frees it.
+    private int _holds;
+    private int _disposeRequested;
+    private int _libVlcDisposed;
 
     public VideoFrameCaptureService(Action<string, string[]>? diagnostics = null, AbandonedEngineBudget? abandoned = null)
     {
@@ -38,6 +44,38 @@ public sealed class VideoFrameCaptureService : IAsyncDisposable
     public bool IsPaused => _abandoned.IsPaused;
 
     public async Task<BitmapSource?> CaptureAsync(string url, CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _holds);
+        try
+        {
+            // Disposal was requested while this call was on its way in: the instance may already be gone.
+            return Volatile.Read(ref _disposeRequested) != 0
+                ? null
+                : await CaptureCoreAsync(url, cancellationToken);
+        }
+        finally
+        {
+            ReleaseHold();
+        }
+    }
+
+    private void ReleaseHold()
+    {
+        if (Interlocked.Decrement(ref _holds) == 0 && Volatile.Read(ref _disposeRequested) != 0)
+        {
+            DisposeLibVlcOnce();
+        }
+    }
+
+    private void DisposeLibVlcOnce()
+    {
+        if (Interlocked.Exchange(ref _libVlcDisposed, 1) == 0)
+        {
+            _libVlc.Dispose();
+        }
+    }
+
+    private async Task<BitmapSource?> CaptureCoreAsync(string url, CancellationToken cancellationToken)
     {
         if (_abandoned.IsPaused)
         {
@@ -168,12 +206,14 @@ public sealed class VideoFrameCaptureService : IAsyncDisposable
             // behind it. The player is abandoned instead, and released by whoever the stop finally returns
             // to; until then it keeps the buffer pinned and the callbacks alive, exactly as it must.
             abandoned = true;
+            Interlocked.Increment(ref _holds); // the abandoned player still uses the LibVLC instance
             _ = stop.ContinueWith(
                 completed =>
                 {
                     _ = completed.Exception; // a failed stop still ends in the release below
                     ReleasePlayer(mediaPlayer, pinnedPixels, lockCallback, displayCallback);
                     _abandoned.RecordReleased();
+                    ReleaseHold();
                 },
                 CancellationToken.None,
                 TaskContinuationOptions.None,
@@ -245,7 +285,12 @@ public sealed class VideoFrameCaptureService : IAsyncDisposable
 
     public ValueTask DisposeAsync()
     {
-        _libVlc.Dispose();
+        Interlocked.Exchange(ref _disposeRequested, 1); // a full fence: the hold count is read after the flag is visible
+        if (Volatile.Read(ref _holds) == 0)
+        {
+            DisposeLibVlcOnce();
+        }
+
         return ValueTask.CompletedTask;
     }
 }

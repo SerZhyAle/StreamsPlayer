@@ -6,6 +6,7 @@ namespace StreamsPlayer.App;
 public partial class MainWindow
 {
     private FastMediaSorterAudioPlayback? _fastMediaSorterAudioPlayback;
+    private ExchangeTunnelForwarder? _fastMediaSorterAudioForwarder;
     private int _fastMediaSorterAudioGeneration;
     private int _fastMediaSorterAudioLegs;
 
@@ -35,7 +36,9 @@ public partial class MainWindow
         // FMS streams have no ICY metadata. More importantly, the reader would consume a second watch
         // listener slot, so this route deliberately never calls StartNowPlayingMetadata.
         StopNowPlayingMetadata();
-        _ = OpenFastMediaSorterAudioAsync(playback, generation, leg, channel, reconnecting, _audioRecoveryCts?.Token ?? CancellationToken.None);
+        var openToken = _audioRecoveryCts?.Token ?? CancellationToken.None;
+        HandlerBoundary.Run(nameof(OpenFastMediaSorterAudioAsync),
+            () => OpenFastMediaSorterAudioAsync(playback, generation, leg, channel, reconnecting, openToken));
     }
 
     private async Task OpenFastMediaSorterAudioAsync(
@@ -46,37 +49,123 @@ public partial class MainWindow
         bool reconnecting,
         CancellationToken cancellationToken)
     {
-        // SP-0124: a FastMediaSorter row is http by construction, and PlayChannelAsync has refused anything
-        // unlaunchable already. Should one get here, nothing is opened and the open budget started above
-        // ends the session by the ordinary route, which is also what releases this playback.
-        if (!LaunchableAddress.TryParseHttp(channel.Url, out var endpoint))
-        {
-            return;
-        }
+        // SP-0203: the leg walks the descriptor's attempts in the producer's listed order, skipping a
+        // transport it cannot open; a reconnect calls this path afresh, which is the restart at the
+        // top. A row with no descriptor (the recognisable legacy address) stays the single attempt
+        // it always was.
+        var attempts = channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints()
+            ?? [new FastMediaSorterBroadcastEndpoint(channel.Url, "HTTP", null, null, null, null, null, null, null)];
 
         var volume = _pendingAudioVolume ?? (_stateCommitter?.Requested ?? _state).AudioVolume;
-        var result = await playback.StartAsync(endpoint, volume, cancellationToken);
-        if (!IsCurrentFastMediaSorterPlayback(playback, generation, channel) || result.Cancelled)
+        FastMediaSorterAudioOpenResult result = new(null, TimeSpan.Zero, null, Cancelled: false);
+        string reason = "unsupported_address";
+        int playedAt = -1;
+        for (var index = 0; index < attempts.Count; index++)
         {
-            playback.Dispose();
-            return;
+            var endpoint = attempts[index];
+            ExchangeTunnelForwarder? forwarder = null;
+            Uri? address = null;
+            if (endpoint is { Transport: "TUNNEL", Inner: { Length: > 0 } inner } &&
+                ExchangeTunnelUrl.TryParse(endpoint.Url, out var tunnelUrl))
+            {
+                try
+                {
+                    forwarder = ExchangeTunnelForwarder.Start(tunnelUrl, inner, endpoint.CertFingerprint);
+                    _fastMediaSorterAudioForwarder = forwarder;
+                    if (LaunchableAddress.TryParseHttp(forwarder.LoopbackUrl, out var loopbackEndpoint))
+                    {
+                        address = loopbackEndpoint;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _log.Event("FMS AUDIO TUNNEL ERROR", $"err={ex.Message}", $"url={channel.Url}");
+                }
+            }
+            else if (LaunchableAddress.TryParseHttp(endpoint.Url, out var directEndpoint))
+            {
+                address = directEndpoint;
+            }
+
+            if (address is null)
+            {
+                forwarder?.Dispose();
+                if (ReferenceEquals(_fastMediaSorterAudioForwarder, forwarder))
+                {
+                    _fastMediaSorterAudioForwarder = null;
+                }
+
+                LogFastMediaSorterAudioAttempt(leg, reconnecting, index, endpoint, "unsupported_address", result);
+                continue;
+            }
+
+            // File 12 section 6.2's one number on record is the LAN connect bound; a relay or tunnel
+            // attempt keeps the handler default behind the 15 s header budget, a direct http attempt
+            // may not sit on connect past 1.5 s before the list moves on.
+            var connectTimeout =
+                address.Scheme == Uri.UriSchemeHttp && string.Equals(endpoint.Transport, "HTTP", StringComparison.OrdinalIgnoreCase)
+                    ? FastMediaSorterPlaybackTransport.LanConnectTimeout
+                    : (TimeSpan?)null;
+
+            result = await playback.StartAsync(address, volume, cancellationToken, connectTimeout, endpoint.CertFingerprint);
+            if (!IsCurrentFastMediaSorterPlayback(playback, generation, channel) || result.Cancelled)
+            {
+                playback.Dispose();
+                forwarder?.Dispose();
+                return;
+            }
+
+            if (result.Started)
+            {
+                playedAt = index;
+                break;
+            }
+
+            reason = result.Error is not null ? result.Error.GetType().Name : "refused";
+            LogFastMediaSorterAudioAttempt(leg, reconnecting, index, endpoint, reason, result);
+            forwarder?.Dispose();
+            if (ReferenceEquals(_fastMediaSorterAudioForwarder, forwarder))
+            {
+                _fastMediaSorterAudioForwarder = null;
+            }
         }
 
         _log.Event("FMS AUDIO RESPONSE",
             $"leg={leg}",
             $"reconnecting={reconnecting}",
+            $"attempt={playedAt}",
             $"http={result.StatusCode?.ToString() ?? "n/a"}",
             $"response_ms={result.ResponseElapsed.TotalMilliseconds:F0}",
             $"buffer_ms={FastMediaSorterAudioPlayback.BufferTargetMilliseconds}",
             $"url={channel.Url}");
-        if (result.Started)
+        if (playedAt >= 0)
         {
             return;
         }
 
         _audioOpenTimer.Stop();
-        await HandleFastMediaSorterAudioFailureAsync(channel, result.Error?.GetType().Name ?? "open_failed", result.StatusCode);
+        // The leg's verdict is its last attempt's: a relay 503 behind a dead LAN address still means
+        // the door itself answered, and the listener-limit rule reads that answer, not the LAN's.
+        await HandleFastMediaSorterAudioFailureAsync(channel, reason, result.StatusCode);
     }
+
+    private void LogFastMediaSorterAudioAttempt(
+        int leg,
+        bool reconnecting,
+        int index,
+        FastMediaSorterBroadcastEndpoint endpoint,
+        string outcome,
+        FastMediaSorterAudioOpenResult result) =>
+        _log.Event("FMS AUDIO ATTEMPT",
+            $"leg={leg}",
+            $"reconnecting={reconnecting}",
+            $"attempt={index}",
+            $"transport={endpoint.Transport ?? "n/a"}",
+            $"outcome={outcome}",
+            $"http={result.StatusCode?.ToString() ?? "n/a"}",
+            $"elapsed_ms={result.ResponseElapsed.TotalMilliseconds:F0}",
+            // The sink redacts a relay address's broadcast id; the host and port stay for diagnosis.
+            $"url={endpoint.Url}");
 
     private void FastMediaSorterAudioPlayback_Playing(object? sender, FastMediaSorterAudioPlaybackEventArgs e)
     {
@@ -156,6 +245,10 @@ public partial class MainWindow
     private void StopFastMediaSorterAudioPlayback()
     {
         _fastMediaSorterAudioGeneration++;
+        var forwarder = _fastMediaSorterAudioForwarder;
+        _fastMediaSorterAudioForwarder = null;
+        forwarder?.Dispose();
+
         var playback = _fastMediaSorterAudioPlayback;
         _fastMediaSorterAudioPlayback = null;
         if (playback is not null)

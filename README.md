@@ -25,7 +25,7 @@
 > - it installs for the current user and needs no administrator rights - or get
 > it on the [Microsoft Store](https://apps.microsoft.com/detail/9NBTD5SXB8TB),
 > take the portable ZIP from the same release, or use
-> `winget install SerZhyAle.StreamsPlayer`. No account, no ads, no
+> `winget install SerZhyAle.StreamsPlayer`. No account required, no ads, no
 > telemetry; the source is MIT.
 >
 > The installer, the ZIP and the winget package are not code-signed, so Windows
@@ -435,6 +435,8 @@ yourself). Local data leaves your device only if you
 send it yourself - **Send logs to the author** prepares an archive and a message in
 your own mail program, and never sends anything on its own. See the
 [privacy page](https://serzhyale.github.io/StreamsPlayer/privacy.html) for details.
+
+The optional Exchange source in Library settings connects to your own server over TLS. Enrollment sends your login, password or pairing code, device identity, product version and receiver capabilities. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Every certificate leaf needs your explicit approval, including after renewal. The password and pairing code are discarded. The account, token and certificate pin are protected for your Windows user in a separate file; removing the account forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
 
 ## Ownership and license
 

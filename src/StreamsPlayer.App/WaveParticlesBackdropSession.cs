@@ -91,7 +91,10 @@ public sealed class WaveParticlesBackdropSession
         var carried = _front ?? _inherited;
         _inherited = null;
         _front = new RenderTargetBitmap(width, height, Dpi, Dpi, PixelFormats.Pbgra32);
-        _back = new RenderTargetBitmap(width, height, Dpi, Dpi, PixelFormats.Pbgra32);
+        // S3-2: the second target is allocated by the first Draw that needs it. A drag-resize re-enters here at
+        // every size and used to allocate a pair each time, though a still session or one that is not ticking
+        // never draws into the second one.
+        _back = null;
         var bounds = new Rect(0, 0, width, height);
         using (var dc = _visual.RenderOpen())
         {
@@ -186,7 +189,8 @@ public sealed class WaveParticlesBackdropSession
             }
         }
 
-        _back!.Clear();
+        _back ??= new RenderTargetBitmap(_front.PixelWidth, _front.PixelHeight, Dpi, Dpi, PixelFormats.Pbgra32);
+        _back.Clear();
         _back.Render(_visual);
         (_front, _back) = (_back, _front);
         _lastWash = wash;

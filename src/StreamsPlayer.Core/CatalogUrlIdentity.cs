@@ -45,6 +45,12 @@ public static partial class CatalogUrlIdentity
     /// Idempotent identity: trim, and for an absolute URI lower-case scheme and host while preserving
     /// port, path, query, and fragment. Non-absolute or unparsable input is returned trimmed, unchanged.
     /// </summary>
+    /// <remarks>
+    /// Userinfo (<c>user:pass@</c>) is deliberately <b>not</b> part of the identity: it is rebuilt from
+    /// scheme, host and port only, so <c>http://u:p@host/x</c> and <c>http://host/x</c> are the same stream
+    /// (the same address with and without its login is one channel for hiding and de-duplication), and an
+    /// identity string never carries a password into a file or a log (SP-0184, S12-3).
+    /// </remarks>
     public static string Normalize(string url)
     {
         if (string.IsNullOrWhiteSpace(url))
@@ -100,6 +106,18 @@ public static partial class CatalogUrlIdentity
         if (!Uri.TryCreate(trimmed, UriKind.Absolute, out var uri))
         {
             return RedactText(trimmed);
+        }
+
+        // SP-0184 (S12-2): a digits-only password with a "/" parses as host:port plus a path, so the
+        // secret sits in plain sight; the text redactor knows the shape, hand it over whole.
+        var authorityFrom = trimmed.IndexOf("://", StringComparison.Ordinal) + 3;
+        if (authorityFrom >= 3)
+        {
+            var authorityTo = trimmed.IndexOfAny(['/', '?', '#'], authorityFrom);
+            if (authorityTo >= 0 && TryFindNumericPasswordSplit(trimmed, authorityFrom, authorityTo, out _))
+            {
+                return RedactText(trimmed);
+            }
         }
 
         var scheme = uri.Scheme.ToLowerInvariant();
@@ -179,16 +197,12 @@ public static partial class CatalogUrlIdentity
             }
             else
             {
-                at = hostAt;
-                var hostEnd = token.IndexOfAny(['/', '?', '#'], at + 1);
-                if (hostEnd < 0)
-                {
-                    hostEnd = token.Length;
-                }
-
-                authority = token[(at + 1)..hostEnd];
-                authorityEnd = hostEnd;
+                (authority, authorityEnd) = HostAfterUserInfo(token, hostAt);
             }
+        }
+        else if (TryFindNumericPasswordSplit(token, authorityStart, authorityEnd, out var passwordHostAt))
+        {
+            (authority, authorityEnd) = HostAfterUserInfo(token, passwordHostAt);
         }
 
         var rest = token[authorityEnd..];
@@ -209,6 +223,58 @@ public static partial class CatalogUrlIdentity
         }
 
         return token[..authorityStart] + authority + path + tail;
+    }
+
+    /// <summary>The host that follows the userinfo-closing <c>@</c> at <paramref name="at"/>, and where it ends.</summary>
+    private static (string Host, int End) HostAfterUserInfo(string token, int at)
+    {
+        var hostEnd = token.IndexOfAny(['/', '?', '#'], at + 1);
+        if (hostEnd < 0)
+        {
+            hostEnd = token.Length;
+        }
+
+        return (token[(at + 1)..hostEnd], hostEnd);
+    }
+
+    /// <summary>
+    /// SP-0184 (S12-2): a password made only of digits and containing <c>/</c> (<c>user:1234/ab@host/x</c>)
+    /// leaves an authority, <c>user:1234</c>, that is indistinguishable from a legitimate <c>host:port</c>,
+    /// so <see cref="LooksLikeCutUserInfo"/> lets it through and the secret survives. The way to tell the two
+    /// apart is what follows: a later host-shaped <c>@</c> with no query punctuation between it and the
+    /// authority. A real <c>host:8080/path?mail=a@b.example</c> has <c>?</c> or <c>=</c> in that gap and is
+    /// left alone; a plain-path <c>host:8080/a@b.example</c> is the one shape the heuristic still redacts
+    /// wrongly, which is the right side to err on for a credential rule.
+    /// </summary>
+    private static bool TryFindNumericPasswordSplit(string text, int authorityStart, int authorityEnd, out int hostAt)
+    {
+        hostAt = -1;
+        var authority = text[authorityStart..authorityEnd];
+        if (authority.StartsWith('['))
+        {
+            return false;
+        }
+
+        var colon = authority.LastIndexOf(':');
+        if (colon <= 0)
+        {
+            return false;
+        }
+
+        var port = authority[(colon + 1)..];
+        if (port.Length == 0 || !port.All(char.IsAsciiDigit))
+        {
+            return false;
+        }
+
+        var candidate = IndexOfHostAt(text, authorityEnd);
+        if (candidate < 0 || text[authorityEnd..candidate].IndexOfAny(['?', '#', '&', '=']) >= 0)
+        {
+            return false;
+        }
+
+        hostAt = candidate;
+        return true;
     }
 
     /// <summary>

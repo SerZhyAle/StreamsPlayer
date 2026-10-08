@@ -21,6 +21,16 @@ public sealed class StreamLaunchArgumentsTests
         Assert.True(StreamLaunchArguments.CarriesAddress(channel));
     }
 
+    [Fact]
+    public void ForPowerShell_StartsWithTheCallOperatorAndSingleQuotesThePath()
+    {
+        var channel = Channel(Address);
+
+        Assert.Equal(
+            $"& 'C:\\Users\\O''Neil $x\\StreamsPlayer.exe' --id \"{channel.Id:D}\" --url \"{Address}\"",
+            StreamLaunchArguments.ForPowerShell("C:\\Users\\O'Neil $x\\StreamsPlayer.exe", channel));
+    }
+
     [Theory]
     [InlineData("rtsp://user:pass@camera.example/x")]
     [InlineData("https://host.example/x?token=abc")]
@@ -50,6 +60,9 @@ public sealed class StreamLaunchArgumentsTests
     [InlineData("https://example.test/live?x=$HOME")]
     [InlineData("https://example.test/a`b.mp3")]
     [InlineData("https://example.test/%USERNAME%.mp3")]
+    [InlineData("https://example.test/%DATE%/live.mp3")]
+    [InlineData("https://example.test/%CD%")]
+    [InlineData("https://example.test/%C3%A9/%USERNAME%.mp3")]
     public void For_LeavesOutAnAddressTheCommandLineCannotCarry(string url)
     {
         var channel = Channel(url);
@@ -57,6 +70,19 @@ public sealed class StreamLaunchArgumentsTests
         Assert.Equal($"--id \"{channel.Id:D}\"", StreamLaunchArguments.For(channel));
     }
 
+    // SP-0184 (A16-2): non-ASCII text in a path is percent-encoded, and "%C3%A9t%C3%A9" is not a cmd variable.
+    [Theory]
+    [InlineData("https://example.test/caf%C3%A9.mp3")]
+    [InlineData("https://example.test/%C3%A9t%C3%A9/live.mp3")]
+    [InlineData("https://example.test/%E4%B8%AD%E6%96%87/stream")]
+    [InlineData("https://example.test/a%20b%20c")]
+    public void For_KeepsTheAddressOfAPercentEncodedPath(string url)
+    {
+        var channel = Channel(url);
+
+        Assert.True(StreamLaunchArguments.CarriesAddress(channel));
+        Assert.Equal($"--id \"{channel.Id:D}\" --url \"{url}\"", StreamLaunchArguments.For(channel));
+    }
     [Fact]
     public void For_LeavesOutAnAddressThatWouldOverflowAShortcut()
     {

@@ -54,17 +54,38 @@ internal sealed class SystemMediaControls : IDisposable
     /// </summary>
     internal static SystemMediaControls? TryCreate()
     {
+        // A5-3: the player is the native media session; until the controls own it, a throw anywhere below must
+        // release it here or it stays registered with the system for the life of the process.
+        MediaPlayer? player = null;
         try
         {
-            var player = new MediaPlayer();
+            player = new MediaPlayer();
             // Drive the transport controls by hand instead of from a (non-existent) media source.
             player.CommandManager.IsEnabled = false;
-            return new SystemMediaControls(player, SynchronizationContext.Current);
+            var controls = new SystemMediaControls(player, SynchronizationContext.Current);
+            player = null; // handed over: the controls' Dispose releases it
+            return controls;
         }
         catch (Exception exception) when (exception is TypeLoadException or PlatformNotSupportedException
             or COMException or InvalidOperationException or NotSupportedException)
         {
             return null;
+        }
+        finally
+        {
+            ReleaseUnowned(player);
+        }
+    }
+
+    private static void ReleaseUnowned(MediaPlayer? player)
+    {
+        try
+        {
+            player?.Dispose();
+        }
+        catch (Exception exception) when (exception is COMException or InvalidOperationException or ObjectDisposedException)
+        {
+            // Releasing is best effort on a path that already reports "unavailable"; nothing else is left to do.
         }
     }
 

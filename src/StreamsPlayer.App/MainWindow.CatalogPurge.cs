@@ -26,15 +26,15 @@ public partial class MainWindow
         }
 
         CatalogPurgeResult? purge = null;
-        await PersistAsync(state =>
-        {
-            purge = CatalogPurge.RemoveDownloaded(state);
-            var collections = purge.RemovedChannelIds.Aggregate(
-                (IReadOnlyList<ChannelCollection>)purge.State.Collections,
-                ChannelCollections.RemoveChannelEverywhere);
-            return purge.State with { Collections = [.. collections] };
-        });
-        if (purge is null)
+        // SP-0184 S11-4: a purge that did not reach the disk removes nothing - no row is forgotten, no count reported.
+        if (!await TryPersistAsync(state =>
+            {
+                purge = CatalogPurge.RemoveDownloaded(state);
+                var collections = purge.RemovedChannelIds.Aggregate(
+                    (IReadOnlyList<ChannelCollection>)purge.State.Collections,
+                    ChannelCollections.RemoveChannelEverywhere);
+                return purge.State with { Collections = [.. collections] };
+            }) || purge is null)
         {
             return;
         }
@@ -52,7 +52,7 @@ public partial class MainWindow
 
     private async Task DeleteImportedCatalogAsync(Window owner)
     {
-        var count = CatalogPurge.CountImportedBank(_state.Channels);
+        var count = CatalogPurge.CountImportedBank(_state);
         if (count == 0)
         {
             MessageBox.Show(owner, LocalizationService.Get("DeleteImportedCatalogNone"),
@@ -68,15 +68,14 @@ public partial class MainWindow
         }
 
         CatalogPurgeResult? purge = null;
-        await PersistAsync(state =>
-        {
-            purge = CatalogPurge.RemoveImportedBank(state);
-            var collections = purge.RemovedChannelIds.Aggregate(
-                (IReadOnlyList<ChannelCollection>)purge.State.Collections,
-                ChannelCollections.RemoveChannelEverywhere);
-            return purge.State with { Collections = [.. collections] };
-        });
-        if (purge is null)
+        if (!await TryPersistAsync(state =>
+            {
+                purge = CatalogPurge.RemoveImportedBank(state);
+                var collections = purge.RemovedChannelIds.Aggregate(
+                    (IReadOnlyList<ChannelCollection>)purge.State.Collections,
+                    ChannelCollections.RemoveChannelEverywhere);
+                return purge.State with { Collections = [.. collections] };
+            }) || purge is null)
         {
             return;
         }

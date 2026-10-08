@@ -165,9 +165,21 @@ internal sealed class CurrentLog : IDisposable
         byte[] tail;
         try
         {
-            tail = new byte[length - tailStart];
-            stream.Seek(tailStart, SeekOrigin.Begin);
-            stream.ReadExactly(tail);
+            // S8-4: both cut points are moved to a line boundary. A byte offset lands mid-line and, in
+            // a line carrying a non-ASCII path or title, mid-UTF-8 sequence; the kept head and tail would
+            // then begin or end with a torn record and a decoder replacement character. 0x0A never occurs
+            // inside a multi-byte UTF-8 sequence, so a newline is a safe place for a byte cut.
+            var head = new byte[headLen];
+            stream.Seek(0, SeekOrigin.Begin);
+            stream.ReadExactly(head);
+            headLen = EndOfLastWholeLine(head);
+
+            // Read one byte before the tail so a cut that already sits on a line start is recognised.
+            var from = Math.Max(0, tailStart - 1);
+            var window = new byte[length - from];
+            stream.Seek(from, SeekOrigin.Begin);
+            stream.ReadExactly(window);
+            tail = tailStart == 0 ? window : window[StartOfFirstWholeLine(window)..];
         }
         catch (Exception exception)
         {
@@ -181,8 +193,8 @@ internal sealed class CurrentLog : IDisposable
         try
         {
             // Head and tail are bytes Write already redacted; the tail is copied, not written anew.
+            // The head now ends on a line break, so the marker starts a fresh line without a spacer.
             stream.Seek(headLen, SeekOrigin.Begin);
-            logWriter.WriteLine();
             logWriter.WriteLine($"{DateTimeOffset.UtcNow:O} [Diag] {Flatten($"LOG COMPACTED | dropped_middle_bytes={dropped} | kept_head_bytes={headLen} | kept_tail_bytes={tail.Length}")}");
             logWriter.BaseStream.Write(tail);
             stream.SetLength(stream.Position);
@@ -197,6 +209,20 @@ internal sealed class CurrentLog : IDisposable
             stream.Seek(0, SeekOrigin.End);
             CompactionFailed(logWriter, "rewrite", exception, staleFrom);
         }
+    }
+
+    /// <summary>The length of <paramref name="head"/> up to and including its last line break; 0 when it has none.</summary>
+    private static int EndOfLastWholeLine(ReadOnlySpan<byte> head) => head.LastIndexOf((byte)'\n') + 1;
+
+    /// <summary>
+    /// Where the first complete line of <paramref name="window"/> starts, the window's first byte being the
+    /// one just before the cut: a line break there means the cut is already on a line start. The window's
+    /// length when it holds no line break at all.
+    /// </summary>
+    private static int StartOfFirstWholeLine(ReadOnlySpan<byte> window)
+    {
+        var lineBreak = window.IndexOf((byte)'\n');
+        return lineBreak < 0 ? window.Length : lineBreak + 1;
     }
 
     private void CompactionFailed(StreamWriter logWriter, string stage, Exception exception, long? staleFrom)
@@ -223,5 +249,5 @@ internal sealed class CurrentLog : IDisposable
     // here covers every call site, including ones not written yet. Line breaks are flattened so each record
     // stays on one line. LogSinkRedactionSourceTests fails a WriteLine in this file that skips this method.
     private string Flatten(string message) =>
-        _paths.Redact(CatalogUrlIdentity.RedactText(message)).ReplaceLineEndings(" | ");
+        _paths.Redact(ExchangeDiagnosticRedactor.Redact(CatalogUrlIdentity.RedactText(message))).ReplaceLineEndings(" | ");
 }

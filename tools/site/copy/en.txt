@@ -6,6 +6,8 @@
 #   [[email]]   - the contact address
 #   [[hash]]    - the Get-FileHash command that checks a download against its .sha256 file
 #   [[installdir]] - the per-user install folder, %LOCALAPPDATA%\Programs\StreamsPlayer
+#   [[languages]] - how many interface languages ship (rendered from the language registry, never typed)
+#   [[windows]]   - the minimum Windows, as the site names it (rendered from the project, never typed)
 # machine-note is rendered only on machine-translated pages (every language except en, ru and uk),
 # but the key is present in every file so the key sets stay comparable.
 
@@ -41,6 +43,8 @@ GitHub
 
 @@theme-label
 Switch color theme
+@@theme-name
+Theme
 
 @@lang-label
 Site language
@@ -52,7 +56,7 @@ Primary navigation
 STREAMS Player icon
 
 @@hero-eyebrow
-STREAMS Player · Windows 10 / 11
+[[windows]]
 
 @@hero-title
 Radio, live video and RTSP, in one player.
@@ -61,25 +65,25 @@ Radio, live video and RTSP, in one player.
 Internet radio · Live video · RTSP
 
 @@hero-description
-A focused Windows desktop app: browse a curated catalog, add your own streams, and play them - no account, no ads, nothing running in the background you did not ask for.
+A focused Windows desktop app: browse a curated catalog, add your own streams, and play them - no account required, no ads, nothing running in the background you did not ask for.
 
 @@facts-label
 Key facts
 
 @@fact-windows
-Windows 10 / 11
+[[windows]]
 
 @@fact-free
 Free · MIT source
 
 @@fact-account
-No account
+No account required
 
 @@fact-telemetry
 No telemetry
 
 @@fact-langs
-13 interface languages
+[[languages]] interface languages
 
 @@hero-download
 Download (.exe)
@@ -100,7 +104,7 @@ Current status
 Released
 
 @@status-description
-STREAMS Player is released and free. Run the installer from the latest GitHub Release, get it on the Microsoft Store, take the portable ZIP, or use winget - no account, no ads, no telemetry.
+STREAMS Player is released and free. Run the installer from the latest GitHub Release, get it on the Microsoft Store, take the portable ZIP, or use winget - no account required, no ads, no telemetry.
 
 @@status-source
 Microsoft Store
@@ -118,7 +122,7 @@ What it is & why
 STREAMS Player is an independent Windows desktop app for internet radio, live video, and RTSP network cameras. It reads a curated, public stream catalog so you get a working list of channels on first run - then lets you search, sort, pin, and add your own, all stored locally on your machine.
 
 @@what-p2
-The point is calm: a player that stays a player. The catalog refreshes only when you ask, your manually added and imported streams are never overwritten by an update, and there is no account, advertising, analytics, or author-run service. What runs on your PC is what you started.
+The point is calm: a player that stays a player. The catalog refreshes only when you ask, your manually added and imported streams are never overwritten by an update, and no account is required and there is no advertising, analytics, or author-run service. What runs on your PC is what you started.
 
 @@features-title
 What it can do
@@ -202,7 +206,7 @@ Automatic preview updates can be turned off.
 Make it yours
 
 @@cap-yours-1
-Add a stream by URL, no account.
+Add a stream by URL, no account required.
 
 @@cap-yours-2
 Your added and imported streams survive catalog updates. A catalog channel you pinned or played is kept, not deleted, when the catalog stops listing it.
@@ -211,7 +215,7 @@ Your added and imported streams survive catalog updates. A catalog channel you p
 Keep local OK / fail playback marks.
 
 @@cap-yours-4
-Switch the whole interface between thirteen languages; the choice is restored.
+Switch the whole interface between [[languages]] languages; the choice is restored.
 
 @@cap-yours-5
 Group channels into named collections of your own and browse one at a time.
@@ -273,7 +277,7 @@ Open Settings from the gear button in the header (or the [[glyph:nav.more]] Oper
 Distribution
 
 @@distribution-description
-All four channels are available. Run the installer from the latest GitHub Release, get it from the Microsoft Store, download the portable ZIP, or install with [[command]].
+All channels are available. Run the installer from the latest GitHub Release, get it from the Microsoft Store, download the portable ZIP, or install with [[command]].
 
 @@channel-setup
 Installer (.exe)
@@ -300,18 +304,25 @@ STREAMS Player · Privacy
 Private by default.
 
 @@privacy-intro
-STREAMS Player has no account, advertising, analytics, telemetry, or service operated by the author.
+No account is required for ordinary playback. The optional exchange account belongs to your own server. There is no advertising, analytics, telemetry or service operated by the author.
 
 @@privacy-network-title
 Network access
 
 @@privacy-network
-The application connects only on your action, and only to the place that action needs: the public stream catalog and the optional preview pack offered after it, downloaded from GitHub when you import the catalog or accept the pack; the provider of a stream you play, record or open About channel for, or whose video preview refreshes while Grid mode is visible; a FastMediaSorter phone or watch you imported, reached directly on your local network; and, only if you ask for them in Settings on the Playback page, the optional FFmpeg libraries for the experimental FlyleafLib engine, downloaded from a third-party GitHub project (BtbN/FFmpeg-Builds). Each request goes straight to that destination and is subject to its policies; none passes through a service run by the author. A TV schedule is downloaded only from the address you enter yourself in Settings on the Library page, once each time you press Download schedule, and never in the background.
+The application connects only on your action, and only to the place that action needs: the public stream catalog and the optional preview pack offered after it, downloaded from GitHub when you import the catalog or accept the pack; the provider of a stream you play, record or open About channel for, or whose video preview refreshes while Grid mode is visible; a FastMediaSorter phone or watch you imported, reached directly on your local network; and, only if you ask for them in Settings on the Playback page, the optional FFmpeg libraries for the experimental FlyleafLib engine, downloaded from a third-party GitHub project (BtbN/FFmpeg-Builds). Each request goes straight to that destination and is subject to its policies; none passes through a service run by the author. A TV schedule is downloaded only from the address you enter yourself in Settings on the Library page, once each time you press Download schedule, and never in the background. The optional Exchange source in Library settings connects to your own server over TLS. Enrollment sends your login, password or pairing code, device identity, product version and receiver capabilities. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Every certificate leaf needs your explicit approval, including after renewal. 
+
+@@privacy-site-title
+This website
+
+@@privacy-site
+This section is about this website, not the application. Every page loads its typefaces from Google Fonts: your browser requests a stylesheet from fonts.googleapis.com and the font files from fonts.gstatic.com, so Google receives your IP address, your browser details and the address of the page you are reading. The home page also asks api.github.com once for the latest release, so that the installer button points at the current file; GitHub receives your IP address and your browser details. The pages themselves are served by GitHub Pages (serzhyale.github.io). The site has no analytics, advertising or tracking, sets no cookies, and keeps only your theme and language choice in your browser's local storage. Each of these services is subject to its own policy; none is operated by the author.
 @@privacy-local-title
 Local data
 
 @@privacy-local
-STREAMS Player stores its catalog state, your added and imported channels, pins, collections, hidden channels, listening history, playback marks, cached preview frames within a 150 MB budget, the optional FFmpeg libraries if you downloaded them, and the diagnostic logs of the last ten launches under [[appdata]]. Recordings and saved frames go to the folders you choose for them, or by default to Recordings in Videos, Recordings in Music and Frames in Pictures. This data stays on your device unless you copy or back it up - or unless you use Send logs to the author in Settings on the About page, which packs those diagnostic logs plus your app version, Windows version and settings into an archive and opens your mail program so you can attach and send it to [[email]]. That archive is prepared only when you press that button, the logs in it name the streams that were played, and nothing is ever sent without you pressing Send in your own mail program. A TV schedule you downloaded and your schedule channel choices are kept there too; Remove schedule in Settings deletes both.
+STREAMS Player stores its catalog state, your added and imported channels, pins, collections, hidden channels, listening history, playback marks, cached preview frames within a 150 MB budget, the optional FFmpeg libraries if you downloaded them, and the diagnostic logs of the last ten launches under [[appdata]]. Recordings and saved frames go to the folders you choose for them, or by default to Recordings in Videos, Recordings in Music and Frames in Pictures. This data stays on your device unless you copy or back it up - or unless you use Send logs to the author in Settings on the About page, which packs those diagnostic logs plus your app version, Windows version and settings into an archive and opens your mail program so you can attach and send it to [[email]]. That archive is prepared only when you press that button, the logs in it name the streams that were played, and nothing is ever sent without you pressing Send in your own mail program. A TV schedule you downloaded and your schedule channel choices are kept there too; Remove schedule in Settings deletes both. The password and pairing code are discarded. The account, token and certificate pin are protected for your Windows user in a separate file; removing the account forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
+
 @@privacy-contact-title
 Contact
 
@@ -409,7 +420,7 @@ What STREAMS Player never does
 It never needs administrator rights to install or run, never adds itself to Windows startup, and installs no background service.
 
 @@trust-never-2
-It has no account, advertising, analytics or telemetry, and no service run by the author that your data passes through.
+No account is required for ordinary playback. The optional exchange account belongs to your own server. There is no advertising, analytics, telemetry or service operated by the author.
 
 @@trust-never-3
 It connects only when you act, and only to what that action needs: the public stream catalog and its optional preview pack on GitHub, the provider of a stream you play, record or preview, a FastMediaSorter phone or watch on your own network, and the optional FFmpeg libraries if you ask for them in Settings. A TV schedule is fetched only from an address you enter yourself, and only when you press Download schedule.
@@ -425,10 +436,43 @@ Uninstalling it never deletes your channels, pins or history - they stay in [[ap
 Read the privacy page
 
 @@footer-rights
-© 2026 Serhii Zhyhunenko
+© 2026
 
 @@footer-tools
 More tools
+
+@@footer-author
+Serhii Zhyhunenko
+
+@@footer-download
+Download
+
+@@nav-docs
+Documentation
+
+@@type-ai-method
+AI development method
+
+@@type-android-sorter
+Android media sorter
+
+@@type-ebook-converter
+Windows ebook converter
+
+@@type-layout-fixer
+Windows layout fixer
+
+@@type-portfolio
+Portfolio
+
+@@type-storage-cli
+Windows storage CLI
+
+@@type-tray-launcher
+Windows tray launcher
+
+@@type-windows-sorter
+Windows media sorter
 
 @@to-top
 Back to top

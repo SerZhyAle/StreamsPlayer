@@ -1,0 +1,11 @@
+# Vendored web files - docs/assets/sza-kit.css is a byte-identical copy of the reference stylesheet of the
+# PAGE-STYLE contract (owner: sza.od.ua portfolio hub; PAGE-STYLE 1.6 kit revision of 2026-10-07, SP-0209,
+# SITE-EXPERIENCE 0.1 rule 1).
+# The file is never edited here: a page extends it through docs/style.css, linked after it
+# (PAGE-STYLE section 5). To take a newer kit, copy the file over, replace the hash below, rebuild the
+# site and re-read docs/style.css against it. The kit's --wide is now 100% (full width, PAGE-CONTENT 1.3
+# "Layout contract"); a revision that brings a width cap back is a regression (owner decision 2026-10-06).
+# docs/assets/wave-particles.js is the same for the WAVE-PARTICLES reference implementation (the site backdrop).
+# tools/site/build-site.ps1 -Check fails when the served file stops matching this hash.
+sza-kit.css  27501A1078653B78A7150250857313625BFE884BCC41A1272B7D7D483CEF2895
+wave-particles.js  DD90A5B307152BF5A5B326CE0274922329BDB9EEFDC98C66DCCDCCC02CAB1444

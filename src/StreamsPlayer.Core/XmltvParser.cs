@@ -373,7 +373,10 @@ public static class XmltvParser
         }
 
         var text = string.Join(' ', value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-        return TextBoundary.Truncate(text, TvScheduleLimits.MaximumTextLength).TrimEnd();
+        // SP-0184 (S16-4): Truncate never splits a text element, so a first element longer than the limit
+        // leaves nothing. That is "no text", the same as a blank one, and not an empty id or title.
+        var clipped = TextBoundary.Truncate(text, TvScheduleLimits.MaximumTextLength).TrimEnd();
+        return clipped.Length == 0 ? null : clipped;
     }
 
     /// <summary>

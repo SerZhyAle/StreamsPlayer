@@ -113,7 +113,12 @@ public partial class PlayerWindow : Window
     // inverse in scope. Note the clocks are different on purpose: _freeze is fed HealthNow (the session
     // clock, which must span reconnects), this one is fed _playbackClock, which restarts per leg -
     // feeding it the session clock would expire the second re-open the instant it began.
-    private readonly PlaybackOpenBudget _openBudget = new();
+    // SP-0203: the budget is recreated per attempt, because the dead-source slice is the current
+    // endpoint's own connect bound - a LAN attempt moves on after 4 s, an exchange attempt keeps 8 s.
+    private PlaybackOpenBudget _openBudget = new();
+    // SP-0203: the attempt's own clock, restarted with every attempt (and every leg), is the input
+    // the dead-source branch judges; the leg clock keeps the deadline leg-scoped.
+    private bool _firstByteLogged;
     // SP-0096 criterion 6: a terminal failure is announced once. The budget expiring in the same second
     // as an engine error is a real race, and ShowFailureDialog is modal - a second call would stack a
     // dialog behind the first.
@@ -379,7 +384,7 @@ public partial class PlayerWindow : Window
             }
 
             _onThumbnail?.Invoke(_channel.Url, ToIconSize(frame));
-            _ = SaveFrameFileAsync(frame);
+            HandlerBoundary.Run(nameof(SaveFrameFileAsync), () => SaveFrameFileAsync(frame));
         });
     }
 
@@ -512,7 +517,22 @@ public partial class PlayerWindow : Window
         }
 
         var received = _backend.ReadReceivedBytes();
-        var verdict = _openBudget.Observe(TimeSpan.FromMilliseconds(_playbackClock.ElapsedMilliseconds), received);
+        // SP-0203: the dead-source branch judges the attempt's own clock, the deadline the leg's -
+        // a list of silent endpoints may not stretch one leg without end.
+        var sinceAttempt = TimeSpan.FromMilliseconds(_attemptClock.ElapsedMilliseconds);
+        var sinceLeg = TimeSpan.FromMilliseconds(_playbackClock.ElapsedMilliseconds);
+        var verdict = _openBudget.Observe(sinceLeg, sinceAttempt, received);
+        if (!_firstByteLogged && received is { } firstBytes && firstBytes > 0)
+        {
+            // Open question 1: time to first byte is recorded apart from time to first picture, and
+            // neither is claimed against a budget.
+            _firstByteLogged = true;
+            _log.Event("PLAYBACK FIRST BYTE",
+                $"attempt={_attemptIndex}",
+                $"at_ms={sinceAttempt.TotalMilliseconds:F0}",
+                $"url={AttemptUrl()}");
+        }
+
         if (verdict == PlaybackOpenVerdict.None)
         {
             return;
@@ -522,6 +542,7 @@ public partial class PlayerWindow : Window
             $"rule={(verdict == PlaybackOpenVerdict.DeadSource ? "dead_source" : "deadline")}",
             $"at_ms={_playbackClock.ElapsedMilliseconds}",
             $"leg={_legCount}",
+            $"attempt={_attemptIndex}",
             $"bytes={received?.ToString() ?? "n/a"}",
             $"url={_channel.Url}");
 
@@ -529,6 +550,14 @@ public partial class PlayerWindow : Window
         // verdict below applies to it, and the rung it left is re-opened instead.
         if (TryAbandonFailedProbe(verdict == PlaybackOpenVerdict.DeadSource ? "dead_source" : "deadline"))
         {
+            return;
+        }
+
+        // SP-0203: this attempt said nothing (or outlived the leg); the producer ranked another one
+        // behind it. The move costs no recovery budget and restarts the attempt's own supervision.
+        if (CanAdvanceAttempt())
+        {
+            _ = AdvanceAttemptAsync(_backend, verdict == PlaybackOpenVerdict.DeadSource ? "attempt_dead_source" : "attempt_deadline");
             return;
         }
 
@@ -734,6 +763,14 @@ public partial class PlayerWindow : Window
         {
             if (!_closing && !_failureShown && ReferenceEquals(source, _backend))
             {
+                // SP-0203: an engine error before the first picture is this attempt's failure; the
+                // producer's next endpoint gets its turn before any recovery is spent.
+                if (CanAdvanceAttempt())
+                {
+                    _ = AdvanceAttemptAsync(_backend, "engine_error");
+                    return;
+                }
+
                 _ = RecoverAsync(new PlaybackFailureSignal("encountered_error"));
             }
         });
@@ -854,9 +891,12 @@ public partial class PlayerWindow : Window
             // twenty seconds to answer, so asking again buys nothing but more of the wait being cut.
             // SP-0041: the same fresh-open condition selects the connectivity gate, so a stream that was
             // already playing (stall, end, behind-live) is never gated and gains no latency (Decision 6).
+            // SP-0203 (rule 5): a broadcast address is one listener slot - the probe pair never opens a
+            // second request to it; the recovery policy runs on the signal the leg itself produced.
             var enriched = signal;
             var reachability = PlaybackReachability.NotProbed;
-            if (signal.HttpStatusCode is null && !signal.Stall && !signal.EndReached && !signal.BehindLiveWindow && !signal.OpenTimedOut)
+            if (signal.HttpStatusCode is null && !signal.Stall && !signal.EndReached && !signal.BehindLiveWindow && !signal.OpenTimedOut &&
+                !FastMediaSorterBroadcastImport.IsFastMediaSorterBroadcast(_channel))
             {
                 reachability = await StreamReachabilityProbe.ProbeAsync(_channel.Url, _sessionCts.Token);
                 if (_closing)
@@ -1068,7 +1108,7 @@ public partial class PlayerWindow : Window
                 _ = RetryAfterFailureAsync();
                 break;
             case PlaybackFailureChoice.Remove:
-                _ = RemoveAndCloseAsync();
+                HandlerBoundary.Run(nameof(RemoveAndCloseAsync), RemoveAndCloseAsync);
                 break;
         }
     }
@@ -1444,6 +1484,7 @@ public partial class PlayerWindow : Window
         _watchdogTimer.Stop();
         _watchdogTimer.Tick -= WatchdogTimer_Tick;
         DetachBackendEvents(_backend);
+        DisposeAttemptResource();
 
         // The backend tears the native engine down off the UI thread (Stop()/Dispose() block until
         // worker threads settle; on a flapping stream that can take seconds and would freeze the

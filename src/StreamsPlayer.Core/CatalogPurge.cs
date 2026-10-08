@@ -3,7 +3,7 @@ namespace StreamsPlayer.Core;
 /// <summary>
 /// SP-0030 & SP-0098: explicit, user-confirmed removal of catalog rows:
 /// - <see cref="RemoveDownloaded"/> removes only <see cref="SourceOrigin.Catalog"/> rows that are not user-authored.
-/// - <see cref="RemoveImportedBank"/> removes only <see cref="SourceOrigin.LocalCatalog"/> rows.
+/// - <see cref="RemoveImportedBank"/> removes only <see cref="SourceOrigin.LocalCatalog"/> rows that are not user-authored.
 /// User-authored content (pinned channels, collection memberships, listening history) is preserved.
 /// </summary>
 public static class CatalogPurge
@@ -49,13 +49,23 @@ public static class CatalogPurge
             removedIds);
     }
 
-    public static int CountImportedBank(IEnumerable<StreamChannel> channels) =>
-        channels.Count(channel => channel.SourceOrigin == SourceOrigin.LocalCatalog);
+    /// <summary>
+    /// SP-0184 A14-1: counts the imported-bank rows a purge would remove - those carrying nothing the user made,
+    /// the same rule <see cref="CountDownloaded"/> applies.
+    /// </summary>
+    public static int CountImportedBank(CatalogState state)
+    {
+        var authoredIds = UserAuthoredChannels.Identify(state);
+        return state.Channels.Count(channel =>
+            channel.SourceOrigin == SourceOrigin.LocalCatalog && !authoredIds.Contains(channel.Id));
+    }
 
     public static CatalogPurgeResult RemoveImportedBank(CatalogState state)
     {
+        // SP-0184 A14-1: a pinned, collected or listened-to row is the user's work and stays, as in RemoveDownloaded.
+        var authoredIds = UserAuthoredChannels.Identify(state);
         var removedIds = state.Channels
-            .Where(channel => channel.SourceOrigin == SourceOrigin.LocalCatalog)
+            .Where(channel => channel.SourceOrigin == SourceOrigin.LocalCatalog && !authoredIds.Contains(channel.Id))
             .Select(channel => channel.Id)
             .ToList();
 
@@ -64,8 +74,9 @@ public static class CatalogPurge
             return new CatalogPurgeResult(state, []);
         }
 
+        var removed = removedIds.ToHashSet();
         var kept = state.Channels
-            .Where(channel => channel.SourceOrigin != SourceOrigin.LocalCatalog)
+            .Where(channel => !removed.Contains(channel.Id))
             .ToList();
 
         var newState = state with { Channels = kept };

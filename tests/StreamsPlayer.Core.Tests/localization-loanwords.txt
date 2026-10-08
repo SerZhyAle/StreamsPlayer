@@ -140,3 +140,14 @@ bn:FrameRateValue   # "fps" is written in Latin script in Bengali media software
 
 # --- Urdu ---
 ur:FrameRateValue   # "fps" is written in Latin script in Urdu media software, like "kbps".
+de:ExchangePort # Port is the standard German networking term.
+fr:ExchangePort # Port is the French networking term.
+it:ExchangePassword # Password is the standard Italian interface term.
+
+# SP-0201: the broadcasts view's presence and mode labels.
+de:BroadcastsOnline # "online" is the ordinary German presence word (Duden).
+de:BroadcastsOffline # "offline" is the ordinary German presence word (Duden).
+de:BroadcastsAudio # "Audio" is German.
+es:BroadcastsAudio # "Audio" is the Spanish media word (RAE: anglicism in normal use).
+fr:BroadcastsAudio # "Audio" is the French media word.
+it:BroadcastsAudio # "Audio" is Italian.

@@ -17,10 +17,15 @@ try {
         $verdict = switch ($checkExit) { 1 { 'FAIL' } 2 { 'CANNOT VERIFY' } default { 'UNKNOWN' } }
         throw "Release-parity check did not pass: $verdict (exit $checkExit). Nothing was staged or committed."
     }
-    git diff --check
-    if ($LASTEXITCODE -ne 0) { throw 'Whitespace validation failed. Nothing was staged or committed.' }
     git add --all
     if ($LASTEXITCODE -ne 0) { throw "Staging failed (exit $LASTEXITCODE)." }
+    # SP-0184 (S2-7): the whitespace check judges what is about to be committed. Run before staging it only saw
+    # unstaged edits to tracked files and skipped every new file; the staged diff covers both.
+    git diff --cached --check
+    if ($LASTEXITCODE -ne 0) {
+        git reset --quiet
+        throw 'Whitespace validation failed. The staging was undone and nothing was committed.'
+    }
     git diff --cached --quiet
     if ($LASTEXITCODE -eq 0) { throw 'Nothing to commit.' }
     git commit -m $Message

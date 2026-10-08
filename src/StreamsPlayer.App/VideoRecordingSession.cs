@@ -1,3 +1,5 @@
+using StreamsPlayer.Core;
+
 namespace StreamsPlayer.App;
 
 /// <summary>
@@ -42,7 +44,23 @@ internal sealed class VideoRecordingSession
     {
         lock (_gate)
         {
-            _finishing.Add(RecordingFinisher.FinishAsync(segment, _log));
+            _finishing.Add(FinishContainedAsync(segment));
+        }
+    }
+
+    // S3-3: one segment whose finish throws must not take the other segments' outcomes down with it - the
+    // WhenAll in CompleteAsync would rethrow and the whole recording would report nothing. The fault is logged
+    // and the segment is reported as stranded where its file may still be.
+    private async Task<IReadOnlyList<SegmentResult>> FinishContainedAsync(RecordingSegment segment)
+    {
+        try
+        {
+            return await RecordingFinisher.FinishAsync(segment, _log).ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            _log.Event("RECORD FINISH", [$"engine={segment.Engine}", "fate=stranded", "reason=finish_fault", .. FaultLogFields.Of(exception)]);
+            return [new SegmentResult(SegmentFate.Stranded, segment.KnownFile ?? segment.StagingDirectories.FirstOrDefault(), segment.Length, exception.GetType().Name)];
         }
     }
 

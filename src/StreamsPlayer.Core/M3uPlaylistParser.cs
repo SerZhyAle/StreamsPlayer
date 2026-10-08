@@ -3,9 +3,11 @@ namespace StreamsPlayer.Core;
 /// <summary>
 /// Outcome of analysing an M3U/M3U8 body for import. <see cref="Status"/> distinguishes a normal list from
 /// an HLS media manifest (import zero) and an empty list. Counts are disjoint per source line:
-/// New = launchable and not already stored; Duplicate = launchable but the exact URL is already stored;
+/// New = launchable and not already stored; Duplicate = launchable but the same URL identity is already stored;
 /// Invalid = a non-comment line that is not a launchable http/https/rtsp URL; Skipped = a launchable URL
-/// repeated within the same file.
+/// repeated within the same file (by URL identity, not spelling). <see cref="Truncated"/> is set when the body
+/// held more new channels than <see cref="M3uPlaylistParser.MaximumNewEntries"/>: reading stopped there, so
+/// the counts cover only the lines read up to that point (SP-0184, S14-2).
 /// </summary>
 public sealed record M3uImportPreview(
     M3uImportStatus Status,
@@ -13,7 +15,8 @@ public sealed record M3uImportPreview(
     int NewCount,
     int DuplicateCount,
     int InvalidCount,
-    int SkippedCount);
+    int SkippedCount,
+    bool Truncated = false);
 
 public enum M3uImportStatus
 {
@@ -24,13 +27,22 @@ public enum M3uImportStatus
 
 public static class M3uPlaylistParser
 {
+    /// <summary>
+    /// The most new channels one import takes. The byte ceiling of <see cref="M3uImportService"/> alone
+    /// still admits millions of one-line entries, each of which becomes a stored channel and a row in a
+    /// document that every save rewrites whole; the shipped bank is an order of magnitude below this.
+    /// </summary>
+    public const int MaximumNewEntries = 100_000;
+
     /// <summary>Launchable, in-file-deduplicated channels from an M3U body, ignoring what is already stored.</summary>
     public static IReadOnlyList<CatalogEntry> Parse(string text) =>
         Analyze(text, new HashSet<string>(StringComparer.Ordinal)).NewEntries;
 
     /// <summary>
-    /// Categorise an M3U body against the URLs already stored (exact ordinal match, the authoritative
-    /// de-duplication key). Never mutates state; the caller applies <see cref="M3uImportPreview.NewEntries"/>.
+    /// Categorise an M3U body against the URLs already stored. Two URLs are the same stream when their
+    /// <see cref="CatalogUrlIdentity.Normalize"/> identities match (scheme and host case, default port), the
+    /// same key the hidden-channel check uses (SP-0184 S11-7). Never mutates state; the caller applies
+    /// <see cref="M3uImportPreview.NewEntries"/>.
     /// </summary>
     public static M3uImportPreview Analyze(string text, ISet<string> existingUrls)
     {
@@ -39,12 +51,15 @@ public static class M3uPlaylistParser
             return new M3uImportPreview(M3uImportStatus.HlsManifest, [], 0, 0, 0, 0);
         }
 
+        var existingIdentities = new HashSet<string>(
+            existingUrls.Select(CatalogUrlIdentity.Normalize), StringComparer.Ordinal);
         var newEntries = new List<CatalogEntry>();
         var seenInFile = new HashSet<string>(StringComparer.Ordinal);
         var duplicate = 0;
         var invalid = 0;
         var skipped = 0;
         var candidateLines = 0;
+        var truncated = false;
         string? nextTitle = null;
 
         foreach (var originalLine in text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n'))
@@ -69,18 +84,25 @@ public static class M3uPlaylistParser
                 continue;
             }
 
-            if (!seenInFile.Add(line))
+            var identity = CatalogUrlIdentity.Normalize(line);
+            if (!seenInFile.Add(identity))
             {
                 skipped++;
                 nextTitle = null;
                 continue;
             }
 
-            if (existingUrls.Contains(line))
+            if (existingIdentities.Contains(identity))
             {
                 duplicate++;
                 nextTitle = null;
                 continue;
+            }
+
+            if (newEntries.Count >= MaximumNewEntries)
+            {
+                truncated = true;
+                break;
             }
 
             var title = string.IsNullOrWhiteSpace(nextTitle) ? LaunchableAddress.HostOf(line) : nextTitle;
@@ -98,7 +120,7 @@ public static class M3uPlaylistParser
         }
 
         var status = candidateLines == 0 ? M3uImportStatus.Empty : M3uImportStatus.Ok;
-        return new M3uImportPreview(status, newEntries, newEntries.Count, duplicate, invalid, skipped);
+        return new M3uImportPreview(status, newEntries, newEntries.Count, duplicate, invalid, skipped, truncated);
     }
 
     /// <summary>

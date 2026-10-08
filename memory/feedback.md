@@ -47,3 +47,15 @@ type: feedback
   `## ✅ Checklist`, `## 📦 Manifest Checklist`) and a `This PR only modifies one (1) manifest` box
   that did not exist in July. Fetch it every time; never reproduce a remembered copy.
 
+
+## Site and documentation pages use the full available width (2026-10-06)
+
+The owner objected that generated HTML (landing, privacy, trust) rendered as a narrow centred column. The contracts already say it: `PAGE-CONTENT` "Layout contract" and `PAGE-STYLE` section 1 - ordinary text starts at the container's left edge and has no arbitrary narrow max-width; only cards and disclosure groups may constrain themselves. The kit's `--wide:1100px` is the contradicting, owner-unresolved value, so a copied cap (here `--wide:1180px` plus 760-860 px text caps) is a defect, not a house style. **Why:** the earlier SP-0192 read of the contracts looked at structure and missed the layout paragraph. **How to apply:** before touching or measuring any page, read the layout paragraph of `PAGE-CONTENT`/`PAGE-STYLE`, and check a new page in a browser at a wide viewport (container width against `innerWidth`), not only the markup.
+
+## The brand backdrop sits behind the text, slow and faint (2026-10-06)
+
+The owner, looking at a site whose hero wave animation ran through the headline and body copy unreadably, stated the rule for a branded animated background: the animation is *behind* the text, the text sits on semi-transparent plates and stays readable, and the motion is slow and pale (faint). This product's site has only the slow, low-opacity blurred glow blobs (`.background-glow`); no wave/particle backdrop exists here.
+
+**Why:** an effect that competes with the copy fails `SITE-EXPERIENCE` rule 8 (contrast of rule 17 behind text) and the owner's own reading of it.
+
+**How to apply:** before adding or restyling a hero backdrop (`WAVE-PARTICLES`), keep it slow, low-opacity and under plates; do not strengthen the existing blobs. Not part of SP-0195.

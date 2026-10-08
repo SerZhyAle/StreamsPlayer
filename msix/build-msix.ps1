@@ -7,6 +7,12 @@
   fills AppxManifest.xml and packs the resulting application. Use -SelfSign
   only for local testing; Partner Center packages must remain unsigned.
 
+  SP-0190: the packed archive is read back and judged by msix/Assert-MsixPackage.ps1 against the reserved
+  identity, the version derived from the tag, the absence of a signature on the upload and the presence of
+  THIRD-PARTY-NOTICES.txt (WINDOWS-STORE rules 1-4). The build ends in that verdict, and a package that
+  fails it is deleted rather than left where it could be uploaded. The self-signed test build writes
+  StreamsPlayer-<version>-windows-x64-selfsigned.msix, so it never overwrites or poses as the upload.
+
   SP-0156: the package is built only from a clean working tree whose HEAD is
   exactly at a vYY.MMDD.HHmm tag, and the version comes from that tag - the
   script refuses a dirty tree and refuses a HEAD off the tag, because the
@@ -19,7 +25,10 @@ param(
     [string] $IdentityName = 'SZA.StreamsPlayer',
     [string] $Publisher = 'CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD',
     [string] $PublisherDisplayName = 'SZA',
-    [switch] $SelfSign
+    [switch] $SelfSign,
+    # A one-off package under another identity. The read-back then judges against the three values above and
+    # says the package is not Store-valid; without this switch the reserved identity is the only one accepted.
+    [switch] $TestIdentity
 )
 
 $ErrorActionPreference = 'Stop'
@@ -70,6 +79,9 @@ try {
 finally { Pop-Location }
 $appVersion = $tag.Substring(1)
 [DateTime]::ParseExact($appVersion, 'yy.MMdd.HHmm', [Globalization.CultureInfo]::InvariantCulture) | Out-Null
+# SP-0184 (S1-6): the tag alone does not say the code was audited. The same gate release.yml runs must accept the
+# committed audit verdict of this exact version before a package is packed from it; it throws when it does not.
+& (Join-Path $root 'scripts/Assert-AuditVerdict.ps1') -Version $appVersion -Root $root
 # The MSIX Identity Version schema forbids leading zeros in any part (e.g. 26.0723.0957.0 is
 # rejected), so convert each component to an integer: 26.0723.0957.0 -> 26.723.957.0. This is
 # still monotonic and unique per minute (MMDD and HHmm as ints preserve ordering).
@@ -116,7 +128,9 @@ $manifest = Get-Content (Join-Path $msix 'AppxManifest.xml') -Raw
 $manifest = $manifest.Replace('__IDENTITY_NAME__', $IdentityName).Replace('__PUBLISHER__', $Publisher).Replace('__PUBLISHER_DISPLAY_NAME__', $PublisherDisplayName).Replace('__VERSION__', $msixVersion)
 Set-Content -Path (Join-Path $stage 'AppxManifest.xml') -Value $manifest -Encoding utf8
 
-$package = Join-Path $dist "StreamsPlayer-$appVersion-windows-x64.msix"
+# SP-0190: the signed test build has a name of its own, so neither build can overwrite or stand in for the other.
+$packageName = if ($SelfSign) { "StreamsPlayer-$appVersion-windows-x64-selfsigned.msix" } else { "StreamsPlayer-$appVersion-windows-x64.msix" }
+$package = Join-Path $dist $packageName
 & $makeappx pack /o /d $stage /p $package
 if ($LASTEXITCODE -ne 0) { throw "makeappx failed (exit $LASTEXITCODE)." }
 
@@ -130,9 +144,23 @@ if ($SelfSign) {
     & $signtool sign /fd SHA256 /f $pfx /p 'streamsplayer-msix-test' $package
     if ($LASTEXITCODE -ne 0) { throw "signtool failed (exit $LASTEXITCODE)." }
     Remove-Item $pfx -Force
-    Write-Host "Local test package: $package" -ForegroundColor Green
+}
+
+# SP-0190: the verdict is read out of the packed file. A package that fails it is removed, so a file that is
+# not Store-valid is never left in dist\ for an upload to pick up.
+$assertArguments = @{ PackagePath = $package; ExpectedVersion = $msixVersion; SelfSigned = $SelfSign.IsPresent }
+if ($TestIdentity) { $assertArguments += @{ TestIdentity = $true; IdentityName = $IdentityName; Publisher = $Publisher; PublisherDisplayName = $PublisherDisplayName } }
+& (Join-Path $msix 'Assert-MsixPackage.ps1') @assertArguments
+if ($LASTEXITCODE -ne 0) {
+    Remove-Item -LiteralPath $package -Force -ErrorAction SilentlyContinue
+    throw "The packed archive failed the Store read-back (exit $LASTEXITCODE); $package was removed. A different identity needs -TestIdentity."
+}
+
+if ($SelfSign) {
+    Write-Host "Local test package (never upload it): $package" -ForegroundColor Green
     Write-Host "Trust the certificate as administrator, then install:" -ForegroundColor Yellow
     Write-Host "Import-Certificate -FilePath `"$cer`" -CertStoreLocation Cert:\LocalMachine\TrustedPeople"
     Write-Host "Add-AppxPackage -Path `"$package`""
 }
+elseif ($TestIdentity) { Write-Host "Test-identity package, NOT Store-valid: $package" -ForegroundColor Yellow }
 else { Write-Host "Unsigned Store-ready package: $package" -ForegroundColor Green }

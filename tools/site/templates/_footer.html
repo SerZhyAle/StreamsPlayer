@@ -1,10 +1,26 @@
     <footer class="site-footer">
+      <!-- PAGE-CONTENT "The landing always carries" items 5 and 6: every sibling tool of SITE-FAMILY-MAP section 2
+           except this product, name and type; then the author's links. -->
+      <div class="container">
+        <h2 class="footer-heading">{{t.footer-tools}}</h2>
+        <div class="tools-grid">
+          <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>Fast Media Sorter &amp; Organizer</b><span>{{t.type-android-sorter}}</span></a>
+          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>{{t.type-windows-sorter}}</span></a>
+          <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>{{t.type-layout-fixer}}</span></a>
+          <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>{{t.type-ebook-converter}}</span></a>
+          <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>{{t.type-storage-cli}}</span></a>
+          <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>{{t.type-tray-launcher}}</span></a>
+          <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>{{t.type-ai-method}}</span></a>
+          <a href="https://sza.od.ua/"><b>SZA</b><span>{{t.type-portfolio}}</span></a>
+        </div>
+      </div>
       <div class="container footer-row">
-        <span>{{t.footer-rights}}</span>
+        <span>{{t.footer-rights}} <a href="https://sza.od.ua/">{{t.footer-author}}</a></span>
         <span class="footer-links">
+          <a href="{{page.home}}#distribution">{{t.footer-download}}</a>
+          <a href="{{page.docs}}">{{t.nav-docs}}</a>
           <a href="{{page.privacy}}">{{t.nav-privacy}}</a>
           <a href="{{page.trust}}">{{t.nav-trust}}</a>
-          <a href="https://sza.od.ua/">{{t.footer-tools}}</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
           <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
         </span>

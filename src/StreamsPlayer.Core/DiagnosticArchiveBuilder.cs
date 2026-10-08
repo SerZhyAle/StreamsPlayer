@@ -169,7 +169,7 @@ public static class DiagnosticArchiveBuilder
     /// </summary>
     private static void WriteRedacted(Stream destination, ReadOnlySpan<byte> bytes, DiagnosticPathRedactor paths)
     {
-        var redacted = LogEncoding.GetBytes(paths.Redact(CatalogUrlIdentity.RedactText(LogEncoding.GetString(bytes))));
+        var redacted = LogEncoding.GetBytes(paths.Redact(ExchangeDiagnosticRedactor.Redact(CatalogUrlIdentity.RedactText(LogEncoding.GetString(bytes)))));
         destination.Write(redacted, 0, redacted.Length);
     }
 

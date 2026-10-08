@@ -87,6 +87,9 @@ public sealed partial class InstallTrustPageTests
         Assert.Matches(ForbiddenInstructionPattern(), "It is safe. Turn off SmartScreen for a moment.");
         Assert.Matches(ForbiddenInstructionPattern(), "Disable your antivirus, then run it.");
         Assert.Matches(ForbiddenInstructionPattern(), "Right-click the file: run as administrator.");
+        // INSTALL-TRUST 1.2 item K: the per-file Unblock checkbox is not a permitted instruction.
+        Assert.Matches(ForbiddenInstructionPattern(), "Open Properties. Tick Unblock, then run it.");
+        Assert.Matches(ForbiddenInstructionPattern(), "Unblock the file first.");
         Assert.DoesNotMatch(ForbiddenInstructionPattern(), "You never need to switch SmartScreen off or disable your antivirus.");
         Assert.DoesNotMatch(ForbiddenInstructionPattern(), "An exception is enough; do not turn your antivirus off.");
     }
@@ -143,6 +146,6 @@ public sealed partial class InstallTrustPageTests
 
     // An imperative at the start of a sentence or clause - the shape an instruction takes. The same words
     // after "never need to" or "do not" are the page saying the opposite, which rule 4 welcomes.
-    [GeneratedRegex(@"(^|[.!?;:]\s+)(turn off|switch off|disable|deactivate|pause|run (it |the \w+ )?as administrator)\b", RegexOptions.IgnoreCase | RegexOptions.Multiline)]
+    [GeneratedRegex(@"(^|[.!?;:]\s+)(turn off|switch off|disable|deactivate|pause|unblock|(tick|check|select|click) (the )?\W?unblock|run (it |the \w+ )?as administrator)\b", RegexOptions.IgnoreCase | RegexOptions.Multiline)]
     private static partial Regex ForbiddenInstructionPattern();
 }

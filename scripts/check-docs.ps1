@@ -54,14 +54,16 @@ function Exit-CannotVerify([string] $Reason) {
 try { $gitOutput = & git -C $root -c core.quotepath=off ls-files --cached --others --exclude-standard }
 catch { Exit-CannotVerify "git is not available: $($_.Exception.Message)" }
 if ($LASTEXITCODE -ne 0) { Exit-CannotVerify "git ls-files failed (exit $LASTEXITCODE)" }
-$files = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+# SP-0184 (A2-5): ordinal, not case-insensitive. A link whose letter case differs from the tracked path resolves
+# on a Windows disk but 404s on GitHub Pages and on a Linux clone, so the set that judges links must be exact.
+$files = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 foreach ($line in @($gitOutput)) {
     $path = ([string] $line).Trim().Trim('"')
     if ($path -and (Test-Path -LiteralPath (Join-Path $root $path) -PathType Leaf)) { [void] $files.Add($path) }
 }
 if ($files.Count -eq 0) { Exit-CannotVerify 'git reported no files' }
 
-$directories = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$directories = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 foreach ($path in $files) {
     $parts = $path.Split('/')
     for ($i = 1; $i -lt $parts.Length; $i++) { [void] $directories.Add(($parts[0..($i - 1)] -join '/')) }
@@ -248,7 +250,10 @@ foreach ($document in $sources) {
             $isDirectory = ($resolved -eq '') -or $directories.Contains($resolved.TrimEnd('/'))
             if (-not $isFile -and -not $isDirectory) {
                 $onDisk = $resolved -and (Test-Path -LiteralPath (Join-Path $root $resolved))
-                $reason = if ($onDisk) { 'is not tracked by git (a clone never has it)' } else { 'does not exist' }
+                $caseMatch = if ($resolved) { @($files | Where-Object { $_ -ieq $resolved } | Select-Object -First 1) } else { @() }
+                $reason = if ($caseMatch.Count -gt 0) { "differs in letter case from the tracked path $($caseMatch[0]) (it resolves on Windows only)" }
+                          elseif ($onDisk) { 'is not tracked by git (a clone never has it)' }
+                          else { 'does not exist' }
                 Add-Finding $rule $where "$target -> $resolved $reason"
                 continue
             }

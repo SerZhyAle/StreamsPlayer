@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `DIAGNOSTIC-REPORT` |
-| **Version** | 0.12 (draft) |
+| **Version** | 0.13 (draft) |
 | **Home** | `Contracts/diagnostic-report/README.md` |
 | **Owner** | **this product**. StreamsPlayer defines the diagnostic bundle format, environment summary, and redaction invariants |
 | **This product's role** | **producer and consumer** |
@@ -19,3 +19,5 @@
 Evidence: `src/StreamsPlayer.Core/DiagnosticArchiveBuilder.cs`, `DiagnosticEnvironmentSummary.cs`, `DiagnosticLogFiles.cs`, `src/StreamsPlayer.App/CurrentLog.cs`, `MainWindow.Diagnostics.cs`. Tests: `DiagnosticArchiveBuilderTests.cs`, `DiagnosticEnvironmentSummaryTests.cs`, `DiagnosticLogFilesTests.cs`.
 
 Rule 3 URL half (SP-0123): `CatalogUrlIdentity.RedactText` runs at the log sink (`CurrentLog`) and again when the archive is packed; `LogSinkRedactionSourceTests.cs` gates the sink against bypass. Rule 3 path half (SP-0137): `DiagnosticPathRedactor` replaces the data directory with `<APP_DATA>` and the profile with `<USER>` at the same two places; the registry exception is closed (2026-09-26). SP-0174 widens rule 3's URL half (secret query names in plain and HTML-escaped form, Xtream-style credential-in-path shapes, passwords containing `/`, `?` or `#`), bounds a path-redaction timeout to the line it strikes, keeps the profile folder out of the mail body, and pins rule 4's retention count with `DiagnosticLogFilesTests.Retention_MatchesTheContractRuleFourCount`.
+
+SP-0200 (0.13) adds explicit exchange account value redaction at both diagnostic boundaries; the protected account file is never exported.

@@ -244,4 +244,41 @@ public class PlayerWindowGeometryTests
 
         Assert.Equal(new ScreenRect(7, 8, 900, 700), PlayerWindowGeometry.Recall(later, "https://gone.test/s"));
     }
+
+    // SP-0184 (S15-1): a stamp from the future must not outrank the records actually being used.
+    [Fact]
+    public void Record_EvictsAFutureDatedRecordBeforeAnyRealOne()
+    {
+        var now = DateTimeOffset.UnixEpoch.AddDays(100);
+        var seeded = Enumerable.Range(0, PlayerWindowGeometry.MaxChannels)
+            .Select(i => new ChannelWindowGeometry($"https://example.test/{i}", now.AddMinutes(-i - 1), 0, 0, 800, 600))
+            .Append(new ChannelWindowGeometry("https://future.test/s", now.AddYears(50), 0, 0, 800, 600))
+            .ToList();
+
+        var entries = PlayerWindowGeometry.Record(
+            seeded, "https://new.test/s", new ScreenRect(0, 0, 800, 600), now);
+
+        Assert.Equal(PlayerWindowGeometry.MaxChannels, entries.Count);
+        Assert.NotNull(PlayerWindowGeometry.Recall(entries, "https://new.test/s"));
+        Assert.NotNull(PlayerWindowGeometry.Recall(entries, "https://example.test/0"));
+        Assert.Null(PlayerWindowGeometry.Recall(entries, "https://future.test/s"));
+        // 202 records were over the cap by two: the future-dated one went first, then the oldest real one.
+        Assert.NotNull(PlayerWindowGeometry.Recall(entries, $"https://example.test/{PlayerWindowGeometry.MaxChannels - 2}"));
+        Assert.Null(PlayerWindowGeometry.Recall(entries, $"https://example.test/{PlayerWindowGeometry.MaxChannels - 1}"));
+    }
+
+    [Fact]
+    public void Merge_RanksFutureDatedStoredRecordsBelowTheSessionRecord()
+    {
+        var now = DateTimeOffset.UnixEpoch.AddDays(100);
+        var stored = Enumerable.Range(0, PlayerWindowGeometry.MaxChannels)
+            .Select(i => new ChannelWindowGeometry($"https://future.test/{i}", now.AddYears(10), 0, 0, 800, 600))
+            .ToList();
+        var session = new[] { new ChannelWindowGeometry("https://session.test/s", now, 1, 2, 800, 600) };
+
+        var merged = PlayerWindowGeometry.Merge(stored, session, now);
+
+        Assert.Equal(PlayerWindowGeometry.MaxChannels, merged.Count);
+        Assert.NotNull(PlayerWindowGeometry.Recall(merged, "https://session.test/s"));
+    }
 }

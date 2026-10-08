@@ -30,7 +30,8 @@ public sealed record DiagnosticEnvironment(
     int Collections,
     int HistoryEntries,
     DateTimeOffset? CatalogRefreshedUtc,
-    DateTimeOffset GeneratedUtc);
+    DateTimeOffset GeneratedUtc,
+    IReadOnlyList<KeyValuePair<string, string>>? Extras = null);
 
 public static class DiagnosticEnvironmentSummary
 {
@@ -42,7 +43,8 @@ public static class DiagnosticEnvironmentSummary
         string appVersion,
         string operatingSystem,
         string architecture,
-        DateTimeOffset generatedUtc) =>
+        DateTimeOffset generatedUtc,
+        IReadOnlyList<KeyValuePair<string, string>>? extras = null) =>
         new(
             appVersion,
             operatingSystem,
@@ -60,7 +62,8 @@ public static class DiagnosticEnvironmentSummary
             state.Collections.Count,
             state.ListeningHistory.Count,
             state.LastCatalogRefreshAt,
-            generatedUtc);
+            generatedUtc,
+            extras);
 
     /// <summary>
     /// Renders the summary as greppable <c>KEY=value</c> lines, matching the log's own shape so one
@@ -89,6 +92,15 @@ public static class DiagnosticEnvironmentSummary
         Append(text, "collections", Count(environment.Collections));
         Append(text, "history_entries", Count(environment.HistoryEntries));
         Append(text, "catalog_refreshed_utc", environment.CatalogRefreshedUtc is { } refreshed ? Timestamp(refreshed) : "never");
+        // Facts only the host can learn (media engine build, output choice, proxy): the caller supplies them as
+        // key/value pairs so this assembly stays free of any media or UI dependency. Values are flattened to one
+        // line - a break inside one would start a fake entry - and a blank value is stated, never left empty.
+        foreach (var (key, value) in environment.Extras ?? [])
+        {
+            var flat = value.ReplaceLineEndings(" ").Trim();
+            Append(text, key, flat.Length == 0 ? "unknown" : flat);
+        }
+
         return text.ToString();
     }
 

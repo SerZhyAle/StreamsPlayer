@@ -64,6 +64,18 @@ public sealed class HttpDownloadTests
         Assert.Equal(0, source.Reads);
     }
 
+    [Theory]
+    [InlineData(1_000_000_000L, 1024L, 1024)]
+    [InlineData(1_000_000_000L, null, 64 * 1024 * 1024)]
+    [InlineData(2048L, 1024L, 1024)]
+    [InlineData(512L, 1024L, 512)]
+    [InlineData(null, 1024L, 0)]
+    [InlineData(-5L, 1024L, 0)]
+    public void PreSize_NeverExceedsTheCeilingOrTheAllocationCap(long? declared, long? ceiling, int expected)
+    {
+        Assert.Equal(expected, HttpDownload.PreSize(declared, ceiling));
+    }
+
     [Fact]
     public async Task ReadAllBytes_RefusesAnUnderDeclaredBodyOnceItOverrunsTheCeiling()
     {

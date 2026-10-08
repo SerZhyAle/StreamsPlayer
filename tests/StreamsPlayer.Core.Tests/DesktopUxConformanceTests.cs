@@ -18,6 +18,11 @@ public sealed class DesktopUxConformanceTests
     private static readonly IReadOnlyDictionary<string, string> SettingsHandlers = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["LanguageBox_SelectionChanged"] = "applies the language choice on touch",
+        ["ExchangeEnroll_Click"] = "explicitly enrolls with a one-use proof and approved certificate",
+        ["ExchangeEnabled_Click"] = "enables or disables the enrolled source on touch",
+        ["ExchangeAutoAcceptCasts_Click"] = "applies the auto-accept cast setting on touch",
+        ["ExchangeTrust_Click"] = "explicitly confirms a certificate replacement",
+        ["ExchangeForget_Click"] = "explicitly removes the account after confirmation",
         ["ThemeBox_SelectionChanged"] = "applies the theme choice on touch",
         ["TileSizeBox_SelectionChanged"] = "applies the tile size on touch",
         ["AnimatedBackdropCheckBox_Click"] = "applies the animated backdrop setting on touch",
@@ -74,7 +79,8 @@ public sealed class DesktopUxConformanceTests
     {
         "DeleteDownloaded_Click",
         "DeleteImportedCatalog_Click",
-        "TvScheduleRemove_Click"
+        "TvScheduleRemove_Click",
+        "ExchangeForget_Click"
     };
 
     [Fact]
@@ -140,6 +146,37 @@ public sealed class DesktopUxConformanceTests
         Assert.True(pages.Count >= 2, "The settings navigation has no pages.");
         Assert.Equal("{DynamicResource SettingsAbout}", pages.Last());
         Assert.Equal(pages.Count, pages.Distinct().Count());
+    }
+
+    /// <summary>
+    /// SP-0211: <c>APP-SETTINGS</c> rule 7 and <c>ICON-RENDER</c> section 3 rule 5, read statically - the
+    /// settings window sets the 28 px pointer floor on the controls whose painted part is smaller (the check
+    /// box, the combo box, a navigation row) and carries no inline <c>Hyperlink</c>, whose target is one line
+    /// of text. A link that opens a page is a button with the floor. The driven run
+    /// (<c>temp/SP-0211/measure.ps1</c>) is what measures the result; this keeps it from being undone.
+    /// </summary>
+    [Fact]
+    public void TheSettingsWindowSetsThePointerHitTargetFloorAndHasNoInlineLinks()
+    {
+        var markup = SettingsMarkup();
+        const string floor = "28";
+
+        bool SetsFloor(Func<XElement, bool> owner) => markup.Descendants()
+            .Where(owner)
+            .SelectMany(element => element.Descendants())
+            .Any(setter => setter.Name.LocalName == "Setter"
+                && setter.Attribute("Property")?.Value == "MinHeight"
+                && setter.Attribute("Value")?.Value == floor);
+
+        Assert.True(SetsFloor(style => style.Name.LocalName == "Style" && style.Attribute("TargetType")?.Value == "CheckBox"),
+            "The settings window's CheckBox style does not set MinHeight 28.");
+        Assert.True(SetsFloor(style => style.Name.LocalName == "Style" && style.Attribute("TargetType")?.Value == "ComboBox"),
+            "The settings window's ComboBox style does not set MinHeight 28.");
+        Assert.True(SetsFloor(style => style.Name.LocalName == "Style" && style.Attribute("TargetType")?.Value == "ListBoxItem"),
+            "The navigation row style does not set MinHeight 28.");
+        Assert.True(SetsFloor(style => style.Name.LocalName == "Style" && style.Attribute(XName.Get("Key", "http://schemas.microsoft.com/winfx/2006/xaml"))?.Value == "SettingsLinkButton"),
+            "The settings link button does not set MinHeight 28.");
+        Assert.DoesNotContain(markup.Descendants(), element => element.Name.LocalName == "Hyperlink");
     }
 
     /// <summary>

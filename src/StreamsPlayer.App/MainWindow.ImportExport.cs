@@ -194,8 +194,14 @@ public partial class MainWindow
             _log.Event("IMPORT FAIL", "source=url", $"reason={exception.GetType().Name}");
             var key = exception is DecoderFallbackException ? "ImportInvalidEncoding" : "ImportUrlFailed";
             SetStatus("ImportFailedStatus");
-            MessageBox.Show(this, LocalizationService.Get(key), LocalizationService.Get("ImportListPlain"),
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            // SP-0184 A11-2: raised after an await, so a listener who collapsed to the panel meanwhile must not
+            // get it hidden behind the topmost panel - it waits for the expand, like the refresh dialogs.
+            await WhenCatalogShownAsync(() =>
+            {
+                MessageBox.Show(this, LocalizationService.Get(key), LocalizationService.Get("ImportListPlain"),
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return Task.CompletedTask;
+            });
             return;
         }
         finally
@@ -205,7 +211,8 @@ public partial class MainWindow
             _cancellableOperation = null;
         }
 
-        await ShowPreviewAndApplyAsync(CatalogUrlIdentity.Redact(playlistUrl), text, this);
+        // SP-0184 A11-2: the preview and the "nothing to import" notice are raised after the download's await too.
+        await WhenCatalogShownAsync(() => ShowPreviewAndApplyAsync(CatalogUrlIdentity.Redact(playlistUrl), text, this));
     }
 
     private async Task ShowPreviewAndApplyAsync(string sourceLabel, string text, Window owner)
@@ -246,7 +253,12 @@ public partial class MainWindow
             AddedAt = now
         }).ToList();
 
-        await PersistAsync(state => state with { Channels = [.. state.Channels, .. additions] });
+        // SP-0184 A11-3: an unsaved import is not reported as one - the failed-save status stays on the line.
+        if (!await TryPersistAsync(state => state with { Channels = [.. state.Channels, .. additions] }))
+        {
+            return;
+        }
+
         _log.Event("IMPORT APPLY", $"count={additions.Count}");
         PopulateFacets();
         ApplyFilter();
@@ -276,16 +288,9 @@ public partial class MainWindow
 
         try
         {
-            StreamBank bank;
-            using (var stream = new FileStream(dialog.FileName, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                if (stream.Length > StreamCatalogService.MaximumArchiveBytes)
-                {
-                    throw new InvalidDataException($"The catalog archive exceeds the maximum limit of {StreamCatalogService.MaximumArchiveBytes} bytes.");
-                }
-
-                bank = StreamBankReader.Read(stream);
-            }
+            // SP-0184 S11-2: a catalog archive is tens of megabytes of file read and CSV parse - off the UI thread.
+            var path = dialog.FileName;
+            var bank = await Task.Run(() => ReadCatalogBankFile(path));
 
             if (bank.Entries.Count == 0)
             {
@@ -350,13 +355,15 @@ public partial class MainWindow
         }
         catch (InvalidDataException exception)
         {
-            _log.Event("CATALOG IMPORT FAIL", "reason=invalid_data", $"message={exception.Message}");
-            var key = exception.Message.Contains("UTF-8", StringComparison.OrdinalIgnoreCase) ||
-                      exception.Message.Contains("CSV", StringComparison.OrdinalIgnoreCase)
-                ? "ImportCatalogInvalidCsv"
-                : exception.Message.Contains("maximum", StringComparison.OrdinalIgnoreCase)
-                    ? "ImportCatalogExceededLimit"
-                    : "ImportCatalogInvalidArchive";
+            _log.Event("CATALOG IMPORT FAIL", "reason=invalid_data", $"kind={exception.GetType().Name}",
+                $"inner={exception.InnerException?.GetType().Name}");
+            // SP-0184 S11-1: chosen by what was thrown, never by the wording of the message.
+            var key = exception switch
+            {
+                { InnerException: StreamBankLimitException } => "ImportCatalogExceededLimit",
+                { InnerException: DecoderFallbackException or FormatException } => "ImportCatalogInvalidCsv",
+                _ => "ImportCatalogInvalidArchive"
+            };
             SetStatus("ImportFailedStatus");
             MessageBox.Show(owner, LocalizationService.Get(key), LocalizationService.Get("ImportCatalogTitle"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -372,6 +379,19 @@ public partial class MainWindow
         {
             SetBusy(false);
         }
+    }
+
+    /// <summary>Reads one catalog archive from disk; throws an <see cref="InvalidDataException"/> carrying <see cref="StreamBankLimitException"/> past the archive ceiling.</summary>
+    private static StreamBank ReadCatalogBankFile(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        if (stream.Length > StreamCatalogService.MaximumArchiveBytes)
+        {
+            throw StreamBankLimitException.Wrap(
+                $"The catalog archive exceeds the maximum limit of {StreamCatalogService.MaximumArchiveBytes} bytes.");
+        }
+
+        return StreamBankReader.Read(stream);
     }
 
     private async Task ExportAsync(bool pinnedOnly, Window owner)
@@ -391,6 +411,16 @@ public partial class MainWindow
 
         if (rows.Any(channel => CatalogUrlIdentity.HasCredentials(channel.Url)) &&
             MessageBox.Show(owner, LocalizationService.Get("ExportCredentialWarning"),
+                LocalizationService.Get("ExportListPlain"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        // SP-0201 requirement 5: an exchange endpoint address carries the right to listen; the file the user
+        // saves can be given to anyone, so it is told before it is written.
+        if (rows.Any(channel => BroadcastCapabilityAddress.CarriesCapability(channel.Url)) &&
+            MessageBox.Show(owner, LocalizationService.Get("BroadcastCapabilityWarning"),
                 LocalizationService.Get("ExportListPlain"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
                 MessageBoxResult.No) != MessageBoxResult.Yes)
         {

@@ -80,6 +80,37 @@ public sealed class PlayerWindowGeometryStoreTests : IDisposable
             [new ChannelWindowGeometry("https://host/live.m3u8", DateTimeOffset.UtcNow, 10, 20, 640, 360)]));
     }
 
+    // SP-0184: a read that failed at startup must not strand the session - the next successful load leaves the
+    // unreadable state, and the merge keeps both the file's placements and the ones recorded meanwhile.
+    [Fact]
+    public async Task AFileThatBecomesReadable_ClearsTheRefusalAndMergesWithTheSession()
+    {
+        var store = new PlayerWindowGeometryStore(_directory);
+        var at = new DateTimeOffset(2026, 9, 29, 12, 0, 0, TimeSpan.Zero);
+        Directory.CreateDirectory(_directory);
+        Assert.True(await store.SaveAsync(
+        [
+            new ChannelWindowGeometry("https://host/a.m3u8", at, 1, 2, 640, 360),
+            new ChannelWindowGeometry("https://host/b.m3u8", at, 3, 4, 640, 360)
+        ]));
+        IReadOnlyList<ChannelWindowGeometry> session =
+            [new ChannelWindowGeometry("https://host/b.m3u8", at.AddHours(1), 9, 9, 800, 450)];
+
+        using (File.Open(store.FilePath, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            await store.LoadAsync();
+            Assert.True(store.IsUnreadable);
+        }
+
+        var stored = await store.LoadAsync();
+        Assert.False(store.IsUnreadable);
+
+        var merged = PlayerWindowGeometry.Merge(stored, session);
+        Assert.Equal(2, merged.Count);
+        Assert.Equal(9, merged.Single(entry => entry.Url.EndsWith("b.m3u8", StringComparison.Ordinal)).Left);
+        Assert.True(await store.SaveAsync(merged));
+    }
+
     // SP-0175: null entries used to pass the deserialization catch and then throw in Recall and Record.
     [Fact]
     public async Task ADocumentOfNullEntries_LoadsAsEmptyWithoutThrowing()

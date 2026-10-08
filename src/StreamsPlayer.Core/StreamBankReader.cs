@@ -10,6 +10,14 @@ public static class StreamBankReader
     // 2.9 MB against the previous 4 MB limit, and the atlas grows with the channel count.
     public const int MaximumAtlasBytes = 30 * 1024 * 1024;
 
+    // SP-0184 (A16-3): a PNG's header declares its pixel size independently of how many bytes follow, so a
+    // small file can promise a sheet of billions of pixels that the first decode then allocates in full.
+    // The sheet is tiles of 32x32 pixels, 16 to a row, so it holds about 1024 pixels per channel: this area is
+    // roughly 125 000 channels, well past any bank. There is no separate side limit: the sheet is 512 pixels wide and grows 2 pixels per channel in height, so a side cap would drop a healthy large bank.
+    // An atlas beyond it is dropped like one over MaximumAtlasBytes - an atlas that cannot be used, not an
+    // error - and the bank's icons are nulled with it (rule 6).
+    public const long MaximumAtlasPixels = 128L * 1024 * 1024;
+
     // SP-0098: Uncompressed streams.csv ceiling to protect against archive compression bombs on both
     // network and local import paths.
     public const int MaximumCsvBytes = 32 * 1024 * 1024;
@@ -44,7 +52,7 @@ public static class StreamBankReader
             {
                 if (target.Length + read > MaximumCsvBytes)
                 {
-                    throw new InvalidDataException($"streams.csv exceeds the maximum uncompressed limit of {MaximumCsvBytes} bytes.");
+                    throw StreamBankLimitException.Wrap($"streams.csv exceeds the maximum uncompressed limit of {MaximumCsvBytes} bytes.");
                 }
 
                 target.Write(buffer, 0, read);
@@ -103,8 +111,9 @@ public static class StreamBankReader
             {
                 var candidate = target.ToArray();
                 // SP-0098: Inspect PNG header and dimensions. An unreadable / corrupt PNG is treated
-                // as absent (FaviconAtlas = null) so invalid bytes do not displace a healthy sheet.
-                if (PngHeader.TryReadDimensions(candidate, out _, out _))
+                // as absent (FaviconAtlas = null) so invalid bytes do not displace a healthy sheet; so is a header that declares a sheet past the pixel ceiling.
+                if (PngHeader.TryReadDimensions(candidate, out var atlasWidth, out var atlasHeight) &&
+                    (long)atlasWidth * atlasHeight <= MaximumAtlasPixels)
                 {
                     atlas = candidate;
                 }

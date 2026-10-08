@@ -391,7 +391,8 @@ try {
     if (-not $failed -and -not $ownerTouched) {
         # SP-0156: a PASS becomes the committed release verdict release.yml requires. A failure to record
         # it is a red gate - a PASS nobody can hand to the release is not a release's PASS.
-        & (Join-Path $PSScriptRoot 'Write-SmokeVerdict.ps1') -AppPath $AppPath
+        $skipped = @(if ($SkipVideo) { 'video' }; if ($SkipRecording) { 'recording' })
+        & (Join-Path $PSScriptRoot 'Write-SmokeVerdict.ps1') -AppPath $AppPath -Skipped $skipped
         $recorded = if ($SkipRecording) { '' } else { ' and recorded' }
         $what = if ($SkipVideo) { 'audio was heard' } else { 'audio was heard and video was shown' }
         Write-Host "Playback smoke check PASSED - $what$recorded, against an isolated profile." -ForegroundColor Green

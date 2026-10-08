@@ -32,6 +32,26 @@ public sealed class ChannelFactSheetTests
         Assert.Equal("AAC", Value(facts, "FieldFormat"));
     }
 
+    // The bank's UK alias is Great Britain; with a language the sheet reads the full name in it, not the code.
+    [Theory]
+    [InlineData(AppLanguage.English, "United Kingdom")]
+    [InlineData(AppLanguage.Russian, "Великобритания")]
+    public void TheCountryReadsAsItsFullNameInTheGivenLanguage(AppLanguage language, string expected)
+    {
+        var facts = ChannelFactSheet.Describe(FullChannel(), [], CultureInfo.InvariantCulture, language);
+
+        Assert.Equal(expected, Value(facts, "Country"));
+    }
+
+    [Fact]
+    public void AnUnresolvableCountryStaysAsWrittenEvenWithALanguage()
+    {
+        var facts = ChannelFactSheet.Describe(
+            FullChannel() with { Country = "Neverland" }, [], CultureInfo.InvariantCulture, AppLanguage.Russian);
+
+        Assert.Equal("Neverland", Value(facts, "Country"));
+    }
+
     [Fact]
     public void AnEmptyChannelKeepsTheSameShapeWithEmptyValues()
     {

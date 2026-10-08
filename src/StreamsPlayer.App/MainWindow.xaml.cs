@@ -385,6 +385,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
+        if (_catalogStateUnreadable)
+        {
+            // SP-0175: the store refuses every save until a read has succeeded, so a download now would be
+            // fetched only to be thrown away at the save.
+            _log.Event("REFUSE", "op=catalog_refresh", "reason=state_unreadable");
+            MessageBox.Show(this, LocalizationService.Get("MainLoadFailedBody"), LocalizationService.Get("ProductName"), MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+
         if (!NetworkInterface.GetIsNetworkAvailable())
         {
             _log.Event("REFUSE", "op=catalog_refresh", "reason=offline");
@@ -623,7 +632,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         SetFacet(LanguageFilter, universe.SelectMany(channel =>
             channel.Language?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? []),
             LocalizationService.CurrentLanguage);
-        SetFacet(CountryFilter, universe.Select(channel => channel.Country));
+        // The bank's `country` is an ISO 3166-1 alpha-2 code (STREAM-BANK). The option's value is that code,
+        // whatever spelling the row carried ("Germany", "de", "UK"), so one country is one entry; what is
+        // read is the full name in the interface language beside its flag. A value that resolves to no
+        // code stays as written, without a flag - the contract's visible fallback.
+        var language = LocalizationService.CurrentLanguage;
+        SetFacet(CountryFilter, universe.Select(channel => CatalogCountries.Normalize(channel.Country)),
+            label: id => CountryNames.Label(id, language),
+            icon: CountryFlags.For,
+            labelOrder: StringComparer.Create(CultureInfo.CurrentUICulture, ignoreCase: true),
+            // The countries of the interface language lead (all Francophone for French, Ukraine for Ukrainian);
+            // English leads with none, so its list is one alphabet.
+            featured: CountryPreference.For(language));
     }
 
     /// <summary>
@@ -637,17 +657,31 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         IEnumerable<string?> values,
         AppLanguage? preferred = null,
         Func<string, string>? label = null,
-        IComparer<string>? order = null)
+        IComparer<string>? order = null,
+        Func<string, ImageSource?>? icon = null,
+        IComparer<string>? labelOrder = null,
+        IReadOnlySet<string>? featured = null)
     {
         var selected = SelectedOptionValue(comboBox) ?? AllValue;
         var options = values.Where(value => !string.IsNullOrWhiteSpace(value))
-            .Select(value => new UiOption(value!, label is null ? value! : label(value!)))
+            .Select(value => new UiOption(value!, label is null ? value! : label(value!), icon?.Invoke(value!)))
             .DistinctBy(value => value.Value, StringComparer.OrdinalIgnoreCase)
             .OrderBy(value => preferred is { } language ? (int)CatalogLanguages.Match(value.Value, language) : 0);
-        var items = new[] { new UiOption(AllValue, LocalizationService.Get("AllOption")) }.Concat(
-            order is null
-                ? options.ThenBy(value => value.Value == AllValue ? string.Empty : value.Label, StringComparer.OrdinalIgnoreCase)
-                : options.ThenBy(value => value.Value, order)).ToList();
+        var ordered = (order is null
+            ? options.ThenBy(value => value.Value == AllValue ? string.Empty : value.Label, labelOrder ?? StringComparer.OrdinalIgnoreCase)
+            : options.ThenBy(value => value.Value, order)).ToList();
+
+        // A lead block, when the caller names one: those options once, in the list's own order, ruled off
+        // from the full list below - which still holds them, so the alphabet is complete and a reader who
+        // goes straight to a letter finds every country there. The lead copies are distinct records, so the
+        // combo box tells the two apart. Only options the catalog really has are lifted.
+        var lead = featured is { Count: > 0 }
+            ? ordered.Where(option => featured.Contains(option.Value)).ToList()
+            : [];
+        var items = new[] { new UiOption(AllValue, LocalizationService.Get("AllOption")) }
+            .Concat(lead.Select((option, index) =>
+                option with { Featured = true, EndsFeatured = index == lead.Count - 1 }))
+            .Concat(ordered).ToList();
         comboBox.ItemsSource = items;
         comboBox.SelectedItem = items.FirstOrDefault(item => item.Value.Equals(selected, StringComparison.OrdinalIgnoreCase)) ?? items[0];
     }
@@ -1162,6 +1196,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
 
             await HandleAudioOpenedAsync();
+            if (IsSupersededAudioEvent(e, "playing_watch"))
+            {
+                return; // the outcome save above yielded; a stop or replacement during it leaves nothing to watch
+            }
+
             WatchForAudibleOutput(e.Connection); // SP-0133: Playing is not yet sound
             WatchForAudioStall(e.Connection); // SP-0169: nor is it a promise the flow will last
         })), DispatcherPriority.Normal);
@@ -1225,6 +1264,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 return;
             }
 
+            _audioOpenTimer.Stop(); // the open budget is spent on this leg; the next leg restarts it
             var row = _playingAudio;
             var reason = e.Reason;
             // SP-0189: the engine's own words, redacted at the sink like every other line.
@@ -1265,6 +1305,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 return;
             }
 
+            _audioOpenTimer.Stop(); // the open budget is spent on this leg; the next leg restarts it
             var row = _playingAudio;
             _log.Event("AUDIO ENDED", $"url={row?.Channel.Url ?? "n/a"}");
             if (row is null)

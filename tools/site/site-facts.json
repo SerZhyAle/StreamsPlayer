@@ -1,0 +1,44 @@
+{
+  "$comment": "SP-0198 (SITE-REPRESENTATION rules 1 to 3). The facts the site copy states, each with the file a program reads it from, and the surfaces that must list the pillars of POSITIONING.md in its order. tools/site/SiteFacts.ps1 renders the language count and the minimum Windows into the copy decks and checks the rest; build-site.ps1 -Check runs it. A pattern's first capture group is the value.",
+
+  "positioning": {
+    "source": "POSITIONING.md",
+    "surfaces": [
+      { "path": "README.md", "locale": "en" },
+      { "path": "README.ru.md", "locale": "ru" },
+      { "path": "README.uk.md", "locale": "uk" },
+      { "path": "msix/listing/en-us.txt", "locale": "en" },
+      { "path": "msix/listing/ru.txt", "locale": "ru" },
+      { "path": "msix/listing/uk.txt", "locale": "uk" }
+    ],
+    "deckLead": { "key": "what-p1", "locales": ["en", "ru", "uk"] },
+    "deckKeyLine": { "key": "hero-kicker", "separator": "·" }
+  },
+
+  "minimumWindows": {
+    "source": { "path": "src/StreamsPlayer.App/StreamsPlayer.App.csproj", "pattern": "<SupportedOSPlatformVersion>([^<]+)</SupportedOSPlatformVersion>" },
+    "agree": [
+      { "path": "msix/AppxManifest.xml", "pattern": "TargetDeviceFamily[^>]*MinVersion=\"([^\"]+)\"" },
+      { "path": "winget/templates/SerZhyAle.StreamsPlayer.installer.yaml", "pattern": "(?m)^MinimumOSVersion:\\s*(\\S+)" }
+    ]
+  },
+
+  "channels": [
+    { "id": "setup", "deckKey": "channel-setup", "evidence": [
+      { "path": "installer/StreamsPlayer.iss" },
+      { "path": ".github/workflows/release.yml", "contains": "-windows-x64-setup.exe" } ] },
+    { "id": "portable-zip", "deckKey": "channel-github", "evidence": [
+      { "path": ".github/workflows/release.yml", "contains": "-windows-x64.zip" } ] },
+    { "id": "store", "deckKey": "channel-store", "name": "Microsoft Store", "evidence": [
+      { "path": "msix/AppxManifest.xml" } ] },
+    { "id": "winget", "deckKey": "channel-winget", "name": "winget", "orMarker": "[[command]]", "evidence": [
+      { "path": "winget/templates/SerZhyAle.StreamsPlayer.installer.yaml" } ] }
+  ],
+
+  "channelProse": ["status-description", "use-description", "distribution-description"],
+
+  "renderedKeys": {
+    "languages": ["fact-langs", "cap-yours-4"],
+    "windows": ["hero-eyebrow", "fact-windows"]
+  }
+}

@@ -1,0 +1,19 @@
+# STREAMS Player not-found page copy (SP-0194) - built into docs/404.html by tools/site/build-site.ps1.
+# A root 404 cannot know the visitor's locale, so the page carries the core three (en, ru, uk), one block
+# each. The key set must be identical in every file here. The page chrome (skip link, theme button,
+# footer) comes from the English site deck.
+
+@@title
+Сторінку не знайдено - Трансляції
+
+@@description
+Такої адреси на сайті Трансляцій немає.
+
+@@heading
+Сторінку не знайдено
+
+@@text
+За цією адресою сторінки немає. Можливо, її перенесли або в посиланні помилка. Повернутися можна на головну сторінку.
+
+@@home
+На головну сторінку

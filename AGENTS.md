@@ -24,7 +24,8 @@ asks. The build-versus-release rule itself has one home in the canon
 - `tests/StreamsPlayer.Core.Tests` - unit and contract tests.
 - `tools/StreamsPlayer.CatalogHarness` - live-bank diagnostic harness.
 - `tools/InterfaceLanguages.ps1` - the single shipped-language list, read from the built assembly and dot-sourced by the site and Store tooling.
-- `tools/site/` and `tools/store/` - generators for the GitHub Pages site and the Store listing/screenshot pipeline.
+- `tools/site/` and `tools/store/` - generators for the GitHub Pages site and the Store listing/screenshot pipeline. `tools/site/site-facts.json` declares the facts the site copy states and the surfaces bound to `POSITIONING.md`.
+- `POSITIONING.md` - the positioning source: what the product is and its ordered pillars; the README, the site and the Store listing are written from it.
 - `tools/audit/` - the code-audit campaign tools: slicer, slice-ticket fan-out, campaign summary and their fixture tests (`docs/agent/CODE_AUDIT.md`).
 - `scripts/` - the release-parity check, the release checklist, and the commit-and-build helper.
 - `docs/contracts/` - one pointer per shared contract this product consumes or owes: id, version, home, role.
@@ -56,7 +57,7 @@ code instead of the build's.
   - check the live catalog contract.
 - `pwsh -NoProfile -File ./msix/build-msix.ps1 -SelfSign` - build and locally test an MSIX package; use only for package work.
 - `pwsh -NoProfile -File ./scripts/release.ps1` - print the manual release checklist only; it changes no remote state.
-- `pwsh -NoProfile -File ./tools/site/build-site.ps1 -Check` - fail if `docs/` is stale against the generator, writing nothing.
+- `pwsh -NoProfile -File ./tools/site/build-site.ps1 -Check` - fail if `docs/` is stale against the generator, a held site address does not resolve, or a fact the copy states (language count, minimum Windows, channels) or a pillar of `POSITIONING.md` disagrees with its source; writes nothing. The language count and the minimum Windows are placeholders (`[[languages]]`, `[[windows]]`) in the copy decks, never typed.
 - `pwsh -NoProfile -File ./scripts/check-docs.ps1` - the documentation gate (`DOC-INTERNAL-QUALITY`, SP-0140): every `*.md` and generated `docs/**/*.html` declared in `DOCUMENT_REGISTRY.jsonl`, relative links, anchors and images resolve to tracked files, house style in prose, no `http://` or remote embeds. A new document needs its registry entry in the same change.
 
 Never run `scripts/build-local.ps1` unless the user explicitly requests a commit: it runs `git add --all` and commits.

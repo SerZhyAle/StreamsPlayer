@@ -85,6 +85,23 @@ public sealed class TvScheduleTests
         Assert.Equal("C", reading.Next?.Title);
     }
 
+    // SP-0184 (S16-4): one text element longer than the limit clips to nothing, which is "no title".
+    [Fact]
+    public void ATitleThatClipsToNothingIsNoTitleAndDropsTheProgramme()
+    {
+        var oversizedElement = "e" + new string('\u0301', TvScheduleLimits.MaximumTextLength + 80);
+        var body = $"""
+            <tv>
+              <programme start="20260925130000 +0000" stop="20260925140000 +0000" channel="x"><title>{oversizedElement}</title></programme>
+              <programme start="20260925140000 +0000" stop="20260925150000 +0000" channel="x"><title>Fine</title></programme>
+            </tv>
+            """;
+
+        var channel = Assert.Single(XmltvParser.Parse(Encoding.UTF8.GetBytes(body), Now));
+
+        Assert.Equal("Fine", Assert.Single(channel.Programmes).Title);
+    }
+
     [Fact]
     public void GzipBodyIsReadTheSameAsPlain()
     {

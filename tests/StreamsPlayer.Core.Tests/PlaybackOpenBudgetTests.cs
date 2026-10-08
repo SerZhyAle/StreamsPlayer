@@ -114,4 +114,35 @@ public sealed class PlaybackOpenBudgetTests
         Assert.Equal(TimeSpan.FromSeconds(20), PlaybackOpenBudget.OpenDeadline);
         Assert.True(PlaybackOpenBudget.DeadSourceAfter < PlaybackOpenBudget.OpenDeadline);
     }
+
+    /// <summary>
+    /// SP-0203: the dead-source branch judges the attempt's own clock, while the deadline stays
+    /// leg-scoped - a silent LAN endpoint moves the attempt list on early, and a list of silent
+    /// endpoints may not stretch one leg without end.
+    /// </summary>
+    [Fact]
+    public void AShortAttemptSliceDiesTheAttemptEarlyAndKeepsTheLegDeadline()
+    {
+        var budget = new PlaybackOpenBudget(TimeSpan.FromSeconds(4));
+        Assert.Equal(PlaybackOpenVerdict.None, budget.Observe(At(3), At(3), 0L));
+        Assert.Equal(PlaybackOpenVerdict.DeadSource, budget.Observe(At(4.5), At(4.5), 0L));
+    }
+
+    [Fact]
+    public void BytesAnsweredOnTheAttemptRetireItsDeadBranchButNotTheLegDeadline()
+    {
+        var budget = new PlaybackOpenBudget(TimeSpan.FromSeconds(4));
+        Assert.Equal(PlaybackOpenVerdict.None, budget.Observe(At(2), At(2), 100L));
+        Assert.Equal(PlaybackOpenVerdict.None, budget.Observe(At(8), At(6), 0L)); // answering slowly: the deadline's business
+        Assert.Equal(PlaybackOpenVerdict.Deadline, budget.Observe(At(21), At(19), 0L));
+    }
+
+    [Fact]
+    public void TheDefaultBudgetBehavesExactlyAsTheSingleClockForm()
+    {
+        var twoClock = new PlaybackOpenBudget();
+        var single = new PlaybackOpenBudget();
+        Assert.Equal(single.Observe(At(6), 0L), twoClock.Observe(At(6), At(6), 0L));
+        Assert.Equal(single.Observe(At(9), 0L), twoClock.Observe(At(9), At(9), 0L));
+    }
 }

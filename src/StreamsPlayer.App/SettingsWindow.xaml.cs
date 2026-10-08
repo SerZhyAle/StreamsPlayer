@@ -70,6 +70,8 @@ public partial class SettingsWindow : Window
             ShowCaptureFolder(kind);
         }
 
+        InitializeExchange();
+
         VersionText.Text = ProductInfo.Version;
         AuthorText.Text = ProductInfo.Author;
 
@@ -109,16 +111,35 @@ public partial class SettingsWindow : Window
 
         if (_uiContext.Window is { } remembered && remembered.IsUsable)
         {
-            // Placed before it is seen, then fitted to the surviving work area once the window has a
-            // transform of its own (OnSourceInitialized) - the two passes a DPI change between
-            // sessions requires (APP-BEHAVIOUR rule 10).
-            _placedFromMemory = true;
-            WindowStartupLocation = WindowStartupLocation.Manual;
-            Left = remembered.Left;
-            Top = remembered.Top;
-            Width = remembered.Width;
-            Height = remembered.Height;
+            var rememberedRectangle = new ScreenRect(remembered.Left, remembered.Top, remembered.Width, remembered.Height);
+            if (MonitorWorkArea.Around(rememberedRectangle, mainWindow) == OwnerWorkArea(mainWindow))
+            {
+                // Placed before it is seen, then fitted to the surviving work area once the window has a
+                // transform of its own (OnSourceInitialized) - the two passes a DPI change between
+                // sessions requires (APP-BEHAVIOUR rule 10).
+                _placedFromMemory = true;
+                WindowStartupLocation = WindowStartupLocation.Manual;
+                Left = remembered.Left;
+                Top = remembered.Top;
+                Width = remembered.Width;
+                Height = remembered.Height;
+            }
+            else
+            {
+                // APP-SETTINGS rule 1: found where the user is. The remembered rectangle lies on another
+                // monitor than the window the user is working in, so the size is kept and the position is
+                // the owner's centre (the startup location the markup declares).
+                Width = remembered.Width;
+                Height = remembered.Height;
+                FitFirstOpenSizeToWorkArea(mainWindow);
+            }
         }
+        else
+        {
+            FitFirstOpenSizeToWorkArea(mainWindow);
+        }
+
+        WindowTitleBar.Follow(this);
 
         Loaded += SettingsWindow_Loaded;
         _initializing = false;
@@ -191,6 +212,7 @@ public partial class SettingsWindow : Window
         _initializing = true;
         FlowDirection = (FlowDirection)FindResource("UiFlowDirection");
         PopulateOptions();
+        ShowExchange();
         ShowTvSchedule();
         ShowVideoComponents();
         SyncHeader();
@@ -199,6 +221,21 @@ public partial class SettingsWindow : Window
         // so the same group can be brought back to the top after the heights above it moved.
         RestoreViewportSoon();
     }
+
+    private void ExchangeEnroll_Click(object sender, RoutedEventArgs e) =>
+        HandlerBoundary.Run(nameof(ExchangeEnroll_Click), ExchangeEnrollAsync);
+
+    private void ExchangeTrust_Click(object sender, RoutedEventArgs e) =>
+        HandlerBoundary.Run(nameof(ExchangeTrust_Click), ExchangeTrustAsync);
+
+    private void ExchangeEnabled_Click(object sender, RoutedEventArgs e) =>
+        HandlerBoundary.Run(nameof(ExchangeEnabled_Click), ExchangeEnabledAsync);
+
+    private void ExchangeAutoAcceptCasts_Click(object sender, RoutedEventArgs e) =>
+        HandlerBoundary.Run(nameof(ExchangeAutoAcceptCasts_Click), ExchangeAutoAcceptCastsAsync);
+
+    private void ExchangeForget_Click(object sender, RoutedEventArgs e) =>
+        HandlerBoundary.Run(nameof(ExchangeForget_Click), ExchangeForgetAsync);
 
     private void LanguageBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -428,7 +465,7 @@ public partial class SettingsWindow : Window
     private void OpenLink_Click(object sender, RoutedEventArgs e)
     {
         var currentLanguage = LocalizationService.CurrentLanguage;
-        var url = (sender as FrameworkContentElement)?.Tag switch
+        var url = (sender as FrameworkElement)?.Tag switch
         {
             "Instructions" => ProductInfo.InstructionsUrl(currentLanguage),
             "Source" => ProductInfo.SourceUrl,

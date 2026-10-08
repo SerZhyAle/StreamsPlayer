@@ -113,7 +113,13 @@ public sealed class ActivationPipeListener : IAsyncDisposable
                 }
                 catch (Exception exception)
                 {
+                    // SP-0184 (S13-3): a wait that keeps failing must not spin; back off like the open path.
                     Reject("connection failed", exception);
+                    if (!await DelayAsync(ReopenDelay, stopping).ConfigureAwait(false))
+                    {
+                        return;
+                    }
+
                     continue;
                 }
 

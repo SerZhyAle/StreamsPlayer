@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <Using Include="Xunit" />
+    <ProjectReference Include="../../src/StreamsPlayer.Core/StreamsPlayer.Core.csproj" />
+    <!-- Compile Windows-only seams as sources, on the Core tests' existing transport-seam pattern. -->
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeAccountStore.cs" Link="ExchangeAccountStore.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeTlsConnection.cs" Link="ExchangeTlsConnection.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.cs" Link="ExchangeSourceService.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ProductInfo.cs" Link="ProductInfo.cs" />
+  </ItemGroup>
+</Project>

@@ -99,6 +99,28 @@ public sealed class DiagnosticEnvironmentSummaryTests
         Assert.Contains("channels_local_catalog=1\r\n", text);
     }
 
+    [Fact]
+    public void Render_AppendsHostFactsAsOneLineEach()
+    {
+        KeyValuePair<string, string>[] extras =
+        [
+            new("libvlc_version", "3.0.21 Vetinari"),
+            new("audio_device", "custom"),
+            new("note", "first\r\nsecond"),
+            new("blank", "  ")
+        ];
+
+        var text = DiagnosticEnvironmentSummary.Render(
+            DiagnosticEnvironmentSummary.From(MixedState(), "26.0730.0012", "Windows", "X64", Generated, extras));
+
+        Assert.Contains("libvlc_version=3.0.21 Vetinari\r\n", text);
+        Assert.Contains("audio_device=custom\r\n", text);
+        Assert.Contains("note=first second\r\n", text);
+        Assert.Contains("blank=unknown\r\n", text);
+        var lines = text.Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+        Assert.All(lines, line => Assert.Matches(new Regex(@"^[a-z0-9_]+=\S.*$"), line));
+    }
+
     private static StreamChannel Channel(string title, string url, SourceOrigin origin, bool pinned = false) => new()
     {
         Id = Guid.NewGuid(),

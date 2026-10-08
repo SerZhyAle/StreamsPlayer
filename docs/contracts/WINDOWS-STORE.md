@@ -25,10 +25,10 @@ The rules are in the home page. Repo-local: which code holds each one, so a chan
 
 | Rule | Held by |
 | --- | --- |
-| 1 identity supplied in full | `msix/build-msix.ps1` parameter defaults (`SZA.StreamsPlayer`, the account Publisher, `SZA`) - the read-back is **not** built yet (registry exception, SP-0190) |
-| 2 unsigned upload | `-SelfSign` is the only signing path; the unsigned build is the default - the no-signature assertion and a distinct self-signed file name are **not** built yet (same exception) |
-| 3 remap of the stamp | `msix/build-msix.ps1` (int-cast parts, revision 0, parts at most 65535) |
-| 4 notices inside the package | copied to the staging folder by `msix/build-msix.ps1`; asserted on the packed file by hand only |
+| 1 identity supplied in full | `msix/build-msix.ps1` parameter defaults (`SZA.StreamsPlayer`, the account Publisher, `SZA`), read back out of the packed archive and compared with the reserved constants held in `msix/Assert-MsixPackage.ps1` (SP-0190) |
+| 2 unsigned upload | `-SelfSign` is the only signing path and writes `...-selfsigned.msix`; `msix/Assert-MsixPackage.ps1` asserts no `AppxSignature.p7x` in the upload candidate and refuses the self-signed name offered as the upload (SP-0190) |
+| 3 remap of the stamp | `msix/build-msix.ps1` (int-cast parts, revision 0, parts at most 65535); the packed version is checked against it and against the MSIX shape by `msix/Assert-MsixPackage.ps1`. The comparison with the dashboard's version stays with the submission |
+| 4 notices inside the package | copied to the staging folder by `msix/build-msix.ps1`; asserted as a member of the packed archive by `msix/Assert-MsixPackage.ps1` |
 | 6, 7 fresh export, columns by name | `tools/store/build-store-listing-csv.ps1` reads the header row; a language with no deck fails the run |
 | 8 encoding | `tools/store/write-release-notes.ps1` (BOM-free, CRLF throughout, refuses a bare LF) and the builder's writer |
 | 9 caps checked before writing | `tools/store/build-store-listing-csv.ps1`, in the deck-reading loop (Feature 200, short description 1,000, description 10,000); `write-release-notes.ps1` for the 1,500 of release notes |
@@ -38,6 +38,6 @@ The rules are in the home page. Repo-local: which code holds each one, so a chan
 | 16 "What's new" | `msix/listing/release-notes/<version>.en-us.txt`, `.ru.txt` and `.uk.txt`; the accumulated Store block lives in `msix/store-listing.md` |
 
 **Conformance evidence.** The contract has no vectors. Rung 1 runs by hand (`-FillNothing`, byte-identical).
-Rung 2 has a manual negative run only. Rung 3 is not built. Rung 4 is the owner's confirmation of an accepted import.
+Rung 2 has a manual negative run only. Rung 3 is built: `msix/Assert-MsixPackage.ps1` runs at the end of `build-msix.ps1` and fails closed, and `msix/Test-AssertMsixPackage.ps1` (part of `scripts/check.ps1`) pins each refusal. Rung 4 is the owner's confirmation of an accepted import.
 
 **Deviations** are recorded in the store's `_meta/REGISTRY.md`, never here.

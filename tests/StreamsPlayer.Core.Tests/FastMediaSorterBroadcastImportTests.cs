@@ -39,6 +39,31 @@ public sealed class FastMediaSorterBroadcastImportTests
         Assert.Equal("phone-1", replaced.FastMediaSorterBroadcast?.SourceId);
     }
 
+    /// <summary>S9-3: a bank row is the catalog merge's to change; the broadcast becomes its own imported row.</summary>
+    [Theory]
+    [InlineData(SourceOrigin.Catalog)]
+    [InlineData(SourceOrigin.LocalCatalog)]
+    public void Apply_NeverRewritesABankRowInPlace(SourceOrigin origin)
+    {
+        var bankRow = Channel("http://192.168.1.166:33559/listen") with
+        {
+            SourceOrigin = origin,
+            Title = "Published title",
+            Category = "Radio"
+        };
+
+        var result = FastMediaSorterBroadcastImport.Apply(
+            [bankRow],
+            Descriptor("http://192.168.1.166:33559/listen", "watch-1", "Watch"),
+            Now);
+
+        Assert.True(result.Added);
+        Assert.Equal(2, result.Channels.Count);
+        Assert.Equal(bankRow, result.Channels.Single(channel => channel.Id == bankRow.Id));
+        Assert.Equal(SourceOrigin.Imported, result.Channel.SourceOrigin);
+        Assert.NotEqual(bankRow.Id, result.Channel.Id);
+    }
+
     [Fact]
     public void Apply_FallsBackToNormalizedUrlIdentityWhenSourceIdIsAbsent()
     {
@@ -230,6 +255,26 @@ public sealed class FastMediaSorterBroadcastImportTests
         FastMediaSorterBroadcastDescriptor.Read($$"""
             {"schemaVersion":1,"url":"rtsp://192.168.1.97:8554/","title":"Galaxy S25 FE","mode":"{{mode}}","sourceId":"phone-camera-1","isLive":true,"targetLatencyMs":200,"endpoints":[{"url":"rtsp://192.168.1.97:8554/","transport":"RTSP","mode":"{{mode}}","videoCodec":"h264","bitrate":2000000,"isLive":true,"targetLatencyMs":200}]}
             """).Broadcast!;
+
+    /// <summary>
+    /// SP-0203: a video broadcast whose only reachable address is the relay - a phone on mobile data
+    /// - lands as a video row: the kind follows the descriptor's mode, not the URL heuristic (a
+    /// `/stream` path without an extension classifies as audio on its own).
+    /// </summary>
+    [Fact]
+    public void Apply_ARelayOnlyVideoDescriptorStaysAVideoRow()
+    {
+        var result = FastMediaSorterBroadcastImport.Apply([], FastMediaSorterBroadcastDescriptor.Read("""
+            {"schemaVersion":1,"url":"https://exchange.example.net:44022/v2/b/ICEiIyQlJicoKSorLC0uLw/stream","title":"Kitchen camera","mode":"VIDEO_AUDIO","sourceId":"phone-camera-2","isLive":true,"targetLatencyMs":2000,"endpoints":[{"url":"https://exchange.example.net:44022/v2/b/ICEiIyQlJicoKSorLC0uLw/stream","transport":"RELAY","mode":"VIDEO_AUDIO","videoCodec":"H264","audioCodec":"AAC","isLive":true,"targetLatencyMs":2000,"certFingerprint":"SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk"}]}
+            """).Broadcast!, Now);
+
+        Assert.True(result.Added);
+        Assert.Equal(MediaKind.Video, result.Channel.MediaKind);
+        Assert.Equal("RELAY", result.Channel.FastMediaSorterBroadcast?.SelectedTransport);
+        Assert.Equal(2000, result.Channel.FastMediaSorterBroadcast?.TargetLatencyMs);
+        var attempt = Assert.Single(result.Channel.FastMediaSorterBroadcast!.PlaybackAttemptEndpoints());
+        Assert.Equal("SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk", attempt.CertFingerprint);
+    }
 
     private static StreamChannel Channel(string url) => new()
     {

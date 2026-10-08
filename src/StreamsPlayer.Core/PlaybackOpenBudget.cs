@@ -59,6 +59,17 @@ public sealed class PlaybackOpenBudget
     /// </summary>
     public static readonly TimeSpan OpenDeadline = TimeSpan.FromSeconds(20);
 
+    // SP-0203: the dead-source branch doubles as the attempt's connect bound - the engine cannot
+    // report the TCP connect boundary, so "no bytes from this attempt" is the honest proxy for it. A
+    // LAN attempt gets a short slice (the attempt list moves on); an exchange attempt keeps the
+    // measured default, because the relay is expected to be the endpoint that works.
+    private readonly TimeSpan _attemptDeadSourceAfter;
+
+    public PlaybackOpenBudget(TimeSpan? attemptDeadSourceAfter = null)
+    {
+        _attemptDeadSourceAfter = attemptDeadSourceAfter ?? DeadSourceAfter;
+    }
+
     private bool _sourceAnswered;
     private bool _reported;
     private bool _live;
@@ -94,7 +105,16 @@ public sealed class PlaybackOpenBudget
     /// A verdict exactly once per leg, after which the budget is disarmed until <see cref="Reset"/>.
     /// Reporting once is what stops the next tick raising a second dialog over the first.
     /// </returns>
-    public PlaybackOpenVerdict Observe(TimeSpan sinceOpen, long? receivedBytes)
+    public PlaybackOpenVerdict Observe(TimeSpan sinceOpen, long? receivedBytes) =>
+        Observe(sinceOpen, sinceOpen, receivedBytes);
+
+    /// <summary>
+    /// The attempt-aware reading: <paramref name="sinceAttempt"/> is the current endpoint's own
+    /// clock, <paramref name="sinceOpen"/> the leg's. The dead-source branch judges the attempt; the
+    /// deadline judges the whole leg, so a list of slowly-answering endpoints cannot stretch one leg
+    /// without end.
+    /// </summary>
+    public PlaybackOpenVerdict Observe(TimeSpan sinceOpen, TimeSpan sinceAttempt, long? receivedBytes)
     {
         if (_live || _reported)
         {
@@ -116,7 +136,7 @@ public sealed class PlaybackOpenBudget
             return PlaybackOpenVerdict.Deadline;
         }
 
-        if (!_sourceAnswered && sinceOpen >= DeadSourceAfter)
+        if (!_sourceAnswered && sinceAttempt >= _attemptDeadSourceAfter)
         {
             _reported = true;
             return PlaybackOpenVerdict.DeadSource;

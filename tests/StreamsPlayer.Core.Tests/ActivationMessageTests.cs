@@ -26,6 +26,25 @@ public sealed class ActivationMessageTests
         Assert.Equal(arguments, parsed);
     }
 
+    // SP-0184 (S13-2): an unpaired surrogate in a file name must not make the sender throw.
+    [Fact]
+    public void TrySerialize_ReplacesALoneSurrogateInsteadOfThrowing()
+    {
+        Assert.True(ActivationMessage.TrySerialize(new[] { "--url", "x\uD800y" }, out var payload));
+
+        Assert.True(ActivationMessage.TryParse(payload!.AsSpan(0, payload.Length - 1), out var parsed));
+        Assert.Equal(new[] { "--url", "x\uFFFDy" }, parsed);
+    }
+
+    [Fact]
+    public void TryParse_RefusesAnEscapedLoneSurrogateWithoutThrowing()
+    {
+        const string line = "{\"schemaVersion\":1,\"command\":\"open\",\"args\":[\"\ud800\"]}";
+
+        Assert.False(ActivationMessage.TryParse(line, out var parsed));
+        Assert.Null(parsed);
+    }
+
     [Fact]
     public void RoundTrip_ProducesTheSameLaunchRequestAsTheCommandLine()
     {

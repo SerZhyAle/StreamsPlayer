@@ -47,9 +47,11 @@ internal static class AudioDeviceService
                 }
             }
         }
-        catch
+        catch (Exception exception)
         {
-            // Safe fallback to default device only
+            // Safe fallback to the default device only. The failure is logged in full, with no dialog: the list
+            // is a convenience and the default entry is always there (A12-2).
+            HandlerBoundary.Report(nameof(GetAvailableAudioDevices), exception, notifyUser: false);
         }
 
         return list;

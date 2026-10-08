@@ -1,18 +1,16 @@
 <!doctype html>
-<html lang="{{page.lang}}" dir="{{page.dir}}" data-theme="dark" data-lang="{{page.code}}" data-entry="{{page.entry}}">
+<html lang="{{page.lang}}" dir="{{page.dir}}" data-theme="dark" data-entry="{{page.entry}}">
   <head>
 {{include:head}}
   </head>
   <body data-page="home">
     <a class="skip-link" href="#content">{{t.skip-content}}</a>
-    <div class="background-glow" aria-hidden="true">
-      <div class="glow glow-one"></div>
-      <div class="glow glow-two"></div>
-    </div>
+    <!-- The brand backdrop (WAVE-PARTICLES): behind everything, decorative, slow and pale; every block of text
+         sits on a semi-transparent plate (style.css). Settings: SP-0195 follow-up, registry exception. -->
+    <canvas class="backdrop" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.3" data-speed="0.5" aria-hidden="true"></canvas>
 
     <header class="site-header">
       <a class="brand" href="{{page.home}}">
-        <img src="{{page.base}}assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
         <span>STREAMS Player<span class="brand-dot">.</span></span>
       </a>
       <nav class="header-links" aria-label="{{t.nav-label}}">
@@ -21,22 +19,27 @@
         <a class="header-link" href="#use">{{t.nav-use}}</a>
         <a class="header-link" href="{{page.privacy}}">{{t.nav-privacy}}</a>
       </nav>
+      <a class="header-link header-docs" href="{{page.docs}}">{{t.nav-docs}}</a>
 {{include:switcher}}
-      <button class="theme-button" id="themeButton" type="button" aria-label="{{t.theme-label}}">◐</button>
+      <button class="theme-button" id="themeButton" type="button" aria-label="{{t.theme-label}}">{{glyph:app.theme}}<span>{{t.theme-name}}</span></button>
       <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">{{t.header-github}}</a>
     </header>
+{{include:languagerow}}
 
     <main class="container" id="content">
       <section class="hero" aria-labelledby="hero-title">
         <div>
-          <div class="product-id">
-            <img class="product-icon" src="{{page.base}}assets/streamsplayer-icon-256.png" alt="{{t.icon-alt}}" width="68" height="68">
+          <!-- PAGE-CONTENT "The landing always carries" item 1: the application icon and the full name in
+               display type open the hero; the eyebrow stands under the name, the outcome H1 follows. -->
+          <div class="identity">
+            <img class="product-icon" src="{{page.base}}assets/streamsplayer-icon-256.png" alt="{{t.icon-alt}}" width="104" height="104">
             <div>
+              <span class="product-name">STREAMS Player</span>
               <span class="eyebrow">{{t.hero-eyebrow}}</span>
-              <h1 id="hero-title">{{t.hero-title}}</h1>
-              <span class="kicker">{{t.hero-kicker}}</span>
             </div>
           </div>
+          <h1 id="hero-title">{{t.hero-title}}</h1>
+          <span class="kicker">{{t.hero-kicker}}</span>
           <p class="lead">{{t.hero-description}}</p>
           <div class="facts" aria-label="{{t.facts-label}}">
             <span class="fact">{{t.fact-windows}}</span>
@@ -187,6 +190,9 @@
             </div>
           </li>
         </ol>
+        <div class="button-group">
+          <a class="button button-gold button-small" href="{{page.docs}}">{{t.nav-docs}}</a>
+        </div>
       </section>
 
       <section class="section" id="distribution" aria-labelledby="distribution-title">

@@ -91,6 +91,26 @@ public sealed class ThemeColourDeclarationTests
         Assert.Empty(markup.Except(code));
     }
 
+    /// <summary>
+    /// SP-0211, <c>APP-SETTINGS</c> rule 6: while Windows is in high contrast every role follows the system
+    /// colours. A role added to the table without a high-contrast mapping would silently keep its authored
+    /// hue there, which is the failure the rule exists to prevent.
+    /// </summary>
+    [Fact]
+    public void EveryPaletteRoleHasAHighContrastMappingExceptTheContentPlate()
+    {
+        // The plate under a station's own artwork is content, not chrome (ThemeService.HighContrast.cs).
+        var contentPlates = new HashSet<string>(StringComparer.Ordinal) { "FaviconPlateBrush" };
+        var mapping = Assert.Single(AppSourceFile.LoadAll("ThemeService.HighContrast.cs")).Text;
+        var mapped = Regex.Matches(mapping, @"\[\s*""(?<key>\w+)""\s*\]\s*=\s*(?!\()")
+            .Select(match => match.Groups["key"].Value)
+            .ToHashSet(StringComparer.Ordinal);
+
+        Assert.Empty(PaletteKeys().Except(contentPlates).Except(mapped));
+        Assert.Empty(mapped.Except(PaletteKeys()));
+        Assert.DoesNotContain(contentPlates, mapped.Contains);
+    }
+
     [Fact]
     public void TheMarkupSweepFailsOnEachWayAColourCanEscapeTheTheme()
     {
