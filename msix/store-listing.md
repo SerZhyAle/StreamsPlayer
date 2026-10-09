@@ -63,6 +63,100 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.1010.0106
+
+Supersedes nothing: the 26.1003.0030 tag shipped as prepared below. The Settings window that remembers its place and
+follows high contrast, a pinned player panel, countries of the interface language first, FastMediaSorter broadcasts
+by endpoint order (relay, tunnel, HTTP MPEG-TS), the optional exchange server account with its live broadcasts and
+casts, a backdrop that rests on another desktop and bounded imports. The three blocks below are the files
+`msix/listing/release-notes/26.1010.0106.*.txt`.
+
+```text
+Version 26.1010.0106
+
+- Settings remembers the page, the open groups, the scroll position and the window size, has a search box and "Expand all groups" / "Collapse all groups", follows the Windows high-contrast theme, and opens at a size that fits your display.
+- Pin the playback controls in the player so they stay on screen.
+- The country filter lists the countries where your interface language is official first, named in your language.
+- FastMediaSorter broadcasts try every address the sender lists, in its order (local network, relay, tunnel), play HTTP MPEG-TS video, and buffer by the broadcast's own delay instead of a fixed 15 seconds.
+- Optional exchange server account, off until you enrol: see which of your devices are broadcasting, play one in two clicks and accept a cast from another of your devices. Nothing listens on a port.
+- The animated backdrop stops drawing while its window is on another virtual desktop.
+- An M3U import takes at most 100 000 new channels and treats an address that differs only in host case or default port as the same stream; a TV guide download follows redirects only on the host you agreed to.
+- The built-in channel list is current (18 502 live streams as of 2026-09-23).
+```
+
+```text
+Версия 26.1010.0106
+
+- «Настройки» помнят страницу, раскрытые группы, положение прокрутки и размер окна, получили строку поиска и команды «Развернуть все группы» и «Свернуть все группы», следуют высококонтрастной теме Windows и открываются в размере, который подходит вашему экрану.
+- Закрепляйте панель управления воспроизведением в плеере, чтобы она оставалась на экране.
+- Фильтр стран сначала показывает страны, где ваш язык интерфейса государственный, с названиями на вашем языке.
+- Трансляции FastMediaSorter пробуют все адреса, которые перечислил отправитель, в его порядке (локальная сеть, ретранслятор, туннель), воспроизводят видео HTTP MPEG-TS и буферизуют по собственной задержке трансляции, а не по фиксированным 15 секундам.
+- Необязательная учётная запись «Сервера обмена», выключена, пока вы не зарегистрируете устройство: видно, какие ваши устройства сейчас в эфире, одно из них запускается в два действия, а трансляцию с другого вашего устройства можно принять. Ни один порт не прослушивается.
+- Анимированный фон перестаёт рисоваться, пока его окно находится на другом виртуальном рабочем столе.
+- Импорт M3U берёт не более 100 000 новых каналов и считает одним потоком адреса, различающиеся только регистром узла или портом по умолчанию; загрузка телепрограммы следует перенаправлениям только на том узле, на который вы согласились.
+- Встроенный список каналов актуален (18 502 активных потока от 23.09.2026).
+```
+
+```text
+Версія 26.1010.0106
+
+- «Налаштування» пам'ятають сторінку, розгорнуті групи, положення прокручування та розмір вікна, отримали рядок пошуку й команди «Розгорнути всі групи» та «Згорнути всі групи», дотримуються висококонтрастної теми Windows і відкриваються в розмірі, що пасує вашому екрану.
+- Закріплюйте панель керування відтворенням у програвачі, щоб вона лишалася на екрані.
+- Фільтр країн спершу показує країни, де ваша мова інтерфейсу державна, з назвами вашою мовою.
+- Трансляції FastMediaSorter пробують усі адреси, які перелічив відправник, у його порядку (локальна мережа, ретранслятор, тунель), відтворюють відео HTTP MPEG-TS і буферизують за власною затримкою трансляції, а не за фіксованими 15 секундами.
+- Необов'язковий обліковий запис «Сервера обміну», вимкнений, доки ви не зареєструєте пристрій: видно, які з ваших пристроїв зараз в ефірі, один із них запускається за дві дії, а трансляцію з іншого вашого пристрою можна прийняти. Жоден порт не прослуховується.
+- Анімоване тло перестає малюватися, доки його вікно перебуває на іншому віртуальному робочому столі.
+- Імпорт M3U бере не більше 100 000 нових каналів і вважає одним потоком адреси, що різняться лише регістром вузла чи портом за замовчуванням; завантаження телепрограми йде за перенаправленнями лише на тому вузлі, на який ви погодилися.
+- Вбудований список каналів актуальний (18 502 активні потоки від 23.09.2026).
+```
+
+#### Store-only What's new for 26.1010.0106
+
+The Store still carries 26.0806.2225 unless Partner Center says otherwise, so this block is the accumulated one:
+everything a Store user has not seen yet, folded to stay under 1 500 characters.
+
+```text
+Version 26.1010.0106
+
+- One Settings window (General, Library, Playback, Audio, Files, About) that remembers its page and size, has a search box and follows the high-contrast theme; pick the audio output device and channel mode.
+- Record video or radio to its own folders with a safe quit; live FastMediaSorter broadcasts from a phone or watch try each of the sender's addresses (local network, relay, tunnel) and play HTTP MPEG-TS video.
+- Optional exchange server account, off until you enrol: see which of your devices are broadcasting, play one in two clicks, accept a cast.
+- See what is on a TV channel now and next from an XMLTV guide you choose.
+- A calm animated background and a compact radio panel with the track, volume, sleep timer, Random station and always-on-top; pin the player's controls.
+- The "now playing" line on more stations, a topic filter, countries of your language first, sharing a channel as text, resume where you left off.
+- A channel the catalog drops keeps your pins, collections and history; a built-in channel list fills the catalog on a first launch with no network.
+- One running copy; an error in one action no longer ends the app. Logs carry no passwords or user folder names.
+- Errors name the cause; the player re-opens a stalled stream.
+```
+
+```text
+Версия 26.1010.0106
+
+- Одно окно «Настройки» со страницами «Общие», «Библиотека», «Воспроизведение», «Звук», «Файлы» и «О программе» помнит страницу и размер, ищет по настройкам и следует высококонтрастной теме; выбор устройства вывода звука и режима каналов.
+- Запись видео и радио в отдельные папки с безопасным выходом; трансляции FastMediaSorter с телефона или часов пробуют все адреса отправителя (локальная сеть, ретранслятор, туннель) и воспроизводят видео HTTP MPEG-TS.
+- Необязательная учётная запись «Сервера обмена», выключена, пока вы не зарегистрируете устройство: видно, какие ваши устройства в эфире, одно запускается в два действия, трансляцию с другого устройства можно принять.
+- Что идёт на ТВ-канале сейчас и дальше - по гиду XMLTV, который вы выбираете.
+- Спокойный анимированный фон и компактная радиопанель с треком, громкостью, таймером сна, случайной станцией и режимом «поверх окон»; закрепление панели управления плеера.
+- Строка «сейчас в эфире» у большего числа станций, фильтр по темам, сначала страны вашего языка, отправка канала текстом, продолжение с места прошлого сеанса.
+- Канал, который каталог убрал, сохраняет закрепления, подборки и историю; встроенный список каналов заполняет каталог при первом запуске без сети.
+- Одна работающая копия; сбой в одном действии больше не завершает приложение. В журналах нет паролей и имён папок пользователя.
+- Ошибки называют причину; плеер переоткрывает зависший поток.
+```
+
+```text
+Версія 26.1010.0106
+
+- Одне вікно «Налаштування» зі сторінками «Загальні», «Бібліотека», «Відтворення», «Звук», «Файли» та «Про програму» пам'ятає сторінку й розмір, шукає в налаштуваннях і дотримується висококонтрастної теми; вибір пристрою виведення звуку та режиму каналів.
+- Запис відео та радіо в окремі теки з безпечним виходом; трансляції FastMediaSorter з телефона чи годинника пробують усі адреси відправника (локальна мережа, ретранслятор, тунель) і відтворюють відео HTTP MPEG-TS.
+- Необов'язковий обліковий запис «Сервера обміну», вимкнений, доки ви не зареєструєте пристрій: видно, які з ваших пристроїв в ефірі, один запускається за дві дії, трансляцію з іншого пристрою можна прийняти.
+- Що йде на ТБ-каналі зараз і далі - за гідом XMLTV, який ви обираєте.
+- Спокійне анімоване тло й компактна радіопанель з треком, гучністю, таймером сну, випадковою станцією та режимом «поверх вікон»; закріплення панелі керування програвача.
+- Рядок «зараз в ефірі» в більшої кількості станцій, фільтр за темами, спершу країни вашої мови, надсилання каналу текстом, продовження з місця попереднього сеансу.
+- Канал, який каталог прибрав, зберігає закріплення, добірки та історію; вбудований список каналів наповнює каталог під час першого запуску без мережі.
+- Одна працююча копія; збій в одній дії більше не завершує програму. У журналах немає паролів та імен тек користувача.
+- Помилки називають причину; програвач перевідкриває завислий потік.
+```
+
 ### Prepared for 26.1003.0030
 
 Supersedes 26.1002.2330, whose tag failed its release job on the installer script (a brace comment closed early) and
