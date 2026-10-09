@@ -91,6 +91,14 @@ public partial class ChannelInfoWindow : Window
 
     private void CopyAll_Click(object sender, RoutedEventArgs e)
     {
+        // The sheet carries the raw address (FieldAddress): userinfo credentials, or a relay or tunnel
+        // address that is itself the capability to listen. It ends up pasted into bug reports, so it is
+        // told as what it is first, with the confirmations the share path asks - a refusal copies nothing.
+        if (!ConfirmAddressHandOut())
+        {
+            return;
+        }
+
         try
         {
             Clipboard.SetText(ChannelFactSheet.Render([.. _storedFacts, .. _streamFacts], LocalizationService.Get));
@@ -101,6 +109,20 @@ public partial class ChannelInfoWindow : Window
             // Another process owns the clipboard; the same failure SettingsWindow reports for its own copy.
             MessageBox.Show(this, LocalizationService.Get("AboutCopyFailed"), Title, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
+    }
+
+    private bool ConfirmAddressHandOut()
+    {
+        foreach (var key in ChannelHandOutWarnings.KeysFor(_channel.Url))
+        {
+            if (MessageBox.Show(this, LocalizationService.Get(key), Title, MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void ShowTransmission(IReadOnlyList<ChannelFact> facts)

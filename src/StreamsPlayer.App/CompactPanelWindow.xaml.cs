@@ -232,12 +232,22 @@ public partial class CompactPanelWindow : Window
     /// </remarks>
     private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.ButtonState != MouseButtonState.Pressed || IsInsideControl(e.OriginalSource as DependencyObject))
+        // The event's button state is the press that raised it; DragMove asks the device's state *now*, and
+        // throws when the button has already come up (a quick tap, a touch promoted to a mouse press).
+        if (e.ButtonState != MouseButtonState.Pressed || Mouse.LeftButton != MouseButtonState.Pressed
+            || IsInsideControl(e.OriginalSource as DependencyObject))
         {
             return;
         }
 
-        DragMove();
+        try
+        {
+            DragMove();
+        }
+        catch (InvalidOperationException)
+        {
+            // Released between the check and the call: nothing was dragged, so there is nothing to undo.
+        }
     }
 
     private static bool IsInsideControl(DependencyObject? source)

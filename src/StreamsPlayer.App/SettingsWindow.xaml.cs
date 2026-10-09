@@ -53,7 +53,7 @@ public partial class SettingsWindow : Window
         // three have to be settled before the window is shown; a constructor cannot await, and the
         // file is a few kilobytes (see SettingsUiStateStore.LoadSync).
         _uiContextStore = new SettingsUiStateStore(AppPaths.DataDirectory);
-        _uiContext = _uiContextStore.LoadSync();
+        _uiContext = SettingsUiStateSanitizer.Sanitize(_uiContextStore.LoadSync());
 
         _mainWindow = mainWindow;
         _runAction = runAction;

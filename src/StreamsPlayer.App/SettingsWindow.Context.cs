@@ -111,8 +111,14 @@ public partial class SettingsWindow
         }
     }
 
+    // Rooted at the page panels, not at the window content: the panels sit inside PageScroll, a
+    // ScrollViewer whose template is not applied until the first layout pass, and a visual walk stops at
+    // a control that has no template yet. From the constructor that found no group at all, so the
+    // expansion handler was never wired and the stored expansion never restored. A panel's own children
+    // are visual children from the moment the markup adds them.
     private IEnumerable<Expander> AllExpanders() =>
-        FindVisualDescendants<Expander>(SettingsContent);
+        Enumerable.Range(0, PageNameKeys.Length)
+            .SelectMany(page => FindVisualDescendants<Expander>(PageAt(page)));
 
     private IEnumerable<Expander> VisiblePageExpanders() =>
         FindVisualDescendants<Expander>(PageAt(_currentPageIndex));
@@ -185,15 +191,25 @@ public partial class SettingsWindow
     /// </summary>
     private void RestoreViewport()
     {
-        if (_uiContext.Viewports.TryGetValue(ViewportKey(_currentPageIndex), out var anchor)
-            && FindGroup(anchor.GroupId) is { } target)
+        // Runs from a dispatcher callback, outside every handler boundary: an exception here would end
+        // the process over a scroll position. The anchor is navigation memory, so a failure costs only
+        // the restore and says nothing to the user (SP-0166).
+        try
         {
-            var within = Math.Clamp(anchor.OffsetWithinGroup, 0, Math.Max(0, target.ActualHeight));
-            PageScroll.ScrollToVerticalOffset(ScrollOffsetOf(target) + within);
-            return;
-        }
+            if (_uiContext.Viewports.TryGetValue(ViewportKey(_currentPageIndex), out var anchor)
+                && FindGroup(anchor.GroupId) is { } target)
+            {
+                var within = Math.Clamp(anchor.OffsetWithinGroup, 0, Math.Max(0, target.ActualHeight));
+                PageScroll.ScrollToVerticalOffset(ScrollOffsetOf(target) + within);
+                return;
+            }
 
-        PageScroll.ScrollToTop();
+            PageScroll.ScrollToTop();
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report("SettingsWindow.RestoreViewport", exception, notifyUser: false);
+        }
     }
 
     /// <summary>
@@ -280,7 +296,9 @@ public partial class SettingsWindow
         }
         catch (Exception exception)
         {
-            HandlerBoundary.Report(nameof(SaveNavigationContext), exception);
+            // The line the remarks promise, and nothing more: a dialog over a window that is already
+            // closing would be the crash this catch exists to prevent, dressed up (SP-0166).
+            HandlerBoundary.Report(nameof(SaveNavigationContext), exception, notifyUser: false);
         }
     }
 }

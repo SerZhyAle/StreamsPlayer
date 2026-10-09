@@ -5,7 +5,12 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.App;
 
 /// <summary>The group heading: the device's name and presence (SP-0201 requirement 2).</summary>
-internal sealed record BroadcastDeviceHeading(string DeviceName, string PresenceText);
+internal sealed record BroadcastDeviceHeading(string DeviceName, string PresenceText)
+{
+    // The list box's item peer takes the accessible name from ToString(), and a record's own prints every
+    // member. The heading is read as the device and whether it is on the air - exactly what is on screen.
+    public override string ToString() => $"{DeviceName} {PresenceText}";
+}
 
 /// <summary>
 /// One broadcast of the view. The address is deliberately absent: a relay or tunnel address is the
@@ -24,6 +29,11 @@ internal sealed record BroadcastRow(ExchangeBroadcastView View)
 
     public Visibility ActionsVisibility =>
         View.Support == ExchangeBroadcastSupport.Supported ? Visibility.Visible : Visibility.Collapsed;
+
+    // What a screen reader announces for the row (the item peer's name is ToString()). A record's own
+    // prints View, and View carries the descriptor's address - the capability to listen, which this
+    // window exists never to expose (SP-0201 req 5). The row is read as its title and its detail line.
+    public override string ToString() => $"{Title}, {Detail}";
 
     private string ModeLabel => View.Record.Mode switch
     {
@@ -102,7 +112,8 @@ public partial class BroadcastsWindow : Window
         }
         catch (Exception exception)
         {
-            HandlerBoundary.Report(nameof(Play_Click), exception);
+            // Window-qualified: the once-per-handler notice set is keyed by name, and another window has a Play_Click.
+            HandlerBoundary.Report($"{nameof(BroadcastsWindow)}.{nameof(Play_Click)}", exception);
         }
     }
 
@@ -117,7 +128,7 @@ public partial class BroadcastsWindow : Window
         }
         catch (Exception exception)
         {
-            HandlerBoundary.Report(nameof(Keep_Click), exception);
+            HandlerBoundary.Report($"{nameof(BroadcastsWindow)}.{nameof(Keep_Click)}", exception);
         }
     }
 }

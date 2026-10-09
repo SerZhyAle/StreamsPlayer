@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -10,20 +9,6 @@ namespace StreamsPlayer.App;
 public partial class PlayerWindow
 {
     private static readonly TimeSpan OpenCallDeadline = TimeSpan.FromSeconds(20);
-
-    /// <summary>
-    /// SP-0203: file 12 section 6.2's 1.5 s connect bound cannot be seen from inside the engine, so
-    /// the bytes-based dead-source slice is its honest proxy. A LAN attempt gets this short slice and
-    /// the list moves on; an exchange attempt keeps the measured 8 s default - the relay is the
-    /// endpoint expected to answer.
-    /// </summary>
-    private static readonly TimeSpan LanAttemptSlice = TimeSpan.FromSeconds(4);
-
-    private IReadOnlyList<FastMediaSorterBroadcastEndpoint> _attemptPlan = [];
-    private int _attemptIndex;
-    private ExchangeTunnelForwarder? _tunnelForwarder;
-    private ExchangeRelayProxy? _relayProxy;
-    private readonly Stopwatch _attemptClock = Stopwatch.StartNew();
 
     private void AttachBackendEvents(IVideoBackend backend)
     {
@@ -118,8 +103,25 @@ public partial class PlayerWindow
             return;
         }
 
-        var backend = _backend;
-        var open = Task.Run(() => OpenLeg(backend, cacheMs, qualityCeiling));
+        _legOpenInFlight = true;
+        try
+        {
+            await OpenWithDeadlineAsync(_backend, _attemptEpoch, cacheMs, qualityCeiling);
+        }
+        finally
+        {
+            _legOpenInFlight = false;
+        }
+    }
+
+    /// <summary>
+    /// The engine open for the current attempt, on a worker and under <see cref="OpenCallDeadline"/>. The
+    /// deadline's verdict is as stale as any other answer once the attempt has moved on: a superseded
+    /// attempt that never returned must not fail the attempt that replaced it.
+    /// </summary>
+    private async Task OpenWithDeadlineAsync(IVideoBackend backend, int epoch, uint cacheMs, StreamQualityRung? qualityCeiling)
+    {
+        var open = Task.Run(() => OpenLeg(backend, epoch, cacheMs, qualityCeiling));
         using var deadlineCts = CancellationTokenSource.CreateLinkedTokenSource(_sessionCts.Token);
         var deadline = Task.Delay(OpenCallDeadline, deadlineCts.Token);
         if (await Task.WhenAny(open, deadline) == open)
@@ -127,9 +129,9 @@ public partial class PlayerWindow
             deadlineCts.Cancel();
             await open;
         }
-        else if (!_closing && ReferenceEquals(backend, _backend))
+        else if (!_closing && ReferenceEquals(backend, _backend) && epoch == _attemptEpoch)
         {
-            _log.Event("PLAYBACK OPEN TIMEOUT", $"leg={_legCount}",
+            _log.Event("PLAYBACK OPEN TIMEOUT", $"leg={_legCount}", $"attempt={_attemptIndex}",
                 $"after_ms={OpenCallDeadline.TotalMilliseconds:F0}", $"url={_channel.Url}");
             ShowPlaybackFailure("engine_open_timeout");
         }
@@ -171,7 +173,7 @@ public partial class PlayerWindow
             _probeLegPending = false; // SP-0130: only a quality re-open can carry a probe
         }
 
-        DisposeAttemptResource();
+        RetireAttempt();
 
         // SP-0070: same reason as the health baseline below - the new media restarts the engine's
         // progress counters from zero, and differencing across that boundary would invent a freeze.
@@ -215,21 +217,37 @@ public partial class PlayerWindow
         return cacheMs;
     }
 
-    /// <summary>Hands the leg to the engine. Any thread; a rejection is reported on the UI thread.</summary>
-    private void OpenLeg(IVideoBackend backend, uint cacheMs, StreamQualityRung? qualityCeiling)
+    /// <summary>
+    /// Hands the attempt to the engine. Any thread; a rejection is reported on the UI thread. A worker
+    /// that was queued behind a newer attempt does nothing: it opens nothing and holds nothing.
+    /// </summary>
+    private void OpenLeg(IVideoBackend backend, int epoch, uint cacheMs, StreamQualityRung? qualityCeiling)
     {
         if (_closing)
         {
             return;
         }
 
-        if (_attemptIndex >= _attemptPlan.Count)
+        FastMediaSorterBroadcastEndpoint? endpoint = null;
+        lock (_attemptResourceGate)
         {
-            ReportOpenFailure(backend, "unsupported_address");
+            if (epoch != _attemptEpoch)
+            {
+                return;
+            }
+
+            if (_attemptIndex < _attemptPlan.Count)
+            {
+                endpoint = _attemptPlan[_attemptIndex];
+            }
+        }
+
+        if (endpoint is null)
+        {
+            ReportOpenFailure(backend, epoch, "unsupported_address");
             return;
         }
 
-        var endpoint = _attemptPlan[_attemptIndex];
         Uri? address = null;
 
         if (endpoint is { Transport: "TUNNEL", Inner: { Length: > 0 } inner } &&
@@ -238,7 +256,12 @@ public partial class PlayerWindow
             try
             {
                 var forwarder = ExchangeTunnelForwarder.Start(tunnelUrl, inner, endpoint.CertFingerprint);
-                _tunnelForwarder = forwarder;
+                if (!TryHoldAttemptResource(epoch, () => _tunnelForwarder = forwarder))
+                {
+                    forwarder.Dispose();
+                    return;
+                }
+
                 if (LaunchableAddress.TryParse(forwarder.LoopbackUrl, out var loopbackAddress))
                 {
                     address = loopbackAddress;
@@ -262,7 +285,12 @@ public partial class PlayerWindow
                     var proxy = ExchangeRelayProxy.Start(endpoint.Url, endpoint.CertFingerprint);
                     proxy.Failed += failureReason =>
                         _log.Event("PLAYBACK RELAY PROXY", $"reason={failureReason}", $"url={endpoint.Url}");
-                    _relayProxy = proxy;
+                    if (!TryHoldAttemptResource(epoch, () => _relayProxy = proxy))
+                    {
+                        proxy.Dispose();
+                        return;
+                    }
+
                     if (LaunchableAddress.TryParse(proxy.LoopbackUrl, out var proxyAddress))
                     {
                         address = proxyAddress;
@@ -282,8 +310,8 @@ public partial class PlayerWindow
 
         if (address is null)
         {
-            DisposeAttemptResource();
-            ReportOpenFailure(backend, "unsupported_address");
+            DisposeAttemptResource(epoch);
+            ReportOpenFailure(backend, epoch, "unsupported_address");
             return;
         }
 
@@ -291,138 +319,14 @@ public partial class PlayerWindow
         {
             if (!backend.Play(address, cacheMs, rtspOverTcp: true, softwareDecode: true, qualityCeiling))
             {
-                ReportOpenFailure(backend, "play_rejected");
+                ReportOpenFailure(backend, epoch, "play_rejected");
             }
         }
         catch (Exception exception)
         {
             _log.Event("PLAYBACK OPEN", "ok=false", $"err={exception.Message}", $"url={_channel.Url}");
-            ReportOpenFailure(backend, "engine_open_error");
+            ReportOpenFailure(backend, epoch, "engine_open_error");
         }
-    }
-
-    /// <summary>
-    /// SP-0203: the attempt failed before it went live - a rejected open, an engine error, a
-    /// dead-source slice or the leg deadline - and the producer's list has another endpoint. The
-    /// same backend re-opens on the next attempt's address with that endpoint's own buffer and
-    /// slice; the leg keeps its identity, and recovery is never spent on a transport the producer
-    /// ranked behind a working one.
-    /// </summary>
-    private async Task AdvanceAttemptAsync(IVideoBackend backend, string reason)
-    {
-        DisposeAttemptResource();
-        _attemptIndex++;
-        var endpoint = _attemptPlan[_attemptIndex];
-        // SP-0096/SP-0208: the new media restarts the engine's counters, so the freeze baseline, the
-        // open budget and the attempt clock all start over with this endpoint's rules.
-        _freeze.Reset();
-        _openBudget = new PlaybackOpenBudget(AttemptSlice(endpoint, hasSuccessor: true));
-        _attemptClock.Restart();
-        _firstByteLogged = false;
-        _buffering = false;
-        _bufferFullPending = false;
-        var cacheMs = BroadcastLiveCache.For(_channel, endpoint) ?? LiveCacheMilliseconds;
-        _liveCacheMs = cacheMs;
-        _log.Event("PLAYBACK ATTEMPT",
-            $"attempt={_attemptIndex}/{_attemptPlan.Count}",
-            $"transport={endpoint.Transport ?? "n/a"}",
-            $"reason={reason}",
-            $"cache_ms={cacheMs}",
-            // The sink redacts a relay address's broadcast id; the transport and host stay useful.
-            $"url={endpoint.Url}");
-
-        var open = Task.Run(() => OpenLeg(backend, cacheMs, QualityCeiling));
-        using var deadlineCts = CancellationTokenSource.CreateLinkedTokenSource(_sessionCts.Token);
-        var deadline = Task.Delay(OpenCallDeadline, deadlineCts.Token);
-        if (await Task.WhenAny(open, deadline) == open)
-        {
-            deadlineCts.Cancel();
-            await open;
-        }
-        else if (!_closing && ReferenceEquals(backend, _backend))
-        {
-            _log.Event("PLAYBACK OPEN TIMEOUT", $"leg={_legCount}", $"attempt={_attemptIndex}",
-                $"after_ms={OpenCallDeadline.TotalMilliseconds:F0}", $"url={_channel.Url}");
-            ShowPlaybackFailure("engine_open_timeout");
-        }
-    }
-
-    /// <summary>Whether a pre-live failure may still move to the producer's next endpoint.</summary>
-    private bool CanAdvanceAttempt() =>
-        !_closing && !_failureShown && !_probeLegPending && _attemptIndex + 1 < _attemptPlan.Count;
-
-    /// <summary>The address the current attempt opens - for the log line, redacted by the sink.</summary>
-    private string AttemptUrl() =>
-        _attemptIndex < _attemptPlan.Count ? _attemptPlan[_attemptIndex].Url : _channel.Url;
-
-    /// <summary>The per-attempt resource - a tunnel forwarder or a relay pin proxy - belongs to the attempt, not the leg.</summary>
-    private void DisposeAttemptResource()
-    {
-        _tunnelForwarder?.Dispose();
-        _tunnelForwarder = null;
-        _relayProxy?.Dispose();
-        _relayProxy = null;
-    }
-
-    /// <summary>
-    /// The attempt's dead-source slice: the short LAN bound exists to hand the list to the next
-    /// endpoint, so a last attempt - and any single-attempt channel, catalog rows included - keeps
-    /// the measured eight seconds SP-0096 chose against 311 openings.
-    /// </summary>
-    private static TimeSpan AttemptSlice(FastMediaSorterBroadcastEndpoint endpoint, bool hasSuccessor)
-    {
-        if (!hasSuccessor)
-        {
-            return PlaybackOpenBudget.DeadSourceAfter;
-        }
-
-        return endpoint.Transport is not null &&
-            (endpoint.Transport.Equals("RELAY", StringComparison.OrdinalIgnoreCase) ||
-             endpoint.Transport.Equals("TUNNEL", StringComparison.OrdinalIgnoreCase))
-            ? PlaybackOpenBudget.DeadSourceAfter
-            : LanAttemptSlice;
-    }
-
-    private static FastMediaSorterBroadcastEndpoint SingleAttempt(StreamChannel channel) =>
-        new(
-            channel.Url,
-            channel.Url.StartsWith("rtsp", StringComparison.OrdinalIgnoreCase) ? "RTSP" : "HTTP",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
-
-    /// <summary>
-    /// SP-0184: a refusal from <paramref name="backend"/> is a verdict on that engine's leg. The call can return
-    /// after a newer leg replaced the engine - the replaced one is stopped, so it refuses or throws - and that
-    /// stale answer must not fail the live leg, the same guard the open-deadline verdict applies. The comparison
-    /// is made on the UI thread, where <c>_backend</c> is replaced. SP-0203: while the producer's list has
-    /// another endpoint, the refusal moves the attempt forward instead of ending the leg.
-    /// </summary>
-    private void ReportOpenFailure(IVideoBackend backend, string reason)
-    {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.BeginInvoke(() => ReportOpenFailure(backend, reason));
-            return;
-        }
-
-        if (!ReferenceEquals(backend, _backend))
-        {
-            _log.Event("PLAYBACK FAIL IGNORED", $"reason={reason}", "why=superseded_leg", $"url={_channel.Url}");
-            return;
-        }
-
-        if (CanAdvanceAttempt())
-        {
-            _ = AdvanceAttemptAsync(backend, reason);
-            return;
-        }
-
-        ShowPlaybackFailure(reason);
     }
 
     /// <summary>
@@ -436,7 +340,7 @@ public partial class PlayerWindow
         _watchdogTimer.Stop();
         _wake?.Dispose();
         _wake = null;
-        DisposeAttemptResource();
+        RetireAttempt(); // also settles any open still racing to hand its resource to a leg that has failed
         var failureStop = _backend.StopPlaybackAsync();
         // SP-0121: a recording ends visibly with the playback it records, and its segments are saved and announced.
         EndRecordingAfterFailure(failureStop);
