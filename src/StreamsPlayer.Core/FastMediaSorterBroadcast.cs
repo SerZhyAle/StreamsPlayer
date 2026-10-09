@@ -311,8 +311,11 @@ public static class FastMediaSorterBroadcastDescriptor
                 FastMediaSorterBroadcastReadStatus.Ok,
                 new FastMediaSorterBroadcast(url, mode, title, sourceId, isLive, targetLatencyMs, ReadEndpoints(root)));
         }
-        catch (JsonException)
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException)
         {
+            // InvalidOperationException: a string escape that is a lone surrogate (\ud800) parses as JSON but
+            // JsonElement.GetString cannot read it back as text - the same invalid-payload answer, not a throw
+            // into the paste, drop and directory handlers (ActivationMessage handles the same case).
             return new(FastMediaSorterBroadcastReadStatus.InvalidPayload);
         }
     }

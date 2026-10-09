@@ -105,7 +105,14 @@ public static partial class CatalogUrlIdentity
         var trimmed = url.Trim();
         if (!Uri.TryCreate(trimmed, UriKind.Absolute, out var uri))
         {
-            return RedactText(trimmed);
+            return ExchangeDiagnosticRedactor.RedactBroadcastPaths(RedactText(trimmed));
+        }
+
+        // A stored non-launchable row (C:\Users\ann\a.mp3, \\srv\share) parses as a file address, and echoing
+        // it would put the Windows user name into a report meant to be shared.
+        if (uri.IsFile || string.IsNullOrEmpty(uri.Host))
+        {
+            return RedactLocalAddress(uri);
         }
 
         // SP-0184 (S12-2): a digits-only password with a "/" parses as host:port plus a path, so the
@@ -116,7 +123,7 @@ public static partial class CatalogUrlIdentity
             var authorityTo = trimmed.IndexOfAny(['/', '?', '#'], authorityFrom);
             if (authorityTo >= 0 && TryFindNumericPasswordSplit(trimmed, authorityFrom, authorityTo, out _))
             {
-                return RedactText(trimmed);
+                return ExchangeDiagnosticRedactor.RedactBroadcastPaths(RedactText(trimmed));
             }
         }
 
@@ -124,7 +131,31 @@ public static partial class CatalogUrlIdentity
         var host = uri.Host.ToLowerInvariant();
         var authority = uri.IsDefaultPort ? host : $"{host}:{uri.Port}";
         var query = RedactQuery(uri.Query);
-        return $"{scheme}://{authority}{RedactCredentialPathSegments(uri.AbsolutePath)}{query}{uri.Fragment}";
+        // SP-0201 requirement 5: a relay or tunnel path holds the broadcast id, which is the right to listen.
+        var path = ExchangeDiagnosticRedactor.RedactBroadcastPaths(RedactCredentialPathSegments(uri.AbsolutePath));
+        return $"{scheme}://{authority}{path}{query}{uri.Fragment}";
+    }
+
+    /// <summary>
+    /// What a report may say of an address that names a local file or has no host: the bare file name, or the
+    /// redaction marker when there is none (a directory, or a scheme that is not a stream address at all).
+    /// </summary>
+    private static string RedactLocalAddress(Uri uri)
+    {
+        if (!uri.IsFile || uri.Segments.Length == 0)
+        {
+            return RedactedMarker;
+        }
+
+        // A trailing slash makes the last segment a directory, which on a user profile is the user name.
+        var last = uri.Segments[^1];
+        if (last.EndsWith('/'))
+        {
+            return RedactedMarker;
+        }
+
+        var name = Uri.UnescapeDataString(last);
+        return name.Length == 0 ? RedactedMarker : name;
     }
 
     /// <summary>

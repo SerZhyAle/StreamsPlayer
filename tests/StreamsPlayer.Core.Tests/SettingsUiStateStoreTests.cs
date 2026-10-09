@@ -106,6 +106,111 @@ public sealed class SettingsUiStateStoreTests
         }
     }
 
+    /// <summary>Audit 26.1010.0106 A7: a zero-byte file is absent for both reads, and never blocks saving.</summary>
+    [Fact]
+    public async Task ZeroByteFileReadsAsAbsentForBothReadsAndSavingStillWorks()
+    {
+        var directory = TempDirectory();
+        try
+        {
+            var path = Path.Combine(directory, "settings-ui.json");
+            await File.WriteAllBytesAsync(path, []);
+
+            var store = new SettingsUiStateStore(directory);
+            var loaded = store.LoadSync();
+            Assert.Equal(0, loaded.LastPageIndex);
+            Assert.Empty(loaded.Groups);
+
+            Assert.True(await store.SaveAsync(new SettingsUiState { LastPageIndex = 2 }));
+            Assert.Equal(2, new SettingsUiStateStore(directory).LoadSync().LastPageIndex);
+
+            await File.WriteAllBytesAsync(path, []);
+            var viaAsync = new SettingsUiStateStore(directory);
+            _ = await viaAsync.LoadAsync();
+            Assert.True(await viaAsync.SaveAsync(new SettingsUiState { LastPageIndex = 3 }));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task ABrokenFileStillRefusesSavesAfterTheSynchronousRead()
+    {
+        var directory = TempDirectory();
+        try
+        {
+            var path = Path.Combine(directory, "settings-ui.json");
+            await File.WriteAllTextAsync(path, "{ not json");
+
+            var store = new SettingsUiStateStore(directory);
+            Assert.Equal(0, store.LoadSync().LastPageIndex);
+            Assert.False(await store.SaveAsync(new SettingsUiState { LastPageIndex = 3 }));
+            Assert.Equal("{ not json", await File.ReadAllTextAsync(path));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Audit A7: a hand-edited document that parses but holds nulls must not reach the settings window,
+    /// which indexes the dictionaries without a check (SP-0175, as PlayerWindowGeometryStore.Sanitize).
+    /// </summary>
+    [Theory]
+    [InlineData("""{"schemaVersion":1,"lastPageIndex":1,"groups":null,"viewports":null}""")]
+    [InlineData("""{"schemaVersion":1,"lastPageIndex":1,"viewports":{"page1":null,"page2":{"groupId":null,"offsetWithinGroup":3}}}""")]
+    [InlineData("null")]
+    public async Task NullMembersOfAParsedDocumentAreNormalizedForBothReads(string json)
+    {
+        var directory = TempDirectory();
+        try
+        {
+            await File.WriteAllTextAsync(Path.Combine(directory, "settings-ui.json"), json);
+
+            foreach (var state in new[]
+            {
+                new SettingsUiStateStore(directory).LoadSync(),
+                await new SettingsUiStateStore(directory).LoadAsync()
+            })
+            {
+                Assert.NotNull(state.Groups);
+                Assert.NotNull(state.Viewports);
+                Assert.Empty(state.Viewports);
+                Assert.All(state.Viewports.Values, anchor => Assert.NotNull(anchor.GroupId));
+            }
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task ValidAnchorsAndGroupsSurviveNormalization()
+    {
+        var directory = TempDirectory();
+        try
+        {
+            await File.WriteAllTextAsync(
+                Path.Combine(directory, "settings-ui.json"),
+                """{"schemaVersion":1,"groups":{"a":false},"viewports":{"p":{"groupId":"g","offsetWithinGroup":4.5},"q":null}}""");
+
+            var state = new SettingsUiStateStore(directory).LoadSync();
+
+            Assert.False(state.Groups["a"]);
+            var anchor = Assert.Single(state.Viewports);
+            Assert.Equal("p", anchor.Key);
+            Assert.Equal(new SettingsViewportAnchor("g", 4.5), anchor.Value);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
     [Fact]
     public void WindowRectangleDegradesGracefullyOnNonsense()
     {

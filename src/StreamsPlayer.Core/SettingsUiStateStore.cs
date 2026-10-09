@@ -38,7 +38,7 @@ public sealed class SettingsUiStateStore
             .ReadAsync<SettingsUiState>(_path, _jsonOptions, cancellationToken)
             .ConfigureAwait(false);
         _unreadable = status == FileReadStatus.Unreadable;
-        return state ?? new SettingsUiState();
+        return Sanitize(state);
     }
 
     /// <summary>
@@ -52,7 +52,9 @@ public sealed class SettingsUiStateStore
     {
         try
         {
-            if (!File.Exists(_path))
+            // A zero-byte file holds nothing to lose, the same as an absent one (FileReadStatus.Absent): the
+            // async read says so, and treating it as unparseable here would refuse every save for good.
+            if (!File.Exists(_path) || new FileInfo(_path).Length == 0)
             {
                 _unreadable = false;
                 return new SettingsUiState();
@@ -60,7 +62,7 @@ public sealed class SettingsUiStateStore
 
             var state = JsonSerializer.Deserialize<SettingsUiState>(File.ReadAllText(_path), _jsonOptions);
             _unreadable = false;
-            return state ?? new SettingsUiState();
+            return Sanitize(state);
         }
         catch
         {
@@ -96,6 +98,27 @@ public sealed class SettingsUiStateStore
             TryDelete(temporaryPath);
             return false;
         }
+    }
+
+    // SP-0175: the file is hand-editable and outlives builds, so a document that parses but holds a null
+    // dictionary or a null anchor must not reach SettingsWindow, which indexes them without a check. An
+    // anchor with no group ID is dropped too - an absent anchor reads as the page top.
+    private static SettingsUiState Sanitize(SettingsUiState? state)
+    {
+        if (state is null)
+        {
+            return new SettingsUiState();
+        }
+
+        return state with
+        {
+            Groups = state.Groups ?? [],
+            Viewports = state.Viewports is null
+                ? []
+                : state.Viewports
+                    .Where(entry => entry.Value is { GroupId: not null })
+                    .ToDictionary(entry => entry.Key, entry => entry.Value)
+        };
     }
 
     private static void TryDelete(string path)

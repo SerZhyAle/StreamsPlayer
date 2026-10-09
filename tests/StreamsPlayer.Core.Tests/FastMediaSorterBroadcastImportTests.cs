@@ -276,6 +276,62 @@ public sealed class FastMediaSorterBroadcastImportTests
         Assert.Equal("SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk", attempt.CertFingerprint);
     }
 
+    /// <summary>
+    /// Audit 26.1010.0106 A5: a background directory push refreshes by sourceId or a row the directory
+    /// created. A Manual or Imported row that merely shares the address is the user's own and stays as it was.
+    /// </summary>
+    [Theory]
+    [InlineData(SourceOrigin.Manual)]
+    [InlineData(SourceOrigin.Imported)]
+    public void ApplyStored_NeverTakesOverARowThatOnlySharesTheAddress(SourceOrigin origin)
+    {
+        var userRow = Channel("http://user:pw@192.168.1.97:8768/live-audio.aac") with
+        {
+            SourceOrigin = origin,
+            MediaKind = MediaKind.Video,
+            IsLive = false
+        };
+        var descriptor = Descriptor("http://192.168.1.97:8768/live-audio.aac", "phone-1", "Kitchen");
+
+        Assert.Null(FastMediaSorterBroadcastImport.ApplyStored([userRow], descriptor, Now, "b1"));
+
+        var views = new[]
+        {
+            new ExchangeBroadcastView(
+                new ExchangeBroadcastRecord("b1", "phone", "Kitchen", descriptor.Mode, descriptor),
+                ExchangeBroadcastSupport.Supported)
+        };
+        Assert.Equal(userRow, Assert.Single(ExchangeDirectoryChannels.RefreshStored([userRow], views, Now)));
+    }
+
+    [Fact]
+    public void ApplyStored_StillFindsTheDirectoryRowByAddressBeforeAManualTwin()
+    {
+        var manualTwin = Channel("http://192.168.1.97:8768/live-audio.aac");
+        var directoryRow = Channel("http://192.168.1.97:8768/live-audio.aac") with
+        {
+            SourceOrigin = SourceOrigin.Imported,
+            FastMediaSorterBroadcast = new FastMediaSorterBroadcastInfo
+            {
+                SourceId = "an-older-source-id",
+                Mode = FastMediaSorterBroadcastDescriptor.AudioOnlyMode,
+                DirectoryBroadcastId = "b0"
+            }
+        };
+
+        var result = FastMediaSorterBroadcastImport.ApplyStored(
+            [manualTwin, directoryRow],
+            Descriptor("http://192.168.1.97:8768/live-audio.aac", "phone-1", "Kitchen"),
+            Now,
+            "b1");
+
+        Assert.NotNull(result);
+        Assert.False(result.Added);
+        Assert.Equal(directoryRow.Id, result.Channel.Id);
+        Assert.Equal("b1", result.Channel.FastMediaSorterBroadcast?.DirectoryBroadcastId);
+        Assert.Equal(manualTwin, result.Channels.Single(channel => channel.Id == manualTwin.Id));
+    }
+
     private static StreamChannel Channel(string url) => new()
     {
         Id = Guid.NewGuid(),

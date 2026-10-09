@@ -83,6 +83,90 @@ public sealed class StreamLaunchArgumentsTests
         Assert.True(StreamLaunchArguments.CarriesAddress(channel));
         Assert.Equal($"--id \"{channel.Id:D}\" --url \"{url}\"", StreamLaunchArguments.For(channel));
     }
+    /// <summary>
+    /// Audit 26.1010.0106 A1: PowerShell reads U+2018..U+201B as single quotes and U+201C..U+201E as double
+    /// quotes, so such a mark ends the quoted --url and "calc" would run when the command is pasted.
+    /// </summary>
+    [Theory]
+    [InlineData("http://h/a\u2018;calc;\u2018")]
+    [InlineData("http://h/a\u2019;calc;\u2019")]
+    [InlineData("http://h/a\u201A;calc;\u201A")]
+    [InlineData("http://h/a\u201B;calc;\u201B")]
+    [InlineData("http://h/a\u201C;calc;\u201C")]
+    [InlineData("http://h/a\u201D;calc;\u201D")]
+    [InlineData("http://h/a\u201E;calc;\u201E")]
+    [InlineData("http://h/a\u201F;calc;\u201F")]
+    public void For_LeavesOutAnAddressWithATypographicQuote(string url)
+    {
+        var channel = Channel(url);
+
+        Assert.False(StreamLaunchArguments.CarriesAddress(channel));
+        var arguments = StreamLaunchArguments.For(channel);
+        Assert.Equal($"--id \"{channel.Id:D}\"", arguments);
+        Assert.DoesNotContain("calc", StreamLaunchArguments.ForPowerShell("C:\\app\\StreamsPlayer.exe", channel));
+    }
+
+    /// <summary>
+    /// The audit asked which other characters are special inside a double-quoted native argument. In
+    /// PowerShell only the quotes, <c>$</c> and the backtick are; cmd adds <c>%NAME%</c>. The rest stay literal.
+    /// </summary>
+    [Theory]
+    [InlineData("https://example.test/a&b;c(d){e},f@g?x=1#frag")]
+    [InlineData("https://example.test/a^b!c~d")]
+    [InlineData("https://xn--e1afmkfd.xn--p1ai/live/stream.mp3")]
+    [InlineData("https://\u043F\u0440\u0438\u043C\u0435\u0440.\u0440\u0444/\u0440\u0430\u0434\u0438\u043E.mp3")]
+    [InlineData("https://example.test/caf%C3%A9?name=%D0%B0%D0%B1")]
+    public void For_KeepsTheAddressOfALiteralOrInternationalPath(string url)
+    {
+        var channel = Channel(url);
+
+        Assert.True(StreamLaunchArguments.CarriesAddress(channel));
+        Assert.Equal($"--id \"{channel.Id:D}\" --url \"{url}\"", StreamLaunchArguments.For(channel));
+    }
+
+    /// <summary>cmd also expands <c>%NAME:~0,5%</c> and <c>%NAME:a=b%</c>, and <c>%CD%</c> is a hex-pair name.</summary>
+    [Theory]
+    [InlineData("https://example.test/%PATH:~0,5%")]
+    [InlineData("https://example.test/%PATH:a=b%/x")]
+    [InlineData("https://example.test/%CD%AB")]
+    public void For_LeavesOutAnAddressWithACmdSubstringOrDirectoryVariable(string url)
+    {
+        var channel = Channel(url);
+
+        Assert.Equal($"--id \"{channel.Id:D}\"", StreamLaunchArguments.For(channel));
+    }
+
+    /// <summary>
+    /// Audit A2: a relay or tunnel address is the right to listen; it never goes into a shortcut file or a
+    /// copied command, and the channel still launches by id.
+    /// </summary>
+    [Theory]
+    [InlineData("https://exchange.example.net:44022/v2/b/ICEiIyQlJicoKSorLC0uLw/stream")]
+    [InlineData("https://exchange.example.net/b/ICEiIyQlJicoKSorLC0uLw/http")]
+    public void For_LeavesOutABroadcastCapabilityAddress(string url)
+    {
+        var channel = Channel(url);
+
+        var arguments = StreamLaunchArguments.For(channel);
+        Assert.Equal($"--id \"{channel.Id:D}\"", arguments);
+        Assert.False(StreamLaunchArguments.CarriesAddress(channel));
+        Assert.DoesNotContain("ICEiIyQlJicoKSorLC0uLw", arguments);
+    }
+
+    /// <summary>Audit S10: every PowerShell single-quote character in the executable path is doubled.</summary>
+    [Fact]
+    public void ForPowerShell_DoublesEveryTypographicSingleQuoteInThePath()
+    {
+        var channel = Channel(Address);
+
+        var line = StreamLaunchArguments.ForPowerShell("C:\\Users\\a\u2018b\u2019c\u201Ad\u201Be'f\\StreamsPlayer.exe", channel);
+
+        Assert.StartsWith(
+            "& 'C:\\Users\\a\u2018\u2018b\u2019\u2019c\u201A\u201Ad\u201B\u201Be''f\\StreamsPlayer.exe' ",
+            line,
+            StringComparison.Ordinal);
+    }
+
     [Fact]
     public void For_LeavesOutAnAddressThatWouldOverflowAShortcut()
     {

@@ -166,8 +166,14 @@ public sealed class ExchangeDirectoryTests
         Assert.Null(view.Record.Descriptor);
     }
 
+    /// <summary>
+    /// Audit 26.1010.0106 A6: this pinned the relay as unsupported, the opposite of what playback does
+    /// (SP-0203 plays RELAY endpoints, and the capability list advertises them). Listing, push refresh
+    /// and cast share the playback rule now; only a descriptor none of whose declared endpoints this build
+    /// plays is unsupported.
+    /// </summary>
     [Fact]
-    public void ARelayOnlyBroadcastIsListedAsUnsupported()
+    public void ARelayOnlyBroadcastIsListedAsSupportedAndRefreshesAStoredRow()
     {
         var json = """
         {"schemaVersion":2,"type":"directory","revision":3,
@@ -179,9 +185,59 @@ public sealed class ExchangeDirectoryTests
 
         var view = Assert.Single(Assert.Single(new ExchangeDirectoryState().ApplyFull(Parse(json)).Snapshot.Groups).Broadcasts);
 
-        Assert.Equal(ExchangeBroadcastSupport.Unsupported, view.Support);
-        // Not hidden and not lost: the record is still the one the user must see named.
+        Assert.Equal(ExchangeBroadcastSupport.Supported, view.Support);
         Assert.Equal("b3", view.Record.BroadcastId);
+
+        // The push refresh follows the same verdict: a stored row of this sourceId moves to the relay.
+        var stored = Channel("http://192.168.1.97:8768/live-audio.aac") with
+        {
+            SourceOrigin = SourceOrigin.Imported,
+            FastMediaSorterBroadcast = new FastMediaSorterBroadcastInfo
+            {
+                SourceId = "relay-source",
+                Mode = FastMediaSorterBroadcastDescriptor.AudioOnlyMode,
+                DirectoryBroadcastId = "b3"
+            }
+        };
+        var relayView = view with
+        {
+            Record = view.Record with { Descriptor = view.Record.Descriptor! with { SourceId = "relay-source" } }
+        };
+        var refreshed = Assert.Single(ExchangeDirectoryChannels.RefreshStored([stored], [relayView], Now));
+        Assert.Equal("https://exchange.example.net:44022/v2/b/b3/stream", refreshed.Url);
+    }
+
+    [Fact]
+    public void ALanHttpVideoBroadcastIsListedAsSupported()
+    {
+        var json = """
+        {"schemaVersion":2,"type":"directory","revision":3,
+         "devices":[{"deviceId":"phone","deviceName":"Pixel 8","presence":"online"}],
+         "broadcasts":[{"broadcastId":"b5","deviceId":"phone","title":"Cam","mode":"VIDEO_AUDIO",
+                       "descriptor":{"schemaVersion":1,"url":"http://192.168.1.97:8080/live.ts","mode":"VIDEO_AUDIO","isLive":true,
+                                     "endpoints":[{"url":"http://192.168.1.97:8080/live.ts","transport":"HTTP","mode":"VIDEO_AUDIO"}]}}]}
+        """;
+
+        var view = Assert.Single(Assert.Single(new ExchangeDirectoryState().ApplyFull(Parse(json)).Snapshot.Groups).Broadcasts);
+
+        Assert.Equal(ExchangeBroadcastSupport.Supported, view.Support);
+    }
+
+    [Fact]
+    public void ABroadcastWhoseEveryEndpointIsAReservedTransportIsListedAsUnsupported()
+    {
+        var json = """
+        {"schemaVersion":2,"type":"directory","revision":3,
+         "devices":[{"deviceId":"phone","deviceName":"Pixel 8","presence":"online"}],
+         "broadcasts":[{"broadcastId":"b6","deviceId":"phone","title":"Direct","mode":"AUDIO_ONLY",
+                       "descriptor":{"schemaVersion":1,"url":"http://192.168.1.97:8768/live-audio.aac","mode":"AUDIO_ONLY","isLive":true,
+                                     "endpoints":[{"url":"http://192.168.1.97:8768/p2p","transport":"P2P","mode":"AUDIO_ONLY"}]}}]}
+        """;
+
+        var view = Assert.Single(Assert.Single(new ExchangeDirectoryState().ApplyFull(Parse(json)).Snapshot.Groups).Broadcasts);
+
+        Assert.Equal(ExchangeBroadcastSupport.Unsupported, view.Support);
+        Assert.Equal("b6", view.Record.BroadcastId);
     }
 
     [Fact]

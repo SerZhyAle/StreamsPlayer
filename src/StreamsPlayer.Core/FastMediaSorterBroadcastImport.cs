@@ -42,7 +42,7 @@ public static class FastMediaSorterBroadcastImport
         // SP-0159: a video descriptor selects its declared RTSP endpoint; the kind follows the address,
         // so a camera broadcast lands where the catalog's own RTSP rows land.
         var endpoint = descriptor.SelectPlaybackEndpoint();
-        var existing = FindExisting(channels, descriptor.SourceId, endpoint.Url);
+        var existing = FindExisting(channels, descriptor.SourceId, endpoint.Url, directoryRowsOnlyByAddress: !addWhenMissing);
         var previous = existing?.FastMediaSorterBroadcast;
         // The origin is a fact about the row, not about the frame. A row the directory created follows the
         // record that replaces it (its broadcastId moves with the broadcast); a row the user made by hand
@@ -114,7 +114,7 @@ public static class FastMediaSorterBroadcastImport
     {
         var channels = existingChannels.ToList();
         var endpoint = descriptor.SelectPlaybackEndpoint();
-        return FindExisting(channels, descriptor.SourceId, endpoint.Url) is null
+        return FindExisting(channels, descriptor.SourceId, endpoint.Url, directoryRowsOnlyByAddress: true) is null
             ? null
             : Apply(channels, descriptor with { Title = string.Empty }, now, broadcastId, addWhenMissing: false);
     }
@@ -159,10 +159,19 @@ public static class FastMediaSorterBroadcastImport
     private static bool IsReplaceable(StreamChannel channel) =>
         channel.SourceOrigin is not (SourceOrigin.Catalog or SourceOrigin.LocalCatalog);
 
+    /// <summary>
+    /// The row a descriptor replaces: by <c>sourceId</c> first, then by address. A user-driven hand-off
+    /// (link, file, paste) may take either route - the user is shown what it replaces. A background directory
+    /// push (<paramref name="directoryRowsOnlyByAddress"/>) refreshes by <c>sourceId</c> or a row the directory
+    /// itself created and nothing else: a Manual or Imported row that merely shares the address would
+    /// otherwise have its address respelled, its kind rewritten and FastMediaSorter routing attached without
+    /// the user's consent (SP-0201 Option A: a push adds nothing and takes nothing over).
+    /// </summary>
     private static StreamChannel? FindExisting(
         IEnumerable<StreamChannel> channels,
         string? sourceId,
-        string url)
+        string url,
+        bool directoryRowsOnlyByAddress)
     {
         if (!string.IsNullOrWhiteSpace(sourceId))
         {
@@ -176,7 +185,9 @@ public static class FastMediaSorterBroadcastImport
         }
 
         return channels.FirstOrDefault(channel =>
-            IsReplaceable(channel) && CatalogUrlIdentity.SameIdentity(channel.Url, url));
+            IsReplaceable(channel) &&
+            (!directoryRowsOnlyByAddress || channel.FastMediaSorterBroadcast?.DirectoryBroadcastId is not null) &&
+            CatalogUrlIdentity.SameIdentity(channel.Url, url));
     }
 
     /// <summary>

@@ -30,10 +30,10 @@ public sealed record ExchangeBroadcastRecord(
 /// <summary>Whether this build can play a directory broadcast's addresses at all (SP-0201 requirement 2).</summary>
 public enum ExchangeBroadcastSupport
 {
-    /// <summary>A LAN endpoint this build plays is declared (HTTP audio or RTSP video), or a legacy top-level address.</summary>
+    /// <summary>An endpoint this build plays is declared (LAN HTTP, RTSP, relay or tunnel), or a legacy top-level address.</summary>
     Supported,
 
-    /// <summary>Every declared endpoint is a transport this build does not implement yet (relay, tunnel).</summary>
+    /// <summary>Every declared endpoint is a transport or shape this build does not implement (for example P2P).</summary>
     Unsupported,
 
     /// <summary>The descriptor's <c>schemaVersion</c> is higher than this build reads ("update the application").</summary>
@@ -90,7 +90,7 @@ public sealed class ExchangeDirectoryState
     /// <summary>Applies the <c>directory</c> answer to <c>list</c>: the whole record set at one revision.</summary>
     public ExchangeDirectoryTransition ApplyFull(JsonElement root)
     {
-        if (ExchangeProtocol.String(root, "type") != "directory" || !TryReadRevision(root, out var revision))
+        if (ReadString(root, "type") != "directory" || !TryReadRevision(root, out var revision))
         {
             return new(Snapshot, RelistNeeded: false);
         }
@@ -108,7 +108,7 @@ public sealed class ExchangeDirectoryState
     /// </summary>
     public ExchangeDirectoryTransition ApplyChange(JsonElement root)
     {
-        if (ExchangeProtocol.String(root, "type") != "changed" || !TryReadRevision(root, out var revision))
+        if (ReadString(root, "type") != "changed" || !TryReadRevision(root, out var revision))
         {
             return new(Snapshot, RelistNeeded: false);
         }
@@ -243,6 +243,24 @@ public sealed class ExchangeDirectoryState
             (IReadOnlyCollection<string>)_broadcasts.Keys.ToArray());
     }
 
+    /// <summary>
+    /// A string member, or <c>null</c> when it is absent, not a string, or not readable as text. A string
+    /// escape that is a lone surrogate (<c>"\ud800"</c>) parses as JSON but <c>GetString</c> throws
+    /// <see cref="InvalidOperationException"/> on it; foreign input must cost the record, never the
+    /// connection (SP-0201 requirement 2).
+    /// </summary>
+    private static string? ReadString(JsonElement element, string member)
+    {
+        try
+        {
+            return ExchangeProtocol.String(element, member);
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
     private static bool TryReadRevision(JsonElement root, out long revision)
     {
         revision = 0;
@@ -267,15 +285,15 @@ public sealed class ExchangeDirectoryState
         foreach (var device in list.EnumerateArray())
         {
             if (device.ValueKind != JsonValueKind.Object || IsOversize(device)
-                || ExchangeProtocol.String(device, "deviceId") is not { } id
-                || ExchangeProtocol.String(device, "deviceName") is not { } name)
+                || ReadString(device, "deviceId") is not { } id
+                || ReadString(device, "deviceName") is not { } name)
             {
                 continue;
             }
 
             // The contract's tolerated shape: a presence outside the closed set reads as offline.
             devices[id] = new ExchangeDeviceRecord(id, name,
-                ExchangeProtocol.String(device, "presence") == "online");
+                ReadString(device, "presence") == "online");
         }
     }
 
@@ -295,9 +313,9 @@ public sealed class ExchangeDirectoryState
         foreach (var record in list.EnumerateArray())
         {
             if (record.ValueKind != JsonValueKind.Object || IsOversize(record)
-                || ExchangeProtocol.String(record, "broadcastId") is not { } id
-                || ExchangeProtocol.String(record, "deviceId") is not { } deviceId
-                || ExchangeProtocol.String(record, "mode") is not { } mode
+                || ReadString(record, "broadcastId") is not { } id
+                || ReadString(record, "deviceId") is not { } deviceId
+                || ReadString(record, "mode") is not { } mode
                 || !record.TryGetProperty("descriptor", out var descriptor)
                 || descriptor.ValueKind != JsonValueKind.Object)
             {
@@ -315,7 +333,7 @@ public sealed class ExchangeDirectoryState
                 {
                     broadcasts[id] = new ExchangeBroadcastView(
                         new ExchangeBroadcastRecord(id, deviceId,
-                            ExchangeProtocol.String(record, "title"), mode, Descriptor: null,
+                            ReadString(record, "title"), mode, Descriptor: null,
                             ReadUpdatedAt(record)),
                         ExchangeBroadcastSupport.UnsupportedSchema);
                 }
@@ -325,7 +343,7 @@ public sealed class ExchangeDirectoryState
 
             broadcasts[id] = new ExchangeBroadcastView(
                 new ExchangeBroadcastRecord(id, deviceId,
-                    ExchangeProtocol.String(record, "title") ?? read.Broadcast.Title,
+                    ReadString(record, "title") ?? read.Broadcast.Title,
                     mode, read.Broadcast, ReadUpdatedAt(record)),
                 SupportOf(read.Broadcast));
         }
@@ -334,45 +352,17 @@ public sealed class ExchangeDirectoryState
     }
 
     /// <summary>
-    /// SP-0201 / SP-0204: this build plays LAN HTTP audio, LAN RTSP video, and TUNNEL endpoints for both
-    /// audio and video (and the legacy top-level address of a descriptor with no endpoints).
+    /// SP-0201 / SP-0204 / SP-0203: a broadcast is supported when at least one declared endpoint is one the
+    /// playback legs try (LAN HTTP audio, LAN RTSP and HTTP video, relay, tunnel), or when it declares none
+    /// and plays its legacy top-level address. The test is
+    /// <see cref="FastMediaSorterBroadcastAttempts.PlaybackAttempts"/> itself, so what the directory lists,
+    /// what a push refreshes and what a cast offer accepts can never disagree with what playback plays.
     /// </summary>
-    internal static ExchangeBroadcastSupport SupportOf(FastMediaSorterBroadcast descriptor)
-    {
-        var declared = descriptor.IsVideoMode
-            ? descriptor.Endpoints.FirstOrDefault(ep => IsDeclaredRtspEndpoint(ep) || IsTunnelVideoEndpoint(ep, descriptor.Mode))
-            : descriptor.Endpoints.FirstOrDefault(ep => IsHttpAudioEndpoint(ep) || IsTunnelAudioEndpoint(ep));
-        return declared is not null || descriptor.Endpoints.Count == 0
+    internal static ExchangeBroadcastSupport SupportOf(FastMediaSorterBroadcast descriptor) =>
+        descriptor.Endpoints.Count == 0 ||
+        FastMediaSorterBroadcastAttempts.PlaybackAttempts(descriptor.Mode, descriptor.Endpoints).Count > 0
             ? ExchangeBroadcastSupport.Supported
             : ExchangeBroadcastSupport.Unsupported;
-    }
-
-    private static bool IsHttpAudioEndpoint(FastMediaSorterBroadcastEndpoint endpoint) =>
-        string.Equals(endpoint.Mode, FastMediaSorterBroadcastDescriptor.AudioOnlyMode, StringComparison.Ordinal) &&
-        string.Equals(endpoint.Transport, "HTTP", StringComparison.OrdinalIgnoreCase) &&
-        Uri.TryCreate(endpoint.Url, UriKind.Absolute, out var uri) &&
-        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
-
-    private static bool IsDeclaredRtspEndpoint(FastMediaSorterBroadcastEndpoint endpoint) =>
-        string.Equals(endpoint.Transport, "RTSP", StringComparison.OrdinalIgnoreCase) &&
-        Uri.TryCreate(endpoint.Url, UriKind.Absolute, out var uri) &&
-        uri.Scheme.Equals("rtsp", StringComparison.OrdinalIgnoreCase);
-
-    private static bool IsTunnelAudioEndpoint(FastMediaSorterBroadcastEndpoint endpoint) =>
-        (endpoint.Mode is null || string.Equals(endpoint.Mode, FastMediaSorterBroadcastDescriptor.AudioOnlyMode, StringComparison.Ordinal)) &&
-        string.Equals(endpoint.Transport, "TUNNEL", StringComparison.OrdinalIgnoreCase) &&
-        ExchangeTunnelUrl.TryParse(endpoint.Url, out var tunnel) &&
-        tunnel.Scheme == "http" &&
-        endpoint.Inner is not null &&
-        LaunchableAddress.TryParseHttp(endpoint.Inner, out _);
-
-    private static bool IsTunnelVideoEndpoint(FastMediaSorterBroadcastEndpoint endpoint, string descriptorMode) =>
-        (endpoint.Mode is null || string.Equals(endpoint.Mode, descriptorMode, StringComparison.Ordinal)) &&
-        string.Equals(endpoint.Transport, "TUNNEL", StringComparison.OrdinalIgnoreCase) &&
-        ExchangeTunnelUrl.TryParse(endpoint.Url, out var tunnel) &&
-        (tunnel.Scheme is "rtsp" or "http") &&
-        endpoint.Inner is not null &&
-        LaunchableAddress.TryParse(endpoint.Inner, out _);
 
     private static HashSet<string> CollectIds(JsonElement removals, string member)
     {
@@ -381,9 +371,21 @@ public sealed class ExchangeDirectoryState
         {
             foreach (var id in list.EnumerateArray())
             {
-                if (id.ValueKind == JsonValueKind.String && id.GetString() is { } value)
+                if (id.ValueKind != JsonValueKind.String)
                 {
-                    ids.Add(value);
+                    continue;
+                }
+
+                try
+                {
+                    if (id.GetString() is { } value)
+                    {
+                        ids.Add(value);
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    // A lone-surrogate id names no record this build could hold; see ReadString.
                 }
             }
         }
@@ -397,7 +399,7 @@ public sealed class ExchangeDirectoryState
     /// read as a UTC timestamp is absent, never an error.
     /// </summary>
     private static DateTimeOffset? ReadUpdatedAt(JsonElement record) =>
-        ExchangeProtocol.String(record, "updatedAt") is { } stamp &&
+        ReadString(record, "updatedAt") is { } stamp &&
         DateTimeOffset.TryParse(stamp, System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.RoundtripKind, out var updatedAt)
             ? updatedAt
