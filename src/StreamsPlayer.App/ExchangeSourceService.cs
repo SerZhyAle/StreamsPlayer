@@ -20,10 +20,15 @@ internal sealed class ExchangeSourceService
     private bool _storageUnavailable;
     private readonly ExchangeDirectoryState _directory = new();
     private readonly ExchangeCastCoordinator _castCoordinator = new();
+    private const int MaximumOpenCastOffers = 8;
     internal ExchangeAccount Account { get; private set; } = new(ExchangeProtocol.NewDeviceId());
     internal string StatusKey { get; private set; } = "ExchangeOff";
+    // The pending certificate replacement of the account's own server. Both are set only for a fingerprint
+    // read from the account's host and port (_presentedHost/_presentedPort), never for another server.
     internal string? PreviousFingerprint { get; private set; }
     internal string? PresentedFingerprint { get; private set; }
+    private string? _presentedHost;
+    private int _presentedPort;
     internal event Action? Changed;
 
     // SP-0201: the account's live directory, with this device's own records hidden. Null while offline -
@@ -73,13 +78,19 @@ internal sealed class ExchangeSourceService
         try
         {
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-            var pin = host == Account.Host && port == Account.Port ? Account.Pin : null;
+            var pin = IsAccountEndpoint(host, port) ? Account.Pin : null;
             using var connection = await ExchangeTlsConnection.OpenAsync(host, port, pin, deadline.Token).ConfigureAwait(false);
             return connection.Fingerprint;
         }
         catch (ExchangeCertificateException exception)
         {
-            ShowCertificate(exception);
+            // The status line describes the account's own connection, so a probe of another server only
+            // returns its fingerprint to the enrollment that asked; it records nothing about the account.
+            if (IsAccountEndpoint(host, port))
+            {
+                ShowCertificate(exception, host, port);
+            }
+
             return exception.Presented;
         }
         catch (Exception exception) when (IsConnectionFailure(exception))
@@ -94,6 +105,7 @@ internal sealed class ExchangeSourceService
         await _operations.WaitAsync().ConfigureAwait(false);
         ExchangeTlsConnection? connection = null;
         var savingAccount = false;
+        var resumePrevious = false;
         try
         {
             EnsureStorage();
@@ -107,10 +119,13 @@ internal sealed class ExchangeSourceService
                 return;
             }
 
+            // The running receiver is stopped so the new enrollment owns the one control connection; any exit
+            // that does not replace the account puts it back (the finally below).
+            resumePrevious = _connectionCancellation is not null && Account.Enabled && Account.Token is not null;
             await StopLoopAsync().ConfigureAwait(false);
             SetStatus("ExchangeConnecting");
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-            var pin = acceptedPin ?? (host == Account.Host && port == Account.Port ? Account.Pin : null);
+            var pin = acceptedPin ?? (IsAccountEndpoint(host, port) ? Account.Pin : null);
             connection = await ExchangeTlsConnection.OpenAsync(host, port, pin, deadline.Token).ConfigureAwait(false);
             await ExchangeProtocol.WriteEnrollmentAsync(connection.Stream, new
             {
@@ -141,13 +156,14 @@ internal sealed class ExchangeSourceService
             _store.Save(enrolled);
             savingAccount = false;
             Account = enrolled;
-            PreviousFingerprint = PresentedFingerprint = null;
+            ClearPendingCertificate();
+            resumePrevious = false;
             StartLoop(connection, interval);
             connection = null;
         }
         catch (ExchangeCertificateException exception)
         {
-            ShowCertificate(exception);
+            ShowCertificate(exception, host, port);
         }
         catch (Exception exception) when (IsConnectionFailure(exception))
         {
@@ -158,6 +174,13 @@ internal sealed class ExchangeSourceService
         {
             Array.Clear(secret);
             connection?.Dispose();
+            if (resumePrevious && _connectionCancellation is null)
+            {
+                // The refusal or failure stays on the status line until the receiver is back, not replaced
+                // by "connecting" the moment it starts again.
+                StartLoop(null, 0, announceConnecting: false);
+            }
+
             _operations.Release();
         }
     }
@@ -210,16 +233,20 @@ internal sealed class ExchangeSourceService
         try
         {
             EnsureStorage();
-            await StopLoopAsync().ConfigureAwait(false);
-            if (fingerprint != PresentedFingerprint || Account.Token is null)
+            // Checked before the receiver is stopped, and against the endpoint the fingerprint was read from:
+            // a refused call must leave the live connection alone, and a fingerprint is only ever a
+            // replacement for the pin of the server it came from.
+            if (fingerprint != PresentedFingerprint || Account.Token is null || _presentedHost is null
+                || !IsAccountEndpoint(_presentedHost, _presentedPort))
             {
                 throw new InvalidOperationException("No pending certificate replacement.");
             }
 
+            await StopLoopAsync().ConfigureAwait(false);
             var updated = Account with { Pin = fingerprint };
             _store.Save(updated);
             Account = updated;
-            PreviousFingerprint = PresentedFingerprint = null;
+            ClearPendingCertificate();
             if (updated.Enabled)
             {
                 StartLoop(null, 0);
@@ -241,7 +268,7 @@ internal sealed class ExchangeSourceService
             var forgotten = new ExchangeAccount(ExchangeProtocol.NewDeviceId());
             _store.Save(forgotten);
             Account = forgotten;
-            PreviousFingerprint = PresentedFingerprint = null;
+            ClearPendingCertificate();
             SetStatus("ExchangeForgotten");
         }
         finally
@@ -271,10 +298,10 @@ internal sealed class ExchangeSourceService
         }
     }
 
-    private void StartLoop(ExchangeTlsConnection? enrolled, int interval)
+    private void StartLoop(ExchangeTlsConnection? enrolled, int interval, bool announceConnecting = true)
     {
         _connectionCancellation = new CancellationTokenSource();
-        _connectionTask = RunAsync(enrolled, interval, _connectionCancellation.Token);
+        _connectionTask = RunAsync(enrolled, interval, announceConnecting, _connectionCancellation.Token);
     }
 
     private async Task StopLoopAsync()
@@ -285,12 +312,30 @@ internal sealed class ExchangeSourceService
         }
 
         await _connectionCancellation.CancelAsync().ConfigureAwait(false);
-        await _connectionTask.ConfigureAwait(false);
+        // Teardown must never be blocked by how the loop ended: a loop that faulted would otherwise rethrow
+        // here on every Forget, Disable and Enroll until the process restarts. The loop classifies the
+        // failures it expects itself; an unexpected one ends it with the status stale, so say so.
+        await ObserveAsync(_connectionTask).ConfigureAwait(false);
+        if (_connectionTask.IsFaulted)
+        {
+            ClearDirectory();
+            SetStatus("ExchangeUnavailable");
+        }
+
         _connectionCancellation.Dispose();
         _connectionCancellation = null;
+        _connectionTask = Task.CompletedTask;
     }
 
-    private async Task RunAsync(ExchangeTlsConnection? connection, int interval, CancellationToken cancellationToken)
+    /// <summary>Waits for a task to end by any outcome without rethrowing, and marks a fault as observed.</summary>
+    private static async Task ObserveAsync(Task task)
+    {
+        await Task.WhenAny(task).ConfigureAwait(false);
+        _ = task.Exception;
+    }
+
+    private async Task RunAsync(ExchangeTlsConnection? connection, int interval, bool announceConnecting,
+        CancellationToken cancellationToken)
     {
         var backoffSeconds = 1;
         while (!cancellationToken.IsCancellationRequested)
@@ -299,7 +344,12 @@ internal sealed class ExchangeSourceService
             {
                 if (connection is null)
                 {
-                    SetStatus("ExchangeConnecting");
+                    if (announceConnecting)
+                    {
+                        SetStatus("ExchangeConnecting");
+                    }
+
+                    announceConnecting = true;
                     using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     deadline.CancelAfter(TimeSpan.FromSeconds(15));
                     connection = await ExchangeTlsConnection.OpenAsync(Account.Host, Account.Port, Account.Pin, deadline.Token).ConfigureAwait(false);
@@ -329,7 +379,7 @@ internal sealed class ExchangeSourceService
             }
             catch (ExchangeCertificateException exception)
             {
-                ShowCertificate(exception);
+                ShowCertificate(exception, Account.Host, Account.Port);
                 ClearDirectory();
                 return;
             }
@@ -378,12 +428,30 @@ internal sealed class ExchangeSourceService
     private async Task HoldAsync(ExchangeTlsConnection connection, int interval, CancellationToken cancellationToken)
     {
         var lastAnswer = System.Diagnostics.Stopwatch.StartNew();
-        await ExchangeProtocol.WriteAsync(connection.Stream, new { schemaVersion = 2, type = "keepalive" }, true, cancellationToken).ConfigureAwait(false);
+        // The read loop and the cast answers share one stream, and a frame is several writes: they take turns.
+        using var writeGate = new SemaphoreSlim(1, 1);
+        async Task SendAsync(object envelope, CancellationToken token)
+        {
+            await writeGate.WaitAsync(token).ConfigureAwait(false);
+            try
+            {
+                await ExchangeProtocol.WriteAsync(connection.Stream, envelope, true, token).ConfigureAwait(false);
+            }
+            finally
+            {
+                writeGate.Release();
+            }
+        }
+
+        await SendAsync(new { schemaVersion = 2, type = "keepalive" }, cancellationToken).ConfigureAwait(false);
         // SP-0201 requirement 1: the list fills the view first, then subscribe keeps it current. A gap in
         // revision below answers itself with a new list; subscribe is written once, after the first answer.
-        await ExchangeProtocol.WriteAsync(connection.Stream, new { schemaVersion = 2, type = "list" }, true, cancellationToken).ConfigureAwait(false);
+        await SendAsync(new { schemaVersion = 2, type = "list" }, cancellationToken).ConfigureAwait(false);
         var subscribed = false;
         Task<JsonDocument>? pending = null;
+        var castTasks = new List<Task>();
+        var castFailed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var castCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         using var readCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var nextTick = Task.Delay(TimeSpan.FromSeconds(interval), cancellationToken);
         try
@@ -391,7 +459,13 @@ internal sealed class ExchangeSourceService
             while (!cancellationToken.IsCancellationRequested)
             {
                 pending ??= ExchangeProtocol.ReadAsync(connection.Stream, true, readCancellation.Token);
-                if (await Task.WhenAny(pending, nextTick).ConfigureAwait(false) == nextTick)
+                var ready = await Task.WhenAny(pending, nextTick, castFailed.Task).ConfigureAwait(false);
+                if (ready == castFailed.Task)
+                {
+                    throw new IOException("Exchange cast answer could not be delivered.");
+                }
+
+                if (ready == nextTick)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     if (lastAnswer.Elapsed.TotalSeconds >= interval * 3)
@@ -399,7 +473,7 @@ internal sealed class ExchangeSourceService
                         throw new IOException("Exchange keepalive window expired.");
                     }
 
-                    await ExchangeProtocol.WriteAsync(connection.Stream, new { schemaVersion = 2, type = "keepalive" }, true, cancellationToken).ConfigureAwait(false);
+                    await SendAsync(new { schemaVersion = 2, type = "keepalive" }, cancellationToken).ConfigureAwait(false);
                     nextTick = Task.Delay(TimeSpan.FromSeconds(interval), cancellationToken);
                     continue;
                 }
@@ -416,7 +490,7 @@ internal sealed class ExchangeSourceService
                     case "directory":
                         if (!subscribed)
                         {
-                            await ExchangeProtocol.WriteAsync(connection.Stream, new { schemaVersion = 2, type = "subscribe" }, true, cancellationToken).ConfigureAwait(false);
+                            await SendAsync(new { schemaVersion = 2, type = "subscribe" }, cancellationToken).ConfigureAwait(false);
                             subscribed = true;
                         }
 
@@ -426,13 +500,24 @@ internal sealed class ExchangeSourceService
                     case "changed":
                         if (_directory.ApplyChange(response.RootElement).RelistNeeded)
                         {
-                            await ExchangeProtocol.WriteAsync(connection.Stream, new { schemaVersion = 2, type = "list" }, true, cancellationToken).ConfigureAwait(false);
+                            await SendAsync(new { schemaVersion = 2, type = "list" }, cancellationToken).ConfigureAwait(false);
                         }
 
                         PublishDirectory();
                         break;
                     case "cast-offer":
-                        await HandleCastOfferAsync(connection, response.RootElement, cancellationToken).ConfigureAwait(false);
+                        // Parsed here, while the frame is alive; answered on its own task, never in this loop.
+                        if (ExchangeCastOffer.TryParse(response.RootElement, out var offer) && offer is not null)
+                        {
+                            castTasks.RemoveAll(task => task.IsCompleted);
+                            // A sender in a loop cannot grow this without bound: an offer past the cap goes
+                            // unanswered and the server times it out for the caster.
+                            if (castTasks.Count < MaximumOpenCastOffers)
+                            {
+                                castTasks.Add(AnswerCastOfferAsync(offer, SendAsync, castFailed, castCancellation.Token));
+                            }
+                        }
+
                         break;
                     case "cast-stop":
                         HandleCastStop(response.RootElement);
@@ -457,7 +542,15 @@ internal sealed class ExchangeSourceService
         }
         finally
         {
+            // The session is over: dismiss every open question and wait for the answer tasks, so none of them
+            // writes to the stream after the connection is disposed. They never throw (AnswerCastOfferAsync).
             _castCoordinator.CancelAll();
+            await castCancellation.CancelAsync().ConfigureAwait(false);
+            foreach (var task in castTasks)
+            {
+                await ObserveAsync(task).ConfigureAwait(false);
+            }
+
             // Observe the single pending read before disposing the connection, including timeout and quit paths.
             await readCancellation.CancelAsync().ConfigureAwait(false);
             if (pending is not null)
@@ -486,55 +579,62 @@ internal sealed class ExchangeSourceService
         DirectoryChanged?.Invoke();
     }
 
-    private async Task HandleCastOfferAsync(ExchangeTlsConnection connection, JsonElement root, CancellationToken cancellationToken)
+    /// <summary>
+    /// SP-0205 / DEVICE-EXCHANGE 7.8, run off the control stream's read loop: the question to the user can take
+    /// as long as the offer window, and a loop that waits for it stops answering keepalives and reading
+    /// frames. A repeated offer for the same broadcast folds into the open question in the coordinator.
+    /// </summary>
+    private async Task AnswerCastOfferAsync(ExchangeCastOffer offer, Func<object, CancellationToken, Task> send,
+        TaskCompletionSource castFailed, CancellationToken cancellationToken)
     {
-        if (!ExchangeCastOffer.TryParse(root, out var offer) || offer is null)
+        try
         {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(offer.DeviceName) && Directory is { } dir)
-        {
-            var matchedGroup = dir.Groups.FirstOrDefault(g => g.DeviceId == offer.DeviceId);
-            if (matchedGroup is not null && !string.IsNullOrWhiteSpace(matchedGroup.DeviceName))
+            if (string.IsNullOrWhiteSpace(offer.DeviceName) && Directory is { } dir)
             {
-                offer = offer with { DeviceName = matchedGroup.DeviceName };
+                var matchedGroup = dir.Groups.FirstOrDefault(g => g.DeviceId == offer.DeviceId);
+                if (matchedGroup is not null && !string.IsNullOrWhiteSpace(matchedGroup.DeviceName))
+                {
+                    offer = offer with { DeviceName = matchedGroup.DeviceName };
+                }
             }
-        }
 
-        if (offer.Support != ExchangeBroadcastSupport.Supported || offer.Descriptor is null)
-        {
-            await ExchangeProtocol.WriteAsync(connection.Stream, ExchangeCastAnswer.Unsupported(offer.CastId), true, cancellationToken).ConfigureAwait(false);
-            return;
-        }
-
-        if (Account.AutoAcceptCasts)
-        {
-            await ExchangeProtocol.WriteAsync(connection.Stream, ExchangeCastAnswer.Accept(offer.CastId), true, cancellationToken).ConfigureAwait(false);
-            CastAccepted?.Invoke(offer);
-            return;
-        }
-
-        if (CastPromptRequested is { } promptHandler)
-        {
-            var accepted = await _castCoordinator.RequestDecisionAsync(
-                offer,
-                (off, ct) => promptHandler(off, ct),
-                cancellationToken).ConfigureAwait(false);
-
-            if (accepted)
+            if (offer.Support != ExchangeBroadcastSupport.Supported || offer.Descriptor is null)
             {
-                await ExchangeProtocol.WriteAsync(connection.Stream, ExchangeCastAnswer.Accept(offer.CastId), true, cancellationToken).ConfigureAwait(false);
+                await send(ExchangeCastAnswer.Unsupported(offer.BroadcastId, offer.CastId), cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            if (Account.AutoAcceptCasts)
+            {
+                await send(ExchangeCastAnswer.Accept(offer.BroadcastId, offer.CastId), cancellationToken).ConfigureAwait(false);
+                CastAccepted?.Invoke(offer);
+                return;
+            }
+
+            var decision = CastPromptRequested is { } promptHandler
+                ? await _castCoordinator.RequestDecisionAsync(offer, promptHandler, cancellationToken).ConfigureAwait(false)
+                : ExchangeCastDecision.Declined;
+            if (cancellationToken.IsCancellationRequested)
+            {
+                // The session ended while the question was open; its stream is gone and no answer is owed.
+                return;
+            }
+
+            await send(ExchangeCastAnswer.For(offer, decision), cancellationToken).ConfigureAwait(false);
+            if (decision == ExchangeCastDecision.Accepted)
+            {
                 CastAccepted?.Invoke(offer);
             }
-            else
-            {
-                await ExchangeProtocol.WriteAsync(connection.Stream, ExchangeCastAnswer.Decline(offer.CastId), true, cancellationToken).ConfigureAwait(false);
-            }
         }
-        else
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            await ExchangeProtocol.WriteAsync(connection.Stream, ExchangeCastAnswer.Decline(offer.CastId), true, cancellationToken).ConfigureAwait(false);
+            // The session ended; nothing to answer.
+        }
+        catch (Exception exception) when (IsConnectionFailure(exception))
+        {
+            // A cast answer that cannot be written means the stream is broken: hand that to the read loop,
+            // which owns reconnecting, instead of letting an answer task fail where nobody looks.
+            castFailed.TrySetResult();
         }
     }
 
@@ -568,9 +668,13 @@ internal sealed class ExchangeSourceService
         return reason is not "rate-limited" and not "capacity" and not "unavailable";
     }
 
+    // InvalidDataException is how Core reports a protocol or handshake violation (a bad frame length, a frame
+    // that is not an object, a wrong schema, malformed welcome fields) and is not an IOException; an
+    // ObjectDisposedException is the stream a failed read has already closed. Both mean "this connection is
+    // finished", and the loop's answer to that is its backoff, not dying.
     private static bool IsConnectionFailure(Exception exception) => exception is IOException or SocketException
         or AuthenticationException or OperationCanceledException or JsonException or UnauthorizedAccessException
-        or System.Security.Cryptography.CryptographicException;
+        or System.Security.Cryptography.CryptographicException or InvalidDataException or ObjectDisposedException;
 
     private static async Task TryByeAsync(ExchangeTlsConnection connection)
     {
@@ -579,17 +683,36 @@ internal sealed class ExchangeSourceService
         {
             await ExchangeProtocol.WriteAsync(connection.Stream, new { schemaVersion = 2, type = "bye" }, true, deadline.Token).ConfigureAwait(false);
         }
-        catch (Exception exception) when (IsConnectionFailure(exception) || exception is ObjectDisposedException)
+        catch (Exception exception) when (IsConnectionFailure(exception))
         {
             // A failed or revoked stream has already gone offline; quitting must still complete.
         }
     }
 
-    private void ShowCertificate(ExchangeCertificateException exception)
+    private bool IsAccountEndpoint(string host, int port) =>
+        Account.Host.Length > 0 && port == Account.Port && string.Equals(host, Account.Host, StringComparison.OrdinalIgnoreCase);
+
+    // The fingerprint is a replacement candidate only for the endpoint it was read from, and only when that
+    // is the account's own: accepting one read from another server would pin that server's leaf onto this
+    // account's host and break its connection.
+    private void ShowCertificate(ExchangeCertificateException exception, string host, int port)
     {
-        PreviousFingerprint = exception.Previous;
-        PresentedFingerprint = exception.Presented;
+        if (IsAccountEndpoint(host, port))
+        {
+            PreviousFingerprint = exception.Previous;
+            PresentedFingerprint = exception.Presented;
+            _presentedHost = host;
+            _presentedPort = port;
+        }
+
         SetStatus("ExchangeCertificate");
+    }
+
+    private void ClearPendingCertificate()
+    {
+        PreviousFingerprint = PresentedFingerprint = null;
+        _presentedHost = null;
+        _presentedPort = 0;
     }
 
     private void SetStatus(string key)

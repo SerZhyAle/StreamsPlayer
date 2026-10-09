@@ -1,4 +1,7 @@
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows;
+using System.Windows.Interop;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -181,50 +184,83 @@ public partial class MainWindow
         return applied.Channel;
     }
 
-    private string? _activeCastId;
-    private string? _activeCastBroadcastId;
+    // The casts this window started, by broadcast id: what a cast-stop is allowed to end. A stop names the
+    // broadcast (DEVICE-EXCHANGE 7.8); one that matches no entry here is not ours to act on, so it can never
+    // close a window or silence a station the user chose themselves.
+    private const int MaximumTrackedCasts = 16;
+    private readonly Dictionary<string, ActiveCast> _activeCasts = new(StringComparer.Ordinal);
 
+    private sealed record ActiveCast(string BroadcastId, string? CastId, Guid ChannelId);
+
+    /// <summary>
+    /// The question for one cast offer. It runs off the service's read loop, so it may stay open for the whole
+    /// offer window; the token ends it when the window runs out or the session ends, and the dialog goes
+    /// with it. The wait for the dialog never outlives the token, whether or not the dialog could be closed.
+    /// </summary>
     private async Task<bool> PromptCastOfferAsync(ExchangeCastOffer offer, CancellationToken cancellationToken)
     {
-        if (Dispatcher.HasShutdownStarted)
+        if (Dispatcher.HasShutdownStarted || cancellationToken.IsCancellationRequested)
         {
             return false;
         }
 
-        return await Dispatcher.InvokeAsync(() =>
+        var shown = Dispatcher.InvokeAsync(() => ShowCastOfferPrompt(offer, cancellationToken));
+        return await shown.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private bool ShowCastOfferPrompt(ExchangeCastOffer offer, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
         {
-            var senderDevice = !string.IsNullOrWhiteSpace(offer.DeviceName) ? offer.DeviceName : offer.DeviceId;
-            var broadcastTitle = !string.IsNullOrWhiteSpace(offer.Title) ? offer.Title : "Live Broadcast";
+            return false;
+        }
 
-            string? currentlyPlaying = null;
-            if (_playerWindows.Count > 0)
-            {
-                currentlyPlaying = _playerWindows.First().Channel.Title;
-            }
-            else if (_playingAudio is not null)
-            {
-                currentlyPlaying = _playingAudio.DisplayTitle ?? _playingAudio.Channel.Title;
-            }
+        var senderDevice = !string.IsNullOrWhiteSpace(offer.DeviceName) ? offer.DeviceName : offer.DeviceId;
+        var broadcastTitle = !string.IsNullOrWhiteSpace(offer.Title) ? offer.Title : "Live Broadcast";
 
-            string promptText;
-            if (!string.IsNullOrEmpty(currentlyPlaying))
-            {
-                promptText = LocalizationService.Format("ExchangeCastOfferPromptInterrupt", broadcastTitle, senderDevice, currentlyPlaying);
-            }
-            else
-            {
-                promptText = LocalizationService.Format("ExchangeCastOfferPrompt", broadcastTitle, senderDevice);
-            }
+        string? currentlyPlaying = null;
+        if (_playerWindows.Count > 0)
+        {
+            currentlyPlaying = _playerWindows.First().Channel.Title;
+        }
+        else if (_playingAudio is not null)
+        {
+            currentlyPlaying = _playingAudio.DisplayTitle ?? _playingAudio.Channel.Title;
+        }
 
+        var promptText = !string.IsNullOrEmpty(currentlyPlaying)
+            ? LocalizationService.Format("ExchangeCastOfferPromptInterrupt", broadcastTitle, senderDevice, currentlyPlaying)
+            : LocalizationService.Format("ExchangeCastOfferPrompt", broadcastTitle, senderDevice);
+
+        var owner = DialogOwner;
+        var open = true;
+        using var dismissal = cancellationToken.Register(() => Dispatcher.BeginInvoke(() =>
+        {
+            // Both this flag and the dialog live on the UI thread, so a dismissal that arrives after the
+            // user's own answer finds the flag down and touches nothing.
+            if (open)
+            {
+                PromptDismissal.Close(owner);
+            }
+        }));
+        try
+        {
+            // No is the default: a stray Enter or Space while the user types must not accept a cast that
+            // interrupts their playback.
             var result = MessageBox.Show(
-                DialogOwner,
+                owner,
                 promptText,
                 LocalizationService.Get("ExchangeCastTitle"),
                 MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                MessageBoxImage.Question,
+                MessageBoxResult.No);
 
             return result == MessageBoxResult.Yes;
-        });
+        }
+        finally
+        {
+            open = false;
+        }
     }
 
     private void PlayCastOffer(ExchangeCastOffer offer)
@@ -238,9 +274,6 @@ public partial class MainWindow
         {
             try
             {
-                _activeCastId = offer.CastId;
-                _activeCastBroadcastId = offer.BroadcastId;
-
                 FastMediaSorterBroadcastApplyResult? applied = null;
                 await PersistAsync(state =>
                 {
@@ -249,18 +282,54 @@ public partial class MainWindow
                     return state with { Channels = [.. applied.Channels] };
                 });
 
-                if (applied is not null)
+                if (applied is null)
                 {
-                    PopulateFacets();
-                    ApplyFilter();
-                    await PlayChannelAsync(applied.Channel, rememberSelection: false);
+                    return;
                 }
+
+                if (_activeCasts.Count >= MaximumTrackedCasts)
+                {
+                    _activeCasts.Clear();
+                }
+
+                var channel = applied.Channel;
+                _activeCasts[offer.BroadcastId] = new ActiveCast(offer.BroadcastId, offer.CastId, channel.Id);
+                PopulateFacets();
+                ApplyFilter();
+                await StartCastPlaybackAsync(channel);
             }
             catch (Exception exception)
             {
                 HandlerBoundary.Report(nameof(PlayCastOffer), exception);
             }
         });
+    }
+
+    /// <summary>
+    /// Plays the cast's channel without the toggle a user's second click on a station means: PlayChannelAsync
+    /// stops a station that is already playing, and a repeated or auto-accepted offer for the broadcast that is
+    /// on must leave it on - the sender was told "accepted". An endpoint that changed restarts it cleanly.
+    /// </summary>
+    private async Task StartCastPlaybackAsync(StreamChannel channel)
+    {
+        if (_playerWindows.Any(window => window.Channel.Id == channel.Id))
+        {
+            return;
+        }
+
+        if (channel.MediaKind == MediaKind.Audio && _playingAudio is { } playing && playing.Channel.Id == channel.Id)
+        {
+            if (string.Equals(playing.Channel.Url, channel.Url, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            // The internal stop keeps the sleep timer, as a station switch does; the play below then finds
+            // nothing playing and starts the new endpoint.
+            StopAudioPlayback();
+        }
+
+        await PlayChannelAsync(channel, rememberSelection: false);
     }
 
     private void StopCast(ExchangeCastStop stop)
@@ -274,31 +343,35 @@ public partial class MainWindow
         {
             try
             {
-                var matchesCast = (stop.CastId is not null && stop.CastId == _activeCastId)
-                    || (stop.BroadcastId is not null && (stop.BroadcastId == _activeCastBroadcastId
-                        || (_playingAudio?.Channel.FastMediaSorterBroadcast?.DirectoryBroadcastId == stop.BroadcastId)
-                        || _playerWindows.Any(w => w.Channel.FastMediaSorterBroadcast?.DirectoryBroadcastId == stop.BroadcastId)));
-
-                if (matchesCast)
+                var cast = stop.BroadcastId is { } broadcastId
+                    ? _activeCasts.GetValueOrDefault(broadcastId)
+                    : stop.CastId is { } castId
+                        ? _activeCasts.Values.FirstOrDefault(item => item.CastId == castId)
+                        : null;
+                if (cast is null)
                 {
-                    _activeCastId = null;
-                    _activeCastBroadcastId = null;
-
-                    foreach (var window in _playerWindows.ToArray())
-                    {
-                        if (stop.BroadcastId is null || window.Channel.FastMediaSorterBroadcast?.DirectoryBroadcastId == stop.BroadcastId)
-                        {
-                            window.Close();
-                        }
-                    }
-
-                    if (_playingAudio?.Channel.FastMediaSorterBroadcast?.DirectoryBroadcastId == stop.BroadcastId || stop.BroadcastId is null)
-                    {
-                        StopAudio();
-                    }
-
-                    SetStatus("ExchangeCastStopped");
+                    return;
                 }
+
+                _activeCasts.Remove(cast.BroadcastId);
+                var windows = _playerWindows.Where(window => window.Channel.Id == cast.ChannelId).ToArray();
+                var audioPlaying = _playingAudio?.Channel.Id == cast.ChannelId;
+                if (windows.Length == 0 && !audioPlaying)
+                {
+                    return;
+                }
+
+                foreach (var window in windows)
+                {
+                    window.Close();
+                }
+
+                if (audioPlaying)
+                {
+                    StopAudio();
+                }
+
+                SetStatus("ExchangeCastStopped");
             }
             catch (Exception exception)
             {
@@ -306,4 +379,49 @@ public partial class MainWindow
             }
         });
     }
+}
+
+/// <summary>
+/// Closes the modal message box the cast prompt shows. A Yes/No box has no close button and ignores WM_CLOSE,
+/// so the only way to take it down from code is to end its dialog with the answer it already defaults to.
+/// </summary>
+internal static class PromptDismissal
+{
+    private const uint GetWindowEnabledPopup = 6;
+    private const int ClassNameBuffer = 16;
+    private const int AnswerNo = 7;
+
+    internal static void Close(Window owner)
+    {
+        var ownerHandle = new WindowInteropHelper(owner).Handle;
+        if (ownerHandle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        // A modal owner is disabled and its one enabled popup is the box; anything else (a window class that
+        // is not the system dialog class) is left alone.
+        var popup = GetWindow(ownerHandle, GetWindowEnabledPopup);
+        if (popup == IntPtr.Zero || popup == ownerHandle)
+        {
+            return;
+        }
+
+        var className = new StringBuilder(ClassNameBuffer);
+        if (GetClassName(popup, className, className.Capacity) > 0
+            && string.Equals(className.ToString(), "#32770", StringComparison.Ordinal))
+        {
+            EndDialog(popup, new IntPtr(AnswerNo));
+        }
+    }
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetWindow(IntPtr window, uint command);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetClassNameW")]
+    private static extern int GetClassName(IntPtr window, StringBuilder className, int maximumCount);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool EndDialog(IntPtr dialog, IntPtr result);
 }
