@@ -177,7 +177,26 @@ public static class ExchangeProtocol
         }
     }
 
-    public static string? String(JsonElement envelope, string member) =>
-        envelope.TryGetProperty(member, out var value) && value.ValueKind == JsonValueKind.String
-            ? value.GetString() : null;
+    /// <summary>
+    /// A string member of a frame, or <see langword="null"/> when it is absent, not a string, or not valid
+    /// text. A lone-surrogate escape (<c>"\ud800"</c>) parses as a string element but makes
+    /// <see cref="JsonElement.GetString"/> throw <see cref="InvalidOperationException"/>, which a peer must
+    /// never be able to use to end the receive loop (SP-0180).
+    /// </summary>
+    public static string? String(JsonElement envelope, string member)
+    {
+        if (!envelope.TryGetProperty(member, out var value) || value.ValueKind != JsonValueKind.String)
+        {
+            return null;
+        }
+
+        try
+        {
+            return value.GetString();
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
 }

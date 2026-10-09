@@ -232,4 +232,26 @@ public sealed class ExchangeProtocolTests
         stream.Position = 0;
         return stream;
     }
+
+    [Theory]
+    [InlineData("{\"type\":\"\\ud800\"}")]
+    [InlineData("{\"type\":\"a\\udc00b\"}")]
+    public void String_ReadsALoneSurrogateAsAbsentInsteadOfThrowing(string json)
+    {
+        using var document = JsonDocument.Parse(json);
+
+        var actual = ExchangeProtocol.String(document.RootElement, "type");
+
+        Assert.Null(actual); // expected: null | actual: <actual>
+    }
+
+    [Fact]
+    public void String_StillReadsAnOrdinaryMember()
+    {
+        using var document = JsonDocument.Parse("{\"type\":\"hello\",\"n\":1}");
+
+        Assert.Equal("hello", ExchangeProtocol.String(document.RootElement, "type"));
+        Assert.Null(ExchangeProtocol.String(document.RootElement, "n"));
+        Assert.Null(ExchangeProtocol.String(document.RootElement, "missing"));
+    }
 }
