@@ -58,6 +58,25 @@
       "heldBy": [
         "README.uk.md"
       ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/support.html",
+      "heldBy": [
+        "msix/store-listing.md",
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.en-US.yaml"
+      ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/ru/support.html",
+      "heldBy": [
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.ru-RU.yaml"
+      ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/uk/support.html",
+      "heldBy": [
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.uk-UA.yaml"
+      ]
     }
   ]
 }

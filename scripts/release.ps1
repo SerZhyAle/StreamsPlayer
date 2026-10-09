@@ -24,6 +24,8 @@ try {
      published version, on every channel - stamps at or below 26.0806.2131 were UTC and read 1-2 h early,
      and the Store has shipped a stamp of its own (26.0806.2225) that GitHub and winget never carried.
      Check it: ./scripts/assert-release-version.ps1 -Version <version>  (release.yml runs the same gate).
+   - Regenerate the site (tools/site/build-site.ps1) so What's new lists the version; it ships with the
+     release push.
    - Regenerate the bundled catalog snapshot and verify it:
      ./tools/build-catalog-snapshot.ps1  and  ./tools/build-catalog-snapshot.ps1 -Check
      A snapshot that is missing, over its size ceiling, or older than the bank currently published
@@ -64,12 +66,19 @@ try {
    the installer on a machine that does not already have it - a published
    installer nobody has executed is an unverified one, and it is the only
    asset that can leave a broken install behind.
-9. Copy a release-specific manifest from winget/templates/ to winget-pkgs,
+9. The Pages publish of item 11 must be live BEFORE the winget (9) and Store (10) submissions: the
+   winget templates and msix/store-listing.md now point their support address at the site's support
+   page (support.html, ru/, uk/), so confirm those addresses answer 200 on the host first.
+   Copy a release-specific manifest from winget/templates/ to winget-pkgs,
    replace URL/hash/version, validate it, and submit its pull request.
 10. Build the unsigned Store package at the tag: ./msix/build-msix.ps1 (no -SelfSign), upload it,
     update Store listing text/screenshots, then submit for certification.
+    The same submission also updates the Partner Center Properties support URL and support e-mail
+    from the Support and Support email lines of msix/store-listing.md - the package alone does not
+    carry them.
 11. GitHub Pages deploys after CI's documentation and site-sync gates pass for the same commit
-    (SP-0156); confirm the site is ready for public visibility.
+    (SP-0156); confirm the site is ready for public visibility. Items 9 and 10 wait for this deploy
+    to be live.
 
 This command does not tag, push, upload, submit, or publish anything.
 "@

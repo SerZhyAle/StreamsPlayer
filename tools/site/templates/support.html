@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="{{page.lang}}" dir="{{page.dir}}" data-theme="dark" data-entry="{{page.entry}}">
+  <head>
+{{include:head}}
+  </head>
+  <body data-page="support">
+    <a class="skip-link" href="#content">{{t.skip-content}}</a>
+    <!-- The brand backdrop (WAVE-PARTICLES): behind everything, decorative, slow and pale; every block of text
+         sits on a semi-transparent plate (style.css). Settings: SP-0195 follow-up, registry exception. -->
+    <canvas class="backdrop" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.3" data-speed="0.5" aria-hidden="true"></canvas>
+
+    <header class="site-header">
+      <a class="brand" href="{{page.home}}">
+        <img src="{{page.base}}assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="{{t.nav-label}}">
+        <a class="header-link" href="{{page.home}}#features">{{t.nav-features}}</a>
+        <a class="header-link" href="{{page.support}}" aria-current="page">{{t.nav-support}}</a>
+        <a class="header-link" href="{{page.privacy}}">{{t.nav-privacy}}</a>
+      </nav>
+{{include:switcher}}
+      <button class="theme-button" id="themeButton" type="button" aria-label="{{t.theme-label}}">{{glyph:app.theme}}<span>{{t.theme-name}}</span></button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">{{t.header-github}}</a>
+    </header>
+{{include:languagerow}}
+
+    <!-- SP-0039, canon DOCUMENTATION_CONCEPT section 4 (support): how to report a bug, the contact address, a
+         response expectation, plus how to send the logs. Six sections in this order; the ids are pinned by
+         SupportPageTests, and a reader who lands on one of them alone must still be unblocked. The logs
+         section reuses the landing's how-to (use-5), which is never written a second time. Each heading id
+         is the section name plus -title, and deliberately does not repeat the support- prefix, so the six
+         section ids are the only ids that carry it. -->
+    <main class="container privacy-main" id="content">
+      <span class="eyebrow">{{t.support-eyebrow}}</span>
+      <h1>{{t.support-title}}</h1>
+      <p class="privacy-intro">{{t.support-intro}}</p>
+
+      <div class="privacy-card">
+        <section class="privacy-section" id="support-bug" aria-labelledby="bug-title">
+          <h2 id="bug-title">{{t.support-bug-title}}</h2>
+          <p>{{t.support-bug}}</p>
+          <div class="button-group">
+            <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer/issues/new/choose">{{t.support-bug-link}}</a>
+          </div>
+        </section>
+
+        <section class="privacy-section" id="support-logs" aria-labelledby="logs-title">
+          <h2 id="logs-title">{{t.use-5-title}}</h2>
+          <p>{{t.use-5-text}}</p>
+        </section>
+
+        <section class="privacy-section" id="support-stream" aria-labelledby="stream-title">
+          <h2 id="stream-title">{{t.support-stream-title}}</h2>
+          <p>{{t.support-stream}}</p>
+        </section>
+
+        <section class="privacy-section" id="support-warning" aria-labelledby="warning-title">
+          <h2 id="warning-title">{{t.support-warning-title}}</h2>
+          <p>{{t.support-warning}}</p>
+          <div class="button-group">
+            <a class="button button-ghost button-small" href="{{page.trust}}">{{t.trust-link}}</a>
+          </div>
+        </section>
+
+        <section class="privacy-section" id="support-private" aria-labelledby="private-title">
+          <h2 id="private-title">{{t.support-private-title}}</h2>
+          <p>{{t.support-private}}</p>
+        </section>
+
+        <section class="privacy-section" id="support-response" aria-labelledby="response-title">
+          <h2 id="response-title">{{t.support-response-title}}</h2>
+          <p>{{t.support-response}}</p>
+        </section>
+      </div>
+    </main>
+
+{{include:footer}}
+  </body>
+</html>

@@ -4,7 +4,7 @@ PackageVersion: REPLACE_VERSION
 PackageLocale: en-US
 Publisher: SerZhyAle
 PublisherUrl: https://github.com/SerZhyAle
-PublisherSupportUrl: https://github.com/SerZhyAle/StreamsPlayer/issues
+PublisherSupportUrl: https://serzhyale.github.io/StreamsPlayer/support.html
 PrivacyUrl: https://serzhyale.github.io/StreamsPlayer/privacy.html
 PackageName: STREAMS Player
 PackageUrl: https://serzhyale.github.io/StreamsPlayer/
@@ -20,7 +20,7 @@ Tags:
 - video
 - rtsp
 - live-tv
-- iptv
+- ip-camera
 - windows
 ReleaseNotes: REPLACE_RELEASE_NOTES
 ReleaseNotesUrl: https://github.com/SerZhyAle/StreamsPlayer/releases/tag/vREPLACE_VERSION

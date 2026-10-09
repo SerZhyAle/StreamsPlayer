@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="{{page.lang}}" dir="{{page.dir}}" data-theme="dark" data-entry="{{page.entry}}">
+  <head>
+{{include:head}}
+  </head>
+  <body data-page="whats-new">
+    <a class="skip-link" href="#content">{{t.skip-content}}</a>
+    <!-- The brand backdrop (WAVE-PARTICLES): behind everything, decorative, slow and pale; every block of text
+         sits on a semi-transparent plate (style.css). Settings: SP-0195 follow-up, registry exception. -->
+    <canvas class="backdrop" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.3" data-speed="0.5" aria-hidden="true"></canvas>
+
+    <header class="site-header">
+      <a class="brand" href="{{page.home}}">
+        <img src="{{page.base}}assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="{{t.nav-label}}">
+        <a class="header-link" href="{{page.home}}#features">{{t.nav-features}}</a>
+        <a class="header-link" href="{{page.whatsnew}}" aria-current="page">{{t.nav-whatsnew}}</a>
+        <a class="header-link" href="{{page.privacy}}">{{t.nav-privacy}}</a>
+      </nav>
+{{include:switcher}}
+      <button class="theme-button" id="themeButton" type="button" aria-label="{{t.theme-label}}">{{glyph:app.theme}}<span>{{t.theme-name}}</span></button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">{{t.header-github}}</a>
+    </header>
+{{include:languagerow}}
+
+    <!-- SP-0039, SITE-STRUCTURE section 2 (release notes): one section per version, newest first, each with
+         its date. The sections come from the recorded release notes (msix/listing/release-notes), never from
+         this template or the copy decks, and no version is typed on this page. The language note is empty on
+         the pages whose deck the owner wrote; elsewhere it says the notes stay in English. -->
+    <main class="container privacy-main" id="content">
+      <span class="eyebrow">{{t.whatsnew-eyebrow}}</span>
+      <h1>{{t.whatsnew-title}}</h1>
+      <p class="privacy-intro">{{t.whatsnew-intro}}</p>
+{{page.languageNote}}
+
+      <div class="privacy-card">
+{{page.releaseNotes}}
+
+        <div class="privacy-section" id="whatsnew-earlier">
+          <p>{{t.whatsnew-earlier}}</p>
+          <div class="button-group">
+            <a class="button button-ghost button-small" href="https://github.com/SerZhyAle/StreamsPlayer/releases">{{t.whatsnew-earlier-link}}</a>
+          </div>
+        </div>
+      </div>
+    </main>
+
+{{include:footer}}
+  </body>
+</html>

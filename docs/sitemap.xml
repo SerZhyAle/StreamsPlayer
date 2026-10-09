@@ -702,4 +702,472 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/trust.html"/>
     <changefreq>monthly</changefreq>
   </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/de/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/it/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/es/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/ru/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/uk/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/de/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/it/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/es/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/fr/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/pt/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/zh/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/hi/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/bn/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/ar/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://serzhyale.github.io/StreamsPlayer/ur/support.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"/>
+    <xhtml:link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html"/>
+    <xhtml:link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html"/>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html"/>
+    <changefreq>monthly</changefreq>
+  </url>
 </urlset>

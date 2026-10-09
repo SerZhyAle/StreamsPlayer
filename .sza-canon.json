@@ -29,7 +29,7 @@
   "site": {
     "kind": "product",
     "root": "docs",
-    "pages": ["index.html", "privacy.html"]
+    "pages": ["index.html", "privacy.html", "trust.html", "whats-new.html", "support.html"]
   },
 
   "privacy": {

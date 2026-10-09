@@ -406,7 +406,7 @@ the radio station and every player window alike. It is off by default.
 | `src/StreamsPlayer.App` | WPF desktop application. |
 | `tests/StreamsPlayer.Core.Tests` | Unit and contract tests. |
 | `tools/StreamsPlayer.CatalogHarness` | Live stream-bank diagnostic harness. |
-| `docs/` | GitHub Pages product site and specifications. |
+| `docs/` | GitHub Pages product site and maintainer documentation. |
 
 Run the release-style local check:
 

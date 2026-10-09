@@ -6,8 +6,8 @@
       poster-720x1080.png          9:16 Poster art  (Store logo, rendered 1440x2160)
       boxart-1080x1080.png         1:1 Box art      (Store logo, rendered 2160x2160)
       apptile-1080x1080.png        1:1 App tile icon (Store logo)
-      banner-1280x360.png          promo banner
-      social-preview-1280x640.png  GitHub social / hero card
+      banner-1280x360.png          promo banner (true 1280x360)
+      social-preview-1280x640.png  GitHub social / hero card (true 1280x640)
 
     Composed promotional cards (the house pattern), not raw app captures. For one real in-app
     screenshot per shipped interface language use tools/store/capture-store-screenshots.ps1; for a
@@ -120,8 +120,8 @@ $c = New-Canvas 1080 1080 1
 [void](Draw-CenteredImage $c $IconPath 720 180)
 Save-Canvas $c (Join-Path $OutDir 'apptile-1080x1080.png')
 
-# ---- Banner (base 1280x360, rendered 2x) ------------------------------------
-$c = New-Canvas 1280 360 2
+# ---- Banner (1280x360 at its true size, scale 1) ----------------------------
+$c = New-Canvas 1280 360 1
 $img = [System.Drawing.Image]::FromFile($IconPath)
 try { $c.G.DrawImage($img, 120, 96, 168, 168) } finally { $img.Dispose() }
 $nWord = New-Object System.Drawing.Font('Segoe UI', 52, [System.Drawing.FontStyle]::Bold)
@@ -132,8 +132,8 @@ $c.G.DrawString('Internet radio, live video and RTSP  -  no account, no ads', $n
 $sbW.Dispose(); $sbG.Dispose(); $nWord.Dispose(); $nSub.Dispose()
 Save-Canvas $c (Join-Path $OutDir 'banner-1280x360.png')
 
-# ---- Social preview (base 1280x640, rendered 2x) ----------------------------
-$c = New-Canvas 1280 640 2
+# ---- Social preview (1280x640 at its true size, scale 1) --------------------
+$c = New-Canvas 1280 640 1
 $y = Draw-CenteredImage $c $IconPath 220 120
 $sWord = New-Object System.Drawing.Font('Segoe UI', 60, [System.Drawing.FontStyle]::Bold)
 $y = Draw-CenteredText $c 'STREAMS Player' $sWord $White ($y + 28)

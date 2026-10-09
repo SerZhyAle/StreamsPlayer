@@ -272,7 +272,7 @@ STREAMS Player 是一款独立的 Windows 桌面应用，用于网络广播、�
 用日志报告问题
 
 @@use-5-text
-从标题栏中的齿轮按钮（或 [[glyph:nav.more]] 操作菜单）打开“设置”，并在“关于”页面点击“向作者发送日志”。应用会将最近十次启动的诊断日志以及版本、Windows 和设置摘要打包到保存的文件夹（默认 Downloads），然后打开已准备好邮件的邮件客户端。确认信息会显示完整路径并可打开该文件夹；由您自行添加附件并点击发送。
+从标题行中的齿轮按钮，或从 [[glyph:nav.more]] “操作”菜单的“媒体库设置”项打开“设置”，并在“关于”页面点击“向作者发送日志”。应用会将最近十次启动的诊断日志以及版本、Windows 和设置摘要打包到您在“设置”的“文件”页面中为“画面文件夹”选定的文件夹；若尚未选定，则打包到“下载”文件夹，然后打开已准备好邮件的邮件客户端。确认信息会显示完整路径并可按您的要求打开该文件夹；由您自行添加附件并点击发送。
 @@distribution-title
 分发渠道
 
@@ -434,6 +434,84 @@ STREAMS Player 绝不会做的事
 
 @@trust-privacy-link
 阅读隐私页面
+
+@@title-whatsnew
+更新内容 - 各版本发布说明，最新在前 - STREAMS Player
+
+@@description-whatsnew
+STREAMS Player 每次发布有哪些变化：各版本的发布说明及其构建日期，最新在前，并附往期发布的链接。
+
+@@nav-whatsnew
+更新内容
+
+@@whatsnew-eyebrow
+STREAMS Player · 更新内容
+
+@@whatsnew-title
+每次发布都改了什么。
+
+@@whatsnew-intro
+这里是面向您的简短说明，介绍每次发布带来的变化。每个版本都标有版本号和构建日期，最新的在最前面。
+
+@@whatsnew-language-note
+发布说明只用英语、俄语和乌克兰语撰写，因此下方的说明为英语。
+
+@@whatsnew-earlier
+更早的发布在本页没有说明。已在 GitHub 上发布的版本，连同其文件，列在 GitHub 的发布页面中。
+
+@@whatsnew-earlier-link
+GitHub 上的全部发布
+
+@@title-support
+技术支持 - 报告问题或发送日志 - STREAMS Player
+
+@@description-support
+获取 STREAMS Player 的帮助：错误报告需要包含什么、如何发送诊断日志、流停止播放时怎么办，以及如何写信给作者。
+
+@@nav-support
+技术支持
+
+@@support-eyebrow
+STREAMS Player · 技术支持
+
+@@support-title
+有东西不能用？请这样报告。
+
+@@support-intro
+STREAMS Player 由一位独立开发者制作。本页说明报告里应写什么、发到哪里，以及您可以期待什么样的回复。
+
+@@support-bug-title
+报告问题
+
+@@support-bug
+在 GitHub 上提交一个 issue。表单会询问发生了什么、导致问题的步骤、STREAMS Player 的版本和 Windows 的版本。应用版本可在[[glyph:app.settings]]“设置”窗口的“关于”页面中找到。如果问题涉及某个具体频道，请写出它的名称。提交 issue 需要一个免费的 GitHub 账户；如果您没有，请使用本页下方的地址。
+
+@@support-bug-link
+在 GitHub 上报告
+
+@@support-stream-title
+某个频道停止播放
+
+@@support-stream
+目录是一份公开的流列表，这些流由其他人运营：电台、广播机构、摄像头所有者。STREAMS Player 把它们的地址保存在您的设备上，并且如隐私页面所述，只在您操作时才连接网络；流本身仍由运营者掌握，因此一个流可能迁移、更改格式、只在另一个地区可用，或永久停播，目录也会随时间变化。频道出错时，“流不可用”窗口可能会视具体故障提供“重试”“复制报告”“隐藏”（对于您自己添加或导入的频道则是“删除”）和“保留”。具体出现哪些取决于故障：对于应用完全无法播放的地址，不会出现“重试”；没有网络连接时，不会出现“隐藏”或“删除”，因为此时并未连上该频道。“重试”会再试一次，您也可以直接打开另一个频道；“隐藏”会把该频道从您的列表中移除，您可以把它找回来：在“设置”的“媒体库”页面中点击“已隐藏”，再点击该频道旁边的“取消隐藏”；“复制报告”会把一段简短的说明放到剪贴板，供您粘贴到 issue 中，应用本身不会发送任何内容。“操作”菜单中的“从互联网导入频道”会下载当前的目录，而且只在您要求时才下载。流消失并不是应用的故障，也不承诺会修复。
+
+@@support-warning-title
+Windows 发出了警告
+
+@@support-warning
+如果 Windows 用“Windows 已保护你的电脑”界面拦下了安装程序，那是 Microsoft Defender SmartScreen 对它尚不认识的文件做出的反应，并不是在文件里发现了什么的报告。“安装帮助”页面说明了这个界面的含义以及具体该点哪里。
+
+@@support-private-title
+直接写信给作者
+
+@@support-private
+如果您不想使用 GitHub，或者这件事不宜公开，请写信到 [[email]]。安全问题报告请发到这里，不要放在公开的 issue 中。诊断日志也请发到这里，因为其中写有您播放过的流。
+
+@@support-response-title
+可以期待什么
+
+@@support-response
+这是一个独立项目。作者在时间允许时回复；不承诺回复时限，也不承诺修复每一份报告。写明版本、步骤和频道的报告更便于处理。
 
 @@footer-rights
 © 2026

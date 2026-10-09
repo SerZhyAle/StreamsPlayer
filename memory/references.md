@@ -407,7 +407,7 @@ description: External references, standards, and cross-repository dependencies
   CSV, the favicon atlas and the artwork atlases, and a dated `NN_contract_amendment_*.md` **amends**
   them, so read the highest-numbered amendment first and treat the rest as the rules it edits. Its own words: "Where a consumer's current behaviour differs from a
   rule below, the consumer changes - not the rule." Nothing in `StreamsPlayer` mirrors these files, and
-  `docs/specifications/` is unrelated - so when the owner says "the spec set", do not search this
+  the former `docs/specifications/` folder (removed 2026-10-09) was unrelated - so when the owner says "the spec set", do not search this
   repository and do not infer the contract from our own code comments. The delivery artifacts themselves
   live on one GitHub release, tag `delivery-so-v1` of `SerZhyAle/FastMediaSorter_mob_v2`; the release
   asset list and `artwork-manifest.json` are the cheapest way to tell what is actually published from

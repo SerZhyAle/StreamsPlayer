@@ -219,16 +219,11 @@ infringing-content policy. Pre-empt it:
 
 ## winget channel (separate from the Store)
 
-Identifier `SerZhyAle.StreamsPlayer`. Gated on a public GitHub Release (ZIP + SHA256),
-so it can only be updated **after** an approved release. Preferred flow:
+Identifier `SerZhyAle.StreamsPlayer`. Gated on a public GitHub Release (setup EXE + SHA256),
+so it can only be updated **after** an approved release. The single procedure - templates,
+substitution, validation and the pull request to `microsoft/winget-pkgs` - is in
+[`winget/README.md`](winget/README.md); follow it there and nowhere else.
 
-```powershell
-wingetcreate update SerZhyAle.StreamsPlayer `
-  --version <YY.MMDD.HHmm> `
-  --urls https://github.com/SerZhyAle/StreamsPlayer/releases/download/v<version>/StreamsPlayer-<version>-windows-x64.zip `
-  --submit
-```
-
-`wingetcreate` recomputes the SHA256 and opens the PR to `microsoft/winget-pkgs`.
-The manifest templates in `winget/templates/` remain the source of truth for fields
-not derived automatically. See `winget/README.md`.
+`wingetcreate update` is not that procedure: it rebuilds the manifest from the one already
+published, so a `Tags`, `Description` or address edit made in `winget/templates/` never reaches
+the catalog.

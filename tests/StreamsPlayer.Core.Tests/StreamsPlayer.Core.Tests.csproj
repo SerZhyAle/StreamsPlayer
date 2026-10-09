@@ -98,9 +98,11 @@
   </ItemGroup>
 
   <!--
-    SP-0105: the INSTALL-TRUST page is generated from a template and thirteen copy decks, and the
-    generator's own -Check does not run in CI. The shape the contract demands is therefore gated here,
-    with the site sources as test DATA on the same terms as above - read as text, nothing loaded.
+    SP-0105: the INSTALL-TRUST page is generated from a template and thirteen copy decks. The generator's
+    own -Check runs in CI (the "Site sync check" step of ci.yml) but only proves that docs/ matches the
+    decks; it does not read what a deck says. The shape the contract demands (InstallTrustPageTests) and
+    the names the support page gives the application's controls (SP-0039, SupportPageTests) are therefore
+    gated here, with the site sources as test DATA on the same terms as above - read as text, nothing loaded.
   -->
   <ItemGroup>
     <Content Include="..\..\tools\site\copy\*.txt"
@@ -108,6 +110,35 @@
              CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\tools\site\templates\*.html"
              Link="site-templates\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    SP-0039: the winget locale templates and the Store's forbidden-terms list, read as text, so the same
+    list that fails a Store search term also holds a forbidden term out of a winget tag. Test DATA on the
+    same terms as above - the files are never loaded, and nothing here references a project.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\winget\templates\*.locale.*.yaml"
+             Link="winget-templates\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\msix\listing\forbidden-terms.txt"
+             Link="msix-listing\forbidden-terms.txt"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    SP-0039: the author's one contact address is typed in the application (ProductInfo.AuthorEmail, already
+    linked above as app source), in the written offer of the third-party notices and in the Store listing's
+    support-email field. The site derives its copy from the constant; these two hand-typed holders are read as
+    text, on the same terms as above, so a change of address cannot reach one and miss the other.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\THIRD-PARTY-NOTICES.txt"
+             Link="notices\THIRD-PARTY-NOTICES.txt"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\msix\store-listing.md"
+             Link="msix-listing\store-listing.md"
              CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

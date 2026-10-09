@@ -250,7 +250,9 @@ foreach ($document in $sources) {
             $isDirectory = ($resolved -eq '') -or $directories.Contains($resolved.TrimEnd('/'))
             if (-not $isFile -and -not $isDirectory) {
                 $onDisk = $resolved -and (Test-Path -LiteralPath (Join-Path $root $resolved))
-                $caseMatch = if ($resolved) { @($files | Where-Object { $_ -ieq $resolved } | Select-Object -First 1) } else { @() }
+                # The outer @() is what keeps this an array: an empty `if` result collapses to $null, and under
+                # strict mode $null.Count throws instead of letting the finding below say "does not exist".
+                $caseMatch = @(if ($resolved) { $files | Where-Object { $_ -ieq $resolved } | Select-Object -First 1 })
                 $reason = if ($caseMatch.Count -gt 0) { "differs in letter case from the tracked path $($caseMatch[0]) (it resolves on Windows only)" }
                           elseif ($onDisk) { 'is not tracked by git (a clone never has it)' }
                           else { 'does not exist' }

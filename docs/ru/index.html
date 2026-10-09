@@ -34,7 +34,7 @@
     <meta name="twitter:title" content="Трансляции - интернет-радио, live-видео и RTSP для Windows">
     <meta name="twitter:description" content="Трансляции для Windows: каталог и воспроизведение интернет-радио, live-видео и RTSP-потоков.">
     <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"Трансляции для Windows: каталог и воспроизведение интернет-радио, live-видео и RTSP-потоков.","url":"https://serzhyale.github.io/StreamsPlayer/ru/","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","isAccessibleForFree":true,"author":{"@type":"Person","name":"Serhii Zhyhunenko"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"Трансляции для Windows: каталог и воспроизведение интернет-радио, live-видео и RTSP-потоков.","url":"https://serzhyale.github.io/StreamsPlayer/ru/","inLanguage":"ru","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-ru.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/ru/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
@@ -317,7 +317,7 @@
           <li class="step">
             <div>
               <h3>Сообщить о проблеме, приложив журналы</h3>
-              <p>Откройте «Настройки» с помощью шестерёнки в заголовке (или меню <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> «Операции») и нажмите «Отправить журналы автору» на вкладке «О программе». Приложение упакует журналы диагностики десяти последних запусков вместе с краткой сводкой о вашей версии, версии Windows и настройках в папку сохранённых файлов (по умолчанию «Загрузки»), а затем откроет вашу почтовую программу с уже готовым письмом. Подтверждение покажет полный путь и по вашему запросу откроет эту папку; архив вы прикрепите и нажмёте «Отправить» сами.</p>
+              <p>Откройте «Настройки» с помощью шестерёнки в заголовке или через пункт «Настройки библиотеки» меню <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> «Операции» и нажмите «Отправить журналы автору» на вкладке «О программе». Приложение упакует журналы диагностики десяти последних запусков вместе с краткой сводкой о вашей версии, версии Windows и настройках в папку, выбранную в параметре «Папка кадров» на вкладке «Файлы» (если папка не выбрана - в «Загрузки»), а затем откроет вашу почтовую программу с уже готовым письмом. Подтверждение покажет полный путь и по вашему запросу откроет эту папку; архив вы прикрепите и нажмёте «Отправить» сами.</p>
             </div>
           </li>
         </ol>
@@ -349,9 +349,11 @@
         </div>
         <p class="section-description">Инсталлятор - это файл, имя которого заканчивается на -windows-x64-setup.exe. Он ставится только для текущего пользователя и никогда не просит прав администратора, а удаление не трогает ваши каналы, закреплённые станции и историю. Он не подписан, поэтому при первом запуске Windows покажет предупреждение; рядом с каждым файлом в релизе публикуется .sha256, так что вы можете проверить, что скачали именно то, что было опубликовано.</p>
         <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
-             the download is, not only from the footer. -->
+             the download is, not only from the footer. SP-0039: so is what changed, which a reader deciding
+             to install asks next. -->
         <div class="button-group">
           <a class="button button-gold button-small" href="trust.html">Windows вас предупредила? Что нажать</a>
+          <a class="button button-ghost button-small" href="whats-new.html">Что нового</a>
         </div>
       </section>
     </main>
@@ -379,8 +381,10 @@
           <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.ru.md">Документация</a>
           <a href="privacy.html">Конфиденциальность</a>
           <a href="trust.html">Помощь с установкой</a>
+          <a href="whats-new.html">Что нового</a>
+          <a href="support.html">Поддержка</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
-          <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+          <a dir="ltr" href="mailto:sza@ukr.net">sza@ukr.net</a>
         </span>
       </div>
 

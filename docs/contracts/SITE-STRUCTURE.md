@@ -10,15 +10,26 @@
 
 ## Why it applies here
 
-The product site (`docs/`, published at the address in `ProductInfo.WebsiteUrl`) is a landing, a privacy page and an
-install-trust page in thirteen locales: the **page** tier, bound by rules 1, 2, 8, 10 and 11. The "How to use it"
-content is a section of the landing, not separate pages, so no guide-tier page types are owed.
+The product site (`docs/`, published at the address in `ProductInfo.WebsiteUrl`) is five page groups in thirteen
+locales: a landing, a privacy page, an install-trust page, release notes (the section 2 table's conditional type,
+owed because the product ships dated releases) and a support page (a type the table does not list): the **page**
+tier, bound by rules 1, 2, 8, 10 and 11. The "How to use it" content is a section of the landing, not separate pages,
+so no guide-tier page types are owed.
 
 ## Where this repository meets it
 
-- **Tier and locale sets** (rules 1, 2, 10): page tier; landing, privacy and trust pages each in all thirteen locales
-  (`InterfaceLanguages`, the language list the site build reads). The sitemap and the page set are generated together
-  by `tools/site/build-site.ps1`, and `-Check` fails when `docs/` is stale.
+- **Tier and locale sets** (rules 1, 2, 10): page tier; the landing, privacy, trust, release-notes and support pages
+  each in all thirteen locales (`InterfaceLanguages`, the language list the site build reads), the core three (en, ru,
+  uk) being the floor. The sitemap and the page set are generated together by `tools/site/build-site.ps1`, and
+  `-Check` fails when `docs/` is stale.
+- **Release notes** (section 2 table, rule 14): the page renders its versions from `msix/listing/release-notes/`, the
+  files each release already writes for the Store, read by `tools/site/ReleaseNotes.ps1`; each version's date is
+  derived from the version stamp. No version is typed in page copy. Whether that reading satisfies `SITE-EXPERIENCE`
+  rule 13 is a question put to the owner in `PROPOSAL-2026-10-09-support-page-type.md`, the same proposal as below.
+- **Support page** (beyond the table): the type is not in section 2, so the page is carried under a dated exception
+  in the registry and the proposal `PROPOSAL-2026-10-09-support-page-type.md`, filed beside the contract. If the owner
+  refuses the type, the content moves to a `#support` section of the landing and `support.html` forwards to it
+  (rule 8).
 - **Address scheme** (rule 8): `<page>.html` at the root for English and `<code>/<page>.html` for the other twelve.
   The addresses held outside the site - `ProductInfo.cs`, the three READMEs, `msix/store-listing.md`,
   `STORE_PUBLISHING.md`, `winget/templates/`, `.github/ISSUE_TEMPLATE/config.yml`, `Directory.Build.props` - are
@@ -39,12 +50,13 @@ content is a section of the landing, not separate pages, so no guide-tier page t
 
 ## What this repository must do to stay conformant
 
-1. Keep the three pages in all thirteen locales; a new page type is added to the tier declaration first.
+1. Keep the five pages (landing, privacy, install-trust, release notes, support) in all thirteen locales; a new page
+   type is added to the tier declaration first.
 2. Change no published address without a forwarder; when a holder is added, moved or removed, edit
    `tools/site/held-addresses.json` in the same change - the gate refuses the disagreement, and the list is never
    edited to silence it.
 3. Cite this contract by id and section, never by catalog path.
 
 Evidence: `docs/sitemap.xml`, `tools/site/build-site.ps1 -Check`, `tools/site/held-addresses.json`, the fixture tests
-`tools/site/Test-HeldAddresses.ps1`, the adoption row and exceptions in the registry,
-`PLAN/SP-0192` (measurement of 2026-10-06).
+`tools/site/Test-HeldAddresses.ps1` and `tools/site/Test-ReleaseNotes.ps1`, the adoption row and exceptions in the
+registry, `PLAN/SP-0192` (measurement of 2026-10-06).

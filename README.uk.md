@@ -434,7 +434,7 @@ StreamsPlayer.exe --id "GUID-каналу" --url "https://example.test/live"
 | `src/StreamsPlayer.App` | WPF-застосунок для Windows. |
 | `tests/StreamsPlayer.Core.Tests` | Модульні та контрактні тести. |
 | `tools/StreamsPlayer.CatalogHarness` | Діагностична утиліта для live-банку потоків. |
-| `docs/` | Сайт GitHub Pages і специфікації. |
+| `docs/` | Сайт GitHub Pages і документація для супровідників. |
 
 Запустіть локальну перевірку у release-стилі:
 

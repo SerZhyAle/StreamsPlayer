@@ -3,9 +3,10 @@
 
     Input : tools/site/templates/*.html + site.js, and one copy deck per language in
             tools/site/copy/<dictionary-code>.txt.
-    Output: docs/index.html, docs/privacy.html and docs/trust.html (English - the canonical root),
-            docs/404.html (the not-found page, SP-0194),
-            plus the same three files under docs/<code>/ for every other language, and docs/site.js.
+    Output: docs/index.html, docs/privacy.html, docs/trust.html, docs/whats-new.html and docs/support.html (English -
+            the canonical root), docs/404.html (the not-found page, SP-0194),
+            plus the same five files under docs/<code>/ for every other language, and docs/site.js.
+            The set is the $pages list below; the sitemap and the held-address check read it too.
 
     Why static pages rather than the previous client-side swap: hreflang needs one URL per language.
     GitHub Pages deploys docs/ verbatim with no build step, so the generated files are committed
@@ -24,6 +25,11 @@
 
     The language count and the minimum Windows are rendered into the copy decks from their sources (SP-0198):
     a deck carries [[languages]] and [[windows]], never the number.
+
+    The deck reader and parity check, the structured data, sitemap, robots.txt and verification tags, the
+    not-found page and the release-notes reader live in SiteDecks.ps1, SiteDiscovery.ps1, SiteNotFound.ps1 and
+    ReleaseNotes.ps1 (SP-0039). What's new is rendered from msix/listing/release-notes, so a notes file added there
+    changes docs/ and the site check goes stale until this script is re-run.
 #>
 [CmdletBinding()]
 param(
@@ -38,6 +44,10 @@ $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot/../InterfaceLanguages.ps1"
 . "$PSScriptRoot/HeldAddresses.ps1"
 . "$PSScriptRoot/SiteFacts.ps1"
+. "$PSScriptRoot/SiteDecks.ps1"
+. "$PSScriptRoot/SiteDiscovery.ps1"
+. "$PSScriptRoot/SiteNotFound.ps1"
+. "$PSScriptRoot/ReleaseNotes.ps1"
 
 $root = Get-RepositoryRoot
 $copyDirectory = Join-Path $root 'tools/site/copy'
@@ -52,6 +62,10 @@ $pages = @(
     # and what the app never does. A page of its own rather than a home-page section, because it is the
     # URL a warned user is sent to from the README and the Distribution section.
     [pscustomobject]@{ Name = 'trust';   Template = 'trust.html';   File = 'trust.html' }
+    # SP-0039 (SITE-STRUCTURE section 2): the release notes, rendered from msix/listing/release-notes, and the
+    # support page. Addresses permanent from first publish (rule 8).
+    [pscustomobject]@{ Name = 'whatsnew'; Template = 'whats-new.html'; File = 'whats-new.html' }
+    [pscustomobject]@{ Name = 'support';  Template = 'support.html';   File = 'support.html' }
 )
 
 # Languages whose copy the owner wrote himself. Everything else is machine-produced and says so on
@@ -85,13 +99,22 @@ foreach ($vendored in 'sza-kit.css', 'wave-particles.js') {
 }
 
 
+# SITE-FAMILY-MAP rule 3: one contact address everywhere. It is the application's own constant
+# (ProductInfo.AuthorEmail, the recipient of "Send logs to the author"), read from its source so the site and the app
+# cannot name different people. A copy deck writes [[email]]; a template writes {{contact.email}} (replaced where the
+# templates are loaded, so the shared footer renders the same on every page and on the not-found page).
+$productInfoSource = [System.IO.File]::ReadAllText((Join-Path $root 'src/StreamsPlayer.App/ProductInfo.cs'))
+$contactMatch = [regex]::Match($productInfoSource, 'AuthorEmail\s*=\s*"(?<address>[\w.+\-]+@[\w.\-]+)"')
+if (-not $contactMatch.Success) { throw 'src/StreamsPlayer.App/ProductInfo.cs holds no AuthorEmail constant the site can read.' }
+$contactEmail = $contactMatch.Groups['address'].Value
+
 # Inline replacements a copy deck may carry. They keep a command, a path and an address out of the
 # translated prose and give each one a left-to-right island, which is what makes the Arabic and Urdu
 # pages readable.
 $inlineMarkup = [ordered]@{
     '[[command]]' = '<code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>'
     '[[appdata]]' = '<code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>'
-    '[[email]]'   = '<span dir="ltr">serzhyale@gmail.com</span>'
+    '[[email]]'   = '<span dir="ltr">{0}</span>' -f $contactEmail
     '[[hash]]'    = '<code dir="ltr">Get-FileHash -Algorithm SHA256 &lt;file&gt;</code>'
     '[[installdir]]' = '<code dir="ltr">%LOCALAPPDATA%\Programs\StreamsPlayer</code>'
 }
@@ -137,109 +160,6 @@ function ConvertTo-HtmlText {
         $escaped = $escaped.Replace($entry.Key, $entry.Value)
     }
     return Expand-Glyphs -Html $escaped
-}
-
-function Read-CopyDeck {
-    param([Parameter(Mandatory)] [string] $Path)
-
-    $text = [System.IO.File]::ReadAllText($Path).Replace("`r`n", "`n")
-    $keys = [System.Collections.Generic.List[string]]::new()
-    $values = [ordered]@{}
-    $currentKey = $null
-    $buffer = [System.Collections.Generic.List[string]]::new()
-
-    $flush = {
-        if ($currentKey) {
-            $value = ($buffer -join "`n").Trim()
-            $values[$currentKey] = $value
-        }
-    }
-
-    foreach ($line in $text.Split("`n")) {
-        if ($line.StartsWith('@@')) {
-            & $flush
-            $currentKey = $line.Substring(2).Trim()
-            if ($values.Contains($currentKey)) {
-                throw "$([System.IO.Path]::GetFileName($Path)): duplicate key '$currentKey'."
-            }
-            $keys.Add($currentKey)
-            $buffer = [System.Collections.Generic.List[string]]::new()
-            continue
-        }
-        if ($null -eq $currentKey) { continue }   # header comments before the first @@ key
-        $buffer.Add($line)
-    }
-    & $flush
-
-    return [pscustomobject]@{
-        Path   = $Path
-        Keys   = $keys
-        Values = $values
-    }
-}
-
-function Get-Placeholder {
-    param([Parameter(Mandatory)] [AllowEmptyString()] [string] $Value)
-
-    return @(($inlineMarkup.Keys | Where-Object { $Value.Contains($_) }) | Sort-Object)
-}
-
-function Get-JsonLd {
-    # Structured data for the page, emitted as a complete <script type="application/ld+json"> block.
-    #
-    # Built here rather than in the template on purpose: an HTML parser does NOT decode entities
-    # inside a ld+json script element, so reusing the HTML-escaped {{page.title}} there would put a
-    # literal &quot; into the JSON and break it. These values are therefore taken raw from the copy
-    # deck and escaped by ConvertTo-Json, which is the correct escaping for this context.
-    param(
-        [Parameter(Mandatory)] $Page,
-        [Parameter(Mandatory)] $Deck,
-        [Parameter(Mandatory)] [string] $Canonical,
-        [Parameter(Mandatory)] [string] $BaseUrl
-    )
-
-    $name = $Deck.Values["title-$($Page.Name)"]
-    $description = $Deck.Values["description-$($Page.Name)"]
-
-    if ($Page.Name -eq 'home') {
-        $data = [ordered]@{
-            '@context'            = 'https://schema.org'
-            '@type'               = 'SoftwareApplication'
-            'name'                = 'STREAMS Player'
-            'description'         = $description
-            'url'                 = $Canonical
-            'image'               = "${BaseUrl}assets/og-card.png"
-            'applicationCategory' = 'MultimediaApplication'
-            'operatingSystem'     = 'Windows'
-            'isAccessibleForFree' = $true
-            'author'              = [ordered]@{ '@type' = 'Person'; 'name' = 'Serhii Zhyhunenko' }
-            'offers'              = [ordered]@{ '@type' = 'Offer'; 'price' = '0'; 'priceCurrency' = 'USD' }
-        }
-    } else {
-        $data = [ordered]@{
-            '@context'    = 'https://schema.org'
-            '@type'       = 'WebPage'
-            'name'        = $name
-            'description' = $description
-            'url'         = $Canonical
-            'isPartOf'    = [ordered]@{ '@type' = 'WebSite'; 'name' = 'STREAMS Player'; 'url' = $BaseUrl }
-        }
-    }
-
-    $json = $data | ConvertTo-Json -Depth 5 -Compress
-    return '    <script type="application/ld+json">{0}</script>' -f $json
-}
-
-function Get-HrefLang {
-    param([Parameter(Mandatory)] [pscustomobject] $Language)
-
-    # The URL code plus a script subtag when the culture carries one (zh-Hans), and never a region:
-    # hreflang="de" reaches German everywhere, hreflang="de-DE" only Germany. No per-language literal.
-    $parts = $Language.CultureCode.Split('-')
-    if ($parts.Length -gt 1 -and $parts[1].Length -eq 4) {
-        return "$($Language.DictionaryCode)-$($parts[1])"
-    }
-    return $Language.DictionaryCode
 }
 
 function Get-DocsUrl {
@@ -304,35 +224,7 @@ if ($problems.Count) {
 }
 
 $english = $decks['en']
-foreach ($code in $decks.Keys) {
-    if ($code -eq 'en') { continue }
-    $deck = $decks[$code]
-
-    $missing = @($english.Keys | Where-Object { -not $deck.Values.Contains($_) })
-    $extra = @($deck.Keys | Where-Object { -not $english.Values.Contains($_) })
-    if ($missing.Count) { $problems.Add("[$code] missing key(s): $($missing -join ', ')") }
-    if ($extra.Count) { $problems.Add("[$code] key(s) English does not have: $($extra -join ', ')") }
-
-    foreach ($key in $english.Keys) {
-        if (-not $deck.Values.Contains($key)) { continue }
-        if ([string]::IsNullOrWhiteSpace($deck.Values[$key])) {
-            $problems.Add("[$code] $key is empty")
-            continue
-        }
-        # A glyph beside a control's name is part of what the sentence says, so every language carries
-        # the same glyphs, in the same order, as English (ICON-SET rule 8, SP-0113).
-        $expectedGlyphs = @($glyphMarker.Matches($english.Values[$key]) | ForEach-Object { $_.Groups['id'].Value }) -join ','
-        $actualGlyphs = @($glyphMarker.Matches($deck.Values[$key]) | ForEach-Object { $_.Groups['id'].Value }) -join ','
-        if ($expectedGlyphs -ne $actualGlyphs) {
-            $problems.Add("[$code] ${key}: expected glyph(s) '$expectedGlyphs', found '$actualGlyphs'")
-        }
-        $expected = Get-Placeholder -Value $english.Values[$key]
-        $actual = Get-Placeholder -Value $deck.Values[$key]
-        if (($expected -join ',') -ne ($actual -join ',')) {
-            $problems.Add("[$code] ${key}: expected placeholder(s) '$($expected -join ',')', found '$($actual -join ',')'")
-        }
-    }
-}
+foreach ($problem in Get-DeckParityProblem -English $english -Decks $decks -GlyphMarker $glyphMarker) { $problems.Add($problem) }
 
 if ($problems.Count) {
     $problems | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
@@ -345,11 +237,16 @@ Write-Host ("Copy decks: {0} languages x {1} keys" -f $decks.Count, $english.Key
 
 $templates = @{}
 foreach ($name in 'head', 'switcher', 'languagerow', 'footer') {
-    $templates[$name] = [System.IO.File]::ReadAllText((Join-Path $templateDirectory "_$name.html")).Replace("`r`n", "`n").TrimEnd("`n")
+    $templates[$name] = [System.IO.File]::ReadAllText((Join-Path $templateDirectory "_$name.html")).Replace("`r`n", "`n").TrimEnd("`n").Replace('{{contact.email}}', $contactEmail)
 }
 
 $written = [System.Collections.Generic.List[string]]::new()
 $stale = [System.Collections.Generic.List[string]]::new()
+
+# The recorded release notes (ReleaseNotes.ps1), read once and rendered once per language code: a malformed notes
+# file fails the build here, before any page is written.
+$releaseNotes = @(Get-SiteReleaseNote -Root $root)
+$releaseNotesHtml = @{}
 
 function Save-Generated {
     param(
@@ -358,7 +255,7 @@ function Save-Generated {
     )
 
     # Every generated file lands either directly in docs/ or in docs/<code>/. docs/agent,
-    # docs/assets, docs/contracts, docs/localization and docs/specifications are hand-written and
+    # docs/assets, docs/contracts and docs/localization are hand-written and
     # must never be touched, so the target is checked rather than trusted.
     $relative = [System.IO.Path]::GetRelativePath($outputDirectory, $Path).Replace('\', '/')
     $depth = $relative.Split('/').Length
@@ -389,12 +286,30 @@ foreach ($language in $languages) {
     $deck = $decks[$code]
 
     foreach ($page in $pages) {
-        $template = [System.IO.File]::ReadAllText((Join-Path $templateDirectory $page.Template)).Replace("`r`n", "`n")
+        $template = [System.IO.File]::ReadAllText((Join-Path $templateDirectory $page.Template)).Replace("`r`n", "`n").Replace('{{contact.email}}', $contactEmail)
 
         foreach ($name in 'head', 'switcher', 'languagerow', 'footer') {
             $template = $template.Replace("{{include:$name}}", $templates[$name])
         }
         $template = Expand-Glyphs -Html $template
+
+        # Search-console verification tags (SiteDiscovery.ps1): the English root landing only. An absent tag takes
+        # its whole line with it, so a null token leaves every page byte-identical.
+        $verification = Get-VerificationMeta -Root $root -IsRootLanding ($isRoot -and $page.File -eq 'index.html')
+        if (-not $verification) { $template = $template.Replace("{{page.verification}}`n", '') }
+
+        # What's new: the notes are written in English, Russian and Ukrainian, so the ten other locales say that the
+        # list below is English. Where the owner wrote the deck there is no note, and the empty case takes its whole
+        # line with it for the same reason as the verification tag.
+        $languageNote = if ($humanAuthored -contains $code) {
+            ''
+        } else {
+            '      <p class="privacy-intro">{0}</p>' -f (ConvertTo-HtmlText $deck.Values['whatsnew-language-note'])
+        }
+        if (-not $languageNote) { $template = $template.Replace("{{page.languageNote}}`n", '') }
+        if ($page.Name -eq 'whatsnew' -and -not $releaseNotesHtml.ContainsKey($code)) {
+            $releaseNotesHtml[$code] = ConvertTo-ReleaseNotesHtml -Notes $releaseNotes -Code $code -Authored $humanAuthored
+        }
 
         $alternates = foreach ($other in $languages) {
             $otherUrl = if ($other.DictionaryCode -eq 'en') { '' } else { "$($other.DictionaryCode)/" }
@@ -448,6 +363,10 @@ foreach ($language in $languages) {
             '{{page.home}}'           = Get-RelativeUrl -FromCode $urlCode -ToCode $urlCode -File 'index.html'
             '{{page.privacy}}'        = 'privacy.html'
             '{{page.trust}}'          = 'trust.html'
+            '{{page.whatsnew}}'       = 'whats-new.html'
+            '{{page.support}}'        = 'support.html'
+            '{{page.releaseNotes}}'   = if ($page.Name -eq 'whatsnew') { $releaseNotesHtml[$code] } else { '' }
+            '{{page.languageNote}}'   = $languageNote
             '{{page.docs}}'           = Get-DocsUrl -Code $code
             '{{page.canonical}}'      = $canonical
             '{{page.alternates}}'     = $alternates -join "`n"
@@ -457,8 +376,9 @@ foreach ($language in $languages) {
             '{{page.machineNote}}'    = $machineNote
             '{{page.title}}'          = ConvertTo-HtmlText $deck.Values["title-$($page.Name)"]
             '{{page.description}}'    = ConvertTo-HtmlText $deck.Values["description-$($page.Name)"]
+            '{{page.verification}}'   = $verification
             '{{page.ogImage}}'        = "${BaseUrl}assets/og-card.png"
-            '{{page.jsonLd}}'         = Get-JsonLd -Page $page -Deck $deck -Canonical $canonical -BaseUrl $BaseUrl
+            '{{page.jsonLd}}'         = Get-JsonLd -Page $page -Pages $pages -Deck $deck -Language $language -Canonical $canonical -BaseUrl $BaseUrl -ScreenshotDirectory (Join-Path $outputDirectory 'assets/screens')
         }
 
         foreach ($entry in $structural.GetEnumerator()) {
@@ -478,123 +398,20 @@ foreach ($language in $languages) {
     }
 }
 
-# SP-0194 (SITE-STRUCTURE rules 2 and 15): the not-found page. GitHub Pages serves docs/404.html for any
-# address nothing answers, at any depth, so a relative link on it would break one folder down - every
-# address here is built from the base URL. A root 404 cannot know the visitor's locale, so it carries the
-# core three (en, ru, uk), one block each, from its own small decks. Search and a portal home do not exist
-# at this tier; the landing is the way back. noindex, and absent from the sitemap.
-$notFoundCodes = @('en', 'ru', 'uk')
-$notFoundDecks = [ordered]@{}
-foreach ($code in $notFoundCodes) {
-    $path = Join-Path $copyDirectory "notfound/$code.txt"
-    if (-not (Test-Path -LiteralPath $path)) { throw "tools/site/copy/notfound/$code.txt is missing." }
-    $notFoundDecks[$code] = Read-CopyDeck -Path $path
-}
-foreach ($code in $notFoundCodes) {
-    $missing = @($notFoundDecks['en'].Keys | Where-Object { -not $notFoundDecks[$code].Values.Contains($_) -or [string]::IsNullOrWhiteSpace($notFoundDecks[$code].Values[$_]) })
-    $extra = @($notFoundDecks[$code].Keys | Where-Object { -not $notFoundDecks['en'].Values.Contains($_) })
-    if ($missing.Count -or $extra.Count) {
-        throw "tools/site/copy/notfound/$code.txt does not match English (missing/empty: $($missing -join ', '); extra: $($extra -join ', '))."
-    }
-}
-
-$notFoundEn = $notFoundDecks['en'].Values
-$notFoundBlocks = [System.Collections.Generic.List[string]]::new()
-$notFoundBlocks.Add('      <span class="eyebrow">404</span>')
-$notFoundBlocks.Add(('      <h1>{0}</h1>' -f (ConvertTo-HtmlText $notFoundEn['heading'])))
-$notFoundBlocks.Add(('      <p class="privacy-intro">{0}</p>' -f (ConvertTo-HtmlText $notFoundEn['text'])))
-$notFoundBlocks.Add(('      <div class="button-group"><a class="button button-primary" href="{0}">{1}</a></div>' -f $BaseUrl, (ConvertTo-HtmlText $notFoundEn['home'])))
-$notFoundBlocks.Add('      <div class="privacy-card">')
-foreach ($code in ($notFoundCodes | Where-Object { $_ -ne 'en' })) {
-    $values = $notFoundDecks[$code].Values
-    $notFoundBlocks.Add(('        <section class="privacy-section" lang="{0}">' -f $code))
-    $notFoundBlocks.Add(('          <h2>{0}</h2>' -f (ConvertTo-HtmlText $values['heading'])))
-    $notFoundBlocks.Add(('          <p>{0}</p>' -f (ConvertTo-HtmlText $values['text'])))
-    $notFoundBlocks.Add(('          <div class="button-group"><a class="button button-ghost button-small" href="{0}">{1}</a></div>' -f $BaseUrl, (ConvertTo-HtmlText $values['home'])))
-    $notFoundBlocks.Add('        </section>')
-}
-$notFoundBlocks.Add('      </div>')
-
-$notFoundPage = [System.IO.File]::ReadAllText((Join-Path $templateDirectory '404.html')).Replace("`r`n", "`n")
-$notFoundPage = $notFoundPage.Replace('{{include:footer}}', $templates['footer'])
-$notFoundPage = Expand-Glyphs -Html $notFoundPage
-$notFoundStructural = [ordered]@{
-    '{{page.title}}'          = ConvertTo-HtmlText $notFoundEn['title']
-    '{{page.description}}'    = ConvertTo-HtmlText $notFoundEn['description']
-    '{{page.base}}'           = $BaseUrl
-    '{{page.home}}'           = $BaseUrl
-    '{{page.privacy}}'        = "${BaseUrl}privacy.html"
-    '{{page.trust}}'          = "${BaseUrl}trust.html"
-    '{{page.docs}}'           = Get-DocsUrl -Code 'en'
-    '{{page.machineNote}}'    = ''
-    '{{page.notFoundBlocks}}' = $notFoundBlocks -join "`n"
-}
-foreach ($entry in $notFoundStructural.GetEnumerator()) {
-    $notFoundPage = $notFoundPage.Replace($entry.Key, [string] $entry.Value)
-}
-foreach ($key in $english.Keys) {
-    $notFoundPage = $notFoundPage.Replace("{{t.$key}}", (ConvertTo-HtmlText $english.Values[$key]))
-}
-$notFoundLeftover = [regex]::Matches($notFoundPage, '\{\{[^}]+\}\}') | ForEach-Object { $_.Value } | Sort-Object -Unique
-if ($notFoundLeftover) { throw "404.html: unresolved template token(s): $($notFoundLeftover -join ', ')" }
-# SITE-STRUCTURE rule 15, observed on the output: noindex, and no address that depends on the folder depth.
-if ($notFoundPage -notmatch '<meta name="robots" content="noindex">') { throw '404.html must carry <meta name="robots" content="noindex">.' }
-$relativeAddress = [regex]::Matches($notFoundPage, '(?:href|src)="(?!https://|mailto:|#)[^"]*"') | ForEach-Object { $_.Value }
-if ($relativeAddress) { throw "404.html holds a relative address (it is served at any depth): $($relativeAddress -join ', ')" }
-Save-Generated -Path (Join-Path $outputDirectory '404.html') -Content $notFoundPage
+# SP-0194 (SITE-STRUCTURE rules 2 and 15): the not-found page, noindex and absent from the sitemap (SiteNotFound.ps1).
+Save-Generated -Path (Join-Path $outputDirectory '404.html') `
+    -Content (New-NotFoundPage -CopyDirectory $copyDirectory -TemplateDirectory $templateDirectory -Templates $templates -English $english -BaseUrl $BaseUrl)
 
 Save-Generated -Path (Join-Path $outputDirectory 'site.js') `
     -Content ([System.IO.File]::ReadAllText((Join-Path $templateDirectory 'site.js')).Replace("`r`n", "`n"))
 
-# robots.txt and sitemap.xml. Both are generated from the same language x page product the pages
-# themselves come from, so a fourteenth language or a third page lands in them without an edit here
-# - the failure mode a hand-maintained sitemap always ends in is a URL list that silently stops
-# matching the site.
-$sitemapLines = [System.Collections.Generic.List[string]]::new()
-$sitemapLines.Add('<?xml version="1.0" encoding="UTF-8"?>')
-$sitemapLines.Add('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">')
-foreach ($page in $pages) {
-    foreach ($language in $languages) {
-        $code = $language.DictionaryCode
-        $prefix = if ($code -eq 'en') { '' } else { "$code/" }
-        $leaf = if ($page.File -eq 'index.html') { '' } else { $page.File }
-        $url = "$BaseUrl$prefix$leaf"
-
-        $sitemapLines.Add('  <url>')
-        $sitemapLines.Add("    <loc>$url</loc>")
-        # Every alternate is declared on every entry, which is what makes a multilingual sitemap
-        # usable: a crawler that finds one URL learns the whole set.
-        foreach ($other in $languages) {
-            $otherPrefix = if ($other.DictionaryCode -eq 'en') { '' } else { "$($other.DictionaryCode)/" }
-            $otherHref = Get-HrefLang -Language $other
-            # Built into a variable first: inside a method-call argument list, -f binds tighter than
-            # the comma, so an inline '{0}..{3}' -f a, b, c, d would hand the format only its first
-            # argument and throw.
-            $alternateLine = '    <xhtml:link rel="alternate" hreflang="{0}" href="{1}{2}{3}"/>' -f $otherHref, $BaseUrl, $otherPrefix, $leaf
-            $sitemapLines.Add($alternateLine)
-        }
-        $defaultLine = '    <xhtml:link rel="alternate" hreflang="x-default" href="{0}{1}"/>' -f $BaseUrl, $leaf
-        $sitemapLines.Add($defaultLine)
-        $sitemapLines.Add("    <changefreq>monthly</changefreq>")
-        $sitemapLines.Add('  </url>')
-    }
-}
-$sitemapLines.Add('</urlset>')
-Save-Generated -Path (Join-Path $outputDirectory 'sitemap.xml') -Content (($sitemapLines -join "`n") + "`n")
-
-$robots = @(
-    '# STREAMS Player - https://github.com/SerZhyAle/StreamsPlayer'
-    '# Generated by tools/site/build-site.ps1 - do not hand-edit.'
-    'User-agent: *'
-    'Allow: /'
-    ''
-    "Sitemap: ${BaseUrl}sitemap.xml"
-) -join "`n"
-Save-Generated -Path (Join-Path $outputDirectory 'robots.txt') -Content ($robots + "`n")
+# sitemap.xml and robots.txt come from the same language x page product the pages do (SiteDiscovery.ps1).
+Save-Generated -Path (Join-Path $outputDirectory 'sitemap.xml') -Content (New-SitemapXml -Pages $pages -Languages $languages -BaseUrl $BaseUrl)
+Save-Generated -Path (Join-Path $outputDirectory 'robots.txt') -Content (New-RobotsTxt -BaseUrl $BaseUrl)
 
 # A language dropped from the registry leaves its folder behind. Only two-letter folders are
-# considered, which is why docs/agent, docs/assets, docs/contracts, docs/localization and
-# docs/specifications cannot be caught by this, and only the files this generator writes may be present.
+# considered, which is why docs/agent, docs/assets, docs/contracts and docs/localization
+# cannot be caught by this, and only the files this generator writes may be present.
 foreach ($directory in Get-ChildItem -LiteralPath $outputDirectory -Directory) {
     if ($directory.Name -notmatch '^[a-z]{2}$') { continue }
     if ($languages.DictionaryCode -contains $directory.Name) { continue }

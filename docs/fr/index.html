@@ -34,7 +34,7 @@
     <meta name="twitter:title" content="STREAMS Player - radio sur Internet, vidéo en direct et RTSP pour Windows">
     <meta name="twitter:description" content="STREAMS Player pour Windows : parcourez et lisez des radios sur Internet, des vidéos en direct et des flux RTSP.">
     <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"STREAMS Player pour Windows : parcourez et lisez des radios sur Internet, des vidéos en direct et des flux RTSP.","url":"https://serzhyale.github.io/StreamsPlayer/fr/","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","isAccessibleForFree":true,"author":{"@type":"Person","name":"Serhii Zhyhunenko"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"STREAMS Player pour Windows : parcourez et lisez des radios sur Internet, des vidéos en direct et des flux RTSP.","url":"https://serzhyale.github.io/StreamsPlayer/fr/","inLanguage":"fr","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-fr.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/fr/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
@@ -317,7 +317,7 @@
           <li class="step">
             <div>
               <h3>Signaler un problème avec les journaux</h3>
-              <p>Ouvrez Paramètres depuis l’icône d’engrenage dans l’en-tête (ou le menu <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> Opérations) et appuyez sur « Envoyer les journaux à l’auteur » sur la page À propos. L’application rassemble les journaux de diagnostic des dix derniers lancements avec un résumé de votre version, de Windows et des paramètres dans le dossier des fichiers enregistrés (Téléchargements par défaut), puis ouvre votre messagerie avec le message prêt. La confirmation affiche le chemin complet et peut ouvrir ce dossier ; vous joignez l’archive et appuyez sur Envoyer.</p>
+              <p>Ouvrez Paramètres depuis l’icône d’engrenage dans l’en-tête (ou depuis l’entrée « Paramètres de la bibliothèque » du menu <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> Actions) et appuyez sur « Envoyer les journaux à l’auteur » sur la page À propos. L’application rassemble les journaux de diagnostic des dix derniers lancements avec un résumé de votre version, de Windows et des paramètres dans le dossier défini sous « Dossier des images » sur la page Fichiers des Paramètres (Téléchargements si aucun n’est défini), puis ouvre votre messagerie avec le message prêt. La confirmation affiche le chemin complet et peut ouvrir ce dossier à votre demande ; vous joignez l’archive et appuyez sur Envoyer.</p>
             </div>
           </li>
         </ol>
@@ -349,9 +349,11 @@
         </div>
         <p class="section-description">Le programme d'installation est le fichier dont le nom se termine par -windows-x64-setup.exe. Il s'installe pour le seul utilisateur courant et ne demande jamais de droits d'administrateur, et le désinstaller laisse vos chaînes, vos épingles et votre historique intacts. Il n'est pas signé, Windows affiche donc un avertissement au premier lancement ; chaque version publie un fichier .sha256 à côté de chaque téléchargement, pour que vous puissiez vérifier que ce que vous avez reçu est bien ce qui a été publié.</p>
         <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
-             the download is, not only from the footer. -->
+             the download is, not only from the footer. SP-0039: so is what changed, which a reader deciding
+             to install asks next. -->
         <div class="button-group">
           <a class="button button-gold button-small" href="trust.html">Windows vous a averti ? Sur quoi cliquer</a>
+          <a class="button button-ghost button-small" href="whats-new.html">Nouveautés</a>
         </div>
       </section>
     </main>
@@ -379,8 +381,10 @@
           <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">Documentation</a>
           <a href="privacy.html">Confidentialité</a>
           <a href="trust.html">Aide à l'installation</a>
+          <a href="whats-new.html">Nouveautés</a>
+          <a href="support.html">Assistance</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
-          <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+          <a dir="ltr" href="mailto:sza@ukr.net">sza@ukr.net</a>
         </span>
       </div>
       <div class="container machine-note">

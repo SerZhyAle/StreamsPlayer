@@ -4,7 +4,7 @@ PackageVersion: REPLACE_VERSION
 PackageLocale: uk-UA
 Publisher: SerZhyAle
 PublisherUrl: https://github.com/SerZhyAle
-PublisherSupportUrl: https://github.com/SerZhyAle/StreamsPlayer/issues
+PublisherSupportUrl: https://serzhyale.github.io/StreamsPlayer/uk/support.html
 PrivacyUrl: https://serzhyale.github.io/StreamsPlayer/privacy.html
 PackageName: Трансляції
 PackageUrl: https://serzhyale.github.io/StreamsPlayer/
@@ -19,7 +19,7 @@ Tags:
 - відео
 - rtsp
 - телебачення
-- iptv
+- ip-камера
 ReleaseNotes: REPLACE_RELEASE_NOTES_UK
 ReleaseNotesUrl: https://github.com/SerZhyAle/StreamsPlayer/releases/tag/vREPLACE_VERSION
 ManifestType: locale

@@ -34,7 +34,7 @@
     <meta name="twitter:title" content="Трансляції - інтернет-радіо, live-відео та RTSP для Windows">
     <meta name="twitter:description" content="Трансляції для Windows: каталог і відтворення інтернет-радіо, live-відео та RTSP-потоків.">
     <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"Трансляції для Windows: каталог і відтворення інтернет-радіо, live-відео та RTSP-потоків.","url":"https://serzhyale.github.io/StreamsPlayer/uk/","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","isAccessibleForFree":true,"author":{"@type":"Person","name":"Serhii Zhyhunenko"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"Трансляції для Windows: каталог і відтворення інтернет-радіо, live-відео та RTSP-потоків.","url":"https://serzhyale.github.io/StreamsPlayer/uk/","inLanguage":"uk","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-uk.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/uk/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
@@ -317,7 +317,7 @@
           <li class="step">
             <div>
               <h3>Повідомити про проблему, додавши журнали</h3>
-              <p>Відкрийте «Налаштування» за допомогою шестірні в заголовку (або меню <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> «Операції») та натисніть «Надіслати журнали авторові» на вкладці «Про програму». Застосунок запакує журнали діагностики десяти останніх запусків разом із коротким підсумком про вашу версію, версію Windows і налаштування до теки збережених файлів (типово «Завантаження»), а потім відкриє вашу поштову програму з уже готовим листом. Підтвердження покаже повний шлях і за вашим запитом відкриє цю теку; архів ви прикріпите й натиснете «Надіслати» самі.</p>
+              <p>Відкрийте «Налаштування» за допомогою шестірні в заголовку або через пункт «Налаштування бібліотеки» меню <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> «Операції» та натисніть «Надіслати журнали авторові» на вкладці «Про програму». Застосунок запакує журнали діагностики десяти останніх запусків разом із коротким підсумком про вашу версію, версію Windows і налаштування до теки, вибраної в параметрі «Тека кадрів» на вкладці «Файли» (якщо теку не вибрано - у «Завантаження»), а потім відкриє вашу поштову програму з уже готовим листом. Підтвердження покаже повний шлях і за вашим запитом відкриє цю теку; архів ви прикріпите й натиснете «Надіслати» самі.</p>
             </div>
           </li>
         </ol>
@@ -349,9 +349,11 @@
         </div>
         <p class="section-description">Інсталятор - це файл, ім'я якого закінчується на -windows-x64-setup.exe. Він встановлюється лише для поточного користувача й ніколи не просить прав адміністратора, а видалення не чіпає ваші канали, закріплені станції та історію. Він не підписаний, тому під час першого запуску Windows покаже попередження; поряд із кожним файлом у релізі публікується .sha256, тож ви можете перевірити, що завантажили саме те, що було опубліковано.</p>
         <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
-             the download is, not only from the footer. -->
+             the download is, not only from the footer. SP-0039: so is what changed, which a reader deciding
+             to install asks next. -->
         <div class="button-group">
           <a class="button button-gold button-small" href="trust.html">Windows вас попередила? Що натиснути</a>
+          <a class="button button-ghost button-small" href="whats-new.html">Що нового</a>
         </div>
       </section>
     </main>
@@ -379,8 +381,10 @@
           <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.uk.md">Документація</a>
           <a href="privacy.html">Конфіденційність</a>
           <a href="trust.html">Допомога з установленням</a>
+          <a href="whats-new.html">Що нового</a>
+          <a href="support.html">Підтримка</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
-          <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+          <a dir="ltr" href="mailto:sza@ukr.net">sza@ukr.net</a>
         </span>
       </div>
 

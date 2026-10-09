@@ -272,7 +272,7 @@ Einen Kanal als Verknüpfung speichern
 Ein Problem mithilfe der Protokolle melden
 
 @@use-5-text
-Öffnen Sie die Einstellungen über die Zahnrad-Schaltfläche in der Kopfzeile (oder das Menü [[glyph:nav.more]] «Vorgänge») und drücken Sie auf der Seite «Über» auf «Protokolle an den Autor senden». Die App packt die Diagnoseprotokolle der letzten zehn Starts mit einer kurzen Zusammenfassung Ihrer Version, Windows und Einstellungen in den Ordner für gespeicherte Dateien (standardmäßig Downloads) und öffnet dann Ihr E-Mail-Programm mit der vorbereiteten Nachricht. Die Bestätigung zeigt den vollständigen Pfad und kann diesen Ordner auf Wunsch öffnen; Sie hängen das Archiv an und drücken selbst auf Senden.
+Öffnen Sie die Einstellungen über die Zahnrad-Schaltfläche in der Kopfzeile (oder über den Eintrag «Bibliothekseinstellungen» im Menü [[glyph:nav.more]] «Aktionen») und drücken Sie auf der Seite «Über» auf «Protokolle an den Autor senden». Die App packt die Diagnoseprotokolle der letzten zehn Starts mit einer kurzen Zusammenfassung Ihrer Version, Windows und Einstellungen in den Ordner, der auf der Seite «Dateien» der Einstellungen unter «Ordner für Bilder» festgelegt ist (ist keiner festgelegt, Downloads), und öffnet dann Ihr E-Mail-Programm mit der vorbereiteten Nachricht. Die Bestätigung zeigt den vollständigen Pfad und kann diesen Ordner auf Wunsch öffnen; Sie hängen das Archiv an und drücken selbst auf Senden.
 @@distribution-title
 Bezugswege
 
@@ -434,6 +434,84 @@ Beim Deinstallieren werden Ihre Kanäle, Anheftungen und Ihr Verlauf nie gelösc
 
 @@trust-privacy-link
 Datenschutzseite lesen
+
+@@title-whatsnew
+Was ist neu - Versionshinweise, neueste zuerst - STREAMS Player
+
+@@description-whatsnew
+Was sich in STREAMS Player geändert hat: die Hinweise zu jeder Version, neueste zuerst, jeweils mit dem Datum des Builds, und ein Link zu älteren Releases.
+
+@@nav-whatsnew
+Was ist neu
+
+@@whatsnew-eyebrow
+STREAMS Player · Was ist neu
+
+@@whatsnew-title
+Was sich geändert hat, Release für Release.
+
+@@whatsnew-intro
+Kurze Hinweise darauf, was sich für Sie geändert hat, Release für Release. Sie sind hier aufgeführt, neueste zuerst, jeweils unter der Versionsnummer und mit dem Datum des Builds.
+
+@@whatsnew-language-note
+Versionshinweise werden nur auf Englisch, Russisch und Ukrainisch geschrieben, daher stehen die Hinweise unten auf Englisch.
+
+@@whatsnew-earlier
+Zu älteren Releases gibt es auf dieser Seite keine Hinweise. Die auf GitHub veröffentlichten Releases sind auf der dortigen Release-Seite samt ihren Dateien aufgelistet.
+
+@@whatsnew-earlier-link
+Alle Releases auf GitHub
+
+@@title-support
+Support - Problem melden, Protokolle senden - STREAMS Player
+
+@@description-support
+Hilfe zu STREAMS Player: was eine Meldung braucht, wie Sie Protokolle senden, was bei einem ausgefallenen Stream hilft und wie Sie dem Autor schreiben.
+
+@@nav-support
+Support
+
+@@support-eyebrow
+STREAMS Player · Support
+
+@@support-title
+Etwas funktioniert nicht? So melden Sie es.
+
+@@support-intro
+STREAMS Player wird von einem unabhängigen Entwickler gemacht. Diese Seite sagt, was in eine Meldung gehört, wohin Sie sie schicken und was Sie als Antwort erwarten können.
+
+@@support-bug-title
+Einen Fehler melden
+
+@@support-bug
+Erstellen Sie auf GitHub ein Issue. Das Formular fragt, was passiert ist, welche Schritte dorthin geführt haben, welche Version von STREAMS Player Sie nutzen und welche Windows-Version. Die App-Version finden Sie auf der Seite «Über» im Fenster [[glyph:app.settings]] Einstellungen. Ist ein bestimmter Kanal betroffen, nennen Sie ihn. Für ein Issue brauchen Sie ein kostenloses GitHub-Konto; haben Sie keines, nutzen Sie die Adresse weiter unten auf dieser Seite.
+
+@@support-bug-link
+Auf GitHub melden
+
+@@support-stream-title
+Ein Kanal spielt nicht mehr
+
+@@support-stream
+Der Katalog ist eine öffentliche Liste von Streams, die andere betreiben: Radiosender, Rundfunkveranstalter, Kamerabesitzer. STREAMS Player behält deren Adressen auf Ihrem Gerät und verbindet sich, wie die Datenschutzseite erklärt, nur dann mit dem Netzwerk, wenn Sie etwas tun; die Streams selbst bleiben bei denen, die sie betreiben, daher kann ein Stream umziehen, das Format wechseln, nur noch in einer anderen Region verfügbar sein oder für immer abgeschaltet werden, und der Katalog ändert sich mit der Zeit. Fällt ein Kanal aus, kann das Fenster «Stream nicht verfügbar» «Wiederholen», «Bericht kopieren», «Ausblenden» («Löschen» bei einem Kanal, den Sie selbst hinzugefügt oder importiert haben) und «Behalten» anbieten. Welche davon erscheinen, hängt vom Fehler ab: «Wiederholen» entfällt bei einer Adresse, die die App gar nicht abspielen kann, und «Ausblenden» oder «Löschen» entfällt, wenn keine Netzwerkverbindung besteht, weil der Kanal dann nie erreicht wurde. «Wiederholen» versucht es erneut, oder Sie öffnen einfach einen anderen Kanal; «Ausblenden» nimmt den Kanal aus Ihrer Liste, und Sie können ihn zurückholen: Drücken Sie in den Einstellungen auf der Seite «Bibliothek» auf «Ausgeblendet» und dann neben dem Kanal auf «Einblenden»; «Bericht kopieren» legt eine kurze Notiz in die Zwischenablage, die Sie in ein Issue einfügen können, und die App sendet nichts. «Kanäle aus dem Internet importieren» im Menü «Aktionen» lädt den aktuellen Katalog herunter, und nur, wenn Sie es verlangen. Ein Stream, den es nicht mehr gibt, ist kein Fehler der App, und eine Behebung wird nicht versprochen.
+
+@@support-warning-title
+Windows hat gewarnt
+
+@@support-warning
+Wenn Windows das Installationsprogramm mit dem Bildschirm „Der Computer wurde durch Windows geschützt“ angehalten hat, reagiert Microsoft Defender SmartScreen auf eine Datei, die es noch nicht kennt. Das ist keine Meldung über etwas, das in der Datei gefunden wurde. Die Seite zur Installationshilfe erklärt, was dieser Bildschirm bedeutet und worauf Sie genau klicken.
+
+@@support-private-title
+Direkt an den Autor schreiben
+
+@@support-private
+Wenn Sie GitHub lieber nicht nutzen möchten oder die Angelegenheit nicht öffentlich sein soll, schreiben Sie an [[email]]. Sicherheitsmeldungen gehören hierher und nicht in ein öffentliches Issue. Das gilt auch für Diagnoseprotokolle, in denen die von Ihnen abgespielten Streams stehen.
+
+@@support-response-title
+Was Sie erwarten können
+
+@@support-response
+Dies ist ein unabhängiges Projekt. Der Autor antwortet, wenn es die Zeit erlaubt; eine Antwortzeit wird nicht versprochen, ebenso wenig eine Behebung für jede Meldung. Eine Meldung, die Version, Schritte und Kanal nennt, lässt sich leichter bearbeiten.
 
 @@footer-rights
 © 2026

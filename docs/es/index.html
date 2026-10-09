@@ -34,7 +34,7 @@
     <meta name="twitter:title" content="STREAMS Player - radio por internet, vídeo en directo y RTSP para Windows">
     <meta name="twitter:description" content="STREAMS Player para Windows: explora y reproduce radio por internet, vídeo en directo y transmisiones RTSP.">
     <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"STREAMS Player para Windows: explora y reproduce radio por internet, vídeo en directo y transmisiones RTSP.","url":"https://serzhyale.github.io/StreamsPlayer/es/","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","isAccessibleForFree":true,"author":{"@type":"Person","name":"Serhii Zhyhunenko"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"STREAMS Player para Windows: explora y reproduce radio por internet, vídeo en directo y transmisiones RTSP.","url":"https://serzhyale.github.io/StreamsPlayer/es/","inLanguage":"es","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-es.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/es/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/es/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
@@ -317,7 +317,7 @@
           <li class="step">
             <div>
               <h3>Informar de un problema con los registros</h3>
-              <p>Abra Configuración desde el botón de engranaje en el encabezado (o el menú <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> Operaciones) y presione «Enviar registros al autor» en la página Acerca de. La aplicación empaqueta los registros de diagnóstico de los últimos diez inicios junto con un breve resumen de su versión, Windows y configuración en la carpeta de archivos guardados (Descargas por defecto), y luego abre su programa de correo con el mensaje listo. La confirmación muestra la ruta completa y puede abrir esa carpeta si lo solicita; usted adjunta el archivo y presiona Enviar.</p>
+              <p>Abra Ajustes desde el botón de engranaje en el encabezado (o desde la entrada «Configuración de biblioteca» del menú <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> Acciones) y presione «Enviar los registros al autor» en la página Acerca de. La aplicación empaqueta los registros de diagnóstico de los últimos diez inicios junto con un breve resumen de su versión, Windows y configuración en la carpeta indicada en «Carpeta de fotogramas» (página Archivos de Ajustes) o, si ese campo está vacío, en Descargas, y luego abre su programa de correo con el mensaje listo. La confirmación muestra la ruta completa y puede abrir esa carpeta si lo solicita; usted adjunta el archivo y presiona Enviar.</p>
             </div>
           </li>
         </ol>
@@ -349,9 +349,11 @@
         </div>
         <p class="section-description">El instalador es el archivo que termina en -windows-x64-setup.exe. Se instala solo para el usuario actual y nunca pide permisos de administrador, y al desinstalarlo tus canales, tus anclados y tu historial quedan intactos. No está firmado, así que Windows avisa la primera vez que lo ejecutas; cada versión publica un archivo .sha256 junto a cada descarga, para que compruebes que lo que recibiste es lo que se publicó.</p>
         <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
-             the download is, not only from the footer. -->
+             the download is, not only from the footer. SP-0039: so is what changed, which a reader deciding
+             to install asks next. -->
         <div class="button-group">
           <a class="button button-gold button-small" href="trust.html">¿Windows te ha avisado? En qué hacer clic</a>
+          <a class="button button-ghost button-small" href="whats-new.html">Novedades</a>
         </div>
       </section>
     </main>
@@ -379,8 +381,10 @@
           <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">Documentación</a>
           <a href="privacy.html">Privacidad</a>
           <a href="trust.html">Ayuda de instalación</a>
+          <a href="whats-new.html">Novedades</a>
+          <a href="support.html">Soporte</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
-          <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+          <a dir="ltr" href="mailto:sza@ukr.net">sza@ukr.net</a>
         </span>
       </div>
       <div class="container machine-note">

@@ -34,7 +34,7 @@
     <meta name="twitter:title" content="STREAMS Player - radio via internet, video live e RTSP per Windows">
     <meta name="twitter:description" content="STREAMS Player per Windows: sfoglia e riproduci radio via internet, video live e flussi RTSP.">
     <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"STREAMS Player per Windows: sfoglia e riproduci radio via internet, video live e flussi RTSP.","url":"https://serzhyale.github.io/StreamsPlayer/it/","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","isAccessibleForFree":true,"author":{"@type":"Person","name":"Serhii Zhyhunenko"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"STREAMS Player per Windows: sfoglia e riproduci radio via internet, video live e flussi RTSP.","url":"https://serzhyale.github.io/StreamsPlayer/it/","inLanguage":"it","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-it.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/it/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/it/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
@@ -317,7 +317,7 @@
           <li class="step">
             <div>
               <h3>Segnalare un problema con i registri</h3>
-              <p>Apri Impostazioni dal pulsante a forma di ingranaggio nell’intestazione (o dal menu <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> Operazioni) e premi «Invia registri all’autore» nella pagina Informazioni. L’app raccoglie i registri diagnostici degli ultimi dieci avvii con un breve riepilogo della versione, di Windows e delle impostazioni nella cartella dei file salvati (Download per impostazione predefinita), quindi apre il programma di posta con il messaggio pronto. La conferma mostra il percorso completo e può aprire tale cartella su richiesta; alleghi l’archivio e premi Invia.</p>
+              <p>Apri Impostazioni dal pulsante a forma di ingranaggio nell’intestazione (o dalla voce «Impostazioni libreria» del menu <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> Azioni) e premi «Invia i registri all’autore» nella pagina Informazioni. L’app raccoglie i registri diagnostici degli ultimi dieci avvii con un breve riepilogo della versione, di Windows e delle impostazioni nella cartella indicata in «Cartella dei fotogrammi» (pagina File delle Impostazioni) o, se quel campo è vuoto, in Download, quindi apre il programma di posta con il messaggio pronto. La conferma mostra il percorso completo e può aprire tale cartella su richiesta; alleghi l’archivio e premi Invia.</p>
             </div>
           </li>
         </ol>
@@ -349,9 +349,11 @@
         </div>
         <p class="section-description">L'installer è il file che termina con -windows-x64-setup.exe. Si installa solo per l'utente corrente e non chiede mai i diritti di amministratore, e disinstallarlo lascia intatti i tuoi canali, i canali fissati e la cronologia. Non è firmato, quindi Windows avvisa al primo avvio; ogni release pubblica un file .sha256 accanto a ogni download, così puoi verificare che quello che hai ricevuto sia quello che è stato pubblicato.</p>
         <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
-             the download is, not only from the footer. -->
+             the download is, not only from the footer. SP-0039: so is what changed, which a reader deciding
+             to install asks next. -->
         <div class="button-group">
           <a class="button button-gold button-small" href="trust.html">Windows ti ha avvisato? Cosa cliccare</a>
+          <a class="button button-ghost button-small" href="whats-new.html">Novità</a>
         </div>
       </section>
     </main>
@@ -379,8 +381,10 @@
           <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">Documentazione</a>
           <a href="privacy.html">Privacy</a>
           <a href="trust.html">Aiuto per l'installazione</a>
+          <a href="whats-new.html">Novità</a>
+          <a href="support.html">Assistenza</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
-          <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+          <a dir="ltr" href="mailto:sza@ukr.net">sza@ukr.net</a>
         </span>
       </div>
       <div class="container machine-note">

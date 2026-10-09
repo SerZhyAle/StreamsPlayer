@@ -272,7 +272,7 @@ Open a saved channel's [[glyph:nav.more]] three-dot menu and use Copy launch com
 Report a problem with the logs
 
 @@use-5-text
-Open Settings from the gear button in the header (or the [[glyph:nav.more]] Operations menu) and press Send logs to the author on the About page. The app packs the diagnostic logs of the last ten launches with a short summary of your version, Windows and settings into the Saved files folder (Downloads by default), then opens your mail program with the message ready. The confirmation shows the complete path and can open that folder when you ask; you attach the archive and press Send.
+Open Settings from the gear button in the header, or from the Library settings entry of the [[glyph:nav.more]] Operations menu, and press Send logs to the author on the About page. The app packs the diagnostic logs of the last ten launches with a short summary of your version, Windows and settings into the folder chosen in the Frames folder setting on the Files page of Settings (Downloads if none is chosen), then opens your mail program with the message ready. The confirmation shows the complete path and can open that folder when you ask; you attach the archive and press Send.
 @@distribution-title
 Distribution
 
@@ -434,6 +434,84 @@ Uninstalling it never deletes your channels, pins or history - they stay in [[ap
 
 @@trust-privacy-link
 Read the privacy page
+
+@@title-whatsnew
+What's new - release notes, newest first - STREAMS Player
+
+@@description-whatsnew
+What changed in STREAMS Player, release by release: the notes of each version with its build date, newest first, and a link to older releases.
+
+@@nav-whatsnew
+What's new
+
+@@whatsnew-eyebrow
+STREAMS Player · What's new
+
+@@whatsnew-title
+What changed, release by release.
+
+@@whatsnew-intro
+Short notes on what changed for you, release by release. They are listed here, newest first, each under its version number and the date it was built.
+
+@@whatsnew-language-note
+Release notes are written in English, Russian and Ukrainian only, so the notes below are in English.
+
+@@whatsnew-earlier
+Older releases have no notes on this page. Those published on GitHub are listed on its releases page, with their files.
+
+@@whatsnew-earlier-link
+All releases on GitHub
+
+@@title-support
+Support - report a problem or send logs - STREAMS Player
+
+@@description-support
+How to get help with STREAMS Player: what a bug report needs, how to send diagnostic logs, what to do when a stream stops, and how to write to the author.
+
+@@nav-support
+Support
+
+@@support-eyebrow
+STREAMS Player · Support
+
+@@support-title
+Something not working? Here is how to report it.
+
+@@support-intro
+STREAMS Player is made by an independent developer. This page says what to put in a report, where to send it, and what you can expect back.
+
+@@support-bug-title
+Report a bug
+
+@@support-bug
+Open an issue on GitHub. The form asks for what happened, the steps that lead to it, the version of STREAMS Player and the version of Windows. You find the app version on the About page in the [[glyph:app.settings]] Settings window. If a particular channel is involved, name it. An issue needs a free GitHub account; if you have none, use the address further down this page.
+
+@@support-bug-link
+Report on GitHub
+
+@@support-stream-title
+A channel stops playing
+
+@@support-stream
+The catalog is a public list of streams that other people run: radio stations, broadcasters, camera owners. STREAMS Player keeps their addresses on your device and, as the privacy page says, connects to the network only when you act; the streams themselves stay with whoever runs them, so a stream can move, change format, become available only in another region or go off the air for good, and the catalog changes over time. When a channel fails, the Stream unavailable window may offer Retry, Copy report, Hide (Delete, for a channel you added or imported yourself) and Keep. Which of them appear depends on the failure: Retry is left out for an address the app cannot play at all, and Hide or Delete is left out when there is no network connection, because the channel was then never reached. Retry tries again, or you can simply open another channel; Hide takes the channel out of your list, and you can bring it back: press Hidden on the Library page in Settings, then Unhide next to the channel; Copy report puts a short note on your clipboard to paste into an issue, and the app sends nothing. Import channels from the internet, in the Operations menu, downloads the current catalog, and only when you ask. A stream that is gone is not a fault in the app, and no fix is promised.
+
+@@support-warning-title
+Windows warned you
+
+@@support-warning
+If Windows stopped the installer with a “Windows protected your PC” screen, that is Microsoft Defender SmartScreen reacting to a file it does not know yet. It is not a report of something found inside the file. The install help page says what the screen means and exactly what to click.
+
+@@support-private-title
+Write to the author directly
+
+@@support-private
+If you would rather not use GitHub, or the matter should not be public, write to [[email]]. Security reports belong here and not in a public issue. So do diagnostic logs, which name the streams you played.
+
+@@support-response-title
+What to expect
+
+@@support-response
+This is an independent project. The author answers when time allows; no response time is promised, and neither is a fix for every report. A report that names the version, the steps and the channel is easier to act on.
 
 @@footer-rights
 © 2026

@@ -805,6 +805,13 @@ code {
   font-size: 0.92rem;
 }
 
+/* SP-0039: the release day under a version heading on the What's new page. Muted like the intro line, so the version
+   stays the loudest thing in its section (5.0 : 1 or more in both themes); the extra class outranks
+   `.privacy-section p`. */
+.privacy-section .release-date {
+  color: var(--muted);
+}
+
 /* SP-0105: the install trust page reuses the privacy card and adds sub-headings and lists to it. */
 .privacy-section p + p {
   margin-top: 0.7rem;

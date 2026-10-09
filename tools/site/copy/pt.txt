@@ -272,7 +272,7 @@ Abra o menu [[glyph:nav.more]] de três pontos de um canal salvo e use Copiar co
 Relatar um problema com os registros
 
 @@use-5-text
-Abra Configurações no botão de engrenagem no cabeçalho (ou no menu [[glyph:nav.more]] Operações) e pressione «Enviar registros ao autor» na página Sobre. O aplicativo empacota os registros de diagnóstico das últimas dez inicializações com um breve resumo da sua versão, Windows e configurações na pasta de arquivos salvos (Downloads por padrão) e abre seu programa de e-mail com a mensagem pronta. A confirmação mostra o caminho completo e pode abrir essa pasta; você anexa o arquivo e clica em Enviar.
+Abra Configurações pelo botão de engrenagem no cabeçalho, ou pela entrada «Configurações da biblioteca» do menu [[glyph:nav.more]] «Ações», e pressione «Enviar os registros ao autor» na página Sobre. O aplicativo empacota os registros de diagnóstico das últimas dez inicializações com um breve resumo da sua versão, Windows e configurações na pasta que você escolheu em «Pasta dos quadros», na página Arquivos das Configurações, ou em Downloads se nenhuma foi escolhida, e abre seu programa de e-mail com a mensagem pronta. A confirmação mostra o caminho completo e pode abrir essa pasta se você pedir; você anexa o arquivo e clica em Enviar.
 @@distribution-title
 Distribuição
 
@@ -321,7 +321,7 @@ Esta seção trata do site, não do aplicativo. Cada página carrega suas fontes
 Dados locais
 
 @@privacy-local
-O STREAMS Player armazena o estado do catálogo, canais adicionados e importados, fixados, coleções, canais ocultos, histórico de reprodução, marcas, quadros de prévia em até 150 MB, bibliotecas FFmpeg opcionais e registros de diagnóstico dos últimos dez inícios em [[appdata]]. Gravações e quadros vão para as pastas escolhidas (por padrão Videos/Recordings, Music/Recordings e Pictures/Frames). Esses dados permanecem no dispositivo a menos que use «Enviar registros ao autor» em Configurações na página Sobre para enviá-los a [[email]]. O guia de TV baixado e suas associações também ficam salvos lá; «Remover guia» em Configurações exclui ambos. A senha e o código são descartados. Conta, token e impressão são protegidos para seu usuário do Windows em um arquivo separado; remover a conta os apaga. Os arquivos de diagnóstico excluem esse arquivo e ocultam os dados da conta. As conexões de troca começam somente após sua configuração explícita da fonte.
+O STREAMS Player armazena o estado do catálogo, canais adicionados e importados, fixados, coleções, canais ocultos, histórico de reprodução, marcas, quadros de prévia em até 150 MB, bibliotecas FFmpeg opcionais e registros de diagnóstico dos últimos dez inícios em [[appdata]]. Gravações e quadros vão para as pastas escolhidas (por padrão Videos/Recordings, Music/Recordings e Pictures/Frames). Esses dados permanecem no dispositivo a menos que use «Enviar os registros ao autor» em Configurações na página Sobre para enviá-los a [[email]]. O guia de TV baixado e suas associações também ficam salvos lá; «Remover guia» em Configurações exclui ambos. A senha e o código são descartados. Conta, token e impressão são protegidos para seu usuário do Windows em um arquivo separado; remover a conta os apaga. Os arquivos de diagnóstico excluem esse arquivo e ocultam os dados da conta. As conexões de troca começam somente após sua configuração explícita da fonte.
 
 @@privacy-contact-title
 Contato
@@ -428,12 +428,90 @@ Conecta-se apenas quando você age e somente para o que for necessário: catálo
 Ele nunca baixa o catálogo por conta própria - uma atualização só acontece quando você pede.
 
 @@trust-never-5
-Nunca envia dados ou registros por conta própria. «Enviar registros ao autor» na página Sobre em Configurações apenas prepara um arquivo e uma mensagem no seu programa de e-mail; nada sai até você clicar em Enviar lá.
+Nunca envia dados ou registros por conta própria. «Enviar os registros ao autor» na página Sobre em Configurações apenas prepara um arquivo e uma mensagem no seu programa de e-mail; nada sai até você clicar em Enviar lá.
 @@trust-never-6
 Desinstalá-lo nunca apaga os seus canais, fixações ou histórico - eles ficam em [[appdata]] até você mesmo remover essa pasta.
 
 @@trust-privacy-link
 Ler a página de privacidade
+
+@@title-whatsnew
+Novidades - notas de versão, das mais recentes - STREAMS Player
+
+@@description-whatsnew
+O que mudou no STREAMS Player, versão por versão: as notas de cada versão com a data de compilação, das mais recentes, e um link para lançamentos anteriores.
+
+@@nav-whatsnew
+Novidades
+
+@@whatsnew-eyebrow
+STREAMS Player · Novidades
+
+@@whatsnew-title
+O que mudou, lançamento por lançamento.
+
+@@whatsnew-intro
+Notas curtas sobre o que mudou para você, lançamento por lançamento. Elas estão listadas aqui, da versão mais recente para a mais antiga, cada uma com o número da versão e a sua data de compilação.
+
+@@whatsnew-language-note
+As notas de lançamento são escritas apenas em inglês, russo e ucraniano, por isso as notas abaixo estão em inglês.
+
+@@whatsnew-earlier
+Os lançamentos anteriores não têm notas nesta página. Os publicados no GitHub estão listados na página de lançamentos dele, junto com os arquivos.
+
+@@whatsnew-earlier-link
+Todos os lançamentos no GitHub
+
+@@title-support
+Suporte - relatar um problema, enviar registros - STREAMS Player
+
+@@description-support
+Ajuda com o STREAMS Player: o que incluir em um relato, como enviar registros de diagnóstico, o que fazer se uma transmissão para e como escrever ao autor.
+
+@@nav-support
+Suporte
+
+@@support-eyebrow
+STREAMS Player · Suporte
+
+@@support-title
+Algo não funciona? Veja como relatar.
+
+@@support-intro
+O STREAMS Player é feito por um desenvolvedor independente. Esta página diz o que incluir em um relato, para onde enviá-lo e o que esperar em resposta.
+
+@@support-bug-title
+Relatar um problema
+
+@@support-bug
+Abra uma issue no GitHub. O formulário pergunta o que aconteceu, os passos que levam a isso, a versão do STREAMS Player e a versão do Windows. Você encontra a versão do aplicativo na página «Sobre», na janela [[glyph:app.settings]] «Configurações». Se um canal específico estiver envolvido, cite-o. Para abrir uma issue é preciso uma conta gratuita do GitHub; se você não tem uma, use o endereço mais abaixo nesta página.
+
+@@support-bug-link
+Relatar no GitHub
+
+@@support-stream-title
+Um canal parou de reproduzir
+
+@@support-stream
+O catálogo é uma lista pública de transmissões mantidas por outras pessoas: estações de rádio, emissoras, donos de câmeras. O STREAMS Player guarda os endereços delas no seu dispositivo e, como diz a página de privacidade, só se conecta à rede quando você age; as transmissões em si ficam com quem as mantém, então uma transmissão pode mudar de endereço, mudar de formato, ficar disponível só em outra região ou sair do ar de vez, e o catálogo muda com o tempo. Quando um canal falha, a janela «Transmissão indisponível» pode oferecer, conforme a falha, «Tentar novamente», «Copiar relatório», «Ocultar» («Excluir», para um canal que você mesmo adicionou ou importou) e «Manter». Quais deles aparecem depende da falha: «Tentar novamente» não aparece para um endereço que o aplicativo não consegue reproduzir de forma alguma, e «Ocultar» ou «Excluir» não aparecem quando não há conexão de rede, porque o canal então nunca foi alcançado. «Tentar novamente» tenta outra vez, ou você pode simplesmente abrir outro canal; «Ocultar» tira o canal da sua lista, e você pode trazê-lo de volta: pressione «Ocultos» na página «Biblioteca» em «Configurações» e depois «Mostrar» ao lado do canal; «Copiar relatório» coloca uma nota curta na área de transferência para colar em uma issue, e o aplicativo não envia nada. «Importar canais da internet», no menu «Ações», baixa o catálogo atual, e só quando você pede. Uma transmissão que acabou não é uma falha do aplicativo, e nenhuma correção é prometida.
+
+@@support-warning-title
+O Windows avisou você
+
+@@support-warning
+Se o Windows interrompeu o instalador com a tela “O Windows protegeu o computador”, é o Microsoft Defender SmartScreen reagindo a um arquivo que ele ainda não conhece. Não é o relato de algo encontrado dentro do arquivo. A página de ajuda na instalação explica o que a tela significa e exatamente onde clicar.
+
+@@support-private-title
+Escreva diretamente ao autor
+
+@@support-private
+Se você preferir não usar o GitHub, ou se o assunto não deve ser público, escreva para [[email]]. Relatos de segurança devem vir para este endereço, e não para uma issue pública. Os registros de diagnóstico também, pois eles citam as transmissões que você reproduziu.
+
+@@support-response-title
+O que esperar
+
+@@support-response
+Este é um projeto independente. O autor responde quando o tempo permite; nenhum prazo de resposta é prometido, nem uma correção para cada relato. Um relato que informa a versão, os passos e o canal é mais fácil de tratar.
 
 @@footer-rights
 © 2026

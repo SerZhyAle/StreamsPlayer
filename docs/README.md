@@ -29,7 +29,6 @@ document lands with its entry.
 | [fastmediasorter-playback-recommendations.md](fastmediasorter-playback-recommendations.md) | The reverse direction: what this player could adopt from FastMediaSorter's Media3 playback. |
 | [localization/glossary.md](localization/glossary.md) | Translation glossary for the shipped interface languages. |
 | [contracts/](contracts/README.md) | One pointer per shared contract this product consumes or owes. Pointers, never copies. |
-| [specifications/competitor-improvement-backlog.md](specifications/competitor-improvement-backlog.md) | Competitor review and the improvement ideas it produced. |
 
 ## Agent workflow
 

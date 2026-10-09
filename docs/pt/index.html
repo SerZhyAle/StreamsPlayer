@@ -34,7 +34,7 @@
     <meta name="twitter:title" content="STREAMS Player - rádio online, vídeo ao vivo e RTSP para Windows">
     <meta name="twitter:description" content="STREAMS Player para Windows: explore e reproduza rádio online, vídeo ao vivo e transmissões RTSP.">
     <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"STREAMS Player para Windows: explore e reproduza rádio online, vídeo ao vivo e transmissões RTSP.","url":"https://serzhyale.github.io/StreamsPlayer/pt/","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","isAccessibleForFree":true,"author":{"@type":"Person","name":"Serhii Zhyhunenko"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"STREAMS Player para Windows: explore e reproduza rádio online, vídeo ao vivo e transmissões RTSP.","url":"https://serzhyale.github.io/StreamsPlayer/pt/","inLanguage":"pt","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-pt.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/pt/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
@@ -317,7 +317,7 @@
           <li class="step">
             <div>
               <h3>Relatar um problema com os registros</h3>
-              <p>Abra Configurações no botão de engrenagem no cabeçalho (ou no menu <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> Operações) e pressione «Enviar registros ao autor» na página Sobre. O aplicativo empacota os registros de diagnóstico das últimas dez inicializações com um breve resumo da sua versão, Windows e configurações na pasta de arquivos salvos (Downloads por padrão) e abre seu programa de e-mail com a mensagem pronta. A confirmação mostra o caminho completo e pode abrir essa pasta; você anexa o arquivo e clica em Enviar.</p>
+              <p>Abra Configurações pelo botão de engrenagem no cabeçalho, ou pela entrada «Configurações da biblioteca» do menu <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> «Ações», e pressione «Enviar os registros ao autor» na página Sobre. O aplicativo empacota os registros de diagnóstico das últimas dez inicializações com um breve resumo da sua versão, Windows e configurações na pasta que você escolheu em «Pasta dos quadros», na página Arquivos das Configurações, ou em Downloads se nenhuma foi escolhida, e abre seu programa de e-mail com a mensagem pronta. A confirmação mostra o caminho completo e pode abrir essa pasta se você pedir; você anexa o arquivo e clica em Enviar.</p>
             </div>
           </li>
         </ol>
@@ -349,9 +349,11 @@
         </div>
         <p class="section-description">O instalador é o arquivo terminado em -windows-x64-setup.exe. Ele instala apenas para o usuário atual e nunca pede direitos de administrador, e desinstalá-lo deixa seus canais, suas fixações e seu histórico intactos. Ele não é assinado, então o Windows avisa na primeira vez que você o executa; cada lançamento publica um arquivo .sha256 ao lado de cada download, para você conferir que o que recebeu é o que foi publicado.</p>
         <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
-             the download is, not only from the footer. -->
+             the download is, not only from the footer. SP-0039: so is what changed, which a reader deciding
+             to install asks next. -->
         <div class="button-group">
           <a class="button button-gold button-small" href="trust.html">O Windows avisou você? Onde clicar</a>
+          <a class="button button-ghost button-small" href="whats-new.html">Novidades</a>
         </div>
       </section>
     </main>
@@ -379,8 +381,10 @@
           <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">Documentação</a>
           <a href="privacy.html">Privacidade</a>
           <a href="trust.html">Ajuda na instalação</a>
+          <a href="whats-new.html">Novidades</a>
+          <a href="support.html">Suporte</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
-          <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+          <a dir="ltr" href="mailto:sza@ukr.net">sza@ukr.net</a>
         </span>
       </div>
       <div class="container machine-note">

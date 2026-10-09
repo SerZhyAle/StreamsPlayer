@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-Hans" dir="ltr" data-theme="dark" data-entry="false">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="获取 STREAMS Player 的帮助：错误报告需要包含什么、如何发送诊断日志、流停止播放时怎么办，以及如何写信给作者。">
+    <meta name="theme-color" content="#0a0f0a">
+    <title>技术支持 - 报告问题或发送日志 - STREAMS Player</title>
+    <link rel="canonical" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/support.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/support.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/support.html">
+    <link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/support.html">
+    <link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/support.html">
+    <link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/support.html">
+    <link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/support.html">
+    <link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/support.html">
+    <link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/support.html">
+    <link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/support.html">
+    <link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/support.html">
+    <link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/support.html">
+    <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/support.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/support.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="STREAMS Player">
+    <meta property="og:title" content="技术支持 - 报告问题或发送日志 - STREAMS Player">
+    <meta property="og:description" content="获取 STREAMS Player 的帮助：错误报告需要包含什么、如何发送诊断日志、流停止播放时怎么办，以及如何写信给作者。">
+    <meta property="og:url" content="https://serzhyale.github.io/StreamsPlayer/zh/support.html">
+    <meta property="og:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="STREAMS Player">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="技术支持 - 报告问题或发送日志 - STREAMS Player">
+    <meta name="twitter:description" content="获取 STREAMS Player 的帮助：错误报告需要包含什么、如何发送诊断日志、流停止播放时怎么办，以及如何写信给作者。">
+    <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"技术支持 - 报告问题或发送日志 - STREAMS Player","description":"获取 STREAMS Player 的帮助：错误报告需要包含什么、如何发送诊断日志、流停止播放时怎么办，以及如何写信给作者。","url":"https://serzhyale.github.io/StreamsPlayer/zh/support.html","inLanguage":"zh-Hans","isPartOf":{"@type":"WebSite","name":"STREAMS Player","url":"https://serzhyale.github.io/StreamsPlayer/"}}</script>
+    <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <script type="application/json" id="language-urls">{"en":"../support.html","ru":"../ru/support.html","uk":"../uk/support.html","de":"../de/support.html","it":"../it/support.html","es":"../es/support.html","fr":"../fr/support.html","pt":"../pt/support.html","zh":"../zh/support.html","hi":"../hi/support.html","bn":"../bn/support.html","ar":"../ar/support.html","ur":"../ur/support.html"}</script>
+    <!-- PAGE-STYLE section 7 pre-paint resolver: the same text on every page, before the first stylesheet.
+         sza-theme and sza-lang are shared with every product page on this origin, so they hold exactly
+         dark/light and ru/en/ua. -->
+    <script>
+(function(){try{
+  var t=localStorage.getItem('sza-theme');
+  if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  var l=localStorage.getItem('sza-lang');
+  if(l==='uk')l='ua';
+  if(l!=='ru'&&l!=='en'&&l!=='ua'){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+  document.documentElement.setAttribute('data-lang',l);
+}catch(e){}})();
+    </script>
+    <script>
+      (function () {
+        // Language redirect. Only the canonical English root redirects: a visitor who asked for
+        // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
+        // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
+        var root = document.documentElement;
+        if (root.dataset.entry !== "true") {
+          return;
+        }
+        var urls = {};
+        try {
+          urls = JSON.parse(document.getElementById("language-urls").textContent);
+        } catch (error) {
+          return;
+        }
+        // sza-lang holds only ru, en or ua (PAGE-STYLE section 7), so a further locale chosen here is
+        // remembered in a key of this product, together with the shared value current at that moment:
+        // it counts only while nobody has changed the shared language since.
+        var shared = null;
+        var further = "";
+        try {
+          shared = localStorage.getItem("sza-lang");
+          further = localStorage.getItem("streamsplayer-locale") || "";
+        } catch (error) {
+          // No storage: the browser's own preference decides below.
+        }
+        if (shared === "uk") {
+          shared = "ua";
+        }
+        if (shared !== "ru" && shared !== "en" && shared !== "ua") {
+          shared = null;
+        }
+        var target = null;
+        var parts = further.split("@");
+        if (parts.length === 2 && urls[parts[0]] && parts[1] === (shared || "")) {
+          target = parts[0];
+        } else if (shared) {
+          target = shared === "ua" ? "uk" : shared;
+        } else {
+          // Walk the visitor's preference list in order and match on the base subtag, so de-AT
+          // reaches the German page. The table comes from the generated page, never from a list
+          // written here.
+          var preferred = navigator.languages && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language || "en"];
+          for (var i = 0; i < preferred.length && !target; i += 1) {
+            var base = String(preferred[i]).toLowerCase().split("-")[0];
+            if (urls[base]) {
+              target = base;
+            }
+          }
+        }
+        if (target && target !== "en" && urls[target]) {
+          window.location.replace(urls[target]);
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/sza-kit.css">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../assets/wave-particles.js" defer></script>
+    <script src="../site.js" defer></script>
+  </head>
+  <body data-page="support">
+    <a class="skip-link" href="#content">跳到正文</a>
+    <!-- The brand backdrop (WAVE-PARTICLES): behind everything, decorative, slow and pale; every block of text
+         sits on a semi-transparent plate (style.css). Settings: SP-0195 follow-up, registry exception. -->
+    <canvas class="backdrop" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.3" data-speed="0.5" aria-hidden="true"></canvas>
+
+    <header class="site-header">
+      <a class="brand" href="../zh/">
+        <img src="../assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="主导航">
+        <a class="header-link" href="../zh/#features">功能</a>
+        <a class="header-link" href="support.html" aria-current="page">技术支持</a>
+        <a class="header-link" href="privacy.html">隐私</a>
+      </nav>
+      <div class="seg" role="group" aria-label="网站语言">
+        <a href="../ru/support.html" data-lang="ru" lang="ru" hreflang="ru" title="Русский">RU</a>
+        <a href="../support.html" data-lang="en" lang="en" hreflang="en" title="English">EN</a>
+        <a href="../uk/support.html" data-lang="ua" lang="uk" hreflang="uk" title="Українська">UA</a>
+      </div>
+      <button class="theme-button" id="themeButton" type="button" aria-label="切换配色主题"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z" fill="currentColor"/></svg><span>主题</span></button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">GitHub</a>
+    </header>
+    <nav class="container language-row" aria-label="网站语言">
+      <ul class="language-list">
+        <li><a href="../de/support.html" data-locale="de" lang="de" hreflang="de" title="Deutsch">DE</a></li>
+        <li><a href="../it/support.html" data-locale="it" lang="it" hreflang="it" title="Italiano">IT</a></li>
+        <li><a href="../es/support.html" data-locale="es" lang="es" hreflang="es" title="Español">ES</a></li>
+        <li><a href="../fr/support.html" data-locale="fr" lang="fr" hreflang="fr" title="Français">FR</a></li>
+        <li><a href="../pt/support.html" data-locale="pt" lang="pt" hreflang="pt" title="Português (Brasil)">PT</a></li>
+        <li><a href="../zh/support.html" data-locale="zh" lang="zh-Hans" hreflang="zh-Hans" title="简体中文" aria-current="page">ZH</a></li>
+        <li><a href="../hi/support.html" data-locale="hi" lang="hi" hreflang="hi" title="हिन्दी">HI</a></li>
+        <li><a href="../bn/support.html" data-locale="bn" lang="bn" hreflang="bn" title="বাংলা">BN</a></li>
+        <li><a href="../ar/support.html" data-locale="ar" lang="ar" hreflang="ar" title="العربية">AR</a></li>
+        <li><a href="../ur/support.html" data-locale="ur" lang="ur" hreflang="ur" title="اردو">UR</a></li>
+      </ul>
+    </nav>
+
+    <!-- SP-0039, canon DOCUMENTATION_CONCEPT section 4 (support): how to report a bug, the contact address, a
+         response expectation, plus how to send the logs. Six sections in this order; the ids are pinned by
+         SupportPageTests, and a reader who lands on one of them alone must still be unblocked. The logs
+         section reuses the landing's how-to (use-5), which is never written a second time. Each heading id
+         is the section name plus -title, and deliberately does not repeat the support- prefix, so the six
+         section ids are the only ids that carry it. -->
+    <main class="container privacy-main" id="content">
+      <span class="eyebrow">STREAMS Player · 技术支持</span>
+      <h1>有东西不能用？请这样报告。</h1>
+      <p class="privacy-intro">STREAMS Player 由一位独立开发者制作。本页说明报告里应写什么、发到哪里，以及您可以期待什么样的回复。</p>
+
+      <div class="privacy-card">
+        <section class="privacy-section" id="support-bug" aria-labelledby="bug-title">
+          <h2 id="bug-title">报告问题</h2>
+          <p>在 GitHub 上提交一个 issue。表单会询问发生了什么、导致问题的步骤、STREAMS Player 的版本和 Windows 的版本。应用版本可在<svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg>“设置”窗口的“关于”页面中找到。如果问题涉及某个具体频道，请写出它的名称。提交 issue 需要一个免费的 GitHub 账户；如果您没有，请使用本页下方的地址。</p>
+          <div class="button-group">
+            <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer/issues/new/choose">在 GitHub 上报告</a>
+          </div>
+        </section>
+
+        <section class="privacy-section" id="support-logs" aria-labelledby="logs-title">
+          <h2 id="logs-title">用日志报告问题</h2>
+          <p>从标题行中的齿轮按钮，或从 <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> “操作”菜单的“媒体库设置”项打开“设置”，并在“关于”页面点击“向作者发送日志”。应用会将最近十次启动的诊断日志以及版本、Windows 和设置摘要打包到您在“设置”的“文件”页面中为“画面文件夹”选定的文件夹；若尚未选定，则打包到“下载”文件夹，然后打开已准备好邮件的邮件客户端。确认信息会显示完整路径并可按您的要求打开该文件夹；由您自行添加附件并点击发送。</p>
+        </section>
+
+        <section class="privacy-section" id="support-stream" aria-labelledby="stream-title">
+          <h2 id="stream-title">某个频道停止播放</h2>
+          <p>目录是一份公开的流列表，这些流由其他人运营：电台、广播机构、摄像头所有者。STREAMS Player 把它们的地址保存在您的设备上，并且如隐私页面所述，只在您操作时才连接网络；流本身仍由运营者掌握，因此一个流可能迁移、更改格式、只在另一个地区可用，或永久停播，目录也会随时间变化。频道出错时，“流不可用”窗口可能会视具体故障提供“重试”“复制报告”“隐藏”（对于您自己添加或导入的频道则是“删除”）和“保留”。具体出现哪些取决于故障：对于应用完全无法播放的地址，不会出现“重试”；没有网络连接时，不会出现“隐藏”或“删除”，因为此时并未连上该频道。“重试”会再试一次，您也可以直接打开另一个频道；“隐藏”会把该频道从您的列表中移除，您可以把它找回来：在“设置”的“媒体库”页面中点击“已隐藏”，再点击该频道旁边的“取消隐藏”；“复制报告”会把一段简短的说明放到剪贴板，供您粘贴到 issue 中，应用本身不会发送任何内容。“操作”菜单中的“从互联网导入频道”会下载当前的目录，而且只在您要求时才下载。流消失并不是应用的故障，也不承诺会修复。</p>
+        </section>
+
+        <section class="privacy-section" id="support-warning" aria-labelledby="warning-title">
+          <h2 id="warning-title">Windows 发出了警告</h2>
+          <p>如果 Windows 用“Windows 已保护你的电脑”界面拦下了安装程序，那是 Microsoft Defender SmartScreen 对它尚不认识的文件做出的反应，并不是在文件里发现了什么的报告。“安装帮助”页面说明了这个界面的含义以及具体该点哪里。</p>
+          <div class="button-group">
+            <a class="button button-ghost button-small" href="trust.html">Windows 发出了警告？该点哪里</a>
+          </div>
+        </section>
+
+        <section class="privacy-section" id="support-private" aria-labelledby="private-title">
+          <h2 id="private-title">直接写信给作者</h2>
+          <p>如果您不想使用 GitHub，或者这件事不宜公开，请写信到 <span dir="ltr">sza@ukr.net</span>。安全问题报告请发到这里，不要放在公开的 issue 中。诊断日志也请发到这里，因为其中写有您播放过的流。</p>
+        </section>
+
+        <section class="privacy-section" id="support-response" aria-labelledby="response-title">
+          <h2 id="response-title">可以期待什么</h2>
+          <p>这是一个独立项目。作者在时间允许时回复；不承诺回复时限，也不承诺修复每一份报告。写明版本、步骤和频道的报告更便于处理。</p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <!-- PAGE-CONTENT "The landing always carries" items 5 and 6: every sibling tool of SITE-FAMILY-MAP section 2
+           except this product, name and type; then the author's links. -->
+      <div class="container">
+        <h2 class="footer-heading">更多工具</h2>
+        <div class="tools-grid">
+          <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>Fast Media Sorter &amp; Organizer</b><span>Android 媒体整理工具</span></a>
+          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>Windows 媒体整理工具</span></a>
+          <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Windows 键盘布局修正工具</span></a>
+          <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows 电子书转换工具</span></a>
+          <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows 存储命令行工具</span></a>
+          <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>Windows 托盘启动器</span></a>
+          <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>AI 开发方法</span></a>
+          <a href="https://sza.od.ua/"><b>SZA</b><span>作品集</span></a>
+        </div>
+      </div>
+      <div class="container footer-row">
+        <span>© 2026 <a href="https://sza.od.ua/">Serhii Zhyhunenko</a></span>
+        <span class="footer-links">
+          <a href="../zh/#distribution">下载</a>
+          <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">文档</a>
+          <a href="privacy.html">隐私</a>
+          <a href="trust.html">安装帮助</a>
+          <a href="whats-new.html">更新内容</a>
+          <a href="support.html">技术支持</a>
+          <a href="https://github.com/SerZhyAle">GitHub</a>
+          <a dir="ltr" href="mailto:sza@ukr.net">sza@ukr.net</a>
+        </span>
+      </div>
+      <div class="container machine-note">
+        <p>本页面由机器翻译，未经母语人士校对。</p>
+      </div>
+    </footer>
+    <button class="to-top" id="toTop" type="button" aria-label="返回顶部"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8,11h3v10h2V11h3l-4,-4 -4,4zM4,3v2h16V3H4z" fill="currentColor"/></svg></button>
+  </body>
+</html>

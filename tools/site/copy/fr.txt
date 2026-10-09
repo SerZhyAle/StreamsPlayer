@@ -272,7 +272,7 @@ Ouvrez le menu [[glyph:nav.more]] à trois points d'une chaîne enregistrée et 
 Signaler un problème avec les journaux
 
 @@use-5-text
-Ouvrez Paramètres depuis l’icône d’engrenage dans l’en-tête (ou le menu [[glyph:nav.more]] Opérations) et appuyez sur « Envoyer les journaux à l’auteur » sur la page À propos. L’application rassemble les journaux de diagnostic des dix derniers lancements avec un résumé de votre version, de Windows et des paramètres dans le dossier des fichiers enregistrés (Téléchargements par défaut), puis ouvre votre messagerie avec le message prêt. La confirmation affiche le chemin complet et peut ouvrir ce dossier ; vous joignez l’archive et appuyez sur Envoyer.
+Ouvrez Paramètres depuis l’icône d’engrenage dans l’en-tête (ou depuis l’entrée « Paramètres de la bibliothèque » du menu [[glyph:nav.more]] Actions) et appuyez sur « Envoyer les journaux à l’auteur » sur la page À propos. L’application rassemble les journaux de diagnostic des dix derniers lancements avec un résumé de votre version, de Windows et des paramètres dans le dossier défini sous « Dossier des images » sur la page Fichiers des Paramètres (Téléchargements si aucun n’est défini), puis ouvre votre messagerie avec le message prêt. La confirmation affiche le chemin complet et peut ouvrir ce dossier à votre demande ; vous joignez l’archive et appuyez sur Envoyer.
 @@distribution-title
 Distribution
 
@@ -434,6 +434,84 @@ Le désinstaller ne supprime jamais vos chaînes, vos épingles ni votre histori
 
 @@trust-privacy-link
 Lire la page de confidentialité
+
+@@title-whatsnew
+Nouveautés - notes de version, récentes d'abord - STREAMS Player
+
+@@description-whatsnew
+Ce qui a changé dans STREAMS Player : les notes de chaque version, les plus récentes d'abord, chacune avec sa date de compilation, et un lien vers les anciennes.
+
+@@nav-whatsnew
+Nouveautés
+
+@@whatsnew-eyebrow
+STREAMS Player · Nouveautés
+
+@@whatsnew-title
+Ce qui a changé, version après version.
+
+@@whatsnew-intro
+De courtes notes sur ce qui a changé pour vous, version après version. Elles sont listées ici, des plus récentes aux plus anciennes, chacune sous son numéro de version et avec sa date de compilation.
+
+@@whatsnew-language-note
+Les notes de version ne sont rédigées qu'en anglais, en russe et en ukrainien ; celles ci-dessous sont donc en anglais.
+
+@@whatsnew-earlier
+Les versions plus anciennes n'ont pas de notes sur cette page. Celles publiées sur GitHub sont listées sur sa page des versions, avec leurs fichiers.
+
+@@whatsnew-earlier-link
+Toutes les versions sur GitHub
+
+@@title-support
+Assistance - signaler un bug, envoyer les journaux - STREAMS Player
+
+@@description-support
+Obtenir de l'aide pour STREAMS Player : que mettre dans un signalement, comment envoyer les journaux, que faire si un flux s'arrête, comment écrire à l'auteur.
+
+@@nav-support
+Assistance
+
+@@support-eyebrow
+STREAMS Player · Assistance
+
+@@support-title
+Quelque chose ne fonctionne pas ? Voici comment le signaler.
+
+@@support-intro
+STREAMS Player est l'œuvre d'un développeur indépendant. Cette page indique ce qu'il faut mettre dans un signalement, où l'envoyer et à quoi vous pouvez vous attendre en retour.
+
+@@support-bug-title
+Signaler un bug
+
+@@support-bug
+Ouvrez un ticket (issue) sur GitHub. Le formulaire demande ce qui s'est passé, les étapes qui y ont mené, la version de STREAMS Player et la version de Windows. Vous trouverez la version de l'application dans la fenêtre [[glyph:app.settings]] Paramètres, sur la page À propos. Si une chaîne précise est concernée, nommez-la. Un ticket exige un compte GitHub gratuit ; si vous n'en avez pas, utilisez l'adresse plus bas sur cette page.
+
+@@support-bug-link
+Signaler sur GitHub
+
+@@support-stream-title
+Une chaîne ne se lit plus
+
+@@support-stream
+Le catalogue est une liste publique de flux exploités par d'autres personnes : stations de radio, diffuseurs, propriétaires de caméras. STREAMS Player en conserve les adresses sur votre appareil et, comme l'explique la page Confidentialité, ne se connecte au réseau que lorsque vous agissez ; les flux eux-mêmes restent chez ceux qui les exploitent, si bien qu'un flux peut déménager, changer de format, n'être disponible que dans une autre région ou cesser définitivement d'émettre, et le catalogue évolue avec le temps. Quand une chaîne échoue, la fenêtre « Flux indisponible » peut proposer « Réessayer », « Copier le rapport », « Masquer » (« Supprimer » pour une chaîne que vous avez ajoutée ou importée vous-même) et « Conserver ». Les choix proposés dépendent de l'échec : « Réessayer » n'est pas proposé pour une adresse que l'application ne peut pas lire du tout, et « Masquer » ou « Supprimer » n'est pas proposé quand il n'y a pas de connexion réseau, car la chaîne n'a alors jamais été jointe. « Réessayer » tente de nouveau, ou vous pouvez simplement ouvrir une autre chaîne ; « Masquer » retire la chaîne de votre liste, et vous pouvez la rétablir : dans Paramètres, sur la page Bibliothèque, appuyez sur « Masquées », puis sur « Afficher » à côté de la chaîne ; « Copier le rapport » place une courte note dans le presse-papiers, à coller dans un ticket, et l'application n'envoie rien. « Importer des chaînes depuis internet », dans le menu « Actions », télécharge le catalogue actuel, et seulement quand vous le demandez. Un flux disparu n'est pas un défaut de l'application, et aucun correctif n'est promis.
+
+@@support-warning-title
+Windows vous a averti
+
+@@support-warning
+Si Windows a arrêté le programme d'installation avec un écran « Windows a protégé votre ordinateur », c'est Microsoft Defender SmartScreen qui réagit à un fichier qu'il ne connaît pas encore. Ce n'est pas le signalement de quelque chose trouvé dans le fichier. La page d'aide à l'installation explique ce que signifie cet écran et sur quoi cliquer exactement.
+
+@@support-private-title
+Écrire directement à l'auteur
+
+@@support-private
+Si vous préférez ne pas utiliser GitHub, ou si le sujet ne doit pas être public, écrivez à [[email]]. Les signalements de sécurité vont ici, et non dans un ticket public. Les journaux de diagnostic aussi, car ils nomment les flux que vous avez lus.
+
+@@support-response-title
+À quoi s'attendre
+
+@@support-response
+Ce projet est indépendant. L'auteur répond quand son temps le permet ; aucun délai de réponse n'est promis, ni de correctif pour chaque signalement. Un signalement qui indique la version, les étapes et la chaîne est plus facile à traiter.
 
 @@footer-rights
 © 2026

@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="es" dir="ltr" data-theme="dark" data-entry="false">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Qué ha cambiado en STREAMS Player, versión a versión: las notas de cada una con la fecha de su compilación, las nuevas primero, y un enlace a las anteriores.">
+    <meta name="theme-color" content="#0a0f0a">
+    <title>Novedades - notas de versión, las nuevas primero - STREAMS Player</title>
+    <link rel="canonical" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html">
+    <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html">
+    <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html">
+    <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/StreamsPlayer/uk/whats-new.html">
+    <link rel="alternate" hreflang="de" href="https://serzhyale.github.io/StreamsPlayer/de/whats-new.html">
+    <link rel="alternate" hreflang="it" href="https://serzhyale.github.io/StreamsPlayer/it/whats-new.html">
+    <link rel="alternate" hreflang="es" href="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html">
+    <link rel="alternate" hreflang="fr" href="https://serzhyale.github.io/StreamsPlayer/fr/whats-new.html">
+    <link rel="alternate" hreflang="pt" href="https://serzhyale.github.io/StreamsPlayer/pt/whats-new.html">
+    <link rel="alternate" hreflang="zh-Hans" href="https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html">
+    <link rel="alternate" hreflang="hi" href="https://serzhyale.github.io/StreamsPlayer/hi/whats-new.html">
+    <link rel="alternate" hreflang="bn" href="https://serzhyale.github.io/StreamsPlayer/bn/whats-new.html">
+    <link rel="alternate" hreflang="ar" href="https://serzhyale.github.io/StreamsPlayer/ar/whats-new.html">
+    <link rel="alternate" hreflang="ur" href="https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html">
+    <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/StreamsPlayer/whats-new.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="STREAMS Player">
+    <meta property="og:title" content="Novedades - notas de versión, las nuevas primero - STREAMS Player">
+    <meta property="og:description" content="Qué ha cambiado en STREAMS Player, versión a versión: las notas de cada una con la fecha de su compilación, las nuevas primero, y un enlace a las anteriores.">
+    <meta property="og:url" content="https://serzhyale.github.io/StreamsPlayer/es/whats-new.html">
+    <meta property="og:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="STREAMS Player">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Novedades - notas de versión, las nuevas primero - STREAMS Player">
+    <meta name="twitter:description" content="Qué ha cambiado en STREAMS Player, versión a versión: las notas de cada una con la fecha de su compilación, las nuevas primero, y un enlace a las anteriores.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Novedades - notas de versión, las nuevas primero - STREAMS Player","description":"Qué ha cambiado en STREAMS Player, versión a versión: las notas de cada una con la fecha de su compilación, las nuevas primero, y un enlace a las anteriores.","url":"https://serzhyale.github.io/StreamsPlayer/es/whats-new.html","inLanguage":"es","isPartOf":{"@type":"WebSite","name":"STREAMS Player","url":"https://serzhyale.github.io/StreamsPlayer/"}}</script>
+    <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <script type="application/json" id="language-urls">{"en":"../whats-new.html","ru":"../ru/whats-new.html","uk":"../uk/whats-new.html","de":"../de/whats-new.html","it":"../it/whats-new.html","es":"../es/whats-new.html","fr":"../fr/whats-new.html","pt":"../pt/whats-new.html","zh":"../zh/whats-new.html","hi":"../hi/whats-new.html","bn":"../bn/whats-new.html","ar":"../ar/whats-new.html","ur":"../ur/whats-new.html"}</script>
+    <!-- PAGE-STYLE section 7 pre-paint resolver: the same text on every page, before the first stylesheet.
+         sza-theme and sza-lang are shared with every product page on this origin, so they hold exactly
+         dark/light and ru/en/ua. -->
+    <script>
+(function(){try{
+  var t=localStorage.getItem('sza-theme');
+  if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  var l=localStorage.getItem('sza-lang');
+  if(l==='uk')l='ua';
+  if(l!=='ru'&&l!=='en'&&l!=='ua'){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ru')==0?'ru':n.indexOf('uk')==0?'ua':'en';}
+  document.documentElement.setAttribute('data-lang',l);
+}catch(e){}})();
+    </script>
+    <script>
+      (function () {
+        // Language redirect. Only the canonical English root redirects: a visitor who asked for
+        // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
+        // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
+        var root = document.documentElement;
+        if (root.dataset.entry !== "true") {
+          return;
+        }
+        var urls = {};
+        try {
+          urls = JSON.parse(document.getElementById("language-urls").textContent);
+        } catch (error) {
+          return;
+        }
+        // sza-lang holds only ru, en or ua (PAGE-STYLE section 7), so a further locale chosen here is
+        // remembered in a key of this product, together with the shared value current at that moment:
+        // it counts only while nobody has changed the shared language since.
+        var shared = null;
+        var further = "";
+        try {
+          shared = localStorage.getItem("sza-lang");
+          further = localStorage.getItem("streamsplayer-locale") || "";
+        } catch (error) {
+          // No storage: the browser's own preference decides below.
+        }
+        if (shared === "uk") {
+          shared = "ua";
+        }
+        if (shared !== "ru" && shared !== "en" && shared !== "ua") {
+          shared = null;
+        }
+        var target = null;
+        var parts = further.split("@");
+        if (parts.length === 2 && urls[parts[0]] && parts[1] === (shared || "")) {
+          target = parts[0];
+        } else if (shared) {
+          target = shared === "ua" ? "uk" : shared;
+        } else {
+          // Walk the visitor's preference list in order and match on the base subtag, so de-AT
+          // reaches the German page. The table comes from the generated page, never from a list
+          // written here.
+          var preferred = navigator.languages && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language || "en"];
+          for (var i = 0; i < preferred.length && !target; i += 1) {
+            var base = String(preferred[i]).toLowerCase().split("-")[0];
+            if (urls[base]) {
+              target = base;
+            }
+          }
+        }
+        if (target && target !== "en" && urls[target]) {
+          window.location.replace(urls[target]);
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/sza-kit.css">
+    <link rel="stylesheet" href="../style.css">
+    <script src="../assets/wave-particles.js" defer></script>
+    <script src="../site.js" defer></script>
+  </head>
+  <body data-page="whats-new">
+    <a class="skip-link" href="#content">Saltar al contenido</a>
+    <!-- The brand backdrop (WAVE-PARTICLES): behind everything, decorative, slow and pale; every block of text
+         sits on a semi-transparent plate (style.css). Settings: SP-0195 follow-up, registry exception. -->
+    <canvas class="backdrop" data-wave-particles data-palette="GREEN" data-wave-theme="html" data-wave-wash="--bg" data-intensity="0.3" data-speed="0.5" aria-hidden="true"></canvas>
+
+    <header class="site-header">
+      <a class="brand" href="../es/">
+        <img src="../assets/streamsplayer-icon-256.png" alt="" width="30" height="30">
+        <span>STREAMS Player<span class="brand-dot">.</span></span>
+      </a>
+      <nav class="header-links" aria-label="Navegación principal">
+        <a class="header-link" href="../es/#features">Funciones</a>
+        <a class="header-link" href="whats-new.html" aria-current="page">Novedades</a>
+        <a class="header-link" href="privacy.html">Privacidad</a>
+      </nav>
+      <div class="seg" role="group" aria-label="Idioma del sitio">
+        <a href="../ru/whats-new.html" data-lang="ru" lang="ru" hreflang="ru" title="Русский">RU</a>
+        <a href="../whats-new.html" data-lang="en" lang="en" hreflang="en" title="English">EN</a>
+        <a href="../uk/whats-new.html" data-lang="ua" lang="uk" hreflang="uk" title="Українська">UA</a>
+      </div>
+      <button class="theme-button" id="themeButton" type="button" aria-label="Cambiar el tema de color"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z" fill="currentColor"/></svg><span>Tema</span></button>
+      <a class="button button-primary button-small" href="https://github.com/SerZhyAle/StreamsPlayer">GitHub</a>
+    </header>
+    <nav class="container language-row" aria-label="Idioma del sitio">
+      <ul class="language-list">
+        <li><a href="../de/whats-new.html" data-locale="de" lang="de" hreflang="de" title="Deutsch">DE</a></li>
+        <li><a href="../it/whats-new.html" data-locale="it" lang="it" hreflang="it" title="Italiano">IT</a></li>
+        <li><a href="../es/whats-new.html" data-locale="es" lang="es" hreflang="es" title="Español" aria-current="page">ES</a></li>
+        <li><a href="../fr/whats-new.html" data-locale="fr" lang="fr" hreflang="fr" title="Français">FR</a></li>
+        <li><a href="../pt/whats-new.html" data-locale="pt" lang="pt" hreflang="pt" title="Português (Brasil)">PT</a></li>
+        <li><a href="../zh/whats-new.html" data-locale="zh" lang="zh-Hans" hreflang="zh-Hans" title="简体中文">ZH</a></li>
+        <li><a href="../hi/whats-new.html" data-locale="hi" lang="hi" hreflang="hi" title="हिन्दी">HI</a></li>
+        <li><a href="../bn/whats-new.html" data-locale="bn" lang="bn" hreflang="bn" title="বাংলা">BN</a></li>
+        <li><a href="../ar/whats-new.html" data-locale="ar" lang="ar" hreflang="ar" title="العربية">AR</a></li>
+        <li><a href="../ur/whats-new.html" data-locale="ur" lang="ur" hreflang="ur" title="اردو">UR</a></li>
+      </ul>
+    </nav>
+
+    <!-- SP-0039, SITE-STRUCTURE section 2 (release notes): one section per version, newest first, each with
+         its date. The sections come from the recorded release notes (msix/listing/release-notes), never from
+         this template or the copy decks, and no version is typed on this page. The language note is empty on
+         the pages whose deck the owner wrote; elsewhere it says the notes stay in English. -->
+    <main class="container privacy-main" id="content">
+      <span class="eyebrow">STREAMS Player · Novedades</span>
+      <h1>Qué ha cambiado, versión a versión.</h1>
+      <p class="privacy-intro">Notas breves sobre lo que ha cambiado para ti, versión a versión. Se listan aquí, las más recientes primero, bajo el número de versión y la fecha de su compilación.</p>
+      <p class="privacy-intro">Las notas de las versiones se escriben solo en inglés, ruso y ucraniano, así que las de abajo están en inglés.</p>
+
+      <div class="privacy-card">
+        <section class="privacy-section" id="v26-1003-0030" aria-labelledby="v26-1003-0030-title">
+          <h2 id="v26-1003-0030-title" dir="ltr">26.1003.0030</h2>
+          <p class="release-date" dir="ltr"><time datetime="2026-10-03">2026-10-03</time></p>
+          <ul class="trust-list" lang="en" dir="ltr">
+            <li>Settings and Tools are now one Settings window with six pages: General, Library, Playback, Audio, Files and About. Catalog, playlists, hidden channels, the TV schedule and video components moved into it, every setting has a short hint, and a change takes effect as soon as you touch the control.</li>
+            <li>Choose the audio output device and the channel mode (stereo, reversed stereo, left, right or Dolby Surround) for playback in Settings, on the Audio page.</li>
+            <li>When a radio station fails, the app keeps the real cause and no longer gives up on the station because of a generic wrapper error.</li>
+            <li>&quot;Delete downloaded&quot; keeps the channels you pinned, put into a collection or listened to, instead of deleting them.</li>
+            <li>Stopping a FastMediaSorter broadcast no longer freezes the window.</li>
+            <li>The setup wipes its install folder only when that folder holds a previous copy of STREAMS Player.</li>
+            <li>The built-in channel list is current (18 502 live streams as of 2026-09-23).</li>
+          </ul>
+        </section>
+
+        <section class="privacy-section" id="v26-1001-0140" aria-labelledby="v26-1001-0140-title">
+          <h2 id="v26-1001-0140-title" dir="ltr">26.1001.0140</h2>
+          <p class="release-date" dir="ltr"><time datetime="2026-10-01">2026-10-01</time></p>
+          <ul class="trust-list" lang="en" dir="ltr">
+            <li>Recording is safer and clearer: video and radio recordings go to their own folders (Videos and Music, changeable on the Playback tab), a video recording survives reconnects, a radio recording is named after the format the station really sends, and you are told at once what was saved. Quitting while recording no longer loses the file.</li>
+            <li>See what is on a TV channel now and next: paste the address of an XMLTV guide under TV schedule in Tools and press Download schedule. The list and the player show the current and next programme in your local time. Nothing is downloaded in the background.</li>
+            <li>Saved frames have their own folder setting, and a folder that cannot be written sends the file to the next one and tells you where it went.</li>
+            <li>Only one copy of STREAMS Player runs at a time: a second launch, a desktop shortcut or a media key is handed to the running copy instead of opening another window.</li>
+            <li>An error inside one action no longer ends the app. The app says what stopped and keeps working; if it cannot recover it tells you where the diagnostic log is.</li>
+            <li>Logs no longer carry passwords or your Windows user folder name, and an address that is not http, https or rtsp is refused with a clear message instead of being launched.</li>
+            <li>Video components download with a checksum check, can be cancelled, and the previous version is restored if an update fails.</li>
+            <li>Clearer messages when there is no network, and the catalog, radio recovery and stalled-stream detection are more reliable.</li>
+            <li>The compact radio panel can stay on top of other windows, and Random station skips adult channels when they are hidden.</li>
+            <li>The setup asks you to close a running copy before updating or uninstalling.</li>
+            <li>Refreshed the built-in channel list snapshot (18 502 live streams as of 2026-09-23).</li>
+          </ul>
+        </section>
+
+        <section class="privacy-section" id="v26-0924-1704" aria-labelledby="v26-0924-1704-title">
+          <h2 id="v26-0924-1704-title" dir="ltr">26.0924.1704</h2>
+          <p class="release-date" dir="ltr"><time datetime="2026-09-24">2026-09-24</time></p>
+          <ul class="trust-list" lang="en" dir="ltr">
+            <li>A calm animated background moves behind the station that is playing - on its card, its tile and the compact panel. Switch it off in Settings.</li>
+            <li>The &quot;now playing&quot; line appears on more radio stations: when a stream sends no track title, it is read from the station's status page.</li>
+            <li>A new Tools window (Operations menu) gathers catalog import and cleanup, playlists, hidden channels, video components and sending logs to the author. Settings now changes only settings, and only when you press Save.</li>
+            <li>When something fails, the message names the cause - network, damaged data or a file on this computer - and what to do, instead of a technical error.</li>
+            <li>Updating the catalog no longer fails in the short moment the channel list is being republished; it waits and tries again.</li>
+            <li>Clearer icons: every button draws one shape per meaning, the same in the app, the help and the site.</li>
+            <li>Scrollbars follow the dark theme.</li>
+            <li>A new page on the site explains the Windows &quot;protected your PC&quot; warning and how to install safely.</li>
+            <li>The grid stops retrying a channel whose preview never arrives, and diagnostic reports stay readable through a long session.</li>
+            <li>Refreshed the built-in channel list snapshot (18 506 live streams as of 2026-09-23).</li>
+          </ul>
+        </section>
+
+        <section class="privacy-section" id="v26-0916-2054" aria-labelledby="v26-0916-2054-title">
+          <h2 id="v26-0916-2054-title" dir="ltr">26.0916.2054</h2>
+          <p class="release-date" dir="ltr"><time datetime="2026-09-16">2026-09-16</time></p>
+          <ul class="trust-list" lang="en" dir="ltr">
+            <li>Refreshed the built-in channel list snapshot (18 406 live streams as of 2026-09-15).</li>
+            <li>Record the live video or radio you are playing to a file with the Record button (R in the player), and listen to a live audio broadcast from a FastMediaSorter phone or watch over your local network.</li>
+            <li>Improved stream playback stability, live broadcast contracts, and diagnostic reporting.</li>
+          </ul>
+        </section>
+
+        <section class="privacy-section" id="v26-0821-1208" aria-labelledby="v26-0821-1208-title">
+          <h2 id="v26-0821-1208-title" dir="ltr">26.0821.1208</h2>
+          <p class="release-date" dir="ltr"><time datetime="2026-08-21">2026-08-21</time></p>
+          <ul class="trust-list" lang="en" dir="ltr">
+            <li>Radio plays again. In 26.0820.1828 every station failed the moment it was opened, on every machine - the fault was in the Windows runtime the application shipped with, not in the station or your connection. If that version played nothing for you, this one fixes it and nothing needs to be reset.</li>
+            <li>There is now an installer. Download one file, run it, and the application installs for your account without asking for administrator rights, adds itself to the Start menu and to the list of installed applications, and uninstalls from there. The portable ZIP stays exactly as it was for anyone who prefers to unpack a folder.</li>
+            <li>Removing the application leaves your own data alone - pinned channels, collections, history and settings survive an uninstall, and are still there if you install again.</li>
+          </ul>
+        </section>
+
+        <section class="privacy-section" id="v26-0820-1828" aria-labelledby="v26-0820-1828-title">
+          <h2 id="v26-0820-1828-title" dir="ltr">26.0820.1828</h2>
+          <p class="release-date" dir="ltr"><time datetime="2026-08-20">2026-08-20</time></p>
+          <ul class="trust-list" lang="en" dir="ltr">
+            <li>A channel the catalog gives no logo now carries a mark of its own - initials from its name, a colour drawn from that same name so it always looks the same, and its country code where the catalog knows one. Most of the channel list has no logo, and an empty square read as something that failed to load.</li>
+            <li>A channel the catalog stops publishing no longer takes your work with it. If you pinned it, put it in a collection, played it or gave it an icon, the channel is kept and marked retired - it leaves the general list and the random station draw, stays in the pinned strip and in its collections, and comes back on its own if the catalog lists it again.</li>
+            <li>The picture pack is checked against the publisher's own manifest before a single picture is used, so a pack rebuilt while it was being fetched can no longer put another station's picture on a channel. It also always reads the current pack instead of one frozen build.</li>
+            <li>An update that arrives without a usable icon sheet now shows marks rather than the wrong logos, and the next update puts the real icons back.</li>
+            <li>The built-in channel list is offered as a plain question you answer once, instead of a bar across the catalog.</li>
+            <li>The built-in list itself was refreshed on 2026-08-20 and carries 18 010 channels.</li>
+          </ul>
+        </section>
+
+        <section class="privacy-section" id="v26-0819-0156" aria-labelledby="v26-0819-0156-title">
+          <h2 id="v26-0819-0156-title" dir="ltr">26.0819.0156</h2>
+          <p class="release-date" dir="ltr"><time datetime="2026-08-19">2026-08-19</time></p>
+          <ul class="trust-list" lang="en" dir="ltr">
+            <li>The catalog can shrink to a compact radio panel while a station plays. The small window stays above other programs and carries the station, the current track, the volume, the transport, the sleep timer with its countdown and Random station - one taskbar button, one Alt+Tab entry, one sound.</li>
+            <li>Volume, the sleep timer and stop work the same on the panel and in the catalog, and coming back restores the full window as you left it - scroll position, filter and selection included.</li>
+            <li>Stopping the radio, or a station that drops out, leaves the panel where it is instead of throwing the catalog over your work. Dragged anywhere, the panel returns inside a visible screen. It is a mode for the session - the next launch opens the catalog.</li>
+            <li>Play a random station. One press picks from the whole catalog, ignoring the search, the facets and the active collection, and skips hidden stations, video and RTSP. It is on the Operations menu and on the panel.</li>
+            <li>A drawn station that stays silent is replaced by the next draw without a dialog, and after a run of silent ones the hunt stops and says so.</li>
+            <li>Click anywhere on a volume slider to jump straight to that level, in the catalog and in the player.</li>
+            <li>Pin a station with a very long name to the desktop without losing the application, and glyph buttons are legible again in the dark theme.</li>
+          </ul>
+        </section>
+
+        <section class="privacy-section" id="v26-0809-0022" aria-labelledby="v26-0809-0022-title">
+          <h2 id="v26-0809-0022-title" dir="ltr">26.0809.0022</h2>
+          <p class="release-date" dir="ltr"><time datetime="2026-08-09">2026-08-09</time></p>
+          <ul class="trust-list" lang="en" dir="ltr">
+            <li>A built-in channel list. A copy of the stream bank now ships inside the app, so the catalog fills on a first launch with no network - offered at the start, after a failed update, and always from Settings. It adds and updates, never removes, and says how old it is.</li>
+            <li>A topic filter over the catalog's own topics, translated for reading while each channel keeps its original name.</li>
+            <li>Share a channel as one short line of text, and paste one back in.</li>
+            <li>Playback resumes where the last session left off.</li>
+            <li>What is on air - the track the station is playing right now, under the channel name.</li>
+            <li>Stopping the sound now keeps the station. The button becomes Resume audio, and the volume slider and the sleep timer stay where they were.</li>
+            <li>The player says why the picture stopped - connecting, signal lost, reconnecting, switching quality - over the video, so the explanation is there after the controls hide.</li>
+            <li>A stream that stops sending while pretending to play is caught and re-opened, and the Retry dialog now arrives in about half a minute instead of two.</li>
+            <li>Video quality follows what the connection actually delivers, is remembered per channel, and the next play opens there.</li>
+            <li>Minimizing the catalog no longer minimizes the player, and Settings can be resized.</li>
+            <li>Fixed - closing the catalog with the pointer over a tile could crash it, a radio stream that ended kept the machine awake, and the player controls did not mirror in Arabic and Urdu.</li>
+          </ul>
+        </section>
+
+        <section class="privacy-section" id="v26-0806-2225" aria-labelledby="v26-0806-2225-title">
+          <h2 id="v26-0806-2225-title" dir="ltr">26.0806.2225</h2>
+          <p class="release-date" dir="ltr"><time datetime="2026-08-06">2026-08-06</time></p>
+          <ul class="trust-list" lang="en" dir="ltr">
+            <li>A dark interface that follows Windows and switches with it while the app runs. Settings has the final word: follow the system, always light, or always dark.</li>
+            <li>About the channel - a new item in a channel's menu that lists its properties and reports what the stream actually sends: video and audio formats, picture size, frame rate, sound channels and sample rate, and the observed data rate.</li>
+            <li>A calmer main window: search now sits beside the product name, the filter and sorting row appears only when you press &quot;Filters and sorting&quot;, and the remaining header actions moved into one &quot;Operations&quot; menu.</li>
+            <li>The interface language is now the first tab in Settings, marked with a globe, so it can be found without reading a word.</li>
+            <li>The player's signal stripe is colour-coded: green while the stream is fine, yellow while it stalls or rebuffers, red when the signal is gone.</li>
+            <li>The player's controls now hide after a short idle in a window too, not only in fullscreen.</li>
+            <li>A fourth, smallest grid tile: the picture alone, with the name and buttons under the pointer.</li>
+            <li>Settings, About, Send logs to the author now writes the archive to your own save folder and tells you its full path.</li>
+            <li>About 40% smaller to download.</li>
+          </ul>
+        </section>
+
+        <div class="privacy-section" id="whatsnew-earlier">
+          <p>Las versiones anteriores no tienen notas en esta página. Las que se publicaron en GitHub figuran en su página de versiones, con sus archivos.</p>
+          <div class="button-group">
+            <a class="button button-ghost button-small" href="https://github.com/SerZhyAle/StreamsPlayer/releases">Todas las versiones en GitHub</a>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <!-- PAGE-CONTENT "The landing always carries" items 5 and 6: every sibling tool of SITE-FAMILY-MAP section 2
+           except this product, name and type; then the author's links. -->
+      <div class="container">
+        <h2 class="footer-heading">Más herramientas</h2>
+        <div class="tools-grid">
+          <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>Fast Media Sorter &amp; Organizer</b><span>Clasificador de medios para Android</span></a>
+          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>Clasificador de medios para Windows</span></a>
+          <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Corrector de distribución de teclado para Windows</span></a>
+          <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Conversor de libros electrónicos para Windows</span></a>
+          <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Herramienta de línea de comandos de almacenamiento para Windows</span></a>
+          <a href="https://serzhyale.github.io/OneClickRunner/"><b>OneClickRunner</b><span>Lanzador en la bandeja para Windows</span></a>
+          <a href="https://serzhyale.github.io/universal-agent-kit/"><b>Universal Agent Kit</b><span>Método de desarrollo con IA</span></a>
+          <a href="https://sza.od.ua/"><b>SZA</b><span>Portafolio</span></a>
+        </div>
+      </div>
+      <div class="container footer-row">
+        <span>© 2026 <a href="https://sza.od.ua/">Serhii Zhyhunenko</a></span>
+        <span class="footer-links">
+          <a href="../es/#distribution">Descargar</a>
+          <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">Documentación</a>
+          <a href="privacy.html">Privacidad</a>
+          <a href="trust.html">Ayuda de instalación</a>
+          <a href="whats-new.html">Novedades</a>
+          <a href="support.html">Soporte</a>
+          <a href="https://github.com/SerZhyAle">GitHub</a>
+          <a dir="ltr" href="mailto:sza@ukr.net">sza@ukr.net</a>
+        </span>
+      </div>
+      <div class="container machine-note">
+        <p>Esta página se ha traducido automáticamente y no la ha revisado un hablante nativo.</p>
+      </div>
+    </footer>
+    <button class="to-top" id="toTop" type="button" aria-label="Volver arriba"><svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8,11h3v10h2V11h3l-4,-4 -4,4zM4,3v2h16V3H4z" fill="currentColor"/></svg></button>
+  </body>
+</html>

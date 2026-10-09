@@ -1,0 +1,5 @@
+{
+  "$comment": "Search-console verification tokens (SP-0039). Each value is the public token Google Search Console or Bing Webmaster Tools asks to find in the <head> of the English landing page; build-site.ps1 renders it there as a <meta> element, and only there. A token is printed in every visitor's HTML by design, so it is not a secret and is committed - nothing here is a credential, and the rule against secrets in the repository does not apply to it; do not move it out. null means no console has issued one; removing a token after verification expires the property, so a token stays once set.",
+  "google": null,
+  "bing": null
+}

@@ -100,13 +100,19 @@ try {
         Invoke-DotNet @('clean', $solutionPath, '--configuration', $Configuration)
     }
 
+    # The everyday build is the application the owner runs or deploys; the test projects are large and are
+    # compiled only for -Test, where they also execute. Building the whole solution here cost minutes of
+    # test compilation that no default path consumed - scripts/check.ps1 restores and builds the full
+    # solution itself, so the release gate loses nothing.
+    $buildTargetPath = if ($Test) { $solutionPath } else { $appProjectPath }
+
     if (-not $NoRestore) {
-        Invoke-DotNet @('restore', $solutionPath)
+        Invoke-DotNet @('restore', $buildTargetPath)
     }
 
     Invoke-DotNet (@(
         'build',
-        $solutionPath,
+        $buildTargetPath,
         '--configuration', $Configuration,
         '--no-restore'
     ) + $versionArgs)

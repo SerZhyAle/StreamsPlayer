@@ -34,7 +34,7 @@
     <meta name="twitter:title" content="STREAMS Player - Internetradio, Live-Video und RTSP für Windows">
     <meta name="twitter:description" content="STREAMS Player für Windows: Internetradio, Live-Video und RTSP-Streams durchsuchen und abspielen.">
     <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"STREAMS Player für Windows: Internetradio, Live-Video und RTSP-Streams durchsuchen und abspielen.","url":"https://serzhyale.github.io/StreamsPlayer/de/","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","isAccessibleForFree":true,"author":{"@type":"Person","name":"Serhii Zhyhunenko"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"STREAMS Player für Windows: Internetradio, Live-Video und RTSP-Streams durchsuchen und abspielen.","url":"https://serzhyale.github.io/StreamsPlayer/de/","inLanguage":"de","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-de.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/de/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/de/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
@@ -317,7 +317,7 @@
           <li class="step">
             <div>
               <h3>Ein Problem mithilfe der Protokolle melden</h3>
-              <p>Öffnen Sie die Einstellungen über die Zahnrad-Schaltfläche in der Kopfzeile (oder das Menü <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> «Vorgänge») und drücken Sie auf der Seite «Über» auf «Protokolle an den Autor senden». Die App packt die Diagnoseprotokolle der letzten zehn Starts mit einer kurzen Zusammenfassung Ihrer Version, Windows und Einstellungen in den Ordner für gespeicherte Dateien (standardmäßig Downloads) und öffnet dann Ihr E-Mail-Programm mit der vorbereiteten Nachricht. Die Bestätigung zeigt den vollständigen Pfad und kann diesen Ordner auf Wunsch öffnen; Sie hängen das Archiv an und drücken selbst auf Senden.</p>
+              <p>Öffnen Sie die Einstellungen über die Zahnrad-Schaltfläche in der Kopfzeile (oder über den Eintrag «Bibliothekseinstellungen» im Menü <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg> «Aktionen») und drücken Sie auf der Seite «Über» auf «Protokolle an den Autor senden». Die App packt die Diagnoseprotokolle der letzten zehn Starts mit einer kurzen Zusammenfassung Ihrer Version, Windows und Einstellungen in den Ordner, der auf der Seite «Dateien» der Einstellungen unter «Ordner für Bilder» festgelegt ist (ist keiner festgelegt, Downloads), und öffnet dann Ihr E-Mail-Programm mit der vorbereiteten Nachricht. Die Bestätigung zeigt den vollständigen Pfad und kann diesen Ordner auf Wunsch öffnen; Sie hängen das Archiv an und drücken selbst auf Senden.</p>
             </div>
           </li>
         </ol>
@@ -349,9 +349,11 @@
         </div>
         <p class="section-description">Das Installationsprogramm ist die Datei, die auf -windows-x64-setup.exe endet. Es installiert nur für das aktuelle Benutzerkonto und verlangt nie Administratorrechte, und beim Deinstallieren bleiben Ihre Kanäle, Ihre Anheftungen und der Verlauf unangetastet. Es ist nicht signiert, deshalb warnt Windows beim ersten Start; zu jeder Veröffentlichung erscheint neben jedem Download eine .sha256-Datei, mit der Sie prüfen können, dass Sie genau das erhalten haben, was veröffentlicht wurde.</p>
         <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
-             the download is, not only from the footer. -->
+             the download is, not only from the footer. SP-0039: so is what changed, which a reader deciding
+             to install asks next. -->
         <div class="button-group">
           <a class="button button-gold button-small" href="trust.html">Windows hat gewarnt? Worauf Sie klicken</a>
+          <a class="button button-ghost button-small" href="whats-new.html">Was ist neu</a>
         </div>
       </section>
     </main>
@@ -379,8 +381,10 @@
           <a href="https://github.com/SerZhyAle/StreamsPlayer/blob/main/README.md">Dokumentation</a>
           <a href="privacy.html">Datenschutz</a>
           <a href="trust.html">Installationshilfe</a>
+          <a href="whats-new.html">Was ist neu</a>
+          <a href="support.html">Support</a>
           <a href="https://github.com/SerZhyAle">GitHub</a>
-          <a dir="ltr" href="mailto:serzhyale@gmail.com">serzhyale@gmail.com</a>
+          <a dir="ltr" href="mailto:sza@ukr.net">sza@ukr.net</a>
         </span>
       </div>
       <div class="container machine-note">

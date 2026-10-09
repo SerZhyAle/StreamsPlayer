@@ -18,8 +18,8 @@ in the live listing.
 - Price: Free
 - License: MIT
 - Website: `https://serzhyale.github.io/StreamsPlayer/`
-- Support: `https://github.com/SerZhyAle/StreamsPlayer/issues`
-- Support email: `serzhyale@gmail.com`
+- Support: `https://serzhyale.github.io/StreamsPlayer/support.html`
+- Support email: `sza@ukr.net`
 - Privacy policy: `https://serzhyale.github.io/StreamsPlayer/privacy.html`
 - Source: `https://github.com/SerZhyAle/StreamsPlayer`
 
