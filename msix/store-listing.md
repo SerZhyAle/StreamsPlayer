@@ -112,9 +112,10 @@ Version 26.1010.0106
 
 #### Store-only What's new for 26.1010.0106
 
-The Store still carries 26.0806.2225 unless Partner Center says otherwise, so this block is the accumulated one:
-everything a Store user has not seen yet, folded to stay under 1 500 characters.
-
+Superseded 2026-10-10: the Partner Center export of that day shows the live submission already carries
+26.1003.0030, so a Store user has seen everything before 26.1010.0106 and the right text is the per-version
+notes, `msix/listing/release-notes/26.1010.0106.*.txt`, which `tools/store/write-release-notes.ps1 -Version` reads.
+The accumulated blocks below are kept only for a Store that is still behind; do not paste them over the notes.
 ```text
 Version 26.1010.0106
 
