@@ -1,0 +1,2415 @@
+{
+  "gate": "code-audit",
+  "result": "PASS",
+  "version": "26.1010.0106",
+  "commit": "65fc3812ffda4d2f623b5e9a68c6b8d3545ae2fe",
+  "when": "2026-10-10T02:29:33+02:00",
+  "auditor": "Claude Sonnet 5.5 (read-only slice auditors S1-S10 over the 124 in-scope files changed since the 26.1003.0030 audit at a3b3e8e, in full; the other 203 in-scope files are unchanged and were read in full by that audit; fixes then re-read by 5 re-audit readers R1-R3, RD-A, RD-B); owner SerZhyAle",
+  "procedure": "docs/agent/CODE_AUDIT.md",
+  "checks": {
+    "check": "PASS"
+  },
+  "summary": {
+    "High": 1,
+    "Medium": 23,
+    "Low": 57
+  },
+  "findings": [
+    {
+      "id": "S1-1",
+      "file": "scripts/check.ps1",
+      "line": 59,
+      "severity": "Low",
+      "summary": "the audit-verdict gate fixture tests run in no gate",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S1-2",
+      "file": "scripts/release.ps1",
+      "line": 29,
+      "severity": "Low",
+      "summary": "snapshot size ceiling checked only through the printed checklist",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S1-3",
+      "file": "src/StreamsPlayer.Core/StreamsPlayer.Core.csproj",
+      "line": 16,
+      "severity": "Low",
+      "summary": "InternalsVisibleTo App contradicts the seam comment",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S1-4",
+      "file": "msix/build-msix.ps1",
+      "line": 84,
+      "severity": "Low",
+      "summary": "Store package gated on the audit verdict but not the smoke verdict",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S1-5",
+      "file": "scripts/Write-SmokeVerdict.ps1",
+      "line": 64,
+      "severity": "Low",
+      "summary": "smoke verdict with -AppPath is bound to HEAD though the binary may differ",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S1-6",
+      "file": "installer/StreamsPlayer.iss",
+      "line": 186,
+      "severity": "Low",
+      "summary": "install wipe triggers on StreamsPlayer.exe alone",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S1-7",
+      "file": "tools/build-catalog-snapshot.ps1",
+      "line": 546,
+      "severity": "Low",
+      "summary": "snapshot moved over the tracked artifact before validation",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S2-1",
+      "file": "src/StreamsPlayer.App/WaveParticlesBackdrop.cs",
+      "line": 282,
+      "severity": "Low",
+      "summary": "backdrop tick runs render with no fault containment",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S3-1",
+      "file": "src/StreamsPlayer.App/ExchangeSourceService.cs",
+      "line": 571,
+      "severity": "Medium",
+      "summary": "IsConnectionFailure omits InvalidDataException so the receive loop dies and teardown rethrows",
+      "disposition": "fixed",
+      "evidence": "expected: a malformed frame reconnects and Forget/Disable still work | actual: ExchangeLoopRecoveryTests.MalformedFrame_IsReconnectedAndNeverBlocksTeardown and MalformedWelcome_* green (4 variants); all 4 timed out on the old source"
+    },
+    {
+      "id": "S3-2",
+      "file": "src/StreamsPlayer.App/ExchangeSourceService.cs",
+      "line": 435,
+      "severity": "Medium",
+      "summary": "cast prompt awaited inline in the control-stream read loop",
+      "disposition": "fixed",
+      "evidence": "expected: an open cast prompt does not stop reads, keepalives or Stop | actual: OpenPrompt_DoesNotStopTheControlStreamFromBeingRead and StoppingTheService_DoesNotWaitForAPromptThatIgnoresItsToken green; both failed on the old source"
+    },
+    {
+      "id": "S3-3",
+      "file": "src/StreamsPlayer.App/ExchangeSourceService.cs",
+      "line": 491,
+      "severity": "Medium",
+      "summary": "cast-offer parsed in a shape the contract does not define",
+      "disposition": "fixed",
+      "evidence": "expected: an offer in the DEVICE-EXCHANGE 7.8 shape is answered by broadcastId | actual: OfferInTheContractShape_IsAnsweredByBroadcastIdWithoutACastId and ExchangeCastTests.Offer_InTheContractShape_ParsesByTheBroadcastRecord green; failed on the old source"
+    },
+    {
+      "id": "S3-4",
+      "file": "src/StreamsPlayer.App/ExchangeSourceService.cs",
+      "line": 588,
+      "severity": "Medium",
+      "summary": "presented fingerprint shared across hosts",
+      "disposition": "fixed",
+      "evidence": "expected: a probe of another server never becomes the account's pending replacement pin | actual: ProbeOfAnotherServer_NeverBecomesTheAccountsPendingReplacement and ReplacementPin_IsRefusedWithoutStoppingTheRunningReceiver green; failed on the old source"
+    },
+    {
+      "id": "S3-5",
+      "file": "src/StreamsPlayer.App/ExchangeSourceService.cs",
+      "line": 110,
+      "severity": "Low",
+      "summary": "EnrollAsync stops the receiver and never restarts it on refusal",
+      "disposition": "fixed",
+      "evidence": "expected: a refused re-enroll puts the running receiver back | actual: EnrollmentThatCannotConnect_PutsTheRunningReceiverBack green; failed on the old source"
+    },
+    {
+      "id": "S3-6",
+      "file": "src/StreamsPlayer.App/ExchangeSourceService.cs",
+      "line": 46,
+      "severity": "Low",
+      "summary": "constructor re-saves an unchanged account on every launch",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S4-1",
+      "file": "src/StreamsPlayer.App/PlayerWindow.Legs.cs",
+      "line": 351,
+      "severity": "Medium",
+      "summary": "CanAdvanceAttempt lacks the pre-live condition",
+      "disposition": "fixed",
+      "evidence": "expected: a post-live error never advances the endpoint | actual: BroadcastAttemptAdvanceTests CanAdvance(reachedLive:true)==false, also inside a recovery open; 7+ tests green"
+    },
+    {
+      "id": "S4-2",
+      "file": "src/StreamsPlayer.App/PlayerWindow.Legs.cs",
+      "line": 413,
+      "severity": "Low",
+      "summary": "attempts of a leg share one backend and are judged by backend identity only",
+      "disposition": "fixed",
+      "evidence": "expected: a stale attempt cannot publish a forwarder or judge the next attempt | actual: attempt epoch + TryHoldAttemptResource in place, pinned by AuditWaveCSourceTests"
+    },
+    {
+      "id": "S4-3",
+      "file": "src/StreamsPlayer.App/PlayerGeometryFile.cs",
+      "line": 92,
+      "severity": "Low",
+      "summary": "a queued second flush can overwrite remembered placements",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S4-4",
+      "file": "src/StreamsPlayer.App/PlayerWindow.xaml.cs",
+      "line": 330,
+      "severity": "Low",
+      "summary": "EngineReleased not awaited by quit for a window closed just before",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S5-1",
+      "file": "src/StreamsPlayer.App/MainWindow.xaml.cs",
+      "line": 685,
+      "severity": "Medium",
+      "summary": "SetFacet raises SelectionChanged and the debounced filter zeroes the scroll offset",
+      "disposition": "fixed",
+      "evidence": "expected: refilling the facets does not schedule a filter that scrolls to the top | actual: facet assignments guarded in MainWindow.Facets.cs; FacetRefillIsGuardedSoItDoesNotScrollTheListToTheTop, AUserFacetChangeStillReachesTheFilter green (WPF behaviour itself not run)"
+    },
+    {
+      "id": "S5-2",
+      "file": "src/StreamsPlayer.App/MainWindow.xaml.cs",
+      "line": 250,
+      "severity": "Low",
+      "summary": "session save after a failed catalog load overwrites the saved filters",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S6-1",
+      "file": "src/StreamsPlayer.App/MainWindow.Exchange.cs",
+      "line": 256,
+      "severity": "Medium",
+      "summary": "accepted cast goes through the toggle path and stops the playing station",
+      "disposition": "fixed",
+      "evidence": "expected: a cast for the playing channel keeps it playing | actual: StartCastPlaybackAsync does not use the toggle path (same Url: no-op, changed Url: restart); App-only code reasoned through, not run"
+    },
+    {
+      "id": "S6-2",
+      "file": "src/StreamsPlayer.App/MainWindow.Exchange.cs",
+      "line": 289,
+      "severity": "Low",
+      "summary": "castId-only stop closes every window",
+      "disposition": "fixed",
+      "evidence": "expected: cast-stop closes only the matching broadcast | actual: ExchangeCastLedger tests green (match by broadcastId, oldest-only eviction)"
+    },
+    {
+      "id": "S6-3",
+      "file": "src/StreamsPlayer.App/MainWindow.Exchange.cs",
+      "line": 82,
+      "severity": "Low",
+      "summary": "a directory frame arriving while busy is dropped",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S6-4",
+      "file": "src/StreamsPlayer.App/MainWindow.Exchange.cs",
+      "line": 219,
+      "severity": "Low",
+      "summary": "cast prompt had Yes as default",
+      "disposition": "fixed",
+      "evidence": "expected: the cast prompt defaults to No | actual: MessageBoxResult.No passed, pinned by source test"
+    },
+    {
+      "id": "S6-5",
+      "file": "src/StreamsPlayer.App/MainWindow.Previews.cs",
+      "line": 458,
+      "severity": "Low",
+      "summary": "close work never stops the FastMediaSorter LibVLC leg",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S6-6",
+      "file": "src/StreamsPlayer.App/MainWindow.Previews.cs",
+      "line": 423,
+      "severity": "Low",
+      "summary": "one throwing close step skips the engine disposals",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S6-7",
+      "file": "src/StreamsPlayer.App/MainWindow.SystemMedia.cs",
+      "line": 133,
+      "severity": "Low",
+      "summary": "media-key next plays a hidden or retired channel",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S6-8",
+      "file": "src/StreamsPlayer.App/MainWindow.ImportExport.cs",
+      "line": 371,
+      "severity": "Low",
+      "summary": "a refused save is shown as an unreadable file",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S6-9",
+      "file": "src/StreamsPlayer.App/MainWindow.ImportExport.cs",
+      "line": 295,
+      "severity": "Low",
+      "summary": "stale status line after a no-channels refusal",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S6-10",
+      "file": "src/StreamsPlayer.App/MainWindow.ImportExport.cs",
+      "line": 199,
+      "severity": "Low",
+      "summary": "failure dialog raised before the busy state is cleared",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S7-1",
+      "file": "src/StreamsPlayer.Core/StreamLaunchArguments.cs",
+      "line": 99,
+      "severity": "High",
+      "summary": "typographic quotes are not rejected so a pasted PowerShell launch command runs attacker text",
+      "disposition": "fixed",
+      "evidence": "expected: an address holding any U+2018..U+201F quote launches by id only | actual: For_LeavesOutAnAddressWithATypographicQuote (8 variants) green, id-only; 41 of 128 new tests failed on the old source; reported by S7 (StreamShortcutService.cs:19) and S10"
+    },
+    {
+      "id": "S7-2",
+      "file": "src/StreamsPlayer.App/SettingsWindow.xaml.cs",
+      "line": 87,
+      "severity": "Medium",
+      "summary": "visual-tree walk before layout finds no Expanders",
+      "disposition": "fixed",
+      "evidence": "expected: group expansion is hooked and restored from a tree that exists | actual: traversal from the page panels; source tests pin the root of the walk and the wiring (visual run not performed)"
+    },
+    {
+      "id": "S7-3",
+      "file": "src/StreamsPlayer.App/SystemMediaControls.cs",
+      "line": 69,
+      "severity": "Low",
+      "summary": "TryCreate catch filter omits UnauthorizedAccessException",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S7-4",
+      "file": "src/StreamsPlayer.App/StandardAudioPlayback.cs",
+      "line": 81,
+      "severity": "Low",
+      "summary": "channel-mode setter swallows silently",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S7-5",
+      "file": "src/StreamsPlayer.App/StandardAudioPlayback.cs",
+      "line": 324,
+      "severity": "Low",
+      "summary": "RetireAsync skips release when native Stop faults",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S7-6",
+      "file": "src/StreamsPlayer.App/SettingsWindow.Context.cs",
+      "line": 283,
+      "severity": "Low",
+      "summary": "SaveNavigationContext reports with notifyUser true",
+      "disposition": "fixed",
+      "evidence": "expected: a decorative save fault shows no dialog | actual: notifyUser:false pinned by source test"
+    },
+    {
+      "id": "S7-7",
+      "file": "src/StreamsPlayer.App/SettingsWindow.Context.cs",
+      "line": 188,
+      "severity": "Low",
+      "summary": "RestoreViewport dereferences unnormalized state in an unguarded callback",
+      "disposition": "fixed",
+      "evidence": "expected: null viewport entries cannot end the process | actual: SettingsUiStateSanitizerTests green and RestoreViewport guarded"
+    },
+    {
+      "id": "S8-1",
+      "file": "src/StreamsPlayer.Core/ExchangeDirectory.cs",
+      "line": 340,
+      "severity": "Medium",
+      "summary": "SupportOf ignores relay endpoints and LAN HTTP video",
+      "disposition": "fixed",
+      "evidence": "expected: a relay-only or HTTP-video broadcast is Supported | actual: ARelayOnlyBroadcastIsListedAsSupportedAndRefreshesAStoredRow and ALanHttpVideoBroadcastIsListedAsSupported green"
+    },
+    {
+      "id": "S8-2",
+      "file": "src/StreamsPlayer.Core/ExchangeProtocol.cs",
+      "line": 89,
+      "severity": "Medium",
+      "summary": "InvalidDataException from the protocol layer is not a connection failure",
+      "disposition": "fixed",
+      "evidence": "expected: protocol faults reconnect instead of ending the loop | actual: same fix and tests as S3-1; ExchangeProtocol.String also reads a lone surrogate as absent (String_ReadsALoneSurrogateAsAbsentInsteadOfThrowing green)"
+    },
+    {
+      "id": "S8-3",
+      "file": "src/StreamsPlayer.Core/CatalogUrlIdentity.cs",
+      "line": 127,
+      "severity": "Medium",
+      "summary": "Redact keeps the path so the capability reaches the clipboard",
+      "disposition": "fixed",
+      "evidence": "expected: a relay or tunnel broadcast id never reaches the failure report | actual: Redact_MasksTheBroadcastIdOfARelayOrTunnelAddress and FailureReport_NeverCarriesABroadcastId green"
+    },
+    {
+      "id": "S8-4",
+      "file": "src/StreamsPlayer.Core/CatalogUrlIdentity.cs",
+      "line": 123,
+      "severity": "Low",
+      "summary": "file URI of a stored local path leaks the Windows user name",
+      "disposition": "fixed",
+      "evidence": "expected: a local path never carries a user name into a report | actual: Redact_ReducesALocalPathToTheBareFileName and Redact_WithholdsALocalPathWhoseLastSegmentIsNotAMediaFile green"
+    },
+    {
+      "id": "S8-5",
+      "file": "src/StreamsPlayer.Core/ExchangeCastCoordinator.cs",
+      "line": 77,
+      "severity": "Medium",
+      "summary": "prompt awaited with no deadline",
+      "disposition": "fixed",
+      "evidence": "expected: an unanswered prompt times out at the 60 s window | actual: Coordinator_APromptThatNeverAnswers_TimesOutAndIsToldToDismiss green"
+    },
+    {
+      "id": "S8-6",
+      "file": "src/StreamsPlayer.Core/ExchangeCastCoordinator.cs",
+      "line": 85,
+      "severity": "Low",
+      "summary": "finally dereferences a field CancelAll nulls",
+      "disposition": "fixed",
+      "evidence": "expected: CancelAll during a prompt does not mask the decision | actual: Coordinator_TheSessionEnding_ReadsAsDeclinedAndDoesNotThrow green"
+    },
+    {
+      "id": "S8-7",
+      "file": "src/StreamsPlayer.Core/ChannelFactSheet.cs",
+      "line": 81,
+      "severity": "Low",
+      "summary": "About Copy all hands the address out without the warnings at fact-sheet level",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S8-8",
+      "file": "src/StreamsPlayer.Core/ExchangeRelayProxy.cs",
+      "line": 148,
+      "severity": "Low",
+      "summary": "relay response status is never read",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S9-1",
+      "file": "src/StreamsPlayer.App/BroadcastsWindow.xaml.cs",
+      "line": 14,
+      "severity": "Medium",
+      "summary": "record ToString exposes BroadcastId and Url to UI Automation",
+      "disposition": "fixed",
+      "evidence": "expected: the automation name carries no address | actual: BroadcastListItemsOverrideToStringSoNoAddressReachesAutomation green"
+    },
+    {
+      "id": "S9-2",
+      "file": "src/StreamsPlayer.App/ChannelInfoWindow.xaml.cs",
+      "line": 96,
+      "severity": "Medium",
+      "summary": "Copy all puts a raw address on the clipboard without confirmation",
+      "disposition": "fixed",
+      "evidence": "expected: Copy all of a credentialed or capability address asks first | actual: ChannelHandOutWarningsTests (9) green, gate precedes Clipboard.SetText"
+    },
+    {
+      "id": "S9-3",
+      "file": "src/StreamsPlayer.App/CompactPanelWindow.xaml.cs",
+      "line": 240,
+      "severity": "Low",
+      "summary": "DragMove throws when the button is not pressed",
+      "disposition": "fixed",
+      "evidence": "expected: a stray DragMove cannot end the app | actual: button-state guard and catch pinned by source test"
+    },
+    {
+      "id": "S9-4",
+      "file": "src/StreamsPlayer.App/BroadcastsWindow.xaml.cs",
+      "line": 105,
+      "severity": "Low",
+      "summary": "handler name collides with another window's",
+      "disposition": "fixed",
+      "evidence": "expected: handler names are window-qualified | actual: BroadcastHandlersReportUnderWindowQualifiedNames green"
+    },
+    {
+      "id": "S9-5",
+      "file": "src/StreamsPlayer.App/CurrentLog.cs",
+      "line": 126,
+      "severity": "Low",
+      "summary": "one failed log write drops the writer for the session",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S10-2",
+      "file": "src/StreamsPlayer.Core/StreamLaunchArguments.cs",
+      "line": 98,
+      "severity": "Medium",
+      "summary": "credential test does not know the exchange broadcast redaction",
+      "disposition": "fixed",
+      "evidence": "expected: a relay or tunnel capability address launches by id only | actual: For_LeavesOutABroadcastCapabilityAddress green (after D1 the predicate is the anchored CarriesCapability)"
+    },
+    {
+      "id": "S10-3",
+      "file": "src/StreamsPlayer.Core/FastMediaSorterBroadcast.cs",
+      "line": 314,
+      "severity": "Medium",
+      "summary": "ReadJson does not catch InvalidOperationException",
+      "disposition": "fixed",
+      "evidence": "expected: a lone-surrogate descriptor reads as InvalidPayload | actual: ALoneSurrogateEscapeReadsAsAnInvalidPayload (5 variants) green; InvalidOperationException on the old source"
+    },
+    {
+      "id": "S10-4",
+      "file": "src/StreamsPlayer.Core/FastMediaSorterBroadcastImport.cs",
+      "line": 178,
+      "severity": "Medium",
+      "summary": "ApplyStored falls back to URL identity over any non-catalog row",
+      "disposition": "fixed",
+      "evidence": "expected: a directory push never takes over a Manual or Imported row | actual: ApplyStored_NeverTakesOverARowThatOnlySharesTheAddress green, row byte-identical"
+    },
+    {
+      "id": "S10-5",
+      "file": "src/StreamsPlayer.Core/SettingsUiStateStore.cs",
+      "line": 61,
+      "severity": "Low",
+      "summary": "LoadSync treats an empty file as unreadable",
+      "disposition": "fixed",
+      "evidence": "expected: a zero-byte settings-ui.json reads as absent | actual: ZeroByteFileReadsAsAbsentForBothReadsAndSavingStillWorks green"
+    },
+    {
+      "id": "S10-6",
+      "file": "src/StreamsPlayer.Core/SettingsUiStateStore.cs",
+      "line": 63,
+      "severity": "Low",
+      "summary": "parsed state with null dictionaries returned as is",
+      "disposition": "fixed",
+      "evidence": "expected: null members are normalized on both reads | actual: NullMembersOfAParsedDocumentAreNormalizedForBothReads green"
+    },
+    {
+      "id": "S10-7",
+      "file": "src/StreamsPlayer.Core/ExchangeTunnelForwarder.cs",
+      "line": 139,
+      "severity": "Low",
+      "summary": "connect and handshake carry no deadline of their own",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "S10-8",
+      "file": "src/StreamsPlayer.Core/StreamLaunchArguments.cs",
+      "line": 49,
+      "severity": "Low",
+      "summary": "ForPowerShell doubles only the ASCII apostrophe",
+      "disposition": "fixed",
+      "evidence": "expected: typographic single quotes in the executable path are doubled | actual: ForPowerShell_DoublesEveryTypographicSingleQuoteInThePath green"
+    },
+    {
+      "id": "S10-9",
+      "file": "src/StreamsPlayer.Core/M3uPlaylistParser.cs",
+      "line": 108,
+      "severity": "Low",
+      "summary": "no per-field length cap on imported titles and addresses",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "R3-1",
+      "file": "src/StreamsPlayer.App/PlayerWindow.xaml.cs",
+      "line": 761,
+      "severity": "Medium",
+      "summary": "engine errors carry no attempt token",
+      "disposition": "fixed",
+      "evidence": "expected: an engine error of a superseded attempt is dropped | actual: epoch read at the event and checked on the UI thread; BroadcastAttemptAdvanceTests green (residual: a duplicate raised after the advance cannot be told apart, engine gives no media id)"
+    },
+    {
+      "id": "R3-2",
+      "file": "src/StreamsPlayer.App/PlayerWindow.xaml.cs",
+      "line": 580,
+      "severity": "Medium",
+      "summary": "pre-live end went straight to recovery from attempt 0",
+      "disposition": "fixed",
+      "evidence": "expected: a pre-live end_reached advances to the next endpoint | actual: AdvanceOrRecover routes it through CanAdvanceAttempt, post-live behaviour unchanged; source tests green"
+    },
+    {
+      "id": "R3-3",
+      "file": "src/StreamsPlayer.App/PlayerWindow.Attempts.cs",
+      "line": 44,
+      "severity": "Medium",
+      "summary": "leg clock not restarted so the successor hit the deadline on the next tick",
+      "disposition": "fixed",
+      "evidence": "expected: the successor of an advanced attempt gets its full slice | actual: AnAttemptStartedAtTheLegCeilingGetsItsFullSliceBeforeTheCeilingAppliesToIt and AListOfExhaustedAttemptsStillEndsTheLegAtTheCeiling green"
+    },
+    {
+      "id": "R3-4",
+      "file": "src/StreamsPlayer.App/PlayerWindow.Legs.cs",
+      "line": 106,
+      "severity": "Low",
+      "summary": "shared bool for overlapping opens",
+      "disposition": "fixed",
+      "evidence": "expected: an earlier open finishing does not clear a later open's mark | actual: RecoveryLegOpenTracker tests green (per-leg key, no negative count)"
+    },
+    {
+      "id": "R3-5",
+      "file": "src/StreamsPlayer.Core/SettingsUiStateStore.cs",
+      "line": 106,
+      "severity": "Low",
+      "summary": "duplicate sanitizer with a different predicate",
+      "disposition": "fixed",
+      "evidence": "expected: one sanitizer for both reads | actual: AnAnchorWithAnEmptyGroupIdIsDroppedOnBothReads green"
+    },
+    {
+      "id": "R3-6",
+      "file": "src/StreamsPlayer.App/MainWindow.ChannelShare.cs",
+      "line": 24,
+      "severity": "Low",
+      "summary": "share path still hand-rolls the hand-out confirmations",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "R3-7",
+      "file": "src/StreamsPlayer.App/ChannelInfoWindow.xaml.cs",
+      "line": 116,
+      "severity": "Low",
+      "summary": "Copy all warning wording speaks of the share text and ignores the homepage field",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "R2-1",
+      "file": "src/StreamsPlayer.App/MainWindow.Exchange.cs",
+      "line": 404,
+      "severity": "Medium",
+      "summary": "dismissal picks the dialog by owner and class",
+      "disposition": "fixed",
+      "evidence": "expected: only the cast prompt itself is ever closed by the timeout | actual: dismissal requires owner + #32770 + visible + caption equals the cast title + not in the pre-Show snapshot + exactly one candidate, else nothing closes (Win32 behaviour reasoned through, not run)"
+    },
+    {
+      "id": "R2-2",
+      "file": "src/StreamsPlayer.App/ExchangeSourceService.cs",
+      "line": 177,
+      "severity": "Medium",
+      "summary": "failed enrollment reads as success",
+      "disposition": "fixed",
+      "evidence": "expected: a refused enrollment stays visible after the receiver returns online | actual: RefusedEnrollment_KeepsItsReasonAfterTheReceiverIsBackOnline and SuccessfulEnrollment_LeavesNoOutcomeBehind green"
+    },
+    {
+      "id": "R2-3",
+      "file": "src/StreamsPlayer.App/MainWindow.Exchange.cs",
+      "line": 296,
+      "severity": "Low",
+      "summary": "entry registered after the persist await",
+      "disposition": "fixed",
+      "evidence": "expected: a cast-stop during the save is not lost | actual: record registered before the await; Ledger tests green"
+    },
+    {
+      "id": "R2-4",
+      "file": "src/StreamsPlayer.App/MainWindow.Exchange.cs",
+      "line": 292,
+      "severity": "Low",
+      "summary": "Clear dropped the live cast",
+      "disposition": "fixed",
+      "evidence": "expected: overflow evicts the oldest entry only | actual: Ledger_* tests green"
+    },
+    {
+      "id": "R2-5",
+      "file": "src/StreamsPlayer.App/ExchangeSourceService.cs",
+      "line": 515,
+      "severity": "Low",
+      "summary": "repeats fill the task cap",
+      "disposition": "fixed",
+      "evidence": "expected: offers past the cap are declined and never crowd out open ones | actual: OffersPastThePendingCap_AreDeclinedAtOnceAndNeverCrowdOutTheOpenOnes green"
+    },
+    {
+      "id": "R2-6",
+      "file": "src/StreamsPlayer.App/ExchangeSourceService.cs",
+      "line": 633,
+      "severity": "Low",
+      "summary": "non-connection exception escapes the answer task",
+      "disposition": "fixed",
+      "evidence": "expected: a throwing prompt handler is answered declined | actual: PromptHandlerThatThrows_IsAnsweredDeclinedAndTheStreamKeepsWorking green"
+    },
+    {
+      "id": "R2-7",
+      "file": "src/StreamsPlayer.App/ExchangeSourceService.cs",
+      "line": 124,
+      "severity": "Low",
+      "summary": "stale resume intent after a refusal",
+      "disposition": "fixed",
+      "evidence": "expected: no loop is started for a token-less account | actual: Enabled and Token re-checked in the finally; source-reasoned (race window inside StopLoopAsync not deterministic)"
+    },
+    {
+      "id": "R2-8",
+      "file": "src/StreamsPlayer.App/MainWindow.Exchange.cs",
+      "line": 315,
+      "severity": "Low",
+      "summary": "same-id window kept for a changed Url",
+      "disposition": "fixed",
+      "evidence": "expected: a changed descriptor Url restarts the open window | actual: window closed and reopened when its Url differs (WPF code reasoned through, not run)"
+    },
+    {
+      "id": "R2-9",
+      "file": "src/StreamsPlayer.Core/ExchangeCastCoordinator.cs",
+      "line": 113,
+      "severity": "Low",
+      "summary": "folded follower inherits the abandoned leader's timeout",
+      "disposition": "fixed",
+      "evidence": "expected: a live follower becomes the leader instead of inheriting TimedOut | actual: two coordinator tests green, one failed old behaviour with expected: Accepted | actual: TimedOut"
+    },
+    {
+      "id": "R1-1",
+      "file": "src/StreamsPlayer.Core/ExchangeDiagnosticRedactor.cs",
+      "line": 16,
+      "severity": "Medium",
+      "summary": "unanchored broadcast path pattern over-rejects ordinary URLs",
+      "disposition": "fixed",
+      "evidence": "expected: an ordinary address with a /b/ segment keeps its shortcut address and is not masked | actual: For_CarriesAnOrdinaryAddressWithABSegment and Redact_LeavesAnOrdinaryAddressWithABSegmentAsItWas green; 26 new cases failed on the old source"
+    },
+    {
+      "id": "R1-2",
+      "file": "src/StreamsPlayer.Core/ExchangeDirectory.cs",
+      "line": 361,
+      "severity": "Low",
+      "summary": "SupportOf and PlaybackAttemptEndpoints disagree on a non-empty list with no playable entry; comment overstates",
+      "disposition": "ticketed",
+      "ticket": "SP-0212"
+    },
+    {
+      "id": "R1-3",
+      "file": "src/StreamsPlayer.Core/CatalogUrlIdentity.cs",
+      "line": 133,
+      "severity": "Low",
+      "summary": "mask applied to the path only",
+      "disposition": "fixed",
+      "evidence": "expected: query and fragment are masked too | actual: Redact_MasksTheBroadcastIdInTheQueryAndFragmentOfACapabilityAddress green"
+    },
+    {
+      "id": "R1-4",
+      "file": "src/StreamsPlayer.Core/CatalogUrlIdentity.cs",
+      "line": 150,
+      "severity": "Low",
+      "summary": "local-address redaction returns a user name segment",
+      "disposition": "fixed",
+      "evidence": "expected: a non-media local path is withheld and control characters stripped | actual: Redact_WithholdsALocalPathWhoseLastSegmentIsNotAMediaFile and Redact_StripsControlCharactersFromAReturnedLocalFileName green"
+    },
+    {
+      "id": "R1-5",
+      "file": "src/StreamsPlayer.Core/StreamLaunchArguments.cs",
+      "line": 162,
+      "severity": "Low",
+      "summary": "hex-pair exemption accepted a hex-named variable",
+      "disposition": "fixed",
+      "evidence": "expected: %DATE%AB and %=ExitCode% do not carry | actual: For_LeavesOutAnAddressWithAHexNamedOrEqualsNamedCmdVariable (7 variants) and For_StillCarriesPercentEncodedNonAsciiPaths green"
+    },
+    {
+      "id": "R1-7",
+      "file": "src/StreamsPlayer.Core/ExchangeCast.cs",
+      "line": 43,
+      "severity": "Low",
+      "summary": "cast-offer record and ids unbounded",
+      "disposition": "fixed",
+      "evidence": "expected: an over-long id or record is refused | actual: five cap tests green"
+    },
+    {
+      "id": "R1-8",
+      "file": "src/StreamsPlayer.Core/IcecastStatusParser.cs",
+      "line": 57,
+      "severity": "Low",
+      "summary": "GetString throws InvalidOperationException outside the catch",
+      "disposition": "fixed",
+      "evidence": "expected: a lone-surrogate status member is not a status document | actual: ALoneSurrogateInAStatusMemberIsNotAStatusDocumentAndDoesNotThrow (3 variants) green"
+    }
+  ],
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "Directory.Build.props",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "build.ps1",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "installer/StreamsPlayer.iss",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "msix/AppxManifest.xml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "msix/build-msix.ps1",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "run.ps1",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "scripts/Assert-AuditVerdict.ps1",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "scripts/Assert-PinnedNatives.ps1",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "scripts/Write-AuditVerdict.ps1",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "scripts/Write-SmokeVerdict.ps1",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "scripts/assert-release-version.ps1",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "scripts/build-local.ps1",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "scripts/check-docs.ps1",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "scripts/check.ps1",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "scripts/release.ps1",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "scripts/smoke-playback.ps1",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/AddStreamWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/AddStreamWindow.xaml.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/App.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/App.xaml.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/AppPaths.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/AssemblyInfo.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/AudioDeviceService.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/BackdropEnvironment.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/BroadcastsWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/BroadcastsWindow.xaml.cs",
+      "read": true,
+      "findings": 2
+    },
+    {
+      "path": "src/StreamsPlayer.App/CaptureFolders.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/CapturedFrameWriter.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/CatalogRowCollection.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ChannelInfoWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ChannelInfoWindow.xaml.cs",
+      "read": true,
+      "findings": 2
+    },
+    {
+      "path": "src/StreamsPlayer.App/ChannelPreviewImporter.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ChannelRow.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/CollectionsWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/CollectionsWindow.xaml.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/CompactPanelWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/CompactPanelWindow.xaml.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.App/CountryFlags.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/CurrentLog.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.App/ExchangeAccountStore.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ExchangeSourceService.cs",
+      "read": true,
+      "findings": 10
+    },
+    {
+      "path": "src/StreamsPlayer.App/ExchangeTlsConnection.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/FailureCauseText.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/FastMediaSorterAudioPlayback.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/FastMediaSorterPlaybackTransport.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/FaviconAtlasSet.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/FaviconTileLoader.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/FirstRunCatalogWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/FirstRunCatalogWindow.xaml.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/FlyleafVideoBackend.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ForegroundActivation.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/Glyph.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/Glyphs.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/GridPreviewCoordinator.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/HandlerBoundary.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/HiddenChannelsWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/HiddenChannelsWindow.xaml.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/IVideoBackend.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ImportPreviewWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ImportPreviewWindow.xaml.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ImportUrlWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ImportUrlWindow.xaml.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/LanguageChoice.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/LibVlcRecording.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/LibVlcVideoBackend.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ListeningHistoryWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ListeningHistoryWindow.xaml.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/LocalizationService.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/LogArchiveReadyWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/LogArchiveReadyWindow.xaml.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/LogReportMailer.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.AudioOutputProof.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.AudioRecovery.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.AudioStallWatchdog.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Backdrop.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.BrowsingSession.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.CatalogPurge.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.CatalogSnapshot.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.CatalogView.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.ChannelPreviews.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.ChannelShare.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Collections.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.CompactPanel.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Diagnostics.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Exchange.cs",
+      "read": true,
+      "findings": 8
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Facets.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.FastMediaSorterBroadcast.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.FastMediaSorterPlayback.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.FilterPanel.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Hide.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.History.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.ImportExport.cs",
+      "read": true,
+      "findings": 3
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Launch.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.LaunchEntries.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Localization.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.NowPlaying.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Operations.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.PinnedSection.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Previews.cs",
+      "read": true,
+      "findings": 2
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Progress.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.RandomStation.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Recording.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.ResumePlayback.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Reveal.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.Settings.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.SleepTimer.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.SystemMedia.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.TvSchedule.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.VideoComponents.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MainWindow.xaml.cs",
+      "read": true,
+      "findings": 2
+    },
+    {
+      "path": "src/StreamsPlayer.App/MonitorWorkArea.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/MonogramPalette.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlaybackFailureDialog.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlaybackFailureDialog.xaml.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlaybackStatusProbe.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerGeometryFile.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.Attempts.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.Geometry.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.Health.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.Legs.cs",
+      "read": true,
+      "findings": 3
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.Notice.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.NowPlaying.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.OutputProof.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.Quality.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.Recording.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.TvSchedule.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PlayerWindow.xaml.cs",
+      "read": true,
+      "findings": 3
+    },
+    {
+      "path": "src/StreamsPlayer.App/PreviewFrameCache.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PreviewFrameStore.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ProductInfo.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/PromptDismissal.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/QualityMemoryFile.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/RecordingFinisher.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/RecordingStaging.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/RecordingWriteProbe.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/SettingsUiProperties.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/SettingsWindow.Context.cs",
+      "read": true,
+      "findings": 2
+    },
+    {
+      "path": "src/StreamsPlayer.App/SettingsWindow.Exchange.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/SettingsWindow.Search.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/SettingsWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/SettingsWindow.xaml.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.App/SignalHealthAppearance.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/SingleInstanceLock.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/SmokeRecording.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/StandardAudioPlayback.cs",
+      "read": true,
+      "findings": 2
+    },
+    {
+      "path": "src/StreamsPlayer.App/StreamAudioRecorder.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/StreamQualityLadderProbe.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/StreamReachabilityProbe.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/StreamShortcutService.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/StreamTitleFormatter.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/StreamTransmissionProbe.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/StreamsPlayer.App.csproj",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/SystemMediaControls.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.App/ThemeService.HighContrast.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/ThemeService.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/TopicLabels.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/TvScheduleBindingWindow.xaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/TvScheduleBindingWindow.xaml.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/VideoBackendFactory.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/VideoFrameCaptureService.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/VideoRecordingSession.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/VisualAncestry.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/WakeGuard.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/WaveParticlesBackdrop.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.App/WaveParticlesBackdropSession.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/WindowCloaking.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.App/WindowTitleBar.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/AbandonedEngineBudget.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ActivationMessage.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ActivationPipe.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/AdaptiveQualityGovernor.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ArtworkManifest.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/AudioStallDetector.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/BroadcastAttemptAdvance.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/BroadcastCapabilityAddress.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/BroadcastLiveCache.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/BroadcastText.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/BrowsingSession.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/BrowsingSessionStore.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/BundledCatalogSnapshot.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CaptureFileName.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CaptureFolderChain.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CaptureFolderChoices.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CatalogCountries.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CatalogLanguages.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CatalogMerger.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CatalogOffer.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CatalogPurge.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CatalogRefreshOutcome.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CatalogSnapshotOutcome.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CatalogSnapshotService.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CatalogStateCommitter.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CatalogTopics.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CatalogUrlIdentity.cs",
+      "read": true,
+      "findings": 4
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ChannelCollections.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ChannelFactSheet.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ChannelHandOutWarnings.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ChannelMonogram.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ChannelOwnership.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ChannelPreviewArtworkService.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ChannelPreviewCoords.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ChannelPreviewTilePack.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ChannelShareText.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CountryNames.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/CountryPreference.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/DesktopShortcutName.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/DiagnosticArchiveBuilder.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/DiagnosticEnvironmentSummary.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/DiagnosticLogFiles.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/DiagnosticMailLink.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/DiagnosticPathRedactor.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/DistinctKeyRanking.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/DurableFile.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/EngineFailureTrail.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/EngineLogNoiseFilter.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ExchangeCast.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ExchangeCastCoordinator.cs",
+      "read": true,
+      "findings": 3
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ExchangeCertificatePin.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ExchangeDiagnosticRedactor.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ExchangeDirectory.cs",
+      "read": true,
+      "findings": 2
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ExchangeDirectoryChannels.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ExchangeHandshake.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ExchangeProtocol.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ExchangeRelayProxy.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ExchangeTunnelForwarder.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ExchangeTunnelUrl.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/FFmpegComponents.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/FFmpegComponentsInstaller.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/FailureCause.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/FailureReportFormatter.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/FastMediaSorterBroadcast.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.Core/FastMediaSorterBroadcastAttempts.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/FastMediaSorterBroadcastImport.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.Core/FastMediaSorterPlaybackFailure.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/FaultLogFields.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/FaviconAtlasReferences.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/HttpDownload.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/IcecastStatusParse.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/IcecastStatusParser.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.Core/IcecastStatusReadOutcome.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/IcecastStatusReadResult.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/IcecastStatusReader.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/IcyMetadataParser.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/IcyMetadataReader.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/IcyReadOutcome.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/IcyReadResult.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/IcyResponseHead.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/IcyTextDecoder.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/InterfaceLanguages.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/LaunchableAddress.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ListeningHistory.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/LiveEdgeCorridor.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/LivePlaybackNavigation.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/LivePlaybackRecoveryPolicy.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/LocalizedFormat.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/M3uImportService.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/M3uPlaylistFile.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/M3uPlaylistParser.cs",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.Core/M3uPlaylistWriter.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/Models.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/NowPlayingTracker.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlaybackConnectionSequence.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlaybackErrorCategory.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlaybackFailureSignal.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlaybackFreezeDetector.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlaybackInterruption.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlaybackOpenBudget.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlaybackReachability.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlaybackRecoveryClassifier.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlaybackStatsFilter.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlayerWindowGeometry.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlayerWindowGeometryStore.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PlayingRendition.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PngHeader.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PreviewCaptureCooldown.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/PublishWindowRetry.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/QualityMemory.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/QualityMemoryStore.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/RandomStationHuntPolicy.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/RandomStationSelection.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/RecordedAudioFormat.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/RecordingLength.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/RecoveryTrigger.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/Rfc4180Csv.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/ScreenPlacement.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/SettingsUiState.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/SettingsUiStateSanitizer.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/SettingsUiStateStore.cs",
+      "read": true,
+      "findings": 3
+    },
+    {
+      "path": "src/StreamsPlayer.Core/SignalHealth.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/SignalHealthMonitor.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/SingleInstanceIdentity.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/SleepTimerPlan.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StationPlaylist.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StreamBankLimitException.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StreamBankReader.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StreamBitrate.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StreamCatalogCsvParser.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StreamCatalogService.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StreamCatalogStore.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StreamEndpoint.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StreamLaunchArguments.cs",
+      "read": true,
+      "findings": 4
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StreamMediaKindClassifier.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StreamQualityLadder.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/StreamsPlayer.Core.csproj",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "src/StreamsPlayer.Core/TextBoundary.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/TolerantAppLanguageConverter.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/TolerantEnumConverter.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/TvSchedule.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/TvScheduleIndex.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/TvScheduleLines.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/TvScheduleMatcher.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/TvScheduleService.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/TvScheduleStore.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/UserAuthoredChannels.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/WaveParticlesConstants.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/WaveParticlesSession.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/WaveParticlesTypes.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "src/StreamsPlayer.Core/XmltvParser.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "tools/StreamsPlayer.CatalogHarness/Program.cs",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "tools/StreamsPlayer.CatalogHarness/StreamsPlayer.CatalogHarness.csproj",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "tools/build-catalog-snapshot.ps1",
+      "read": true,
+      "findings": 1
+    },
+    {
+      "path": "tools/build-country-names.ps1",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "tools/build-installer.ps1",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "winget/templates/SerZhyAle.StreamsPlayer.installer.yaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "winget/templates/SerZhyAle.StreamsPlayer.locale.en-US.yaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "winget/templates/SerZhyAle.StreamsPlayer.locale.ru-RU.yaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "winget/templates/SerZhyAle.StreamsPlayer.locale.uk-UA.yaml",
+      "read": true,
+      "findings": 0
+    },
+    {
+      "path": "winget/templates/SerZhyAle.StreamsPlayer.yaml",
+      "read": true,
+      "findings": 0
+    }
+  ]
+}
