@@ -250,6 +250,100 @@ public sealed class ExchangeCastSeamTests
     }
 
     [Fact]
+    public async Task PromptHandlerThatThrows_IsAnsweredDeclinedAndTheStreamKeepsWorking()
+    {
+        // expected: the caster gets a declined answer and the loop keeps reading | actual (before): the
+        // answer task faulted, nothing was sent and the offer ended only at the server's 60 s window.
+        await WithServiceAsync(autoAccept: false,
+            configure: service => service.CastPromptRequested += (_, _) =>
+                throw new InvalidOperationException("The dispatcher is shutting down."),
+            test: (_, script) => script,
+            server: async (tls, token) =>
+            {
+                await DoHandshakeAsync(tls, token);
+                await ExchangeProtocol.WriteAsync(tls, CastOffer("b_throws", HttpAudio("Throws Radio")), true, token);
+
+                using var answer = await ExchangeProtocol.ReadAsync(tls, true, token);
+                AssertContractAnswer(answer.RootElement, "b_throws");
+                Assert.False(answer.RootElement.GetProperty("accepted").GetBoolean());
+                Assert.Equal("declined", ExchangeProtocol.String(answer.RootElement, "reason"));
+
+                // The control stream still reads: an unsupported offer afterwards is answered as usual.
+                await ExchangeProtocol.WriteAsync(tls, CastOffer("b_after", new
+                {
+                    schemaVersion = 1, url = "p2p://x", mode = "AUDIO_ONLY", title = "P2P", isLive = true,
+                    endpoints = new[] { new { url = "p2p://x", transport = "P2P", mode = "AUDIO_ONLY" } }
+                }), true, token);
+                using var next = await ExchangeProtocol.ReadAsync(tls, true, token);
+                AssertContractAnswer(next.RootElement, "b_after");
+                Assert.Equal("unsupported", ExchangeProtocol.String(next.RootElement, "reason"));
+            });
+    }
+
+    [Fact]
+    public async Task OffersPastThePendingCap_AreDeclinedAtOnceAndNeverCrowdOutTheOpenOnes()
+    {
+        // expected: ten distinct broadcasts -> the ninth and tenth are declined immediately, the first eight
+        // stay open for the user and are all answered once he says yes | actual (before): a repeat or a fast
+        // answer could fill the slots and other broadcasts' offers were dropped without an answer.
+        var release = new TaskCompletionSource<bool>();
+        var prompts = 0;
+        await WithServiceAsync(autoAccept: false,
+            configure: service => service.CastPromptRequested += (_, _) =>
+            {
+                Interlocked.Increment(ref prompts);
+                return release.Task;
+            },
+            test: (_, script) => script,
+            server: async (tls, token) =>
+            {
+                await DoHandshakeAsync(tls, token);
+                for (var index = 0; index < 10; index++)
+                {
+                    await ExchangeProtocol.WriteAsync(tls, CastOffer("b_" + index, HttpAudio("Radio " + index)), true, token);
+                }
+
+                // Repeats of an open broadcast past its own bound are dropped without an answer.
+                for (var repeat = 0; repeat < 6; repeat++)
+                {
+                    await ExchangeProtocol.WriteAsync(tls, CastOffer("b_0", HttpAudio("Radio 0")), true, token);
+                }
+
+                var refused = new List<string>();
+                while (refused.Count < 2)
+                {
+                    using var frame = await ExchangeProtocol.ReadAsync(tls, true, token);
+                    if (ExchangeProtocol.String(frame.RootElement, "type") != "cast-answer")
+                    {
+                        continue;
+                    }
+
+                    Assert.False(frame.RootElement.GetProperty("accepted").GetBoolean());
+                    Assert.Equal("declined", ExchangeProtocol.String(frame.RootElement, "reason"));
+                    refused.Add(ExchangeProtocol.String(frame.RootElement, "broadcastId") ?? "");
+                }
+
+                Assert.Equal(["b_8", "b_9"], refused.Order(StringComparer.Ordinal).ToArray());
+                Assert.Equal(1, Volatile.Read(ref prompts));
+                release.SetResult(true);
+
+                // Eight broadcasts, the first answered once per offer that was kept for it (1 + 3 repeats).
+                var accepted = new HashSet<string>();
+                while (accepted.Count < 8)
+                {
+                    using var frame = await ExchangeProtocol.ReadAsync(tls, true, token);
+                    if (ExchangeProtocol.String(frame.RootElement, "type") == "cast-answer"
+                        && frame.RootElement.GetProperty("accepted").GetBoolean())
+                    {
+                        accepted.Add(ExchangeProtocol.String(frame.RootElement, "broadcastId") ?? "");
+                    }
+                }
+
+                Assert.Equal(Enumerable.Range(0, 8).Select(index => "b_" + index).Order(StringComparer.Ordinal),
+                    accepted.Order(StringComparer.Ordinal));
+            });
+    }
+    [Fact]
     public async Task CastStop_DispatchesEvent()
     {
         ExchangeCastStop? observedStop = null;

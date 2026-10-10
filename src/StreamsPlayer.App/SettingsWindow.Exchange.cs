@@ -43,7 +43,12 @@ public partial class SettingsWindow
         ExchangeForgetButton.IsEnabled = !_exchangeBusy;
         ExchangeTrustButton.Visibility = Exchange.Account.Token is not null && Exchange.PresentedFingerprint is not null
             ? Visibility.Visible : Visibility.Collapsed;
-        ExchangeStatusText.Text = LocalizationService.Get(Exchange.StatusKey);
+        // A failed enrollment's reason is kept above the connection line: the receiver it put back reports
+        // "online" within a second, and the reason must not vanish with it.
+        var status = LocalizationService.Get(Exchange.StatusKey);
+        ExchangeStatusText.Text = Exchange.EnrollmentOutcomeKey is { } outcome && outcome != Exchange.StatusKey
+            ? LocalizationService.Get(outcome) + Environment.NewLine + status
+            : status;
         ExchangeFingerprintText.Text = Exchange.PresentedFingerprint is { } presented
             ? LocalizationService.Format("ExchangeCertificatePrompt", Exchange.PreviousFingerprint ?? "-", presented)
             : "";

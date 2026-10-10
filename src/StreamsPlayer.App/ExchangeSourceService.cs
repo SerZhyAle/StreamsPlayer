@@ -20,9 +20,26 @@ internal sealed class ExchangeSourceService
     private bool _storageUnavailable;
     private readonly ExchangeDirectoryState _directory = new();
     private readonly ExchangeCastCoordinator _castCoordinator = new();
-    private const int MaximumOpenCastOffers = 8;
+    // Bounds on what one control stream can make this device hold open. Distinct broadcasts waiting on the
+    // user are few by nature (one prompt is on screen at a time); repeats of one broadcast and the answers
+    // that need no question (unsupported, auto-accept) are counted apart, so neither can crowd out the other.
+    private const int MaximumPendingCastBroadcasts = 8;
+    private const int MaximumAnswersPerBroadcast = 4;
+    private const int MaximumLiveCastAnswers = 64;
+
+    private readonly record struct OpenCastAnswer(string BroadcastId, bool AwaitsUser, Task Task);
     internal ExchangeAccount Account { get; private set; } = new(ExchangeProtocol.NewDeviceId());
     internal string StatusKey { get; private set; } = "ExchangeOff";
+
+    /// <summary>
+    /// The localized key of how the last enrollment attempt ended, when it did not succeed. It is a separate
+    /// line from <see cref="StatusKey"/> because a refused enrollment puts the previous receiver back, and
+    /// that receiver's own "online" would otherwise replace the refusal within a second - a failed
+    /// enrollment would read as a successful one. It stays until the user's next action on the account
+    /// (enroll, enable or disable, trust, forget).
+    /// </summary>
+    internal string? EnrollmentOutcomeKey { get; private set; }
+
     // The pending certificate replacement of the account's own server. Both are set only for a fingerprint
     // read from the account's host and port (_presentedHost/_presentedPort), never for another server.
     internal string? PreviousFingerprint { get; private set; }
@@ -69,9 +86,12 @@ internal sealed class ExchangeSourceService
 
     internal async Task<string?> InspectCertificateAsync(string host, int port)
     {
+        // The probe is the first step of an enrollment, so it starts a new attempt: the last attempt's
+        // outcome is not the answer to this one.
+        EnrollmentOutcomeKey = null;
         if (Uri.CheckHostName(host) == UriHostNameType.Unknown || port is < 1 or > 65535)
         {
-            SetStatus("ExchangeInvalidEntry");
+            ReportOutcome("ExchangeInvalidEntry");
             return null;
         }
 
@@ -95,7 +115,8 @@ internal sealed class ExchangeSourceService
         }
         catch (Exception exception) when (IsConnectionFailure(exception))
         {
-            SetStatus("ExchangeUnavailable");
+            // The probe never touched the account's receiver, so its connection line is left as it is.
+            ReportOutcome("ExchangeUnavailable");
             return null;
         }
     }
@@ -108,6 +129,7 @@ internal sealed class ExchangeSourceService
         var resumePrevious = false;
         try
         {
+            EnrollmentOutcomeKey = null;
             EnsureStorage();
             login = login.ToLowerInvariant();
             if (Uri.CheckHostName(host) == UriHostNameType.Unknown || port is < 1 or > 65535
@@ -115,7 +137,8 @@ internal sealed class ExchangeSourceService
                     character is not (>= 'a' and <= 'z') and not (>= '0' and <= '9') and not '.' and not '_' and not '-')
                 || secret.Length == 0)
             {
-                SetStatus("ExchangeInvalidEntry");
+                // Nothing was stopped, so the receiver's connection line is not this attempt's to overwrite.
+                ReportOutcome("ExchangeInvalidEntry");
                 return;
             }
 
@@ -138,8 +161,7 @@ internal sealed class ExchangeSourceService
             var root = response.RootElement;
             if (ExchangeProtocol.String(root, "type") == "refused")
             {
-                var refusalKey = ExchangeProtocol.RefusalKey(ExchangeProtocol.String(root, "reason"));
-                SetStatus(refusalKey);
+                FailEnrollment(ExchangeProtocol.RefusalKey(ExchangeProtocol.String(root, "reason")));
                 return;
             }
 
@@ -163,21 +185,25 @@ internal sealed class ExchangeSourceService
         }
         catch (ExchangeCertificateException exception)
         {
+            EnrollmentOutcomeKey = "ExchangeCertificate";
             ShowCertificate(exception, host, port);
         }
         catch (Exception exception) when (IsConnectionFailure(exception))
         {
-            SetStatus(savingAccount || _storageUnavailable || exception is UnauthorizedAccessException
+            FailEnrollment(savingAccount || _storageUnavailable || exception is UnauthorizedAccessException
                 ? "ExchangeStorageFailed" : "ExchangeUnavailable");
         }
         finally
         {
             Array.Clear(secret);
             connection?.Dispose();
-            if (resumePrevious && _connectionCancellation is null)
+            // resumePrevious was read before the receiver was stopped. A loop that was still running then may
+            // have handled a revocation or a bad-credentials refusal while it wound down, which clears the
+            // token and the enabled flag: starting it again would reconnect a token-less account.
+            if (resumePrevious && _connectionCancellation is null && Account.Enabled && Account.Token is not null)
             {
-                // The refusal or failure stays on the status line until the receiver is back, not replaced
-                // by "connecting" the moment it starts again.
+                // The outcome of this attempt is kept in EnrollmentOutcomeKey; the receiver's own state
+                // follows from here on, without announcing "connecting" over the refusal first.
                 StartLoop(null, 0, announceConnecting: false);
             }
 
@@ -190,6 +216,7 @@ internal sealed class ExchangeSourceService
         await _operations.WaitAsync().ConfigureAwait(false);
         try
         {
+            EnrollmentOutcomeKey = null;
             EnsureStorage();
             await StopLoopAsync().ConfigureAwait(false);
             var updated = Account with { Enabled = enabled && Account.Token is not null };
@@ -242,6 +269,7 @@ internal sealed class ExchangeSourceService
                 throw new InvalidOperationException("No pending certificate replacement.");
             }
 
+            EnrollmentOutcomeKey = null;
             await StopLoopAsync().ConfigureAwait(false);
             var updated = Account with { Pin = fingerprint };
             _store.Save(updated);
@@ -263,9 +291,10 @@ internal sealed class ExchangeSourceService
         await _operations.WaitAsync().ConfigureAwait(false);
         try
         {
+            EnrollmentOutcomeKey = null;
             EnsureStorage();
             await StopLoopAsync().ConfigureAwait(false);
-            var forgotten = new ExchangeAccount(ExchangeProtocol.NewDeviceId());
+            var forgotten =new ExchangeAccount(ExchangeProtocol.NewDeviceId());
             _store.Save(forgotten);
             Account = forgotten;
             ClearPendingCertificate();
@@ -449,7 +478,7 @@ internal sealed class ExchangeSourceService
         await SendAsync(new { schemaVersion = 2, type = "list" }, cancellationToken).ConfigureAwait(false);
         var subscribed = false;
         Task<JsonDocument>? pending = null;
-        var castTasks = new List<Task>();
+        var castTasks = new List<OpenCastAnswer>();
         var castFailed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         using var castCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         using var readCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -509,13 +538,7 @@ internal sealed class ExchangeSourceService
                         // Parsed here, while the frame is alive; answered on its own task, never in this loop.
                         if (ExchangeCastOffer.TryParse(response.RootElement, out var offer) && offer is not null)
                         {
-                            castTasks.RemoveAll(task => task.IsCompleted);
-                            // A sender in a loop cannot grow this without bound: an offer past the cap goes
-                            // unanswered and the server times it out for the caster.
-                            if (castTasks.Count < MaximumOpenCastOffers)
-                            {
-                                castTasks.Add(AnswerCastOfferAsync(offer, SendAsync, castFailed, castCancellation.Token));
-                            }
+                            StartCastAnswer(castTasks, offer, SendAsync, castFailed, castCancellation.Token);
                         }
 
                         break;
@@ -543,12 +566,13 @@ internal sealed class ExchangeSourceService
         finally
         {
             // The session is over: dismiss every open question and wait for the answer tasks, so none of them
-            // writes to the stream after the connection is disposed. They never throw (AnswerCastOfferAsync).
+            // writes to the stream after the connection is disposed. AnswerCastOfferAsync ends every failure
+            // itself, and ObserveAsync waits for each by any outcome.
             _castCoordinator.CancelAll();
             await castCancellation.CancelAsync().ConfigureAwait(false);
-            foreach (var task in castTasks)
+            foreach (var open in castTasks)
             {
-                await ObserveAsync(task).ConfigureAwait(false);
+                await ObserveAsync(open.Task).ConfigureAwait(false);
             }
 
             // Observe the single pending read before disposing the connection, including timeout and quit paths.
@@ -585,10 +609,19 @@ internal sealed class ExchangeSourceService
     /// frames. A repeated offer for the same broadcast folds into the open question in the coordinator.
     /// </summary>
     private async Task AnswerCastOfferAsync(ExchangeCastOffer offer, Func<object, CancellationToken, Task> send,
-        TaskCompletionSource castFailed, CancellationToken cancellationToken)
+        TaskCompletionSource castFailed, CancellationToken cancellationToken, bool refuseBusy = false)
     {
+        var answered = false;
         try
         {
+            if (refuseBusy)
+            {
+                // DEVICE-EXCHANGE item R's vocabulary has no "busy"; the receiver declining is the honest one.
+                await send(ExchangeCastAnswer.Decline(offer.BroadcastId, castId: offer.CastId), cancellationToken).ConfigureAwait(false);
+                answered = true;
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(offer.DeviceName) && Directory is { } dir)
             {
                 var matchedGroup = dir.Groups.FirstOrDefault(g => g.DeviceId == offer.DeviceId);
@@ -601,12 +634,14 @@ internal sealed class ExchangeSourceService
             if (offer.Support != ExchangeBroadcastSupport.Supported || offer.Descriptor is null)
             {
                 await send(ExchangeCastAnswer.Unsupported(offer.BroadcastId, offer.CastId), cancellationToken).ConfigureAwait(false);
+                answered = true;
                 return;
             }
 
             if (Account.AutoAcceptCasts)
             {
                 await send(ExchangeCastAnswer.Accept(offer.BroadcastId, offer.CastId), cancellationToken).ConfigureAwait(false);
+                answered = true;
                 CastAccepted?.Invoke(offer);
                 return;
             }
@@ -621,6 +656,7 @@ internal sealed class ExchangeSourceService
             }
 
             await send(ExchangeCastAnswer.For(offer, decision), cancellationToken).ConfigureAwait(false);
+            answered = true;
             if (decision == ExchangeCastDecision.Accepted)
             {
                 CastAccepted?.Invoke(offer);
@@ -636,6 +672,53 @@ internal sealed class ExchangeSourceService
             // which owns reconnecting, instead of letting an answer task fail where nobody looks.
             castFailed.TrySetResult();
         }
+        catch (Exception) when (!answered)
+        {
+            // Whatever else went wrong - the prompt handler raising from the dialog or the dispatcher is the
+            // known case - the caster is owed an answer, and an unanswered offer only ends at its 60 s window.
+            // The exception is not logged here: this service has no log of its own, and the App's prompt
+            // reports the faults it can attribute. After the answer went out there is nothing left to owe.
+            await DeclineAfterFaultAsync(offer, send, castFailed, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private async Task DeclineAfterFaultAsync(ExchangeCastOffer offer, Func<object, CancellationToken, Task> send,
+        TaskCompletionSource castFailed, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await send(ExchangeCastAnswer.Decline(offer.BroadcastId, castId: offer.CastId), cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (IsConnectionFailure(exception))
+        {
+            castFailed.TrySetResult();
+        }
+    }
+
+    /// <summary>
+    /// Starts the answer task for one parsed offer, within what the stream may make this device hold open. A
+    /// new broadcast past the pending cap is answered declined at once; repeats of an open broadcast past
+    /// theirs are dropped (that broadcast's answer is already on its way), as is anything past the ceiling.
+    /// None of it is logged: a flooding server is not worth a line per frame, and the payload stays out.
+    /// </summary>
+    private void StartCastAnswer(List<OpenCastAnswer> open, ExchangeCastOffer offer,
+        Func<object, CancellationToken, Task> send, TaskCompletionSource castFailed, CancellationToken cancellationToken)
+    {
+        open.RemoveAll(item => item.Task.IsCompleted);
+        if (open.Count >= MaximumLiveCastAnswers
+            || open.Count(item => item.BroadcastId == offer.BroadcastId) >= MaximumAnswersPerBroadcast)
+        {
+            return;
+        }
+
+        var awaitsUser = offer.Support == ExchangeBroadcastSupport.Supported && offer.Descriptor is not null
+            && !Account.AutoAcceptCasts;
+        var refuseBusy = awaitsUser
+            && !open.Any(item => item.AwaitsUser && item.BroadcastId == offer.BroadcastId)
+            && open.Where(item => item.AwaitsUser).Select(item => item.BroadcastId).Distinct().Count()
+                >= MaximumPendingCastBroadcasts;
+        open.Add(new OpenCastAnswer(offer.BroadcastId, awaitsUser && !refuseBusy,
+            AnswerCastOfferAsync(offer, send, castFailed, cancellationToken, refuseBusy)));
     }
 
     private void HandleCastStop(JsonElement root)
@@ -719,5 +802,22 @@ internal sealed class ExchangeSourceService
     {
         StatusKey = key;
         Changed?.Invoke();
+    }
+
+    /// <summary>An attempt that ended without touching the receiver: only its outcome line changes.</summary>
+    private void ReportOutcome(string key)
+    {
+        EnrollmentOutcomeKey = key;
+        Changed?.Invoke();
+    }
+
+    /// <summary>
+    /// An enrollment that failed after it had stopped the receiver. The connection line shows the failure
+    /// until the receiver is back, and the outcome line keeps it after that.
+    /// </summary>
+    private void FailEnrollment(string key)
+    {
+        EnrollmentOutcomeKey = key;
+        SetStatus(key);
     }
 }

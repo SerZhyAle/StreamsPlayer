@@ -48,19 +48,27 @@ public sealed class ExchangeCastCoordinator
     /// <summary>How long one offer may stay unanswered before it is answered <see cref="ExchangeCastDecision.TimedOut"/>.</summary>
     public TimeSpan OfferWindow => _offerWindow;
 
+    /// <summary>
+    /// How one prompt ended. <see cref="Abandoned"/> means its own window or caller gave up before anyone
+    /// answered: the followers folded into it were never asked either, so they must not inherit the ending.
+    /// </summary>
+    private readonly record struct PromptResult(ExchangeCastDecision Decision, bool Abandoned);
+
     private sealed class PendingPrompt(ExchangeCastOffer offer)
     {
         public string BroadcastId => offer.BroadcastId;
         public ExchangeCastOffer InitialOffer => offer;
         public List<ExchangeCastOffer> FoldedOffers { get; } = [offer];
-        public TaskCompletionSource<ExchangeCastDecision> Tcs { get; } =
+        public TaskCompletionSource<PromptResult> Tcs { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     /// <summary>
     /// Resolves one offer. It never throws for a cancellation: the caller's own cancellation (the session
     /// ended) reads as <see cref="ExchangeCastDecision.Declined"/>, the window running out as
-    /// <see cref="ExchangeCastDecision.TimedOut"/>.
+    /// <see cref="ExchangeCastDecision.TimedOut"/>. A repeat of an open broadcast waits for that question's
+    /// answer; if the question was abandoned before anyone answered, the repeat asks for itself, with what is
+    /// left of its own window.
     /// </summary>
     public async Task<ExchangeCastDecision> RequestDecisionAsync(
         ExchangeCastOffer offer,
@@ -71,39 +79,60 @@ public sealed class ExchangeCastCoordinator
         using var session = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, window.Token);
         var token = session.Token;
 
-        PendingPrompt? shared = null;
-        var mine = new PendingPrompt(offer);
-        lock (_sync)
+        while (true)
         {
-            if (!string.IsNullOrEmpty(offer.BroadcastId))
+            PendingPrompt? shared = null;
+            var mine = new PendingPrompt(offer);
+            lock (_sync)
             {
-                shared = _activePrompt is { } active && active.BroadcastId == offer.BroadcastId
-                    ? active
-                    : _waiting.FirstOrDefault(item => item.BroadcastId == offer.BroadcastId);
+                if (!string.IsNullOrEmpty(offer.BroadcastId))
+                {
+                    shared = _activePrompt is { } active && active.BroadcastId == offer.BroadcastId
+                        ? active
+                        : _waiting.FirstOrDefault(item => item.BroadcastId == offer.BroadcastId);
+                }
+
+                if (shared is not null)
+                {
+                    shared.FoldedOffers.Add(offer);
+                }
+                else
+                {
+                    _waiting.Add(mine);
+                }
             }
 
             if (shared is not null)
             {
-                shared.FoldedOffers.Add(offer);
-            }
-            else
-            {
-                _waiting.Add(mine);
-            }
-        }
+                try
+                {
+                    var result = await shared.Tcs.Task.WaitAsync(token).ConfigureAwait(false);
+                    if (!result.Abandoned)
+                    {
+                        return result.Decision;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    return Outcome(cancellationToken, window);
+                }
 
-        if (shared is not null)
-        {
-            try
-            {
-                return await shared.Tcs.Task.WaitAsync(token).ConfigureAwait(false);
+                // The leader was removed from the coordinator before it reported, so the next pass finds
+                // either a newer prompt of this broadcast to fold into or nothing, and leads.
+                continue;
             }
-            catch (OperationCanceledException)
-            {
-                return Outcome(cancellationToken, window);
-            }
-        }
 
+            return await LeadAsync(mine, promptUser, cancellationToken, window, token).ConfigureAwait(false);
+        }
+    }
+
+    private async Task<ExchangeCastDecision> LeadAsync(
+        PendingPrompt mine,
+        Func<ExchangeCastOffer, CancellationToken, Task<bool>> promptUser,
+        CancellationToken cancellationToken,
+        CancellationTokenSource window,
+        CancellationToken token)
+    {
         try
         {
             await _gate.WaitAsync(token).ConfigureAwait(false);
@@ -116,11 +145,12 @@ public sealed class ExchangeCastCoordinator
                 _waiting.Remove(mine);
             }
 
-            mine.Tcs.TrySetResult(abandoned);
+            mine.Tcs.TrySetResult(new PromptResult(abandoned, Abandoned: true));
             return abandoned;
         }
 
         var decision = ExchangeCastDecision.Declined;
+        var abandonedWhileOpen = false;
         try
         {
             lock (_sync)
@@ -132,12 +162,12 @@ public sealed class ExchangeCastCoordinator
             // CancelAll answered this offer while it queued; the session it belonged to is gone.
             if (mine.Tcs.Task.IsCompleted)
             {
-                return await mine.Tcs.Task.ConfigureAwait(false);
+                return (await mine.Tcs.Task.ConfigureAwait(false)).Decision;
             }
 
             // The window may have run out between the queue and the gate: no prompt for a dead offer.
             token.ThrowIfCancellationRequested();
-            var prompt = promptUser(offer, token);
+            var prompt = promptUser(mine.InitialOffer, token);
             try
             {
                 decision = await prompt.WaitAsync(token).ConfigureAwait(false)
@@ -155,10 +185,12 @@ public sealed class ExchangeCastCoordinator
         catch (OperationCanceledException)
         {
             decision = Outcome(cancellationToken, window);
+            abandonedWhileOpen = true;
         }
         finally
         {
-            mine.Tcs.TrySetResult(decision);
+            // Out of the coordinator first, then reported: a follower that wakes to an abandoned prompt looks
+            // the broadcast up again and must not find this one.
             lock (_sync)
             {
                 if (ReferenceEquals(_activePrompt, mine))
@@ -167,6 +199,7 @@ public sealed class ExchangeCastCoordinator
                 }
             }
 
+            mine.Tcs.TrySetResult(new PromptResult(decision, abandonedWhileOpen));
             _gate.Release();
         }
 
@@ -176,13 +209,14 @@ public sealed class ExchangeCastCoordinator
     /// <summary>The session ended: every open or queued question is answered declined and forgotten.</summary>
     public void CancelAll()
     {
+        var ended = new PromptResult(ExchangeCastDecision.Declined, Abandoned: false);
         lock (_sync)
         {
-            _activePrompt?.Tcs.TrySetResult(ExchangeCastDecision.Declined);
+            _activePrompt?.Tcs.TrySetResult(ended);
             _activePrompt = null;
             foreach (var pending in _waiting)
             {
-                pending.Tcs.TrySetResult(ExchangeCastDecision.Declined);
+                pending.Tcs.TrySetResult(ended);
             }
 
             _waiting.Clear();

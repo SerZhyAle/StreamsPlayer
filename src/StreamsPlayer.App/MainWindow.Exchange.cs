@@ -1,7 +1,4 @@
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows;
-using System.Windows.Interop;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -184,13 +181,36 @@ public partial class MainWindow
         return applied.Channel;
     }
 
-    // The casts this window started, by broadcast id: what a cast-stop is allowed to end. A stop names the
-    // broadcast (DEVICE-EXCHANGE 7.8); one that matches no entry here is not ours to act on, so it can never
-    // close a window or silence a station the user chose themselves.
-    private const int MaximumTrackedCasts = 16;
-    private readonly Dictionary<string, ActiveCast> _activeCasts = new(StringComparer.Ordinal);
+    // The casts this window started: what a cast-stop is allowed to end. A stop names the broadcast
+    // (DEVICE-EXCHANGE 7.8); one that matches no entry is not ours to act on, so it can never close a window
+    // or silence a station the user chose themselves. The rules of the list live in Core, where they are tested.
+    private readonly ExchangeCastLedger _activeCasts = new();
 
-    private sealed record ActiveCast(string BroadcastId, string? CastId, Guid ChannelId);
+    private bool IsChannelPlaying(Guid channelId) =>
+        _playingAudio?.Channel.Id == channelId || _playerWindows.Any(window => window.Channel.Id == channelId);
+
+    /// <summary>Ends whatever plays the channel; false when nothing did.</summary>
+    private bool EndCastPlayback(Guid channelId)
+    {
+        var windows = _playerWindows.Where(window => window.Channel.Id == channelId).ToArray();
+        var audioPlaying = _playingAudio?.Channel.Id == channelId;
+        if (windows.Length == 0 && !audioPlaying)
+        {
+            return false;
+        }
+
+        foreach (var window in windows)
+        {
+            window.Close();
+        }
+
+        if (audioPlaying)
+        {
+            StopAudio();
+        }
+
+        return true;
+    }
 
     /// <summary>
     /// The question for one cast offer. It runs off the service's read loop, so it may stay open for the whole
@@ -204,8 +224,20 @@ public partial class MainWindow
             return false;
         }
 
-        var shown = Dispatcher.InvokeAsync(() => ShowCastOfferPrompt(offer, cancellationToken));
-        return await shown.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var shown = Dispatcher.InvokeAsync(() => ShowCastOfferPrompt(offer, cancellationToken));
+            return await shown.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // The box or the dispatcher failing is this window's fault to report, and no reason to leave the
+            // caster unanswered: the offer reads as declined. Only the exception type reaches the log
+            // line - the offer's title and sender are not part of it.
+            HandlerBoundary.Report(nameof(PromptCastOfferAsync),
+                new InvalidOperationException("Cast prompt failed: " + exception.GetType().Name), notifyUser: false);
+            return false;
+        }
     }
 
     private bool ShowCastOfferPrompt(ExchangeCastOffer offer, CancellationToken cancellationToken)
@@ -233,6 +265,10 @@ public partial class MainWindow
             : LocalizationService.Format("ExchangeCastOfferPrompt", broadcastTitle, senderDevice);
 
         var owner = DialogOwner;
+        var caption = LocalizationService.Get("ExchangeCastTitle");
+        // Taken on this thread immediately before the box exists: whatever this owner already shows is not
+        // the prompt, however alike, and nothing can appear between here and Show on the UI thread.
+        var existing = PromptDismissal.Snapshot(owner);
         var open = true;
         using var dismissal = cancellationToken.Register(() => Dispatcher.BeginInvoke(() =>
         {
@@ -240,7 +276,7 @@ public partial class MainWindow
             // user's own answer finds the flag down and touches nothing.
             if (open)
             {
-                PromptDismissal.Close(owner);
+                PromptDismissal.Close(owner, caption, existing);
             }
         }));
         try
@@ -250,7 +286,7 @@ public partial class MainWindow
             var result = MessageBox.Show(
                 owner,
                 promptText,
-                LocalizationService.Get("ExchangeCastTitle"),
+                caption,
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question,
                 MessageBoxResult.No);
@@ -272,6 +308,9 @@ public partial class MainWindow
 
         Dispatcher.BeginInvoke(async () =>
         {
+            // Registered before the save: the whole-state write is long enough for the sender's stop to
+            // arrive, and a stop that finds no entry is dropped while the playback then starts anyway.
+            var cast = _activeCasts.Track(offer.BroadcastId, offer.CastId, IsChannelPlaying);
             try
             {
                 FastMediaSorterBroadcastApplyResult? applied = null;
@@ -284,22 +323,32 @@ public partial class MainWindow
 
                 if (applied is null)
                 {
+                    // Nothing was imported, so there is no cast to stop.
+                    _activeCasts.Remove(cast);
                     return;
                 }
 
-                if (_activeCasts.Count >= MaximumTrackedCasts)
-                {
-                    _activeCasts.Clear();
-                }
-
                 var channel = applied.Channel;
-                _activeCasts[offer.BroadcastId] = new ActiveCast(offer.BroadcastId, offer.CastId, channel.Id);
+                cast.ChannelId = channel.Id;
                 PopulateFacets();
                 ApplyFilter();
+                if (cast.StopRequested)
+                {
+                    // The stop arrived while the import was being saved: the row stays, nothing is started.
+                    return;
+                }
+
                 await StartCastPlaybackAsync(channel);
+                cast.Settled = true;
+                if (cast.StopRequested)
+                {
+                    // The stop arrived while the playback was starting, before anything was there to end.
+                    EndCastPlayback(channel.Id);
+                }
             }
             catch (Exception exception)
             {
+                _activeCasts.Remove(cast);
                 HandlerBoundary.Report(nameof(PlayCastOffer), exception);
             }
         });
@@ -312,9 +361,21 @@ public partial class MainWindow
     /// </summary>
     private async Task StartCastPlaybackAsync(StreamChannel channel)
     {
-        if (_playerWindows.Any(window => window.Channel.Id == channel.Id))
+        var open = _playerWindows.Where(window => window.Channel.Id == channel.Id).ToArray();
+        if (open.Length > 0)
         {
-            return;
+            // A window plays the endpoint it was opened with. One that still matches is left on; one the
+            // re-offered descriptor has outdated is closed and the channel reopened below, as audio is.
+            var stale = open.Where(window => !string.Equals(window.Channel.Url, channel.Url, StringComparison.Ordinal)).ToArray();
+            foreach (var window in stale)
+            {
+                window.Close();
+            }
+
+            if (stale.Length < open.Length)
+            {
+                return;
+            }
         }
 
         if (channel.MediaKind == MediaKind.Audio && _playingAudio is { } playing && playing.Channel.Id == channel.Id)
@@ -343,35 +404,18 @@ public partial class MainWindow
         {
             try
             {
-                var cast = stop.BroadcastId is { } broadcastId
-                    ? _activeCasts.GetValueOrDefault(broadcastId)
-                    : stop.CastId is { } castId
-                        ? _activeCasts.Values.FirstOrDefault(item => item.CastId == castId)
-                        : null;
+                // The ledger flags the entry as well as removing it: the accept that registered it may still be
+                // saving its import or starting playback, and it reads the flag to know the cast is over.
+                var cast = _activeCasts.Stop(stop);
                 if (cast is null)
                 {
                     return;
                 }
 
-                _activeCasts.Remove(cast.BroadcastId);
-                var windows = _playerWindows.Where(window => window.Channel.Id == cast.ChannelId).ToArray();
-                var audioPlaying = _playingAudio?.Channel.Id == cast.ChannelId;
-                if (windows.Length == 0 && !audioPlaying)
+                if (cast.ChannelId is { } channelId && EndCastPlayback(channelId))
                 {
-                    return;
+                    SetStatus("ExchangeCastStopped");
                 }
-
-                foreach (var window in windows)
-                {
-                    window.Close();
-                }
-
-                if (audioPlaying)
-                {
-                    StopAudio();
-                }
-
-                SetStatus("ExchangeCastStopped");
             }
             catch (Exception exception)
             {
@@ -379,49 +423,4 @@ public partial class MainWindow
             }
         });
     }
-}
-
-/// <summary>
-/// Closes the modal message box the cast prompt shows. A Yes/No box has no close button and ignores WM_CLOSE,
-/// so the only way to take it down from code is to end its dialog with the answer it already defaults to.
-/// </summary>
-internal static class PromptDismissal
-{
-    private const uint GetWindowEnabledPopup = 6;
-    private const int ClassNameBuffer = 16;
-    private const int AnswerNo = 7;
-
-    internal static void Close(Window owner)
-    {
-        var ownerHandle = new WindowInteropHelper(owner).Handle;
-        if (ownerHandle == IntPtr.Zero)
-        {
-            return;
-        }
-
-        // A modal owner is disabled and its one enabled popup is the box; anything else (a window class that
-        // is not the system dialog class) is left alone.
-        var popup = GetWindow(ownerHandle, GetWindowEnabledPopup);
-        if (popup == IntPtr.Zero || popup == ownerHandle)
-        {
-            return;
-        }
-
-        var className = new StringBuilder(ClassNameBuffer);
-        if (GetClassName(popup, className, className.Capacity) > 0
-            && string.Equals(className.ToString(), "#32770", StringComparison.Ordinal))
-        {
-            EndDialog(popup, new IntPtr(AnswerNo));
-        }
-    }
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetWindow(IntPtr window, uint command);
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetClassNameW")]
-    private static extern int GetClassName(IntPtr window, StringBuilder className, int maximumCount);
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool EndDialog(IntPtr dialog, IntPtr result);
 }

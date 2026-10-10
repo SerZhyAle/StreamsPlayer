@@ -134,6 +134,136 @@ public sealed class ExchangeLoopRecoveryTests
     }
 
     [Fact]
+    public async Task RefusedEnrollment_KeepsItsReasonAfterTheReceiverIsBackOnline()
+    {
+        // expected: the refusal stays exposed in EnrollmentOutcomeKey while the resumed receiver reports
+        // "online", until the user's next action | actual (before): the receiver's "online" replaced the
+        // refusal within a second and a failed enrollment read as a successful one.
+        using var certificate = Certificate();
+        using var scope = new TestDirectory();
+        await using var server = new ScriptedServer(certificate, async (index, tls, token) =>
+        {
+            if (index == 1)
+            {
+                using var enrollment = await ExchangeProtocol.ReadAsync(tls, false, token);
+                Assert.Equal("enroll", ExchangeProtocol.String(enrollment.RootElement, "type"));
+                await ExchangeProtocol.WriteAsync(tls, new { schemaVersion = 2, type = "refused", reason = "bad-credentials" }, false, token);
+                return;
+            }
+
+            await Handshake(tls, token);
+            await HoldOpen(tls, token);
+        });
+        scope.Save(Account(server.Port, certificate));
+        var service = new ExchangeSourceService(scope.Path);
+        service.Start();
+        try
+        {
+            await Until(() => service.StatusKey == "ExchangeOnline");
+
+            await service.EnrollAsync("localhost", server.Port, "someone", false, ['p', 'w'],
+                ExchangeProtocol.Fingerprint(certificate.RawData)).WaitAsync(TimeSpan.FromSeconds(20));
+            Assert.Equal("ExchangeBadCredentials", service.EnrollmentOutcomeKey);
+
+            await Until(() => server.Connections >= 3 && service.StatusKey == "ExchangeOnline");
+            await Task.Delay(200);
+            Assert.Equal("ExchangeBadCredentials", service.EnrollmentOutcomeKey);
+            Assert.NotNull(service.Account.Token);
+
+            await service.SetEnabledAsync(true).WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.Null(service.EnrollmentOutcomeKey);
+        }
+        finally
+        {
+            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+        }
+
+        server.ThrowIfScriptFailed();
+    }
+
+    [Fact]
+    public async Task SuccessfulEnrollment_LeavesNoOutcomeBehind()
+    {
+        using var certificate = Certificate();
+        using var scope = new TestDirectory();
+        await using var server = new ScriptedServer(certificate, async (index, tls, token) =>
+        {
+            if (index == 0)
+            {
+                using var enrollment = await ExchangeProtocol.ReadAsync(tls, false, token);
+                await ExchangeProtocol.WriteAsync(tls, new { schemaVersion = 2, type = "refused", reason = "rate-limited" }, false, token);
+                return;
+            }
+
+            if (index == 1)
+            {
+                using var enrollment = await ExchangeProtocol.ReadAsync(tls, false, token);
+                await ExchangeProtocol.WriteAsync(tls, new
+                {
+                    schemaVersion = 2, type = "enrolled", deviceToken = new string('k', 43), account = "test-login",
+                    publicEndpoint = "localhost:44022", serverVersion = "test", features = new[] { "directory" },
+                    keepaliveSeconds = 30
+                }, false, token);
+                await HoldOpen(tls, token);
+                return;
+            }
+
+            await Handshake(tls, token);
+            await HoldOpen(tls, token);
+        });
+        var service = new ExchangeSourceService(scope.Path);
+        var pin = ExchangeProtocol.Fingerprint(certificate.RawData);
+        try
+        {
+            await service.EnrollAsync("localhost", server.Port, "someone", false, ['p', 'w'], pin)
+                .WaitAsync(TimeSpan.FromSeconds(20));
+            Assert.Equal("ExchangeRateLimited", service.EnrollmentOutcomeKey);
+
+            await service.EnrollAsync("localhost", server.Port, "someone", false, ['p', 'w'], pin)
+                .WaitAsync(TimeSpan.FromSeconds(20));
+
+            Assert.Null(service.EnrollmentOutcomeKey);
+            Assert.NotNull(service.Account.Token);
+        }
+        finally
+        {
+            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+        }
+
+        server.ThrowIfScriptFailed();
+    }
+
+    [Fact]
+    public async Task FailedProbe_NeverOverwritesTheRunningReceiversConnectionLine()
+    {
+        // expected: the unreachable probe is reported as the outcome of the attempt while the receiver stays
+        // "online" | actual (before): the probe replaced the receiver's status line with "unavailable".
+        using var certificate = Certificate();
+        using var scope = new TestDirectory();
+        await using var server = new ScriptedServer(certificate, async (_, tls, token) =>
+        {
+            await Handshake(tls, token);
+            await HoldOpen(tls, token);
+        });
+        scope.Save(Account(server.Port, certificate));
+        var service = new ExchangeSourceService(scope.Path);
+        service.Start();
+        try
+        {
+            await Until(() => service.StatusKey == "ExchangeOnline");
+
+            var pin = await service.InspectCertificateAsync("localhost", FreePort());
+
+            Assert.Null(pin);
+            Assert.Equal("ExchangeOnline", service.StatusKey);
+            Assert.Equal("ExchangeUnavailable", service.EnrollmentOutcomeKey);
+        }
+        finally
+        {
+            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+        }
+    }
+    [Fact]
     public async Task ProbeOfAnotherServer_NeverBecomesTheAccountsPendingReplacement()
     {
         // expected: the other server's fingerprint is returned to the enrollment that asked and recorded

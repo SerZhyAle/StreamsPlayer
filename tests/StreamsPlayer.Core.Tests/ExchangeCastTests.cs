@@ -378,6 +378,233 @@ public sealed class ExchangeCastTests
         await primary.WaitAsync(TimeSpan.FromSeconds(10));
     }
 
+    [Fact]
+    public async Task Coordinator_APromptAbandonedByItsWindow_DoesNotTimeOutALaterRepeatOfTheBroadcast()
+    {
+        // expected: the repeat, which was never asked and whose own window is still open, is asked itself
+        // and answered by the user | actual (before): it inherited the leader's TimedOut.
+        var coordinator = new ExchangeCastCoordinator(TimeSpan.FromMilliseconds(600));
+        var leaderAsked = new TaskCompletionSource();
+        Task<bool> Prompt(ExchangeCastOffer offer, CancellationToken token)
+        {
+            if (offer.CastId == "leader")
+            {
+                leaderAsked.TrySetResult();
+                return new TaskCompletionSource<bool>().Task;
+            }
+
+            return Task.FromResult(true);
+        }
+
+        var leader = coordinator.RequestDecisionAsync(Offered("leader", "b1"), Prompt, CancellationToken.None);
+        await leaderAsked.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await Task.Delay(300);
+        var repeat = coordinator.RequestDecisionAsync(Offered("repeat", "b1"), Prompt, CancellationToken.None);
+
+        Assert.Equal(ExchangeCastDecision.TimedOut, await leader.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(ExchangeCastDecision.Accepted, await repeat.WaitAsync(TimeSpan.FromSeconds(10)));
+    }
+
+    [Fact]
+    public async Task Coordinator_ALeaderThatExpiresInTheQueue_DoesNotTimeOutALaterRepeat()
+    {
+        var coordinator = new ExchangeCastCoordinator(TimeSpan.FromMilliseconds(600));
+        var blockerAsked = new TaskCompletionSource();
+        Task<bool> Prompt(ExchangeCastOffer offer, CancellationToken token)
+        {
+            if (offer.BroadcastId == "b0")
+            {
+                blockerAsked.TrySetResult();
+                return new TaskCompletionSource<bool>().Task;
+            }
+
+            return offer.CastId == "leader" ? new TaskCompletionSource<bool>().Task : Task.FromResult(true);
+        }
+
+        var blocker = coordinator.RequestDecisionAsync(Offered("blocker", "b0"), Prompt, CancellationToken.None);
+        await blockerAsked.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        var leader = coordinator.RequestDecisionAsync(Offered("leader", "b1"), Prompt, CancellationToken.None);
+        await Task.Delay(300);
+        var repeat = coordinator.RequestDecisionAsync(Offered("repeat", "b1"), Prompt, CancellationToken.None);
+
+        Assert.Equal(ExchangeCastDecision.TimedOut, await blocker.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(ExchangeCastDecision.TimedOut, await leader.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(ExchangeCastDecision.Accepted, await repeat.WaitAsync(TimeSpan.FromSeconds(10)));
+    }
+
+    [Fact]
+    public async Task Coordinator_ARepeatAfterTheUserAnswered_SharesThatAnswer()
+    {
+        var coordinator = new ExchangeCastCoordinator();
+        var asked = new TaskCompletionSource();
+        var answer = new TaskCompletionSource<bool>();
+        var calls = 0;
+        Task<bool> Prompt(ExchangeCastOffer offer, CancellationToken token)
+        {
+            Interlocked.Increment(ref calls);
+            asked.TrySetResult();
+            return answer.Task;
+        }
+
+        var leader = coordinator.RequestDecisionAsync(Offered("leader", "b1"), Prompt, CancellationToken.None);
+        await asked.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        var repeat = coordinator.RequestDecisionAsync(Offered("repeat", "b1"), Prompt, CancellationToken.None);
+        answer.SetResult(false);
+
+        Assert.Equal(ExchangeCastDecision.Declined, await leader.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(ExchangeCastDecision.Declined, await repeat.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(1, Volatile.Read(ref calls));
+    }
+
+    [Fact]
+    public void Ledger_AFullList_GivesUpOnlyItsOldestCast()
+    {
+        // expected: the 17th cast evicts the 1st and the live ones stay stoppable | actual (before): the
+        // whole list was cleared, so the cast that was playing could no longer be stopped.
+        var ledger = new ExchangeCastLedger(capacity: 4);
+        var casts = Enumerable.Range(0, 5)
+            .Select(index => ledger.Track("b" + index, null, _ => true))
+            .ToList();
+
+        Assert.Equal(4, ledger.Count);
+        Assert.Null(ledger.Stop(new ExchangeCastStop(null, "b0")));
+        Assert.Same(casts[4], ledger.Stop(new ExchangeCastStop(null, "b4")));
+        Assert.Same(casts[1], ledger.Stop(new ExchangeCastStop(null, "b1")));
+    }
+
+    [Fact]
+    public void Ledger_DropsCastsWhosePlaybackEnded_BeforeItEvictsALiveOne()
+    {
+        var ledger = new ExchangeCastLedger(capacity: 2);
+        var ended = ledger.Track("b-ended", null, _ => true);
+        ended.ChannelId = Guid.NewGuid();
+        ended.Settled = true;
+        var live = ledger.Track("b-live", null, _ => true);
+        live.ChannelId = Guid.NewGuid();
+        live.Settled = true;
+
+        var added = ledger.Track("b-new", null, channel => channel == live.ChannelId);
+
+        Assert.Equal(2, ledger.Count);
+        Assert.Null(ledger.Stop(new ExchangeCastStop(null, "b-ended")));
+        Assert.Same(live, ledger.Stop(new ExchangeCastStop(null, "b-live")));
+        Assert.NotNull(added);
+    }
+
+    [Fact]
+    public void Ledger_AStopDuringTheImport_FindsTheCastAndFlagsItBeforeAnyChannelExists()
+    {
+        // expected: the entry exists as soon as the offer is accepted, so a stop during the whole-state save is
+        // not dropped and the continuation can see it | actual (before): no entry until the save returned.
+        var ledger = new ExchangeCastLedger();
+        var cast = ledger.Track("b1", "c1", _ => true);
+        Assert.Null(cast.ChannelId);
+
+        var stopped = ledger.Stop(new ExchangeCastStop("c1", null));
+
+        Assert.Same(cast, stopped);
+        Assert.True(cast.StopRequested);
+        Assert.Equal(0, ledger.Count);
+        Assert.Null(ledger.Stop(new ExchangeCastStop(null, "b1")));
+    }
+
+    [Fact]
+    public void Ledger_ARepeatedOffer_IsTheSameCastAndAStopReachesIt()
+    {
+        var ledger = new ExchangeCastLedger();
+        var first = ledger.Track("b1", "c1", _ => true);
+        var again = ledger.Track("b1", null, _ => true);
+
+        Assert.Same(first, again);
+        Assert.Equal("c1", again.CastId);
+        Assert.Equal(1, ledger.Count);
+    }
+
+    [Fact]
+    public void Ledger_AStopForACastThisDeviceDidNotStart_IsNotActedOn()
+    {
+        var ledger = new ExchangeCastLedger();
+        ledger.Track("b1", null, _ => true);
+
+        Assert.Null(ledger.Stop(new ExchangeCastStop(null, "b-other")));
+        Assert.Null(ledger.Stop(new ExchangeCastStop("c-other", null)));
+        Assert.Null(ledger.Stop(new ExchangeCastStop(null, null)));
+        Assert.Equal(1, ledger.Count);
+    }
+
+    [Fact]
+    public void Offer_WithAnIdOverTheBound_IsNotParsed()
+    {
+        var longId = new string('x', ExchangeCastLimits.MaximumIdLength + 1);
+        foreach (var members in new[]
+                 {
+                     $$"""{ "fromDeviceId": "d1", "broadcast": { "broadcastId": "{{longId}}", "deviceId": "d1" } }""",
+                     $$"""{ "fromDeviceId": "d1", "castId": "{{longId}}", "broadcast": { "broadcastId": "b1", "deviceId": "d1" } }""",
+                     $$"""{ "fromDeviceId": "d1", "offerId": "{{longId}}", "broadcast": { "broadcastId": "b1", "deviceId": "d1" } }""",
+                     $$"""{ "fromDeviceId": "{{longId}}", "broadcast": { "broadcastId": "b1" } }"""
+                 })
+        {
+            using var doc = Offer(members.Trim('{', '}'));
+            Assert.False(ExchangeCastOffer.TryParse(doc.RootElement, out var offer));
+            Assert.Null(offer);
+        }
+    }
+
+    [Fact]
+    public void Offer_AtTheIdBound_StillParsesAndItsAnswerStaysFarInsideTheFrameLimit()
+    {
+        var id = new string('x', ExchangeCastLimits.MaximumIdLength);
+        using var doc = Offer($$"""
+            "castId": "{{id}}", "fromDeviceId": "d1",
+            "broadcast": { "broadcastId": "{{id}}", "deviceId": "d1", "mode": "AUDIO_ONLY" }
+            """);
+
+        Assert.True(ExchangeCastOffer.TryParse(doc.RootElement, out var offer));
+        var answer = JsonSerializer.SerializeToUtf8Bytes(ExchangeCastAnswer.For(offer!, ExchangeCastDecision.Declined));
+        Assert.True(answer.Length < 1024, "answer is " + answer.Length + " bytes");
+    }
+
+    [Fact]
+    public void Offer_WhoseRecordIsOverTheCeiling_IsAnsweredUnsupportedAndReadsNothingFromIt()
+    {
+        // expected: an oversize record is skipped as DEVICE-EXCHANGE 6 says, yet the offer stays answerable |
+        // actual (before): the whole record - title and descriptor included - was read and shown.
+        var padding = new string('p', ExchangeDirectoryState.MaximumRecordBytes);
+        using var doc = Offer($$"""
+            "fromDeviceId": "d1",
+            "broadcast": { "broadcastId": "b-big", "deviceId": "d1", "title": "Never shown", "padding": "{{padding}}",
+              "mode": "AUDIO_ONLY", "descriptor":
+            """ + HttpAudioDescriptor + "}");
+
+        Assert.True(ExchangeCastOffer.TryParse(doc.RootElement, out var offer));
+        Assert.Equal("b-big", offer!.BroadcastId);
+        Assert.Null(offer.Descriptor);
+        Assert.Equal(ExchangeBroadcastSupport.Unsupported, offer.Support);
+        Assert.Equal("Live Broadcast", offer.Title);
+    }
+
+    [Fact]
+    public void Offer_WithAnOverlongDeviceName_ShowsNoNameInsteadOfAHugeOne()
+    {
+        var name = new string('n', ExchangeCastLimits.MaximumDeviceNameLength + 1);
+        using var doc = Offer($$"""
+            "fromDeviceId": "d1", "fromDeviceName": "{{name}}",
+            "broadcast": { "broadcastId": "b1", "deviceId": "d1", "mode": "AUDIO_ONLY" }
+            """);
+
+        Assert.True(ExchangeCastOffer.TryParse(doc.RootElement, out var offer));
+        Assert.Null(offer!.DeviceName);
+    }
+
+    [Fact]
+    public void Stop_WithAnIdOverTheBound_IsNotParsed()
+    {
+        var longId = new string('x', ExchangeCastLimits.MaximumIdLength + 1);
+        using var doc = JsonDocument.Parse($$"""{ "schemaVersion": 2, "type": "cast-stop", "broadcastId": "{{longId}}" }""");
+
+        Assert.False(ExchangeCastStop.TryParse(doc.RootElement, out var stop));
+        Assert.Null(stop);
+    }
     private static async Task Until(Func<bool> condition)
     {
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
