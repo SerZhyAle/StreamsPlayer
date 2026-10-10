@@ -103,14 +103,26 @@ public partial class PlayerWindow
             return;
         }
 
-        _legOpenInFlight = true;
+        // Only a recovery's own open is what lets a failed first attempt advance while the recovery is in
+        // flight. It is registered against its leg and released by the same call on every exit path, so a
+        // quality, retry or earlier open neither clears it early nor sets it while the recovery decides.
+        var leg = _legCount;
+        var recoveryOwned = reason == "recover";
+        if (recoveryOwned)
+        {
+            _recoveryLegOpens.Begin(leg);
+        }
+
         try
         {
             await OpenWithDeadlineAsync(_backend, _attemptEpoch, cacheMs, qualityCeiling);
         }
         finally
         {
-            _legOpenInFlight = false;
+            if (recoveryOwned)
+            {
+                _recoveryLegOpens.End(leg);
+            }
         }
     }
 

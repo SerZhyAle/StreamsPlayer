@@ -190,7 +190,44 @@ public sealed class AuditWaveCSourceTests
         Assert.Contains("BroadcastAttemptAdvance.CanAdvance", body, StringComparison.Ordinal);
         Assert.Contains("reachedLive: _reachedLive", body, StringComparison.Ordinal);
         Assert.Contains("recoveryInFlight: _recoveryInFlight", body, StringComparison.Ordinal);
-        Assert.Contains("legOpenInFlight: _legOpenInFlight", body, StringComparison.Ordinal);
+        // Wave D3 (F4): the mark is the recovery's own open, keyed by the leg - not a bool shared by every open.
+        Assert.Contains("legOpenInFlight: _recoveryLegOpens.IsOutstanding(_legCount)", body, StringComparison.Ordinal);
+    }
+
+    // Wave D3 (F4): only a recovery's open is registered, against its leg, and released in a finally.
+    [Fact]
+    public void OnlyARecoveryOwnLegOpenIsMarkedAndItIsReleasedOnEveryExit()
+    {
+        var body = Body(Source("PlayerWindow.Legs.cs"), @"private async Task StartMediaOffUiThreadAsync\(");
+
+        // Literals are masked to blanks, so the comparison is pinned by its shape; its value is "recover".
+        Assert.Contains("var recoveryOwned = reason ==", body, StringComparison.Ordinal);
+        var begin = body.IndexOf("_recoveryLegOpens.Begin(leg)", StringComparison.Ordinal);
+        var tryAt = body.IndexOf("try", begin, StringComparison.Ordinal);
+        var finallyAt = body.IndexOf("finally", tryAt, StringComparison.Ordinal);
+        var end = body.IndexOf("_recoveryLegOpens.End(leg)", finallyAt, StringComparison.Ordinal);
+        Assert.True(begin >= 0 && tryAt > begin && finallyAt > tryAt && end > finallyAt,
+            "the mark must be taken before the try and released in its finally");
+    }
+
+    // Wave D3 (F1, F2): an engine error and an end of stream carry the attempt they were raised under, and
+    // a pre-live end takes the same advance-or-recover decision as an error.
+    [Fact]
+    public void EngineErrorAndEndReportsAreJudgedByTheAttemptTheyWereRaisedUnder()
+    {
+        var window = Source("PlayerWindow.xaml.cs");
+        var error = Body(window, @"private void Backend_EncounteredError\(");
+        var end = Body(window, @"private void Backend_EndReached\(");
+
+        foreach (var (name, body) in new[] { ("error", error), ("end", end) })
+        {
+            var read = body.IndexOf("ReadAttemptEpoch()", StringComparison.Ordinal);
+            var hop = body.IndexOf("Dispatcher.BeginInvoke", StringComparison.Ordinal);
+            Assert.True(read >= 0 && read < hop, $"{name}: the epoch must be read before the hop to the UI thread");
+            Assert.Contains("IsCurrentAttemptReport(epoch,", body, StringComparison.Ordinal);
+            Assert.Contains("AdvanceOrRecover(", body, StringComparison.Ordinal);
+            Assert.DoesNotContain("RecoverAsync(", body, StringComparison.Ordinal);
+        }
     }
 
     [Fact]

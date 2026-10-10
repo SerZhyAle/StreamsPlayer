@@ -30,9 +30,10 @@ public partial class PlayerWindow
     // and "take the resource" one step against the UI thread's disposal.
     private readonly object _attemptResourceGate = new();
     private int _attemptEpoch;
-    // True while this leg's own open call is outstanding - the window in which a recovery that started
-    // the leg is no longer deciding and a failed first attempt may still move to the next endpoint.
-    private bool _legOpenInFlight;
+    // The recoveries' own leg-open calls that are outstanding, by leg - the window in which a recovery that
+    // started a leg is no longer deciding and a failed first attempt may still move to the next endpoint.
+    // Keyed by leg so that no other open's exit clears it and no other open's stall sets it (UI thread only).
+    private readonly RecoveryLegOpenTracker _recoveryLegOpens = new();
 
     /// <summary>
     /// SP-0203: the attempt failed before it went live - a rejected open, an engine error, a
@@ -79,9 +80,47 @@ public partial class PlayerWindow
             probeLegPending: _probeLegPending,
             reachedLive: _reachedLive,
             recoveryInFlight: _recoveryInFlight,
-            legOpenInFlight: _legOpenInFlight,
+            legOpenInFlight: _recoveryLegOpens.IsOutstanding(_legCount),
             attemptIndex: _attemptIndex,
             attemptCount: _attemptPlan.Count);
+
+    /// <summary>The attempt open right now; safe from the engine's thread (the epoch is written under the gate).</summary>
+    private int ReadAttemptEpoch() => Volatile.Read(ref _attemptEpoch);
+
+    /// <summary>
+    /// A pre-live engine error or end of stream is this attempt's failure: the producer's next endpoint
+    /// gets its turn before any recovery is spent. Anything the list cannot absorb - a live leg, a
+    /// recovery that is deciding, the last endpoint - goes to the recovery policy exactly as before.
+    /// </summary>
+    private void AdvanceOrRecover(string advanceReason, PlaybackFailureSignal signal)
+    {
+        if (CanAdvanceAttempt())
+        {
+            _ = AdvanceAttemptAsync(_backend, advanceReason);
+            return;
+        }
+
+        _ = RecoverAsync(signal);
+    }
+
+    /// <summary>
+    /// The engine reports carry no attempt, and the attempts of a leg share one engine, so the attempt
+    /// that was open when the engine raised the report is read there (<paramref name="reportEpoch"/>) and
+    /// compared here, on the UI thread, where the epoch moves. A report that was raised or queued before
+    /// the leg moved on is the superseded attempt's - a duplicate of the error that already advanced it,
+    /// or its late end - and must not be booked against the endpoint that replaced it. A genuine report
+    /// of the current attempt cannot be dropped: the epoch changes only when an attempt is retired.
+    /// </summary>
+    private bool IsCurrentAttemptReport(int reportEpoch, string kind)
+    {
+        if (BroadcastAttemptAdvance.IsCurrentAttempt(reportEpoch, _attemptEpoch))
+        {
+            return true;
+        }
+
+        _log.Event("PLAYBACK FAIL IGNORED", $"reason={kind}", "why=superseded_attempt", $"url={_channel.Url}");
+        return false;
+    }
 
     /// <summary>The address the current attempt opens - for the log line, redacted by the sink.</summary>
     private string AttemptUrl() =>

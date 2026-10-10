@@ -113,6 +113,12 @@ public sealed class PlaybackOpenBudget
     /// clock, <paramref name="sinceOpen"/> the leg's. The dead-source branch judges the attempt; the
     /// deadline judges the whole leg, so a list of slowly-answering endpoints cannot stretch one leg
     /// without end.
+    /// <para>The leg's ceiling does not cut an attempt short of its own slice: an attempt that was
+    /// started late in the leg (the previous one gave up at the ceiling itself, or just before it) is
+    /// entitled to its slice before the ceiling applies to it, otherwise the very next observation
+    /// would end it after one tick. The ceiling stays a ceiling - it applies the moment the current
+    /// attempt has had its slice - so a list of exhausted attempts still ends the leg. The first
+    /// attempt of a leg shares the leg's clock and is judged exactly as before.</para>
     /// </summary>
     public PlaybackOpenVerdict Observe(TimeSpan sinceOpen, TimeSpan sinceAttempt, long? receivedBytes)
     {
@@ -130,7 +136,9 @@ public sealed class PlaybackOpenBudget
             _sourceAnswered = true;
         }
 
-        if (sinceOpen >= OpenDeadline)
+        // Never above the ceiling itself, so a slice longer than the ceiling cannot postpone it.
+        var attemptFloor = _attemptDeadSourceAfter < OpenDeadline ? _attemptDeadSourceAfter : OpenDeadline;
+        if (sinceOpen >= OpenDeadline && sinceAttempt >= attemptFloor)
         {
             _reported = true;
             return PlaybackOpenVerdict.Deadline;

@@ -137,6 +137,44 @@ public sealed class PlaybackOpenBudgetTests
         Assert.Equal(PlaybackOpenVerdict.Deadline, budget.Observe(At(21), At(19), 0L));
     }
 
+    /// <summary>
+    /// SP-0180 re-audit F3: an advance that happens at the leg's ceiling hands the successor a fresh
+    /// attempt clock but not a fresh leg clock, so the ceiling was already due on the very next tick and
+    /// the successor was cut after one observation. The successor is entitled to its own slice first.
+    /// </summary>
+    [Fact]
+    public void AnAttemptStartedAtTheLegCeilingGetsItsFullSliceBeforeTheCeilingAppliesToIt()
+    {
+        var first = new PlaybackOpenBudget(TimeSpan.FromSeconds(4));
+        Assert.Equal(PlaybackOpenVerdict.None, first.Observe(At(2), At(2), 100L));
+        Assert.Equal(PlaybackOpenVerdict.Deadline, first.Observe(At(20), At(20), 100L)); // attempt 0 gives up
+
+        // The advance: a new budget and an attempt clock restarted at the leg's 20 s.
+        var successor = new PlaybackOpenBudget(PlaybackOpenBudget.DeadSourceAfter);
+        Assert.Equal(PlaybackOpenVerdict.None, successor.Observe(At(22), At(2), 100L)); // the next tick
+        Assert.Equal(PlaybackOpenVerdict.None, successor.Observe(At(26), At(6), 100L));
+        Assert.Equal(PlaybackOpenVerdict.None, successor.Observe(At(27.9), At(7.9), 100L));
+        // Its slice is spent and the leg is past its ceiling: the leg ends, it does not run on.
+        Assert.Equal(PlaybackOpenVerdict.Deadline, successor.Observe(At(28), At(8), 100L));
+    }
+
+    [Fact]
+    public void AListOfExhaustedAttemptsStillEndsTheLegAtTheCeiling()
+    {
+        // Attempt 2 of a leg whose attempts were all slow: started at 8 s, its slice (8 s) is spent
+        // at 16 s, and the leg's ceiling arrives at 20 s - the ceiling is not postponed by the floor.
+        var late = new PlaybackOpenBudget(PlaybackOpenBudget.DeadSourceAfter);
+        Assert.Equal(PlaybackOpenVerdict.None, late.Observe(At(16), At(8), 100L));
+        Assert.Equal(PlaybackOpenVerdict.Deadline, late.Observe(At(20), At(12), 100L));
+    }
+
+    [Fact]
+    public void ASliceLongerThanTheCeilingCannotPostponeTheCeiling()
+    {
+        var budget = new PlaybackOpenBudget(TimeSpan.FromSeconds(60));
+        Assert.Equal(PlaybackOpenVerdict.Deadline, budget.Observe(At(20), 100L));
+    }
+
     [Fact]
     public void TheDefaultBudgetBehavesExactlyAsTheSingleClockForm()
     {

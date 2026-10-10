@@ -581,11 +581,16 @@ public partial class PlayerWindow : Window
     {
         // A live stream reporting EndReached has usually just dropped; route it through the bounded recovery
         // policy (re-opening a live HLS stream naturally re-anchors to the live edge). Cancellable via _sessionCts.
+        // SP-0203: before the first picture an end is the attempt's failure, like an engine error - recovery
+        // restarts the list from the top, which would retry an endpoint that accepts and closes at once
+        // until the budget is spent and never reach the one ranked behind it. A live leg is unchanged.
+        var epoch = ReadAttemptEpoch();
         Dispatcher.BeginInvoke(() =>
         {
-            if (!_closing && !_failureShown && ReferenceEquals(source, _backend))
+            if (!_closing && !_failureShown && ReferenceEquals(source, _backend) &&
+                IsCurrentAttemptReport(epoch, "end_reached"))
             {
-                _ = RecoverAsync(new PlaybackFailureSignal("end_reached", EndReached: true));
+                AdvanceOrRecover("end_reached", new PlaybackFailureSignal("end_reached", EndReached: true));
             }
         });
     }
@@ -758,22 +763,20 @@ public partial class PlayerWindow : Window
         }
     }
 
-    private void Backend_EncounteredError(IVideoBackend source) =>
+    private void Backend_EncounteredError(IVideoBackend source)
+    {
+        // SP-0203: the attempt the engine raised this under, read before the hop - a duplicate or a late
+        // error of an attempt the leg has already moved past must not fail the endpoint that replaced it.
+        var epoch = ReadAttemptEpoch();
         Dispatcher.BeginInvoke(() =>
         {
-            if (!_closing && !_failureShown && ReferenceEquals(source, _backend))
+            if (!_closing && !_failureShown && ReferenceEquals(source, _backend) &&
+                IsCurrentAttemptReport(epoch, "engine_error"))
             {
-                // SP-0203: an engine error before the first picture is this attempt's failure; the
-                // producer's next endpoint gets its turn before any recovery is spent.
-                if (CanAdvanceAttempt())
-                {
-                    _ = AdvanceAttemptAsync(_backend, "engine_error");
-                    return;
-                }
-
-                _ = RecoverAsync(new PlaybackFailureSignal("encountered_error"));
+                AdvanceOrRecover("engine_error", new PlaybackFailureSignal("encountered_error"));
             }
         });
+    }
 
     private void Backend_TracksChanged(IVideoBackend source) =>
         Dispatcher.BeginInvoke(() =>
