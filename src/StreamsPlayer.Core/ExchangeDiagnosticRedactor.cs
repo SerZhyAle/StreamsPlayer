@@ -13,34 +13,48 @@ public static partial class ExchangeDiagnosticRedactor
     [GeneratedRegex("SHA256:[A-Za-z0-9+/]{43}", RegexOptions.CultureInvariant, 100)]
     private static partial Regex Fingerprints();
 
+    /// <summary>
+    /// Loose pattern for the free text of a log line: any <c>/b/&lt;id&gt;</c> segment, wherever it sits.
+    /// Over-masking an ordinary address there costs one path segment of a diagnostic and is harmless. It is
+    /// not a test of what an address is - <see cref="BroadcastCapabilityAddress.CarriesCapability"/> is.
+    /// </summary>
     [GeneratedRegex("(?i)(/b/)[^/\\s\"'?#]+", RegexOptions.CultureInvariant, 100)]
     private static partial Regex BroadcastUrlPaths();
 
     /// <summary>
-    /// SP-0201 requirement 5: the one definition of "this address carries a broadcast capability" - a relay
-    /// listen path (<c>/v2/b/&lt;broadcastId&gt;/..</c>) and a tunnel path (<c>/b/&lt;id&gt;/..</c>) both put the
-    /// listening right in a <c>/b/</c> segment. The launch-argument gate and the shareable-report redaction
-    /// read this instead of keeping a second pattern.
+    /// The anchored shapes of the contract (DEVICE-EXCHANGE): a tunnel <c>fmsx://&lt;endpoint&gt;/b/&lt;id&gt;</c>
+    /// and a relay listen path <c>&lt;scheme&gt;://&lt;endpoint&gt;/v2/b/&lt;id&gt;</c>, the segment directly after the
+    /// authority. An ordinary stream address with <c>/b/</c> deeper in its path does not match.
     /// </summary>
-    public static bool ContainsBroadcastPath(string text)
-    {
-        try
-        {
-            return BroadcastUrlPaths().IsMatch(text);
-        }
-        catch (RegexMatchTimeoutException)
-        {
-            // An input the pattern cannot be decided on is treated as carrying one: the callers withhold.
-            return true;
-        }
-    }
+    [GeneratedRegex("(?i)((?:fmsx://[^/\\s\"'?#]*/b/)|(?:[a-z][a-z0-9+.\\-]*://[^/\\s\"'?#]*/v2/b/))[^/\\s\"'?#]+", RegexOptions.CultureInvariant, 100)]
+    private static partial Regex CapabilityUrlPaths();
 
-    /// <summary>Masks the broadcast id of every <c>/b/&lt;id&gt;</c> segment in <paramref name="text"/>.</summary>
+    /// <summary>
+    /// Masks the broadcast id of every <c>/b/&lt;id&gt;</c> segment in <paramref name="text"/>, wherever it
+    /// sits. For the free text of a log line, and for an address already known to be a capability address.
+    /// </summary>
     public static string RedactBroadcastPaths(string text)
     {
         try
         {
             return BroadcastUrlPaths().Replace(text, "$1[REDACTED]");
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            return "[REDACTED]";
+        }
+    }
+
+    /// <summary>
+    /// SP-0201 requirement 5: masks the broadcast id only where <paramref name="text"/> holds an address of
+    /// the contract's shape (a tunnel or a relay listen path), so <c>http://host/radio/b/live.mp3</c> is left
+    /// as it was. For a stored channel address of unknown shape that does not parse as a URI.
+    /// </summary>
+    public static string RedactCapabilityAddresses(string text)
+    {
+        try
+        {
+            return CapabilityUrlPaths().Replace(text, "$1[REDACTED]");
         }
         catch (RegexMatchTimeoutException)
         {

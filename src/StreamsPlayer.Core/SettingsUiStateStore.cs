@@ -38,7 +38,8 @@ public sealed class SettingsUiStateStore
             .ReadAsync<SettingsUiState>(_path, _jsonOptions, cancellationToken)
             .ConfigureAwait(false);
         _unreadable = status == FileReadStatus.Unreadable;
-        return Sanitize(state);
+        // SP-0175: the file is hand-editable, so nulls and anchorless entries are dropped by the one sanitizer.
+        return SettingsUiStateSanitizer.Sanitize(state ?? new SettingsUiState());
     }
 
     /// <summary>
@@ -62,7 +63,7 @@ public sealed class SettingsUiStateStore
 
             var state = JsonSerializer.Deserialize<SettingsUiState>(File.ReadAllText(_path), _jsonOptions);
             _unreadable = false;
-            return Sanitize(state);
+            return SettingsUiStateSanitizer.Sanitize(state ?? new SettingsUiState());
         }
         catch
         {
@@ -98,27 +99,6 @@ public sealed class SettingsUiStateStore
             TryDelete(temporaryPath);
             return false;
         }
-    }
-
-    // SP-0175: the file is hand-editable and outlives builds, so a document that parses but holds a null
-    // dictionary or a null anchor must not reach SettingsWindow, which indexes them without a check. An
-    // anchor with no group ID is dropped too - an absent anchor reads as the page top.
-    private static SettingsUiState Sanitize(SettingsUiState? state)
-    {
-        if (state is null)
-        {
-            return new SettingsUiState();
-        }
-
-        return state with
-        {
-            Groups = state.Groups ?? [],
-            Viewports = state.Viewports is null
-                ? []
-                : state.Viewports
-                    .Where(entry => entry.Value is { GroupId: not null })
-                    .ToDictionary(entry => entry.Key, entry => entry.Value)
-        };
     }
 
     private static void TryDelete(string path)

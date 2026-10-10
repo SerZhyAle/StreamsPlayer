@@ -118,6 +118,22 @@ public sealed class IcecastStatusParserTests
         Assert.Equal(IcecastStatusParse.NoMatchingMount, IcecastStatusParser.ExtractTitle(payload, StreamUri, out _));
     }
 
+    /// <summary>
+    /// Re-audit D5: a string member holding a lone surrogate escape parses but throws on GetString(); the
+    /// payload is then not a status document, and the exception never reaches the fire-and-forget caller.
+    /// </summary>
+    [Theory]
+    [InlineData("""{ "icestats": { "source": { "listenurl": "https://radio.example.test:8443/live/main.mp3", "title": "\ud800" } } }""")]
+    [InlineData("""{ "icestats": { "source": { "listenurl": "\ud800", "title": "x" } } }""")]
+    [InlineData("""{ "icestats": { "source": [ { "listenurl": "https://radio.example.test:8443/live/main.mp3", "title": "ok \udc00" } ] } }""")]
+    public void ALoneSurrogateInAStatusMemberIsNotAStatusDocumentAndDoesNotThrow(string payload)
+    {
+        var parse = IcecastStatusParser.ExtractTitle(payload, StreamUri, out var title);
+
+        Assert.Equal(IcecastStatusParse.NotStatusDocument, parse);
+        Assert.Null(title);
+    }
+
     [Fact]
     public void SanitizesAndBoundsUntrustedStatusText()
     {

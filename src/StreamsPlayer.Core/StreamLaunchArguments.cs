@@ -116,7 +116,8 @@ public static class StreamLaunchArguments
         !CatalogUrlIdentity.HasCredentials(url!) &&
         // SP-0201 requirement 5: a relay or tunnel address is the right to listen to that broadcast, and a
         // shortcut file or a copied command is exactly where it must not be written.
-        !ExchangeDiagnosticRedactor.ContainsBroadcastPath(url!) &&
+        // Only the contract's shapes (a tunnel, a relay listen path) - not any /b/ segment of an ordinary address.
+        !BroadcastCapabilityAddress.CarriesCapability(url!.Trim()) &&
         !url!.Trim().Any(character => character is '"' or '\'' or '<' or '>' or '|' or '\\' or '$' or '`' ||
             IsTypographicQuote(character) || char.IsWhiteSpace(character) || char.IsControl(character)) &&
         // Release audit 26.1001.0140: the copied launch command is pasted into a shell. PowerShell expands $(..)
@@ -139,28 +140,51 @@ public static class StreamLaunchArguments
     /// A candidate <c>%NAME%</c>. The closing percent is only looked ahead at, not consumed, so two tokens
     /// that share a percent sign are both examined. Everything up to the closing percent belongs to the
     /// token: cmd also expands <c>%NAME:~0,5%</c> and <c>%NAME:a=b%</c>, which would put part of the user's
-    /// environment into the address.
+    /// environment into the address. A name may begin with <c>=</c> (<c>%=ExitCode%</c>, <c>%=C:%</c>).
     /// </summary>
     private static readonly System.Text.RegularExpressions.Regex CmdVariableToken = new(
-        @"%[A-Za-z_][^%\s]*(?=%)",
+        @"%[A-Za-z_=][^%\s]*(?=%)",
         System.Text.RegularExpressions.RegexOptions.CultureInvariant,
         TimeSpan.FromMilliseconds(100));
 
     /// <summary>
     /// SP-0184 (A16-2): whether the address holds a <c>%NAME%</c> that cmd would expand. A percent-encoded
-    /// path (<c>caf%C3%A9</c>, <c>%C3%A9t%C3%A9</c>) also reads as <c>%NAME%</c> to the pattern, but there both
-    /// percent signs begin a valid <c>%HH</c> escape, and an address that merely contains non-ASCII text lost
-    /// its shortcut fallback for it. A token whose opening and closing percent each start a hex pair is an
-    /// escape sequence; <c>%DATE%</c> and <c>%CD%</c> followed by anything else still count as variables.
+    /// path (<c>caf%C3%A9</c>, <c>%C3%A9t%C3%A9</c>) also reads as <c>%NAME%</c> to the pattern, and an
+    /// address that merely contains non-ASCII text lost its shortcut fallback for it.
     /// </summary>
+    /// <remarks>
+    /// Release audit 26.1010.0106 (D4): the token between the percents decides, not what follows it. A token
+    /// that is exactly two hex digits is a <c>%HH</c> escape's own text, except <c>%CD%</c>, the one cmd
+    /// variable whose name is a hex pair (it expands to the working directory). Any longer token
+    /// (<c>%DATE%AB</c>: <c>DA</c> is a hex pair, <c>AB</c> follows the closer) is read as a variable name
+    /// unless it can only be an escape followed by literal text: its first two characters are a hex pair
+    /// with a byte of 0x80 or more, a hex pair follows its closing percent, and the address percent-decodes to
+    /// valid UTF-8 - <c>%C3%A9t%C3%A9</c> does, <c>%DATE%AB</c> and <c>%BASE%AB</c> do not.
+    /// </remarks>
     private static bool ContainsCmdVariable(string url)
     {
+        var decodesAsText = default(bool?);
         foreach (System.Text.RegularExpressions.Match token in CmdVariableToken.Matches(url))
         {
+            var name = token.ValueSpan[1..];
+            if (name.Length == 2 && char.IsAsciiHexDigit(name[0]) && char.IsAsciiHexDigit(name[1]))
+            {
+                if (name.Equals("CD", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                continue;
+            }
+
             var closing = token.Index + token.Length;
-            // %CD% is the one cmd variable whose name is also a hex pair; it expands to the working directory.
-            if (token.ValueSpan.Equals("%CD", StringComparison.OrdinalIgnoreCase) ||
-                !(StartsHexPair(url, token.Index + 1) && StartsHexPair(url, closing + 1)))
+            if (!StartsMultiByteEscape(url, token.Index + 1) || !StartsHexPair(url, closing + 1))
+            {
+                return true;
+            }
+
+            decodesAsText ??= PercentDecodesToUtf8(url);
+            if (!decodesAsText.Value)
             {
                 return true;
             }
@@ -171,4 +195,46 @@ public static class StreamLaunchArguments
 
     private static bool StartsHexPair(string text, int index) =>
         index + 1 < text.Length && char.IsAsciiHexDigit(text[index]) && char.IsAsciiHexDigit(text[index + 1]);
+
+    /// <summary>A hex pair whose byte is a lead or continuation byte of a multi-byte UTF-8 character.</summary>
+    private static bool StartsMultiByteEscape(string text, int index) =>
+        StartsHexPair(text, index) &&
+        int.Parse(text.AsSpan(index, 2), System.Globalization.NumberStyles.AllowHexSpecifier) >= 0x80;
+
+    /// <summary>
+    /// Whether every <c>%HH</c> escape in <paramref name="text"/>, read as a byte beside the UTF-8 bytes of the
+    /// literal characters, forms valid UTF-8 - the property of an address that was percent-encoded from text.
+    /// </summary>
+    private static bool PercentDecodesToUtf8(string text)
+    {
+        var bytes = new List<byte>(text.Length);
+        Span<byte> buffer = stackalloc byte[4];
+        for (var index = 0; index < text.Length; index++)
+        {
+            if (text[index] == '%' && StartsHexPair(text, index + 1))
+            {
+                bytes.Add(byte.Parse(text.AsSpan(index + 1, 2), System.Globalization.NumberStyles.AllowHexSpecifier));
+                index += 2;
+                continue;
+            }
+
+            if (char.IsHighSurrogate(text[index]) && index + 1 < text.Length && char.IsLowSurrogate(text[index + 1]))
+            {
+                var length = new System.Text.Rune(text[index], text[index + 1]).EncodeToUtf8(buffer);
+                bytes.AddRange(buffer[..length].ToArray());
+                index++;
+                continue;
+            }
+
+            if (char.IsSurrogate(text[index]))
+            {
+                return false;
+            }
+
+            var single = new System.Text.Rune(text[index]).EncodeToUtf8(buffer);
+            bytes.AddRange(buffer[..single].ToArray());
+        }
+
+        return System.Text.Unicode.Utf8.IsValid(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(bytes));
+    }
 }

@@ -105,7 +105,7 @@ public static partial class CatalogUrlIdentity
         var trimmed = url.Trim();
         if (!Uri.TryCreate(trimmed, UriKind.Absolute, out var uri))
         {
-            return ExchangeDiagnosticRedactor.RedactBroadcastPaths(RedactText(trimmed));
+            return ExchangeDiagnosticRedactor.RedactCapabilityAddresses(RedactText(trimmed));
         }
 
         // A stored non-launchable row (C:\Users\ann\a.mp3, \\srv\share) parses as a file address, and echoing
@@ -123,7 +123,7 @@ public static partial class CatalogUrlIdentity
             var authorityTo = trimmed.IndexOfAny(['/', '?', '#'], authorityFrom);
             if (authorityTo >= 0 && TryFindNumericPasswordSplit(trimmed, authorityFrom, authorityTo, out _))
             {
-                return ExchangeDiagnosticRedactor.RedactBroadcastPaths(RedactText(trimmed));
+                return ExchangeDiagnosticRedactor.RedactCapabilityAddresses(RedactText(trimmed));
             }
         }
 
@@ -131,14 +131,24 @@ public static partial class CatalogUrlIdentity
         var host = uri.Host.ToLowerInvariant();
         var authority = uri.IsDefaultPort ? host : $"{host}:{uri.Port}";
         var query = RedactQuery(uri.Query);
-        // SP-0201 requirement 5: a relay or tunnel path holds the broadcast id, which is the right to listen.
-        var path = ExchangeDiagnosticRedactor.RedactBroadcastPaths(RedactCredentialPathSegments(uri.AbsolutePath));
-        return $"{scheme}://{authority}{path}{query}{uri.Fragment}";
+        var path = RedactCredentialPathSegments(uri.AbsolutePath);
+        var redacted = $"{scheme}://{authority}{path}{query}{uri.Fragment}";
+
+        // SP-0201 requirement 5: a relay or tunnel address holds the broadcast id, which is the right to
+        // listen. Only an address of that shape is masked - an ordinary stream address with a "/b/" segment
+        // (http://host/radio/b/live.mp3) is what it says. The mask runs over the assembled string so the
+        // query and fragment of a capability address are covered as well as its path.
+        return BroadcastCapabilityAddress.CarriesCapability(trimmed)
+            ? ExchangeDiagnosticRedactor.RedactBroadcastPaths(redacted)
+            : redacted;
     }
 
     /// <summary>
-    /// What a report may say of an address that names a local file or has no host: the bare file name, or the
-    /// redaction marker when there is none (a directory, or a scheme that is not a stream address at all).
+    /// What a report may say of an address that names a local file or has no host: the bare file name when it
+    /// is a media file, the redaction marker otherwise (a directory, a profile folder or a share name with no
+    /// trailing slash, or a scheme that is not a stream address at all). The last segment of
+    /// <c>C:\Users\ann</c> and of <c>\\srv\home\ann</c> is the user name, so a name is only echoed when it
+    /// ends in a media extension from <see cref="MediaFileExtensions"/>.
     /// </summary>
     private static string RedactLocalAddress(Uri uri)
     {
@@ -147,16 +157,30 @@ public static partial class CatalogUrlIdentity
             return RedactedMarker;
         }
 
-        // A trailing slash makes the last segment a directory, which on a user profile is the user name.
         var last = uri.Segments[^1];
         if (last.EndsWith('/'))
         {
             return RedactedMarker;
         }
 
-        var name = Uri.UnescapeDataString(last);
-        return name.Length == 0 ? RedactedMarker : name;
+        // An escaped line break or tab would break the one-line report field the name is written into.
+        var name = string.Concat(Uri.UnescapeDataString(last).Where(character => !char.IsControl(character)));
+        var extension = Path.GetExtension(name);
+        return extension.Length > 1 && MediaFileExtensions.Contains(extension) && name.Length > extension.Length
+            ? name
+            : RedactedMarker;
     }
+
+    /// <summary>
+    /// The extensions a local file name keeps in a report. A closed list rather than "any short extension":
+    /// <c>C:\Users\ann.lee</c> has a three-letter one.
+    /// </summary>
+    private static readonly HashSet<string> MediaFileExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".mp3", ".aac", ".m4a", ".m4b", ".flac", ".ogg", ".oga", ".opus", ".wav", ".wma", ".aif", ".aiff", ".ape",
+        ".mka", ".mp4", ".m4v", ".mkv", ".webm", ".mov", ".avi", ".wmv", ".mpg", ".mpeg", ".ts", ".m2ts",
+        ".m3u", ".m3u8", ".pls", ".mpd"
+    };
 
     /// <summary>
     /// True when the log redactor would remove anything from this address. Used by exports and launch

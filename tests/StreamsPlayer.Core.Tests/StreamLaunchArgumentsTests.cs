@@ -142,7 +142,7 @@ public sealed class StreamLaunchArgumentsTests
     /// </summary>
     [Theory]
     [InlineData("https://exchange.example.net:44022/v2/b/ICEiIyQlJicoKSorLC0uLw/stream")]
-    [InlineData("https://exchange.example.net/b/ICEiIyQlJicoKSorLC0uLw/http")]
+    [InlineData("fmsx://exchange.example.net:44022/b/ICEiIyQlJicoKSorLC0uLw/http")]
     public void For_LeavesOutABroadcastCapabilityAddress(string url)
     {
         var channel = Channel(url);
@@ -151,6 +151,51 @@ public sealed class StreamLaunchArgumentsTests
         Assert.Equal($"--id \"{channel.Id:D}\"", arguments);
         Assert.False(StreamLaunchArguments.CarriesAddress(channel));
         Assert.DoesNotContain("ICEiIyQlJicoKSorLC0uLw", arguments);
+    }
+
+    /// <summary>Re-audit D1: a "/b/" segment of an ordinary address is not a capability; the address still rides along.</summary>
+    [Theory]
+    [InlineData("http://h/radio/b/live.mp3")]
+    [InlineData("https://h/b/news")]
+    [InlineData("https://exchange.example.net/b/ICEiIyQlJicoKSorLC0uLw/http")]
+    [InlineData("http://h/x?next=/b/news")]
+    public void For_CarriesAnOrdinaryAddressWithABSegment(string url)
+    {
+        var channel = Channel(url);
+
+        Assert.True(StreamLaunchArguments.CarriesAddress(channel));
+        Assert.Equal($"--id \"{channel.Id:D}\" --url \"{url}\"", StreamLaunchArguments.For(channel));
+    }
+
+    /// <summary>
+    /// Re-audit D4: a token between the percents is an escape only when it is exactly two hex digits. A name
+    /// that merely begins with a hex pair (DATE, BASE), is followed by one after the closing percent, or
+    /// begins with "=" is still a cmd variable.
+    /// </summary>
+    [Theory]
+    [InlineData("https://example.test/%DATE%AB")]
+    [InlineData("https://example.test/%BASE%AB")]
+    [InlineData("https://example.test/%C3%DATE%AB")]
+    [InlineData("https://example.test/%A9%USERNAME%.mp3")]
+    [InlineData("https://example.test/%=ExitCode%")]
+    [InlineData("https://example.test/%=C:%x")]
+    [InlineData("https://example.test/%cd%AB")]
+    public void For_LeavesOutAnAddressWithAHexNamedOrEqualsNamedCmdVariable(string url)
+    {
+        var channel = Channel(url);
+
+        Assert.Equal($"--id \"{channel.Id:D}\"", StreamLaunchArguments.For(channel));
+    }
+
+    [Theory]
+    [InlineData("https://example.test/%C3%A9t%C3%A9")]
+    [InlineData("https://example.test/caf%C3%A9/%D0%B0%D0%B1.mp3")]
+    [InlineData("https://example.test/%E4%B8%AD%E6%96%87%C3%A9t%C3%A9")]
+    public void For_StillCarriesPercentEncodedNonAsciiPaths(string url)
+    {
+        var channel = Channel(url);
+
+        Assert.True(StreamLaunchArguments.CarriesAddress(channel));
     }
 
     /// <summary>Audit S10: every PowerShell single-quote character in the executable path is doubled.</summary>

@@ -211,6 +211,32 @@ public sealed class SettingsUiStateStoreTests
         }
     }
 
+    /// <summary>
+    /// Re-audit D6: the store reads through the one sanitizer, so its anchor rule is the sanitizer's - an
+    /// anchor with an empty group ID is dropped on both reads, not only a null one.
+    /// </summary>
+    [Fact]
+    public async Task AnAnchorWithAnEmptyGroupIdIsDroppedOnBothReads()
+    {
+        var directory = TempDirectory();
+        try
+        {
+            await File.WriteAllTextAsync(
+                Path.Combine(directory, "settings-ui.json"),
+                """{"schemaVersion":1,"viewports":{"p":{"groupId":"","offsetWithinGroup":4},"q":{"groupId":"g","offsetWithinGroup":1}}}""");
+
+            var sync = new SettingsUiStateStore(directory).LoadSync();
+            var viaAsync = await new SettingsUiStateStore(directory).LoadAsync();
+
+            Assert.Equal("q", Assert.Single(sync.Viewports).Key);
+            Assert.Equal("q", Assert.Single(viaAsync.Viewports).Key);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
     [Fact]
     public void WindowRectangleDegradesGracefullyOnNonsense()
     {

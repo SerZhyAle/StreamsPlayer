@@ -54,8 +54,12 @@ public static class IcecastStatusParser
                 ? IcecastStatusParse.MatchedMount
                 : IcecastStatusParse.NoMatchingMount;
         }
-        catch (JsonException)
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException)
         {
+            // A string member holding a lone UTF-16 surrogate escape ("\ud800") parses, then throws
+            // InvalidOperationException from GetString(). The server's answer is not usable as a status
+            // document; it must not escape into the caller's fire-and-forget now-playing task.
+            title = null;
             return IcecastStatusParse.NotStatusDocument;
         }
     }
