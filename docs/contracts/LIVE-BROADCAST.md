@@ -58,7 +58,10 @@ product filed were folded: `sourceId` names a source, not a device (item G, 0.15
   picture as separate values and claims neither (open question 1 of SP-0203). Neither number has been **measured** against a
   real phone (SP-0208, and the dated exception in the registry). The contract states no keyframe interval for the RTSP kinds, so
   the budget is not a number a consumer can check; a proposal to add an optional `keyframeIntervalMs` is filed beside the contract
-  (`PROPOSAL-2026-10-07-keyframe-interval-and-consumer-buffer`).
+  (`PROPOSAL-2026-10-07-keyframe-interval-and-consumer-buffer`) - the owner's ruling of 2026-10-11 adopts it, and the fold is owed
+  in the catalog by the contract's owner. The measurement path itself is proven: a loopback RTSP stand-in through the released
+  binary opens with `BroadcastLiveCache`'s buffer (`cache_ms=500` from a stated 200) and records the first picture (`ttff_ms=397`)
+  - `temp/SP-0208/harness-verdict.md`, no budget claimed from it.
 
 Because the contract is below 1.0 it may change shape. The registry row carries the date this product last
 verified against it; a later reading is not assumed to still hold.
