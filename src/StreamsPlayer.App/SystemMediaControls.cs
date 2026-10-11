@@ -67,8 +67,12 @@ internal sealed class SystemMediaControls : IDisposable
             return controls;
         }
         catch (Exception exception) when (exception is TypeLoadException or PlatformNotSupportedException
-            or COMException or InvalidOperationException or NotSupportedException)
+            or COMException or InvalidOperationException or NotSupportedException
+            or UnauthorizedAccessException or ObjectDisposedException)
         {
+            // SP-0212 (L20): the system's own plumbing can refuse the same way a missing type does - a
+            // registry key that denies access, a session object already torn down - and the controls are
+            // optional: absent is absent, whatever the cause.
             return null;
         }
         finally

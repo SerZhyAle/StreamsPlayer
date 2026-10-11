@@ -13,7 +13,7 @@
     <Logo>Assets\StoreLogo.png</Logo>
     <Description>Internet radio, live video and RTSP player for Windows.</Description>
   </Properties>
-  <Resources><Resource Language="en-us" /></Resources>
+  <Resources>__LANGUAGE_RESOURCES__</Resources>
   <Dependencies><TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" /></Dependencies>
   <Applications>
     <Application Id="StreamsPlayer" Executable="StreamsPlayer.exe" EntryPoint="Windows.FullTrustApplication">

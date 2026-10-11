@@ -34,6 +34,15 @@ public static class M3uPlaylistParser
     /// </summary>
     public const int MaximumNewEntries = 100_000;
 
+    /// <summary>
+    /// SP-0212 (L27): the longest single field one import takes. The body ceiling of
+    /// <see cref="M3uImportService.MaximumPlaylistBytes"/> bounds the whole file, but a hostile or broken
+    /// playlist can spend it on one address or one title - a stored channel whose field then dominates
+    /// every whole-document save and every hand-out of the sheet. An address over the bound is refused as
+    /// invalid; a title over it is dropped, and the channel imports under its host's name.
+    /// </summary>
+    public const int MaximumFieldLength = 4096;
+
     /// <summary>Launchable, in-file-deduplicated channels from an M3U body, ignoring what is already stored.</summary>
     public static IReadOnlyList<CatalogEntry> Parse(string text) =>
         Analyze(text, new HashSet<string>(StringComparer.Ordinal)).NewEntries;
@@ -67,7 +76,9 @@ public static class M3uPlaylistParser
             var line = originalLine.Trim();
             if (line.StartsWith("#EXTINF:", StringComparison.OrdinalIgnoreCase))
             {
-                nextTitle = TitleOf(line);
+                // SP-0212 (L27): a title over the field cap is dropped, not stored; the channel that
+                // follows still imports, under its host's name.
+                nextTitle = TitleOf(line) is { Length: <= MaximumFieldLength } cappedTitle ? cappedTitle : null;
                 continue;
             }
 
@@ -77,6 +88,15 @@ public static class M3uPlaylistParser
             }
 
             candidateLines++;
+            // SP-0212 (L27): the per-field cap - checked before the launch test, so a line that spends
+            // the whole body ceiling on one address is refused without being parsed.
+            if (line.Length > MaximumFieldLength)
+            {
+                invalid++;
+                nextTitle = null;
+                continue;
+            }
+
             if (!StreamMediaKindClassifier.IsLaunchable(line))
             {
                 invalid++;

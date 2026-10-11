@@ -120,34 +120,45 @@ public sealed class WaveParticlesBackdrop : FrameworkElement
             return;
         }
 
-        var wash = WashColour();
-        if (!_timer.IsEnabled)
+        try
         {
-            session.EnsureStill(width, height, wash, IsLight(wash));
-        }
-        else
-        {
-            session.EnsureBuffer(width, height, wash);
-        }
+            var wash = WashColour();
+            if (!_timer.IsEnabled)
+            {
+                session.EnsureStill(width, height, wash, IsLight(wash));
+            }
+            else
+            {
+                session.EnsureBuffer(width, height, wash);
+            }
 
-        if (session.Frame is not { } frame)
-        {
-            return;
-        }
+            if (session.Frame is not { } frame)
+            {
+                return;
+            }
 
-        var bounds = new Rect(RenderSize);
-        var radius = CornerRadius;
-        if (radius > 0)
-        {
-            drawingContext.PushClip(new RectangleGeometry(bounds, radius, radius));
-        }
+            var bounds = new Rect(RenderSize);
+            var radius = CornerRadius;
+            if (radius > 0)
+            {
+                drawingContext.PushClip(new RectangleGeometry(bounds, radius, radius));
+            }
 
-        drawingContext.PushOpacity(Math.Clamp(Intensity, WaveParticlesConstants.IntensityMin, WaveParticlesConstants.IntensityMax));
-        drawingContext.DrawImage(frame, bounds);
-        drawingContext.Pop();
-        if (radius > 0)
-        {
+            drawingContext.PushOpacity(Math.Clamp(Intensity, WaveParticlesConstants.IntensityMin, WaveParticlesConstants.IntensityMax));
+            drawingContext.DrawImage(frame, bounds);
             drawingContext.Pop();
+            if (radius > 0)
+            {
+                drawingContext.Pop();
+            }
+        }
+        catch (Exception exception)
+        {
+            // SP-0212 (L8): the render path allocates and draws with no guard either, and a fault escaping
+            // OnRender ends the process the same way - over a decoration. The frame is skipped and the
+            // ticking stops, so the fault costs the animation and nothing else.
+            _timer.Stop();
+            HandlerBoundary.Report(nameof(OnRender), exception, notifyUser: false);
         }
     }
 
@@ -269,18 +280,30 @@ public sealed class WaveParticlesBackdrop : FrameworkElement
             return;
         }
 
-        var elapsed = Math.Min(_clock.Elapsed.TotalSeconds, MaximumStepSeconds);
-        _clock.Restart();
-        if (WindowCloaking.IsCloaked(_window))
+        try
         {
-            // Rule 10 (0.13): a window on another virtual desktop is cloaked, not minimized. Advance nothing and
-            // draw nothing; the timer keeps asking, which is one cheap DWM call, until it is shown again.
-            return;
-        }
+            var elapsed = Math.Min(_clock.Elapsed.TotalSeconds, MaximumStepSeconds);
+            _clock.Restart();
+            if (WindowCloaking.IsCloaked(_window))
+            {
+                // Rule 10 (0.13): a window on another virtual desktop is cloaked, not minimized. Advance nothing and
+                // draw nothing; the timer keeps asking, which is one cheap DWM call, until it is shown again.
+                return;
+            }
 
-        var wash = WashColour();
-        session.Step(elapsed, width, height, wash, IsLight(wash));
-        InvalidateVisual();
+            var wash = WashColour();
+            session.Step(elapsed, width, height, wash, IsLight(wash));
+            InvalidateVisual();
+        }
+        catch (Exception exception)
+        {
+            // SP-0212 (L8): this tick runs on nothing's guard - the buffer allocation and the step it calls
+            // can fault, and a fault that escapes a timer handler reaches the dispatcher's last-resort
+            // handler, which ends the process: a decoration would close a long radio session. The ticking
+            // stops instead, so a backdrop that cannot animate stands still.
+            _timer.Stop();
+            HandlerBoundary.Report(nameof(Timer_Tick), exception, notifyUser: false);
+        }
     }
 
     private bool IsInViewport()

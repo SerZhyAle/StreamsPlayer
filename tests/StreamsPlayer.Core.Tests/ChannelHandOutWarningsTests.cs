@@ -32,6 +32,25 @@ public sealed class ChannelHandOutWarningsTests
     public void AnOrdinaryAddressAsksNothing(string url) =>
         Assert.Empty(ChannelHandOutWarnings.KeysFor(url));
 
+    // SP-0212 (L28): the export gate reads its keys from the same owner as the share menu and the About
+    // window - its credential wording is the file's own, the capability confirmation is the shared key.
+    [Fact]
+    public void TheExportGateAsksItsOwnCredentialWordingAndTheSharedCapabilityKey()
+    {
+        Assert.Equal(
+            [ChannelHandOutWarnings.ExportCredentialKey, ChannelHandOutWarnings.CapabilityKey],
+            ChannelHandOutWarnings.ExportKeysFor([
+                "https://alice:s3cr3t@host.example/live.m3u8",
+                "https://relay.example.net/v2/b/ICEiIyQlJicoKSorLC0uLw/stream"]));
+        Assert.Equal(
+            [ChannelHandOutWarnings.ExportCredentialKey],
+            ChannelHandOutWarnings.ExportKeysFor(["https://user:pass@host.example/one"]));
+        Assert.Equal(
+            [ChannelHandOutWarnings.CapabilityKey],
+            ChannelHandOutWarnings.ExportKeysFor(["https://relay.example.net/v2/b/ICEiIyQlJicoKSorLC0uLw/stream"]));
+        Assert.Empty(ChannelHandOutWarnings.ExportKeysFor(["http://192.168.1.20:8080/stream"]));
+    }
+
     [Fact]
     public void TheKeysAreTheOnesTheShareDialogsAlreadyShip()
     {

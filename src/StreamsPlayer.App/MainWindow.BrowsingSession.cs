@@ -145,6 +145,15 @@ public partial class MainWindow
             return;
         }
 
+        // SP-0212 (L12): a window over a catalog that failed to load is a window of defaults - the facet
+        // rows are empty and an empty list rests at the top - and saving it would overwrite the user's
+        // stored filters and scroll offset with those defaults. The catalog's own SP-0175 rule, applied to
+        // the session file beside it: until a read has succeeded, the file is preserved untouched.
+        if (_catalogStateUnreadable)
+        {
+            return;
+        }
+
         var started = BeginCatalogPerf();
         var updated = _session with
         {

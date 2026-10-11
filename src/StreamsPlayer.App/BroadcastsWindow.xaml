@@ -23,9 +23,9 @@
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Visibility="{Binding ActionsVisibility}"
                             VerticalAlignment="Center" Margin="10,0,0,0">
-                    <Button Content="{DynamicResource BroadcastsPlay}" Tag="{Binding}" Click="Play_Click"
+                    <Button Style="{StaticResource PlayGlyphButton}" Content="{DynamicResource BroadcastsPlay}" Tag="{Binding}" Click="Play_Click"
                             Margin="0,0,8,0" Padding="12,5" />
-                    <Button Content="{DynamicResource BroadcastsKeep}" Tag="{Binding}" Click="Keep_Click" Padding="12,5" />
+                    <Button Style="{StaticResource AddGlyphButton}" Content="{DynamicResource BroadcastsKeep}" Tag="{Binding}" Click="Keep_Click" Padding="12,5" Margin="0" />
                 </StackPanel>
             </Grid>
         </DataTemplate>
@@ -41,8 +41,8 @@
                    VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.7" />
         <ListBox x:Name="BroadcastList" Grid.Row="1" BorderThickness="0" Background="Transparent"
                  HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="{DynamicResource Close}" IsCancel="True" Padding="14,6" />
-        </StackPanel>
+        <WrapPanel Grid.Row="2" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Style="{StaticResource CloseAnswerGlyphButton}" Content="{DynamicResource Close}" IsCancel="True" Margin="4,3" />
+        </WrapPanel>
     </Grid>
 </Window>

@@ -273,6 +273,15 @@ Informar de un problema con los registros
 
 @@use-5-text
 Abra Ajustes desde el botón de engranaje en el encabezado (o desde la entrada «Configuración de biblioteca» del menú [[glyph:nav.more]] Acciones) y presione «Enviar los registros al autor» en la página Acerca de. La aplicación empaqueta los registros de diagnóstico de los últimos diez inicios junto con un breve resumen de su versión, Windows y configuración en la carpeta indicada en «Carpeta de fotogramas» (página Archivos de Ajustes) o, si ese campo está vacío, en Descargas, y luego abre su programa de correo con el mensaje listo. La confirmación muestra la ruta completa y puede abrir esa carpeta si lo solicita; usted adjunta el archivo y presiona Enviar.
+@@use-6-title
+Intercambia medios entre tus dispositivos
+
+@@use-6-text
+STREAMS Player es el reproductor de Windows para las emisiones en directo de un teléfono o un reloj con FastMediaSorter. El portal de intercambio de medios explica las tres formas de conectar tus dispositivos - la red doméstica, el servidor de intercambio y la emisión en directo -, qué programa hace qué en un teléfono, un reloj, un televisor, unas gafas de realidad virtual y un PC, y qué funciona hoy.
+
+@@use-6-link
+Abrir el portal de intercambio de medios (en inglés)
+
 @@distribution-title
 Distribución
 

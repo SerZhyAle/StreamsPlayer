@@ -422,6 +422,8 @@
     <sys:String x:Key="WebsiteTip">Открыть сайт Трансляции</sys:String>
     <sys:String x:Key="Privacy">Конфиденциальность</sys:String>
     <sys:String x:Key="PrivacyTip">Открыть политику конфиденциальности Трансляции</sys:String>
+    <sys:String x:Key="MediaExchange">Обмен медиа</sys:String>
+    <sys:String x:Key="MediaExchangeTip">Открыть руководство по обмену медиа между вашими устройствами</sys:String>
     <sys:String x:Key="AuthorPage">Страница автора</sys:String>
     <sys:String x:Key="AuthorPageTip">Открыть профиль SerZhyAle на GitHub</sys:String>
     <sys:String x:Key="SendLogs">Отправить журналы автору</sys:String>
@@ -442,15 +444,15 @@
     <sys:String x:Key="SettingsOpenLinkFailed">Windows не удалось открыть эту ссылку.</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">Не удалось открыть ссылку</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">Создать ярлык на рабочем столе</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">Команда запуска скопирована в буфер обмена.</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">Команда запуска PowerShell скопирована. Вставьте её в PowerShell.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows не удалось скопировать команду запуска.</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">Адрес не добавлен. Этот ярлык или команда работает, только пока канал есть в этой библиотеке.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Копировать текст для отправки</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">Копировать команду запуска</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">Копировать команду запуска PowerShell</sys:String>
     <sys:String x:Key="ShareTextCopied">Текст скопирован в буфер обмена. Вставьте его в сообщение; получатель добавит канал командой «Вставить канал».</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows не удалось скопировать текст.</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">В адресе этого канала есть пароль или токен. Текст передаёт его в открытом виде, и его увидит каждый, кто получит ваше сообщение. Всё равно скопировать?</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">В адресе этого канала есть пароль или токен. То, что вы собираетесь скопировать, передаёт его в открытом виде, и его увидит каждый, кто это получит. Всё равно скопировать?</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">Ярлык на рабочем столе создан: {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">Windows не удалось создать ярлык на рабочем столе.</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">Используйте --url &lt;адрес&gt; или --id &lt;GUID канала&gt;.</sys:String>
@@ -476,6 +478,7 @@
     <sys:String x:Key="ImportCountSkipped">Повторов в файле</sys:String>
     <sys:String x:Key="ImportApply">Применить</sys:String>
     <sys:String x:Key="ImportPreviewSummary">Будет добавлено новых каналов (как импортированные): {0}.</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">В плейлисте больше {0:N0} новых каналов. Прочитана только начальная часть; счётчики относятся к ней. Разделите плейлист, чтобы импортировать остальные каналы.</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">Из этого источника нечего импортировать.</sys:String>
     <sys:String x:Key="ImportDownloading">Загрузка плейлиста…</sys:String>
     <sys:String x:Key="ImportResult">Импортировано каналов: {0}.</sys:String>
@@ -509,7 +512,7 @@
     <sys:String x:Key="DeleteDownloadedTip">Удалить все потоки из загруженного каталога и оставить только ваши каналы</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">Оставить только ваши каналы: будут удалены потоки из загруженного каталога. Добавленные и импортированные каналы сохранятся. «Импортировать каналы из интернета» загрузит их снова.</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">Удаление загруженных трансляций</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">Удалить все загруженные из каталога трансляции ({0:N0})? Добавленные и импортированные каналы сохранятся. Отменить это нельзя, но «Импортировать каналы из интернета» загрузит их снова.</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">Удалить загруженные из каталога трансляции ({0:N0})? Добавленные и импортированные каналы сохранятся. Отменить это нельзя, но «Импортировать каналы из интернета» загрузит их снова. Закреплённые каналы, каналы в коллекциях и каналы с историей прослушивания также сохраняются.</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">Загруженных трансляций каталога нет.</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">Удалено загруженных трансляций: {0:N0}.</sys:String>
     <!-- SP-0029 language picker -->
@@ -613,12 +616,13 @@
     <sys:String x:Key="ImportCatalogNoChannels">В архиве каталога не найдено каналов для импорта. Ваш список не изменился.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">Этот файл не является корректным архивом каталога трансляций. Ваш список не изменился.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">Архив каталога содержит некорректные данные CSV или недопустимую кодировку UTF-8. Ваш список не изменился.</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">Архив каталога или его данные CSV превышают максимально допустимый размер. Ваш список не изменился.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">Архив каталога или его данные CSV превышают максимально допустимый размер. Ваш список не изменился.</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">Не удалось сохранить импортированный каталог. Ваш список не изменился.</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">Удалить импортированный каталог</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">Удалить все потоки, добавленные из импортированного архива каталога</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">Удаление потоков, добавленных из импортированных архивов каталога. Ваши созданные каналы и скачанный каталог останутся.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">Удалить импортированный каталог</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">Удалить все импортированные потоки каталога ({0:N0})? Ваши созданные и скачанные потоки сохранятся. Это действие нельзя отменить.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Удалить импортированные потоки каталога ({0:N0})? Ваши созданные и скачанные потоки сохранятся. Это действие нельзя отменить. Закреплённые каналы, каналы в коллекциях и каналы с историей прослушивания также сохраняются.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">Нет импортированных потоков каталога для удаления.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">Удалено импортированных потоков каталога: {0:N0}.</sys:String>
     <sys:String x:Key="TvScheduleTitle">Телепрограмма</sys:String>

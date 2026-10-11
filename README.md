@@ -9,7 +9,8 @@
 <p align="center">
   <a href="https://serzhyale.github.io/StreamsPlayer/">Website</a> ·
   <a href="https://github.com/SerZhyAle/StreamsPlayer">Source</a> ·
-  <a href="https://serzhyale.github.io/StreamsPlayer/privacy.html">Privacy</a>
+  <a href="https://serzhyale.github.io/StreamsPlayer/privacy.html">Privacy</a> ·
+  <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/">Media exchange</a>
 </p>
 
 <p align="center">
@@ -194,6 +195,8 @@ code or features.
 - Import channels from a local `.m3u`/`.m3u8` file or an HTTP(S) playlist URL as
   `IMPORTED` rows, with an atomic preview of new, duplicate, invalid, and skipped
   counts before applying; HLS media manifests import nothing and explain why.
+  Imports stop at 100,000 new channels. The preview warns when only the first
+  part was read; split the playlist to import the rest.
 - Export your added (`MANUAL`/`IMPORTED`) channels, or just the pinned ones, to a
   UTF-8 M3U file, with a warning before writing any credential-bearing URL.
 - Recommend a single channel as an ordinary chat message: **Copy share text** in a
@@ -234,10 +237,17 @@ code or features.
   a device that stops broadcasting gets a message that it stopped or is no longer
   reachable instead of an endless "Connecting". The app does not amplify a quiet
   microphone: the volume is whatever the device sends.
-- Delete every downloaded catalog stream in one confirmed action from the
-  **Library** page in **Settings** and keep only your own `MANUAL`/`IMPORTED`
-  channels; **Import channels from the internet** downloads them again whenever
-  you want them back.
+- Find out how your devices exchange media and which program does what on each of
+  them - a phone, a watch, a TV, a VR headset and a Windows PC - in the
+  [media exchange portal](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/).
+  STREAMS Player is its Windows player for live broadcasts; the portal's
+  [live broadcast page](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/live-broadcast.html)
+  says who can go on air, how a broadcast travels and what works today. The same
+  link is on the **About** page in Settings.
+- Delete downloaded or imported catalog streams in one confirmed action from
+  **Settings → Library**. Your added channels, pinned channels, channels in
+  collections and channels with listening history are kept.
+  **Import channels from the internet** downloads the removed bank again.
 - Switch the complete interface between thirteen languages from the **Language**
   selector on the **General** page in Settings - marked with a globe - including right-to-left
   layout for Arabic and Urdu; the choice is restored on the next launch, and the
@@ -381,8 +391,8 @@ Use a direct URL without downloading the catalog:
 StreamsPlayer.exe --url "https://example.test/live"
 ```
 
-For a saved channel, open its <img src="docs/assets/glyphs/nav.more.svg" width="16" height="16" alt=""> three-dot menu and use **Copy launch command** or
-**Create desktop shortcut**. These entries carry the channel's persisted GUID and, when safe, its address,
+For a saved channel, open its <img src="docs/assets/glyphs/nav.more.svg" width="16" height="16" alt=""> three-dot menu and use **Copy PowerShell launch command** or
+**Create desktop shortcut**. Paste the copied command into PowerShell. These entries carry the channel's persisted GUID and, when safe, its address,
 so the channel is still found after a catalog refresh gives it a new GUID:
 
 ```powershell

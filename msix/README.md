@@ -4,6 +4,9 @@
 required StreamsPlayer tile logos from `assets/msix/` and packs a full-trust MSIX. Generated `stage/`
 and `dist/` folders are intentionally ignored by Git.
 
+The generated manifest declares every shipped interface language, read from
+`InterfaceLanguages.All` through `tools/InterfaceLanguages.ps1`.
+
 It requires the Windows SDK tools `makeappx.exe` and (for `-SelfSign`)
 `signtool.exe`. Install them with `winget install Microsoft.WindowsSDK`.
 

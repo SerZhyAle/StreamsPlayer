@@ -425,6 +425,8 @@
     <sys:String x:Key="WebsiteTip">STREAMS Player-এর ওয়েবসাইট খুলুন</sys:String>
     <sys:String x:Key="Privacy">গোপনীয়তা</sys:String>
     <sys:String x:Key="PrivacyTip">STREAMS Player-এর গোপনীয়তা নীতি খুলুন</sys:String>
+    <sys:String x:Key="MediaExchange">মিডিয়া বিনিময়</sys:String>
+    <sys:String x:Key="MediaExchangeTip">আপনার ডিভাইসগুলোর মধ্যে মিডিয়া বিনিময়ের ইংরেজি নির্দেশিকা খুলুন</sys:String>
     <sys:String x:Key="AuthorPage">লেখকের পাতা</sys:String>
     <sys:String x:Key="AuthorPageTip">GitHub-এ SerZhyAle খুলুন</sys:String>
     <sys:String x:Key="SendLogs">লেখককে লগ পাঠান</sys:String>
@@ -445,15 +447,15 @@
     <sys:String x:Key="SettingsOpenLinkFailed">Windows এই লিংকটি খুলতে পারেনি।</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">লিংক খোলা যায়নি</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">ডেস্কটপ শর্টকাট তৈরি করুন</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">চালু করার কমান্ড ক্লিপবোর্ডে কপি হয়েছে।</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">PowerShell চালু করার কমান্ড কপি করা হয়েছে। এটি PowerShell-এ পেস্ট করুন।</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows চালু করার কমান্ড কপি করতে পারেনি।</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">ঠিকানা বাদ দেওয়া হয়েছে। চ্যানেলটি এই লাইব্রেরিতে থাকা পর্যন্তই এই শর্টকাট বা কমান্ড কাজ করবে।</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">শেয়ার টেক্সট কপি করুন</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">লঞ্চ কমান্ড কপি করুন</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">PowerShell চালু করার কমান্ড কপি করুন</sys:String>
     <sys:String x:Key="ShareTextCopied">শেয়ার টেক্সট ক্লিপবোর্ডে কপি হয়েছে। এটি কোনো বার্তায় পেস্ট করুন; প্রাপক «চ্যানেল পেস্ট করুন» দিয়ে চ্যানেলটি যোগ করবেন।</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows শেয়ার টেক্সট কপি করতে পারেনি।</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">এই চ্যানেলের ঠিকানায় পাসওয়ার্ড বা টোকেন আছে। শেয়ার টেক্সট সেটি খোলা অবস্থায় বহন করে, আর আপনার বার্তা যিনি পাবেন তিনি সেটি দেখতে পাবেন। তবুও কপি করবেন?</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">এই চ্যানেল ঠিকানায় একটি পাসওয়ার্ড বা টোকেন আছে। আপনি যা কপি করতে যাচ্ছেন তা এটিকে পরিষ্কার পাঠ্যে বহন করবে, এবং যা এটি পাবে তা দেখবে। তবুও কপি করবেন?</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">ডেস্কটপ শর্টকাট তৈরি হয়েছে: {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">Windows ডেস্কটপ শর্টকাট তৈরি করতে পারেনি।</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">--url &lt;ঠিকানা&gt; বা --id &lt;চ্যানেলের GUID&gt; ব্যবহার করুন।</sys:String>
@@ -479,6 +481,7 @@
     <sys:String x:Key="ImportCountSkipped">ফাইলে পুনরাবৃত্ত</sys:String>
     <sys:String x:Key="ImportApply">প্রয়োগ করুন</sys:String>
     <sys:String x:Key="ImportPreviewSummary">আমদানি করা হিসেবে যোগ হবে এমন নতুন চ্যানেল: {0}।</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">এই প্লেলিস্টে {0:N0}-এর বেশি নতুন চ্যানেল আছে। শুধু প্রথম অংশ পড়া হয়েছে; সংখ্যাগুলো সেই অংশের। বাকি চ্যানেল আমদানি করতে প্লেলিস্ট ভাগ করুন।</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">এই সূত্র থেকে আমদানি করার নতুন কিছু নেই।</sys:String>
     <sys:String x:Key="ImportDownloading">প্লেলিস্ট নামানো হচ্ছে…</sys:String>
     <sys:String x:Key="ImportResult">আমদানি করা চ্যানেল: {0}।</sys:String>
@@ -512,7 +515,7 @@
     <sys:String x:Key="DeleteDownloadedTip">নামানো তালিকা থেকে আসা সব স্ট্রিম সরান, শুধু নিজের চ্যানেল রাখুন</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">শুধু নিজের চ্যানেল রাখুন: এতে নামানো তালিকা থেকে আসা স্ট্রিমগুলো সরে যায়। আপনার যোগ করা ও আমদানি করা চ্যানেল থেকে যায়। "ইন্টারনেট থেকে চ্যানেল আমদানি করুন" সেগুলো আবার নামিয়ে আনে।</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">নামানো স্ট্রিম মুছে ফেলা</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">তালিকা থেকে নামানো সব স্ট্রিম ({0:N0}) মুছবেন? আপনার যোগ করা ও আমদানি করা চ্যানেল থেকে যায়। এটি ফেরানো যাবে না, তবে "ইন্টারনেট থেকে চ্যানেল আমদানি করুন" সেগুলো আবার নামিয়ে আনে।</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">তালিকা থেকে নামানো সব স্ট্রিম ({0:N0}) মুছবেন? আপনার যোগ করা ও আমদানি করা চ্যানেল থেকে যায়। এটি ফেরানো যাবে না, তবে "ইন্টারনেট থেকে চ্যানেল আমদানি করুন" সেগুলো আবার নামিয়ে আনে। পিন করা চ্যানেল, সংগ্রহের চ্যানেল এবং শোনার ইতিহাস আছে এমন চ্যানেলও রাখা হয়।</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">মুছে ফেলার মতো নামানো কোনও স্ট্রিম নেই।</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">মুছে ফেলা নামানো স্ট্রিম: {0:N0}।</sys:String>
     <!-- SP-0029 language picker -->
@@ -624,12 +627,13 @@
     <sys:String x:Key="ImportCatalogNoChannels">ক্যাটালগ আর্কাইভে কোনো আমদানিযোগ্য চ্যানেল পাওয়া যায়নি। আপনার তালিকা পরিবর্তন করা হয়নি।</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">এটি একটি বৈধ স্ট্রিম ক্যাটালগ আর্কাইভ নয়। আপনার তালিকা পরিবর্তন করা হয়নি।</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">ক্যাটালগ আর্কাইভে অবৈধ CSV ডেটা বা অবৈধ UTF-8 এনকোডিং রয়েছে। আপনার তালিকা পরিবর্তন করা হয়নি।</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">ক্যাটালগ আর্কাইভ বা এর CSV ডেটা অনুমোদিত সর্বাধিক আকার অতিক্রম করেছে। আপনার তালিকা পরিবর্তন করা হয়নি।</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">ক্যাটালগ আর্কাইভ বা এর CSV ডেটা অনুমোদিত সর্বাধিক আকার অতিক্রম করেছে। আপনার তালিকা পরিবর্তন করা হয়নি।</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">আমদানি করা ক্যাটালগ সংরক্ষণ করা যায়নি। আপনার তালিকা পরিবর্তন করা হয়নি।</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">আমদানি করা ক্যাটালগ মুছুন</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">আমদানি করা ক্যাটালগ আর্কাইভ থেকে আসা প্রতিটি স্ট্রিম সরান</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">আমদানি করা ক্যাটালগ আর্কাইভ থেকে আসা স্ট্রিমগুলি সরান। আপনার যোগ করা এবং ডাউনলোড করা ক্যাটালগ স্ট্রিমগুলি থাকবে।</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">আমদানি করা ক্যাটালগ মুছুন</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">সমস্ত আমদানি করা ক্যাটালগ স্ট্রিম ({0:N0}) মুছবেন? আপনার যোগ করা এবং ডাউনলোড করা স্ট্রিমগুলি রাখা হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না।</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">আমদানি করা ক্যাটালগ স্ট্রিম ({0:N0}) মুছবেন? আপনার যোগ করা এবং ডাউনলোড করা স্ট্রিমগুলি রাখা হবে। এটি পূর্বাবস্থায় ফেরানো যাবে না। পিন করা চ্যানেল, সংগ্রহের চ্যানেল এবং শোনার ইতিহাস আছে এমন চ্যানেলও রাখা হয়।</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">মুছার জন্য কোনো আমদানি করা ক্যাটালগ স্ট্রিম নেই।</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">আমদানি করা ক্যাটালগ স্ট্রিম মোছা হয়েছে: {0:N0}।</sys:String>
     <sys:String x:Key="TvScheduleTitle">টিভি অনুষ্ঠানসূচি</sys:String>

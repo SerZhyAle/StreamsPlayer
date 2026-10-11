@@ -15,6 +15,13 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
 {
     public const int DefaultMaxConnections = 2;
 
+    // SP-0212 (L26): the connect phase - the TLS authenticate, the connect envelope, its answer - ends
+    // after this on its own, because the caller's token outlives it by design and a stalled server would
+    // otherwise hold the leg's watcher on a connect that never finishes. The same bound the enrollment
+    // probe and the relay head use. Settable so the test project can prove the deadline with a short one;
+    // production never sets it.
+    internal static TimeSpan ConnectDeadline { get; set; } = TimeSpan.FromSeconds(15);
+
     private readonly TcpListener _listener;
     private readonly ExchangeTunnelUrl _tunnelUrl;
     private readonly string _innerUrl;
@@ -136,7 +143,11 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
         try
         {
             ConnectAttempts++;
-            exchangeStream = await _streamConnector(_tunnelUrl.Host, _tunnelUrl.Port, _certFingerprint, cancellationToken).ConfigureAwait(false);
+            // SP-0212 (L26): the deadline covers the connect phase only; once the exchange answers, the
+            // splices run on the caller's token, because a live body has no deadline of the tunnel's.
+            using var connect = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            connect.CancelAfter(ConnectDeadline);
+            exchangeStream = await _streamConnector(_tunnelUrl.Host, _tunnelUrl.Port, _certFingerprint, connect.Token).ConfigureAwait(false);
             lock (_lock)
             {
                 if (_disposed || cancellationToken.IsCancellationRequested)
@@ -157,8 +168,8 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
                 scheme = _tunnelUrl.Scheme
             };
 
-            await ExchangeProtocol.WriteAsync(exchangeStream, connectEnvelope, authenticated: false, cancellationToken).ConfigureAwait(false);
-            using var responseDoc = await ExchangeProtocol.ReadAsync(exchangeStream, authenticated: false, cancellationToken).ConfigureAwait(false);
+            await ExchangeProtocol.WriteAsync(exchangeStream, connectEnvelope, authenticated: false, connect.Token).ConfigureAwait(false);
+            using var responseDoc = await ExchangeProtocol.ReadAsync(exchangeStream, authenticated: false, connect.Token).ConfigureAwait(false);
             var responseType = ExchangeProtocol.String(responseDoc.RootElement, "type");
             if (responseType != "connected")
             {

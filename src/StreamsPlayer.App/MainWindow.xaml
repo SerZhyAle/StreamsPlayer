@@ -158,15 +158,25 @@
                                 ToolTip="{DynamicResource GridTip}" AutomationProperties.Name="{DynamicResource GridName}" />
                     </StackPanel>
                 </Border>
+                <!-- SP-0218: a button that holds two lines of text still carries its glyph first, so the glyph is
+                     part of its content here rather than of a template (a template is not applied to a
+                     content element). Provisional meaning: PROPOSAL-2026-10-11-streamsplayer-button-meanings.md
+                     item 2. The gap is the 6 px of every glyph button. -->
                 <Button x:Name="ExchangeSourceStatusButton" Click="ExchangeSourceStatus_Click" Visibility="Collapsed" Margin="0,0,8,0">
-                    <StackPanel>
-                        <TextBlock Text="{DynamicResource ExchangeTitle}" />
-                        <TextBlock x:Name="ExchangeSourceStatusText" FontSize="11" />
+                    <StackPanel Orientation="Horizontal">
+                        <Viewbox Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" FlowDirection="LeftToRight">
+                            <Path Data="{StaticResource Icon.pending.source.exchange-server}" Width="24" Height="24"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                        </Viewbox>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{DynamicResource ExchangeTitle}" />
+                            <TextBlock x:Name="ExchangeSourceStatusText" FontSize="11" />
+                        </StackPanel>
                     </StackPanel>
                 </Button>
                 <!-- SP-0201: the account's live broadcasts, grouped by device. Shown once the device is
                      enrolled; the account section is where a device without an account is told why. -->
-                <Button x:Name="BroadcastsButton" Content="{DynamicResource BroadcastsTitle}"
+                <Button x:Name="BroadcastsButton" Style="{StaticResource BroadcastsGlyphButton}" Content="{DynamicResource BroadcastsTitle}"
                         Click="BroadcastsButton_Click" Visibility="Collapsed" Margin="0,0,8,0" />
                 <Button x:Name="SettingsButton" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource Settings}" Click="SettingsButton_Click"
                         ToolTip="{DynamicResource SettingsTip}" AutomationProperties.Name="{DynamicResource SettingsName}" />
@@ -548,7 +558,7 @@
                                     <DockPanel Grid.Row="2" Margin="0,1,0,0" LastChildFill="True">
                                         <Button DockPanel.Dock="Right" ToolTip="{DynamicResource PinTip}"
                                                 AutomationProperties.Name="{DynamicResource PinName}" Tag="{Binding}" Click="PinButton_Click"
-                                                Width="32" Height="22" Padding="0" Margin="3,0,3,0" VerticalAlignment="Center">
+                                                Width="32" Height="28" Padding="0" Margin="3,-3,3,-3" VerticalAlignment="Center">
                                             <Grid Width="14" Height="14">
                                                 <Viewbox>
                                                     <Path Data="{StaticResource Icon.action.pin}" Width="24" Height="24" FlowDirection="LeftToRight"
@@ -1291,7 +1301,7 @@
                         <ProgressBar x:Name="CatalogProgress" Height="4" Margin="0,4,0,2" Width="180" VerticalAlignment="Center"
                                      Maximum="100" IsIndeterminate="True" Visibility="Collapsed"
                                      AutomationProperties.Name="{DynamicResource CatalogProgressName}" />
-                        <Button x:Name="CancelOperationButton" Content="{DynamicResource Cancel}" Click="CancelOperationButton_Click"
+                        <Button x:Name="CancelOperationButton" Style="{StaticResource CancelGlyphButton}" Content="{DynamicResource Cancel}" Click="CancelOperationButton_Click"
                                 Visibility="Collapsed" Margin="8,2,0,0" Padding="8,1" FontSize="11" VerticalAlignment="Center"
                                 ToolTip="{DynamicResource CancelDownloadTip}"
                                 AutomationProperties.Name="{DynamicResource CancelDownloadName}" />

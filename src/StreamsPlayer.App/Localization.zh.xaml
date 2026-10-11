@@ -425,6 +425,8 @@
     <sys:String x:Key="WebsiteTip">打开 STREAMS Player 网站</sys:String>
     <sys:String x:Key="Privacy">隐私</sys:String>
     <sys:String x:Key="PrivacyTip">打开 STREAMS Player 隐私政策</sys:String>
+    <sys:String x:Key="MediaExchange">媒体交换</sys:String>
+    <sys:String x:Key="MediaExchangeTip">打开关于在您的设备之间交换媒体的英文指南</sys:String>
     <sys:String x:Key="AuthorPage">作者主页</sys:String>
     <sys:String x:Key="AuthorPageTip">在 GitHub 上打开 SerZhyAle 的主页</sys:String>
     <sys:String x:Key="SendLogs">向作者发送日志</sys:String>
@@ -445,15 +447,15 @@
     <sys:String x:Key="SettingsOpenLinkFailed">Windows 无法打开此链接。</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">无法打开链接</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">创建桌面快捷方式</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">启动命令已复制到剪贴板。</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">已复制 PowerShell 启动命令。请将其粘贴到 PowerShell 中。</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows 无法复制启动命令。</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">已省略地址。只有当频道仍在此媒体库中时，此快捷方式或命令才能使用。</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">复制分享文本</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">复制启动命令</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">复制 PowerShell 启动命令</sys:String>
     <sys:String x:Key="ShareTextCopied">分享文本已复制到剪贴板。把它粘贴到聊天消息里；收件人用「粘贴频道」添加该频道。</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows 无法复制分享文本。</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">该频道的地址中含有密码或令牌。分享文本会以明文带上它，收到消息的人都能看到。仍要复制吗？</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">此频道地址包含密码或令牌。您即将复制的内容将以明文形式携带它，收到它的任何人都会看到。仍要复制吗？</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">已创建桌面快捷方式：{0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">Windows 无法创建桌面快捷方式。</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">请使用 --url &lt;地址&gt; 或 --id &lt;频道 GUID&gt;。</sys:String>
@@ -479,6 +481,7 @@
     <sys:String x:Key="ImportCountSkipped">文件中的重复项</sys:String>
     <sys:String x:Key="ImportApply">应用</sys:String>
     <sys:String x:Key="ImportPreviewSummary">将作为导入频道添加的新频道：{0}。</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">此播放列表超过了 {0:N0} 个新频道的上限。仅读取了开头部分，计数也仅涵盖该部分。请拆分播放列表以导入其余频道。</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">此来源没有可导入的新内容。</sys:String>
     <sys:String x:Key="ImportDownloading">正在下载播放列表…</sys:String>
     <sys:String x:Key="ImportResult">已导入频道：{0}。</sys:String>
@@ -512,7 +515,7 @@
     <sys:String x:Key="DeleteDownloadedTip">移除来自已下载目录的所有流，只保留您自己的频道</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">只保留您自己的频道：这会移除来自已下载目录的流。您添加和导入的频道会保留。“从互联网导入频道”会重新下载它们。</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">删除已下载的流</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">要删除全部已下载的目录流（{0:N0}）吗？您添加和导入的频道会保留。此操作无法撤消，但“从互联网导入频道”会重新下载它们。</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">要删除已下载的目录流（{0:N0}）吗？您添加和导入的频道会保留。此操作无法撤消，但“从互联网导入频道”会重新下载它们。 已固定的频道、收藏集中的频道以及有收听记录的频道也会保留。</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">没有可删除的已下载目录流。</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">已删除的下载流：{0:N0}。</sys:String>
     <!-- SP-0029 language picker -->
@@ -624,12 +627,13 @@
     <sys:String x:Key="ImportCatalogNoChannels">目录归档中未找到可导入的频道。您的列表未更改。</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">这不是有效的流媒体目录归档。您的列表未更改。</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">目录归档包含无效的 CSV 数据或无效的 UTF-8 编码。您的列表未更改。</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">目录归档或其 CSV 数据超过了允许的最大大小。您的列表未更改。</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">目录归档或其 CSV 数据超过了允许的最大大小。您的列表未更改。</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">无法保存导入的目录。您的列表未更改。</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">删除已导入的目录</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">移除来自已导入目录归档的所有流媒体</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">移除来自已导入目录归档的流媒体。您添加的和已下载的目录流媒体将保留。</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">删除已导入的目录</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">删除所有已导入的目录流媒体（{0:N0}）？您添加的和已下载的流媒体将被保留。此操作无法撤消。</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">删除已导入的目录流媒体（{0:N0}）？您添加的和已下载的流媒体将被保留。此操作无法撤消。 已固定的频道、收藏集中的频道以及有收听记录的频道也会保留。</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">没有要删除的已导入目录流媒体。</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">已删除的导入目录流媒体：{0:N0}。</sys:String>
     <sys:String x:Key="TvScheduleTitle">电视节目表</sys:String>

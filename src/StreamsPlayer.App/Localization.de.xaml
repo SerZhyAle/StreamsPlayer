@@ -425,6 +425,8 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="WebsiteTip">Die Website von STREAMS Player öffnen</sys:String>
     <sys:String x:Key="Privacy">Datenschutz</sys:String>
     <sys:String x:Key="PrivacyTip">Die Datenschutzerklärung von STREAMS Player öffnen</sys:String>
+    <sys:String x:Key="MediaExchange">Medienaustausch</sys:String>
+    <sys:String x:Key="MediaExchangeTip">Die englische Anleitung zum Medienaustausch zwischen Ihren Geräten öffnen</sys:String>
     <sys:String x:Key="AuthorPage">Autorenseite</sys:String>
     <sys:String x:Key="AuthorPageTip">SerZhyAle auf GitHub öffnen</sys:String>
     <sys:String x:Key="SendLogs">Protokolle an den Autor senden</sys:String>
@@ -445,15 +447,15 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="SettingsOpenLinkFailed">Windows konnte diesen Link nicht öffnen.</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">Link konnte nicht geöffnet werden</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">Desktop-Verknüpfung erstellen</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">Der Startbefehl wurde in die Zwischenablage kopiert.</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">Der PowerShell-Startbefehl wurde kopiert. Fügen Sie ihn in PowerShell ein.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows konnte den Startbefehl nicht kopieren.</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">Die Adresse wurde weggelassen. Diese Verknüpfung oder dieser Befehl funktioniert nur, solange der Sender in dieser Bibliothek vorhanden ist.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Freigabetext kopieren</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">Startbefehl kopieren</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">PowerShell-Startbefehl kopieren</sys:String>
     <sys:String x:Key="ShareTextCopied">Der Freigabetext wurde in die Zwischenablage kopiert. Fügen Sie ihn in eine Nachricht ein; der Empfänger fügt den Kanal mit „Kanal einfügen“ hinzu.</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows konnte den Freigabetext nicht kopieren.</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">In der Adresse dieses Kanals steht ein Passwort oder ein Token. Der Freigabetext enthält es im Klartext, und jeder, der Ihre Nachricht erhält, sieht es. Trotzdem kopieren?</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">Diese Kanaladresse enthält ein Kennwort oder Token. Was Sie kopieren möchten, trägt es im Klartext, und jeder, der es erhält, sieht es. Trotzdem kopieren?</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">Desktop-Verknüpfung erstellt: {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">Windows konnte die Desktop-Verknüpfung nicht erstellen.</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">Verwenden Sie --url &lt;Adresse&gt; oder --id &lt;Kanal-GUID&gt;.</sys:String>
@@ -479,6 +481,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="ImportCountSkipped">In der Datei wiederholt</sys:String>
     <sys:String x:Key="ImportApply">Übernehmen</sys:String>
     <sys:String x:Key="ImportPreviewSummary">Neue Kanäle, die als importiert hinzugefügt werden: {0}.</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">Diese Wiedergabeliste enthält mehr als {0:N0} neue Kanäle. Nur der erste Teil wurde gelesen; die Zähler beziehen sich darauf. Teilen Sie die Liste auf, um den Rest zu importieren.</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">Aus dieser Quelle gibt es nichts Neues zu importieren.</sys:String>
     <sys:String x:Key="ImportDownloading">Wiedergabeliste wird geladen…</sys:String>
     <sys:String x:Key="ImportResult">Importierte Kanäle: {0}.</sys:String>
@@ -512,7 +515,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="DeleteDownloadedTip">Jeden Stream aus dem geladenen Katalog entfernen und nur Ihre eigenen Kanäle behalten</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">Nur Ihre eigenen Kanäle behalten: dies entfernt die Streams aus dem geladenen Katalog. Ihre hinzugefügten und importierten Kanäle bleiben. „Kanäle aus dem Internet importieren“ lädt sie erneut.</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">Geladene Streams löschen</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">Alle geladenen Katalog-Streams löschen ({0:N0})? Ihre hinzugefügten und importierten Kanäle bleiben. Das lässt sich nicht rückgängig machen, aber „Kanäle aus dem Internet importieren“ lädt sie erneut.</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">Alle geladenen Katalog-Streams löschen ({0:N0})? Ihre hinzugefügten und importierten Kanäle bleiben. Das lässt sich nicht rückgängig machen, aber „Kanäle aus dem Internet importieren“ lädt sie erneut. Angeheftete Kanäle, Kanäle in Sammlungen und Kanäle mit Hörverlauf bleiben ebenfalls erhalten.</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">Es gibt keine geladenen Katalog-Streams zum Löschen.</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">Gelöschte geladene Streams: {0:N0}.</sys:String>
     <!-- SP-0029 language picker -->
@@ -624,12 +627,13 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="ImportCatalogNoChannels">Im Katalogarchiv wurden keine importierbaren Kanäle gefunden. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">Dies ist kein gültiges Stream-Katalogarchiv. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">Das Katalogarchiv enthält ungültige CSV-Daten oder eine ungültige UTF-8-Codierung. Ihre Liste wurde nicht geändert.</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">Das Katalogarchiv oder seine CSV-Daten überschreiten die maximal zulässige Größe. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">Das Katalogarchiv oder seine CSV-Daten überschreiten die maximal zulässige Größe. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">Der importierte Katalog konnte nicht gespeichert werden. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">Importierten Katalog löschen</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">Alle Streams entfernen, die aus einem importierten Katalogarchiv stammen</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">Entfernt Streams, die aus importierten Katalogarchiven stammen. Ihre hinzugefügten und heruntergeladenen Katalog-Streams bleiben erhalten.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">Importierten Katalog löschen</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">Alle importierten Katalog-Streams ({0:N0}) löschen? Ihre hinzugefügten und heruntergeladenen Streams bleiben erhalten. Dies kann nicht rückgängig gemacht werden.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Importierte Katalog-Streams ({0:N0}) löschen? Ihre hinzugefügten und heruntergeladenen Streams bleiben erhalten. Dies kann nicht rückgängig gemacht werden. Angeheftete Kanäle, Kanäle in Sammlungen und Kanäle mit Hörverlauf bleiben ebenfalls erhalten.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">Es sind keine importierten Katalog-Streams zum Löschen vorhanden.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">Importierte Katalog-Streams gelöscht: {0:N0}.</sys:String>
     <sys:String x:Key="TvScheduleTitle">TV-Programm</sys:String>

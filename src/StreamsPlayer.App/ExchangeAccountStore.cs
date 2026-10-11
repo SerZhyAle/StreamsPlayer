@@ -13,10 +13,18 @@ internal sealed class ExchangeAccountStore(string directory)
     private readonly string _path = Path.Combine(directory, "exchange-account.bin");
     internal bool ProtectionFailed { get; private set; }
 
+    /// <summary>
+    /// True when the last <see cref="Load"/> found no usable file and returned a new account, whose device
+    /// id exists nowhere yet (SP-0212 L9): only such an account needs its first save; one read from the
+    /// file is already stored, byte for byte.
+    /// </summary>
+    internal bool CreatedFresh { get; private set; }
+
     internal ExchangeAccount Load()
     {
         if (!File.Exists(_path))
         {
+            CreatedFresh = true;
             return new ExchangeAccount(ExchangeProtocol.NewDeviceId());
         }
 
@@ -38,12 +46,14 @@ internal sealed class ExchangeAccountStore(string directory)
                 throw new JsonException();
             }
 
+            CreatedFresh = false;
             return account;
         }
         catch (Exception exception) when (exception is CryptographicException or JsonException)
         {
             // Reusing an identity whose token belongs to another Windows user would rotate that user's token.
             ProtectionFailed = true;
+            CreatedFresh = true;
             return new ExchangeAccount(ExchangeProtocol.NewDeviceId());
         }
         finally

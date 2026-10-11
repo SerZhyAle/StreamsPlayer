@@ -425,6 +425,8 @@
     <sys:String x:Key="WebsiteTip">STREAMS Player की वेबसाइट खोलें</sys:String>
     <sys:String x:Key="Privacy">निजता</sys:String>
     <sys:String x:Key="PrivacyTip">STREAMS Player की निजता नीति खोलें</sys:String>
+    <sys:String x:Key="MediaExchange">मीडिया आदान-प्रदान</sys:String>
+    <sys:String x:Key="MediaExchangeTip">आपके उपकरणों के बीच मीडिया के आदान-प्रदान की अंग्रेज़ी मार्गदर्शिका खोलें</sys:String>
     <sys:String x:Key="AuthorPage">लेखक का पृष्ठ</sys:String>
     <sys:String x:Key="AuthorPageTip">GitHub पर SerZhyAle खोलें</sys:String>
     <sys:String x:Key="SendLogs">लेखक को लॉग भेजें</sys:String>
@@ -445,15 +447,15 @@
     <sys:String x:Key="SettingsOpenLinkFailed">Windows यह लिंक नहीं खोल सका।</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">लिंक नहीं खुल सका</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">डेस्कटॉप शॉर्टकट बनाएँ</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">लॉन्च कमांड क्लिपबोर्ड पर कॉपी हो गई।</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">PowerShell लॉन्च कमांड कॉपी हो गई है। इसे PowerShell में पेस्ट करें।</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows लॉन्च कमांड कॉपी नहीं कर सका।</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">पता हटा दिया गया है। यह शॉर्टकट या कमांड तभी काम करेगा जब चैनल इस लाइब्रेरी में मौजूद हो।</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">साझा करने का टेक्स्ट कॉपी करें</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">लॉन्च कमांड कॉपी करें</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">PowerShell लॉन्च कमांड कॉपी करें</sys:String>
     <sys:String x:Key="ShareTextCopied">साझा करने का टेक्स्ट क्लिपबोर्ड पर कॉपी हो गया। इसे किसी संदेश में चिपकाएँ; पाने वाला «चैनल चिपकाएँ» से चैनल जोड़ लेगा।</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows साझा करने का टेक्स्ट कॉपी नहीं कर सका।</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">इस चैनल के पते में पासवर्ड या टोकन है। साझा करने का टेक्स्ट उसे खुले रूप में ले जाता है और आपका संदेश पाने वाला हर व्यक्ति उसे देख सकेगा। फिर भी कॉपी करें?</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">इस चैनल पते में पासवर्ड या टोकन है। आप जो कॉपी करने जा रहे हैं वह इसे स्पष्ट पाठ में ले जाएगा, और इसे पाने वाला हर कोई इसे देखेगा। फिर भी कॉपी करें?</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">डेस्कटॉप शॉर्टकट बना: {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">Windows डेस्कटॉप शॉर्टकट नहीं बना सका।</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">--url &lt;पता&gt; या --id &lt;चैनल GUID&gt; का उपयोग करें।</sys:String>
@@ -479,6 +481,7 @@
     <sys:String x:Key="ImportCountSkipped">फ़ाइल में दोहराए गए</sys:String>
     <sys:String x:Key="ImportApply">लागू करें</sys:String>
     <sys:String x:Key="ImportPreviewSummary">आयातित के रूप में जोड़े जाने वाले नए चैनल: {0}।</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">इस प्लेलिस्ट में {0:N0} से अधिक नए चैनल हैं। केवल पहला भाग पढ़ा गया है; गिनती उसी भाग की है। बाकी चैनल आयात करने के लिए प्लेलिस्ट को विभाजित करें।</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">इस स्रोत से आयात करने के लिए कुछ नया नहीं है।</sys:String>
     <sys:String x:Key="ImportDownloading">प्लेलिस्ट डाउनलोड हो रही है…</sys:String>
     <sys:String x:Key="ImportResult">आयातित चैनल: {0}।</sys:String>
@@ -512,7 +515,7 @@
     <sys:String x:Key="DeleteDownloadedTip">डाउनलोड की गई सूची से आई हर स्ट्रीम हटाएँ और केवल अपने चैनल रखें</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">केवल अपने चैनल रखें: इससे डाउनलोड की गई सूची से आई स्ट्रीम हट जाती हैं। आपके जोड़े और आयात किए चैनल बने रहते हैं। "इंटरनेट से चैनल आयात करें" उन्हें फिर डाउनलोड कर देता है।</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">डाउनलोड की गई स्ट्रीम हटाना</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">सूची से डाउनलोड की गई सभी स्ट्रीम ({0:N0}) हटाएँ? आपके जोड़े और आयात किए चैनल बने रहते हैं। इसे पूर्ववत नहीं किया जा सकता, लेकिन "इंटरनेट से चैनल आयात करें" उन्हें फिर डाउनलोड कर देता है।</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">सूची से डाउनलोड की गई स्ट्रीम ({0:N0}) हटाएँ? आपके जोड़े और आयात किए चैनल बने रहते हैं। इसे पूर्ववत नहीं किया जा सकता, लेकिन "इंटरनेट से चैनल आयात करें" उन्हें फिर डाउनलोड कर देता है। पिन किए गए चैनल, संग्रहों के चैनल और सुनने के इतिहास वाले चैनल भी रखे जाते हैं।</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">हटाने के लिए कोई डाउनलोड की गई स्ट्रीम नहीं है।</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">हटाई गई डाउनलोड की गई स्ट्रीम: {0:N0}।</sys:String>
     <!-- SP-0029 language picker -->
@@ -624,12 +627,13 @@
     <sys:String x:Key="ImportCatalogNoChannels">कैटलॉग संग्रह में कोई आयात करने योग्य चैनल नहीं मिला। आपकी सूची नहीं बदली गई।</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">यह एक मान्य स्ट्रीम कैटलॉग संग्रह नहीं है। आपकी सूची नहीं बदली गई।</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">कैटलॉग संग्रह में अमान्य CSV डेटा या अमान्य UTF-8 एन्कोडिंग है। आपकी सूची नहीं बदली गई।</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">कैटलॉग संग्रह या उसका CSV डेटा अधिकतम अनुमत आकार से अधिक है। आपकी सूची नहीं बदली गई।</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">कैटलॉग संग्रह या उसका CSV डेटा अधिकतम अनुमत आकार से अधिक है। आपकी सूची नहीं बदली गई।</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">आयातित कैटलॉग सहेजा नहीं जा सका। आपकी सूची नहीं बदली गई।</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">आयातित कैटलॉग हटाएं</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">आयातित कैटलॉग संग्रह से आए प्रत्येक स्ट्रीम को हटाएं</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">आयातित कैटलॉग संग्रहों से आए स्ट्रीम हटाएं। आपके जोड़े गए और डाउनलोड किए गए कैटलॉग स्ट्रीम रहेंगे।</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">आयातित कैटलॉग हटाएं</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">सभी आयातित कैटलॉग स्ट्रीम ({0:N0}) हटाएं? आपके जोड़े गए और डाउनलोड किए गए स्ट्रीम रखे जाएंगे। इसे पूर्ववत नहीं किया जा सकता।</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">आयातित कैटलॉग स्ट्रीम ({0:N0}) हटाएं? आपके जोड़े गए और डाउनलोड किए गए स्ट्रीम रखे जाएंगे। इसे पूर्ववत नहीं किया जा सकता। पिन किए गए चैनल, संग्रहों के चैनल और सुनने के इतिहास वाले चैनल भी रखे जाते हैं।</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">हटाने के लिए कोई आयातित कैटलॉग स्ट्रीम नहीं है।</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">हटाए गए आयातित कैटलॉग स्ट्रीम: {0:N0}।</sys:String>
     <sys:String x:Key="TvScheduleTitle">टीवी कार्यक्रम सूची</sys:String>

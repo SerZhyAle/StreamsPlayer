@@ -273,6 +273,15 @@ Report a problem with the logs
 
 @@use-5-text
 Open Settings from the gear button in the header, or from the Library settings entry of the [[glyph:nav.more]] Operations menu, and press Send logs to the author on the About page. The app packs the diagnostic logs of the last ten launches with a short summary of your version, Windows and settings into the folder chosen in the Frames folder setting on the Files page of Settings (Downloads if none is chosen), then opens your mail program with the message ready. The confirmation shows the complete path and can open that folder when you ask; you attach the archive and press Send.
+@@use-6-title
+Exchange media between your devices
+
+@@use-6-text
+STREAMS Player is the Windows player for live broadcasts from a FastMediaSorter phone or watch. The media exchange portal explains the three ways to connect your devices - the home network, the exchange server and live broadcast - which program does what on a phone, a watch, a TV, a VR headset and a PC, and what works today.
+
+@@use-6-link
+Open the media exchange portal
+
 @@distribution-title
 Distribution
 

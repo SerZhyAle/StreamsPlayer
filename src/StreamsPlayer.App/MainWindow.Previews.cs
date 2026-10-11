@@ -420,12 +420,17 @@ public partial class MainWindow
 
     private async Task RunCloseWorkAsync()
     {
-        try
+        // SP-0212 (L15): each step is contained on its own. The whole sequence used to sit in one
+        // try/catch, so a fault in the first step - a save, a flush - skipped the engine disposals and
+        // the teardown waits, and the process exited in the middle of a native teardown instead of after
+        // it. A step's fault is logged in full; no notice follows it, because the window is already gone
+        // and the process is on its way out.
+        // SP-0040: quitting while a station plays is a normal way to end a listening session, and the
+        // stop funnel is not on this path - without this the session the user was listening to when they
+        // gave up on it would be the one session missing its summary in the archived log.
+        await RunCloseStepAsync("stop-audio-recording", () => StopAudioRecordingForShutdownAsync()); // SP-0121: the file is closed before the process goes
+        await RunCloseStepAsync("flush-and-save-session", async () =>
         {
-            // SP-0040: quitting while a station plays is a normal way to end a listening session, and the
-            // stop funnel is not on this path - without this the session the user was listening to when they
-            // gave up on it would be the one session missing its summary in the archived log.
-            await StopAudioRecordingForShutdownAsync(); // SP-0121: the file is closed before the process goes
             EndAudioSession();
             // SP-0067: a filter change still inside its debounce would otherwise be dropped, and the session
             // saved from the state before the user's last keystroke. Flush it, then save.
@@ -443,6 +448,9 @@ public partial class MainWindow
             // force: the scroll-only rate limit must never be what decides whether the position the user
             // left the list at survives the session.
             await SaveBrowsingSessionAsync(force: true);
+        });
+        RunCloseStep("dispose-debounce", () =>
+        {
             _viewportDebounce?.Cancel();
             _viewportDebounce?.Dispose();
             _viewportDebounce = null;
@@ -451,29 +459,59 @@ public partial class MainWindow
             // SP-0065: nulled, not merely disposed. The latch above is the policy; this is the mechanical
             // guarantee that a handler which forgets to consult it cannot reach a disposed source.
             _hoverDwell = null;
-            if (_previewCoordinator is not null)
-            {
-                await _previewCoordinator.DisposeAsync();
-            }
+        });
+        if (_previewCoordinator is not null)
+        {
+            await RunCloseStepAsync("dispose-previews", async () => await _previewCoordinator.DisposeAsync());
+        }
+        RunCloseStep("dispose-audio", () =>
+        {
             _standardAudioPlayback.Dispose();
+            // SP-0212 (L14): the FastMediaSorter LibVLC leg is the other half of the standard audio path,
+            // and its tunnel forwarder is a local listener - a quit while one played left both alive until
+            // process death. The stop funnel releases them on every stop; a close is a stop.
+            StopFastMediaSorterAudioPlayback();
             StopNowPlayingMetadata();
             DisposeSystemMediaControls(); // SP-0021: end the Windows media session with the window
+        });
+        RunCloseStep("dispose-http-clients", () =>
+        {
             _httpClient.Dispose();
             _icyHttpClient.Dispose();
             _statusHttpClient.Dispose();
             _previewArtworkHttpClient.Dispose();
             _catalogHttpClient.Dispose();
-            // SP-0120: last, so a slow native teardown costs nothing above. Waited for so the process does not
-            // exit in the middle of one; the application bounds the whole close work, this included.
-            await Task.WhenAll(_closedPlayerEngines);
-            // SP-0164: then the recording finishes, each already past its engine release, so the move into the
-            // recordings folder gets its chance. The move ends in a rename, so a miss of the deadline leaves
-            // the staged original for the next start to hand over - never a partial file under the final name.
-            await Task.WhenAll(_closedRecordingFinishes);
+        });
+        // SP-0120: last, so a slow native teardown costs nothing above. Waited for so the process does not
+        // exit in the middle of one; the application bounds the whole close work, this included.
+        await RunCloseStepAsync("wait-player-engines", () => Task.WhenAll(_closedPlayerEngines));
+        // SP-0164: then the recording finishes, each already past its engine release, so the move into the
+        // recordings folder gets its chance. The move ends in a rename, so a miss of the deadline leaves
+        // the staged original for the next start to hand over - never a partial file under the final name.
+        await RunCloseStepAsync("wait-recording-finishes", () => Task.WhenAll(_closedRecordingFinishes));
+    }
+
+    private async Task RunCloseStepAsync(string step, Func<Task> work)
+    {
+        try
+        {
+            await work();
         }
         catch (Exception exception)
         {
-            HandlerBoundary.Report(nameof(MainWindow_Closed), exception);
+            HandlerBoundary.Report($"{nameof(RunCloseWorkAsync)}.{step}", exception, notifyUser: false);
+        }
+    }
+
+    private void RunCloseStep(string step, Action work)
+    {
+        try
+        {
+            work();
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report($"{nameof(RunCloseWorkAsync)}.{step}", exception, notifyUser: false);
         }
     }
 }

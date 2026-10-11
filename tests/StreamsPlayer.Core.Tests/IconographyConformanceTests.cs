@@ -354,7 +354,7 @@ public sealed class IconographyConformanceTests
     private static int LineOf(string text, int index) => text.AsSpan(0, index).Count('\n') + 1;
 
     /// <summary>ThemeService's palette table: each role's light and dark colour.</summary>
-    private static Dictionary<string, (int R, int G, int B)[]> Palette()
+    internal static Dictionary<string, (int R, int G, int B)[]> Palette()
     {
         var source = Assert.Single(AppSourceFile.LoadAll("ThemeService.cs")).Text;
         var colour = new Regex(@"Colors\.(?<name>White|Black)|Color\.FromRgb\((?<r>\d+),\s*(?<g>\d+),\s*(?<b>\d+)\)|Color\.FromArgb\((?<a>\d+),\s*(?<ar>\d+),\s*(?<ag>\d+),\s*(?<ab>\d+)\)");
@@ -380,7 +380,7 @@ public sealed class IconographyConformanceTests
         int.Parse(argb.AsSpan(5, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture),
         int.Parse(argb.AsSpan(7, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture));
 
-    private static double Contrast((int R, int G, int B) a, (int R, int G, int B) b)
+    internal static double Contrast((int R, int G, int B) a, (int R, int G, int B) b)
     {
         var la = Luminance(a);
         var lb = Luminance(b);

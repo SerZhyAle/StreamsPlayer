@@ -329,8 +329,9 @@ function Write-SnapshotZip {
     $directory = Split-Path -Parent $Path
     if (-not (Test-Path -LiteralPath $directory)) { New-Item -ItemType Directory -Path $directory | Out-Null }
 
-    # SP-0184 (S2-5): the archive is written beside the target and moved over it only when complete, so a failure
-    # part-way never leaves the tracked snapshot deleted or half-written.
+    # SP-0184 (S2-5) / SP-0212 (L7): the archive is written beside the target, and the caller moves it over the
+    # target only after it passed validation - a failure at write or at validation never leaves the tracked
+    # snapshot deleted, half-written or replaced by an invalid file.
     $temporary = "$Path.tmp"
     if (Test-Path -LiteralPath $temporary) { Remove-Item -LiteralPath $temporary -Force }
 
@@ -351,7 +352,8 @@ function Write-SnapshotZip {
         throw
     }
     $stream.Dispose()
-    [System.IO.File]::Move($temporary, $Path, $true)
+    # Not moved here: SP-0212 (L7) - the caller validates the staged archive before it replaces the tracked one.
+    return $temporary
 }
 
 function Add-ZipEntry {
@@ -536,13 +538,25 @@ $metadata = [ordered]@{
     sourceDate = $sourceDate.ToString('o')
 } | ConvertTo-Json -Compress
 
-Write-SnapshotZip -Path $target -Csv $csv -Atlas $atlas -Metadata $metadata
+$staged = Write-SnapshotZip -Path $target -Csv $csv -Atlas $atlas -Metadata $metadata
+
+# $sourceDate is the Last-Modified this download already reported, so the freshness comparison costs
+# no second request - and it still runs, which is what keeps the -Check message honest after a rebuild.
+# SP-0212 (L7): it runs BEFORE the move. A snapshot that fails validation must not be left over the tracked
+# artifact - that invalid file is the one a later -Check would read and the one that would ship.
+try {
+    Test-Snapshot -Path $staged -MaximumBytes $contract.MaximumBytes -PublishedDate $sourceDate
+}
+catch {
+    Remove-Item -LiteralPath $staged -Force -ErrorAction SilentlyContinue
+    throw
+}
+[System.IO.File]::Move($staged, $target, $true)
 
 $multiLine = @($kept | Where-Object { $_.Contains("`n") -or $_.Contains("`r") }).Count
 Write-Host ("Read {0} records; kept {1} ({2} channels, {3} spanning several lines), dropped {4} that are not live streams, skipped {5} blank." -f `
     ($records.Count - 1), $kept.Count, $keptChannels, $multiLine, $dropped, $blank)
-# $sourceDate is the Last-Modified this download already reported, so the freshness comparison costs
-# no second request - and it still runs, which is what keeps the -Check message honest after a rebuild.
-Test-Snapshot -Path $target -MaximumBytes $contract.MaximumBytes -PublishedDate $sourceDate
+# SP-0212 (L7): the validation above ran on the staged archive before the move, so what sits at $target now
+# is the file that was judged.
 if ($OutputPath) { Write-Host "Wrote $target (not the tracked snapshot)." }
 else { Write-Host "Wrote $target - commit it; it is generated output, never hand-edited." }

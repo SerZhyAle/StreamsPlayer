@@ -10,7 +10,10 @@
     - the version must be the Directory.Build.props stamp, YY.MMDD.HHmm;
     - the tested binary's FileVersion must be that same stamp - a PASS about some other build would
       otherwise wear this build's name (the SP-0093 lesson: a version number is not evidence, but a
-      verdict must at least name the build it judged).
+      verdict must at least name the build it judged);
+    - with -AppPath the tested binary can be any build that carries that stamp, and the stamp stays
+      constant from release prep to the verdict, so the binary must also not predate HEAD: a binary
+      last written before the commit cannot be that commit's build (SP-0212 L5).
 
   The commit recorded is HEAD - the commit whose tree, minus the verdict file itself, was just tested.
   The release checklist commits the verdict and puts the tag on that commit, so the verdict for exactly
@@ -58,12 +61,26 @@ try {
     }
     $commit = git rev-parse HEAD
     if ($LASTEXITCODE -ne 0) { throw 'git rev-parse HEAD failed.' }
+    $commitStamp = [datetimeoffset]::MinValue
+    $commitStampText = (git log -1 --format=%cI) -join ''
+    if ($LASTEXITCODE -ne 0 -or -not [datetimeoffset]::TryParse($commitStampText, [ref] $commitStamp)) {
+        throw "Could not read HEAD's commit date (got '$commitStampText')."
+    }
 }
 finally { Pop-Location }
 
-$tested = (Get-Item -LiteralPath $AppPath).VersionInfo.FileVersion
+$testedItem = Get-Item -LiteralPath $AppPath
+$tested = $testedItem.VersionInfo.FileVersion
 if ($tested -ne $version) {
     throw "expected: the tested binary stamped $version (Directory.Build.props) | actual: FileVersion '$tested' in $AppPath - this verdict would name a build it did not test."
+}
+
+# SP-0212 (L5): a matching FileVersion is necessary, not sufficient - the stamp is set in release prep and
+# never changes until the next one, so every build of this candidate carries it, including ones made
+# before the last commit. The verdict names HEAD, so the binary must not predate HEAD's commit.
+$binaryStamp = [datetimeoffset]::new($testedItem.LastWriteTimeUtc)
+if ($binaryStamp -lt $commitStamp) {
+    throw "expected: a binary built from commit $commit | actual: $AppPath was last written $($binaryStamp.ToString('u')), before that commit ($($commitStamp.ToString('u'))) - this verdict would name code it did not test. Re-run scripts/smoke-playback.ps1 without -AppPath so the current tree is published fresh, or pass -AppPath for a build of this commit."
 }
 
 $verdict = [ordered]@{

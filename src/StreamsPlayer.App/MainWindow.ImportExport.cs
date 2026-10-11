@@ -167,7 +167,11 @@ public partial class MainWindow
 
     private async Task RunImportUrlDownloadAsync(string playlistUrl)
     {
-        string text;
+        // SP-0212 (L19): the failure dialog is raised after the finally below clears the busy state, so
+        // the catch records which failure to show instead of showing it while the window is still busy.
+        // The initializer is that restructure's price: the failure path returns before the preview reads it.
+        string text = string.Empty;
+        string? importFailureKey = null;
         _cancellableOperation = new CancellationTokenSource();
         SetStatus("ImportDownloading");
         SetBusy(true, cancellable: true);
@@ -192,23 +196,27 @@ public partial class MainWindow
             or DecoderFallbackException or InvalidOperationException or TimeoutException or InvalidDataException)
         {
             _log.Event("IMPORT FAIL", "source=url", $"reason={exception.GetType().Name}");
-            var key = exception is DecoderFallbackException ? "ImportInvalidEncoding" : "ImportUrlFailed";
+            importFailureKey = exception is DecoderFallbackException ? "ImportInvalidEncoding" : "ImportUrlFailed";
             SetStatus("ImportFailedStatus");
-            // SP-0184 A11-2: raised after an await, so a listener who collapsed to the panel meanwhile must not
-            // get it hidden behind the topmost panel - it waits for the expand, like the refresh dialogs.
-            await WhenCatalogShownAsync(() =>
-            {
-                MessageBox.Show(this, LocalizationService.Get(key), LocalizationService.Get("ImportListPlain"),
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return Task.CompletedTask;
-            });
-            return;
         }
         finally
         {
             SetBusy(false);
             _cancellableOperation?.Dispose();
             _cancellableOperation = null;
+        }
+
+        // SP-0212 (L19): raised only now, with the busy state cleared - a modal over a busy window reads
+        // as work that cannot be interrupted. SP-0184 A11-2 keeps it waiting for the expand as well.
+        if (importFailureKey is { } failureKey)
+        {
+            await WhenCatalogShownAsync(() =>
+            {
+                MessageBox.Show(this, LocalizationService.Get(failureKey), LocalizationService.Get("ImportListPlain"),
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return Task.CompletedTask;
+            });
+            return;
         }
 
         // SP-0184 A11-2: the preview and the "nothing to import" notice are raised after the download's await too.
@@ -295,6 +303,9 @@ public partial class MainWindow
             if (bank.Entries.Count == 0)
             {
                 _log.Event("CATALOG IMPORT REFUSE", "reason=no_channels");
+                // SP-0212 (L18): the status line keeps the work's name only while the work runs - a
+                // refusal the user has just read a dialog about is not "Applying the catalog".
+                SetStatus("ImportFailedStatus");
                 MessageBox.Show(owner, LocalizationService.Get("ImportCatalogNoChannels"),
                     LocalizationService.Get("ImportCatalogTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -334,7 +345,15 @@ public partial class MainWindow
                     cancellationToken));
             if (merge is null || !commit.Saved)
             {
-                throw commit.Failure ?? new IOException("Catalog import was not saved.");
+                // SP-0212 (L17): a refused or failed save is its own verdict. This used to throw the
+                // failure as an IOException, which the catch below answered with "Windows could not
+                // read the selected file" - a read message for a save that never happened.
+                _log.Event("CATALOG IMPORT FAIL", "reason=save_refused",
+                    $"failure={commit.Failure?.GetType().Name ?? "none"}");
+                SetStatus("ImportFailedStatus");
+                MessageBox.Show(owner, LocalizationService.Get("ImportCatalogSaveFailed"),
+                    LocalizationService.Get("ImportCatalogTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
 
             _log.Event("CATALOG IMPORT APPLY",
@@ -409,22 +428,18 @@ public partial class MainWindow
             return;
         }
 
-        if (rows.Any(channel => CatalogUrlIdentity.HasCredentials(channel.Url)) &&
-            MessageBox.Show(owner, LocalizationService.Get("ExportCredentialWarning"),
-                LocalizationService.Get("ExportListPlain"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
-                MessageBoxResult.No) != MessageBoxResult.Yes)
+        // SP-0201 requirement 5: an exchange endpoint address carries the right to listen; the file the
+        // user saves can be given to anyone, so it is told before it is written. SP-0212 (L28): the keys
+        // and their order come from the one owner - the export's credential wording stays the file's
+        // own, the capability confirmation is the key every hand-out asks.
+        foreach (var key in ChannelHandOutWarnings.ExportKeysFor(rows.Select(row => row.Url)))
         {
-            return;
-        }
-
-        // SP-0201 requirement 5: an exchange endpoint address carries the right to listen; the file the user
-        // saves can be given to anyone, so it is told before it is written.
-        if (rows.Any(channel => BroadcastCapabilityAddress.CarriesCapability(channel.Url)) &&
-            MessageBox.Show(owner, LocalizationService.Get("BroadcastCapabilityWarning"),
-                LocalizationService.Get("ExportListPlain"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
-                MessageBoxResult.No) != MessageBoxResult.Yes)
-        {
-            return;
+            if (MessageBox.Show(owner, LocalizationService.Get(key),
+                    LocalizationService.Get("ExportListPlain"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                    MessageBoxResult.No) != MessageBoxResult.Yes)
+            {
+                return;
+            }
         }
 
         var dialog = new SaveFileDialog

@@ -13,7 +13,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="StreamsPlayer.Core.Tests" />
     <InternalsVisibleTo Include="StreamsPlayer.Exchange.Tests" />
-    <InternalsVisibleTo Include="StreamsPlayer.App" />
   </ItemGroup>
 
   <!-- SP-0052: the bundled catalog snapshot. An embedded resource rather than a file beside the

@@ -425,6 +425,8 @@
     <sys:String x:Key="WebsiteTip">فتح موقع STREAMS Player</sys:String>
     <sys:String x:Key="Privacy">الخصوصية</sys:String>
     <sys:String x:Key="PrivacyTip">فتح سياسة خصوصية STREAMS Player</sys:String>
+    <sys:String x:Key="MediaExchange">تبادل الوسائط</sys:String>
+    <sys:String x:Key="MediaExchangeTip">فتح الدليل الإنجليزي لتبادل الوسائط بين أجهزتك</sys:String>
     <sys:String x:Key="AuthorPage">صفحة المؤلف</sys:String>
     <sys:String x:Key="AuthorPageTip">فتح SerZhyAle على GitHub</sys:String>
     <sys:String x:Key="SendLogs">إرسال السجلات إلى المؤلف</sys:String>
@@ -445,15 +447,15 @@
     <sys:String x:Key="SettingsOpenLinkFailed">تعذر على Windows فتح هذا الرابط.</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">تعذر فتح الرابط</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">إنشاء اختصار على سطح المكتب</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">تم نسخ أمر التشغيل إلى الحافظة.</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">تم نسخ أمر التشغيل في PowerShell. الصقه في PowerShell.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">تعذر على Windows نسخ أمر التشغيل.</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">حُذف العنوان. لن يعمل هذا الاختصار أو الأمر إلا ما دامت القناة موجودة في هذه المكتبة.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">نسخ نص المشاركة</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">نسخ أمر التشغيل</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">نسخ أمر التشغيل في PowerShell</sys:String>
     <sys:String x:Key="ShareTextCopied">تم نسخ نص المشاركة إلى الحافظة. الصقه في رسالة؛ يضيف المستلم القناة عبر «لصق قناة».</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">تعذر على Windows نسخ نص المشاركة.</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">يحتوي عنوان هذه القناة على كلمة مرور أو رمز. ينقله نص المشاركة كنص صريح، وسيراه كل من يستلم رسالتك. هل تريد النسخ على أي حال؟</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">يحتوي عنوان هذه القناة على كلمة مرور أو رمز. ما أنت على وشك نسخه سيحملها نصًا واضحًا، وسيراها كل من يستلمه. هل تريد النسخ على أي حال؟</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">تم إنشاء اختصار على سطح المكتب: {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">تعذر على Windows إنشاء الاختصار على سطح المكتب.</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">استخدم --url &lt;العنوان&gt; أو --id &lt;GUID القناة&gt;.</sys:String>
@@ -479,6 +481,7 @@
     <sys:String x:Key="ImportCountSkipped">مكررة في الملف</sys:String>
     <sys:String x:Key="ImportApply">تطبيق</sys:String>
     <sys:String x:Key="ImportPreviewSummary">قنوات جديدة ستُضاف كقنوات مستوردة: {0}.</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">تتجاوز قائمة التشغيل حد {0:N0} قناة جديدة. تمت قراءة الجزء الأول فقط؛ والأعداد تخص هذا الجزء. قسّم القائمة لاستيراد الباقي.</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">لا جديد لاستيراده من هذا المصدر.</sys:String>
     <sys:String x:Key="ImportDownloading">جارٍ تنزيل قائمة التشغيل…</sys:String>
     <sys:String x:Key="ImportResult">القنوات المستوردة: {0}.</sys:String>
@@ -512,7 +515,7 @@
     <sys:String x:Key="DeleteDownloadedTip">إزالة كل بث جاء من الكتالوج المنزَّل والإبقاء على قنواتك فقط</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">الإبقاء على قنواتك فقط: يزيل هذا عمليات البث التي جاءت من الكتالوج المنزَّل. تبقى القنوات التي أضفتها واستوردتها. «استيراد القنوات من الإنترنت» يُنزّلها مرة أخرى.</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">حذف عمليات البث المنزَّلة</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">هل تريد حذف كل عمليات البث المنزَّلة من الكتالوج ({0:N0})؟ تبقى القنوات التي أضفتها واستوردتها. لا يمكن التراجع عن ذلك، لكن «استيراد القنوات من الإنترنت» يُنزّلها مرة أخرى.</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">هل تريد حذف كل عمليات البث المنزَّلة من الكتالوج ({0:N0})؟ تبقى القنوات التي أضفتها واستوردتها. لا يمكن التراجع عن ذلك، لكن «استيراد القنوات من الإنترنت» يُنزّلها مرة أخرى. تُحفظ أيضًا القنوات المثبتة والقنوات في المجموعات والقنوات التي لها سجل استماع.</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">لا توجد عمليات بث منزَّلة من الكتالوج لحذفها.</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">عمليات البث المنزَّلة المحذوفة: {0:N0}.</sys:String>
     <!-- SP-0029 language picker -->
@@ -624,12 +627,13 @@
     <sys:String x:Key="ImportCatalogNoChannels">لم يتم العثور على قنوات قابلة للاستيراد في أرشيف الدليل. لم يتم تغيير قائمتك.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">هذا ليس أرشيف دليل بث صالحاً. لم يتم تغيير قائمتك.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">يحتوي أرشيف الدليل على بيانات CSV غير صالحة أو ترميز UTF-8 غير صالح. لم يتم تغيير قائمتك.</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">يتجاوز أرشيف الدليل أو بيانات CSV الخاصة به الحد الأقصى للحجم المسموح به. لم يتم تغيير قائمتك.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">يتجاوز أرشيف الدليل أو بيانات CSV الخاصة به الحد الأقصى للحجم المسموح به. لم يتم تغيير قائمتك.</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">تعذر حفظ الدليل المستورد. لم يتم تغيير قائمتك.</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">حذف الدليل المستورد</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">إزالة كل بث وارد من أرشيف دليل مستورد</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">إزالة البثوث الواردة من أرشيفات الدليل المستوردة. سيبقى البث الذي أضفته ودليلك الذي تم تنزيله.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">حذف الدليل المستورد</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">هل تريد حذف جميع تدفقات الدليل المستوردة ({0:N0})؟ سيتم الاحتفاظ بالتدفقات التي أضفتها وتنزيلها. لا يمكن التراجع عن هذا الإجراء.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">هل تريد حذف تدفقات الدليل المستوردة ({0:N0})؟ سيتم الاحتفاظ بالتدفقات التي أضفتها وتنزيلها. لا يمكن التراجع عن هذا الإجراء. تُحفظ أيضًا القنوات المثبتة والقنوات في المجموعات والقنوات التي لها سجل استماع.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">لا توجد تدفقات دليل مستوردة لحذفها.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">تم حذف تدفقات الدليل المستوردة: {0:N0}.</sys:String>
     <sys:String x:Key="TvScheduleTitle">جدول البرامج التلفزيونية</sys:String>

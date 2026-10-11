@@ -37,8 +37,22 @@ internal sealed class CurrentLog : IDisposable
     private StreamWriter? _writer;
     private long _nextCompactionAt = MaximumSessionBytes;
 
-    public CurrentLog(string directory)
+    // SP-0212 (L23): set once the writer first exists, so a session that started logging tries to get it
+    // back after a failed write - one failure no longer ends the session's logging. Cleared by Dispose.
+    private bool _everLogged;
+    private bool _disposed;
+
+    // The one way to exercise a write that fails mid-session and the recovery from it (SP-0212 L23);
+    // kept internal on the SP-0052 terms - the seam must not be a public capability.
+    private readonly Func<string, FileMode, Stream>? _streamOpener;
+
+    public CurrentLog(string directory) : this(directory, streamOpener: null)
     {
+    }
+
+    internal CurrentLog(string directory, Func<string, FileMode, Stream>? streamOpener)
+    {
+        _streamOpener = streamOpener;
         _path = Path.Combine(directory, DiagnosticLogFiles.CurrentLogName);
         _paths = DiagnosticPathRedactor.ForCurrentUser(directory);
         try
@@ -65,8 +79,8 @@ internal sealed class CurrentLog : IDisposable
 
             // ReadWrite, not Write: compaction reads the tail back and rewrites it through this same
             // handle (SP-0134), so it never has to reopen a file someone else may be holding.
-            var stream = new FileStream(_path, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
-            _writer = new StreamWriter(stream, LogEncoding) { AutoFlush = true };
+            _writer = CreateWriter(FileMode.Create);
+            _everLogged = true;
             if (previousRetained)
             {
                 // The absence of a file is not a diagnosis. This is, and it is the first record here.
@@ -93,22 +107,58 @@ internal sealed class CurrentLog : IDisposable
     {
         lock (_gate)
         {
-            // A failed diagnostic flush must not interrupt WPF shutdown.
+            // A failed diagnostic flush must not interrupt WPF shutdown, and a disposed log never reopens.
+            _disposed = true;
             ReleaseWriter();
         }
+    }
+
+    // Opens the session log. Create truncates the fresh session file; OpenOrCreate is the recovery mode
+    // (SP-0212 L23) and appends, so a reopened log keeps what the session already wrote.
+    private StreamWriter CreateWriter(FileMode mode)
+    {
+        var stream = _streamOpener is not null
+            ? _streamOpener(_path, mode)
+            : new FileStream(_path, mode, FileAccess.ReadWrite, FileShare.Read);
+        if (mode == FileMode.OpenOrCreate)
+        {
+            stream.Seek(0, SeekOrigin.End);
+        }
+
+        return new StreamWriter(stream, LogEncoding) { AutoFlush = true };
     }
 
     private void Write(string severity, string message)
     {
         lock (_gate)
         {
-            try
+            if (_writer is null)
             {
-                if (_writer is null)
+                // SP-0212 (L23): a session that once logged is not silent for good after one failed
+                // write - the failed line released the handle, and this one tries a fresh, appending
+                // open, so a disk that has room again resumes the same session log. A session that
+                // never opened one stays silent, exactly as before.
+                if (!_everLogged || _disposed)
                 {
                     return;
                 }
 
+                try
+                {
+                    _writer = CreateWriter(FileMode.OpenOrCreate);
+                    // Through Flatten like every other line: the sink's rule is that nothing reaches the
+                    // file unredacted, a recovery marker included.
+                    _writer.WriteLine($"{DateTimeOffset.UtcNow:O} [Diag] {Flatten("LOG REOPENED | after=write failure")}");
+                }
+                catch (Exception)
+                {
+                    // Still nowhere to write; the next line tries again rather than ending the logging.
+                    return;
+                }
+            }
+
+            try
+            {
                 _writer.WriteLine($"{DateTimeOffset.UtcNow:O} [{severity}] {Flatten(message)}");
                 // AutoFlush is on, so the stream position is the file's real byte count - no estimate,
                 // and no second syscall to ask for it.
@@ -120,9 +170,10 @@ internal sealed class CurrentLog : IDisposable
             }
             catch (Exception)
             {
-                // The line itself could not be written: logging has no recovery path, and continuing is
-                // safer than masking the original application operation. The handle is released rather
-                // than abandoned (SP-0134).
+                // The line itself could not be written, and continuing is safer than masking the original
+                // application operation. The handle is released rather than abandoned (SP-0134) - and,
+                // since SP-0212 (L23), the session's next line reopens the file instead of ending its
+                // logging here.
                 ReleaseWriter();
             }
         }

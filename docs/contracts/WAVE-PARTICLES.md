@@ -27,9 +27,11 @@ clock, the frame as geometry - platform-neutral and unit-tested), and the drawin
 Rule 9 is held as 0.14 decided: Windows "Animation effects" stops the motion into the settled still frame
 (`BackdropEnvironment.AnimationEffectsEnabled`, drawn by `EnsureStill`), and the app's own "Animated background" switch can
 only add stillness. The dated exception recorded against the rule on 2026-09-23 (owner decision, registry row) was closed by
-SP-0186 on 2026-10-02. Open under SP-0210, on an owner ruling: whether the own switch's off - which removes the backdrop
-instead of holding a frame - satisfies the rule. Every section 3 value lives once, in `WaveParticlesConstants`, beside a
-citation of the contract. A value that differs is an exception row in the catalog registry, never only a comment here.
+SP-0186 on 2026-10-02. SP-0210's question - whether the own switch's off, which removes the backdrop instead of holding a
+frame, satisfies the rule - was ruled on 2026-10-11 by the owner: it does, because off is the user asking for no backdrop
+and an absent surface cannot read as a broken frame; the removal stays. Every section 3 value lives once, in
+`WaveParticlesConstants`, beside a citation of the contract. A value that differs is an exception row in the catalog
+registry, never only a comment here.
 
 Because the contract is below 1.0 it may change shape. The registry row carries the date this product last
 verified against it.
@@ -42,6 +44,10 @@ contract's reference implementation, which does not exist yet.
 offer no control: the site's `data-intensity="0.3" data-speed="0.5"` is that shape, so the site needs no exception row for it.
 The reference implementation and the rung 2 byte identity are held by `tools/site/build-site.ps1 -Check`.
 
-**Update, 2026-10-07 (SP-0210).** Rule 10's cloaked-window clause is now held in the tree: `WindowCloaking.IsCloaked` reads
-`DWMWA_CLOAKED` and the backdrop's tick advances nothing and draws nothing while the window is cloaked (not yet observed on a
-second virtual desktop). Open: whether removing the backdrop when the user's switch is off satisfies rule 9 as 0.14 decided.
+**Update, 2026-10-07 (SP-0210).** Rule 10's cloaked-window clause is held in the tree: `WindowCloaking.IsCloaked` reads
+`DWMWA_CLOAKED` and the backdrop's tick advances nothing and draws nothing while the window is cloaked.
+
+**Update, 2026-10-11 (SP-0210).** The cloaked-window clause is observed: on a second virtual desktop the window reads
+`DWM_CLOAKED_SHELL`, the process's GPU engine utilization drops from ~0.3 % to exactly 0.00 for the whole cloaked phase, and
+both motion and utilization resume on return, with the stream alive throughout. Rule 9's open question was closed the same
+day by the owner's ruling recorded above. SP-0210 is Implemented; the evidence is in the ticket.

@@ -441,6 +441,8 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="WebsiteTip">Open the STREAMS Player website</sys:String>
     <sys:String x:Key="Privacy">Privacy</sys:String>
     <sys:String x:Key="PrivacyTip">Open the STREAMS Player privacy policy</sys:String>
+    <sys:String x:Key="MediaExchange">Media exchange</sys:String>
+    <sys:String x:Key="MediaExchangeTip">Open the English guide to exchanging media between your devices</sys:String>
     <sys:String x:Key="AuthorPage">Author page</sys:String>
     <sys:String x:Key="AuthorPageTip">Open SerZhyAle on GitHub</sys:String>
     <sys:String x:Key="SendLogs">Send logs to the author</sys:String>
@@ -461,15 +463,15 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="SettingsOpenLinkFailed">Windows could not open this link.</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">Could not open link</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">Create desktop shortcut</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">The launch command was copied to the clipboard.</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">The PowerShell launch command was copied. Paste it into PowerShell.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows could not copy the launch command.</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">The address was left out. This shortcut or command works only while the channel exists in this library.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Copy share text</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">Copy launch command</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">Copy PowerShell launch command</sys:String>
     <sys:String x:Key="ShareTextCopied">The share text was copied to the clipboard. Paste it into a chat message; the recipient adds the channel with Paste channel.</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows could not copy the share text.</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">This channel address contains a password or token. The share text carries it in clear text, and whoever receives your message will see it. Copy anyway?</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">This channel address contains a password or token. What you are about to copy will carry it in clear text, and whoever receives it will see it. Copy anyway?</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">Desktop shortcut created: {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">Windows could not create the desktop shortcut.</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">Use --url &lt;address&gt; or --id &lt;channel GUID&gt;.</sys:String>
@@ -495,6 +497,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="ImportCountSkipped">Repeated in the file</sys:String>
     <sys:String x:Key="ImportApply">Apply</sys:String>
     <sys:String x:Key="ImportPreviewSummary">New channels to be added as imported: {0}.</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">This playlist exceeds the limit of {0:N0} new channels. Only the first part was read; the counts cover that part. Split the playlist to import the rest.</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">Nothing new to import from this source.</sys:String>
     <sys:String x:Key="ImportDownloading">Downloading playlist…</sys:String>
     <sys:String x:Key="ImportResult">Imported channels: {0}.</sys:String>
@@ -528,7 +531,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="DeleteDownloadedTip">Remove every stream that came from the downloaded catalog and keep only your own channels</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">Keep only your own channels: this removes the streams that came from the downloaded catalog. Your added and imported channels stay. Import channels from the internet downloads them again.</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">Delete downloaded streams</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">Delete all downloaded catalog streams ({0:N0})? Your added and imported channels are kept. This cannot be undone, but Import channels from the internet downloads them again.</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">Delete downloaded catalog streams ({0:N0})? Your added and imported channels are kept. This cannot be undone, but Import channels from the internet downloads them again. Pinned channels, channels in collections, and channels with listening history are also kept.</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">There are no downloaded catalog streams to delete.</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">Deleted downloaded streams: {0:N0}.</sys:String>
     <!-- SP-0029 language picker -->
@@ -640,12 +643,13 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="ImportCatalogNoChannels">No importable channels were found in the catalog archive. Your list was not changed.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">This is not a valid stream catalog archive. Your list was not changed.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">The catalog archive contains invalid CSV data or invalid UTF-8 encoding. Your list was not changed.</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">The catalog archive or its CSV data exceeds the maximum allowed size. Your list was not changed.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">The catalog archive or its CSV data exceeds the maximum allowed size. Your list was not changed.</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">The imported catalog could not be saved. Your list was not changed.</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">Delete imported catalog</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">Remove every stream that came from an imported catalog archive</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">Remove streams that came from imported catalog archives. Your added and downloaded catalog streams stay.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">Delete imported catalog</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">Delete all imported catalog streams ({0:N0})? Your added and downloaded streams are kept. This cannot be undone.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Delete imported catalog streams ({0:N0})? Your added and downloaded streams are kept. This cannot be undone. Pinned channels, channels in collections, and channels with listening history are also kept.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">There are no imported catalog streams to delete.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">Deleted imported catalog streams: {0:N0}.</sys:String>
     <sys:String x:Key="TvScheduleTitle">TV schedule</sys:String>

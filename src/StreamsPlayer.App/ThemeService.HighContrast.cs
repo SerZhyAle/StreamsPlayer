@@ -54,6 +54,9 @@ public static partial class ThemeService
             ["SuccessBrush"] = text,
             ["WarningBrush"] = text,
             ["DangerBrush"] = text,
+            // The face of an irreversible act under high contrast is the system's own pair, inverted:
+            // WindowText as the fill, Window as the ink drawn on it.
+            ["DangerTextBrush"] = window,
             ["NavInkGeneral"] = text,
             ["NavInkLibrary"] = text,
             ["NavInkPlayback"] = text,

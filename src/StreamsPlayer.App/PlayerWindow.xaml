@@ -64,9 +64,9 @@
                 <!-- Right group: Media tracks, capture, record, fullscreen, actions and close -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="AudioTracksButton" Content="{DynamicResource AudioTracks}" Click="AudioTracksButton_Click"
-                            Visibility="Hidden" ToolTip="{DynamicResource AudioTracksTip}" Style="{StaticResource PlayerOverlayButton}" />
+                            Visibility="Hidden" ToolTip="{DynamicResource AudioTracksTip}" Style="{StaticResource PlayerOverlayAudioTracksGlyphButton}" />
                     <Button x:Name="SubtitleTracksButton" Content="{DynamicResource SubtitleTracks}" Click="SubtitleTracksButton_Click"
-                            Visibility="Hidden" ToolTip="{DynamicResource SubtitleTracksTip}" Style="{StaticResource PlayerOverlayButton}" />
+                            Visibility="Hidden" ToolTip="{DynamicResource SubtitleTracksTip}" Style="{StaticResource PlayerOverlaySubtitlesGlyphButton}" />
                     <Button x:Name="SaveFrameButton" Style="{StaticResource PlayerOverlaySaveFrameGlyphButton}"
                             Click="SaveFrameButton_Click" ToolTip="{DynamicResource SaveFrameTip}"
                             AutomationProperties.Name="{DynamicResource SaveFrame}" />

@@ -273,6 +273,15 @@ Signaler un problème avec les journaux
 
 @@use-5-text
 Ouvrez Paramètres depuis l’icône d’engrenage dans l’en-tête (ou depuis l’entrée « Paramètres de la bibliothèque » du menu [[glyph:nav.more]] Actions) et appuyez sur « Envoyer les journaux à l’auteur » sur la page À propos. L’application rassemble les journaux de diagnostic des dix derniers lancements avec un résumé de votre version, de Windows et des paramètres dans le dossier défini sous « Dossier des images » sur la page Fichiers des Paramètres (Téléchargements si aucun n’est défini), puis ouvre votre messagerie avec le message prêt. La confirmation affiche le chemin complet et peut ouvrir ce dossier à votre demande ; vous joignez l’archive et appuyez sur Envoyer.
+@@use-6-title
+Échangez des médias entre vos appareils
+
+@@use-6-text
+STREAMS Player est le lecteur Windows des diffusions en direct d'un téléphone ou d'une montre avec FastMediaSorter. Le portail d'échange de médias explique les trois façons de relier vos appareils - le réseau domestique, le serveur d'échange et la diffusion en direct -, quel programme fait quoi sur un téléphone, une montre, un téléviseur, un casque VR et un PC, et ce qui fonctionne dès aujourd'hui.
+
+@@use-6-link
+Ouvrir le portail d'échange de médias (en anglais)
+
 @@distribution-title
 Distribution
 

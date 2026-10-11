@@ -19,6 +19,20 @@ public static class ProductInfo
         (Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
         ?? "Unknown").Split('+')[0];
 
+    // The media exchange portal is one page set several products link to, hosted on the FastMediaSorter
+    // Android site (shared pages proposal 2026-10-10). It has three editions - English, Russian, Ukrainian.
+    private const string ExchangePortalBase =
+        "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/";
+
+    // Same rule as InstructionsUrl: Russian and Ukrainian have their own edition, every other language
+    // reads English.
+    public static string ExchangePortalUrl(AppLanguage language) => language switch
+    {
+        AppLanguage.Russian => $"{ExchangePortalBase}index-ru.html",
+        AppLanguage.Ukrainian => $"{ExchangePortalBase}index-uk.html",
+        _ => ExchangePortalBase
+    };
+
     // SP-0029: each UI language points at its own README mirror; anything else falls back to English.
     public static string InstructionsUrl(AppLanguage language) => language switch
     {

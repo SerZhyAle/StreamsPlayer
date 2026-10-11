@@ -425,6 +425,8 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="WebsiteTip">Ouvrir le site web de STREAMS Player</sys:String>
     <sys:String x:Key="Privacy">Confidentialité</sys:String>
     <sys:String x:Key="PrivacyTip">Ouvrir la politique de confidentialité de STREAMS Player</sys:String>
+    <sys:String x:Key="MediaExchange">Échange de médias</sys:String>
+    <sys:String x:Key="MediaExchangeTip">Ouvrir le guide en anglais sur l'échange de médias entre vos appareils</sys:String>
     <sys:String x:Key="AuthorPage">Page de l'auteur</sys:String>
     <sys:String x:Key="AuthorPageTip">Ouvrir SerZhyAle sur GitHub</sys:String>
     <sys:String x:Key="SendLogs">Envoyer les journaux à l'auteur</sys:String>
@@ -445,15 +447,15 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="SettingsOpenLinkFailed">Windows n'a pas pu ouvrir ce lien.</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">Impossible d'ouvrir le lien</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">Créer un raccourci sur le bureau</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">La commande de lancement a été copiée dans le presse-papiers.</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">La commande de lancement PowerShell a été copiée. Collez-la dans PowerShell.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows n'a pas pu copier la commande de lancement.</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">L’adresse a été omise. Ce raccourci ou cette commande fonctionne uniquement tant que la chaîne figure dans cette bibliothèque.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Copier le texte de partage</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">Copier la commande de lancement</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">Copier la commande de lancement PowerShell</sys:String>
     <sys:String x:Key="ShareTextCopied">Le texte de partage a été copié dans le presse-papiers. Collez-le dans un message ; le destinataire ajoute la chaîne avec « Coller une chaîne ».</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows n'a pas pu copier le texte de partage.</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">L'adresse de cette chaîne contient un mot de passe ou un jeton. Le texte de partage le transmet en clair et toute personne qui reçoit votre message le verra. Copier quand même ?</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">Cette adresse de canal contient un mot de passe ou un jeton. Ce que vous vous apprêtez à copier le transporte en clair, et quiconque le reçoit le verra. Copier quand même ?</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">Raccourci créé sur le bureau : {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">Windows n'a pas pu créer le raccourci sur le bureau.</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">Utilisez --url &lt;adresse&gt; ou --id &lt;GUID de la chaîne&gt;.</sys:String>
@@ -479,6 +481,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="ImportCountSkipped">Répétées dans le fichier</sys:String>
     <sys:String x:Key="ImportApply">Appliquer</sys:String>
     <sys:String x:Key="ImportPreviewSummary">Nouvelles chaînes qui seront ajoutées comme importées : {0}.</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">Cette liste dépasse la limite de {0:N0} nouvelles chaînes. Seule la première partie a été lue ; les compteurs concernent cette partie. Divisez la liste pour importer le reste.</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">Rien de nouveau à importer depuis cette source.</sys:String>
     <sys:String x:Key="ImportDownloading">Téléchargement de la liste de lecture…</sys:String>
     <sys:String x:Key="ImportResult">Chaînes importées : {0}.</sys:String>
@@ -512,7 +515,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="DeleteDownloadedTip">Supprimer tous les flux issus du catalogue téléchargé et ne garder que vos propres chaînes</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">Ne garder que vos propres chaînes : cela supprime les flux issus du catalogue téléchargé. Vos chaînes ajoutées et importées restent. « Importer des chaînes depuis internet » les télécharge à nouveau.</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">Supprimer les flux téléchargés</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">Supprimer tous les flux téléchargés du catalogue ({0:N0}) ? Vos chaînes ajoutées et importées sont conservées. Cette action est irréversible, mais « Importer des chaînes depuis internet » les télécharge à nouveau.</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">Supprimer les flux téléchargés du catalogue ({0:N0}) ? Vos chaînes ajoutées et importées sont conservées. Cette action est irréversible, mais « Importer des chaînes depuis internet » les télécharge à nouveau. Les chaînes épinglées, celles des collections et celles avec un historique d’écoute sont aussi conservées.</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">Il n'y a aucun flux téléchargé du catalogue à supprimer.</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">Flux téléchargés supprimés : {0:N0}.</sys:String>
     <!-- SP-0029 language picker -->
@@ -624,12 +627,13 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="ImportCatalogNoChannels">Aucune chaîne importable trouvée dans l'archive du catalogue. Votre liste n'a pas été modifiée.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">Ceci n'est pas une archive de catalogue de flux valide. Votre liste n'a pas été modifiée.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">L'archive du catalogue contient des données CSV non valides ou un encodage UTF-8 non valide. Votre liste n'a pas été modifiée.</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">L'archive du catalogue ou ses données CSV dépassent la taille maximale autorisée. Votre liste n'a pas été modifiée.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">L'archive du catalogue ou ses données CSV dépassent la taille maximale autorisée. Votre liste n'a pas été modifiée.</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">Le catalogue importé n'a pas pu être enregistré. Votre liste n'a pas été modifiée.</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">Supprimer le catalogue importé</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">Supprimer tous les flux provenant d'une archive de catalogue importée</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">Supprime les flux provenant d'archives de catalogues importées. Vos flux ajoutés et téléchargés restent.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">Supprimer le catalogue importé</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">Supprimer tous les flux du catalogue importé ({0:N0}) ? Vos flux ajoutés et téléchargés sont conservés. Cette action est irréversible.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Supprimer les flux du catalogue importé ({0:N0}) ? Vos flux ajoutés et téléchargés sont conservés. Cette action est irréversible. Les chaînes épinglées, celles des collections et celles avec un historique d’écoute sont aussi conservées.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">Il n'y a aucun flux de catalogue importé à supprimer.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">Flux de catalogue importés supprimés : {0:N0}.</sys:String>
     <sys:String x:Key="TvScheduleTitle">Programme TV</sys:String>

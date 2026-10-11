@@ -20,23 +20,16 @@ public partial class MainWindow
         }
 
         // Mandatory, unlike the export gate it mirrors: a chat message is not revocable and is a strictly
-        // easier leak path than a file the user chose where to save.
-        if (CatalogUrlIdentity.HasCredentials(row.Channel.Url) &&
-            MessageBox.Show(DialogOwner, LocalizationService.Get("ShareCredentialWarning"),
-                LocalizationService.Get("MenuCopyShareText"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
-                MessageBoxResult.No) != MessageBoxResult.Yes)
+        // easier leak path than a file the user chose where to save. SP-0212 (L28): the keys and their
+        // order are ChannelHandOutWarnings' one rule, so a warning added there reaches this hand-out too.
+        foreach (var key in ChannelHandOutWarnings.KeysFor(row.Channel.Url))
         {
-            return;
-        }
-
-        // SP-0201 requirement 5: a relay or tunnel address is the capability to listen, so handing it on is
-        // told as what it is before the clipboard ever holds it.
-        if (BroadcastCapabilityAddress.CarriesCapability(row.Channel.Url) &&
-            MessageBox.Show(DialogOwner, LocalizationService.Get("BroadcastCapabilityWarning"),
-                LocalizationService.Get("MenuCopyShareText"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
-                MessageBoxResult.No) != MessageBoxResult.Yes)
-        {
-            return;
+            if (MessageBox.Show(DialogOwner, LocalizationService.Get(key),
+                    LocalizationService.Get("MenuCopyShareText"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                    MessageBoxResult.No) != MessageBoxResult.Yes)
+            {
+                return;
+            }
         }
 
         try

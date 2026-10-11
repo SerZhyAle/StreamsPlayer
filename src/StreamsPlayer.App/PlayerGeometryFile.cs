@@ -30,6 +30,11 @@ internal static class PlayerGeometryFile
     // rather than mutated, so a reader always sees one consistent list.
     private static volatile IReadOnlyList<ChannelWindowGeometry> _cache = [];
 
+    // SP-0212 (L10): set once by the priming read, read under Gate. Not the store's own IsUnreadable, which
+    // the first successful re-read clears: a flush queued behind that one still holds a list captured
+    // before its merge, so the session that started unreadable merges on every flush, not until the first.
+    private static bool _startupReadFailed;
+
     /// <summary>Reads the file into the cache. Called once during startup; failures leave the cache empty.</summary>
     internal static async Task PrimeAsync()
     {
@@ -37,6 +42,7 @@ internal static class PlayerGeometryFile
         try
         {
             _cache = await Store.LoadAsync().ConfigureAwait(false);
+            _startupReadFailed = Store.IsUnreadable;
         }
         finally
         {
@@ -82,9 +88,10 @@ internal static class PlayerGeometryFile
         {
             // Writes the list handed in rather than re-reading: this process is the only writer, and the
             // cache it came from is already the merge of every window that has closed. The one exception
-            // is a file that could not be read at startup (SP-0184): the store refuses every save until a
-            // read succeeds, so each flush retries the read and folds in what the session recorded since.
-            if (Store.IsUnreadable)
+            // is a file that could not be read at startup (SP-0184, SP-0212 L10): every flush of such a
+            // session retries the read and folds in what the file and the session both remember, so a
+            // flush queued behind the first successful one cannot write its older captured list.
+            if (_startupReadFailed)
             {
                 entries = await ReloadAsync(entries).ConfigureAwait(false);
             }

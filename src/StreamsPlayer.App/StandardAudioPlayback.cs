@@ -78,7 +78,12 @@ internal sealed class StandardAudioPlayback : IDisposable
                 {
                     player.SetChannel(value.ToLibVlc());
                 }
-                catch { }
+                catch (Exception exception)
+                {
+                    // SP-0212 (L21): a mode the engine refuses is a diagnostic line, on the terms of the
+                    // device setter above - a bare swallow left an unexplained, unlogged no-op.
+                    _diagnostics?.Invoke("AUDIO CHANNEL MODE REFUSED", [$"error={exception.GetType().Name}"]);
+                }
             }
         }
     }
@@ -343,6 +348,13 @@ internal sealed class StandardAudioPlayback : IDisposable
                 TaskContinuationOptions.None,
                 TaskScheduler.Default);
             return;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // SP-0212 (L22): a stop that faulted is not a stop that hung, but it is not a release either -
+            // leaving it uncaught would keep the leg held for the rest of the session and surface only as
+            // an unobserved task fault. Recorded, then released like any finished stop.
+            _diagnostics?.Invoke("AUDIO ENGINE STOP FAULT", [$"error={exception.GetType().Name}"]);
         }
 
         ReleaseContained(leg);

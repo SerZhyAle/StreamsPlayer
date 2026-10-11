@@ -164,6 +164,24 @@
   </ItemGroup>
 
   <!--
+    SP-0212: the release gates that live in scripts, on the same terms as the workflows above - read as
+    text, never run, no project reference: the release-parity gate's own wiring (the audit-campaign
+    fixture tests and the structural snapshot check it must keep running), the extracted smoke-verdict
+    gate the release workflow calls, and the Store package build that now calls it too.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\scripts\check.ps1"
+             Link="scripts\check.ps1"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\scripts\Assert-SmokeVerdict.ps1"
+             Link="scripts\Assert-SmokeVerdict.ps1"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\msix\build-msix.ps1"
+             Link="msix\build-msix.ps1"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
     SP-0113: the icon map, the vendored ICON-SET glyphs and their provenance, on the same terms - read as
     text. The contract store they were copied from is not part of a clone; tools/Sync-IconGlyphs.ps1 -Check
     compares against it where it is mounted, and these tests hold the copies against each other everywhere.

@@ -33,6 +33,11 @@
             <SolidColorBrush x:Key="SuccessBrush" Color="#FF1E7E34" />
             <SolidColorBrush x:Key="WarningBrush" Color="#FFEF6C00" />
             <SolidColorBrush x:Key="DangerBrush" Color="#FFB22222" />
+            <!-- SP-0218: the ink on a DangerBrush face (design-time default). The six faces of the dialog
+                 answers (AnswerAffirm* / AnswerDismiss*) have no default here: they are derived from the
+                 palette by ThemeService.ApplyAnswerFaces on every theme change, so a literal copy would be
+                 a second source that could disagree with the first. -->
+            <SolidColorBrush x:Key="DangerTextBrush" Color="White" />
             <!-- SP-0191: the settings navigation's identity inks (design-time defaults; the live pairs
                  are ThemeService's NavInk* table). -->
             <SolidColorBrush x:Key="NavInkGeneral" Color="#FF2364AA" />
@@ -593,7 +598,7 @@
                     <Setter.Value>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Viewbox Width="16" Height="16" Margin="0,0,7,0" VerticalAlignment="Center" FlowDirection="LeftToRight">
+                                <Viewbox Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" FlowDirection="LeftToRight">
                                     <Path Data="{Binding (local:Glyph.Geometry), RelativeSource={RelativeSource AncestorType=Button}}" Width="24" Height="24"
                                           Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                                 </Viewbox>
@@ -661,7 +666,7 @@
                     <Setter.Value>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Viewbox Width="16" Height="16" Margin="0,0,7,0" VerticalAlignment="Center" FlowDirection="LeftToRight">
+                                <Viewbox Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" FlowDirection="LeftToRight">
                                     <Path Data="{Binding (local:Glyph.Geometry), RelativeSource={RelativeSource AncestorType=Button}}" Width="24" Height="24"
                                           Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                                 </Viewbox>
@@ -852,7 +857,7 @@
                                     <Path Data="{Binding (local:Glyph.Geometry), RelativeSource={RelativeSource AncestorType=Button}}" Width="24" Height="24"
                                           Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                                 </Viewbox>
-                                <TextBlock Text="{Binding}" VerticalAlignment="Center" Margin="7,0,0,0"
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center" Margin="6,0,0,0"
                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
@@ -890,7 +895,7 @@
                     <Setter.Value>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Viewbox Width="16" Height="16" Margin="0,0,7,0" VerticalAlignment="Center">
+                                <Viewbox Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center">
                                     <Path Data="{Binding (local:Glyph.Geometry), RelativeSource={RelativeSource AncestorType=Button}}" Width="24" Height="24"
                                           Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                                 </Viewbox>
@@ -1041,6 +1046,155 @@
             </Style>
             <Style x:Key="ChooseFolderGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.choose-folder}" />
+            </Style>
+            <!-- SP-0218: ordinary command buttons that carried words only. Mono look, like every button
+                 that is not a dialog answer (WINDOWS-UI 0.4 section 11 item 5). -->
+            <Style x:Key="ConfirmGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.confirm}" />
+            </Style>
+            <Style x:Key="CopyGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.copy}" />
+            </Style>
+            <Style x:Key="ClearAllGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.clear-all}" />
+            </Style>
+            <Style x:Key="EmailGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.email}" />
+            </Style>
+            <Style x:Key="RemoveGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.remove}" />
+            </Style>
+            <Style x:Key="NoneGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.system.none}" />
+            </Style>
+            <Style x:Key="BroadcastsGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.content.stream}" />
+            </Style>
+            <!-- Provisional (ICON-SET 0.30 section 15): the vocabulary has no meaning for showing a hidden item
+                 again; PROPOSAL-2026-10-11-streamsplayer-button-meanings.md item 1 asks for one. -->
+            <Style x:Key="UnhideGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.action.unhide}" />
+            </Style>
+            <Style x:Key="PlayerOverlayAudioTracksGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.audio-track}" />
+            </Style>
+            <Style x:Key="PlayerOverlaySubtitlesGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.subtitles}" />
+            </Style>
+            <!-- SP-0218: the answer buttons of a dialog (WINDOWS-UI 0.4 section 11 item 4, ICON-RENDER 0.19
+                 section 14). The glyph takes the hue of the answer's polarity and the face a 12 percent tint of
+                 it (ThemeService.ApplyAnswerFaces); the caption stays in the text colour, so shape, word and
+                 hue say the same thing three ways and colour never carries the meaning alone. Everything is a
+                 DynamicResource, so a live theme change repaints an open dialog; an unavailable answer drops
+                 hue and tint together and mutes glyph and caption to DisabledTextBrush; under high contrast
+                 the palette itself resolves to system colours. Padding and the 6 px gap are the reference
+                 values of item 3 and item 2, one home for every answer. Only the glyph's colour differs from
+                 GlyphButton's template, which paints glyph and caption from one Foreground. -->
+            <Style x:Key="AnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="Padding" Value="14,6" />
+                <Setter Property="ContentTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Viewbox Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" FlowDirection="LeftToRight">
+                                    <Path Data="{Binding (local:Glyph.Geometry), RelativeSource={RelativeSource AncestorType=Button}}" Width="24" Height="24"
+                                          Fill="{Binding (local:Glyph.Ink), RelativeSource={RelativeSource AncestorType=Button}}" />
+                                </Viewbox>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="AffirmAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AnswerGlyphButton}">
+                <Setter Property="Background" Value="{DynamicResource AnswerAffirmFaceBrush}" />
+                <Setter Property="local:Glyph.Ink" Value="{DynamicResource SuccessBrush}" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource AnswerAffirmHoverFaceBrush}" />
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource AnswerAffirmPressedFaceBrush}" />
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
+                        <Setter Property="local:Glyph.Ink" Value="{DynamicResource DisabledTextBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="DismissAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AnswerGlyphButton}">
+                <Setter Property="Background" Value="{DynamicResource AnswerDismissFaceBrush}" />
+                <Setter Property="local:Glyph.Ink" Value="{DynamicResource DangerBrush}" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource AnswerDismissHoverFaceBrush}" />
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource AnswerDismissPressedFaceBrush}" />
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
+                        <Setter Property="local:Glyph.Ink" Value="{DynamicResource DisabledTextBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <!-- Beside an irreversible act the dismissing answer keeps its red glyph and takes no tint, so
+                 the only red face in the window is the one that cannot be undone (item 7). The face is the
+                 ordinary control face with the base button's hover and press. -->
+            <Style x:Key="DismissUntintedAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AnswerGlyphButton}">
+                <Setter Property="local:Glyph.Ink" Value="{DynamicResource DangerBrush}" />
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="local:Glyph.Ink" Value="{DynamicResource DisabledTextBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <!-- The acting button of an irreversible act: the danger face with its own ink (APP-STYLE 4). It is
+                 never the default focus; the owner of the dialog keeps the safe answer there. -->
+            <Style x:Key="DangerAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AnswerGlyphButton}">
+                <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource DangerTextBrush}" />
+                <Setter Property="local:Glyph.Ink" Value="{DynamicResource DangerTextBrush}" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+                        <Setter Property="Opacity" Value="0.88" />
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+                        <Setter Property="Opacity" Value="0.76" />
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                        <Setter Property="local:Glyph.Ink" Value="{DynamicResource DisabledTextBrush}" />
+                        <Setter Property="Opacity" Value="1" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="ConfirmAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AffirmAnswerGlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.confirm}" />
+            </Style>
+            <Style x:Key="ImportAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AffirmAnswerGlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.import}" />
+            </Style>
+            <Style x:Key="ReconnectAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AffirmAnswerGlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.reconnect}" />
+            </Style>
+            <Style x:Key="CancelAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource DismissAnswerGlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.cancel}" />
+            </Style>
+            <Style x:Key="CloseAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource DismissAnswerGlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.nav.close}" />
+            </Style>
+            <Style x:Key="CancelUntintedAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource DismissUntintedAnswerGlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.cancel}" />
+            </Style>
+            <Style x:Key="DeleteAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource DangerAnswerGlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.delete}" />
             </Style>
             <!-- SP-0191: the settings header's expand/collapse-all commands (WINDOWS-UI 2.3). Glyph-only,
                  so each carries a localized accessible name and tooltip at the call site. These sit after

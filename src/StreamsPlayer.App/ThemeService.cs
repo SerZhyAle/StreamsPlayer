@@ -48,6 +48,10 @@ public static partial class ThemeService
             ["SuccessBrush"] = (Color.FromRgb(30, 126, 52), Color.FromRgb(86, 196, 110)),
             ["WarningBrush"] = (Color.FromRgb(239, 108, 0), Color.FromRgb(230, 180, 60)),
             ["DangerBrush"] = (Color.FromRgb(178, 34, 34), Color.FromRgb(255, 107, 107)),
+            // SP-0218: the ink drawn on a DangerBrush face - the acting button of an irreversible act
+            // (APP-STYLE 4). White on the light red (6.7:1); the dark theme's red is a light one, on which
+            // white would be 2.8:1, so its ink is the window's own near-black (6.5:1).
+            ["DangerTextBrush"] = (Colors.White, Color.FromRgb(16, 23, 34)),
             // SP-0191: the settings navigation's per-destination identity inks (ICON-RENDER 0.16
             // section 11, WINDOWS-UI 6.6). One table, light and dark values per destination, every
             // pair measured at 3:1 or better against every surface the nav row actually draws -
@@ -183,8 +187,53 @@ public static partial class ThemeService
             resources[key] = new SolidColorBrush(color);
         }
 
+        ApplyAnswerFaces(resources, system is not null);
         PaletteChanged?.Invoke();
     }
+
+    /// <summary>SP-0218: the share of the answer's hue in the face it tints (<c>WINDOWS-UI</c> 0.4 section 11 item 4).</summary>
+    private const double AnswerTint = 0.12;
+
+    // The answer buttons of a dialog: the face of an affirmative answer is the success hue over the control
+    // face, a dismissing answer's the danger hue over it. Three states each, because the base button style
+    // swaps its face on hover and press and an untinted swap would flatten the pair for as long as the
+    // pointer is on it.
+    private static readonly (string Prefix, string Hue)[] AnswerHues =
+    [
+        ("AnswerAffirm", "SuccessBrush"),
+        ("AnswerDismiss", "DangerBrush")
+    ];
+
+    private static readonly (string Suffix, string Face)[] AnswerStates =
+    [
+        ("FaceBrush", "ControlBrush"),
+        ("HoverFaceBrush", "ControlHoverBrush"),
+        ("PressedFaceBrush", "ControlPressedBrush")
+    ];
+
+    /// <summary>
+    /// Derived from the palette that was just written, never stored, so a change of theme - or of the
+    /// success and danger pairs - reaches the answer faces by the same single replacement as every role.
+    /// Under high contrast the face is the system control colour untouched: the hue and the tint are
+    /// replaced by the system colours there (<c>WINDOWS-UI</c> section 6 item 5).
+    /// </summary>
+    private static void ApplyAnswerFaces(ResourceDictionary resources, bool systemColours)
+    {
+        foreach (var (prefix, hueKey) in AnswerHues)
+        {
+            var hue = ((SolidColorBrush)resources[hueKey]).Color;
+            foreach (var (suffix, faceKey) in AnswerStates)
+            {
+                var face = ((SolidColorBrush)resources[faceKey]).Color;
+                resources[prefix + suffix] = new SolidColorBrush(systemColours ? face : Blend(hue, face, AnswerTint));
+            }
+        }
+    }
+
+    private static Color Blend(Color hue, Color face, double share) => Color.FromRgb(
+        (byte)Math.Round(hue.R * share + face.R * (1 - share)),
+        (byte)Math.Round(hue.G * share + face.G * (1 - share)),
+        (byte)Math.Round(hue.B * share + face.B * (1 - share)));
 
     private static bool SystemUsesLightTheme()
     {

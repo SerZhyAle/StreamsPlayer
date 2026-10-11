@@ -113,7 +113,10 @@ public partial class ChannelInfoWindow : Window
 
     private bool ConfirmAddressHandOut()
     {
-        foreach (var key in ChannelHandOutWarnings.KeysFor(_channel.Url))
+        // SP-0212 (L24, L29): the sheet owns the rule. The gate asks what this copy is about to hand
+        // out - every field, the homepage included, whatever fact carries an address - so the wording
+        // is the hand-out's own and a new fact cannot slip past a gate that judged the address alone.
+        foreach (var key in ChannelFactSheet.HandOutWarningKeys([.. _storedFacts, .. _streamFacts]))
         {
             if (MessageBox.Show(this, LocalizationService.Get(key), Title, MessageBoxButton.YesNo,
                     MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)

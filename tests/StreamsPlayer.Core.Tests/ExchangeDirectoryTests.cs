@@ -223,8 +223,11 @@ public sealed class ExchangeDirectoryTests
         Assert.Equal(ExchangeBroadcastSupport.Supported, view.Support);
     }
 
+    // SP-0212 (L30): a record whose every endpoint is a reserved transport still has the legacy top-level
+    // address that PlaybackAttemptEndpoints falls back to, and the directory now agrees with that
+    // fallback instead of calling the record Unsupported while a leg played it anyway.
     [Fact]
-    public void ABroadcastWhoseEveryEndpointIsAReservedTransportIsListedAsUnsupported()
+    public void ABroadcastWhoseEveryEndpointIsAReservedTransportStillCountsItsLaunchableLegacyAddress()
     {
         var json = """
         {"schemaVersion":2,"type":"directory","revision":3,
@@ -236,8 +239,29 @@ public sealed class ExchangeDirectoryTests
 
         var view = Assert.Single(Assert.Single(new ExchangeDirectoryState().ApplyFull(Parse(json)).Snapshot.Groups).Broadcasts);
 
-        Assert.Equal(ExchangeBroadcastSupport.Unsupported, view.Support);
+        Assert.Equal(ExchangeBroadcastSupport.Supported, view.Support);
         Assert.Equal("b6", view.Record.BroadcastId);
+    }
+
+    // SP-0212 (L30): the judgment asked directly, because the descriptor's own reader refuses an
+    // unlaunchable legacy address before the directory ever sees one - so the mirror is what the
+    // reachable descriptors get, and the unlaunchable case stays a defensive refusal.
+    [Fact]
+    public void SupportOfMirrorsThePlaybackFallback()
+    {
+        var playable = new FastMediaSorterBroadcast(
+            "http://192.168.1.97:8768/live-audio.aac", "AUDIO_ONLY", "Direct", null, true, null,
+            [new FastMediaSorterBroadcastEndpoint("http://192.168.1.97:8768/live-audio.aac", "HTTP", "AUDIO_ONLY", null, null, null, null, null, null)]);
+        Assert.Equal(ExchangeBroadcastSupport.Supported, ExchangeDirectoryState.SupportOf(playable));
+
+        var reserved = playable with
+        {
+            Endpoints = [new FastMediaSorterBroadcastEndpoint("http://192.168.1.97:8768/p2p", "P2P", "AUDIO_ONLY", null, null, null, null, null, null)]
+        };
+        Assert.Equal(ExchangeBroadcastSupport.Supported, ExchangeDirectoryState.SupportOf(reserved));
+
+        var unlaunchable = reserved with { Url = "p2p://192.168.1.97:9000/live" };
+        Assert.Equal(ExchangeBroadcastSupport.Unsupported, ExchangeDirectoryState.SupportOf(unlaunchable));
     }
 
     [Fact]

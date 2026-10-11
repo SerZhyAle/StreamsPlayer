@@ -146,6 +146,18 @@ public sealed class ExchangeRelayProxy : IDisposable
             await relayStream.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             var (head, leftover) = await ReadRelayHeadAsync(relayStream, cancellationToken).ConfigureAwait(false);
+            // SP-0212 (L25): the relay's answer is read, not assumed. A head that refuses - 404, 410,
+            // 503, anything but a success - is a failure the log names, not a connection: the body that
+            // follows it is an error page, and splicing that to the player would play it as media.
+            var relayStatus = RelayStatus(head);
+            if (relayStatus is not (>= 200 and < 300))
+            {
+                LastFailure = relayStatus is { } refused ? $"relay-refused-{refused}" : "relay-head-unparsable";
+                Failed?.Invoke(LastFailure);
+                await WriteClientHeadAsync(client, "HTTP/1.0 502 Bad Gateway\r\nConnection: close\r\n\r\n").ConfigureAwait(false);
+                return;
+            }
+
             await WriteClientHeadAsync(client, RewriteHead(head)).ConfigureAwait(false);
             ConnectedCount++;
             await SpliceAsync(relayStream, leftover, client, cancellationToken).ConfigureAwait(false);
@@ -207,6 +219,37 @@ public sealed class ExchangeRelayProxy : IDisposable
         // The token is the whole access rule: anything else is answered 404 and never claimed.
         var line = Encoding.ASCII.GetString(head, 0, Math.Min(filled, 2048)).Split("\r\n")[0];
         return (line.Contains($"/{_token} ", StringComparison.Ordinal), BuildRelayRequest());
+    }
+
+    /// <summary>
+    /// SP-0212 (L25): the relay head's status code, read off its first line; null for a head no HTTP
+    /// reader would call a status line, so an unspeakable answer is a named failure rather than media.
+    /// </summary>
+    private static int? RelayStatus(byte[] head)
+    {
+        var firstSpace = Array.IndexOf(head, (byte)' ');
+        if (firstSpace < 1)
+        {
+            return null;
+        }
+
+        if (!Encoding.ASCII.GetString(head, 0, firstSpace).StartsWith("HTTP/", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        var digits = new StringBuilder(3);
+        for (var index = firstSpace + 1; index < head.Length && head[index] != (byte)' ' && digits.Length < 3; index++)
+        {
+            if (head[index] is < (byte)'0' or > (byte)'9')
+            {
+                return null;
+            }
+
+            digits.Append((char)head[index]);
+        }
+
+        return digits.Length == 3 && int.TryParse(digits.ToString(), out var code) ? code : null;
     }
 
     private byte[] BuildRelayRequest()

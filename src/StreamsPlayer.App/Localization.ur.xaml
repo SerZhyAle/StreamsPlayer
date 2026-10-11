@@ -425,6 +425,8 @@
     <sys:String x:Key="WebsiteTip">STREAMS Player کی ویب سائٹ کھولیں</sys:String>
     <sys:String x:Key="Privacy">رازداری</sys:String>
     <sys:String x:Key="PrivacyTip">STREAMS Player کی رازداری کی پالیسی کھولیں</sys:String>
+    <sys:String x:Key="MediaExchange">میڈیا کا تبادلہ</sys:String>
+    <sys:String x:Key="MediaExchangeTip">آپ کے آلات کے درمیان میڈیا کے تبادلے کی انگریزی رہنمائی کھولیں</sys:String>
     <sys:String x:Key="AuthorPage">مصنف کا صفحہ</sys:String>
     <sys:String x:Key="AuthorPageTip">GitHub پر SerZhyAle کھولیں</sys:String>
     <sys:String x:Key="SendLogs">لاگ مصنف کو بھیجیں</sys:String>
@@ -445,15 +447,15 @@
     <sys:String x:Key="SettingsOpenLinkFailed">Windows یہ لنک نہیں کھول سکا۔</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">لنک نہیں کھل سکا</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">ڈیسک ٹاپ شارٹ کٹ بنائیں</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">چلانے کی کمانڈ کلپ بورڈ پر نقل ہو گئی۔</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">PowerShell شروع کرنے کی کمانڈ کاپی ہو گئی ہے۔ اسے PowerShell میں پیسٹ کریں۔</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows چلانے کی کمانڈ نقل نہیں کر سکا۔</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">پتہ شامل نہیں کیا گیا۔ یہ شارٹ کٹ یا کمانڈ صرف اس وقت تک کام کرے گی جب تک چینل اس لائبریری میں موجود ہے۔</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">شیئر متن نقل کریں</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">لانچ کمانڈ نقل کریں</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">PowerShell شروع کرنے کی کمانڈ کاپی کریں</sys:String>
     <sys:String x:Key="ShareTextCopied">شیئر متن کلپ بورڈ پر نقل ہو گیا۔ اسے کسی پیغام میں چسپاں کریں؛ وصول کنندہ «چینل چسپاں کریں» سے چینل شامل کرے گا۔</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows شیئر متن نقل نہیں کر سکا۔</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">اس چینل کے پتے میں پاس ورڈ یا ٹوکن ہے۔ شیئر متن اسے کھلے متن میں لے جاتا ہے، اور جو بھی آپ کا پیغام پائے گا اسے دیکھ لے گا۔ پھر بھی نقل کریں؟</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">اس چینل ایڈریس میں پاس ورڈ یا ٹوکن ہے۔ آپ جو کاپی کرنے جا رہے ہیں وہ اسے صاف متن میں لے جائے گا، اور جو بھی اسے وصول کرے گا وہ اسے دیکھے گا۔ پھر بھی کاپی کریں؟</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">ڈیسک ٹاپ شارٹ کٹ بن گیا: {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">Windows ڈیسک ٹاپ شارٹ کٹ نہیں بنا سکا۔</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">--url &lt;پتہ&gt; یا --id &lt;چینل GUID&gt; استعمال کریں۔</sys:String>
@@ -479,6 +481,7 @@
     <sys:String x:Key="ImportCountSkipped">فائل میں دہرائے گئے</sys:String>
     <sys:String x:Key="ImportApply">لاگو کریں</sys:String>
     <sys:String x:Key="ImportPreviewSummary">درآمد شدہ کے طور پر شامل ہونے والے نئے چینلز: {0}۔</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">اس پلے لسٹ میں {0:N0} سے زیادہ نئے چینل ہیں۔ صرف پہلا حصہ پڑھا گیا ہے؛ گنتی اسی حصے کی ہے۔ باقی چینل درآمد کرنے کے لیے پلے لسٹ تقسیم کریں۔</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">اس ذریعے سے درآمد کرنے کو کچھ نیا نہیں۔</sys:String>
     <sys:String x:Key="ImportDownloading">پلے لسٹ ڈاؤن لوڈ ہو رہی ہے…</sys:String>
     <sys:String x:Key="ImportResult">درآمد شدہ چینلز: {0}۔</sys:String>
@@ -512,7 +515,7 @@
     <sys:String x:Key="DeleteDownloadedTip">ڈاؤن لوڈ شدہ فہرست سے آنے والی ہر نشریات ہٹا دیں اور صرف اپنے چینلز رکھیں</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">صرف اپنے چینلز رکھیں: اس سے ڈاؤن لوڈ شدہ فہرست سے آنے والی نشریات ہٹ جاتی ہیں۔ آپ کے شامل کردہ اور درآمد شدہ چینلز رہتے ہیں۔ ”انٹرنیٹ سے چینلز درآمد کریں“ انہیں دوبارہ ڈاؤن لوڈ کر لیتا ہے۔</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">ڈاؤن لوڈ شدہ نشریات حذف کریں</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">فہرست سے ڈاؤن لوڈ شدہ تمام نشریات ({0:N0}) حذف کریں؟ آپ کے شامل کردہ اور درآمد شدہ چینلز رہیں گے۔ اسے واپس نہیں لایا جا سکتا، مگر ”انٹرنیٹ سے چینلز درآمد کریں“ انہیں دوبارہ ڈاؤن لوڈ کر لیتا ہے۔</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">فہرست سے ڈاؤن لوڈ شدہ نشریات ({0:N0}) حذف کریں؟ آپ کے شامل کردہ اور درآمد شدہ چینلز رہیں گے۔ اسے واپس نہیں لایا جا سکتا، مگر ”انٹرنیٹ سے چینلز درآمد کریں“ انہیں دوبارہ ڈاؤن لوڈ کر لیتا ہے۔ پن کیے گئے چینل، مجموعوں کے چینل اور سننے کی تاریخ والے چینل بھی محفوظ رہتے ہیں۔</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">حذف کرنے کے لیے ڈاؤن لوڈ شدہ فہرست کی کوئی نشریات نہیں۔</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">حذف شدہ ڈاؤن لوڈ شدہ نشریات: {0:N0}۔</sys:String>
     <!-- SP-0029 language picker -->
@@ -624,12 +627,13 @@
     <sys:String x:Key="ImportCatalogNoChannels">کیٹلاگ آرکائیو میں کوئی درآمد کے قابل چینلز نہیں ملے۔ آپ کی فہرست تبدیل نہیں ہوئی۔</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">یہ ایک درست اسٹریم کیٹلاگ آرکائیو نہیں ہے۔ آپ کی فہرست تبدیل نہیں ہوئی۔</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">کیٹلاگ آرکائیو میں غلط CSV ڈیٹا یا غلط UTF-8 انکوڈنگ شامل ہے۔ آپ کی فہرست تبدیل نہیں ہوئی۔</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">کیٹلاگ آرکائیو یا اس کا CSV ڈیٹا زیادہ سے زیادہ اجازت شدہ سائز سے زیادہ ہے۔ آپ کی فہرست تبدیل نہیں ہوئی۔</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">کیٹلاگ آرکائیو یا اس کا CSV ڈیٹا زیادہ سے زیادہ اجازت شدہ سائز سے زیادہ ہے۔ آپ کی فہرست تبدیل نہیں ہوئی۔</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">درآمد شدہ کیٹلاگ محفوظ نہیں ہو سکا۔ آپ کی فہرست تبدیل نہیں ہوئی۔</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">درآمد شدہ کیٹلاگ حذف کریں</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">درآمد شدہ کیٹلاگ آرکائیو سے آنے والے تمام اسٹریمز کو ہٹا دیں</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">درآمد شدہ کیٹلاگ آرکائیوز سے آنے والے اسٹریمز کو ہٹا دیں۔ آپ کے شامل کردہ اور ڈاؤن لوڈ کردہ کیٹلاگ اسٹریمز باقی رہیں گے۔</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">درآمد شدہ کیٹلاگ حذف کریں</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">تمام درآمد شدہ کیٹلاگ اسٹریمز ({0:N0}) کو حذف کریں؟ آپ کے شامل کردہ اور ڈاؤن لوڈ کردہ اسٹریمز برقرار رہیں گے۔ اسے کالعدم نہیں کیا جا سکتا۔</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">درآمد شدہ کیٹلاگ اسٹریمز ({0:N0}) کو حذف کریں؟ آپ کے شامل کردہ اور ڈاؤن لوڈ کردہ اسٹریمز برقرار رہیں گے۔ اسے کالعدم نہیں کیا جا سکتا۔ پن کیے گئے چینل، مجموعوں کے چینل اور سننے کی تاریخ والے چینل بھی محفوظ رہتے ہیں۔</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">حذف کرنے کے لیے کوئی درآمد شدہ کیٹلاگ اسٹریمز نہیں ہیں۔</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">درآمد شدہ کیٹلاگ اسٹریمز حذف کر دیے گئے: {0:N0}۔</sys:String>
     <sys:String x:Key="TvScheduleTitle">ٹی وی شیڈول</sys:String>

@@ -425,6 +425,8 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="WebsiteTip">Abrir o site do STREAMS Player</sys:String>
     <sys:String x:Key="Privacy">Privacidade</sys:String>
     <sys:String x:Key="PrivacyTip">Abrir a política de privacidade do STREAMS Player</sys:String>
+    <sys:String x:Key="MediaExchange">Troca de mídia</sys:String>
+    <sys:String x:Key="MediaExchangeTip">Abrir o guia em inglês sobre a troca de mídia entre os seus dispositivos</sys:String>
     <sys:String x:Key="AuthorPage">Página do autor</sys:String>
     <sys:String x:Key="AuthorPageTip">Abrir o perfil SerZhyAle no GitHub</sys:String>
     <sys:String x:Key="SendLogs">Enviar os registros ao autor</sys:String>
@@ -445,15 +447,15 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="SettingsOpenLinkFailed">O Windows não conseguiu abrir este link.</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">Não foi possível abrir o link</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">Criar atalho na área de trabalho</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">O comando de inicialização foi copiado para a área de transferência.</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">O comando de inicialização do PowerShell foi copiado. Cole-o no PowerShell.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">O Windows não conseguiu copiar o comando de inicialização.</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">O endereço foi omitido. Este atalho ou comando só funciona enquanto o canal existir nesta biblioteca.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Copiar texto de compartilhamento</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">Copiar comando de inicialização</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">Copiar comando de inicialização do PowerShell</sys:String>
     <sys:String x:Key="ShareTextCopied">O texto de compartilhamento foi copiado para a área de transferência. Cole-o em uma mensagem; o destinatário adiciona o canal com «Colar canal».</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">O Windows não conseguiu copiar o texto de compartilhamento.</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">O endereço deste canal contém uma senha ou um token. O texto de compartilhamento o leva em texto claro, e quem receber sua mensagem vai vê-lo. Copiar mesmo assim?</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">Este endereço de canal contém uma senha ou token. O que você vai copiar a carregará em texto claro, e quem a receber a verá. Copiar mesmo assim?</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">Atalho criado na área de trabalho: {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">O Windows não conseguiu criar o atalho na área de trabalho.</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">Use --url &lt;endereço&gt; ou --id &lt;GUID do canal&gt;.</sys:String>
@@ -479,6 +481,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="ImportCountSkipped">Repetidos no arquivo</sys:String>
     <sys:String x:Key="ImportApply">Aplicar</sys:String>
     <sys:String x:Key="ImportPreviewSummary">Novos canais que serão adicionados como importados: {0}.</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">Esta lista excede o limite de {0:N0} novos canais. Apenas a primeira parte foi lida; as contagens se referem a ela. Divida a lista para importar o restante.</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">Não há nada novo para importar desta origem.</sys:String>
     <sys:String x:Key="ImportDownloading">Baixando a lista de reprodução…</sys:String>
     <sys:String x:Key="ImportResult">Canais importados: {0}.</sys:String>
@@ -512,7 +515,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="DeleteDownloadedTip">Remover todas as transmissões que vieram do catálogo baixado e manter apenas os seus canais</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">Manter apenas os seus canais: isto remove as transmissões que vieram do catálogo baixado. Seus canais adicionados e importados permanecem. Importar canais da internet baixa tudo de novo.</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">Excluir as transmissões baixadas</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">Excluir todas as transmissões baixadas do catálogo ({0:N0})? Seus canais adicionados e importados são mantidos. Não é possível desfazer, mas Importar canais da internet baixa tudo de novo.</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">Excluir as transmissões baixadas do catálogo ({0:N0})? Seus canais adicionados e importados são mantidos. Não é possível desfazer, mas Importar canais da internet baixa tudo de novo. Os canais fixados, os das coleções e os com histórico de reprodução também são mantidos.</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">Não há transmissões baixadas do catálogo para excluir.</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">Transmissões baixadas excluídas: {0:N0}.</sys:String>
     <!-- SP-0029 language picker -->
@@ -624,12 +627,13 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="ImportCatalogNoChannels">Nenhum canal importável foi encontrado no arquivo de catálogo. Sua lista não foi alterada.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">Este não é um arquivo de catálogo de transmissões válido. Sua lista não foi alterada.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">O arquivo de catálogo contém dados CSV inválidos ou codificação UTF-8 inválida. Sua lista não foi alterada.</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">O arquivo de catálogo ou seus dados CSV excedem o tamanho máximo permitido. Sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">O arquivo de catálogo ou seus dados CSV excedem o tamanho máximo permitido. Sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">O catálogo importado não pôde ser salvo. Sua lista não foi alterada.</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">Excluir catálogo importado</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">Remover todas as transmissões originadas de um arquivo de catálogo importado</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">Remova as transmissões provenientes de arquivos de catálogo importados. Suas transmissões adicionadas e baixadas permanecem.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">Excluir catálogo importado</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">Excluir todas as transmissões do catálogo importado ({0:N0})? Suas transmissões adicionadas e baixadas serão mantidas. Isso não pode ser desfeito.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Excluir as transmissões do catálogo importado ({0:N0})? Suas transmissões adicionadas e baixadas serão mantidas. Isso não pode ser desfeito. Os canais fixados, os das coleções e os com histórico de reprodução também são mantidos.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">Não há transmissões de catálogo importadas para excluir.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">Transmissões de catálogo importadas excluídas: {0:N0}.</sys:String>
     <sys:String x:Key="TvScheduleTitle">Programação de TV</sys:String>

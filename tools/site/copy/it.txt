@@ -273,6 +273,15 @@ Segnalare un problema con i registri
 
 @@use-5-text
 Apri Impostazioni dal pulsante a forma di ingranaggio nell’intestazione (o dalla voce «Impostazioni libreria» del menu [[glyph:nav.more]] Azioni) e premi «Invia i registri all’autore» nella pagina Informazioni. L’app raccoglie i registri diagnostici degli ultimi dieci avvii con un breve riepilogo della versione, di Windows e delle impostazioni nella cartella indicata in «Cartella dei fotogrammi» (pagina File delle Impostazioni) o, se quel campo è vuoto, in Download, quindi apre il programma di posta con il messaggio pronto. La conferma mostra il percorso completo e può aprire tale cartella su richiesta; alleghi l’archivio e premi Invia.
+@@use-6-title
+Scambia media tra i tuoi dispositivi
+
+@@use-6-text
+STREAMS Player è il lettore per Windows delle trasmissioni in diretta di uno smartphone o di un orologio con FastMediaSorter. Il portale dello scambio di media spiega i tre modi per collegare i tuoi dispositivi - la rete domestica, il server di scambio e la trasmissione in diretta -, quale programma fa cosa su smartphone, orologio, TV, visore VR e PC, e che cosa funziona già oggi.
+
+@@use-6-link
+Apri il portale dello scambio di media (in inglese)
+
 @@distribution-title
 Distribuzione
 

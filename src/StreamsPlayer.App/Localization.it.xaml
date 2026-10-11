@@ -425,6 +425,8 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="WebsiteTip">Apri il sito di STREAMS Player</sys:String>
     <sys:String x:Key="Privacy">Privacy</sys:String>
     <sys:String x:Key="PrivacyTip">Apri l'informativa sulla privacy di STREAMS Player</sys:String>
+    <sys:String x:Key="MediaExchange">Scambio di media</sys:String>
+    <sys:String x:Key="MediaExchangeTip">Apri la guida in inglese allo scambio di media tra i tuoi dispositivi</sys:String>
     <sys:String x:Key="AuthorPage">Pagina dell'autore</sys:String>
     <sys:String x:Key="AuthorPageTip">Apri SerZhyAle su GitHub</sys:String>
     <sys:String x:Key="SendLogs">Invia i registri all'autore</sys:String>
@@ -445,15 +447,15 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="SettingsOpenLinkFailed">Windows non ha potuto aprire questo collegamento.</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">Impossibile aprire il collegamento</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">Crea collegamento sul desktop</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">Il comando di avvio è stato copiato negli appunti.</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">Il comando di avvio PowerShell è stato copiato. Incollalo in PowerShell.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows non ha potuto copiare il comando di avvio.</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">L’indirizzo è stato omesso. Questo collegamento o comando funziona solo finché il canale è presente in questa raccolta.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Copia il testo di condivisione</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">Copia comando di avvio</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">Copia comando di avvio PowerShell</sys:String>
     <sys:String x:Key="ShareTextCopied">Il testo di condivisione è stato copiato negli appunti. Incollalo in un messaggio; il destinatario aggiunge il canale con «Incolla canale».</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows non ha potuto copiare il testo di condivisione.</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">L'indirizzo di questo canale contiene una password o un token. Il testo di condivisione lo riporta in chiaro e lo vedrà chiunque riceva il tuo messaggio. Copiare comunque?</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">Questo indirizzo di canale contiene una password o un token. Ciò che stai per copiare lo riporta in chiaro, e chiunque lo riceva lo vedrà. Copiare comunque?</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">Collegamento sul desktop creato: {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">Windows non ha potuto creare il collegamento sul desktop.</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">Usa --url &lt;indirizzo&gt; oppure --id &lt;GUID del canale&gt;.</sys:String>
@@ -479,6 +481,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="ImportCountSkipped">Ripetuti nel file</sys:String>
     <sys:String x:Key="ImportApply">Applica</sys:String>
     <sys:String x:Key="ImportPreviewSummary">Nuovi canali che saranno aggiunti come importati: {0}.</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">Questa playlist supera il limite di {0:N0} nuovi canali. È stata letta solo la prima parte; i conteggi si riferiscono a quella parte. Dividi la playlist per importare il resto.</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">Da questa fonte non c'è nulla di nuovo da importare.</sys:String>
     <sys:String x:Key="ImportDownloading">Download della playlist…</sys:String>
     <sys:String x:Key="ImportResult">Canali importati: {0}.</sys:String>
@@ -512,7 +515,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="DeleteDownloadedTip">Rimuovi tutti i flussi provenienti dal catalogo scaricato e mantieni solo i tuoi canali</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">Mantieni solo i tuoi canali: questa azione rimuove i flussi provenienti dal catalogo scaricato. I canali aggiunti e importati restano. «Importa canali da internet» li scarica di nuovo.</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">Elimina i flussi scaricati</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">Eliminare tutti i flussi scaricati dal catalogo ({0:N0})? I canali aggiunti e importati restano. L'operazione non può essere annullata, ma «Importa canali da internet» li scarica di nuovo.</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">Eliminare i flussi scaricati dal catalogo ({0:N0})? I canali aggiunti e importati restano. L'operazione non può essere annullata, ma «Importa canali da internet» li scarica di nuovo. Vengono mantenuti anche i canali fissati, quelli nelle raccolte e quelli con cronologia di ascolto.</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">Non ci sono flussi scaricati dal catalogo da eliminare.</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">Flussi scaricati eliminati: {0:N0}.</sys:String>
     <!-- SP-0029 language picker -->
@@ -624,12 +627,13 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="ImportCatalogNoChannels">Nessun canale importabile trovato nell'archivio del catalogo. L'elenco non è stato modificato.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">Questo non è un archivio di catalogo streaming valido. L'elenco non è stato modificato.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">L'archivio del catalogo contiene dati CSV non validi o codifica UTF-8 non valida. L'elenco non è stato modificato.</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">L'archivio del catalogo o i relativi dati CSV superano la dimensione massima consentita. L'elenco non è stato modificato.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">L'archivio del catalogo o i relativi dati CSV superano la dimensione massima consentita. L'elenco non è stato modificato.</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">Il catalogo importato non è stato salvato. L'elenco non è stato modificato.</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">Elimina catalogo importato</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">Rimuovi tutti gli stream provenienti da un archivio di catalogo importato</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">Rimuovi gli stream provenienti da archivi di catalogo importati. Gli stream aggiunti e scaricati rimarranno.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">Elimina catalogo importato</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">Eliminare tutti gli stream del catalogo importati ({0:N0})? Gli stream aggiunti e scaricati vengono mantenuti. Questa operazione non può essere annullata.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">Eliminare gli stream del catalogo importati ({0:N0})? Gli stream aggiunti e scaricati vengono mantenuti. Questa operazione non può essere annullata. Vengono mantenuti anche i canali fissati, quelli nelle raccolte e quelli con cronologia di ascolto.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">Non ci sono stream del catalogo importati da eliminare.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">Stream del catalogo importati eliminati: {0:N0}.</sys:String>
     <sys:String x:Key="TvScheduleTitle">Palinsesto TV</sys:String>

@@ -15,6 +15,21 @@
       release-notes-test   tools/site/Test-ReleaseNotes.ps1 - the release-notes reader and the What's new renderer's own
                            fixture tests, and the repository's notes folder read through them (SP-0039)
       msix-gate     msix/Test-AssertMsixPackage.ps1 - the Store package read-back refuses what it must (SP-0190)
+      existing-release-test scripts/Test-ExistingReleaseState.ps1 - complete publications skip rebuilding;
+                            incomplete or invalid asset sets fail closed without replacement (SP-0184)
+      audit-verdict-test tools/audit/Test-AuditVerdictGate.ps1 - the audit-verdict writer and gate's own
+                            fixture tests; the gate that blocks a release must not be able to regress
+                            unobserved (SP-0212 L1)
+      audit-tools-test  tools/audit/Test-AuditTools.ps1 - the slicer, fan-out and summary tools' own
+                            fixture tests, on the same terms (SP-0212 L1)
+      snapshot-check    tools/build-catalog-snapshot.ps1 -Check -Offline - the tracked snapshot within its
+                            size ceiling, streams.csv first and non-empty, a usable sourceDate; the
+                            structural part only, so the gate stays offline (SP-0212 L2)
+      smoke-verdict-test scripts/Test-SmokeVerdictGate.ps1 - the smoke-verdict writer and gate's own
+                            fixture tests (SP-0212 L4, L5)
+      snapshot-tool-test tools/Test-CatalogSnapshot.ps1 - the snapshot builder's own fixture tests; a
+                            snapshot that fails validation never replaces the file it was aimed at
+                            (SP-0212 L7)
       demo-check    tools/site/make-demo.ps1 -Check - the demo MP4, GIF and poster are all there, silent, short and within
                     their byte caps, read without ffmpeg (SP-0039); skipped, and not counted, while docs/assets/demo
                     holds no demo file, because nothing has been recorded yet
@@ -58,6 +73,20 @@ try {
     $results['release-notes-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'msix/Test-AssertMsixPackage.ps1')
     $results['msix-gate'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'scripts/Test-ExistingReleaseState.ps1')
+    $results['existing-release-test'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'tools/audit/Test-AuditVerdictGate.ps1')
+    $results['audit-verdict-test'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'tools/audit/Test-AuditTools.ps1')
+    $results['audit-tools-test'] = $LASTEXITCODE
+    # -Offline on purpose: the freshness comparison needs the network, and this gate stays offline and
+    # deterministic so CI can run it. The release checklist runs the full -Check with the comparison.
+    pwsh -NoProfile -File (Join-Path $root 'tools/build-catalog-snapshot.ps1') -Check -Offline
+    $results['snapshot-check'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'scripts/Test-SmokeVerdictGate.ps1')
+    $results['smoke-verdict-test'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'tools/Test-CatalogSnapshot.ps1')
+    $results['snapshot-tool-test'] = $LASTEXITCODE
     # Run once the files exist (SP-0039 6.4). A folder holding only some of the three is a defect and is judged, so the
     # gate keys on "any demo file", not on all of them; the check itself answers 3 for a file of the set that is absent.
     $demoDir = Join-Path $root 'docs/assets/demo'

@@ -105,9 +105,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; carrying the same payload as the archive it is published beside. Everything the user owns lives in
 ; %LOCALAPPDATA%\StreamsPlayer (see the [UninstallDelete] note below), so nothing user-made is here to
 ; lose. The wipe runs after the AppMutex checks above, so a running copy is asked about and never
-; deleted out from under. SP-0183 D6: only when {app} contains a previous StreamsPlayer.exe. SP-0184 (R3-1): or an
-; unins000.exe that this product's own uninstall record claims - every Inno product writes that file name, so
-; its presence alone says nothing about whose folder it is.
+; deleted out from under. SP-0183 D6 / SP-0184 (R3-1) / SP-0212 (L6): only over a folder this product's own
+; uninstall record names. A previous StreamsPlayer.exe is not proof - the portable archive unzips the same
+; executable anywhere, including a shared folder picked in the wizard, and a wipe over such a folder deletes
+; files that were never ours.
 [InstallDelete]
 Type: filesandordirs; Name: "{app}"; Check: HoldsPreviousInstallation
 
@@ -161,17 +162,12 @@ begin
   end;
 end;
 
-// SP-0183 D6: guard the [InstallDelete] wipe so it runs only when the app folder holds a previous installation.
-// A line comment on purpose: a brace comment ends at the first closing brace, and the folder constant has one.
-function FileExistsInApp(FileName: String): Boolean;
-begin
-  Result := FileExists(ExpandConstant('{app}\' + FileName));
-end;
-
-// SP-0184 (R3-1): the wipe may run only over a folder this product installed. StreamsPlayer.exe says so by itself.
-// unins000.exe does not: it is the uninstaller name of every Inno Setup product, so a folder holding another
-// program would pass. It counts only when this AppId's uninstall record (the key Inno derives from AppId, with the
-// "_is1" suffix) names this very folder as its install location, per-user or machine-wide.
+// SP-0184 (R3-1) / SP-0212 (L6): the wipe may run only over a folder this product's own uninstall record names.
+// Neither StreamsPlayer.exe nor unins000.exe says so by itself - the portable archive unzips the first anywhere,
+// and the second is the uninstaller name of every Inno Setup product - so the record this AppId's install wrote
+// (the key Inno derives from AppId, with the "_is1" suffix) must name this very folder as its install location,
+// per-user or machine-wide. A missing record keeps the stale files of a folder that only looks installed; that
+// is the safe direction.
 function UninstallRecordNamesThisFolder(RootKey: Integer): Boolean;
 var
   Location: String;
@@ -183,7 +179,5 @@ end;
 
 function HoldsPreviousInstallation(): Boolean;
 begin
-  Result := FileExistsInApp('StreamsPlayer.exe');
-  if (not Result) and FileExistsInApp('unins000.exe') then
-    Result := UninstallRecordNamesThisFolder(HKCU) or UninstallRecordNamesThisFolder(HKLM);
+  Result := UninstallRecordNamesThisFolder(HKCU) or UninstallRecordNamesThisFolder(HKLM);
 end;

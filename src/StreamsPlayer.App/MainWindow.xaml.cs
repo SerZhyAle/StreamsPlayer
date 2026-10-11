@@ -76,6 +76,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private bool _audioTerminalFailureRecorded;
     private ChannelRow? _selectedRow;
     private bool _busy;
+    // SP-0212 (L13): a directory frame that arrived while a user operation owned the window; applied when
+    // the operation releases it, against the latest snapshot. See MainWindow.Exchange.cs and SetBusy.
+    private bool _exchangeDirectoryPending;
     private bool _toolsActionActive;
     // SP-0059: whether this launch found no state file at all. Read once, before the load.
     private bool _cleanInstall;
@@ -95,9 +98,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // MainWindow_Closing, before the player windows are closed - the last player's Closed callback is a
     // preview entry point too, and with the latch still clear it restarted capture during shutdown.
     private bool _shuttingDown;
-    // SP-0120: the engine releases of the players closed by quitting; the close work waits for them (bounded).
+    // SP-0120: the engine releases of the players that quit closed - and, since SP-0212 (L11), of any the
+    // user closed moments before quitting while its native teardown was still in flight; the close work
+    // waits for them (bounded).
     private readonly List<Task> _closedPlayerEngines = [];
-    // SP-0164: the recording finishes of the players closed by quitting, each already bound to its engine
+    // SP-0164: the recording finishes of the players that quit closed, each already bound to its engine
     // release; the close work waits for them too, so the move into the recordings folder is given its chance.
     private readonly List<Task> _closedRecordingFinishes = [];
     // SP-0067: collapses a burst of events into one save. The interval is also the value the scroll-only
@@ -1582,6 +1587,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             _openPlayerWindows = Math.Max(0, _openPlayerWindows - 1);
             _playerWindows.Remove(window);
+            // SP-0212 (L11): the user may close this window moments before quitting. Quit waits on the
+            // same list CloseOpenPlayerWindows fills, so a native teardown the user started is also
+            // awaited before the process exits.
+            _closedPlayerEngines.Add(window.EngineReleased);
+            if (window.CloseRecordingFinish is { } finish)
+            {
+                _closedRecordingFinishes.Add(finish);
+            }
             await NoteStreamStoppedAsync(channel.Id);
 
             // Closing the player leaves activation with whatever application sits next in the z-order
@@ -1716,6 +1729,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Mouse.OverrideCursor = busy && !cancellable ? Cursors.Wait : null;
         CancelOperationButton.Visibility = busy && cancellable ? Visibility.Visible : Visibility.Collapsed;
         CancelOperationButton.IsEnabled = busy && cancellable;
+        if (!busy && _exchangeDirectoryPending)
+        {
+            // SP-0212 (L13): a directory frame that arrived while an operation owned the window is applied
+            // here, against the latest snapshot - a directory at rest never sends another frame.
+            _exchangeDirectoryPending = false;
+            ApplyExchangeDirectory();
+        }
     }
 
 }

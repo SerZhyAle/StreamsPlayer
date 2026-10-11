@@ -129,8 +129,13 @@ public partial class MainWindow
             ? index
             : -1;
 
-    // An entry stops being available when its row has since been deleted from the catalog.
-    private bool IsAudioNavEntryAvailable(int index) => ChannelById(_audioNavOrder[index]) is not null;
+    // An entry stops being available when its row has since been deleted from the catalog, or when the
+    // user hid it or the bank retired it (SP-0212 L16): a media key must not play what no view would
+    // show. A pinned row the bank retired stays available, exactly as the offer rules treat it.
+    private bool IsAudioNavEntryAvailable(int index) =>
+        ChannelById(_audioNavOrder[index]) is { } channel &&
+        !IsHiddenBySet(BuildHiddenIdentitySet(), channel) &&
+        (channel.RetiredAt is null || channel.Pinned);
 
     private void PublishAudioSession(bool playing)
     {

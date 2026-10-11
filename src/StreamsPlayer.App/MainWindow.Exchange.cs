@@ -81,9 +81,11 @@ public partial class MainWindow
         {
             if (_busy)
             {
-                // A user operation owns the window; the next frame, or the full list a reconnect sends,
-                // applies what this one carried. Never queued: a queued mutation would land on a state
-                // the operation that owns the window may have already replaced.
+                // A user operation owns the window, so this frame's mutation is not run against a state
+                // the operation may replace. SP-0212 (L13): it is not dropped either - a directory at
+                // rest may never send another frame - so it is remembered and applied when the operation
+                // releases the window, against the latest snapshot, exactly as a fresh frame would.
+                _exchangeDirectoryPending = true;
                 return;
             }
 

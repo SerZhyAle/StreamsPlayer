@@ -172,6 +172,17 @@ function Get-DocsUrl {
     return "https://github.com/SerZhyAle/StreamsPlayer/blob/main/$name"
 }
 
+function Get-ExchangePortalUrl {
+    param([Parameter(Mandatory)] [string] $Code)
+
+    # The media exchange portal is a page set hosted by FastMediaSorter Android and linked by several products
+    # (shared pages proposal 2026-10-10). It has an English, a Russian and a Ukrainian edition; every other
+    # language reads English, as Get-DocsUrl does. ProductInfo.ExchangePortalUrl is the application's twin.
+    $base = 'https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/'
+    $leaf = switch ($Code) { 'ru' { 'index-ru.html' } 'uk' { 'index-uk.html' } default { '' } }
+    return "$base$leaf"
+}
+
 function Get-RelativeUrl {
     param(
         [Parameter(Mandatory)] [AllowEmptyString()] [string] $FromCode,
@@ -368,6 +379,7 @@ foreach ($language in $languages) {
             '{{page.releaseNotes}}'   = if ($page.Name -eq 'whatsnew') { $releaseNotesHtml[$code] } else { '' }
             '{{page.languageNote}}'   = $languageNote
             '{{page.docs}}'           = Get-DocsUrl -Code $code
+            '{{page.exchange}}'       = Get-ExchangePortalUrl -Code $code
             '{{page.canonical}}'      = $canonical
             '{{page.alternates}}'     = $alternates -join "`n"
             '{{page.languageUrls}}'   = ($languageUrls | ConvertTo-Json -Compress)

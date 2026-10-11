@@ -20,6 +20,29 @@ public sealed class M3uPlaylistParserTests
         Assert.Equal("radio.test", entries[1].Title);
     }
 
+    // SP-0212 (L27): the file ceiling bounds the whole body, not one field of it - an address that
+    // spends it on a single line is refused as invalid, exactly like an unlaunchable one.
+    [Fact]
+    public void Parse_AnAddressOverTheFieldCapIsRefusedAsInvalid()
+    {
+        var longAddress = "https://example.test/" + new string('a', M3uPlaylistParser.MaximumFieldLength);
+        var preview = M3uPlaylistParser.Analyze($"#EXTM3U\n{longAddress}\nhttps://example.test/live\n", Existing());
+
+        Assert.Equal(1, preview.NewCount);
+        Assert.Equal(1, preview.InvalidCount);
+        Assert.Equal("https://example.test/live", preview.NewEntries[0].Url);
+    }
+
+    [Fact]
+    public void Parse_ATitleOverTheFieldCapIsDroppedForTheHostsName()
+    {
+        var longTitle = new string('T', M3uPlaylistParser.MaximumFieldLength + 1);
+        var preview = M3uPlaylistParser.Analyze($"#EXTM3U\n#EXTINF:-1,{longTitle}\nhttps://example.test/live\n", Existing());
+
+        var entry = Assert.Single(preview.NewEntries);
+        Assert.Equal("example.test", entry.Title);
+    }
+
     [Fact]
     public void Parse_HlsManifestImportsNoChannels()
     {

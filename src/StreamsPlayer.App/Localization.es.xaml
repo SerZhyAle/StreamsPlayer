@@ -425,6 +425,8 @@
     <sys:String x:Key="WebsiteTip">Abrir el sitio web de STREAMS Player</sys:String>
     <sys:String x:Key="Privacy">Privacidad</sys:String>
     <sys:String x:Key="PrivacyTip">Abrir la política de privacidad de STREAMS Player</sys:String>
+    <sys:String x:Key="MediaExchange">Intercambio de medios</sys:String>
+    <sys:String x:Key="MediaExchangeTip">Abrir la guía en inglés para intercambiar medios entre tus dispositivos</sys:String>
     <sys:String x:Key="AuthorPage">Página del autor</sys:String>
     <sys:String x:Key="AuthorPageTip">Abrir SerZhyAle en GitHub</sys:String>
     <sys:String x:Key="SendLogs">Enviar los registros al autor</sys:String>
@@ -445,15 +447,15 @@
     <sys:String x:Key="SettingsOpenLinkFailed">Windows no ha podido abrir este enlace.</sys:String>
     <sys:String x:Key="SettingsOpenLinkFailedTitle">No se ha podido abrir el enlace</sys:String>
     <sys:String x:Key="CreateDesktopShortcut">Crear acceso directo en el escritorio</sys:String>
-    <sys:String x:Key="LaunchCommandCopied">El comando de inicio se ha copiado al portapapeles.</sys:String>
+    <sys:String x:Key="LaunchCommandCopied">Se ha copiado el comando de inicio de PowerShell. Pégalo en PowerShell.</sys:String>
     <sys:String x:Key="LaunchCommandCopyFailed">Windows no ha podido copiar el comando de inicio.</sys:String>
     <sys:String x:Key="LaunchIdOnlyNotice">Se omitió la dirección. Este acceso directo o comando solo funciona mientras el canal exista en esta biblioteca.</sys:String>
     <!-- SP-0058 share a channel as text -->
     <sys:String x:Key="MenuCopyShareText">Copiar texto para compartir</sys:String>
-    <sys:String x:Key="MenuCopyLaunchCommand">Copiar comando de inicio</sys:String>
+    <sys:String x:Key="MenuCopyLaunchCommand">Copiar comando de inicio de PowerShell</sys:String>
     <sys:String x:Key="ShareTextCopied">El texto para compartir se ha copiado al portapapeles. Péguelo en un mensaje; el destinatario añade el canal con «Pegar canal».</sys:String>
     <sys:String x:Key="ShareTextCopyFailed">Windows no ha podido copiar el texto para compartir.</sys:String>
-    <sys:String x:Key="ShareCredentialWarning">La dirección de este canal contiene una contraseña o un token. El texto para compartir lo lleva en claro y lo verá cualquiera que reciba su mensaje. ¿Copiar de todos modos?</sys:String>
+    <sys:String x:Key="ShareCredentialWarning">Esta dirección de canal contiene una contraseña o token. Lo que va a copiar la llevará en texto claro, y quien la reciba la verá. ¿Copiar de todos modos?</sys:String>
     <sys:String x:Key="DesktopShortcutCreated">Acceso directo creado en el escritorio: {0}</sys:String>
     <sys:String x:Key="DesktopShortcutFailed">Windows no ha podido crear el acceso directo en el escritorio.</sys:String>
     <sys:String x:Key="LaunchArgumentsInvalid">Usa --url &lt;dirección&gt; o --id &lt;GUID del canal&gt;.</sys:String>
@@ -479,6 +481,7 @@
     <sys:String x:Key="ImportCountSkipped">Repetidas en el archivo</sys:String>
     <sys:String x:Key="ImportApply">Aplicar</sys:String>
     <sys:String x:Key="ImportPreviewSummary">Canales nuevos que se añadirán como importados: {0}.</sys:String>
+    <sys:String x:Key="ImportPreviewTruncated">Esta lista supera el límite de {0:N0} canales nuevos. Solo se ha leído la primera parte; los recuentos corresponden a ella. Divide la lista para importar el resto.</sys:String>
     <sys:String x:Key="ImportPreviewNothingNew">No hay nada nuevo que importar de esta fuente.</sys:String>
     <sys:String x:Key="ImportDownloading">Descargando la lista…</sys:String>
     <sys:String x:Key="ImportResult">Canales importados: {0}.</sys:String>
@@ -512,7 +515,7 @@
     <sys:String x:Key="DeleteDownloadedTip">Eliminar todas las transmisiones que vienen del catálogo descargado y conservar solo tus canales</sys:String>
     <sys:String x:Key="DeleteDownloadedHint">Conservar solo tus canales: se eliminan las transmisiones que vienen del catálogo descargado. Tus canales añadidos e importados se mantienen. «Importar canales de internet» los descarga de nuevo.</sys:String>
     <sys:String x:Key="DeleteDownloadedTitle">Eliminar transmisiones descargadas</sys:String>
-    <sys:String x:Key="DeleteDownloadedConfirm">¿Eliminar todas las transmisiones descargadas del catálogo ({0:N0})? Tus canales añadidos e importados se conservan. No se puede deshacer, pero «Importar canales de internet» los descarga de nuevo.</sys:String>
+    <sys:String x:Key="DeleteDownloadedConfirm">¿Eliminar las transmisiones descargadas del catálogo ({0:N0})? Tus canales añadidos e importados se conservan. No se puede deshacer, pero «Importar canales de internet» los descarga de nuevo. También se conservan los canales fijados, los de las colecciones y los que tienen historial de escucha.</sys:String>
     <sys:String x:Key="DeleteDownloadedNone">No hay transmisiones descargadas del catálogo que eliminar.</sys:String>
     <sys:String x:Key="DeleteDownloadedResult">Transmisiones descargadas eliminadas: {0:N0}.</sys:String>
     <!-- SP-0029 language picker -->
@@ -624,12 +627,13 @@
     <sys:String x:Key="ImportCatalogNoChannels">No se encontraron canales importables en el archivo del catálogo. Su lista no ha cambiado.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidArchive">Este no es un archivo de catálogo de emisiones válido. Su lista no ha cambiado.</sys:String>
     <sys:String x:Key="ImportCatalogInvalidCsv">El archivo del catálogo contiene datos CSV no válidos o una codificación UTF-8 no válida. Su lista no ha cambiado.</sys:String>
-    <sys:String x:Key="ImportCatalogExceededLimit">El archivo del catálogo o sus datos CSV superan el tamaño máximo permitido. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="ImportCatalogExceededLimit">El archivo del catálogo o sus datos CSV superan el tamaño máximo permitido. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="ImportCatalogSaveFailed">No se pudo guardar el catálogo importado. Su lista no ha cambiado.</sys:String>
     <sys:String x:Key="DeleteImportedCatalog">Eliminar catálogo importado</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTip">Eliminar todas las emisiones que provienen de un archivo de catálogo importado</sys:String>
     <sys:String x:Key="DeleteImportedCatalogHint">Elimine las emisiones que provienen de archivos de catálogo importados. Sus emisiones añadidas y descargadas se mantendrán.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogTitle">Eliminar catálogo importado</sys:String>
-    <sys:String x:Key="DeleteImportedCatalogConfirm">¿Eliminar todas las emisiones del catálogo importado ({0:N0})? Se conservarán las emisiones añadidas y descargadas. Esto no se puede deshacer.</sys:String>
+    <sys:String x:Key="DeleteImportedCatalogConfirm">¿Eliminar las emisiones del catálogo importado ({0:N0})? Se conservarán las emisiones añadidas y descargadas. Esto no se puede deshacer. También se conservan los canales fijados, los de las colecciones y los que tienen historial de escucha.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogNone">No hay emisiones del catálogo importado para eliminar.</sys:String>
     <sys:String x:Key="DeleteImportedCatalogResult">Emisiones del catálogo importado eliminadas: {0:N0}.</sys:String>
     <sys:String x:Key="TvScheduleTitle">Programación de TV</sys:String>

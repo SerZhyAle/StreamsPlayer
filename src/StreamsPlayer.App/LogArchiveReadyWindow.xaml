@@ -12,10 +12,10 @@
                  AutomationProperties.Name="{DynamicResource LogArchiveReady}" />
         <TextBlock Text="{DynamicResource SendLogsAttachHint}" Foreground="{DynamicResource MutedBrush}"
                    TextWrapping="Wrap" Margin="0,8,0,0" />
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
-            <Button x:Name="OpenFolderButton" Content="{DynamicResource LogArchiveOpenFolder}"
-                    Click="OpenFolder_Click" Padding="14,6" Margin="0,0,8,0" />
-            <Button Content="{DynamicResource Close}" IsCancel="True" IsDefault="True" Padding="14,6" />
-        </StackPanel>
+        <WrapPanel HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button x:Name="OpenFolderButton" Style="{StaticResource OpenFolderGlyphButton}" Content="{DynamicResource LogArchiveOpenFolder}"
+                    Click="OpenFolder_Click" Padding="14,6" Margin="4,3" />
+            <Button Style="{StaticResource CloseAnswerGlyphButton}" Content="{DynamicResource Close}" IsCancel="True" IsDefault="True" Margin="4,3" />
+        </WrapPanel>
     </StackPanel>
 </Window>

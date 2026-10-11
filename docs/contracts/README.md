@@ -21,7 +21,7 @@ amendment is written in the store, not here.
 | [DIAGNOSTIC-REPORT.md](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | Diagnostic Bundle, Environment Summary & Redaction | **Owner**, P/C |
 | [STREAM-BANK.md](STREAM-BANK.md) | `STREAM-BANK` | Published Stream Catalog ZIP & Artwork Atlas | Consumer |
 | [LIVE-BROADCAST.md](LIVE-BROADCAST.md) | `LIVE-BROADCAST` | Live Stream Descriptor & Direct Response Playback | Consumer (read at 0.18 on 2026-10-07, SP-0206; the additions are `[PROPOSED]` and owed by SP-0201, SP-0203 to SP-0205; item I for RTSP is implemented but unmeasured, SP-0208) |
-| [DEVICE-EXCHANGE.md](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | Device Exchange: a user's devices finding broadcasts through a server account or Google Drive | Consumer, receiver only (read 2026-10-07 at 0.17; not implemented, SP-0200 to SP-0205) |
+| [DEVICE-EXCHANGE.md](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | Device Exchange: a user's devices finding broadcasts through a server account or Google Drive | Consumer and (planned) broadcaster, no resources (read at 0.17; SP-0200 to SP-0205 implemented, Drive SP-0202 gated; **open proposal 2026-10-10** - connection string, one server joined and left, broadcasting from this PC, SP-0213 to SP-0217, waits on the owner's fold) |
 | [WAVE-PARTICLES.md](WAVE-PARTICLES.md) | `WAVE-PARTICLES` | "Particles and Lines" Animated Backdrop Simulation | Consumer |
 | [MEDIA-CLASSIFICATION.md](MEDIA-CLASSIFICATION.md) | `MEDIA-CLASSIFICATION` | Media Kind Resolution and Stream Classification | Consumer |
 | [UPDATE-MANIFEST.md](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | Non-Store App Update Feed & Integrity Check | Declared, not bound - no update client exists (SP-0206) |

@@ -16,7 +16,12 @@ namespace StreamsPlayer.App;
 /// </summary>
 public partial class SettingsWindow
 {
-    private void SettingsWindow_Loaded(object sender, RoutedEventArgs e) => RestoreViewportSoon();
+    private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        Loaded -= SettingsWindow_Loaded;
+        RestoreViewportSoon();
+        HandlerBoundary.Run(nameof(SettingsWindow_Loaded), LoadAudioDevicesAsync);
+    }
 
     private void Group_ExpandedChanged(object sender, RoutedEventArgs e)
     {

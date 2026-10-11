@@ -117,33 +117,11 @@ jobs:
           }
       # SP-0156: the mandatory pre-flight (SP-0093). The smoke gate runs on the owner's machine; its PASS
       # travels as a committed verdict naming the version, and the tagged tree must carry it.
+      # SP-0212 (L4): the verdict's checks live in scripts/Assert-SmokeVerdict.ps1, which the Store
+      # package build runs too - a workflow cannot be unit-tested, but the gate it calls can.
       - name: Require the playback smoke verdict for this version
         run: |
-          $verdictPath = Join-Path 'release-verdicts' "$env:RELEASE_VERSION.json"
-          if (-not (Test-Path -LiteralPath $verdictPath)) {
-            throw "No smoke verdict for $env:RELEASE_VERSION at $verdictPath in the tagged tree. Run scripts/smoke-playback.ps1 on a clean committed tree, commit release-verdicts/$env:RELEASE_VERSION.json, and put the tag on that commit."
-          }
-          $verdict = Get-Content -LiteralPath $verdictPath -Raw | ConvertFrom-Json
-          if ($verdict.gate -ne 'smoke-playback') { throw "Verdict $verdictPath names gate '$($verdict.gate)', not smoke-playback." }
-          if ($verdict.result -ne 'PASS') { throw "Verdict $verdictPath records result '$($verdict.result)', not PASS." }
-          # SP-0184 (A2-4): a PASS that skipped video or recording is a developer-machine run, not a release's.
-          $skippedChecks = @($verdict.skipped | Where-Object { $_ })
-          if ($skippedChecks.Count -gt 0) { throw "Verdict $verdictPath skipped $($skippedChecks -join ', '); run scripts/smoke-playback.ps1 without -SkipVideo or -SkipRecording." }
-          if ($verdict.version -ne $env:RELEASE_VERSION) { throw "Verdict $verdictPath names version '$($verdict.version)', not the tagged version $env:RELEASE_VERSION." }
-          # SP-0183 D2: the verdict binds the code it judged. Its commit must be a full id that is HEAD or an
-          # ancestor of it, and nothing outside release-verdicts/ may have changed since - otherwise a PASS recorded
-          # for other code (same version stamp, older tree) would unlock this build.
-          $smokeCommit = [string]$verdict.commit
-          if ($smokeCommit -notmatch '^[0-9a-f]{40}$') { throw "Verdict $verdictPath names commit '$smokeCommit', which is not a full commit id." }
-          git merge-base --is-ancestor $smokeCommit HEAD
-          if ($LASTEXITCODE -ne 0) { throw "The smoke verdict's commit $smokeCommit is not the tagged commit or an ancestor of it." }
-          $changedSinceSmoke = @(git diff --no-renames --name-only $smokeCommit HEAD)
-          if ($LASTEXITCODE -ne 0) { throw "git diff $smokeCommit HEAD failed (exit $LASTEXITCODE)." }
-          $materialSinceSmoke = @($changedSinceSmoke | Where-Object { $_ -notlike 'release-verdicts/*' })
-          if ($materialSinceSmoke.Count -gt 0) {
-            throw "$($materialSinceSmoke.Count) file(s) changed after the smoke-tested commit $smokeCommit outside release-verdicts/ (first: $(($materialSinceSmoke | Select-Object -First 5) -join ', ')). The smoke judged different code; run scripts/smoke-playback.ps1 again."
-          }
-          Write-Host "Smoke verdict for $env:RELEASE_VERSION (commit $smokeCommit): PASS, $($verdict.when)."
+          ./scripts/Assert-SmokeVerdict.ps1 -Version $env:RELEASE_VERSION
       # SP-0180: the release is also the audited release. The audit's outcome travels as a committed verdict
       # (PLAN/ is not tracked); the gate checks it names this version, covers every in-scope file, leaves no
       # High/Medium finding unresolved, and that no code changed after the audited commit.
@@ -153,23 +131,35 @@ jobs:
       - name: Verify version exceeds every published version
         run: |
           ./scripts/assert-release-version.ps1 -Version $env:RELEASE_VERSION
+      - name: Inspect assets already published for this tag
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pwsh -NoProfile -File ./scripts/Get-ExistingReleaseState.ps1 -Version $env:RELEASE_VERSION -Tag $env:RELEASE_TAG -Repository $env:GITHUB_REPOSITORY
+          if ($LASTEXITCODE -ne 0) { throw 'Existing release inspection failed.' }
       - uses: actions/setup-dotnet@v6
+        if: steps.existing.outputs.complete != 'true'
         with:
           dotnet-version: 10.0.x
       - name: Restore
+        if: steps.existing.outputs.complete != 'true'
         run: |
           dotnet restore StreamsPlayer.sln
           if ($LASTEXITCODE -ne 0) { throw "Restore failed (exit $LASTEXITCODE)." }
       - name: Build
+        if: steps.existing.outputs.complete != 'true'
         run: |
           $v = $env:RELEASE_VERSION
           dotnet build StreamsPlayer.sln -c Release --no-restore "-p:Version=$v" "-p:AssemblyVersion=$v" "-p:FileVersion=$v" "-p:InformationalVersion=$v"
           if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
       - name: Test
+        if: steps.existing.outputs.complete != 'true'
         run: |
           dotnet test StreamsPlayer.sln -c Release --no-build
           if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
       - name: Publish portable package
+        if: steps.existing.outputs.complete != 'true'
         run: |
           $v = $env:RELEASE_VERSION
           dotnet publish src/StreamsPlayer.App/StreamsPlayer.App.csproj -c Release -r win-x64 --self-contained true "-p:Version=$v" "-p:AssemblyVersion=$v" "-p:FileVersion=$v" "-p:InformationalVersion=$v" -o stage/StreamsPlayer
@@ -180,17 +170,28 @@ jobs:
           Compress-Archive -Path stage/StreamsPlayer/* -DestinationPath "dist/$name" -Force
           $hash = (Get-FileHash "dist/$name" -Algorithm SHA256).Hash
           "$hash  $name" | Out-File "dist/$name.sha256" -Encoding ascii
+      # SP-0212 (L2): the structural catalog-snapshot checks (size ceiling, entry order, non-empty)
+      # ran only through the printed checklist before; this runner now refuses a broken artifact itself.
+      # -Offline: the freshness comparison needs the network and stays with the owner's own -Check.
+      - name: Check the bundled catalog snapshot
+        if: steps.existing.outputs.complete != 'true'
+        run: |
+          ./tools/build-catalog-snapshot.ps1 -Check -Offline
+          if ($LASTEXITCODE -ne 0) { throw 'The bundled catalog snapshot failed its structural check.' }
       # SP-0156 (T-10): the shipping workflow applies the same payload check as the local build - the native
       # media tree present and byte-identical to the pinned package. One check here covers the archive and
       # the installer below, which package this same stage.
       - name: Assert the pinned natives in the payload
+        if: steps.existing.outputs.complete != 'true'
         run: |
           ./scripts/Assert-PinnedNatives.ps1 -Folder stage/StreamsPlayer -ProjectPath src/StreamsPlayer.App/StreamsPlayer.App.csproj
       - name: Install Inno Setup
+        if: steps.existing.outputs.complete != 'true'
         run: |
           choco install innosetup --no-progress -y
           if ($LASTEXITCODE -ne 0) { throw "Inno Setup install failed (exit $LASTEXITCODE)." }
       - name: Build installer
+        if: steps.existing.outputs.complete != 'true'
         run: |
           $v = $env:RELEASE_VERSION
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
@@ -203,11 +204,10 @@ jobs:
           if (-not (Test-Path "dist/$name")) { throw "Installer not produced at dist/$name" }
           $hash = (Get-FileHash "dist/$name" -Algorithm SHA256).Hash
           "$hash  $name" | Out-File "dist/$name.sha256" -Encoding ascii
-      # SP-0156: a published asset is never replaced with different bytes. A re-run (or a manual run against an
-      # already published tag) may proceed only when every existing asset of ours is byte-identical to the fresh
-      # build: identical ones are left alone (or, when some are missing, deleted-and-re-uploaded as identical
-      # bytes); any difference fails the run here, before the release step can touch anything.
+      # A complete existing release was skipped before the build. Check again for a publication that
+      # appeared during this run; never remove or replace assets, including a partial publication.
       - name: Guard assets already published for this tag
+        if: steps.existing.outputs.complete != 'true'
         id: guard
         env:
           GH_TOKEN: ${{ github.token }}
@@ -259,16 +259,12 @@ jobs:
             "proceed=false" | Out-File $env:GITHUB_OUTPUT -Append
             return
           }
-          # Some of ours are missing. Every one already published was proven identical above, so removing it
-          # before the upload re-creates the same bytes instead of colliding with them.
-          foreach ($asset in $presentIdentical) {
-            gh api -X DELETE "repos/$env:GITHUB_REPOSITORY/releases/assets/$($asset.id)"
-            if ($LASTEXITCODE -ne 0) { throw "Could not remove the identical asset $($asset.name) ahead of re-upload (exit $LASTEXITCODE)." }
-            Write-Host "Removed the identical $($asset.name); the upload below recreates it."
+          if ($presentIdentical.Count -gt 0) {
+            throw 'Some release assets already exist. Recover the original asset set explicitly; no published asset is deleted or rebuilt.'
           }
           "proceed=true" | Out-File $env:GITHUB_OUTPUT -Append
       - name: Create GitHub Release
-        if: steps.guard.outputs.proceed != 'false'
+        if: steps.guard.outputs.proceed == 'true'
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ needs.resolve.outputs.tag }}

@@ -15,6 +15,34 @@ public static class ChannelHandOutWarnings
     public const string CredentialKey = "ShareCredentialWarning";
     public const string CapabilityKey = "BroadcastCapabilityWarning";
 
+    /// <summary>
+    /// SP-0212 (L28): the export gate's own credential wording - a file the user places somewhere is a
+    /// different hand-out from a chat message, and its message says so. The condition stays the one
+    /// rule's, so a credential-bearing row cannot slip past the wording it was written for.
+    /// </summary>
+    public const string ExportCredentialKey = "ExportCredentialWarning";
+
+    /// <summary>
+    /// SP-0212 (L28): the keys a hand-out of many addresses at once owes. The capability confirmation is
+    /// the owner's own key, so a warning added to <see cref="KeysFor"/> reaches every hand-out - the
+    /// share menu, the export gate and the About window's Copy all - not only the ones written first.
+    /// </summary>
+    public static IReadOnlyList<string> ExportKeysFor(IEnumerable<string> urls)
+    {
+        var keys = new List<string>(2);
+        if (urls.Any(CatalogUrlIdentity.HasCredentials))
+        {
+            keys.Add(ExportCredentialKey);
+        }
+
+        if (urls.Any(BroadcastCapabilityAddress.CarriesCapability))
+        {
+            keys.Add(CapabilityKey);
+        }
+
+        return keys;
+    }
+
     public static IReadOnlyList<string> KeysFor(string url)
     {
         var keys = new List<string>(2);

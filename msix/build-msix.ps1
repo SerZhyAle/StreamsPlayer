@@ -82,6 +82,10 @@ $appVersion = $tag.Substring(1)
 # SP-0184 (S1-6): the tag alone does not say the code was audited. The same gate release.yml runs must accept the
 # committed audit verdict of this exact version before a package is packed from it; it throws when it does not.
 & (Join-Path $root 'scripts/Assert-AuditVerdict.ps1') -Version $appVersion -Root $root
+# SP-0212 (L4): the Store package is gated on the playback smoke verdict as well, through the same
+# script release.yml runs - the check used to live only inline in that workflow, so a package built
+# locally could come from a version the smoke gate never judged.
+& (Join-Path $root 'scripts/Assert-SmokeVerdict.ps1') -Version $appVersion -Root $root
 # The MSIX Identity Version schema forbids leading zeros in any part (e.g. 26.0723.0957.0 is
 # rejected), so convert each component to an integer: 26.0723.0957.0 -> 26.723.957.0. This is
 # still monotonic and unique per minute (MMDD and HHmm as ints preserve ordering).
@@ -125,6 +129,11 @@ foreach ($logo in 'Square44x44Logo.png', 'Square71x71Logo.png', 'Square150x150Lo
 }
 
 $manifest = Get-Content (Join-Path $msix 'AppxManifest.xml') -Raw
+. (Join-Path $root 'tools/InterfaceLanguages.ps1')
+$languageResources = (Get-InterfaceLanguages -Configuration Release | ForEach-Object {
+    '<Resource Language="' + $_.ListingCode + '" />'
+}) -join ''
+$manifest = $manifest.Replace('__LANGUAGE_RESOURCES__', $languageResources)
 $manifest = $manifest.Replace('__IDENTITY_NAME__', $IdentityName).Replace('__PUBLISHER__', $Publisher).Replace('__PUBLISHER_DISPLAY_NAME__', $PublisherDisplayName).Replace('__VERSION__', $msixVersion)
 Set-Content -Path (Join-Path $stage 'AppxManifest.xml') -Value $manifest -Encoding utf8
 

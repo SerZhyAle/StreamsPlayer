@@ -352,15 +352,17 @@ public sealed class ExchangeDirectoryState
     }
 
     /// <summary>
-    /// SP-0201 / SP-0204 / SP-0203: a broadcast is supported when at least one declared endpoint is one the
-    /// playback legs try (LAN HTTP audio, LAN RTSP and HTTP video, relay, tunnel), or when it declares none
-    /// and plays its legacy top-level address. The test is
-    /// <see cref="FastMediaSorterBroadcastAttempts.PlaybackAttempts"/> itself, so what the directory lists,
-    /// what a push refreshes and what a cast offer accepts can never disagree with what playback plays.
+    /// SP-0201 / SP-0204 / SP-0203 / SP-0212 (L30): a broadcast is supported when playback has an attempt
+    /// to try - at least one declared endpoint the legs play (LAN HTTP audio, LAN RTSP and HTTP video,
+    /// relay, tunnel), or, when the list holds none of them, the legacy top-level address that
+    /// <see cref="FastMediaSorterBroadcast.PlaybackAttemptEndpoints"/> falls back to. The judgment and
+    /// the fallback agree on the launchability of that address, so what the directory lists, what a push
+    /// refreshes and what a cast offer accepts cannot disagree with what playback plays.
     /// </summary>
     internal static ExchangeBroadcastSupport SupportOf(FastMediaSorterBroadcast descriptor) =>
+        FastMediaSorterBroadcastAttempts.PlaybackAttempts(descriptor.Mode, descriptor.Endpoints).Count > 0 ||
         descriptor.Endpoints.Count == 0 ||
-        FastMediaSorterBroadcastAttempts.PlaybackAttempts(descriptor.Mode, descriptor.Endpoints).Count > 0
+        StreamMediaKindClassifier.IsLaunchable(descriptor.Url)
             ? ExchangeBroadcastSupport.Supported
             : ExchangeBroadcastSupport.Unsupported;
 

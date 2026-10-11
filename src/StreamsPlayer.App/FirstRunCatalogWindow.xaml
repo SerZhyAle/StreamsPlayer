@@ -13,7 +13,9 @@
                    TextWrapping="Wrap" />
         <TextBlock Text="{DynamicResource FirstRunIntro}" TextWrapping="Wrap" Margin="0,8,0,0" />
 
-        <Button x:Name="InternetButton" Content="{DynamicResource UpdateCatalogPlain}" ContentTemplate="{StaticResource ButtonOwnColourCaption}"
+        <!-- SP-0218: the acting answer keeps its accent fill (WINDOWS-UI 0.4 section 11 item 7); the glyph
+             and the caption both take the accent's ink through the glyph template's one Foreground. -->
+        <Button x:Name="InternetButton" Style="{StaticResource RefreshGlyphButton}" Content="{DynamicResource UpdateCatalogPlain}"
                 ToolTip="{DynamicResource UpdateCatalogTip}"
                 AutomationProperties.Name="{DynamicResource UpdateCatalogPlain}"
                 Click="Internet_Click" IsDefault="True"
@@ -22,14 +24,14 @@
 
         <!-- Collapsed, never disabled, on a build that carries no built-in copy: an unexplained dead
              control is the "looks broken" impression this ticket exists to remove. -->
-        <Button x:Name="BundledButton" Content="{DynamicResource CatalogSnapshotUse}"
+        <Button x:Name="BundledButton" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource CatalogSnapshotUse}"
                 ToolTip="{DynamicResource CatalogSnapshotOfferTip}"
                 AutomationProperties.Name="{DynamicResource CatalogSnapshotUse}"
                 Click="Bundled_Click" Padding="14,8" Margin="0,8,0,0" />
 
         <!-- No Click handler on purpose: IsCancel already closes the window, and Choice already reads
              Decline, so this button, Escape and the title-bar X are literally the same path. -->
-        <Button x:Name="SkipButton" Content="{DynamicResource FirstRunSkip}"
+        <Button x:Name="SkipButton" Style="{StaticResource CancelAnswerGlyphButton}" Content="{DynamicResource FirstRunSkip}"
                 ToolTip="{DynamicResource FirstRunSkipTip}"
                 AutomationProperties.Name="{DynamicResource FirstRunSkip}"
                 IsCancel="True" Padding="14,6" Margin="0,8,0,0" />

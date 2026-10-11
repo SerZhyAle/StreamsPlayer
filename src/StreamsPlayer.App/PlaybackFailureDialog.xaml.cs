@@ -51,8 +51,12 @@ public partial class PlaybackFailureDialog : Window
             KeepButton.IsDefault = true; // never the destructive Remove
         }
 
-        RemoveButton.SetResourceReference(ContentControl.ContentProperty,
-            ChannelOwnership.IsBankSourced(origin) ? "FailureHide" : "FailureDelete");
+        var bankSourced = ChannelOwnership.IsBankSourced(origin);
+        RemoveButton.SetResourceReference(ContentControl.ContentProperty, bankSourced ? "FailureHide" : "FailureDelete");
+        // SP-0218: the style follows the caption. Hide is reversible from the manage-hidden view and is
+        // an ordinary command with its own meaning's glyph; Delete is the irreversible act of this
+        // window and the only button that takes the danger face (WINDOWS-UI 0.4 section 11 items 4 and 7).
+        RemoveButton.SetResourceReference(StyleProperty, bankSourced ? "HiddenGlyphButton" : "DeleteAnswerGlyphButton");
         // SP-0041 Decision 4: a channel that was never reached has not been proven broken, and for a
         // MANUAL/IMPORTED row the delete is irreversible - so the offer is withheld, and the line says why.
         // The Core rule decides; this dialog does not re-derive it. Retry stays the default and Keep the

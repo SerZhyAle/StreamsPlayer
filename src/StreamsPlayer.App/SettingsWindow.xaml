@@ -432,9 +432,9 @@
                                         <CheckBox x:Name="ExchangeEnabledCheckBox" Content="{DynamicResource ExchangeEnabled}" Checked="ExchangeEnabled_Click" Unchecked="ExchangeEnabled_Click" Margin="0,0,0,8" />
                                         <CheckBox x:Name="ExchangeAutoAcceptCastsCheckBox" Content="{DynamicResource ExchangeAutoAcceptCasts}" Checked="ExchangeAutoAcceptCasts_Click" Unchecked="ExchangeAutoAcceptCasts_Click" Margin="0,0,0,8" />
                                         <WrapPanel>
-                                            <Button x:Name="ExchangeEnrollButton" Content="{DynamicResource ExchangeEnroll}" Click="ExchangeEnroll_Click" Margin="0,0,8,8" />
-                                            <Button x:Name="ExchangeForgetButton" Content="{DynamicResource ExchangeForget}" Click="ExchangeForget_Click" Margin="0,0,8,8" />
-                                            <Button x:Name="ExchangeTrustButton" Content="{DynamicResource ExchangeTrust}" Click="ExchangeTrust_Click" Margin="0,0,8,8" Visibility="Collapsed" />
+                                            <Button x:Name="ExchangeEnrollButton" Style="{StaticResource AddGlyphButton}" Content="{DynamicResource ExchangeEnroll}" Click="ExchangeEnroll_Click" Margin="0,0,8,8" />
+                                            <Button x:Name="ExchangeForgetButton" Style="{StaticResource RemoveGlyphButton}" Content="{DynamicResource ExchangeForget}" Click="ExchangeForget_Click" Margin="0,0,8,8" />
+                                            <Button x:Name="ExchangeTrustButton" Style="{StaticResource ConfirmGlyphButton}" Content="{DynamicResource ExchangeTrust}" Click="ExchangeTrust_Click" Margin="0,0,8,8" Visibility="Collapsed" />
                                         </WrapPanel>
                                         <TextBlock x:Name="ExchangeStatusText" TextWrapping="Wrap" />
                                         <TextBlock x:Name="ExchangeFingerprintText" TextWrapping="Wrap" FlowDirection="LeftToRight" Margin="0,8,0,0" />
@@ -718,6 +718,10 @@
                                                     Click="OpenLink_Click" ToolTip="{DynamicResource PrivacyTip}"
                                                     AutomationProperties.Name="{DynamicResource Privacy}"
                                                     Content="{DynamicResource Privacy}" />
+                                            <Button Style="{StaticResource SettingsLinkButton}" Tag="MediaExchange" Margin="0,0,18,0"
+                                                    Click="OpenLink_Click" ToolTip="{DynamicResource MediaExchangeTip}"
+                                                    AutomationProperties.Name="{DynamicResource MediaExchange}"
+                                                    Content="{DynamicResource MediaExchange}" />
                                             <Button Style="{StaticResource SettingsLinkButton}" Tag="Author"
                                                     Click="OpenLink_Click" ToolTip="{DynamicResource AuthorPageTip}"
                                                     AutomationProperties.Name="{DynamicResource AuthorPage}"
@@ -731,7 +735,7 @@
                                         <TextBlock Text="{DynamicResource DiagnosticsHeading}" />
                                     </Expander.Header>
                                     <StackPanel>
-                                        <Button x:Name="SendLogsButton" HorizontalAlignment="Left" Margin="0,0,0,6"
+                                        <Button x:Name="SendLogsButton" Style="{StaticResource EmailGlyphButton}" HorizontalAlignment="Left" Margin="0,0,0,6"
                                                 Content="{DynamicResource SendLogs}" Click="SendLogs_Click"
                                                 ToolTip="{DynamicResource SendLogsTip}"
                                                 AutomationProperties.Name="{DynamicResource SendLogs}" />
@@ -760,7 +764,7 @@
         </Border>
 
         <!-- Bottom bar: VideoComponentsCancelButton (left, for long operation) -->
-        <Button x:Name="VideoComponentsCancelButton" Grid.Row="1" HorizontalAlignment="Left" Margin="0,14,0,0"
+        <Button x:Name="VideoComponentsCancelButton" Style="{StaticResource CancelGlyphButton}" Grid.Row="1" HorizontalAlignment="Left" Margin="0,14,0,0"
                 Padding="14,6" Visibility="Collapsed"
                 Content="{DynamicResource VideoComponentsCancel}" Click="VideoComponentsCancel_Click"
                 AutomationProperties.Name="{DynamicResource VideoComponentsCancel}" />

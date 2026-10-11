@@ -65,7 +65,13 @@ internal sealed class ExchangeSourceService
         try
         {
             Account = _store.Load();
-            _store.Save(Account);
+            // SP-0212 (L9): an account read from the file is already stored, byte for byte; re-saving it on
+            // every launch meant a transient sharing violation at that redundant write marked storage
+            // unavailable for the whole session. Only a freshly created device id needs its first write.
+            if (_store.CreatedFresh)
+            {
+                _store.Save(Account);
+            }
             StatusKey = _store.ProtectionFailed ? "ExchangeEnrollAgain" : "ExchangeOff";
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException

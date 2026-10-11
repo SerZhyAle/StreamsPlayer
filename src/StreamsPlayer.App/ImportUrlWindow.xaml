@@ -13,10 +13,12 @@
         </Grid.RowDefinitions>
         <TextBlock Text="{DynamicResource ImportFromUrlPrompt}" TextWrapping="Wrap" Margin="0,0,0,8" />
         <TextBox x:Name="UrlBox" Grid.Row="1" Padding="6,4" />
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button x:Name="ConfirmButton" Content="{DynamicResource ImportListPlain}" Click="Confirm_Click"
-                    IsDefault="True" Padding="16,6" Margin="0,0,8,0" />
-            <Button Content="{DynamicResource Cancel}" IsCancel="True" Padding="14,6" />
-        </StackPanel>
+        <!-- SP-0218: the affirmative answer keeps its verb's glyph (import) in the success hue; Cancel is the
+             dismissing answer in the danger hue (WINDOWS-UI 0.4 section 11 item 4). -->
+        <WrapPanel Grid.Row="3" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button x:Name="ConfirmButton" Style="{StaticResource ImportAnswerGlyphButton}" Content="{DynamicResource ImportListPlain}" Click="Confirm_Click"
+                    IsDefault="True" Margin="4,3" />
+            <Button Style="{StaticResource CancelAnswerGlyphButton}" Content="{DynamicResource Cancel}" IsCancel="True" Margin="4,3" />
+        </WrapPanel>
     </Grid>
 </Window>

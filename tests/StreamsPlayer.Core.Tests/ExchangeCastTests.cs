@@ -383,7 +383,10 @@ public sealed class ExchangeCastTests
     {
         // expected: the repeat, which was never asked and whose own window is still open, is asked itself
         // and answered by the user | actual (before): it inherited the leader's TimedOut.
-        var coordinator = new ExchangeCastCoordinator(TimeSpan.FromMilliseconds(600));
+        // The repeat must arrive well inside the leader's window and still have a wide margin left after it:
+        // on a loaded runner the timers of both fire in one scheduling burst, so a thin margin turns the
+        // repeat's own window into the answer (the flake that failed the v26.1010.0106 tag run).
+        var coordinator = new ExchangeCastCoordinator(TimeSpan.FromMilliseconds(2000));
         var leaderAsked = new TaskCompletionSource();
         Task<bool> Prompt(ExchangeCastOffer offer, CancellationToken token)
         {
@@ -398,7 +401,7 @@ public sealed class ExchangeCastTests
 
         var leader = coordinator.RequestDecisionAsync(Offered("leader", "b1"), Prompt, CancellationToken.None);
         await leaderAsked.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        await Task.Delay(300);
+        await Task.Delay(1000);
         var repeat = coordinator.RequestDecisionAsync(Offered("repeat", "b1"), Prompt, CancellationToken.None);
 
         Assert.Equal(ExchangeCastDecision.TimedOut, await leader.WaitAsync(TimeSpan.FromSeconds(10)));
@@ -408,7 +411,8 @@ public sealed class ExchangeCastTests
     [Fact]
     public async Task Coordinator_ALeaderThatExpiresInTheQueue_DoesNotTimeOutALaterRepeat()
     {
-        var coordinator = new ExchangeCastCoordinator(TimeSpan.FromMilliseconds(600));
+        // Same margin rule as the sibling test above: 1 s of the repeat's own window must outlast the leader's.
+        var coordinator = new ExchangeCastCoordinator(TimeSpan.FromMilliseconds(2000));
         var blockerAsked = new TaskCompletionSource();
         Task<bool> Prompt(ExchangeCastOffer offer, CancellationToken token)
         {
@@ -424,7 +428,7 @@ public sealed class ExchangeCastTests
         var blocker = coordinator.RequestDecisionAsync(Offered("blocker", "b0"), Prompt, CancellationToken.None);
         await blockerAsked.Task.WaitAsync(TimeSpan.FromSeconds(10));
         var leader = coordinator.RequestDecisionAsync(Offered("leader", "b1"), Prompt, CancellationToken.None);
-        await Task.Delay(300);
+        await Task.Delay(1000);
         var repeat = coordinator.RequestDecisionAsync(Offered("repeat", "b1"), Prompt, CancellationToken.None);
 
         Assert.Equal(ExchangeCastDecision.TimedOut, await blocker.WaitAsync(TimeSpan.FromSeconds(10)));

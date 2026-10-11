@@ -19,10 +19,7 @@ internal static class AudioDeviceService
 {
     public static IReadOnlyList<UiOption> GetAvailableAudioDevices()
     {
-        var list = new List<UiOption>
-        {
-            new(string.Empty, LocalizationService.Get("AudioDeviceDefault"))
-        };
+        var list = new List<UiOption>();
 
         try
         {
@@ -49,8 +46,7 @@ internal static class AudioDeviceService
         }
         catch (Exception exception)
         {
-            // Safe fallback to the default device only. The failure is logged in full, with no dialog: the list
-            // is a convenience and the default entry is always there (A12-2).
+            // Settings supplies the localized default option even when enumeration fails.
             HandlerBoundary.Report(nameof(GetAvailableAudioDevices), exception, notifyUser: false);
         }
 

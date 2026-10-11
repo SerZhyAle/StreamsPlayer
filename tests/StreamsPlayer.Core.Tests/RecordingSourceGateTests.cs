@@ -28,7 +28,9 @@ public sealed class RecordingSourceGateTests
     public void TheCloseWorkWaitsForTheRecordingFinishes()
     {
         var source = Source("MainWindow.Previews.cs");
-        Assert.Contains("await Task.WhenAll(_closedRecordingFinishes)", source);
+        // SP-0212 (L15): the wait still ends the close work; since the close steps each contain their
+        // own faults, the wait sits inside the step runner rather than in a bare await.
+        Assert.Contains("Task.WhenAll(_closedRecordingFinishes)", source);
     }
 
     [Fact]

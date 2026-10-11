@@ -43,6 +43,8 @@ public partial class SettingsWindow : Window
     private bool _actionRunning;
     private bool _closeByRunningAction;
     private bool _placedFromMemory;
+    private bool _closed;
+    private IReadOnlyList<UiOption> _audioDevices = [];
     private CancellationTokenSource? _installCancellation;
 
     internal SettingsWindow(MainWindow mainWindow, Func<ToolsAction, Window, Task> runAction, Func<TvScheduleIndex> tvSchedule, int? initialPageIndex = null)
@@ -188,9 +190,7 @@ public partial class SettingsWindow : Window
         SystemMediaControlsCheckBox.IsChecked = _mainWindow.State.SystemMediaControls;
         ResumePlaybackCheckBox.IsChecked = _mainWindow.State.ResumePlaybackOnStartup;
 
-        var audioDevices = AudioDeviceService.GetAvailableAudioDevices();
-        AudioDeviceBox.ItemsSource = audioDevices;
-        AudioDeviceBox.SelectedItem = audioDevices.FirstOrDefault(item => item.Value == (_mainWindow.State.AudioOutputDevice ?? string.Empty)) ?? audioDevices[0];
+        PopulateAudioDevices();
 
         var audioChannels = new[]
         {
@@ -202,6 +202,42 @@ public partial class SettingsWindow : Window
         };
         AudioChannelBox.ItemsSource = audioChannels;
         AudioChannelBox.SelectedItem = audioChannels.FirstOrDefault(item => item.Value == _mainWindow.State.AudioChannelMode.ToString()) ?? audioChannels[0];
+    }
+
+    private void PopulateAudioDevices()
+    {
+        UiOption[] audioDevices = [new(string.Empty, LocalizationService.Get("AudioDeviceDefault")), .. _audioDevices];
+        AudioDeviceBox.ItemsSource = audioDevices;
+        AudioDeviceBox.SelectedItem = audioDevices.FirstOrDefault(item => item.Value == (_mainWindow.State.AudioOutputDevice ?? string.Empty)) ?? audioDevices[0];
+    }
+
+    private async Task LoadAudioDevicesAsync()
+    {
+        AudioDeviceBox.IsEnabled = false;
+        var devices = await Task.Run(AudioDeviceService.GetAvailableAudioDevices);
+        if (_closed)
+        {
+            return;
+        }
+
+        _audioDevices = devices;
+        var wasInitializing = _initializing;
+        _initializing = true;
+        try
+        {
+            PopulateAudioDevices();
+            AudioDeviceBox.IsEnabled = true;
+        }
+        finally
+        {
+            _initializing = wasInitializing;
+        }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _closed = true;
+        base.OnClosed(e);
     }
 
     /// <summary>
@@ -471,6 +507,7 @@ public partial class SettingsWindow : Window
             "Source" => ProductInfo.SourceUrl,
             "Website" => ProductInfo.WebsiteUrl,
             "Privacy" => ProductInfo.PrivacyUrl,
+            "MediaExchange" => ProductInfo.ExchangePortalUrl(currentLanguage),
             "Author" => ProductInfo.AuthorUrl,
             "Licence" => ProductInfo.LicenceUrl,
             _ => null

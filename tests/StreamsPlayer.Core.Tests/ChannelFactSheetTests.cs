@@ -12,6 +12,30 @@ public sealed class ChannelFactSheetTests
 {
     private static readonly DateTimeOffset Added = new(2026, 1, 2, 3, 4, 5, TimeSpan.Zero);
 
+    // SP-0212 (L24): the confirmations a hand-out of the sheet owes are read from the facts themselves -
+    // the homepage's address is judged with the channel's own, whatever field carries it.
+    [Fact]
+    public void TheSheetOwnsTheHandOutWarningsOfEveryFieldItRenders()
+    {
+        var channel = FullChannel() with
+        {
+            Url = "https://alice:s3cr3t@example.test/one",
+            Homepage = "https://relay.example.net/v2/b/ICEiIyQlJicoKSorLC0uLw/stream"
+        };
+        var facts = ChannelFactSheet.Describe(channel, [], CultureInfo.InvariantCulture);
+
+        Assert.Equal(
+            [ChannelHandOutWarnings.CredentialKey, ChannelHandOutWarnings.CapabilityKey],
+            ChannelFactSheet.HandOutWarningKeys(facts));
+    }
+
+    [Fact]
+    public void AnOrdinarySheetAsksNoHandOutWarnings()
+    {
+        var facts = ChannelFactSheet.Describe(FullChannel(), [], CultureInfo.InvariantCulture);
+        Assert.Empty(ChannelFactSheet.HandOutWarningKeys(facts));
+    }
+
     [Fact]
     public void EveryStoredPropertyReachesTheSheetExactlyOnce()
     {

@@ -44,6 +44,21 @@ public sealed class NativeCallbackContainmentSourceTests
         Assert.Contains("HandlerBoundary.Report", body);
     }
 
+    // SP-0212 (L8): the backdrop's tick and render are decorative callbacks nothing guards; a fault in
+    // either would otherwise end a long session through the unhandled-exception handler.
+    [Fact]
+    public void TheBackdropTickAndRenderContainTheirOwnFaults()
+    {
+        var source = Source("WaveParticlesBackdrop.cs");
+        foreach (var member in new[] { "Timer_Tick", "OnRender" })
+        {
+            var body = Body(source, member);
+            Assert.Contains("catch (Exception", body);
+            Assert.Contains("HandlerBoundary.Report", body);
+            Assert.Contains("_timer.Stop()", body);
+        }
+    }
+
     [Fact]
     public void ThePowerCallbackContainsEveryFaultNotOnlyComErrors()
     {

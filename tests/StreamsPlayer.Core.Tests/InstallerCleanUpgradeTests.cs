@@ -23,28 +23,22 @@ public sealed class InstallerCleanUpgradeTests
         Assert.True(wipe.Success, "installer/StreamsPlayer.iss no longer wipes {app} before installing - an upgrade would keep files the new payload dropped.");
     }
 
+    // SP-0183 D6 / SP-0184 (R3-1) / SP-0212 (L6): the wipe may run only over a folder this product's own
+    // uninstall record names. Neither StreamsPlayer.exe nor unins000.exe says so by itself - the portable
+    // archive unzips the first anywhere (including a shared folder picked in the wizard, whose unrelated
+    // files the wipe would then delete), and the second is the uninstaller name of every Inno product.
+    // The record this AppId's install wrote (the key Inno derives from AppId, with the "_is1" suffix)
+    // must name this very folder, per-user or machine-wide.
     [Fact]
-    public void Upgrade_WipeIsGuardedByPreviousInstallationCheck()
-    {
-        // SP-0183: Check that the FileExistsInApp function exists to guard the wipe
-        var checkFunction = Regex.Match(Script, @"function\s+FileExistsInApp\s*\(\s*FileName:\s*String\s*\)\s*:\s*Boolean");
-
-        Assert.True(checkFunction.Success, "installer/StreamsPlayer.iss no longer guards the wipe with FileExistsInApp - Setup may delete a folder it did not install.");
-    }
-
-    // SP-0184 (R3-1): unins000.exe is the uninstaller name of every Inno Setup product, so it may unlock the wipe only
-    // together with this product's own uninstall record, and that record's key must be the one AppId derives.
-    [Fact]
-    public void Upgrade_WipeAcceptsTheGenericUninstallerOnlyWithThisAppIdsUninstallRecord()
+    public void Upgrade_WipeUnlocksOnlyOnThisAppIdsUninstallRecordNamingTheFolder()
     {
         var appId = Regex.Match(Script, @"^AppId=\{\{(?<guid>[0-9A-F\-]{36})\}\s*$", RegexOptions.Multiline);
         Assert.True(appId.Success, "installer/StreamsPlayer.iss no longer declares its AppId in the escaped GUID form.");
 
         var guard = Regex.Match(Script, @"function HoldsPreviousInstallation\(\): Boolean;(?s).*?\nend;");
         Assert.True(guard.Success, "installer/StreamsPlayer.iss no longer defines HoldsPreviousInstallation.");
-        Assert.Contains("FileExistsInApp('StreamsPlayer.exe')", guard.Value, StringComparison.Ordinal);
-        Assert.Contains("FileExistsInApp('unins000.exe')", guard.Value, StringComparison.Ordinal);
-        Assert.Contains("UninstallRecordNamesThisFolder", guard.Value, StringComparison.Ordinal);
+        Assert.Contains("UninstallRecordNamesThisFolder(HKCU) or UninstallRecordNamesThisFolder(HKLM)", guard.Value, StringComparison.Ordinal);
+        Assert.DoesNotContain("FileExistsInApp", Script, StringComparison.Ordinal);
 
         var record = Regex.Match(Script, @"function UninstallRecordNamesThisFolder\(RootKey: Integer\): Boolean;(?s).*?\nend;");
         Assert.True(record.Success, "installer/StreamsPlayer.iss no longer defines UninstallRecordNamesThisFolder.");

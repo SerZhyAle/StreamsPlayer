@@ -16,6 +16,11 @@ public partial class ImportPreviewWindow : Window
         InvalidCountText.Text = preview.InvalidCount.ToString();
         SkippedCountText.Text = preview.SkippedCount.ToString();
         ApplyButton.IsEnabled = preview.NewCount > 0;
+        if (preview.Truncated)
+        {
+            TruncatedText.Text = LocalizationService.Format("ImportPreviewTruncated", M3uPlaylistParser.MaximumNewEntries);
+            TruncatedText.Visibility = Visibility.Visible;
+        }
         ExplanationText.Text = preview.NewCount > 0
             ? LocalizationService.Format("ImportPreviewSummary", preview.NewCount)
             : LocalizationService.Get("ImportPreviewNothingNew");

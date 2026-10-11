@@ -28,8 +28,12 @@ public sealed class ExchangeRelayProxyTests
             request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(7)).Export(X509ContentType.Pfx), null);
     }
 
-    /// <summary>A stand-in relay: TLS on loopback, one GET answered with the contract's live shape.</summary>
-    private sealed class FakeRelay(X509Certificate2 certificate, byte[] body) : IDisposable
+    /// <summary>
+    /// A stand-in relay: TLS on loopback, one GET answered with the contract's live shape, or with
+    /// <paramref name="responseHead"/> when the test wants a refused answer instead. Named for what it
+    /// is, because the relay's own request buffer is also called head.
+    /// </summary>
+    private sealed class FakeRelay(X509Certificate2 certificate, byte[] body, byte[]? responseHead = null) : IDisposable
     {
         private readonly TcpListener _listener = new(IPAddress.Loopback, 0);
         public int BoundPort { get; private set; }
@@ -63,7 +67,7 @@ public sealed class ExchangeRelayProxyTests
                             }
 
                             Interlocked.Increment(ref Requests);
-                            await ssl.WriteAsync(Encoding.ASCII.GetBytes(
+                            await ssl.WriteAsync(responseHead ?? Encoding.ASCII.GetBytes(
                                 "HTTP/1.1 200 OK\r\nContent-Type: audio/aac\r\nTransfer-Encoding: chunked\r\nCache-Control: no-cache\r\n\r\n"));
                             await ssl.WriteAsync(Encoding.ASCII.GetBytes($"{body.Length:X}\r\n"));
                             await ssl.WriteAsync(body);
@@ -165,6 +169,27 @@ public sealed class ExchangeRelayProxyTests
         Assert.Equal(404, status);
         Assert.Equal(0, relay.Requests);
         Assert.Equal(0, proxy.ConnectedCount);
+    }
+
+    // SP-0212 (L25): the relay's answer is read, not assumed - a refused head is a named failure, the
+    // player gets a 502 rather than an error page spliced in as media, and nothing counts as connected.
+    [Fact]
+    public async Task ARefusedRelayAnswerIsANamedFailureNotAConnection()
+    {
+        using var leaf = SelfSignedLeaf();
+        using var relay = new FakeRelay(leaf, "live-bytes"u8.ToArray(),
+            responseHead: Encoding.ASCII.GetBytes("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"));
+        relay.Start();
+        var failure = new string?[1];
+        using var proxy = ExchangeRelayProxy.Start(relay.Url, ExchangeProtocol.Fingerprint(leaf.GetRawCertData()));
+        proxy.Failed += reason => failure[0] = reason;
+        var (status, _) = await GetAsync(proxy.LoopbackUrl);
+
+        Assert.Equal(502, status);
+        Assert.Equal(0, proxy.ConnectedCount);
+        Assert.Equal("relay-refused-404", failure[0]);
+        Assert.Equal("relay-refused-404", proxy.LastFailure);
+        Assert.Equal(1, relay.Requests);
     }
 
     [Fact]

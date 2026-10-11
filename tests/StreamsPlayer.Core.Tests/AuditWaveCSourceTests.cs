@@ -167,7 +167,9 @@ public sealed class AuditWaveCSourceTests
 
         Assert.True(confirm >= 0, "Copy all must confirm the address hand-out");
         Assert.True(confirm < clipboard, "the confirmation must come before the clipboard is written");
-        Assert.Contains("ChannelHandOutWarnings.KeysFor(_channel.Url)",
+        // SP-0212 (L24, L29): the gate asks the sheet - every field the copy hands out, the homepage
+        // included - rather than judging the address alone.
+        Assert.Contains("ChannelFactSheet.HandOutWarningKeys(",
             Body(file, @"private bool ConfirmAddressHandOut\("), StringComparison.Ordinal);
     }
 

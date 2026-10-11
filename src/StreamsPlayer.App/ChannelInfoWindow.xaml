@@ -35,9 +35,10 @@
                 <ItemsControl x:Name="StreamFacts" ItemTemplate="{StaticResource FactRowTemplate}" />
             </StackPanel>
         </ScrollViewer>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
-            <Button x:Name="CopyAllButton" Content="{DynamicResource AboutCopyAll}" Click="CopyAll_Click" Padding="14,6" Margin="0,0,8,0" />
-            <Button Content="{DynamicResource Close}" IsCancel="True" IsDefault="True" Padding="14,6" />
-        </StackPanel>
+        <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button x:Name="CopyAllButton" Style="{StaticResource CopyGlyphButton}" Content="{DynamicResource AboutCopyAll}" Click="CopyAll_Click"
+                    Padding="14,6" Margin="4,3" />
+            <Button Style="{StaticResource CloseAnswerGlyphButton}" Content="{DynamicResource Close}" IsCancel="True" IsDefault="True" Margin="4,3" />
+        </WrapPanel>
     </Grid>
 </Window>

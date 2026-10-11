@@ -178,6 +178,32 @@ public static class ChannelFactSheet
         return text.ToString();
     }
 
+    /// <summary>
+    /// SP-0212 (L24): the confirmations a hand-out of this sheet owes, read from the facts themselves -
+    /// the address, and any other field that carries one, the homepage included. The rule at the sheet
+    /// level, so a new surface that copies the rendered text asks the sheet what it is handing out and
+    /// cannot skip the warnings only the About window remembered. The caller owns the dialogs and treats
+    /// a refusal of any as a refusal of the whole hand-out.
+    /// </summary>
+    public static IReadOnlyList<string> HandOutWarningKeys(IReadOnlyList<ChannelFact> facts)
+    {
+        List<string>? keys = null;
+        foreach (var fact in facts)
+        {
+            if (fact.Text is null)
+            {
+                continue;
+            }
+
+            foreach (var key in ChannelHandOutWarnings.KeysFor(fact.Text))
+            {
+                (keys ??= []).Add(key);
+            }
+        }
+
+        return keys is null ? [] : keys.Distinct().ToList();
+    }
+
     // SP-0061: a rubric from the bank's closed set is a translatable term, so it travels as a key and
     // the interface supplies the word. Anything else - a catalog newer than this build, a hand-typed
     // rubric on a manually added channel - travels as text and is shown exactly as it was written.

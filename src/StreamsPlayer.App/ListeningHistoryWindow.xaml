@@ -28,16 +28,26 @@
                             <TextBlock Text="{DynamicResource HistoryUnavailable}" Visibility="{Binding UnavailableVisibility}"
                                        Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis" />
                         </StackPanel>
-                        <Button Grid.Column="1" Content="{DynamicResource Play}" IsEnabled="{Binding Playable}"
+                        <Button Grid.Column="1" Style="{StaticResource PlayGlyphButton}" Content="{DynamicResource Play}" IsEnabled="{Binding Playable}"
                                 Tag="{Binding}" Click="Play_Click"
                                 VerticalAlignment="Center" Margin="10,0,0,0" Padding="12,5" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
+        <!-- SP-0218: Clear is an ordinary command (its confirmation is the system message box, not an answer
+             this window draws), so it is mono; Close is the window's one no-action exit. Columns, not two
+             overlapping alignments, so a long translated caption pushes the other button instead of
+             covering it. -->
         <Grid Grid.Row="1" Margin="0,12,0,0">
-            <Button Content="{DynamicResource HistoryClear}" Click="Clear_Click" Padding="14,6" HorizontalAlignment="Left" />
-            <Button Content="{DynamicResource Close}" IsCancel="True" Padding="14,6" HorizontalAlignment="Right" />
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Style="{StaticResource ClearAllGlyphButton}" Content="{DynamicResource HistoryClear}" Click="Clear_Click"
+                    Padding="14,6" Margin="4,3" />
+            <Button Grid.Column="2" Style="{StaticResource CloseAnswerGlyphButton}" Content="{DynamicResource Close}" IsCancel="True" Margin="4,3" />
         </Grid>
     </Grid>
 </Window>
