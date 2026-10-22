@@ -165,6 +165,8 @@ public sealed class ExchangeCastSeamTests
         await WithServiceAsync(autoAccept: false,
             configure: service =>
             {
+                // SP-0222: a directory is applied only while a list is open; this test is that list.
+                _ = service.AcquireDirectory(follow: true);
                 service.CastPromptRequested += (_, _) =>
                 {
                     promptOpened.TrySetResult();
@@ -444,9 +446,9 @@ public sealed class ExchangeCastSeamTests
             keepaliveSeconds = 30
         }, false, token);
 
+        // SP-0222: the session says nothing but a keepalive until a lease asks for the directory.
         using var keepalive = await ExchangeProtocol.ReadAsync(tls, true, token);
-        using var list = await ExchangeProtocol.ReadAsync(tls, true, token);
-        Assert.Equal("list", ExchangeProtocol.String(list.RootElement, "type"));
+        Assert.Equal("keepalive", ExchangeProtocol.String(keepalive.RootElement, "type"));
     }
 
     private static X509Certificate2 Certificate()

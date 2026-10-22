@@ -173,14 +173,20 @@ function Get-DocsUrl {
 }
 
 function Get-ExchangePortalUrl {
-    param([Parameter(Mandatory)] [string] $Code)
+    param(
+        [Parameter(Mandatory)] [string] $Code,
+        [ValidateSet('home', 'account-deletion')] [string] $Target = 'home'
+    )
 
     # The media exchange portal is a page set hosted by FastMediaSorter Android and linked by several products
     # (shared pages proposal 2026-10-10). It has an English, a Russian and a Ukrainian edition; every other
     # language reads English, as Get-DocsUrl does. ProductInfo.ExchangePortalUrl is the application's twin.
+    # 'account-deletion' is the portal page "How to delete an account", which the privacy statement links
+    # because this program never creates or deletes an account itself (SP-0227).
     $base = 'https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/'
-    $leaf = switch ($Code) { 'ru' { 'index-ru.html' } 'uk' { 'index-uk.html' } default { '' } }
-    return "$base$leaf"
+    $suffix = switch ($Code) { 'ru' { '-ru' } 'uk' { '-uk' } default { '' } }
+    if ($Target -eq 'account-deletion') { return "${base}account-deletion$suffix.html" }
+    return $(if ($suffix) { "${base}index$suffix.html" } else { $base })
 }
 
 function Get-RelativeUrl {
@@ -380,6 +386,7 @@ foreach ($language in $languages) {
             '{{page.languageNote}}'   = $languageNote
             '{{page.docs}}'           = Get-DocsUrl -Code $code
             '{{page.exchange}}'       = Get-ExchangePortalUrl -Code $code
+            '{{page.exchangeAccountDeletion}}' = Get-ExchangePortalUrl -Code $code -Target account-deletion
             '{{page.canonical}}'      = $canonical
             '{{page.alternates}}'     = $alternates -join "`n"
             '{{page.languageUrls}}'   = ($languageUrls | ConvertTo-Json -Compress)

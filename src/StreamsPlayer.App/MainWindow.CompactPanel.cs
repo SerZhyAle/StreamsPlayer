@@ -88,6 +88,7 @@ public partial class MainWindow
         panel.RecordRequested += CompactPanel_RecordRequested;
         panel.SleepTimerRequested += CompactPanel_SleepTimerRequested;
         panel.OverflowRequested += CompactPanel_OverflowRequested;
+        panel.BroadcastMenuRequested += CompactPanel_BroadcastMenuRequested;
         panel.VolumeChanged += CompactPanel_VolumeChanged;
         panel.Moved += CompactPanel_Moved;
         panel.MoveFinished += CompactPanel_MoveFinished;
@@ -254,6 +255,26 @@ public partial class MainWindow
     /// out of the catalog's current view. With no station the menu still opens, holding only the
     /// always-on-top entry, so that capability never becomes unreachable.
     /// </remarks>
+    private async void CompactPanel_BroadcastMenuRequested(object? sender, EventArgs e)
+    {
+        // SP-0217: the compact panel's indicator opens the same live-broadcast menu, built for what is
+        // live now, anchored on the panel's own button. SP-0222: its receivers are asked for on open.
+        try
+        {
+            if (sender is CompactPanelWindow panel)
+            {
+                var menu = await BroadcastLiveMenuBuilder.BuildAsync(Broadcast, Exchange, panel);
+                panel.BroadcastAnchor.ContextMenu = menu;
+                menu.PlacementTarget = panel.BroadcastAnchor;
+                menu.IsOpen = true;
+            }
+        }
+        catch (Exception exception)
+        {
+            HandlerBoundary.Report(nameof(CompactPanel_BroadcastMenuRequested), exception);
+        }
+    }
+
     private void CompactPanel_OverflowRequested(object? sender, EventArgs e)
     {
         if (_compactPanel is not { } panel)

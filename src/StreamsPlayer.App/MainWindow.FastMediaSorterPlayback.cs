@@ -7,6 +7,7 @@ public partial class MainWindow
 {
     private FastMediaSorterAudioPlayback? _fastMediaSorterAudioPlayback;
     private ExchangeTunnelForwarder? _fastMediaSorterAudioForwarder;
+    private ExchangeRelayProxy? _fastMediaSorterAudioRelayProxy;
     private int _fastMediaSorterAudioGeneration;
     private int _fastMediaSorterAudioLegs;
 
@@ -62,17 +63,29 @@ public partial class MainWindow
         FastMediaSorterAudioOpenResult result = new(null, TimeSpan.Zero, null, Cancelled: false);
         string reason = "unsupported_address";
         int playedAt = -1;
+        var streaming = new bool[1]; // set once the leg is live: a sealed relay failing after that is a verdict, not an open failure
         for (var index = 0; index < attempts.Count; index++)
         {
             var endpoint = attempts[index];
+            // SP-0226 / items DK and DP: an exchange endpoint plays only sealed, with the keys its box or its link handed
+            // over - never as clear bytes through a server. The refusal is the leg's verdict, said once in words.
+            var decision = ExchangeBroadcastKeys.Decide(endpoint);
+            if (!decision.Allowed)
+            {
+                reason = decision.Reason;
+                LogFastMediaSorterAudioAttempt(leg, reconnecting, index, endpoint, reason, result);
+                continue;
+            }
+
             ExchangeTunnelForwarder? forwarder = null;
+            ExchangeRelayProxy? relayProxy = null;
             Uri? address = null;
             if (endpoint is { Transport: "TUNNEL", Inner: { Length: > 0 } inner } &&
                 ExchangeTunnelUrl.TryParse(endpoint.Url, out var tunnelUrl))
             {
                 try
                 {
-                    forwarder = ExchangeTunnelForwarder.Start(tunnelUrl, inner, endpoint.CertFingerprint);
+                    forwarder = ExchangeTunnelForwarder.Start(tunnelUrl, inner, endpoint.CertFingerprint, tunnelPin: decision.TunnelPin);
                     _fastMediaSorterAudioForwarder = forwarder;
                     if (LaunchableAddress.TryParseHttp(forwarder.LoopbackUrl, out var loopbackEndpoint))
                     {
@@ -84,6 +97,33 @@ public partial class MainWindow
                     _log.Event("FMS AUDIO TUNNEL ERROR", $"err={ex.Message}", $"url={channel.Url}");
                 }
             }
+            else if (decision.RelayOptions(endpoint.Url) is { } sealedRelay)
+            {
+                // Item DL: a sealed relay is records, not an ordinary stream; the loopback proxy opens them and the
+                // audio route reads clear media from it. The pair, if there is one, rides the proxy's own connection.
+                try
+                {
+                    relayProxy = ExchangeRelayProxy.Start(endpoint.Url, endpoint.CertFingerprint,
+                        credentials: decision.Credentials ?? _playingBroadcastCredentials, sealedRelay: sealedRelay);
+                    _fastMediaSorterAudioRelayProxy = relayProxy;
+                    relayProxy.Failed += failure => Dispatcher.BeginInvoke(new Action(() => HandlerBoundary.Run(
+                        nameof(OpenFastMediaSorterAudioAsync), async () =>
+                        {
+                            if (streaming[0] && IsCurrentFastMediaSorterPlayback(playback, generation, channel))
+                            {
+                                await HandleFastMediaSorterAudioFailureAsync(channel, failure, null);
+                            }
+                        })), DispatcherPriority.Normal);
+                    if (LaunchableAddress.TryParseHttp(relayProxy.LoopbackUrl, out var proxyEndpoint))
+                    {
+                        address = proxyEndpoint;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _log.Event("FMS AUDIO RELAY ERROR", $"err={ex.GetType().Name}", $"url={channel.Url}");
+                }
+            }
             else if (LaunchableAddress.TryParseHttp(endpoint.Url, out var directEndpoint))
             {
                 address = directEndpoint;
@@ -92,9 +132,14 @@ public partial class MainWindow
             if (address is null)
             {
                 forwarder?.Dispose();
+                relayProxy?.Dispose();
                 if (ReferenceEquals(_fastMediaSorterAudioForwarder, forwarder))
                 {
                     _fastMediaSorterAudioForwarder = null;
+                }
+                if (ReferenceEquals(_fastMediaSorterAudioRelayProxy, relayProxy))
+                {
+                    _fastMediaSorterAudioRelayProxy = null;
                 }
 
                 LogFastMediaSorterAudioAttempt(leg, reconnecting, index, endpoint, "unsupported_address", result);
@@ -109,26 +154,49 @@ public partial class MainWindow
                     ? FastMediaSorterPlaybackTransport.LanConnectTimeout
                     : (TimeSpan?)null;
 
-            result = await playback.StartAsync(address, volume, cancellationToken, connectTimeout, endpoint.CertFingerprint);
+            // SP-0215 requirement 7: only the relay endpoint sees the pair - a direct LAN address and a
+            // tunnel inner address are the producer's own servers, and no pair rides a leg that did not ask.
+            // A sealed relay is reached through the proxy over plain loopback: the pin and the pair are the proxy's.
+            var relayCredentials = relayProxy is null && endpoint.Transport?.Equals("RELAY", StringComparison.OrdinalIgnoreCase) == true
+                ? _playingBroadcastCredentials
+                : null;
+            result = await playback.StartAsync(address, volume, cancellationToken, connectTimeout,
+                relayProxy is null ? endpoint.CertFingerprint : null, relayCredentials);
             if (!IsCurrentFastMediaSorterPlayback(playback, generation, channel) || result.Cancelled)
             {
                 playback.Dispose();
                 forwarder?.Dispose();
+                relayProxy?.Dispose();
                 return;
             }
 
             if (result.Started)
             {
+                streaming[0] = true;
                 playedAt = index;
                 break;
             }
 
-            reason = result.Error is not null ? result.Error.GetType().Name : "refused";
+            reason = forwarder?.LastRefusalReason
+                ?? relayProxy?.LastFailure
+                ?? (result.Error is ExchangeBroadcastCertificateException certificate ? certificate.Reason
+                    : result.Error is not null ? result.Error.GetType().Name : "refused");
+            if (result.StatusCode == 401 && IsPasswordProtected(channel))
+            {
+                reason = relayCredentials is null
+                    ? ExchangeBroadcastAuth.PasswordRequiredReason
+                    : ExchangeBroadcastAuth.PasswordRefusedReason;
+            }
             LogFastMediaSorterAudioAttempt(leg, reconnecting, index, endpoint, reason, result);
             forwarder?.Dispose();
+            relayProxy?.Dispose();
             if (ReferenceEquals(_fastMediaSorterAudioForwarder, forwarder))
             {
                 _fastMediaSorterAudioForwarder = null;
+            }
+            if (ReferenceEquals(_fastMediaSorterAudioRelayProxy, relayProxy))
+            {
+                _fastMediaSorterAudioRelayProxy = null;
             }
         }
 
@@ -229,6 +297,20 @@ public partial class MainWindow
         }
 
         StopFastMediaSorterAudioPlayback();
+        if (ExchangeBroadcastAuth.MessageKey(reason) is not null)
+        {
+            // One message (below); the stored password the relay refused is the broadcaster's old
+            // one, so it is forgotten here and the next explicit play or Retry is the one new prompt.
+            ForgetBroadcastPassword(channel.Id);
+            _playingBroadcastCredentials = null;
+            await FailAudioTerminallyAsync(channel, reason);
+            return;
+        }
+        if (ExchangeBroadcastCertificateException.MessageKey(reason) is not null)
+        {
+            await FailAudioTerminallyAsync(channel, reason);
+            return;
+        }
         var failure = FastMediaSorterPlaybackFailure.Classify(responseStatusCode);
         if (failure == FastMediaSorterPlaybackFailureKind.ListenerLimit)
         {
@@ -250,6 +332,9 @@ public partial class MainWindow
         var forwarder = _fastMediaSorterAudioForwarder;
         _fastMediaSorterAudioForwarder = null;
         forwarder?.Dispose();
+        var relayProxy = _fastMediaSorterAudioRelayProxy;
+        _fastMediaSorterAudioRelayProxy = null;
+        relayProxy?.Dispose();
 
         var playback = _fastMediaSorterAudioPlayback;
         _fastMediaSorterAudioPlayback = null;

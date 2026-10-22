@@ -34,17 +34,26 @@ internal sealed class FastMediaSorterPlaybackTransport
         Uri endpoint,
         TimeSpan? connectTimeout,
         string? certFingerprint,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        ExchangeRelayCredentials? credentials = null)
     {
         var stopwatch = Stopwatch.StartNew();
         using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
         request.Headers.UserAgent.ParseAdd("StreamsPlayer/0.1");
+        // Item M: a protected broadcast's pair rides the endpoint's own request - the pin or the
+        // platform chain has accepted the leaf before this request is sent, and no URL holds it.
+        if (credentials is not null)
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Basic", ExchangeBroadcastAuth.BasicValue(credentials));
+        }
 
         HttpClient? scoped = null;
+        string? certificateRefusal = null;
         try
         {
             HttpClient client = Client;
-            if (connectTimeout is not null || !string.IsNullOrWhiteSpace(certFingerprint))
+            if (connectTimeout is not null || endpoint.Scheme == Uri.UriSchemeHttps)
             {
                 var handler = new SocketsHttpHandler
                 {
@@ -52,13 +61,9 @@ internal sealed class FastMediaSorterPlaybackTransport
                     UseCookies = false,
                     ConnectTimeout = connectTimeout ?? TimeSpan.FromSeconds(15)
                 };
-                if (!string.IsNullOrWhiteSpace(certFingerprint))
+                if (endpoint.Scheme == Uri.UriSchemeHttps)
                 {
-                    handler.SslOptions = new SslClientAuthenticationOptions
-                    {
-                        RemoteCertificateValidationCallback = (_, certificate, _, chainErrors) =>
-                            ExchangeCertificatePin.Accepts(certificate, certFingerprint, chainErrors)
-                    };
+                    handler.SslOptions = PinnedSslOptions(certFingerprint, refusal => certificateRefusal = refusal);
                 }
 
                 scoped = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
@@ -97,9 +102,29 @@ internal sealed class FastMediaSorterPlaybackTransport
         catch (Exception ex) when (ex is HttpRequestException or IOException or OperationCanceledException)
         {
             scoped?.Dispose();
-            return new FastMediaSorterPlaybackConnection(endpoint, null, stopwatch.Elapsed, null, null, ex);
+            return new FastMediaSorterPlaybackConnection(endpoint, null, stopwatch.Elapsed, null, null,
+                certificateRefusal is null ? ex : new ExchangeBroadcastCertificateException(certificateRefusal, ex));
         }
     }
+
+    /// <summary>
+    /// The TLS decision of an HTTPS leg: the pinned leaf or the platform chain, over TLS 1.2 at least (item AX).
+    /// <paramref name="onRefusal"/> receives the reason when the certificate was the cause, which the transport's
+    /// own exception does not carry across the handler.
+    /// </summary>
+    internal static SslClientAuthenticationOptions PinnedSslOptions(string? certFingerprint, Action<string> onRefusal) => new()
+    {
+        EnabledSslProtocols = ExchangeCertificatePin.ClientProtocols,
+        RemoteCertificateValidationCallback = (_, certificate, _, chainErrors) =>
+        {
+            var accepted = ExchangeCertificatePin.Accepts(certificate, certFingerprint, chainErrors);
+            if (!accepted)
+                onRefusal(string.IsNullOrWhiteSpace(certFingerprint)
+                    ? ExchangeBroadcastCertificateException.UntrustedWithoutFingerprint
+                    : ExchangeBroadcastCertificateException.Refused);
+            return accepted;
+        }
+    };
 
     private static HttpClient CreateClient()
     {

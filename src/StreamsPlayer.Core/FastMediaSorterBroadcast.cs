@@ -16,6 +16,13 @@ public enum FastMediaSorterBroadcastReadStatus
     UnsupportedMode
 }
 
+/// <summary>
+/// LIVE-BROADCAST item M: the descriptor's <c>auth</c> marker of a protected broadcast - the challenge's
+/// scheme and the user name to answer it with. It deliberately carries no secret: the password is told
+/// to the person separately and is never written into the descriptor, the link, the file or the barcode.
+/// </summary>
+public sealed record FastMediaSorterBroadcastAuth(string Scheme, string User);
+
 /// <summary>One address advertised by a FastMediaSorter broadcast descriptor.</summary>
 public sealed record FastMediaSorterBroadcastEndpoint(
     string Url,
@@ -28,7 +35,9 @@ public sealed record FastMediaSorterBroadcastEndpoint(
     bool? IsLive,
     long? TargetLatencyMs,
     string? CertFingerprint = null,
-    string? Inner = null);
+    string? Inner = null,
+    /// <summary>SP-0226: the `seal` member of a `RELAY` or `TUNNEL` endpoint; null where the descriptor has none.</summary>
+    ExchangeEndpointSeal? Seal = null);
 
 /// <summary>The supported, forward-compatible portion of a FastMediaSorter live-broadcast descriptor.</summary>
 public sealed record FastMediaSorterBroadcast(
@@ -38,7 +47,8 @@ public sealed record FastMediaSorterBroadcast(
     string? SourceId,
     bool IsLive,
     long? TargetLatencyMs,
-    IReadOnlyList<FastMediaSorterBroadcastEndpoint> Endpoints)
+    IReadOnlyList<FastMediaSorterBroadcastEndpoint> Endpoints,
+    FastMediaSorterBroadcastAuth? Auth = null)
 {
     /// <summary>Whether the descriptor describes one of the contract's camera/video kinds (§2.3, §2.4).</summary>
     public bool IsVideoMode => FastMediaSorterBroadcastDescriptor.IsVideoMode(Mode);
@@ -71,9 +81,14 @@ public sealed record FastMediaSorterBroadcast(
     public IReadOnlyList<FastMediaSorterBroadcastEndpoint> PlaybackAttemptEndpoints()
     {
         var attempts = FastMediaSorterBroadcastAttempts.PlaybackAttempts(Mode, Endpoints);
+
+        // SP-0226: the legacy top-level address is a fallback for a descriptor with no usable list; when it
+        // is the exchange's own relay or tunnel it is the same endpoint the list left out for want of a seal.
         return attempts.Count > 0
             ? attempts
-            : [FastMediaSorterBroadcastAttempts.Legacy(Url, Mode, IsLive, TargetLatencyMs)];
+            : ExchangeEndpointKinds.IsExchangeAddress(Url)
+                ? []
+                : [FastMediaSorterBroadcastAttempts.Legacy(Url, Mode, IsLive, TargetLatencyMs)];
     }
 }
 
@@ -309,7 +324,7 @@ public static class FastMediaSorterBroadcastDescriptor
 
             return new(
                 FastMediaSorterBroadcastReadStatus.Ok,
-                new FastMediaSorterBroadcast(url, mode, title, sourceId, isLive, targetLatencyMs, ReadEndpoints(root)));
+                new FastMediaSorterBroadcast(url, mode, title, sourceId, isLive, targetLatencyMs, ReadEndpoints(root), ReadAuth(root)));
         }
         catch (Exception exception) when (exception is JsonException or InvalidOperationException)
         {
@@ -318,6 +333,28 @@ public static class FastMediaSorterBroadcastDescriptor
             // into the paste, drop and directory handlers (ActivationMessage handles the same case).
             return new(FastMediaSorterBroadcastReadStatus.InvalidPayload);
         }
+    }
+
+    /// <summary>
+    /// Item M: the <c>auth</c> marker of a protected broadcast. An absent marker leaves the descriptor
+    /// what it was; a present one that names no scheme or no user is a broken payload, not an
+    /// unprotected broadcast - reading it as one would send a listener to a door that always refuses.
+    /// </summary>
+    private static FastMediaSorterBroadcastAuth? ReadAuth(JsonElement root)
+    {
+        if (!root.TryGetProperty("auth", out var auth))
+        {
+            return null;
+        }
+
+        if (auth.ValueKind != JsonValueKind.Object ||
+            !TryGetNonBlankString(auth, "scheme", out var scheme) ||
+            !TryGetNonBlankString(auth, "user", out var user))
+        {
+            throw new JsonException("'auth' is not a protected-broadcast marker.");
+        }
+
+        return new FastMediaSorterBroadcastAuth(scheme, user);
     }
 
     private static IReadOnlyList<FastMediaSorterBroadcastEndpoint> ReadEndpoints(JsonElement root)
@@ -360,7 +397,8 @@ public static class FastMediaSorterBroadcastDescriptor
                 TryGetBoolean(endpoint, "isLive"),
                 ReadInt64(endpoint, "targetLatencyMs"),
                 TryGetString(endpoint, "certFingerprint"),
-                inner));
+                inner,
+                ExchangeEndpointSeal.Read(endpoint)));
         }
 
         return result;

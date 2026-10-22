@@ -32,6 +32,10 @@ public partial class MainWindow
         CancelRandomStationHunt();
         _resumeRecordFrozen = true;
         CloseOpenPlayerWindows();
+        // SP-0222: the audio windows of incoming broadcasts are top-level windows of this application's making
+        // too, and nothing owns them.
+        CloseIncomingBroadcastWindows();
+        _broadcastsWindow?.Close();
         // SP-0080: the compact panel is a top-level window of this application's making, so it goes the
         // same way, while the catalog is still open.
         CloseCompactPanel();

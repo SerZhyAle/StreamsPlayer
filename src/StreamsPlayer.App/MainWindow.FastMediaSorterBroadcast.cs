@@ -45,8 +45,14 @@ public partial class MainWindow
         await ImportFastMediaSorterBroadcastAsync(FastMediaSorterBroadcastDescriptor.Read(bytes), owner);
     }
 
-    private async Task ImportFastMediaSorterBroadcastAsync(FastMediaSorterBroadcastRead read, Window owner)
+    /// <param name="openAfterImport">
+    /// SP-0222 requirement 4: the Paste button is the explicit act of opening a pasted link, so after the person
+    /// confirms the import the broadcast continues into a window of its own - the same door the broadcast list's
+    /// field uses, with the password prompt when the broadcast asks for one. A file or a drop only imports.
+    /// </param>
+    private async Task ImportFastMediaSorterBroadcastAsync(FastMediaSorterBroadcastRead read, Window owner, bool openAfterImport = false)
     {
+        RememberLinkKeys(read.Broadcast);
         if (_busy)
         {
             // SP-0158: the window still accepts the offer while another operation owns it - saying
@@ -61,12 +67,13 @@ public partial class MainWindow
         {
             var key = read.Status switch
             {
-                FastMediaSorterBroadcastReadStatus.UnsupportedSchema => "FmsBroadcastUnsupportedSchema",
+                // A higher schema is the family's own row, never "update the program" (LIVE-BROADCAST, amendment 2026-10-17).
+                FastMediaSorterBroadcastReadStatus.UnsupportedSchema => ExchangeFailureRows.FormatUnsupported.MessageKey,
                 FastMediaSorterBroadcastReadStatus.UnsupportedMode => "FmsBroadcastUnsupportedMode",
                 FastMediaSorterBroadcastReadStatus.TooLarge => "FmsBroadcastTooLarge",
                 _ => "FmsBroadcastInvalid"
             };
-            _log.Event("FMS IMPORT SKIP", $"status={read.Status}");
+            _log.Event("FMS IMPORT SKIP", $"status={read.Status}", "contract=LIVE-BROADCAST");
             MessageBox.Show(owner, LocalizationService.Get(key), LocalizationService.Get("FmsBroadcastTitle"),
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
@@ -99,13 +106,23 @@ public partial class MainWindow
         ApplyFilter();
         SetStatus(applied.Added ? "FmsBroadcastAdded" : "FmsBroadcastUpdated", applied.Channel.Title);
         await RevealChannelAsync(applied.Channel.Id);
+        if (openAfterImport)
+        {
+            var imported = applied.Channel;
+            var opened = await OpenIncomingBroadcastAsync(
+                () => Task.FromResult<StreamChannel?>(imported), recordCredentials: null, openedByLink: true);
+            if (opened.Outcome == BroadcastOpenOutcome.BoundReached)
+            {
+                SetStatus(IncomingBroadcastFailure.BoundReachedKey, IncomingBroadcastWindows.Default.Maximum);
+            }
+        }
     }
 
     private void MainWindow_PreviewDragOver(object sender, DragEventArgs e)
     {
         // SP-0158: while busy the import is refused, so advertising Copy here would promise a copy the
         // window will not perform.
-        if (!TryGetBroadcastFile(e, out _))
+        if (!TryGetExchangeDrop(e, out _, out _) && !TryGetBroadcastFile(e, out _))
         {
             // Not a drag this window accepts: advertise nothing, but leave the event unhandled so a control
             // with a drop of its own (a text box taking dropped text) still gets to answer it.
@@ -121,9 +138,26 @@ public partial class MainWindow
     {
         try
         {
+            if (TryGetExchangeDrop(e, out var text, out var exchangePath))
+            {
+                e.Handled = true;
+                var result = text is not null ? ExchangeConnectionImport.ReadText(text)
+                    : await ExchangeConnectionImport.ReadFileAsync(exchangePath!);
+                // Finish the OLE drop before opening a modal window; the source needs its drag loop back.
+                _ = Dispatcher.BeginInvoke(() => OpenExchangeImport(result));
+                return;
+            }
             if (TryGetBroadcastFile(e, out var path))
             {
-                await ImportFastMediaSorterBroadcastFileAsync(path, this);
+                e.Handled = true;
+                if (Path.GetExtension(path).Equals(".spres", StringComparison.OrdinalIgnoreCase))
+                {
+                    await ImportBroadcastResourceFileAsync(path, this);
+                }
+                else
+                {
+                    await ImportFastMediaSorterBroadcastFileAsync(path, this);
+                }
             }
         }
         catch (Exception exception)
@@ -136,7 +170,16 @@ public partial class MainWindow
     {
         path = string.Empty;
         if (!e.Data.GetDataPresent(DataFormats.FileDrop) || e.Data.GetData(DataFormats.FileDrop) is not string[] files ||
-            files.Length != 1 || !Path.GetExtension(files[0]).Equals(".fmsbcast", StringComparison.OrdinalIgnoreCase))
+            files.Length != 1)
+        {
+            return false;
+        }
+
+        // .fmsbcast is a live-broadcast descriptor (SP-0099); .spres is a broadcast resource document
+        // (196 section 6.2) - one drag-in window accepts both, dispatched by extension.
+        var extension = Path.GetExtension(files[0]);
+        if (!extension.Equals(".fmsbcast", StringComparison.OrdinalIgnoreCase) &&
+            !extension.Equals(".spres", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }

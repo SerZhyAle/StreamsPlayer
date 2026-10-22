@@ -237,6 +237,27 @@ public sealed class FastMediaSorterBroadcastImportTests
         Assert.Equal(imported, Assert.Single(merged.Channels));
     }
 
+    [Fact]
+    public void Apply_CarriesTheProtectedAuthMarkerOntoTheStoredRow()
+    {
+        var descriptor = Descriptor("http://192.168.1.97:8768/live-audio.aac", "phone-1", "Galaxy") with
+        {
+            Auth = new FastMediaSorterBroadcastAuth(ExchangeBroadcastAuth.SupportedScheme, "listener")
+        };
+
+        var added = FastMediaSorterBroadcastImport.Apply([], descriptor, Now);
+        var replaced = FastMediaSorterBroadcastImport.Apply([added.Channel], descriptor with
+        {
+            Title = "New address"
+        }, Now);
+
+        // Item M: the marker travels with the row - a later hand-off of the same broadcast keeps
+        // the channel protected, and the channel a leg plays from knows the challenge's user name.
+        Assert.Equal(ExchangeBroadcastAuth.SupportedScheme, added.Channel.FastMediaSorterBroadcast?.Auth?.Scheme);
+        Assert.Equal("listener", added.Channel.FastMediaSorterBroadcast?.Auth?.User);
+        Assert.Equal(added.Channel.FastMediaSorterBroadcast?.Auth, replaced.Channel.FastMediaSorterBroadcast?.Auth);
+    }
+
     private static FastMediaSorterBroadcast Descriptor(string url, string? sourceId, string title) =>
         new(
             url,
@@ -265,7 +286,7 @@ public sealed class FastMediaSorterBroadcastImportTests
     public void Apply_ARelayOnlyVideoDescriptorStaysAVideoRow()
     {
         var result = FastMediaSorterBroadcastImport.Apply([], FastMediaSorterBroadcastDescriptor.Read("""
-            {"schemaVersion":1,"url":"https://exchange.example.net:44022/v2/b/ICEiIyQlJicoKSorLC0uLw/stream","title":"Kitchen camera","mode":"VIDEO_AUDIO","sourceId":"phone-camera-2","isLive":true,"targetLatencyMs":2000,"endpoints":[{"url":"https://exchange.example.net:44022/v2/b/ICEiIyQlJicoKSorLC0uLw/stream","transport":"RELAY","mode":"VIDEO_AUDIO","videoCodec":"H264","audioCodec":"AAC","isLive":true,"targetLatencyMs":2000,"certFingerprint":"SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk"}]}
+            {"schemaVersion":1,"url":"https://exchange.example.net:44022/v2/b/ICEiIyQlJicoKSorLC0uLw/stream","title":"Kitchen camera","mode":"VIDEO_AUDIO","sourceId":"phone-camera-2","isLive":true,"targetLatencyMs":2000,"endpoints":[{"url":"https://exchange.example.net:44022/v2/b/ICEiIyQlJicoKSorLC0uLw/stream","transport":"RELAY","mode":"VIDEO_AUDIO","videoCodec":"H264","audioCodec":"AAC","isLive":true,"targetLatencyMs":2000,"certFingerprint":"SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk","seal":{"v":1,"key":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}}]}
             """).Broadcast!, Now);
 
         Assert.True(result.Added);

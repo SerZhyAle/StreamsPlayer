@@ -1,0 +1,16 @@
+Vendored for SP-0228 from the contract store (device-exchange/vectors/ and device-exchange/proposed-vectors/fmsw-2026-10-11/) on 2026-10-21.
+
+server-frames-v2.json and server-records-v1.json are byte-for-byte copies of the catalog's vectors/server-frames-v2.json and
+vectors/server-records-v1.json (the generator calls them frames-v2.json and records-v1.json; the catalog renamed them when item BS
+adopted the pair). PROVENANCE.txt is a byte-for-byte copy of the file the generator filed with them and is kept as filed: it describes
+the two files under the generator's names and records the commit as "not recorded".
+sha256 of server-frames-v2.json:  afa1a68273670f98c5dd615261759d1853a4cafd9086254e23acbdc7d0aea107 (the value its PROVENANCE.txt records for frames-v2.json)
+sha256 of server-records-v1.json: 2b0edd5dca31e91fc5b828fc5707d518c3b796bdf02f0bd28738e72108113e00 (the value its PROVENANCE.txt records for records-v1.json)
+sha256 of PROVENANCE.txt:         c9aa7a2207410df7873474963b1c5c3f051b43853513c17671d1e8081dff76f3
+
+Use: ExchangeServerFramesReplayTests replays the frames a real FMS_Win exchange server sent and received (DEVICE-EXCHANGE sections 5 to 7)
+through this product's own wire code; ExchangeServerRecordsReplayTests wraps each accepted record of the records corpus in a `directory`
+frame and reads it with ExchangeDirectoryState. Both pin the bytes by hash. The headers name contract 0.17; the producer updates them at
+its next regeneration (item BS). `resource-16KiB-exact` of the records corpus is stale and item BS prevails: under it that input is
+refused `capacity`, and the test reads the case by the item. The contract adopts the pair as evidence for the producer side (rungs 1 and 2
+of the server); no replay by this product is claimed there and none is claimed here as a joint run.

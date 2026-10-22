@@ -1,0 +1,6 @@
+Contract: DEVICE-EXCHANGE 1.5, section 9 items CZ (the one table of messages) and CY (the ladder of checks), and the amendment of 2026-10-17 (the local row format-unsupported)
+Source: Contracts/device-exchange/README.md (the tables, read by tools/localization/check-exchange-terms.ps1)
+Exported: 2026-10-21, by tools/localization/check-exchange-terms.ps1 -CatalogRoot <catalog> -ExportFailureTable
+Content: the 24 rows this product raises (code, kind, step, EN, RU, UK) and the 15 steps (number, id, applies, EN, RU, UK), as the catalog words them
+Use: ExchangeFailureTextTests holds the product's dictionaries to these words in CI, where the catalog is absent. The same script, run without -ExportFailureTable, fails when this file differs from the catalog.
+This is test data, not a second source: the catalog wins, and a change to the table is made there and exported here.

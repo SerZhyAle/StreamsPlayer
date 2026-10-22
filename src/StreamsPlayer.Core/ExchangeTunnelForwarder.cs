@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 
@@ -26,6 +25,7 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
     private readonly ExchangeTunnelUrl _tunnelUrl;
     private readonly string _innerUrl;
     private readonly string? _certFingerprint;
+    private readonly string? _tunnelPin;
     private readonly int _maxConnections;
     private readonly Func<string, int, string?, CancellationToken, Task<Stream>> _streamConnector;
     private readonly CancellationTokenSource _cts = new();
@@ -33,6 +33,9 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
     private readonly object _lock = new();
     private int _activeConnections;
     private bool _disposed;
+    public static readonly TimeSpan IdleTimeout = ExchangeBroadcastResources.IdleTimeout;
+    private readonly Timer _idleTimer;
+    private readonly IDisposable _lease;
 
     public int BoundPort { get; }
     public string LoopbackUrl { get; }
@@ -48,18 +51,23 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
         string innerUrl,
         string? certFingerprint,
         int maxConnections,
-        Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector)
+        Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector,
+        string? tunnelPin,
+        IDisposable lease)
     {
+        _lease = lease;
+        _tunnelPin = tunnelPin;
         _tunnelUrl = tunnelUrl;
         _innerUrl = innerUrl;
         _certFingerprint = certFingerprint;
         _maxConnections = maxConnections > 0 ? maxConnections : DefaultMaxConnections;
-        _streamConnector = streamConnector ?? DefaultConnectTlsAsync;
+        _streamConnector = streamConnector ?? ExchangeBroadcastCertificateException.ConnectAsync;
 
         _listener = new TcpListener(IPAddress.Loopback, 0);
         _listener.Start();
         BoundPort = ((IPEndPoint)_listener.LocalEndpoint).Port;
         LoopbackUrl = ExchangeTunnelUrl.RewriteInner(_innerUrl, BoundPort);
+        _idleTimer = new Timer(_ => Dispose(), null, IdleTimeout, Timeout.InfiniteTimeSpan);
     }
 
     public static ExchangeTunnelForwarder Start(
@@ -67,16 +75,15 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
         string innerUrl,
         string? certFingerprint = null,
         int maxConnections = DefaultMaxConnections,
-        Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector = null)
+        Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector = null,
+        string? tunnelPin = null)
     {
         if (!ExchangeTunnelUrl.TryParse(fmsxUrl, out var tunnelUrl))
         {
             throw new ArgumentException("Invalid fmsx tunnel URL.", nameof(fmsxUrl));
         }
 
-        var forwarder = new ExchangeTunnelForwarder(tunnelUrl, innerUrl, certFingerprint, maxConnections, streamConnector);
-        forwarder.StartAcceptLoop();
-        return forwarder;
+        return Start(tunnelUrl, innerUrl, certFingerprint, maxConnections, streamConnector, tunnelPin);
     }
 
     public static ExchangeTunnelForwarder Start(
@@ -84,25 +91,28 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
         string innerUrl,
         string? certFingerprint = null,
         int maxConnections = DefaultMaxConnections,
-        Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector = null)
+        Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector = null,
+        string? tunnelPin = null)
     {
-        var forwarder = new ExchangeTunnelForwarder(tunnelUrl, innerUrl, certFingerprint, maxConnections, streamConnector);
+        var forwarder = ExchangeBroadcastResources.Start(lease =>
+            new ExchangeTunnelForwarder(tunnelUrl, innerUrl, certFingerprint, maxConnections, streamConnector, tunnelPin, lease));
         forwarder.StartAcceptLoop();
         return forwarder;
     }
 
     private void StartAcceptLoop()
     {
+        var token = _cts.Token;
         Task.Run(async () =>
         {
             try
             {
-                while (!_cts.IsCancellationRequested)
+                while (!token.IsCancellationRequested)
                 {
-                    var client = await _listener.AcceptTcpClientAsync(_cts.Token).ConfigureAwait(false);
+                    var client = await _listener.AcceptTcpClientAsync(token).ConfigureAwait(false);
                     lock (_lock)
                     {
-                        if (_disposed || _cts.IsCancellationRequested)
+                        if (_disposed || token.IsCancellationRequested)
                         {
                             client.Dispose();
                             break;
@@ -119,7 +129,7 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
                         _activeResources.Add(client);
                     }
 
-                    _ = Task.Run(() => HandleConnectionAsync(client, _cts.Token));
+                    _ = Task.Run(() => HandleConnectionAsync(client, token));
                 }
             }
             catch (OperationCanceledException)
@@ -180,15 +190,35 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
                 return;
             }
 
+            // SP-0226 / item DM: a sealed tunnel runs TLS inside, accepted only on the leaf the broadcast's pin names;
+            // the bytes the server relays are TLS records and nothing else.
+            Stream innerStream = exchangeStream;
+            if (_tunnelPin is not null)
+            {
+                innerStream = await ExchangeTunnelTls.ConnectAsync(exchangeStream, _tunnelPin, connect.Token).ConfigureAwait(false);
+                lock (_lock)
+                {
+                    _activeResources.Add(innerStream);
+                }
+            }
+
             ConnectedCount++;
             using var clientStream = client.GetStream();
-            var forward = SpliceCopyAsync(clientStream, exchangeStream, cancellationToken);
-            var backward = SpliceCopyAsync(exchangeStream, clientStream, cancellationToken);
+            var forward = SpliceCopyAsync(clientStream, innerStream, cancellationToken);
+            var backward = SpliceCopyAsync(innerStream, clientStream, cancellationToken);
             await Task.WhenAny(forward, backward).ConfigureAwait(false);
         }
-        catch (Exception) when (!_disposed && !cancellationToken.IsCancellationRequested)
+        catch (Exception exception) when (exception is IOException or SocketException or AuthenticationException
+                                          or OperationCanceledException or ObjectDisposedException or System.Text.Json.JsonException)
         {
-            // Socket or handshake error; close both sides cleanly.
+            if (!_disposed && !cancellationToken.IsCancellationRequested)
+            {
+                LastRefusalReason = exception is ExchangeBroadcastCertificateException certificate
+                    ? certificate.Reason : exception.GetType().Name;
+                LastRefusalKey = ExchangeBroadcastCertificateException.MessageKey(LastRefusalReason)
+                    ?? ExchangeProtocol.RefusalKey(LastRefusalReason);
+                Refused?.Invoke(LastRefusalReason);
+            }
         }
         finally
         {
@@ -207,7 +237,7 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
         }
     }
 
-    private static async Task SpliceCopyAsync(Stream source, Stream destination, CancellationToken cancellationToken)
+    private async Task SpliceCopyAsync(Stream source, Stream destination, CancellationToken cancellationToken)
     {
         var buffer = new byte[16384];
         try
@@ -220,6 +250,7 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
                     break;
                 }
 
+                NoteActivity();
                 await destination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken).ConfigureAwait(false);
                 await destination.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -238,47 +269,12 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
         }
     }
 
-    private static async Task<Stream> DefaultConnectTlsAsync(string host, int port, string? certFingerprint, CancellationToken cancellationToken)
+    private void NoteActivity()
     {
-        var client = new TcpClient();
-        try
+        lock (_lock)
         {
-            await client.ConnectAsync(host, port, cancellationToken).ConfigureAwait(false);
-            string presentedFingerprint = "";
-            var sslStream = new SslStream(client.GetStream(), leaveInnerStreamOpen: false, (_, certificate, _, errors) =>
-            {
-                if (certificate is null)
-                {
-                    return false;
-                }
-
-                presentedFingerprint = ExchangeProtocol.Fingerprint(certificate.GetRawCertData());
-                if (!string.IsNullOrWhiteSpace(certFingerprint))
-                {
-                    return string.Equals(certFingerprint, presentedFingerprint, StringComparison.Ordinal);
-                }
-
-                return errors == SslPolicyErrors.None;
-            });
-
-            await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
-            {
-                TargetHost = host
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (!string.IsNullOrWhiteSpace(certFingerprint) &&
-                !string.Equals(certFingerprint, presentedFingerprint, StringComparison.Ordinal))
-            {
-                sslStream.Dispose();
-                throw new AuthenticationException($"Certificate fingerprint mismatch. Expected '{certFingerprint}', presented '{presentedFingerprint}'.");
-            }
-
-            return sslStream;
-        }
-        catch
-        {
-            client.Dispose();
-            throw;
+            if (!_disposed)
+                _idleTimer.Change(IdleTimeout, Timeout.InfiniteTimeSpan);
         }
     }
 
@@ -294,6 +290,7 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
             _disposed = true;
         }
 
+        _idleTimer.Dispose();
         _cts.Cancel();
         try
         {
@@ -323,6 +320,7 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
         }
 
         _cts.Dispose();
+        _lease.Dispose();
     }
 
     public ValueTask DisposeAsync()

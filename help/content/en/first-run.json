@@ -1,0 +1,64 @@
+{
+  "summary": "The question the app asks on its first start: where the channel list comes from.",
+  "lead": "The first time the app starts, its channel list is empty. This window asks where the list should come from, and nothing is downloaded until you choose.",
+  "order": [
+    "Choose **{@internet}** if you are online and want the current list of channels.",
+    "Or choose **{@bundled}** to get a ready list at once, without going online. It is as old as this version of the app.",
+    "Or choose **{@skip}** to look around first. The list stays empty and nothing is downloaded."
+  ],
+  "elements": [
+    {
+      "id": "internet",
+      "nameKey": "UpdateCatalogPlain",
+      "one": "Downloads the current shared channel list and adds it to yours.",
+      "full": [
+        "Fetches the shared catalog of internet radio and video channels, with the station icons, and adds its channels to your list. It is the same import the **Operations** menu offers at any later time.",
+        "It is the only answer in this window that uses the internet."
+      ],
+      "why": "The shared list changes as stations come and go, so this gives you the newest one.",
+      "next": "The window closes and the download starts. The channels appear in the main window when it finishes.",
+      "undo": "An import adds and updates catalog channels only; streams you add yourself or import from a file stay as they are.",
+      "shortcut": "[[Enter]] chooses it, because it is the button with the focus when the window opens."
+    },
+    {
+      "id": "bundled",
+      "nameKey": "CatalogSnapshotUse",
+      "one": "Adds the channels that came with this version, with no download.",
+      "full": [
+        "Adds the channel list packed inside this version of the app, together with its icons, and does not go online. The list is as old as the version you installed, so it can miss newer stations.",
+        "This answer is shown only when the application contains a built-in copy. If it is missing here, this build has none."
+      ],
+      "why": "It works with no connection and puts channels in the list at once.",
+      "next": "The window closes and the channels appear in the main window. To bring the list up to date later, import channels from the internet in the **Operations** menu.",
+      "undo": "Nothing you made is touched. Channels you do not want can be hidden afterwards."
+    },
+    {
+      "id": "skip",
+      "nameKey": "FirstRunSkip",
+      "one": "Starts with an empty list and downloads nothing.",
+      "full": [
+        "Closes this window and leaves the channel list empty. You can import channels at any moment from the **Operations** menu of the main window."
+      ],
+      "why": "For when you want to look around first, or are offline and do not want the built-in copy yet.",
+      "next": "The main window opens with an empty list.",
+      "undo": "Nothing changes, so there is nothing to undo.",
+      "shortcut": "[[Esc]], or closing the window, does the same."
+    },
+    {
+      "id": "help",
+      "nameKey": "HelpName",
+      "one": "Opens this page.",
+      "full": [
+        "Every window that has help carries this button near its top-right corner. It opens the page of the window you are in, in your web browser; the application stays open."
+      ],
+      "next": "The page opens in your browser. Nothing in the application changes.",
+      "shortcut": "[[F1]] does the same from anywhere in the window."
+    }
+  ],
+  "related": [
+    { "help": "main", "note": "The main window, where the channels appear." },
+    { "help": "settings", "note": "Where the channel list can be imported, refreshed or cleaned up later." },
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." },
+    { "site": "support", "note": "How to report a problem and what to send." }
+  ]
+}

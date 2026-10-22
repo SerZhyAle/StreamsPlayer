@@ -1,0 +1,32 @@
+{
+  "kicker": "Window help",
+  "titlePrefix": "Help",
+  "breadcrumb": "Breadcrumb",
+  "indexLink": "Help index",
+  "orderHeading": "In this order",
+  "elementsHeading": "The elements",
+  "relatedHeading": "Related",
+  "factWhy": "Why",
+  "factNext": "Next",
+  "factUndo": "Undo",
+  "factShortcut": "Shortcut",
+  "tip": "Tip",
+  "pillWindow": "Window",
+  "pillSite": "Site",
+  "site": { "use": "How to use", "support": "Support", "privacy": "Privacy" },
+  "support": "Ask a question or report a problem",
+  "footerWritten": "Written against {product} {version}, {date}.",
+  "indexTitle": "Help",
+  "indexLead": "Every window with help has a **?** button near its top-right corner and answers [[F1]]. These pages are what they open, in your language, and they work with no internet.",
+  "indexAskHeading": "How to ask",
+  "indexAsk": [
+    "Press [[F1]] in any window, or click the **?** button. The page of that window opens in your web browser; the application stays open and nothing in it changes.",
+    "In Settings the page opens at the section you are looking at. With a control focused that has its own entry, [[F1]] opens that entry."
+  ],
+  "indexWindowsHeading": "Windows",
+  "indexRelated": [
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." },
+    { "site": "support", "note": "How to report a problem and what to send." },
+    { "site": "privacy", "note": "What stays on your computer and what goes over the network." }
+  ]
+}

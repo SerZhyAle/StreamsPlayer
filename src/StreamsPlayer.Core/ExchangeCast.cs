@@ -43,7 +43,10 @@ public sealed record ExchangeCastOffer(
     string Title,
     FastMediaSorterBroadcast? Descriptor,
     ExchangeBroadcastSupport Support,
-    string? CastId = null)
+    string? CastId = null,
+    /// <summary>SP-0226 / item DK: the record's sealed box, handed with the offer; opened by the receiver before it plays.</summary>
+    ExchangeSealedBox? Sealed = null,
+    bool SealedUnreadable = false)
 {
     public static bool TryParse(JsonElement root, out ExchangeCastOffer? offer)
     {
@@ -112,7 +115,9 @@ public sealed record ExchangeCastOffer(
         }
 
         title ??= "Live Broadcast";
-        offer = new ExchangeCastOffer(broadcastId, deviceId, deviceName, title, descriptor, support, castId);
+        var unreadable = false;
+        var box = readable ? ExchangeDirectoryState.ReadSealedBox(record, out unreadable) : null;
+        offer = new ExchangeCastOffer(broadcastId, deviceId, deviceName, title, descriptor, support, castId, box, readable && unreadable);
         return true;
     }
 }

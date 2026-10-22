@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Справка - Откуда взять список каналов?</title>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <nav class="help-crumbs" aria-label="Навигация">
+    <a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Откуда взять список каналов?</span>
+  </nav>
+  <header class="hero">
+    <p class="kicker">Справка по окну</p>
+    <h1>Откуда взять список каналов?</h1>
+    <p class="lead">При первом запуске список каналов пуст. В этом окне вы выбираете, откуда его взять, и ничего не загружается, пока вы не выберете.</p>
+  </header>
+
+  <h2>По порядку</h2>
+  <ol class="order">
+    <li>Выберите <b><a href="#e-internet">Импортировать каналы из интернета</a></b>, если есть подключение и нужен актуальный список каналов.</li>
+    <li>Или выберите <b><a href="#e-bundled">Использовать встроенную копию</a></b>: список появится сразу, без выхода в интернет. Он не новее вашей версии программы.</li>
+    <li>Или выберите <b><a href="#e-skip">Начать с пустого списка</a></b>, чтобы сначала осмотреться. Список останется пустым, ничего не загрузится.</li>
+  </ol>
+
+  <h2>Элементы</h2>
+  <div class="elements">
+    <details class="el" id="e-internet">
+      <summary><span><span class="name">Импортировать каналы из интернета</span><span class="one">Загружает актуальный общий список каналов и добавляет его к вашему.</span></span></summary>
+      <div class="full">
+        <p>Получает общий каталог интернет-радио и видеоканалов вместе со значками станций и добавляет его каналы в ваш список. Это тот же импорт, что и в меню <b>Операции</b> в любой другой момент.</p>
+        <p>Это единственный ответ в этом окне, который обращается к интернету.</p>
+        <dl class="facts">
+          <dt>Зачем</dt><dd>Общий список меняется: станции появляются и исчезают, и так вы получаете самый свежий.</dd>
+          <dt>Дальше</dt><dd>Окно закроется, начнётся загрузка. Когда она закончится, каналы появятся в главном окне.</dd>
+          <dt>Отмена</dt><dd>Импорт только добавляет и обновляет каналы каталога; потоки, которые вы добавили сами или импортировали из файла, остаются как есть.</dd>
+          <dt>Клавиши</dt><dd><kbd>Enter</kbd> выбирает его: при открытии окна фокус стоит на этой кнопке.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-bundled">
+      <summary><span><span class="name">Использовать встроенную копию</span><span class="one">Добавляет каналы, которые поставляются с этой версией, без загрузки.</span></span></summary>
+      <div class="full">
+        <p>Добавляет список каналов, упакованный в эту версию программы, вместе со значками и не выходит в интернет. Список не новее установленной версии, поэтому в нём могут отсутствовать недавние станции.</p>
+        <p>Этот ответ показывается, только если в программе есть встроенная копия. Если его здесь нет, в этой сборке её нет.</p>
+        <dl class="facts">
+          <dt>Зачем</dt><dd>Работает без подключения и сразу наполняет список каналами.</dd>
+          <dt>Дальше</dt><dd>Окно закроется, каналы появятся в главном окне. Чтобы позже обновить список, импортируйте каналы из интернета в меню <b>Операции</b>.</dd>
+          <dt>Отмена</dt><dd>Ничего из того, что вы создали, не затрагивается. Ненужные каналы потом можно скрыть.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-skip">
+      <summary><span><span class="name">Начать с пустого списка</span><span class="one">Начинает с пустого списка и ничего не загружает.</span></span></summary>
+      <div class="full">
+        <p>Закрывает окно и оставляет список каналов пустым. Импортировать каналы можно в любой момент из меню <b>Операции</b> главного окна.</p>
+        <dl class="facts">
+          <dt>Зачем</dt><dd>Когда хочется сначала осмотреться или вы без сети и пока не хотите встроенную копию.</dd>
+          <dt>Дальше</dt><dd>Откроется главное окно с пустым списком.</dd>
+          <dt>Отмена</dt><dd>Ничего не меняется, так что отменять нечего.</dd>
+          <dt>Клавиши</dt><dd>То же делают <kbd>Esc</kbd> и закрытие окна.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-help">
+      <summary><span><span class="name">Справка</span><span class="one">Открывает эту страницу.</span></span></summary>
+      <div class="full">
+        <p>Эта кнопка есть у правого верхнего угла каждого окна со справкой. Она открывает в браузере страницу того окна, в котором вы находитесь; программа остаётся открытой.</p>
+        <dl class="facts">
+          <dt>Дальше</dt><dd>Страница откроется в браузере. В программе ничего не изменится.</dd>
+          <dt>Клавиши</dt><dd><kbd>F1</kbd> делает то же из любого места окна.</dd>
+        </dl>
+      </div>
+    </details>
+  </div>
+
+  <h2>Смотрите также</h2>
+  <ul class="related">
+    <li><a href="main.html"><b>Трансляции</b><span class="pill">Окно</span><small>Главное окно, в котором появляются каналы.</small></a></li>
+    <li><a href="settings.html"><b>Настройки Трансляции</b><span class="pill">Окно</span><small>Где список каналов можно позже импортировать, обновить или почистить.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/ru/index.html#use"><b>Как пользоваться</b><span class="pill gold">Сайт</span><small>Вся задача целиком: от первого запуска до собственных плейлистов.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"><b>Поддержка</b><span class="pill gold">Сайт</span><small>Как сообщить о проблеме и что приложить.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Написано для версии 26.1021 программы «Трансляции», 2026-10-21.</span>
+    <a href="index.html">Оглавление справки</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/ru/support.html">Задать вопрос или сообщить о проблеме</a>
+  </footer>
+
+</main>
+<script>
+/* Progressive enhancement only: the page is complete without it. */
+(function () {
+  function openHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === 'DETAILS') { el.open = true; }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+})();
+</script>
+</body>
+</html>

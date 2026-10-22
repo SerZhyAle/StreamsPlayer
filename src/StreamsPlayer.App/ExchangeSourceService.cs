@@ -2,6 +2,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text.Json;
+using System.Threading.Channels;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -11,9 +12,10 @@ internal sealed class ExchangeRetryRefusalException(string key) : IOException
     internal string Key { get; } = key;
 }
 
-internal sealed class ExchangeSourceService
+internal sealed partial class ExchangeSourceService
 {
     private readonly ExchangeAccountStore _store;
+    private readonly ExchangeTrustBook _trustBook;
     private readonly SemaphoreSlim _operations = new(1, 1);
     private CancellationTokenSource? _connectionCancellation;
     private Task _connectionTask = Task.CompletedTask;
@@ -32,6 +34,13 @@ internal sealed class ExchangeSourceService
     internal string StatusKey { get; private set; } = "ExchangeOff";
 
     /// <summary>
+    /// True only while the Settings page has the account both registered (it holds a sign-in) and switched on.
+    /// This is the one question every control that exists for the exchange server asks before it is shown: with
+    /// the account off or absent the server is not part of the person's UI, and Settings is where it comes back.
+    /// </summary>
+    internal bool IsActive => Account.Enabled && Account.Token is not null;
+
+    /// <summary>
     /// The localized key of how the last enrollment attempt ended, when it did not succeed. It is a separate
     /// line from <see cref="StatusKey"/> because a refused enrollment puts the previous receiver back, and
     /// that receiver's own "online" would otherwise replace the refusal within a second - a failed
@@ -39,6 +48,12 @@ internal sealed class ExchangeSourceService
     /// (enroll, enable or disable, trust, forget).
     /// </summary>
     internal string? EnrollmentOutcomeKey { get; private set; }
+
+    /// <summary>
+    /// SP-0225: the server the last sign-in attempt or certificate probe addressed. A failed attempt leaves no account,
+    /// so this is what tells the connection check that <see cref="EnrollmentOutcomeKey"/> is about the server the form names.
+    /// </summary>
+    internal (string Host, int Port)? LastAttemptEndpoint { get; private set; }
 
     // The pending certificate replacement of the account's own server. Both are set only for a fingerprint
     // read from the account's host and port (_presentedHost/_presentedPort), never for another server.
@@ -62,6 +77,8 @@ internal sealed class ExchangeSourceService
     internal ExchangeSourceService(string directory)
     {
         _store = new ExchangeAccountStore(directory);
+        _trustBook = new ExchangeTrustBook(directory);
+        Guests = new ExchangeGuestEntries(directory);
         try
         {
             Account = _store.Load();
@@ -72,7 +89,8 @@ internal sealed class ExchangeSourceService
             {
                 _store.Save(Account);
             }
-            StatusKey = _store.ProtectionFailed ? "ExchangeEnrollAgain" : "ExchangeOff";
+            StatusKey = _store.ProtectionFailed ? "ExchangeEnrollAgain"
+                : Account.SignedOut ? "ExchangeSignedOut" : "ExchangeOff";
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
             or System.Security.Cryptography.CryptographicException)
@@ -90,11 +108,21 @@ internal sealed class ExchangeSourceService
         }
     }
 
-    internal async Task<string?> InspectCertificateAsync(string host, int port)
+    internal async Task<string?> InspectCertificateAsync(string host, int port, string? requiredPin = null,
+        CancellationToken cancellationToken = default) =>
+        (await ProbeCertificateAsync(host, port, requiredPin, cancellationToken).ConfigureAwait(false))?.Fingerprint;
+
+    /// <summary>
+    /// <see cref="InspectCertificateAsync"/> with what the sign-in surface needs to decide on a prompt: an imported
+    /// string's <c>fp</c> that replaces a pin the own entry already holds is a changed certificate (item BN).
+    /// </summary>
+    internal async Task<ExchangeProbedLeaf?> ProbeCertificateAsync(string host, int port, string? requiredPin = null,
+        CancellationToken cancellationToken = default)
     {
         // The probe is the first step of an enrollment, so it starts a new attempt: the last attempt's
         // outcome is not the answer to this one.
         EnrollmentOutcomeKey = null;
+        LastAttemptEndpoint = (ExchangeAccountIdentity.NormalizeHost(host), port);
         if (Uri.CheckHostName(host) == UriHostNameType.Unknown || port is < 1 or > 65535)
         {
             ReportOutcome("ExchangeInvalidEntry");
@@ -103,13 +131,22 @@ internal sealed class ExchangeSourceService
 
         try
         {
-            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-            var pin = IsAccountEndpoint(host, port) ? Account.Pin : null;
-            using var connection = await ExchangeTlsConnection.OpenAsync(host, port, pin, deadline.Token).ConfigureAwait(false);
-            return connection.Fingerprint;
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            deadline.CancelAfter(TimeSpan.FromSeconds(15));
+            var pin = requiredPin ?? (IsAccountEndpoint(host, port) ? Account.Pin : null);
+            // A renewal that keeps the entry's key (item AY) opens with no prompt, so the probe carries the key too.
+            var pinKey = requiredPin is null && IsAccountEndpoint(host, port) ? Account.PinKey : null;
+            using var connection = await ExchangeTlsConnection.OpenAsync(host, port, pin, deadline.Token, pinKey).ConfigureAwait(false);
+            return new ExchangeProbedLeaf(connection.Fingerprint, requiredPin is not null
+                && ReplacesHeldPin(host, port, connection.Fingerprint, connection.PublicKeyFingerprint));
         }
         catch (ExchangeCertificateException exception)
         {
+            if (requiredPin is not null)
+            {
+                ReportOutcome("ExchangeStringCertificateMismatch");
+                throw;
+            }
             // The status line describes the account's own connection, so a probe of another server only
             // returns its fingerprint to the enrollment that asked; it records nothing about the account.
             if (IsAccountEndpoint(host, port))
@@ -117,103 +154,19 @@ internal sealed class ExchangeSourceService
                 ShowCertificate(exception, host, port);
             }
 
-            return exception.Presented;
+            return new ExchangeProbedLeaf(exception.Presented, false);
         }
-        catch (Exception exception) when (IsConnectionFailure(exception))
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // The probe never touched the account's receiver, so its connection line is left as it is.
-            ReportOutcome("ExchangeUnavailable");
+            ReportOutcome("ExchangeJoinCancelled");
             return null;
         }
-    }
-
-    internal async Task EnrollAsync(string host, int port, string login, bool pairingCode, char[] secret, string? acceptedPin)
-    {
-        await _operations.WaitAsync().ConfigureAwait(false);
-        ExchangeTlsConnection? connection = null;
-        var savingAccount = false;
-        var resumePrevious = false;
-        try
-        {
-            EnrollmentOutcomeKey = null;
-            EnsureStorage();
-            login = login.ToLowerInvariant();
-            if (Uri.CheckHostName(host) == UriHostNameType.Unknown || port is < 1 or > 65535
-                || login.Length is < 3 or > 64 || login.Any(character =>
-                    character is not (>= 'a' and <= 'z') and not (>= '0' and <= '9') and not '.' and not '_' and not '-')
-                || secret.Length == 0)
-            {
-                // Nothing was stopped, so the receiver's connection line is not this attempt's to overwrite.
-                ReportOutcome("ExchangeInvalidEntry");
-                return;
-            }
-
-            // The running receiver is stopped so the new enrollment owns the one control connection; any exit
-            // that does not replace the account puts it back (the finally below).
-            resumePrevious = _connectionCancellation is not null && Account.Enabled && Account.Token is not null;
-            await StopLoopAsync().ConfigureAwait(false);
-            SetStatus("ExchangeConnecting");
-            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-            var pin = acceptedPin ?? (IsAccountEndpoint(host, port) ? Account.Pin : null);
-            connection = await ExchangeTlsConnection.OpenAsync(host, port, pin, deadline.Token).ConfigureAwait(false);
-            await ExchangeProtocol.WriteEnrollmentAsync(connection.Stream, new
-            {
-                schemaVersion = 2, type = "enroll", login, deviceId = Account.DeviceId,
-                deviceName = "STREAMS Player", product = "streamsplayer-windows", productVersion = ProductInfo.Version,
-                platform = "windows", roles = new[] { "receiver" }, receiver = ExchangeCapabilities.Receiver,
-                keepaliveSeconds = 30
-            }, pairingCode ? "pairingCode" : "password", secret, deadline.Token).ConfigureAwait(false);
-            using var response = await ExchangeHandshake.ReadAsync(connection.Stream, "enrolled", deadline.Token).ConfigureAwait(false);
-            var root = response.RootElement;
-            if (ExchangeProtocol.String(root, "type") == "refused")
-            {
-                FailEnrollment(ExchangeProtocol.RefusalKey(ExchangeProtocol.String(root, "reason")));
-                return;
-            }
-
-            var token = ExchangeProtocol.String(root, "deviceToken");
-            if (token is null || token.Length != 43 || token.Any(character =>
-                    !char.IsAsciiLetterOrDigit(character) && character is not '-' and not '_'))
-            {
-                throw new InvalidDataException("Invalid device token.");
-            }
-
-            var interval = ExchangeHandshake.ReadInterval(root);
-            var enrolled = new ExchangeAccount(Account.DeviceId, host, port, login, token, connection.Fingerprint, true);
-            savingAccount = true;
-            _store.Save(enrolled);
-            savingAccount = false;
-            Account = enrolled;
-            ClearPendingCertificate();
-            resumePrevious = false;
-            StartLoop(connection, interval);
-            connection = null;
-        }
-        catch (ExchangeCertificateException exception)
-        {
-            EnrollmentOutcomeKey = "ExchangeCertificate";
-            ShowCertificate(exception, host, port);
-        }
         catch (Exception exception) when (IsConnectionFailure(exception))
         {
-            FailEnrollment(savingAccount || _storageUnavailable || exception is UnauthorizedAccessException
-                ? "ExchangeStorageFailed" : "ExchangeUnavailable");
-        }
-        finally
-        {
-            Array.Clear(secret);
-            connection?.Dispose();
-            // resumePrevious was read before the receiver was stopped. A loop that was still running then may
-            // have handled a revocation or a bad-credentials refusal while it wound down, which clears the
-            // token and the enabled flag: starting it again would reconnect a token-less account.
-            if (resumePrevious && _connectionCancellation is null && Account.Enabled && Account.Token is not null)
-            {
-                // The outcome of this attempt is kept in EnrollmentOutcomeKey; the receiver's own state
-                // follows from here on, without announcing "connecting" over the refusal first.
-                StartLoop(null, 0, announceConnecting: false);
-            }
-
-            _operations.Release();
+            // The probe never touched the account's receiver, so its connection line is left as it is. No
+            // connection was open, so a closed stream cannot be "no answer" here (item AN).
+            ReportOutcome(ExchangeFailures.KeyOf(exception, connectionOpen: false));
+            return null;
         }
     }
 
@@ -277,7 +230,9 @@ internal sealed class ExchangeSourceService
 
             EnrollmentOutcomeKey = null;
             await StopLoopAsync().ConfigureAwait(false);
-            var updated = Account with { Pin = fingerprint };
+            // The key kept with the old pin belongs to the server the user is replacing: it is dropped, so a leaf
+            // with that key is not accepted any more, and the next connection records the new leaf's key.
+            var updated = Account with { Pin = fingerprint, PinKey = null };
             _store.Save(updated);
             Account = updated;
             ClearPendingCertificate();
@@ -299,12 +254,7 @@ internal sealed class ExchangeSourceService
         {
             EnrollmentOutcomeKey = null;
             EnsureStorage();
-            await StopLoopAsync().ConfigureAwait(false);
-            var forgotten =new ExchangeAccount(ExchangeProtocol.NewDeviceId());
-            _store.Save(forgotten);
-            Account = forgotten;
-            ClearPendingCertificate();
-            SetStatus("ExchangeForgotten");
+            await LeaveAccountAsync().ConfigureAwait(false);
         }
         finally
         {
@@ -373,6 +323,7 @@ internal sealed class ExchangeSourceService
         CancellationToken cancellationToken)
     {
         var backoffSeconds = 1;
+        var authenticated = connection is not null;
         while (!cancellationToken.IsCancellationRequested)
         {
             try
@@ -387,7 +338,8 @@ internal sealed class ExchangeSourceService
                     announceConnecting = true;
                     using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     deadline.CancelAfter(TimeSpan.FromSeconds(15));
-                    connection = await ExchangeTlsConnection.OpenAsync(Account.Host, Account.Port, Account.Pin, deadline.Token).ConfigureAwait(false);
+                    connection = await ExchangeTlsConnection.OpenAsync(Account.Host, Account.Port, Account.Pin, deadline.Token,
+                        Account.PinKey).ConfigureAwait(false);
                     await ExchangeProtocol.WriteAsync(connection.Stream, new
                     {
                         schemaVersion = 2, type = "hello", deviceId = Account.DeviceId,
@@ -405,6 +357,22 @@ internal sealed class ExchangeSourceService
                     }
 
                     interval = ExchangeHandshake.ReadInterval(welcome.RootElement);
+                    // The kind is read before anything announces this session: a guest's welcome must never reach
+                    // the producer's SessionOnline, which re-publishes broadcasts (item AO, item H).
+                    var kind = ExchangeAccountKinds.Parse(ExchangeProtocol.String(welcome.RootElement, "accountKind"));
+                    if (kind == ExchangeAccountKind.Guest && await AccountBecameGuestAsync().ConfigureAwait(false))
+                    {
+                        return;
+                    }
+
+                    if (kind == ExchangeAccountKind.Member)
+                    {
+                        AccountBecameMember();
+                    }
+
+                    RememberLeaf(connection);
+                    RememberServerFacts(welcome.RootElement);
+                    authenticated = true;
                 }
 
                 SetStatus("ExchangeOnline");
@@ -430,20 +398,30 @@ internal sealed class ExchangeSourceService
             }
             catch (Exception exception) when (IsConnectionFailure(exception))
             {
-                SetStatus("ExchangeUnavailable");
+                // A connection that was open when it failed closed with no frame after this product's own
+                // envelope (item AN); one that never opened could not be reached, or could not be protected.
+                SetStatus(ExchangeFailures.KeyOf(exception, connectionOpen: connection is not null));
                 ClearDirectory();
             }
             finally
             {
                 if (connection is not null)
                 {
-                    if (cancellationToken.IsCancellationRequested)
+                    if (_accountBeingRemoved is { } removing)
+                    {
+                        if (authenticated)
+                        {
+                            _removalWritten = await TryRevokeAsync(connection, removing.DeviceId).ConfigureAwait(false);
+                        }
+                    }
+                    else if (cancellationToken.IsCancellationRequested)
                     {
                         await TryByeAsync(connection).ConfigureAwait(false);
                     }
 
                     connection.Dispose();
                     connection = null;
+                    authenticated = false;
                 }
             }
 
@@ -479,9 +457,10 @@ internal sealed class ExchangeSourceService
         }
 
         await SendAsync(new { schemaVersion = 2, type = "keepalive" }, cancellationToken).ConfigureAwait(false);
-        // SP-0201 requirement 1: the list fills the view first, then subscribe keeps it current. A gap in
-        // revision below answers itself with a new list; subscribe is written once, after the first answer.
-        await SendAsync(new { schemaVersion = 2, type = "list" }, cancellationToken).ConfigureAwait(false);
+        // SP-0222 requirement 1: nothing is listed because a session came up. A list is asked for by a lease
+        // (ExchangeSourceService.Directory.cs): the list fills the view first, then subscribe keeps it current.
+        // A gap in revision below answers itself with a new list; subscribe is written once per session, after
+        // the first answer a follower asked for.
         var subscribed = false;
         Task<JsonDocument>? pending = null;
         var castTasks = new List<OpenCastAnswer>();
@@ -489,12 +468,24 @@ internal sealed class ExchangeSourceService
         using var castCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         using var readCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var nextTick = Task.Delay(TimeSpan.FromSeconds(interval), cancellationToken);
+        // SP-0217: the producer's envelopes ride the same stream the loop owns. The queue is bounded and
+        // refuses at once when full, so a broadcast start can never be queued past the session it needs.
+        var outgoing = Channel.CreateBounded<(object Envelope, TaskCompletionSource<bool> Written)>(32);
+        _producerOutgoing = outgoing;
+        Task<bool> outgoingWait = outgoing.Reader.WaitToReadAsync(readCancellation.Token).AsTask();
         try
         {
+            // A lease taken while no session was up (or in the gap before the queue above existed) is owed its
+            // list now. Checked after the queue is published: a lease taken from here on posts its own.
+            if (HoldsDirectory)
+            {
+                await SendAsync(new { schemaVersion = 2, type = "list" }, cancellationToken).ConfigureAwait(false);
+            }
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 pending ??= ExchangeProtocol.ReadAsync(connection.Stream, true, readCancellation.Token);
-                var ready = await Task.WhenAny(pending, nextTick, castFailed.Task).ConfigureAwait(false);
+                var ready = await Task.WhenAny(pending, nextTick, castFailed.Task, outgoingWait).ConfigureAwait(false);
                 if (ready == castFailed.Task)
                 {
                     throw new IOException("Exchange cast answer could not be delivered.");
@@ -513,6 +504,28 @@ internal sealed class ExchangeSourceService
                     continue;
                 }
 
+                if (ready == outgoingWait)
+                {
+                    // Drain everything the producer posted; one write per envelope, in order, and the
+                    // writer's own completion says whether it landed.
+                    while (outgoing.Reader.TryRead(out var posted))
+                    {
+                        try
+                        {
+                            await SendAsync(posted.Envelope, cancellationToken).ConfigureAwait(false);
+                            posted.Written.TrySetResult(true);
+                        }
+                        catch (Exception exception) when (IsConnectionFailure(exception))
+                        {
+                            posted.Written.TrySetResult(false);
+                            throw;
+                        }
+                    }
+
+                    outgoingWait = outgoing.Reader.WaitToReadAsync(readCancellation.Token).AsTask();
+                    continue;
+                }
+
                 using var response = await pending.ConfigureAwait(false);
                 pending = null;
                 ExchangeHandshake.ValidateSchema(response.RootElement);
@@ -523,16 +536,30 @@ internal sealed class ExchangeSourceService
                         lastAnswer.Restart();
                         break;
                     case "directory":
-                        if (!subscribed)
+                        // An answer nobody holds a lease for (it crossed the release) is read and dropped.
+                        if (!HoldsDirectory)
+                        {
+                            break;
+                        }
+
+                        if (!subscribed && HoldsFollow)
                         {
                             await SendAsync(new { schemaVersion = 2, type = "subscribe" }, cancellationToken).ConfigureAwait(false);
                             subscribed = true;
                         }
 
                         _directory.ApplyFull(response.RootElement);
+                        _directoryFresh = true;
                         PublishDirectory();
                         break;
                     case "changed":
+                        // The subscription outlives the open list (the wire has no unsubscribe): a push nobody
+                        // follows, or one that arrives before this lease's list answered, is read and dropped.
+                        if (!HoldsFollow || !_directoryFresh)
+                        {
+                            break;
+                        }
+
                         if (_directory.ApplyChange(response.RootElement).RelistNeeded)
                         {
                             await SendAsync(new { schemaVersion = 2, type = "list" }, cancellationToken).ConfigureAwait(false);
@@ -551,7 +578,49 @@ internal sealed class ExchangeSourceService
                     case "cast-stop":
                         HandleCastStop(response.RootElement);
                         break;
+                    case "open":
+                        // A tunnel for this device's own broadcast: the producer bridges it on its own
+                        // task, off this loop, and owns the per-broadcast bound (item L).
+                        if (ExchangeTunnelOpen.TryParse(response.RootElement) is { } tunnel)
+                        {
+                            TunnelRequested?.Invoke(tunnel, castCancellation.Token);
+                        }
+
+                        break;
+                    case "broadcast-started":
+                        AnswerBroadcastStart(response.RootElement, null);
+                        break;
+                    case "cast-result":
+                        if (ExchangeCastResult.TryParse(response.RootElement) is { } castResult)
+                        {
+                            CastResult?.Invoke(castResult);
+                        }
+
+                        break;
+                    case "password-changed":
+                        HandlePasswordChanged(response.RootElement);
+                        break;
                     case "refused":
+                        if (ExchangeProtocol.String(response.RootElement, "broadcastId") is { } refusedBroadcastId)
+                        {
+                            AnswerBroadcastStart(response.RootElement,
+                                ExchangeProtocol.String(response.RootElement, "reason") ?? "refused");
+                            break;
+                        }
+
+                        // A refusal while a password change is out is that change's answer, and never this device's revocation.
+                        if (TryAnswerPasswordChange(ExchangeProtocol.String(response.RootElement, "reason")))
+                        {
+                            break;
+                        }
+
+                        // A refusal of a broadcast start or update names no broadcast (7.4); it is that request's answer,
+                        // not the end of a session that has nothing wrong with it.
+                        if (TryAnswerBroadcastRefusal(ExchangeProtocol.String(response.RootElement, "reason")))
+                        {
+                            break;
+                        }
+
                         if (EndForRefusal(response.RootElement))
                         {
                             return;
@@ -581,6 +650,19 @@ internal sealed class ExchangeSourceService
                 await ObserveAsync(open.Task).ConfigureAwait(false);
             }
 
+            // A password change still out when the session ends is over for whoever waits: its answer, if the
+            // server ever wrote one, went with the stream. The next hello says the truth (item AT).
+            AbandonPasswordChange();
+            // The producer's queue ends with the session: an envelope that never reached the stream is
+            // answered false, never left waiting for a stream that no longer exists.
+            _producerOutgoing = null;
+            Volatile.Write(ref _updateRefusalUntil, 0);
+            outgoing.Writer.TryComplete();
+            while (outgoing.Reader.TryRead(out var undelivered))
+            {
+                undelivered.Written.TrySetResult(false);
+            }
+
             // Observe the single pending read before disposing the connection, including timeout and quit paths.
             await readCancellation.CancelAsync().ConfigureAwait(false);
             if (pending is not null)
@@ -599,14 +681,27 @@ internal sealed class ExchangeSourceService
 
     private void PublishDirectory()
     {
+        if (!HoldsDirectory)
+        {
+            return; // the last lease went while this frame was being read
+        }
+
+        ObserveDirectoryKeys(_directory.Snapshot);
+        OpenDirectoryBoxes(_directory.Snapshot);
         Directory = ExchangeDirectoryState.HideOwnDevice(_directory.Snapshot, Account.DeviceId);
         DirectoryChanged?.Invoke();
     }
 
     private void ClearDirectory()
     {
+        _directoryFresh = false;
         Directory = null;
         DirectoryChanged?.Invoke();
+        // The session is over in every direction this method is reached from; the producer's own
+        // state follows the same edge, so no broadcast keeps an exchange endpoint a dead stream gave it.
+        PublicEndpoint = null;
+        Features = [];
+        SessionOffline?.Invoke();
     }
 
     /// <summary>
@@ -637,6 +732,9 @@ internal sealed class ExchangeSourceService
                 }
             }
 
+            // SP-0226 / item DK: a cast hands the record with its box; it is opened now, before the question or the
+            // auto-accept, because the answer starts the playback and the playback asks for the keys.
+            await OpenOfferBoxAsync(offer, cancellationToken).ConfigureAwait(false);
             if (offer.Support != ExchangeBroadcastSupport.Supported || offer.Descriptor is null)
             {
                 await send(ExchangeCastAnswer.Unsupported(offer.BroadcastId, offer.CastId), cancellationToken).ConfigureAwait(false);
@@ -738,10 +836,16 @@ internal sealed class ExchangeSourceService
     private bool EndForRefusal(JsonElement response)
     {
         var reason = ExchangeProtocol.String(response, "reason");
-        if (reason is "device-revoked" or "bad-credentials")
+        if (reason is "device-revoked" or "bad-credentials" or "signed-out")
         {
-            var cleared = Account with { Token = null, Enabled = false, DeviceId = ExchangeProtocol.NewDeviceId() };
+            // A password changed elsewhere (item AT) ends the sign-in and nothing else: the entry keeps its
+            // server, login, pin, device id and attachments, and only the token is gone, so the person types the
+            // new password and the same device enrolls again. A removed or unknown device starts over.
+            var cleared = reason == "signed-out"
+                ? Account with { Token = null, SignedOut = true }
+                : Account with { Token = null, Enabled = false, DeviceId = ExchangeProtocol.NewDeviceId(), SignedOut = false };
             Account = cleared;
+            SignedOutNotice = reason == "signed-out";
             try
             {
                 _store.Save(cleared);
@@ -761,11 +865,11 @@ internal sealed class ExchangeSourceService
     // that is not an object, a wrong schema, malformed welcome fields) and is not an IOException; an
     // ObjectDisposedException is the stream a failed read has already closed. Both mean "this connection is
     // finished", and the loop's answer to that is its backoff, not dying.
-    private static bool IsConnectionFailure(Exception exception) => exception is IOException or SocketException
+    internal static bool IsConnectionFailure(Exception exception) => exception is IOException or SocketException
         or AuthenticationException or OperationCanceledException or JsonException or UnauthorizedAccessException
         or System.Security.Cryptography.CryptographicException or InvalidDataException or ObjectDisposedException;
 
-    private static async Task TryByeAsync(ExchangeTlsConnection connection)
+    internal static async Task TryByeAsync(ExchangeTlsConnection connection)
     {
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(1));
         try
@@ -779,7 +883,7 @@ internal sealed class ExchangeSourceService
     }
 
     private bool IsAccountEndpoint(string host, int port) =>
-        Account.Host.Length > 0 && port == Account.Port && string.Equals(host, Account.Host, StringComparison.OrdinalIgnoreCase);
+        Account.Host.Length > 0 && ExchangeAccountIdentity.SameEndpoint(host, port, Account.Host, Account.Port);
 
     // The fingerprint is a replacement candidate only for the endpoint it was read from, and only when that
     // is the account's own: accepting one read from another server would pin that server's leaf onto this
@@ -794,7 +898,7 @@ internal sealed class ExchangeSourceService
             _presentedPort = port;
         }
 
-        SetStatus("ExchangeCertificate");
+        SetStatus(ExchangeFailures.CertificateKey(exception));
     }
 
     private void ClearPendingCertificate()

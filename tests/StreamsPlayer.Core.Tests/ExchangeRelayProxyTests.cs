@@ -140,6 +140,20 @@ public sealed class ExchangeRelayProxyTests
     }
 
     [Fact]
+    public async Task UnpinnedSelfSignedRelayNamesTheMissingFingerprint()
+    {
+        using var leaf = SelfSignedLeaf();
+        using var relay = new FakeRelay(leaf, "live-bytes"u8.ToArray());
+        relay.Start();
+        using var proxy = ExchangeRelayProxy.Start(relay.Url, null);
+        var (status, _) = await GetAsync(proxy.LoopbackUrl);
+        Assert.Equal(502, status);
+        Assert.Equal(ExchangeBroadcastCertificateException.UntrustedWithoutFingerprint, proxy.LastFailure);
+        Assert.Equal(0, relay.Requests);
+        Assert.Equal(1, proxy.ConnectAttempts);
+    }
+
+    [Fact]
     public async Task ASecondConnectionIsRefused()
     {
         using var leaf = SelfSignedLeaf();

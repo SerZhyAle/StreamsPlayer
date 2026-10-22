@@ -7,7 +7,18 @@ namespace StreamsPlayer.Core;
 public sealed record ExchangeDeviceRecord(
     string DeviceId,
     string DeviceName,
-    bool IsOnline);
+    bool IsOnline,
+    /// <summary>SP-0217: the receiver pairs the device declared (`receiver.plays`, or the modes and
+    /// transports when it declared no pairs) - what a cast offer is gated on. Null when it declared
+    /// nothing, which is the case of a device that is not a receiver.</summary>
+    IReadOnlyList<ExchangePlayPair>? Plays = null,
+    /// <summary>SP-0226 / item DF: the public key (the 65-byte point) of `e2eKey` when the record carries a
+    /// usable one, else null. Public by design - it lets others seal to the device and opens nothing.</summary>
+    byte[]? E2eKey = null,
+    /// <summary>SP-0226 / item DF: whether `capabilities` lists `e2e-v1`.</summary>
+    bool HasE2eCapability = false,
+    /// <summary>SP-0226 / item DH: `lastSeen`, which orders the devices a box cuts to forty.</summary>
+    DateTimeOffset? LastSeen = null);
 
 /// <summary>One live broadcast of the exchange directory (DEVICE-EXCHANGE 6.3).</summary>
 /// <remarks>
@@ -25,7 +36,20 @@ public sealed record ExchangeBroadcastRecord(
     string? Title,
     string Mode,
     FastMediaSorterBroadcast? Descriptor,
-    DateTimeOffset? UpdatedAt = null);
+    DateTimeOffset? UpdatedAt = null,
+    /// <summary>
+    /// SP-0222: the pair of a protected broadcast the server handed this device in the record (item BF for an own
+    /// device, item BD for a guest's grant), so the person's own broadcast plays with no question. A secret held
+    /// in memory with the snapshot: it is never printed, logged, shown, stored or copied into the library.
+    /// </summary>
+    ExchangeRelayCredentials? Credentials = null,
+    /// <summary>SP-0226 / item DK: the record's `sealed` box - the keys and the credentials of a sealed
+    /// broadcast. Opened by whoever plays the broadcast; never opened, logged or altered by the directory.</summary>
+    ExchangeSealedBox? Sealed = null,
+    /// <summary>SP-0226: the record carries a `sealed` member this build could not read as a box.</summary>
+    bool SealedUnreadable = false,
+    /// <summary>SP-0226 / item DJ: the grant a guest's directory carries this record under; its box has the context `grant:&lt;id&gt;`.</summary>
+    string? GrantId = null);
 
 /// <summary>Whether this build can play a directory broadcast's addresses at all (SP-0201 requirement 2).</summary>
 public enum ExchangeBroadcastSupport
@@ -37,7 +61,13 @@ public enum ExchangeBroadcastSupport
     Unsupported,
 
     /// <summary>The descriptor's <c>schemaVersion</c> is higher than this build reads ("update the application").</summary>
-    UnsupportedSchema
+    UnsupportedSchema,
+
+    /// <summary>
+    /// SP-0226 / item DP: the only exchange endpoints declared are not sealed (an older producer, or a device with
+    /// no key). They are never played as clear bytes; the state is shown, not hidden.
+    /// </summary>
+    Unsealed
 }
 
 /// <summary>One broadcast as the view lists it, with the support verdict already made.</summary>
@@ -50,14 +80,23 @@ public sealed record ExchangeDeviceGroup(
     string DeviceId,
     string DeviceName,
     bool IsOnline,
-    IReadOnlyList<ExchangeBroadcastView> Broadcasts);
+    IReadOnlyList<ExchangeBroadcastView> Broadcasts,
+    /// <summary>SP-0217: the receiver pairs this device declared, when it declared any - the gate a cast
+    /// offer is checked against. Null is a device that is not a receiver.</summary>
+    IReadOnlyList<ExchangePlayPair>? Plays = null);
 
 /// <summary>The whole directory as one immutable answer for the view.</summary>
 public sealed record ExchangeDirectorySnapshot(
     long Revision,
     IReadOnlyList<ExchangeDeviceGroup> Groups,
     IReadOnlyCollection<string> LiveSourceIds,
-    IReadOnlyCollection<string> LiveBroadcastIds);
+    IReadOnlyCollection<string> LiveBroadcastIds,
+    /// <summary>
+    /// SP-0217: every device of the account, not only the ones with live broadcasts - the cast menu
+    /// offers a receiver by name, and a receiver broadcasts nothing. The own device is hidden from it
+    /// by the view's own-device rule, like everywhere else.
+    /// </summary>
+    IReadOnlyList<ExchangeDeviceRecord>? Devices = null);
 
 /// <summary>What one directory frame did to the state, and what the client owes the server next.</summary>
 /// <remarks>
@@ -74,7 +113,7 @@ public sealed record ExchangeDirectoryTransition(
 /// of an unknown kind, refuse an oversize record, ignore unknown members, track <c>revision</c>, and never
 /// let a foreign record raise into the connection.
 /// </summary>
-public sealed class ExchangeDirectoryState
+public sealed partial class ExchangeDirectoryState
 {
     /// <summary>DEVICE-EXCHANGE 6: a record is at most 16 KiB of JSON; a bigger one is skipped, never an error.</summary>
     public const int MaximumRecordBytes = 16 * 1024;
@@ -185,7 +224,8 @@ public sealed class ExchangeDirectoryState
         {
             Groups = [.. snapshot.Groups.Where(group => group.DeviceId != ownDeviceId)],
             LiveSourceIds = sourceIds,
-            LiveBroadcastIds = broadcastIds
+            LiveBroadcastIds = broadcastIds,
+            Devices = [.. snapshot.Devices.Where(device => device.DeviceId != ownDeviceId)]
         };
     }
 
@@ -219,7 +259,7 @@ public sealed class ExchangeDirectoryState
         {
             if (byDevice.Remove(device.DeviceId, out var owned))
             {
-                groups.Add(new ExchangeDeviceGroup(device.DeviceId, device.DeviceName, device.IsOnline, owned));
+                groups.Add(new ExchangeDeviceGroup(device.DeviceId, device.DeviceName, device.IsOnline, owned, device.Plays));
             }
         }
 
@@ -240,7 +280,8 @@ public sealed class ExchangeDirectoryState
         }
 
         return new ExchangeDirectorySnapshot(revision, groups, sourceIds,
-            (IReadOnlyCollection<string>)_broadcasts.Keys.ToArray());
+            (IReadOnlyCollection<string>)_broadcasts.Keys.ToArray(),
+            [.. _devices.Values]);
     }
 
     /// <summary>
@@ -292,8 +333,85 @@ public sealed class ExchangeDirectoryState
             }
 
             // The contract's tolerated shape: a presence outside the closed set reads as offline.
+            var (hasCapability, e2eKey) = ReadE2e(device);
             devices[id] = new ExchangeDeviceRecord(id, name,
-                ReadString(device, "presence") == "online");
+                ReadString(device, "presence") == "online", ReadPlays(device), e2eKey, hasCapability, ReadLastSeen(device));
+        }
+    }
+
+    /// <summary>
+    /// SP-0217 / `DEVICE-EXCHANGE` item E: the receiver pairs a device declared - `plays` when present,
+    /// else the cross product of `modes` and `transports`. A receiver member that is not an object, or
+    /// holds none of the three, is a device that declared nothing as a receiver.
+    /// </summary>
+    private static IReadOnlyList<ExchangePlayPair>? ReadPlays(JsonElement device)
+    {
+        if (!device.TryGetProperty("receiver", out var receiver) || receiver.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        var pairs = new List<ExchangePlayPair>();
+        if (receiver.TryGetProperty("plays", out var plays) && plays.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var play in plays.EnumerateArray())
+            {
+                var mode = ReadString(play, "mode");
+                var transport = ReadString(play, "transport");
+                if (mode is not null && transport is not null)
+                {
+                    pairs.Add(new ExchangePlayPair(mode, transport));
+                }
+            }
+
+            return pairs;
+        }
+
+        var modes = ReadStrings(receiver, "modes");
+        var transports = ReadStrings(receiver, "transports");
+        foreach (var mode in modes)
+        {
+            foreach (var transport in transports)
+            {
+                pairs.Add(new ExchangePlayPair(mode, transport));
+            }
+        }
+
+        return pairs.Count > 0 ? pairs : null;
+    }
+
+    private static List<string> ReadStrings(JsonElement container, string member)
+    {
+        var values = new List<string>();
+        if (container.TryGetProperty(member, out var list) && list.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var value in list.EnumerateArray())
+            {
+                if (ReadStringValue(value) is { } text)
+                {
+                    values.Add(text);
+                }
+            }
+        }
+
+        return values;
+    }
+
+    private static string? ReadStringValue(JsonElement value)
+    {
+        if (value.ValueKind != JsonValueKind.String)
+        {
+            return null;
+        }
+
+        try
+        {
+            return value.GetString();
+        }
+        catch (InvalidOperationException)
+        {
+            // A lone-surrogate escape names nothing a device can play; see ReadString.
+            return null;
         }
     }
 
@@ -344,12 +462,24 @@ public sealed class ExchangeDirectoryState
             broadcasts[id] = new ExchangeBroadcastView(
                 new ExchangeBroadcastRecord(id, deviceId,
                     ReadString(record, "title") ?? read.Broadcast.Title,
-                    mode, read.Broadcast, ReadUpdatedAt(record)),
+                    mode, read.Broadcast, ReadUpdatedAt(record), ReadCredentials(record),
+                    ReadSealedBox(record, out var sealedUnreadable), sealedUnreadable, ReadString(record, "grantId")),
                 SupportOf(read.Broadcast));
         }
 
         return broadcasts;
     }
+
+    /// <summary>
+    /// <c>credentials</c> of a broadcast record (<c>DEVICE-EXCHANGE</c> 6.3): <c>user</c> and <c>password</c>, both
+    /// strings. Any other shape - absent, not an object, a member missing or outside the limits - reads as no pair,
+    /// and the broadcast then asks the person as any protected broadcast does. A <c>sealed</c> box (section 27) is
+    /// carried beside it unopened (<see cref="ReadSealedBox"/>) and wins at the point of use (item DP).
+    /// </summary>
+    private static ExchangeRelayCredentials? ReadCredentials(JsonElement record) =>
+        record.TryGetProperty("credentials", out var pair) && pair.ValueKind == JsonValueKind.Object
+            ? ExchangeRelayCredentials.Create(ReadString(pair, "user"), ReadString(pair, "password"))
+            : null;
 
     /// <summary>
     /// SP-0201 / SP-0204 / SP-0203 / SP-0212 (L30): a broadcast is supported when playback has an attempt
@@ -359,12 +489,29 @@ public sealed class ExchangeDirectoryState
     /// the fallback agree on the launchability of that address, so what the directory lists, what a push
     /// refreshes and what a cast offer accepts cannot disagree with what playback plays.
     /// </summary>
-    internal static ExchangeBroadcastSupport SupportOf(FastMediaSorterBroadcast descriptor) =>
-        FastMediaSorterBroadcastAttempts.PlaybackAttempts(descriptor.Mode, descriptor.Endpoints).Count > 0 ||
-        descriptor.Endpoints.Count == 0 ||
-        StreamMediaKindClassifier.IsLaunchable(descriptor.Url)
-            ? ExchangeBroadcastSupport.Supported
+    internal static ExchangeBroadcastSupport SupportOf(FastMediaSorterBroadcast descriptor)
+    {
+        if (FastMediaSorterBroadcastAttempts.PlaybackAttempts(descriptor.Mode, descriptor.Endpoints).Count > 0)
+        {
+            return ExchangeBroadcastSupport.Supported;
+        }
+
+        // SP-0226: an exchange endpoint dropped only for want of a seal is a state to show, not an address to
+        // fall back to - the top-level address of such a descriptor is the same relay or tunnel.
+        if (ExchangeEndpointKinds.IsExchangeAddress(descriptor.Url))
+        {
+            return ExchangeBroadcastSupport.Unsealed;
+        }
+
+        if (descriptor.Endpoints.Count == 0 || StreamMediaKindClassifier.IsLaunchable(descriptor.Url))
+        {
+            return ExchangeBroadcastSupport.Supported;
+        }
+
+        return FastMediaSorterBroadcastAttempts.HasUnsealedExchangeEndpoint(descriptor.Mode, descriptor.Endpoints)
+            ? ExchangeBroadcastSupport.Unsealed
             : ExchangeBroadcastSupport.Unsupported;
+    }
 
     private static HashSet<string> CollectIds(JsonElement removals, string member)
     {

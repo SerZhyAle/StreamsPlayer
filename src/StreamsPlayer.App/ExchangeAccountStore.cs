@@ -5,12 +5,59 @@ using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
+/// <summary>
+/// One account entry of this device (DEVICE-EXCHANGE item AA). <c>Pin</c> is the accepted leaf's fingerprint and
+/// <c>PinKey</c> the <c>SHA256:</c> of that leaf's public key, kept so a renewal with the same key needs no new
+/// confirmation (item AY). <c>Guest</c> is the account's kind (item AO). <c>SignedOut</c> records that the
+/// account ended this device's sign-in (item AT) - the entry, its device id and its server stay, only the token
+/// is gone - so the message and the prompt survive a restart. The last three default, so an older file reads
+/// unchanged.
+/// </summary>
 internal sealed record ExchangeAccount(string DeviceId, string Host = "", int Port = 0, string Login = "",
-    string? Token = null, string? Pin = null, bool Enabled = false, bool AutoAcceptCasts = false);
-
-internal sealed class ExchangeAccountStore(string directory)
+    string? Token = null, string? Pin = null, bool Enabled = false, bool AutoAcceptCasts = false,
+    string? PinKey = null, bool Guest = false, bool SignedOut = false,
+    string? E2ePrivateKey = null, string? E2eKem = null)
 {
-    private readonly string _path = Path.Combine(directory, "exchange-account.bin");
+    /// <summary>
+    /// SP-0226 / item DF: this entry's device key pair, or null for an entry made before sealing existed (the
+    /// server knows its device id with no key, and a known id cannot be given one). The private scalar lives only
+    /// in this DPAPI-protected record, as the token does; a stored pair whose halves disagree reads as none.
+    /// The caller owns the returned pair and disposes it.
+    /// </summary>
+    internal ExchangeE2eKeyPair? LoadE2eKey() =>
+        ExchangeBase64Url.TryDecode(E2ePrivateKey, out var scalar) && ExchangeBase64Url.TryDecode(E2eKem, out var point)
+            ? ExchangeE2eKeyPair.TryImport(scalar, point)
+            : null;
+
+    /// <summary>The same entry carrying <paramref name="pair"/> (or none).</summary>
+    internal ExchangeAccount WithE2eKey(ExchangeE2eKeyPair? pair)
+    {
+        if (pair is null)
+        {
+            return this with { E2ePrivateKey = null, E2eKem = null };
+        }
+
+        var scalar = pair.ExportPrivateScalar();
+        try
+        {
+            return this with { E2ePrivateKey = ExchangeBase64Url.Encode(scalar), E2eKem = pair.Kem };
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(scalar);
+        }
+    }
+
+    /// <summary>An entry that was enrolled before keys existed: the server holds its id, this record holds no key.</summary>
+    internal bool IsKeylessLegacy => E2ePrivateKey is null && Host.Length > 0;
+
+    // The synthesized text would print the token and the private key; a log line or a failure text must not.
+    public override string ToString() => $"ExchangeAccount {{ DeviceId = {DeviceId}, Host = {Host}, Port = {Port}, Guest = {Guest} }}";
+}
+
+internal sealed class ExchangeAccountStore(string directory, string fileName = "exchange-account.bin")
+{
+    private readonly string _path = Path.Combine(directory, fileName);
     internal bool ProtectionFailed { get; private set; }
 
     /// <summary>

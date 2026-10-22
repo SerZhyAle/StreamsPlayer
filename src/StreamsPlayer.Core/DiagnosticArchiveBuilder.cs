@@ -27,9 +27,6 @@ public static class DiagnosticArchiveBuilder
     /// <summary>Per-log ceiling (SP-0040, SP-0097). Matches CurrentLog.MaximumSessionBytes so a healthy session is never truncated on export.</summary>
     public const long MaxLogBytes = 16L * 1024 * 1024;
 
-    /// <summary>SP-0097: Initial bytes (startup/configuration) retained when an oversize log is truncated.</summary>
-    public const long HeadLogBytes = 1L * 1024 * 1024;
-
     /// <summary>
     /// How the mail body names the archive (SP-0174, <c>DIAGNOSTIC-REPORT</c> rule 3): by file name, with
     /// the folder reduced to its alias. The body leaves the machine inside a draft the user may store,
@@ -62,7 +59,6 @@ public static class DiagnosticArchiveBuilder
         var temporaryPath = Path.Combine(outputDirectory, $".{ArchivePrefix}{Guid.NewGuid():N}.tmp");
         try
         {
-            var notes = new StringBuilder();
             // WriteThrough (SP-0175): the finished archive is renamed to its final name right below, and a
             // rename journalled ahead of unflushed data would leave the user a zero-filled ZIP after a
             // power cut.
@@ -73,10 +69,10 @@ public static class DiagnosticArchiveBuilder
             {
                 foreach (var log in DiagnosticLogFiles.ExistingLogs(stateDirectory))
                 {
-                    AddLog(archive, log, notes, paths);
+                    AddLog(archive, log, paths);
                 }
 
-                AddText(archive, SummaryEntryName, summaryText + notes);
+                AddText(archive, SummaryEntryName, summaryText);
             }
 
             return MoveToUniqueArchivePath(temporaryPath, outputDirectory, utcNow);
@@ -126,40 +122,28 @@ public static class DiagnosticArchiveBuilder
     /// How far a truncation cut may move to land on a line boundary. A cut inside a line can split a URL
     /// and hide its credentials from the redactor; a line longer than this is not a real log line.
     /// </summary>
-    private const int LineAlignWindow = 64 * 1024;
 
     private static readonly UTF8Encoding LogEncoding = new(encoderShouldEmitUTF8Identifier: false);
 
-    private static void AddLog(ZipArchive archive, string path, StringBuilder notes, DiagnosticPathRedactor paths)
+    private static void AddLog(ZipArchive archive, string path, DiagnosticPathRedactor paths)
     {
         // FileShare.ReadWrite, not Read: the live session's writer holds this file with write access,
         // and a share mode that excludes it makes the current log unarchivable.
         using var source = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
         var name = Path.GetFileName(path);
         using var entry = archive.CreateEntry(name, CompressionLevel.Optimal).Open();
-        if (source.Length <= MaxLogBytes)
+        var sourceBytes = source.Length;
+        if (sourceBytes <= MaxLogBytes)
         {
-            WriteRedacted(entry, ReadAt(source, 0, source.Length), paths);
+            WriteRedacted(entry, ReadAt(source, 0, sourceBytes), paths);
             return;
         }
 
-        var headBytes = Math.Min(HeadLogBytes, source.Length);
-        var tailBytes = Math.Min(MaxLogBytes - headBytes, Math.Max(0, source.Length - headBytes));
-        var head = ReadAt(source, 0, headBytes);
-        head = head[..HeadCut(head)];
-        // One byte before the tail says whether the tail already starts on a line boundary.
-        var tailWithLead = ReadAt(source, source.Length - tailBytes - 1, tailBytes + 1);
-        var tail = tailWithLead[TailCut(tailWithLead)..];
-        var dropped = source.Length - (head.Length + tail.Length);
-        notes.Append("log_truncated=").Append(name)
-            .Append(" | kept_bytes=").Append((head.Length + tail.Length).ToString(CultureInfo.InvariantCulture))
-            .Append(" | dropped_middle_bytes=").Append(dropped.ToString(CultureInfo.InvariantCulture))
-            .Append("\r\n");
-
-        WriteRedacted(entry, head, paths);
-        var marker = LogEncoding.GetBytes($"\r\n[Diag] LOG TRUNCATED | dropped_middle_bytes={dropped} | kept_head_bytes={head.Length} | kept_tail_bytes={tail.Length}\r\n");
+        // Retained logs may predate sink redaction. A raw tail can start inside a multiline secret;
+        // bounded export cannot safely sanitize that source (DIAGNOSTIC-REPORT section 8 C, 0.14).
+        var marker = LogEncoding.GetBytes("[Diag] LOG OMITTED | reason=oversized_untrusted | source_bytes=" +
+            sourceBytes.ToString(CultureInfo.InvariantCulture) + "\r\n");
         entry.Write(marker, 0, marker.Length);
-        WriteRedacted(entry, tail, paths);
     }
 
     /// <summary>
@@ -169,27 +153,8 @@ public static class DiagnosticArchiveBuilder
     /// </summary>
     private static void WriteRedacted(Stream destination, ReadOnlySpan<byte> bytes, DiagnosticPathRedactor paths)
     {
-        var redacted = LogEncoding.GetBytes(paths.Redact(ExchangeDiagnosticRedactor.Redact(CatalogUrlIdentity.RedactText(LogEncoding.GetString(bytes)))));
+        var redacted = LogEncoding.GetBytes(paths.Redact(ExchangeDiagnosticRedactor.Redact(CatalogUrlIdentity.RedactText(DiagnosticValueRedactor.Redact(LogEncoding.GetString(bytes))))));
         destination.Write(redacted, 0, redacted.Length);
-    }
-
-    /// <summary>Length of the head that ends on a line boundary, when one is near enough.</summary>
-    private static int HeadCut(byte[] head)
-    {
-        var lastBreak = Array.LastIndexOf(head, (byte)'\n');
-        return lastBreak >= 0 && head.Length - (lastBreak + 1) <= LineAlignWindow ? lastBreak + 1 : head.Length;
-    }
-
-    /// <summary>Offset in <paramref name="tailWithLead"/> where whole lines start; index 0 is the byte before the tail.</summary>
-    private static int TailCut(byte[] tailWithLead)
-    {
-        if (tailWithLead[0] == (byte)'\n')
-        {
-            return 1;
-        }
-
-        var firstBreak = Array.IndexOf(tailWithLead, (byte)'\n', 1);
-        return firstBreak >= 0 && firstBreak <= LineAlignWindow ? firstBreak + 1 : 1;
     }
 
     private static byte[] ReadAt(Stream source, long offset, long count)

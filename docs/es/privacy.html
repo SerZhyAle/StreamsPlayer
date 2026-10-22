@@ -58,13 +58,32 @@
         // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
         // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
         var root = document.documentElement;
-        if (root.dataset.entry !== "true") {
-          return;
-        }
         var urls = {};
         try {
           urls = JSON.parse(document.getElementById("language-urls").textContent);
         } catch (error) {
+          return;
+        }
+        // PAGE-STYLE amendment 2026-10-17: explicit shipped locales override remembered choices,
+        // including on child/locale pages; a valid canonical query wins over the legacy spelling.
+        var query = new URLSearchParams(window.location.search);
+        var canonical = query.get("lang");
+        var legacy = query.get("l");
+        var requested = Object.prototype.hasOwnProperty.call(urls, canonical) ? canonical
+          : Object.prototype.hasOwnProperty.call(urls, legacy) ? legacy : null;
+        if (requested) {
+          root.setAttribute("data-lang", requested === "uk" ? "ua" : requested);
+          if (root.lang.split("-")[0] !== requested) {
+            var destination = new URL(urls[requested], window.location.href);
+            query.delete("lang");
+            query.delete("l");
+            destination.search = query.toString();
+            destination.hash = window.location.hash;
+            window.location.replace(destination.href);
+          }
+          return;
+        }
+        if (root.dataset.entry !== "true") {
           return;
         }
         // sza-lang holds only ru, en or ua (PAGE-STYLE section 7), so a further locale chosen here is
@@ -158,12 +177,26 @@
     <main class="container privacy-main" id="content">
       <span class="eyebrow">STREAMS Player · Privacidad</span>
       <h1>Privado de forma predeterminada.</h1>
-      <p class="privacy-intro">No se requiere cuenta para la reproducción habitual. La cuenta de intercambio opcional pertenece a tu propio servidor. No hay publicidad, analítica, telemetría ni servicio gestionado por el autor.</p>
+      <p class="privacy-intro">No se requiere cuenta para la reproducción habitual. La cuenta de intercambio opcional pertenece a un servidor privado - el tuyo o el de alguien que te invitó -, nunca a un servicio de este producto. No hay publicidad, analítica, telemetría ni servicio gestionado por el autor.</p>
 
       <div class="privacy-card">
         <section class="privacy-section">
           <h2>Acceso a la red</h2>
-          <p>La aplicación se conecta solo mediante su acción y solo al lugar que dicha acción necesita: el catálogo público de transmisiones y el paquete de vistas previas opcional de GitHub al importar el catálogo o aceptar el paquete; el proveedor de una transmisión que reproduce, graba o consulta en «Acerca del canal», o cuya vista previa se actualiza en modo cuadrícula; un teléfono o reloj FastMediaSorter en su red local; y, solo si los solicita en Configuración en la página Reproducción, las bibliotecas FFmpeg opcionales para el motor experimental FlyleafLib (BtbN/FFmpeg-Builds). Cada solicitud va directamente a ese destino y está sujeta a sus políticas; ninguna pasa por un servicio del autor. La guía de TV se descarga solo desde la dirección que usted ingresa en Configuración en la página Biblioteca, una vez al presionar «Descargar guía», y nunca en segundo plano. La fuente de intercambio opcional en los ajustes de biblioteca se conecta a tu servidor mediante TLS. Envía usuario y contraseña o código de vinculación una vez para el registro, y después identidad del dispositivo, versión del producto, capacidades de recepción y token. Mantiene una conexión de control con mensajes de actividad y reconexiones mientras esté activada; desactivarla cierra la conexión. Cada certificado requiere aprobación explícita, incluso tras renovarlo.  Cuando una emisión se reproduce a través del relé de su servidor de intercambio con un certificado fijado, ese único flujo pasa por un proxy local temporal en 127.0.0.1 que existe solo mientras la emisión se reproduce y solo es accesible desde este dispositivo.</p>
+          <p>La aplicación se conecta solo mediante su acción y solo al lugar que dicha acción necesita: el catálogo público de transmisiones y el paquete de vistas previas opcional de GitHub al importar el catálogo o aceptar el paquete; el proveedor de una transmisión que reproduce, graba o consulta en «Acerca del canal», o cuya vista previa se actualiza en modo cuadrícula; un teléfono o reloj FastMediaSorter en su red local; y, solo si los solicita en Configuración en la página Reproducción, las bibliotecas FFmpeg opcionales para el motor experimental FlyleafLib (BtbN/FFmpeg-Builds). Cada solicitud va directamente a ese destino y está sujeta a sus políticas; ninguna pasa por un servicio del autor. La guía de TV se descarga solo desde la dirección que usted ingresa en Configuración en la página Biblioteca, una vez al presionar «Descargar guía», y nunca en segundo plano. La fuente de intercambio opcional en los ajustes de biblioteca se conecta a tu servidor mediante TLS. Envía usuario y contraseña o código de vinculación una vez para el registro, y después identidad del dispositivo, versión del producto, capacidades de recepción y token. Mantiene una conexión de control con mensajes de actividad y reconexiones mientras esté activada; desactivarla cierra la conexión. Importa una cadena de conexión o un archivo en los ajustes de biblioteca, o pégalo o arrástralo a la ventana principal. Contiene la dirección del servidor y una huella opcional, sin secretos. Leerlo solo rellena el formulario. Comprueba la dirección antes de escribir la contraseña o el código en cada registro; no se guardan. La huella indicada debe coincidir, sin preguntar. Sin ella, confirma la huella antes del registro; los cambios posteriores requieren aprobación. No hace falta un agente local ni otro programa.  Cuando una emisión se reproduce a través del relé de su servidor de intercambio con un certificado fijado, ese único flujo pasa por un proxy local temporal en 127.0.0.1 que existe solo mientras la emisión se reproduce y solo es accesible desde este dispositivo. Transmisión: la aplicación puede enviar el audio de este PC - un micrófono que usted elige y el sonido que el PC reproduce - en directo al servidor de intercambio de su propia cuenta, solo cuando lo permite en la configuración e inicia usted mismo una fuente; hasta entonces está apagado, no se captura nada mientras esté apagado, y mientras una fuente está en directo se muestra un indicador visible con un botón de detención. Los oyentes se conectan por la red local, si la activa, o por el servidor de intercambio. Puede limitar su número. Cada copia enviada por separado usa la subida de este PC; el servidor de intercambio puede distribuir una copia a muchos oyentes. La descripción que otros reciben - como enlace, archivo o en el directorio de su cuenta - lleva las direcciones y el título, y ningún secreto.
+
+En el visor de 64 bits, haz clic derecho en un vídeo, un archivo de audio o su carpeta y elige la transmisión. Share Manager exporta un archivo .spres, un código QR o un enlace rápido para StreamsPlayer. Una carpeta se convierte en un canal con una lista fija; Actualizar sustituye la lista y Revocar desactiva el enlace. El gateway HTTP tiene un interruptor propio, desactivado por defecto. Cada token permite solo leer una transmisión, normalmente durante 24 horas. HTTP no está cifrado: comparte el documento de forma privada y activa internet solo si lo necesitas.</p>
+        </section>
+        <section class="privacy-section" id="exchange">
+          <h2>Servidor de intercambio, transmisión y cifrado</h2>
+          <p>Un servidor de intercambio es privado: cada persona gestiona el suyo o usa uno cuyo propietario la invitó. No existe ningún servidor de intercambio público, y ninguno es un servicio de este producto.</p>
+          <p>El servidor de intercambio conecta sus dispositivos, por lo que conoce los nombres de su cuenta, de los dispositivos, de las carpetas y de las difusiones, ve qué dispositivos están conectados y cuánto se envía y cuándo. No puede abrir lo que pasa por él: las carpetas y sus archivos, las difusiones y el portapapeles se cifran en su dispositivo y solo se abren en sus otros dispositivos o por las personas a las que usted dio acceso. Para mirar dentro, quien administra el servidor tendría que añadir un dispositivo propio a su cuenta, y aparecería en su lista de dispositivos.</p>
+          <p>Para iniciar sesión, este PC envía una sola vez tu usuario y tu contraseña o código de emparejamiento, y después la identidad del dispositivo, su nombre (STREAMS Player, no el nombre de tu PC), el producto, la versión y la plataforma (Windows), los roles, las capacidades de recepción y la mitad pública de su clave de cifrado. Mientras la conexión está activa, el servidor ve que este dispositivo está en línea. Cuando transmites, recibe el título de la emisión, que es audio y el propio audio, cifrado en este PC antes de salir; la clave privada nunca sale de este PC.</p>
+          <p>La transmisión envía el audio de este PC: un micrófono que eliges y el sonido que reproduce el PC. Está desactivada hasta que la permitas en Configuración, no se capta nada mientras esté desactivada y tú inicias cada fuente; mientras una fuente está en directo se muestra un indicador visible con un botón de parada. Solo si además activas la opción de iniciar con la aplicación, las fuentes que dejaste elegidas vuelven a iniciarse al abrir la aplicación, cuando la cuenta está en línea. El dispositivo de un oyente puede grabar lo que recibe, y este programa no puede impedirlo.</p>
+          <p>La cámara de este PC se usa para una sola cosa: leer un QR de conexión cuando pulsa «Escanear con la cámara» en la configuración. Mientras la ventana de escaneo está abierta, la imagen solo se examina en memoria para encontrar el QR; nunca se guarda, se envía ni se registra, y la cámara se libera en cuanto se cierra la ventana. Si Windows no informa de ninguna cámara, el botón no se ofrece.</p>
+          <p>Este programa inicia sesión y nunca crea una cuenta. Una cuenta se elimina en FastMediaSorter en el teléfono, o pidiéndoselo a quien gestiona el servidor; el portal de intercambio explica cómo. Cerrar sesión en este dispositivo quita este dispositivo, no la cuenta.</p>
+          <div class="button-group">
+            <a class="button button-ghost button-small" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/account-deletion.html">Cómo eliminar una cuenta</a>
+          </div>
         </section>
         <section class="privacy-section">
           <h2>Este sitio web</h2>
@@ -171,7 +204,7 @@
         </section>
         <section class="privacy-section">
           <h2>Datos locales</h2>
-          <p>STREAMS Player almacena el estado del catálogo, canales agregados e importados, fijados, colecciones, canales ocultos, historial de reproducción, marcas, fotogramas de vista previa en un límite de 150 MB, las bibliotecas opcionales de FFmpeg y los registros de diagnóstico de los últimos diez inicios en <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>. Las grabaciones y fotogramas van a las carpetas elegidas (por defecto Videos/Recordings, Music/Recordings y Pictures/Frames). Estos datos permanecen en su dispositivo a menos que use «Enviar los registros al autor» en Configuración en la página Acerca de para enviarlos a <span dir="ltr">sza@ukr.net</span>. La guía de TV descargada y sus asignaciones también se guardan allí; «Eliminar guía» en Configuración elimina ambas. La contraseña y el código se descartan. Cuenta, token y huella se protegen para tu usuario de Windows en un archivo separado; eliminar la cuenta los borra. Los archivos de diagnóstico excluyen ese archivo y ocultan los datos de la cuenta. Las conexiones de intercambio empiezan solo después de configurar la fuente explícitamente.</p>
+          <p>STREAMS Player almacena el estado del catálogo, canales agregados e importados, fijados, colecciones, canales ocultos, historial de reproducción, marcas, fotogramas de vista previa en un límite de 150 MB, las bibliotecas opcionales de FFmpeg y los registros de diagnóstico de los últimos diez inicios en <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code>. Las grabaciones y fotogramas van a las carpetas elegidas (por defecto Videos/Recordings, Music/Recordings y Pictures/Frames). Estos datos permanecen en su dispositivo a menos que use «Enviar los registros al autor» en Configuración en la página Acerca de para enviarlos a <span dir="ltr">sza@ukr.net</span>. La guía de TV descargada y sus asignaciones también se guardan allí; «Eliminar guía» en Configuración elimina ambas. La contraseña y el código se descartan. Cuenta, token y huella se protegen para tu usuario de Windows en un archivo separado; eliminar la cuenta los borra. Los archivos de diagnóstico excluyen ese archivo y ocultan los datos de la cuenta. Las conexiones de intercambio empiezan solo después de configurar la fuente explícitamente. Este dispositivo guarda una cuenta de intercambio. Cambiar el servidor o el usuario pide confirmar la eliminación de la cuenta actual; volver a entrar en la misma cuenta conserva la identidad del dispositivo. Al eliminar la cuenta se pide al servidor que elimine este dispositivo y se olvida la conexión local aunque el servidor no esté disponible. Los canales importados se conservan. Si no se pudo avisar al servidor, la aplicación indica que el dispositivo puede seguir en la lista hasta que otro lo elimine. No se reintenta la eliminación en segundo plano.</p>
         </section>
         <section class="privacy-section">
           <h2>Contacto</h2>
@@ -192,7 +225,7 @@
         <h2 class="footer-heading">Más herramientas</h2>
         <div class="tools-grid">
           <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>Fast Media Sorter &amp; Organizer</b><span>Clasificador de medios para Android</span></a>
-          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>Clasificador de medios para Windows</span></a>
+          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter &amp; Sharing for Windows</b><span>Clasificador de medios para Windows</span></a>
           <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Corrector de distribución de teclado para Windows</span></a>
           <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Conversor de libros electrónicos para Windows</span></a>
           <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Herramienta de línea de comandos de almacenamiento para Windows</span></a>

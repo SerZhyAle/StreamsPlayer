@@ -14,7 +14,7 @@
         column that is not there means that language's copy is dropped silently, so a shipped
         language with no column fails the run instead of being skipped.
       - The import is all-or-nothing: one bad cell rejects the whole file.
-      - The file must be UTF-8 *without* BOM. A BOM is rejected.
+      - New import files use UTF-8 without BOM. A no-change round trip preserves the export's BOM.
       - A listing needs both a description and at least one screenshot to leave Incomplete; a
         text-only language sits at Incomplete with no error shown anywhere.
       - A relative image path works only through Upload folder, never in a flat CSV upload, so the
@@ -160,7 +160,8 @@ function Write-ListingCsv {
     param(
         [Parameter(Mandatory)] [string] $Path,
         [Parameter(Mandatory)] [string[]] $Header,
-        [Parameter(Mandatory)] [System.Collections.IEnumerable] $Rows
+        [Parameter(Mandatory)] [System.Collections.IEnumerable] $Rows,
+        [switch] $WithBom
     )
 
     $lines = [System.Collections.Generic.List[string]]::new()
@@ -170,14 +171,13 @@ function Write-ListingCsv {
         $lines.Add((($row | ForEach-Object { & $quote $_ }) -join ','))
     }
 
-    # Every field quoted, CRLF between records, no trailing newline, no BOM. All four matter:
-    # Partner Center rejects a BOM and mis-reads an unquoted field that contains a comma.
+    # New imports use the accepted no-BOM dialect; a no-change run keeps the export's dialect.
     $content = $lines -join "`r`n"
     $directory = [System.IO.Path]::GetDirectoryName($Path)
     if ($directory -and -not (Test-Path -LiteralPath $directory)) {
         New-Item -ItemType Directory -Path $directory -Force | Out-Null
     }
-    [System.IO.File]::WriteAllText($Path, $content, (New-Object System.Text.UTF8Encoding($false)))
+    [System.IO.File]::WriteAllText($Path, $content, (New-Object System.Text.UTF8Encoding([bool] $WithBom)))
 }
 
 # ------------------------------------------------------------------------------------- the deck
@@ -241,12 +241,12 @@ $languageColumns = @($header | Select-Object -Skip ($defaultIndex + 1))
 Write-Host ("Export: {0} rows, {1} fixed columns, {2} language column(s): {3}" -f
     $rows.Count, ($defaultIndex + 1), $languageColumns.Count, ($languageColumns -join ', '))
 if ($exportCsv.HasBom) {
-    Write-Host "  The export carries a BOM. The import must not, so the output is written without one." -ForegroundColor Yellow
+    Write-Host '  The export carries a BOM; a no-change run preserves it, new imports use no BOM.'
 }
 
 if ($FillNothing) {
     $target = if ($PSBoundParameters.ContainsKey('Out')) { $Out } else { Join-Path $root 'msix/dist/store-listing-roundtrip.csv' }
-    Write-ListingCsv -Path $target -Header $header -Rows $rows
+    Write-ListingCsv -Path $target -Header $header -Rows $rows -WithBom:$exportCsv.HasBom
     $before = [System.IO.File]::ReadAllBytes($Export)
     $after = [System.IO.File]::ReadAllBytes($target)
     $identical = [System.Linq.Enumerable]::SequenceEqual([byte[]] $before, [byte[]] $after)
@@ -322,12 +322,20 @@ $forbidden = Read-TermList -Path (Join-Path $DeckDirectory 'forbidden-terms.txt'
 # thirteen have a reader who can spot it by eye. The forbidden-substring match is the guard, so it has
 # to see every set.
 $searchTermsByLanguage = @{}
+function Test-SearchTermWordLimit([string] $Language, [string[]] $Terms) {
+    # WINDOWS-STORE amendment 2026-10-17: count non-whitespace runs across all seven cells.
+    $wordCount = [regex]::Matches(($Terms -join ' '), '\S+').Count
+    if ($wordCount -gt 21) {
+        $script:failures.Add("${Language}: search terms contain $wordCount words; the limit is 21.")
+    }
+}
 foreach ($target in $targets) {
     $perLanguage = Join-Path $DeckDirectory "search-terms.$($target.Language.ListingCode).txt"
     $path = if (Test-Path -LiteralPath $perLanguage) { $perLanguage } else { $SearchTermsFile }
     $terms = @((Read-TermList -Path $path).Term)
     $searchTermsByLanguage[$target.Language.ListingCode] = $terms
     $name = Split-Path $path -Leaf
+    Test-SearchTermWordLimit -Language $target.Column -Terms $terms
 
     if ($terms.Count -gt 7) {
         $failures.Add("$name holds $($terms.Count) terms; Partner Center accepts at most 7. Extra: $((@($terms) | Select-Object -Skip 7) -join ', ')")
@@ -433,6 +441,19 @@ foreach ($target in $targets) {
             Write-Host ("  {0}: OverrideLogosForWin10 forced False (was '{1}') - it has no StoreLogo rows of its own." -f $target.Column, $was) -ForegroundColor Yellow
         }
     }
+}
+
+# Fill-only-empty can retain old search terms, so validate the actual merged cells before any output.
+foreach ($column in $languageColumns) {
+    $columnIndex = [array]::IndexOf($header, $column)
+    $mergedTerms = @(foreach ($n in 1..7) {
+        if ($fieldIndex.ContainsKey("SearchTerm$n")) { $rows[$fieldIndex["SearchTerm$n"]][$columnIndex] }
+    })
+    Test-SearchTermWordLimit -Language $column -Terms $mergedTerms
+}
+if ($failures.Count) {
+    $failures | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+    throw "The listing cannot be built ($($failures.Count) problem(s))."
 }
 
 # ------------------------------------------------------------------------------------------ output

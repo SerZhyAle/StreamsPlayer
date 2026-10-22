@@ -3,6 +3,8 @@ using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
+public enum ExchangePortalPage { Home, Account, Broadcasts }
+
 public static class ProductInfo
 {
     public const string Author = "Serhii Zhyhunenko / SerZhyAle";
@@ -26,12 +28,23 @@ public static class ProductInfo
 
     // Same rule as InstructionsUrl: Russian and Ukrainian have their own edition, every other language
     // reads English.
-    public static string ExchangePortalUrl(AppLanguage language) => language switch
+    public static string ExchangePortalUrl(AppLanguage language, ExchangePortalPage page = ExchangePortalPage.Home)
     {
-        AppLanguage.Russian => $"{ExchangePortalBase}index-ru.html",
-        AppLanguage.Ukrainian => $"{ExchangePortalBase}index-uk.html",
-        _ => ExchangePortalBase
-    };
+        var stem = page switch
+        {
+            ExchangePortalPage.Account => "exchange-server",
+            ExchangePortalPage.Broadcasts => "live-broadcast",
+            _ => "index"
+        };
+        var suffix = language switch
+        {
+            AppLanguage.Russian => "-ru",
+            AppLanguage.Ukrainian => "-uk",
+            _ => ""
+        };
+        return stem == "index" && suffix.Length == 0
+            ? ExchangePortalBase : $"{ExchangePortalBase}{stem}{suffix}.html";
+    }
 
     // SP-0029: each UI language points at its own README mirror; anything else falls back to English.
     public static string InstructionsUrl(AppLanguage language) => language switch

@@ -11,12 +11,32 @@ public partial class MainWindow
     {
         void Refresh()
         {
-            ExchangeSourceStatusButton.Visibility = source.Account.Token is not null || source.Account.Host.Length > 0
-                || source.StatusKey == "ExchangeEnrollAgain" ? Visibility.Visible : Visibility.Collapsed;
-            // SP-0201: the broadcasts view exists for an enrolled device - the account section is where a
-            // device without one is told why, so the button is not shown to it.
-            BroadcastsButton.Visibility = source.Account.Token is not null ? Visibility.Visible : Visibility.Collapsed;
+            // Both buttons belong to the exchange server, so both follow the Settings page: an account that is
+            // switched off or was never registered shows neither. The status line and the way back in stay
+            // in Settings > Library, which is where a device without an active account is told why (SP-0201).
+            var visibility = source.IsActive ? Visibility.Visible : Visibility.Collapsed;
+            ExchangeSourceStatusButton.Visibility = visibility;
+            BroadcastsButton.Visibility = visibility;
             ExchangeSourceStatusText.SetResourceReference(System.Windows.Controls.TextBlock.TextProperty, source.StatusKey);
+            if (source.SignedOutNotice)
+            {
+                // SP-0221 requirement 7: the account ended this sign-in. One message that says which, then the
+                // prompt with the server and login kept; nothing retries in the background. Shown once.
+                source.AcknowledgeSignedOutNotice();
+                Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, () =>
+                    HandlerBoundary.Run(nameof(InitializeExchangeStatus), () =>
+                    {
+                        MessageBox.Show(this, LocalizationService.Get("ExchangeSignedOut") + Environment.NewLine
+                            + LocalizationService.Get("ExchangeSignInAgain"), LocalizationService.Get("ExchangeTitle"),
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                        if (!_busy)
+                        {
+                            OpenSettings(1);
+                        }
+
+                        return Task.CompletedTask;
+                    }));
+            }
         }
 
         void Changed()
@@ -54,14 +74,26 @@ public partial class MainWindow
     private void ExchangeSourceStatus_Click(object sender, RoutedEventArgs e) => OpenSettings(1);
 
     private void BroadcastsButton_Click(object sender, RoutedEventArgs e)
+        => OpenExchangeBroadcasts(DialogOwner);
+
+    // SP-0222: the list is a companion surface (APP-BEHAVIOUR rule 1, widened 0.10): it stays open beside the
+    // windows it opens, so it is not modal, and there is one of it - a second open brings the first forward.
+    private BroadcastsWindow? _broadcastsWindow;
+
+    internal void OpenExchangeBroadcasts(Window owner)
     {
         try
         {
-            var window = new BroadcastsWindow(Exchange, PlayExchangeBroadcastAsync, KeepExchangeBroadcastAsync)
+            if (_broadcastsWindow is { } open)
             {
-                Owner = DialogOwner
-            };
-            window.ShowDialog();
+                ActivateWindow(open);
+                return;
+            }
+
+            var window = new BroadcastsWindow(this, Exchange) { Owner = owner };
+            _broadcastsWindow = window;
+            window.Closed += (_, _) => _broadcastsWindow = null;
+            window.Show();
         }
         catch (Exception exception)
         {
@@ -127,18 +159,8 @@ public partial class MainWindow
         }
     }
 
-    /// <summary>The view's Play: the same import a link runs, then the ordinary play of the channel.</summary>
-    private async Task PlayExchangeBroadcastAsync(ExchangeBroadcastView view)
-    {
-        var channel = await ImportExchangeBroadcastAsync(view);
-        if (channel is not null)
-        {
-            await PlayChannelAsync(channel, rememberSelection: true);
-        }
-    }
-
     /// <summary>The view's Keep: the same import a link runs, then the reveal of the row it made.</summary>
-    private async Task KeepExchangeBroadcastAsync(ExchangeBroadcastView view)
+    internal async Task KeepExchangeBroadcastAsync(ExchangeBroadcastView view)
     {
         var channel = await ImportExchangeBroadcastAsync(view);
         if (channel is not null)
@@ -159,7 +181,7 @@ public partial class MainWindow
         {
             // The view never offers these a Play or Keep; this is the unreachable second guard.
             SetStatus(view.Support == ExchangeBroadcastSupport.UnsupportedSchema
-                ? "FmsBroadcastUnsupportedSchema" : "FmsBroadcastUnsupportedMode");
+                ? ExchangeFailureRows.FormatUnsupported.MessageKey : "FmsBroadcastUnsupportedMode");
             return null;
         }
 

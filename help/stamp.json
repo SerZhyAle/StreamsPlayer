@@ -1,0 +1,5 @@
+{
+  "about": "CONTEXT-HELP rule 8 item 7: the version and the day the pages were written against. The version is the YY.MMDD head of the product version of that day's tree; the minutes of a build mean nothing to a reader of prose. Edit it, together with the copy, whenever a page's text is reviewed against a newer tree.",
+  "version": "26.1021",
+  "date": "2026-10-21"
+}

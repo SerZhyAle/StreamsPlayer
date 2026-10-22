@@ -77,6 +77,16 @@ strings; the dictionaries win if the two ever disagree.
 | Arabic (`ar`) | إجراءات | إعدادات المكتبة | تسجيل |
 | Urdu (`ur`) | کارروائیاں | لائبریری ترتیبات | ریکارڈ کریں |
 
+### Help (SP-0230)
+
+**Help** is the `?` button of every help-bearing window and the page it opens (F1 asks the same). Its name is
+the `ICON-SET` vocabulary name of `app.help`, shipped as `HelpName`; the tooltip is that name with the key
+appended, `HelpTip`. It never means the information of the About page (`app.info`) or a first-run tour.
+
+| en | ru | uk | de | it | es | fr | pt | zh | hi | bn | ar | ur |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Help | Справка | Довідка | Hilfe | Aiuto | Ayuda | Aide | Ajuda | 帮助 | सहायता | সহায়তা | مساعدة | مدد |
+
 ## Terms left untranslated on purpose
 
 | Term | Reason |

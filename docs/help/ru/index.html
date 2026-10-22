@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Справка</title>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <header class="hero">
+    <p class="kicker">Справка по окну</p>
+    <h1>Справка</h1>
+    <p class="lead">В каждом окне со справкой есть кнопка <b>?</b> у правого верхнего угла, и оно отвечает на <kbd>F1</kbd>. Эти страницы открываются по ней, написаны на вашем языке и работают без интернета.</p>
+  </header>
+
+  <h2>Как открыть справку</h2>
+  <p>Нажмите <kbd>F1</kbd> в любом окне или кнопку <b>?</b>. Страница этого окна откроется в браузере; программа остаётся открытой, и в ней ничего не меняется.</p>
+  <p>В настройках страница открывается на том разделе, который вы сейчас видите. Если в фокусе элемент с собственной записью, <kbd>F1</kbd> откроет именно её.</p>
+
+  <h2>Окна</h2>
+  <ul class="related">
+    <li><a href="main.html"><b>Трансляции</b><span class="pill">Окно</span><small>Найти канал, включить его, сохранить любимые и выбрать, как выглядит список.</small></a></li>
+    <li><a href="settings.html"><b>Настройки Трансляции</b><span class="pill">Окно</span><small>Все настройки приложения по страницам: что делает каждая и когда её стоит менять.</small></a></li>
+    <li><a href="first-run.html"><b>Откуда взять список каналов?</b><span class="pill">Окно</span><small>Вопрос, который программа задаёт при первом запуске: откуда взять список каналов.</small></a></li>
+  </ul>
+
+  <h2>Смотрите также</h2>
+  <ul class="related">
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/ru/index.html#use"><b>Как пользоваться</b><span class="pill gold">Сайт</span><small>Вся задача целиком: от первого запуска до собственных плейлистов.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/ru/support.html"><b>Поддержка</b><span class="pill gold">Сайт</span><small>Как сообщить о проблеме и что приложить.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/ru/privacy.html"><b>Конфиденциальность</b><span class="pill gold">Сайт</span><small>Что остаётся на вашем компьютере, а что уходит в сеть.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Написано для версии 26.1021 программы «Трансляции», 2026-10-21.</span>
+    <a href="index.html">Оглавление справки</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/ru/support.html">Задать вопрос или сообщить о проблеме</a>
+  </footer>
+
+</main>
+</body>
+</html>

@@ -16,6 +16,7 @@ public partial class SettingsWindow
     private static readonly IReadOnlyDictionary<string, string> GroupCaptionKeys = new Dictionary<string, string>
     {
         ["general.basics"] = "SettingsGeneralBasics",
+        ["general.interface"] = "SettingsGeneralInterface",
         ["general.view"] = "SettingsGeneralView",
         ["library.filters"] = "SettingsContentFilters",
         ["library.catalog"] = "StreamCatalogSettings",
@@ -42,8 +43,10 @@ public partial class SettingsWindow
     [
         (0, "general.basics", "Language", "MachineTranslationNotice", "LanguageBox"),
         (0, "general.basics", "ThemeLabel", "ThemeHint", "ThemeBox"),
+        (0, "general.interface", "InterfaceSizeLabel", "InterfaceSizeHint", "InterfaceSizeBox"),
+        (0, "general.interface", "InputProfileLabel", "InputProfileHint", "InputProfileBox"),
         (0, "general.view", "StreamTileSizeLabel", "TileSizeHint", "TileSizeBox"),
-        (0, "general.view", "AnimatedBackdrop", "AnimatedBackdropHint", "AnimatedBackdropCheckBox"),
+        (0, "general.view", "AnimatedBackdrop", "AnimatedBackdropHint", "AnimatedBackdropOption"),
         (1, "library.filters", "HideAdultContent", "HideAdultContentHint", "HideAdultContentCheckBox"),
         (1, "library.filters", "UpdateStreamPreviews", "UpdateStreamPreviewsHint", "UpdatePreviewsCheckBox"),
         (1, "library.filters", "ManageHiddenOpen", "ManageHiddenTip", "ManageHiddenButton"),
@@ -101,7 +104,7 @@ public partial class SettingsWindow
             System.Windows.Automation.AutomationProperties.SetName(item, $"{caption}, {path}");
             var stack = new StackPanel { Margin = new Thickness(4, 3, 4, 3) };
             var captionText = new TextBlock { Text = caption, TextWrapping = TextWrapping.Wrap, FontWeight = FontWeights.SemiBold };
-            var pathText = new TextBlock { Text = path, TextWrapping = TextWrapping.Wrap, FontSize = 11 };
+            var pathText = new TextBlock { Text = path, TextWrapping = TextWrapping.Wrap };
             // A DynamicResource reference, not a copied brush: the results must follow a theme switch
             // like every other caption (APP-STYLE section 3).
             pathText.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush");
@@ -211,7 +214,15 @@ public partial class SettingsWindow
 
             if (PageAt(page).FindName(targetName) is FrameworkElement editor)
             {
-                editor.Focus();
+                // A boolean option row is not itself focusable; the editor it owns is its checkbox.
+                if (editor is BooleanOptionRow option)
+                {
+                    option.FocusEditor();
+                }
+                else
+                {
+                    editor.Focus();
+                }
             }
         });
     }

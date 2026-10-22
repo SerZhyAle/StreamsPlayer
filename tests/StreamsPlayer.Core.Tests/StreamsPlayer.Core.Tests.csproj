@@ -49,6 +49,9 @@
              Link="app-compile\CurrentLog.cs" />
     <Compile Include="..\..\src\StreamsPlayer.App\StreamTitleFormatter.cs"
              Link="app-compile\StreamTitleFormatter.cs" />
+    <!-- SP-0234: which held PNG step of the exchange mark a slot takes at a screen scale (EXCHANGE-MARK rule 5). -->
+    <Compile Include="..\..\src\StreamsPlayer.App\ExchangeMarkSteps.cs"
+             Link="app-compile\ExchangeMarkSteps.cs" />
   </ItemGroup>
 
   <!--
@@ -91,9 +94,22 @@
     <Content Include="..\..\src\StreamsPlayer.App\*.cs"
              Link="app-source\%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0226: Core logs nothing; the hygiene test reads its sources as data to keep it so. -->
+    <Content Include="..\..\src\StreamsPlayer.Core\*.cs" Link="core-source\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\src\StreamsPlayer.App\*.xaml"
              Exclude="..\..\src\StreamsPlayer.App\Localization.*.xaml"
              Link="app-source\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    SP-0230: the help gate (CONTEXT-HELP rule 19) compares the help map, the copy and the baseline with the
+    application's windows. The sources of the help come in as test DATA on the same terms - read, never run.
+    The generated pages under docs/help are judged by scripts/check-help.ps1, which reads them as files.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\help\**\*.json;..\..\help\help-baseline.txt"
+             Link="help\%(RecursiveDir)%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
@@ -108,9 +124,24 @@
     <Content Include="..\..\tools\site\copy\*.txt"
              Link="site-copy\%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\tools\localization\exchange-term-map.json"
+             Link="exchange-term-map.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\..\tools\site\templates\*.html"
              Link="site-templates\%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    SP-0227: the three READMEs state the same privacy facts as the site and the Store listing (read as text,
+    same terms as above), so PrivacyStatementTests holds the words DEVICE-EXCHANGE item DE fixes against the
+    application's own dictionary in every place that repeats them.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\README.md" Link="readme\README.md" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\README.ru.md" Link="readme\README.ru.md" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\README.uk.md" Link="readme\README.uk.md" CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0229: the package manifest, read as text, so a capability it declares cannot go unsaid in the statement. -->
+    <Content Include="..\..\msix\AppxManifest.xml" Link="msix\AppxManifest.xml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!--
@@ -193,6 +224,26 @@
     <Content Include="..\..\assets\glyphs\**\*.svg;..\..\assets\glyphs\PROVENANCE.txt"
              Link="glyphs\%(RecursiveDir)%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0234: the vendored EXCHANGE-MARK steps and their provenance, held as files and never loaded. -->
+    <Content Include="..\..\assets\exchange-mark\**\*.png;..\..\assets\exchange-mark\PROVENANCE.txt"
+             Link="exchange-mark\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Vectors\connection-string-v1.json;Vectors\PROVENANCE.txt;Vectors\fmsw-224\connection-string-v1.json;Vectors\fmsw-224\PROVENANCE.txt"
+             CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0225: the family's message table and ladder (DEVICE-EXCHANGE 9 items CZ and CY), exported from the catalog. -->
+    <Content Include="Vectors\exchange-failure-table.json;Vectors\exchange-failure-table.PROVENANCE.txt"
+             CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0226: the sealed-content corpus of DEVICE-EXCHANGE section 27 and the RFC 9180 Auth-mode vector. -->
+    <Content Include="Vectors\e2e-v1\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0226: the FMS_Win server's sealed transcripts (complementary, generated evidence; no joint replay is claimed). -->
+    <Content Include="Vectors\fmsw-234\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0228: the FMS_Win server corpus (DEVICE-EXCHANGE item BS: frames 0.17 and records 0.17) and the account-lifecycle
+         transcripts (items AO to AZ, 0.28). Replayed as evidence; no joint replay is claimed by this product. -->
+    <Content Include="Vectors\server\*" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Vectors\fmsw-224\frames-v2.json;Vectors\fmsw-224\VENDORED.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

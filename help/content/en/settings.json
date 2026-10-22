@@ -1,0 +1,847 @@
+{
+  "summary": "Every setting of the app, page by page: what it does and when to change it.",
+  "lead": "Settings is where you choose how the app looks, plays and stores things, and where you manage the channel list, the optional exchange account and the TV schedule. It has six pages; this page has one section for each, and [[F1]] opens the section of the page you are looking at.",
+  "orderNote": "Settings can be changed in any order, and each change applies at once - there is no Save button, and [[Esc]] or closing the window is the only way out; the entries say where a change waits for the next player, the next source or the next start. The pages are listed on the left, the search box finds a setting and takes you to it, and the two arrow buttons beside it expand or collapse the groups of the page you are on.",
+  "groups": [
+    {
+      "id": "general",
+      "nameKey": "SettingsGeneral",
+      "lead": "The language of the interface, the colour theme, the size of the interface and how you point at it, the size of the channel tiles and the animated background. The search box and the Help button in the page header belong to every page.",
+      "elements": [
+        {
+          "id": "language",
+          "nameKey": "Language",
+          "control": "LanguageBox",
+          "one": "Chooses the language of the whole interface; it changes at once.",
+          "full": [
+            "Switches the language of the application's windows, menus and messages. Each language is listed under its own name, and the change applies as soon as you pick one - there is nothing to restart.",
+            "Under the list the window says that interface translations are machine-produced and have not been proofread by native speakers; the ten languages other than English, Russian and Ukrainian are machine-translated."
+          ],
+          "next": "Settings and the main window switch language at once. Help opens in this language when its pages exist, and in English otherwise.",
+          "undo": "Pick the previous language again."
+        },
+        {
+          "id": "theme",
+          "nameKey": "ThemeLabel",
+          "control": "ThemeBox",
+          "one": "Light, dark, or follow the Windows appearance setting.",
+          "full": [
+            "Sets the colours of the application. **Follow system** uses the Windows appearance setting; **Light** and **Dark** stay as you chose them."
+          ],
+          "next": "The colours change at once.",
+          "undo": "Pick the earlier theme."
+        },
+        {
+          "id": "interface-size",
+          "nameKey": "InterfaceSizeLabel",
+          "control": "InterfaceSizeBox",
+          "one": "How large text, icons, spacing and click targets are.",
+          "full": [
+            "Four sizes: **Compact**, **Standard**, **Large** and **Very large**. Text, icons, spacing and the targets you click grow or shrink together, and the settings window resizes with them. **Standard** is the size the app has always had."
+          ],
+          "next": "The settings window changes size at once. The choice is remembered for the next start.",
+          "undo": "Pick **Standard**."
+        },
+        {
+          "id": "input-profile",
+          "nameKey": "InputProfileLabel",
+          "control": "InputProfileBox",
+          "one": "Compact click targets for a mouse and keyboard, or larger ones for a finger.",
+          "full": [
+            "**Mouse and keyboard** keeps targets at the size a pointer needs. **Touch** makes them larger so a finger can hit them. The app never switches between the two by itself, so a target does not move while you are using it; on a device that has both, choose the one you are using."
+          ],
+          "next": "Targets change size at once. The choice is remembered for the next start.",
+          "undo": "Pick the other choice."
+        },
+        {
+          "id": "tile-size",
+          "nameKey": "StreamTileSizeLabel",
+          "control": "TileSizeBox",
+          "one": "How large the channel tiles are in the grid view.",
+          "full": [
+            "Four sizes: **Very small**, **Small**, **Medium** and **Large**. Smaller tiles fit more channels on the screen; larger ones show each channel bigger."
+          ],
+          "next": "The grid in the main window is redrawn at once, and the number of columns adjusts to the window.",
+          "undo": "Pick the earlier size."
+        },
+        {
+          "id": "animated-backdrop",
+          "nameKey": "AnimatedBackdrop",
+          "control": "AnimatedBackdropOption",
+          "one": "Turns the animated background behind the playing station on or off.",
+          "full": [
+            "Draws gently moving lines and particles behind the card or tile of the station that is playing, and in the compact panel. Windows animation effects and the energy saver still pause it. It is on by default."
+          ],
+          "why": "For a calmer window.",
+          "next": "The background starts or stops at once."
+        },
+        {
+          "id": "search",
+          "nameKey": "SettingsSearchWatermark",
+          "control": "SettingsSearchBox",
+          "one": "Finds a setting by its name or description and takes you straight to it.",
+          "full": [
+            "Type a few letters of a setting's name or of its description. Each result names the setting and the page and group it lives in; choosing one switches to that page, opens the group, scrolls to the setting and puts the cursor in it. Searching never changes a value.",
+            "The search covers the main settings of every page. A few controls, such as the broadcasting options, are not in it and are found on their page."
+          ],
+          "shortcut": "[[Enter]] opens the first result, [[Down]] moves into the list of results, and [[Esc]] clears the search; with nothing typed, [[Esc]] closes Settings."
+        },
+        {
+          "id": "help",
+          "nameKey": "HelpName",
+          "one": "Opens this page at the section for the settings page you are on.",
+          "full": [
+            "The button sits in the header that all six pages share, next to the search box, so it is in the same place on every page. It opens this help page in your web browser at the section that matches the page on screen - General, Library, Playback, Audio, Files or About. Settings stays open."
+          ],
+          "next": "The page opens in your browser. Nothing in Settings changes.",
+          "shortcut": "[[F1]] does the same from anywhere in the window; with a control focused that has its own entry on this page, it opens that entry instead."
+        }
+      ]
+    },
+    {
+      "id": "library",
+      "nameKey": "SettingsLibrary",
+      "lead": "Everything about the channel list: which channels are shown, where they come from, playlists you import or export, the optional exchange account with its broadcasting, and the TV schedule.",
+      "elements": [
+        {
+          "id": "hide-adult",
+          "nameKey": "HideAdultContent",
+          "control": "HideAdultContentCheckBox",
+          "one": "Keeps channels of the adult rubric out of the list, the filters and the search.",
+          "full": [
+            "When it is on, channels under the adult rubric are not shown in the catalog, in the filters or in search results. It is off by default."
+          ],
+          "next": "The channel list in the main window is filtered again at once.",
+          "undo": "Untick it and the channels are back in the list; nothing was deleted."
+        },
+        {
+          "id": "update-previews",
+          "nameKey": "UpdateStreamPreviews",
+          "control": "UpdatePreviewsCheckBox",
+          "one": "Lets the grid capture fresh thumbnails of the video streams it shows.",
+          "full": [
+            "While grid mode is on, the app periodically captures screenshots of the video streams visible in the grid, so the tiles show a recent picture. It is on by default."
+          ],
+          "next": "Turning it off stops new captures; thumbnails already stored are still shown."
+        },
+        {
+          "id": "hidden",
+          "nameKey": "ManageHiddenOpen",
+          "control": "ManageHiddenButton",
+          "one": "Opens the list of channels you hid, so you can bring any of them back.",
+          "full": [
+            "Opens the **Hidden channels** window with the channels you have hidden from the list. A channel you bring back there returns to the list at once and stays back, even if you leave Settings afterwards."
+          ],
+          "why": "Hiding keeps a channel out of the list without deleting it; this window is where you undo that.",
+          "next": "The window opens over Settings; close it to return."
+        },
+        {
+          "id": "import-catalog",
+          "nameKey": "ImportCatalogFromFile",
+          "control": "ImportCatalogFromFileButton",
+          "one": "Adds the channels of a stream-catalog.zip archive you already have on this computer.",
+          "full": [
+            "Opens a file picker for a stream catalog archive (a .zip file). The app reads it, adds its channels to your list and updates the matching ones; it removes none.",
+            "If the file is not a usable catalog archive, or exceeds the limits, the app says so and your list stays as it was."
+          ],
+          "why": "For a catalog you were given as a file.",
+          "next": "The main window shows how many channels were added and updated.",
+          "undo": "{@delete-imported} takes the added channels out again; channels you pinned, collected or listened to are kept."
+        },
+        {
+          "id": "builtin-list",
+          "nameKey": "CatalogSnapshotSettings",
+          "control": "ApplyCatalogSnapshotButton",
+          "one": "Adds the channel list that came with this version, with no download.",
+          "full": [
+            "Adds the channels packed inside the app, with their icons, and does not go online. The list is as old as your installed version, so newer stations may be missing. It only adds and updates channels - it never removes any.",
+            "The button is not shown in a build that carries no built-in list."
+          ],
+          "why": "It works offline, and gives you a ready list at once.",
+          "next": "The main window says how many channels were added and updated, and states that the catalog has still not been downloaded.",
+          "undo": "Nothing you made is touched. Channels you do not want can be hidden afterwards."
+        },
+        {
+          "id": "delete-downloaded",
+          "nameKey": "DeleteDownloaded",
+          "control": "DeleteDownloadedButton",
+          "one": "Removes every channel that came from the downloaded catalog and keeps only your own.",
+          "full": [
+            "Deletes the channels that arrived with the catalog download. Channels you added yourself or imported from a file stay, and so do catalog channels you pinned, put in a collection or have listening history for.",
+            "If there is nothing to delete, the app says so. Otherwise it asks first, naming how many channels would go."
+          ],
+          "why": "For a clean start: keep only your own list, then import again for a fresh catalog.",
+          "next": "The channel list shrinks at once, and the main window says how many channels were removed.",
+          "undo": "The question defaults to No. The deletion cannot be undone, but **Import channels from the internet** downloads the channels again."
+        },
+        {
+          "id": "delete-imported",
+          "nameKey": "DeleteImportedCatalog",
+          "control": "DeleteImportedCatalogButton",
+          "one": "Removes every channel that came from an imported catalog archive.",
+          "full": [
+            "Deletes the channels added with {@import-catalog}. Channels you added yourself, those from the downloaded catalog, and those you pinned, put in a collection or have listening history for are kept.",
+            "If there is nothing to delete, the app says so. Otherwise it asks first, naming how many channels would go."
+          ],
+          "next": "The channel list shrinks at once, and the main window says how many channels were removed.",
+          "undo": "The question defaults to No. The deletion cannot be undone; to get the channels back, import the archive again."
+        },
+        {
+          "id": "import-file",
+          "nameKey": "ImportFromFile",
+          "control": "ImportFromFileButton",
+          "one": "Adds the channels of a playlist file (M3U) from your computer to your list.",
+          "full": [
+            "Opens a file picker for playlists (.m3u, .m3u8). Before anything is added, the app shows a preview of what it found and you confirm or cancel.",
+            "The picker also takes live broadcast files (.fmsbcast) and broadcast resource files (.spres); the app reads those as what they are."
+          ],
+          "next": "Confirmed channels are added to your list as imported channels, and the main window says how many.",
+          "undo": "An import only adds: it never overwrites or removes channels you already have. Cancelling the preview adds nothing."
+        },
+        {
+          "id": "import-url",
+          "nameKey": "ImportFromUrl",
+          "control": "ImportFromUrlButton",
+          "one": "Adds the channels of a playlist found at a web address to your list.",
+          "full": [
+            "Asks for the address of an M3U playlist. When you confirm, Settings closes and the main window downloads the playlist with a progress bar and a **Cancel** button; then you see the same preview as for a file and confirm before anything is added.",
+            "If the computer is offline, the app says so before it tries."
+          ],
+          "next": "The preview opens when the download is done.",
+          "undo": "Cancelling the download, or the preview, adds nothing.",
+          "tip": "Settings closes when the download starts so that its progress and Cancel button are not hidden behind it."
+        },
+        {
+          "id": "export-all",
+          "nameKey": "ExportAll",
+          "control": "ExportAllButton",
+          "one": "Saves the channels you added or imported to an M3U file.",
+          "full": [
+            "Writes every channel that is yours - added by hand or imported - to a standard M3U playlist file. Channels from the downloaded catalog are not exported. If you have none of your own, the app says so.",
+            "If a channel's address carries a login or an access key, the app asks you to confirm first, because the file can be handed to anyone; the question defaults to No. Then a save dialog opens, proposing streamsplayer.m3u."
+          ],
+          "next": "The main window says how many channels were written.",
+          "undo": "The file is written beside its final name and moved into place, so a failed save leaves an earlier file as it was."
+        },
+        {
+          "id": "export-pinned",
+          "nameKey": "ExportPinned",
+          "control": "ExportPinnedButton",
+          "one": "Saves only the pinned channels among your own to an M3U file.",
+          "full": [
+            "The same as {@export-all}, limited to your own channels that you pinned. If none of them is pinned, the app says so and writes nothing."
+          ]
+        },
+        {
+          "id": "exchange-guide",
+          "nameKey": "ExchangePortalLink",
+          "mark": true,
+          "one": "Opens the account page of the media-exchange guide in your browser.",
+          "full": [
+            "The exchange server section is optional: it signs this PC in to an account on your own server. This program signs in only. An account is created in Fast Media Sorter & Organizer for Android or Fast Media Sorter & Sharing for Windows - on a phone or on Windows - or by whoever runs the server.",
+            "The link opens the guide page in Russian or Ukrainian when the interface is in one of them, and in English otherwise. The text at the top of the section also says what the server still sees; read it before you sign in."
+          ],
+          "next": "The page opens in your browser. If Windows cannot open it, a message says so."
+        },
+        {
+          "id": "exchange-import-string",
+          "nameKey": "ExchangeImportString",
+          "control": "ExchangeImportStringButton",
+          "one": "Fills in the server form from a connection string you paste.",
+          "full": [
+            "A connection string carries a server's address, its port and, when the string has one, a login. The button shows a text box, filled from the clipboard when it holds text; **Read string** reads what is in the box and fills the form. Reading never signs in: you still type the password and press **Sign in**.",
+            "After a string is read, a short review shows the name the string gives the server (only a hint - the certificate identifies the server), how the server's certificate will be trusted and, if the string carries an invitation, a note that this program does not register. A string that cannot be read gets a message saying why."
+          ],
+          "tip": "A string that came as a file, a QR picture or from the camera has its own button below; all of them fill the same form."
+        },
+        {
+          "id": "exchange-import-file",
+          "nameKey": "ExchangeImportFile",
+          "control": "ExchangeImportFileButton",
+          "one": "Reads a connection file (.fmsexch) and fills in the server form.",
+          "full": [
+            "Opens a file picker for connection files (*.fmsexch; any other file can be chosen too) and puts what the file holds into the form, the same as {@exchange-import-string}. Nothing connects until you press **Sign in**."
+          ]
+        },
+        {
+          "id": "exchange-qr-file",
+          "nameKey": "ExchangeImportQrFile",
+          "control": "ExchangeImportQrFileButton",
+          "one": "Reads a connection QR code from a picture file and fills in the form.",
+          "full": [
+            "Opens a file picker for pictures (PNG, JPG, BMP, GIF, TIFF) and looks for a QR code in the one you choose - a saved image or a screenshot file, for example. The QR carries the same connection string, so the result is the same as {@exchange-import-string}: the form is filled and nothing connects."
+          ]
+        },
+        {
+          "id": "exchange-qr-clipboard",
+          "nameKey": "ExchangeImportQrClipboard",
+          "control": "ExchangeImportQrClipboardButton",
+          "one": "Reads a connection QR code from a picture on the clipboard.",
+          "full": [
+            "Uses the picture currently on the clipboard - a screenshot taken to the clipboard, for instance - and looks for a QR code in it. If the clipboard holds no picture, the app says so; if Windows cannot read the clipboard, it says that, and nothing is changed."
+          ]
+        },
+        {
+          "id": "exchange-camera",
+          "nameKey": "ExchangeImportCamera",
+          "control": "ExchangeImportCameraButton",
+          "one": "Scans the server's QR code with a camera; shown only when Windows reports one.",
+          "full": [
+            "Opens a scan window: hold the server's QR code in front of the camera. If several cameras are found, a list lets you choose one. When a code is read, the same form is filled and nothing connects; **Cancel** closes the window. The button is absent, not greyed out, where Windows reports no camera, and the app looks again whenever Settings regains focus, so a camera plugged in meanwhile appears.",
+            "The camera picture is only looked at in this window. It is not stored, sent or logged, and the camera is released when this window closes."
+          ]
+        },
+        {
+          "id": "exchange-details",
+          "nameKey": "ExchangeDetails",
+          "control": "ExchangeDetailsExpander",
+          "one": "A collapsed block holding the server's address and port.",
+          "full": [
+            "It is closed by default because a connection string fills it in for you. Open it to type the server by hand or to check what a string put there; the certificate fingerprint a string named is shown here too. If you press **Sign in** with the address or port missing, the block opens by itself."
+          ]
+        },
+        {
+          "id": "exchange-address",
+          "nameKey": "ExchangeAddress",
+          "control": "ExchangeAddressBox",
+          "one": "The address of the exchange server.",
+          "full": [
+            "The server's host name or IP address. Changing it after a connection string was read makes the app forget what the string said about the name and the certificate, and empties the password box; the server's certificate is then shown for you to confirm when you sign in."
+          ]
+        },
+        {
+          "id": "exchange-port",
+          "nameKey": "ExchangePort",
+          "control": "ExchangePortBox",
+          "one": "The port number of the exchange server.",
+          "full": [
+            "A number from 1 to 65535. If it is not a valid number when you press **Sign in**, the app asks you to complete the entry. Like the address, editing it after a string was read drops what the string said about the certificate."
+          ]
+        },
+        {
+          "id": "exchange-login",
+          "nameKey": "ExchangeLogin",
+          "control": "ExchangeLoginBox",
+          "one": "The account's login on that server.",
+          "full": [
+            "Typed here, or filled in from a connection string that carries one. It is needed to sign in, together with the password or pairing code.",
+            "If the account ends this device's sign-in, the server and login stay in the form, the window tells you to enter the password again, and the password box takes the focus."
+          ]
+        },
+        {
+          "id": "exchange-password",
+          "nameKey": "ExchangePassword",
+          "control": "ExchangeSecretBox",
+          "one": "Where you type the account's password, or the pairing code you chose.",
+          "full": [
+            "The characters are hidden as you type. The box is emptied the moment you press **Sign in** and again when the window closes, so nothing waits in it afterwards."
+          ]
+        },
+        {
+          "id": "exchange-method",
+          "nameKey": "ExchangePairingCode",
+          "control": "ExchangeMethodBox",
+          "one": "Chooses whether the box beside it takes a password or a pairing code.",
+          "full": [
+            "The list has two choices, **Password** and **Pairing code**. Pick **Pairing code** when what you have is a pairing code instead of a password; **Sign in** then sends it as one."
+          ]
+        },
+        {
+          "id": "exchange-enabled",
+          "nameKey": "ExchangeEnabled",
+          "control": "ExchangeEnabledCheckBox",
+          "one": "Switches the connection to the exchange server on or off for this PC.",
+          "full": [
+            "While it is on, the app keeps a connection to your server open. The box is available only once you are signed in, and the line under the buttons shows the state of the connection."
+          ],
+          "next": "The connection is made or closed at once.",
+          "undo": "Tick or untick it again. Switching it off does not sign you out; that is {@exchange-forget}."
+        },
+        {
+          "id": "exchange-auto-accept",
+          "nameKey": "ExchangeAutoAcceptCasts",
+          "control": "ExchangeAutoAcceptCastsCheckBox",
+          "one": "Plays what your own devices cast to this PC without asking first.",
+          "full": [
+            "A cast is a stream that another of your devices sends to this PC to play. By default the app asks you each time and your answer decides. With this on, a cast is accepted at once and starts playing. The box is available only once you are signed in."
+          ],
+          "why": "For when you cast to this PC often and the question only gets in the way.",
+          "undo": "Untick it and the app asks again."
+        },
+        {
+          "id": "exchange-enroll",
+          "nameKey": "ExchangeEnroll",
+          "control": "ExchangeEnrollButton",
+          "one": "Signs this PC in to the account on the server named in the form.",
+          "full": [
+            "Checks the form - server address, port, login and a password or pairing code - then asks the server for its certificate and, when it is new or has changed, shows the fingerprint for you to confirm before the password is sent. An incomplete form gets a message instead.",
+            "If this PC is already signed in to another account, a question explains what happens: your own or a family account replaces the old sign-in, so this PC's broadcasts end and it signs out of the old account, while a guest account is added beside it. While the sign-in runs, a progress bar and a **Cancel** button appear."
+          ],
+          "why": "Signing in is the step that makes the exchange server usable from this PC.",
+          "next": "The status line under the buttons shows the result; a failure leaves its reason there. After a successful sign-in with your own or a family account, the **Live broadcasts** window opens.",
+          "undo": "{@exchange-forget} signs this PC out again."
+        },
+        {
+          "id": "exchange-change-password",
+          "nameKey": "ExchangeChangePassword",
+          "control": "ExchangeChangePasswordButton",
+          "one": "Opens a window to change the account's password from this signed-in PC.",
+          "full": [
+            "Available only while this PC is signed in. The window asks for the old password and the new one twice, and states the rule above the fields: at least 10 characters, with capital and small Latin letters and digits.",
+            "One request is sent at a time; a slow answer is shown as waiting and is never sent again by itself. When the password is changed, the window says so and its button turns into **Close**."
+          ],
+          "next": "The window opens over Settings; the account's status line updates afterwards.",
+          "undo": "A changed password cannot be taken back; change it again to set another."
+        },
+        {
+          "id": "exchange-diagnose",
+          "nameKey": "ExchangeDiagnose",
+          "control": "ExchangeDiagnoseButton",
+          "one": "Opens the Connection check window for the server in the form.",
+          "full": [
+            "It runs only because you pressed it, never earlier. It looks at the server named in the form - the one you typed or imported - or at the account's own server when the form is empty, and shows what it finds step by step in the **Connection check** window.",
+            "The account's own connection lines are added only when the form names the account's server."
+          ],
+          "why": "For when signing in fails or the connection drops and you want to know where it stops.",
+          "next": "The window opens over Settings; close it to return."
+        },
+        {
+          "id": "exchange-forget",
+          "nameKey": "ExchangeForget",
+          "control": "ExchangeForgetButton",
+          "one": "Signs this PC out of the account and removes it from the account's device list.",
+          "full": [
+            "Asks first, naming the account; the question defaults to No. Signing out ends this PC's broadcasts and removes this device from the account's device list. Imported channels stay.",
+            "If the server cannot be told, the status line says so: the device may stay in the server's list until another device removes it, and no retry runs."
+          ],
+          "next": "The status line says whether the server was told.",
+          "undo": "Sign in again with {@exchange-enroll} to use the account on this PC again."
+        },
+        {
+          "id": "exchange-trust",
+          "nameKey": "ExchangeTrust",
+          "control": "ExchangeTrustButton",
+          "one": "Accepts a changed server certificate after you have compared the fingerprints.",
+          "full": [
+            "Shown only while this PC is signed in and the server presents a certificate different from the one remembered. The button asks whether to trust the new certificate, showing the previous fingerprint beside the new one; the question defaults to No.",
+            "The line under the buttons shows the same two fingerprints while the choice is open. A changed certificate may be a routine renewal or a different server answering, so compare them with the ones you were given."
+          ],
+          "undo": "Declining keeps the remembered certificate and changes nothing. Accepting replaces it with the new one."
+        },
+        {
+          "id": "exchange-guests",
+          "nameKey": "ExchangeGuests",
+          "mark": true,
+          "one": "Lists the guest accounts signed in on this PC, each with its own sign out button.",
+          "full": [
+            "A guest account sees only what was given to it and announces nothing. This PC holds a few of them beside your own account; the window states the exact number above the list. A guest account is added when you sign in to one with {@exchange-enroll}.",
+            "Each entry has its own **Sign out on this device** button. It asks first, naming the account; this device then leaves that account's device list."
+          ],
+          "undo": "Each guest account is signed out on its own and your own account is not touched. Sign in to the guest account again to bring it back."
+        },
+        {
+          "id": "broadcast-guide",
+          "nameKey": "MediaExchange",
+          "one": "Opens the live-broadcast page of the media-exchange guide in your browser.",
+          "full": [
+            "Opens the guide's page about live broadcasts, in Russian or Ukrainian when the interface is in one of them and in English otherwise. The About page has a link to the guide's start page under the same name."
+          ]
+        },
+        {
+          "id": "broadcast-allow",
+          "nameKey": "BroadcastAllow",
+          "control": "BroadcastAllowedCheckBox",
+          "one": "The permission that must be on before this PC can broadcast anything.",
+          "full": [
+            "Sending what this PC captures to the exchange server of your account takes two steps: first allow it here, then start a source yourself. Nothing is captured until both are done. It is off by default, and while it is off the rest of this group stays hidden.",
+            "While this PC is signed in to a server only as a guest, it announces nothing on that server; the link and the LAN share still work."
+          ],
+          "next": "The other controls of the group appear and the list of microphones is read."
+        },
+        {
+          "id": "broadcast-start-with-app",
+          "nameKey": "BroadcastStartWithApp",
+          "control": "BroadcastStartWithAppCheckBox",
+          "one": "Starts the sources you chose earlier when the application starts.",
+          "full": [
+            "With it on, the sources you started and have not stopped since are started again when the app starts, once the account is online. With it off, nothing starts by itself: every source is started by pressing its button."
+          ]
+        },
+        {
+          "id": "broadcast-mic",
+          "nameKey": "BroadcastMicStart",
+          "control": "BroadcastMicButton",
+          "one": "Starts broadcasting the microphone chosen below.",
+          "full": [
+            "Starts capturing the microphone and offers it as a live broadcast: through the exchange server when the account is connected, and on the local network when {@broadcast-lan} is on. The capture begins only when you press the button. The button is unavailable while the microphone is already being broadcast."
+          ],
+          "next": "The line below the quality options reports what happened. **Stop all** ends the broadcast."
+        },
+        {
+          "id": "broadcast-sound",
+          "nameKey": "BroadcastSoundStart",
+          "control": "BroadcastSoundButton",
+          "one": "Starts broadcasting the system sound of this PC.",
+          "full": [
+            "Works like {@broadcast-mic}, with the sound this PC plays as the source instead of a microphone. Its channels are set by **System sound channels** below."
+          ],
+          "next": "The line below the quality options reports what happened. **Stop all** ends the broadcast."
+        },
+        {
+          "id": "broadcast-stop",
+          "nameKey": "BroadcastStopAll",
+          "control": "BroadcastStopButton",
+          "one": "Ends every broadcast running from this PC.",
+          "full": [
+            "Stops all the sources that are live. The button is available only while something is running."
+          ],
+          "next": "The sources stop at once; start any of them again with its own button."
+        },
+        {
+          "id": "broadcast-mic-device",
+          "nameKey": "BroadcastMicDevice",
+          "control": "BroadcastMicDeviceBox",
+          "one": "Chooses which microphone the microphone broadcast uses.",
+          "full": [
+            "**Windows default** follows whatever Windows uses as the default recording device; the other entries are the microphones Windows lists. The list is read only after broadcasting is allowed, so no capture device is touched before that."
+          ],
+          "next": "The choice is used the next time you start the microphone."
+        },
+        {
+          "id": "broadcast-lan",
+          "nameKey": "BroadcastLanListening",
+          "control": "BroadcastLanCheckBox",
+          "one": "Lets devices on your local network listen to this PC directly.",
+          "full": [
+            "When it is on, a broadcast is also offered on this PC's local-network address, on the port beside the box, so devices on the same network can listen without the exchange server. It is off by default.",
+            "Each direct listener uses this PC's upload; through the exchange server this PC sends one copy for all listeners."
+          ],
+          "next": "Read when a source starts: a source that is already live keeps what it started with."
+        },
+        {
+          "id": "broadcast-lan-port",
+          "nameKey": "BroadcastLanPort",
+          "control": "BroadcastLanPortBox",
+          "one": "The port the local-network share listens on.",
+          "full": [
+            "A number from 1 to 65535; the default is 8768. A value outside that range is ignored and the last good port stays. It is read when a source starts."
+          ]
+        },
+        {
+          "id": "broadcast-cap",
+          "nameKey": "BroadcastCap",
+          "control": "BroadcastCapBox",
+          "one": "Caps how many listeners a broadcast takes; 0 means no limit.",
+          "full": [
+            "A number from 0 to 64, where 0 means no limit. Each direct listener on the local network uses this PC's upload, while through the exchange server this PC sends one copy for all listeners. A value outside the range is ignored."
+          ]
+        },
+        {
+          "id": "broadcast-sample-rate",
+          "nameKey": "BroadcastSampleRate",
+          "control": "BroadcastSampleRateBox",
+          "one": "The sample rate of the broadcast audio: 44100 or 48000.",
+          "full": [
+            "The default is 44100. This and the three other **Quality** choices - microphone channels, system sound channels and bitrate - are read when a source starts, so a source that is already live keeps the values it started with."
+          ]
+        },
+        {
+          "id": "broadcast-mic-channels",
+          "nameKey": "BroadcastMicChannels",
+          "control": "BroadcastMicChannelsBox",
+          "one": "Mono or stereo for the microphone broadcast.",
+          "full": [
+            "Choose **Mono** or **Stereo**. The default is Mono."
+          ]
+        },
+        {
+          "id": "broadcast-sound-channels",
+          "nameKey": "BroadcastSoundChannels",
+          "control": "BroadcastSoundChannelsBox",
+          "one": "Mono or stereo for the system sound broadcast.",
+          "full": [
+            "Choose **Mono** or **Stereo** for the sound this PC plays."
+          ]
+        },
+        {
+          "id": "broadcast-bitrate",
+          "nameKey": "BroadcastBitrate",
+          "control": "BroadcastBitrateBox",
+          "one": "How much data per second the broadcast uses: 96, 128, 192 or 256 kbit/s.",
+          "full": [
+            "A higher bitrate sounds better and uses more of this PC's upload. The default is 128 kbit/s."
+          ]
+        },
+        {
+          "id": "tv-address",
+          "nameKey": "TvScheduleAddressName",
+          "control": "TvScheduleAddressBox",
+          "one": "The web address of an XMLTV programme guide (.xml or .xml.gz).",
+          "full": [
+            "Paste the address of an XMLTV guide, for example one published by the iptv-org/epg project. It must begin with http or https. Nothing is downloaded when you type or paste: the address is used only when you press **Download schedule**.",
+            "When a schedule is already on this computer, the box shows the address it came from."
+          ]
+        },
+        {
+          "id": "tv-download",
+          "nameKey": "TvScheduleDownload",
+          "control": "TvScheduleDownloadButton",
+          "one": "Downloads the guide from the address above, once, now.",
+          "full": [
+            "Checks the address, then asks you to confirm, naming the host it will download from; the question defaults to No. After you agree, Settings closes and the main window downloads the guide with a progress bar and a **Cancel** button.",
+            "The guide is kept on this computer for 36 hours ahead and is never updated in the background. A guide with nothing ahead is not saved, so a working schedule is never replaced by an empty one."
+          ],
+          "why": "It shows what is on now and next on your TV channels.",
+          "next": "When it finishes, the main window says how many TV channels were matched. Channels without a match simply show no programme.",
+          "undo": "A new download replaces the schedule; {@tv-remove} deletes it.",
+          "tip": "The line under the address says whether a schedule is on this computer, whether it has run out, and how many TV channels have a programme and until when. When it is running out, the main window suggests downloading again; nothing is downloaded because of that."
+        },
+        {
+          "id": "tv-remove",
+          "nameKey": "TvScheduleRemove",
+          "control": "TvScheduleRemoveButton",
+          "one": "Deletes the downloaded schedule and your channel bindings from this computer.",
+          "full": [
+            "Available when a schedule or any binding exists. It asks first, and the question defaults to No. A channel binding is a match you made by hand between a channel and an entry of the schedule.",
+            "If a file cannot be deleted, the app says why."
+          ],
+          "undo": "The deletion cannot be undone: download the schedule again to get programmes back, but the bindings you made by hand are gone."
+        }
+      ]
+    },
+    {
+      "id": "playback",
+      "nameKey": "SettingsPlayback",
+      "lead": "Whether the computer may sleep while a stream plays, the Windows media controls, what happens at startup, and the engine that plays video and RTSP.",
+      "elements": [
+        {
+          "id": "keep-awake",
+          "nameKey": "KeepAwakeDuringPlayback",
+          "control": "KeepAwakeCheckBox",
+          "one": "Stops the computer sleeping on its idle timer while a stream is playing.",
+          "full": [
+            "While a stream plays, Windows is asked not to go to sleep when its idle timer runs out; a video stream also keeps the display on. It is on by default."
+          ],
+          "next": "Applies at once.",
+          "undo": "Untick it to let Windows sleep during playback again."
+        },
+        {
+          "id": "media-controls",
+          "nameKey": "SystemMediaControls",
+          "control": "SystemMediaControlsCheckBox",
+          "one": "Shows the playing station in the Windows media panel and answers media keys.",
+          "full": [
+            "Publishes the playing station to the Windows media overlay and the lock screen, so the hardware media keys - Play/Pause, Stop, Previous and Next - drive it. It is off by default."
+          ],
+          "next": "Applies at once.",
+          "undo": "Untick it to take the station out of the Windows media panel again."
+        },
+        {
+          "id": "resume",
+          "nameKey": "ResumePlaybackOnStartup",
+          "control": "ResumePlaybackCheckBox",
+          "one": "Plays again at startup whatever was playing when the app was last closed.",
+          "full": [
+            "When the app starts, the radio station and every player window that were playing when it was last closed start again. It is off by default."
+          ],
+          "next": "Takes effect the next time the app starts.",
+          "undo": "Untick it to stop that. If you turn it off and close Settings, the remembered list of what was playing is cleared and cannot be brought back."
+        },
+        {
+          "id": "video-engine",
+          "nameKey": "VideoBackendLabel",
+          "control": "VideoBackendBox",
+          "one": "Chooses the engine that plays video and RTSP: VLC, or FlyleafLib as a fallback.",
+          "full": [
+            "**VLC (default)** is the proven engine. **FlyleafLib (experimental)** is worth trying only when one particular video or RTSP stream misbehaves under VLC. The choice applies to the next player you open.",
+            "FlyleafLib needs extra components that do not ship with the app. If you choose it without them, the app explains and asks whether to go on; **Cancel** returns the choice to VLC, while OK keeps it and players keep opening on VLC until the components are downloaded. The line under the list says whether they are installed."
+          ],
+          "undo": "Choose VLC again.",
+          "tip": "FlyleafLib does not support the choices on the Audio page and always uses the system default."
+        },
+        {
+          "id": "components-download",
+          "nameKey": "VideoComponentsInstall",
+          "control": "VideoComponentsInstallButton",
+          "one": "Downloads the FFmpeg libraries FlyleafLib needs, after you agree.",
+          "full": [
+            "Asks first: the question states the size of the download, how much disk space the libraries take and where they come from, and defaults to No. The button is available only while the components are not installed.",
+            "While the download runs, the rest of Settings is locked, the line under the engine list shows the progress, and a **Cancel download** button appears at the bottom. Closing the Settings window cancels the download too."
+          ],
+          "why": "You need it only if you want to try FlyleafLib.",
+          "next": "A message names the folder when the download is done; FlyleafLib is then available for the next player you open.",
+          "undo": "**Delete components** removes them again."
+        },
+        {
+          "id": "components-delete",
+          "nameKey": "VideoComponentsRemove",
+          "control": "VideoComponentsRemoveButton",
+          "one": "Removes the downloaded FFmpeg libraries; VLC is not affected.",
+          "full": [
+            "Available only when the components are installed. It asks first, and the question defaults to No: FlyleafLib stops working until the components are downloaded again, and VLC is unaffected. If a player window opened on FlyleafLib still holds them, the app asks you to close it and try again."
+          ],
+          "undo": "The only way back is to download the components again with {@components-download}."
+        }
+      ]
+    },
+    {
+      "id": "audio",
+      "nameKey": "SettingsAudio",
+      "lead": "Which sound device and which channel mode the app uses for playback.",
+      "elements": [
+        {
+          "id": "audio-device",
+          "nameKey": "AudioOutputDeviceLabel",
+          "control": "AudioDeviceBox",
+          "one": "Chooses the sound device for radio and video playback.",
+          "full": [
+            "The list starts with **Default (System default)**, which follows Windows, and goes on with the output devices Windows reports. The list is read when Settings opens, so the box stays disabled for a moment until it is ready.",
+            "The optional FlyleafLib video engine does not support this and always uses the system default."
+          ],
+          "next": "The radio and the player windows that are open switch to the chosen device at once.",
+          "undo": "Pick **Default (System default)** to follow Windows again."
+        },
+        {
+          "id": "audio-channels",
+          "nameKey": "AudioChannelModeLabel",
+          "control": "AudioChannelBox",
+          "one": "Chooses stereo, a single channel, swapped channels or Dolby Surround for playback.",
+          "full": [
+            "Choose **Stereo** for normal playback; the other choices - **Left channel**, **Right channel**, **Reverse stereo** and **Dolby Surround** - change how the channels are routed to your speakers.",
+            "The optional FlyleafLib video engine does not support this and always uses the system default."
+          ],
+          "next": "The radio and the player windows that are open switch at once.",
+          "undo": "Pick **Stereo** to return to normal."
+        }
+      ]
+    },
+    {
+      "id": "files",
+      "nameKey": "SettingsFiles",
+      "lead": "The folders for saved video frames, video recordings and radio recordings.",
+      "elements": [
+        {
+          "id": "frames-folder",
+          "nameKey": "FrameFolderLabel",
+          "control": "FrameFolderBox",
+          "one": "Where saved video frames and log archives go.",
+          "full": [
+            "The box shows the folder in use. It is read-only, so you choose a folder with **Choose folder..** instead of typing a path. With no folder chosen, the app uses the Frames folder in Pictures, and log archives go to Downloads; once a folder is chosen, log archives are saved there too.",
+            "**Use the default folder** clears your choice, and **Open folder** shows the folder in Windows (a message names the folder if Windows cannot open it)."
+          ],
+          "next": "A folder you choose is used at once.",
+          "undo": "**Use the default folder** goes back to the default; files already saved stay where they are."
+        },
+        {
+          "id": "video-folder",
+          "nameKey": "VideoRecordingFolderLabel",
+          "control": "VideoRecordingFolderBox",
+          "one": "Where recordings of video streams go.",
+          "full": [
+            "Works like {@frames-folder}. With no folder chosen, recordings of video streams go to the Recordings folder in Videos. **Choose folder..**, **Use the default folder** and **Open folder** behave as for the frames folder."
+          ],
+          "next": "A folder you choose is used at once.",
+          "undo": "**Use the default folder** goes back to the default; recordings already saved stay where they are."
+        },
+        {
+          "id": "audio-folder",
+          "nameKey": "AudioRecordingFolderLabel",
+          "control": "AudioRecordingFolderBox",
+          "one": "Where recordings of radio stations go.",
+          "full": [
+            "Works like {@frames-folder}. With no folder chosen, recordings of radio stations go to the Recordings folder in Music. **Choose folder..**, **Use the default folder** and **Open folder** behave as for the frames folder."
+          ],
+          "next": "A folder you choose is used at once.",
+          "undo": "**Use the default folder** goes back to the default; recordings already saved stay where they are."
+        }
+      ]
+    },
+    {
+      "id": "about",
+      "nameKey": "SettingsAbout",
+      "lead": "The app's name, version, author and licence, links to the instructions, the source code, the website, the privacy policy and the media-exchange guide, and the command that prepares a log archive for the author. If Windows cannot open a link, a message says so.",
+      "elements": [
+        {
+          "id": "licence",
+          "nameKey": "Licence",
+          "one": "Opens the licence text in your browser.",
+          "full": [
+            "The row names the licence the app is released under; the button opens its text on GitHub."
+          ]
+        },
+        {
+          "id": "instructions",
+          "nameKey": "Documentation",
+          "one": "Opens the instructions (README) on GitHub in your interface language.",
+          "full": [
+            "Opens the README on GitHub: the Russian one when the interface is Russian, the Ukrainian one when it is Ukrainian, and the English one for every other language."
+          ]
+        },
+        {
+          "id": "source-code",
+          "nameKey": "SourceCode",
+          "one": "Opens the project's source code on GitHub.",
+          "full": [
+            "Opens the repository of the app on GitHub in your web browser."
+          ]
+        },
+        {
+          "id": "website",
+          "nameKey": "Website",
+          "one": "Opens the app's website.",
+          "full": [
+            "Opens the product website in your web browser."
+          ]
+        },
+        {
+          "id": "privacy-policy",
+          "nameKey": "Privacy",
+          "one": "Opens the privacy policy on the app's website.",
+          "full": [
+            "Opens the privacy page of the product website in your web browser."
+          ]
+        },
+        {
+          "id": "media-exchange",
+          "nameKey": "MediaExchange",
+          "one": "Opens the start page of the media-exchange guide.",
+          "full": [
+            "Opens the guide to exchanging media between your devices, hosted on the Fast Media Sorter site, in Russian or Ukrainian when the interface is in one of them and in English otherwise."
+          ]
+        },
+        {
+          "id": "author-page",
+          "nameKey": "AuthorPage",
+          "one": "Opens the author's profile on GitHub.",
+          "full": [
+            "Opens the GitHub profile of SerZhyAle, the author of the app, in your web browser."
+          ]
+        },
+        {
+          "id": "send-logs",
+          "nameKey": "SendLogs",
+          "control": "SendLogsButton",
+          "one": "Packs the diagnostic logs into an archive and opens your mail program with a message to the author.",
+          "full": [
+            "The archive holds the diagnostic logs of the last ten sessions plus a short summary of your app version, Windows version and settings. The logs name the streams that were played. It is saved in the frames folder you set on the Files page, or in Downloads when none is set.",
+            "Nothing is sent automatically. Your mail program opens with the message prepared, a window shows where the archive is, and you attach the archive and press Send yourself. If Windows has no mail program, a message gives the archive's path so you can send it by hand."
+          ],
+          "why": "For a problem that is hard to describe: the logs show what the app was doing.",
+          "next": "The archive is created, then your mail program opens with the message prepared.",
+          "undo": "Nothing leaves your computer until you send the message yourself; the archive stays in its folder and can be deleted."
+        }
+      ]
+    }
+  ],
+  "related": [
+    { "help": "main", "note": "The main window, where the changes you make here show up." },
+    { "help": "first-run", "note": "The question about the channel list asked on the first start; the built-in list here is the same answer." },
+    { "help": "hidden-channels", "note": "Where hidden channels are brought back." },
+    { "help": "import-preview", "note": "The preview of a playlist before its channels are added." },
+    { "help": "broadcasts", "note": "The live broadcasts list, which opens after a successful sign-in here." },
+    { "help": "exchange-diagnosis", "note": "The window that Check the connection opens." },
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." },
+    { "site": "support", "note": "How to report a problem and what to send." },
+    { "site": "privacy", "note": "What stays on your computer and what goes over the network." }
+  ]
+}

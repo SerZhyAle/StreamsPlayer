@@ -180,7 +180,7 @@ public sealed class ExchangeDirectoryTests
          "devices":[{"deviceId":"phone","deviceName":"Pixel 8","presence":"online"}],
          "broadcasts":[{"broadcastId":"b3","deviceId":"phone","title":"Away","mode":"AUDIO_ONLY",
                        "descriptor":{"schemaVersion":1,"url":"https://exchange.example.net:44022/v2/b/b3/stream","mode":"AUDIO_ONLY","isLive":true,
-                                     "endpoints":[{"url":"https://exchange.example.net:44022/v2/b/b3/stream","transport":"RELAY","mode":"AUDIO_ONLY"}]}}]}
+                                     "endpoints":[{"url":"https://exchange.example.net:44022/v2/b/b3/stream","transport":"RELAY","mode":"AUDIO_ONLY","seal":{"v":1}}]}}]}
         """;
 
         var view = Assert.Single(Assert.Single(new ExchangeDirectoryState().ApplyFull(Parse(json)).Snapshot.Groups).Broadcasts);

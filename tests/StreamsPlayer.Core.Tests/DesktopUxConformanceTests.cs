@@ -23,9 +23,31 @@ public sealed class DesktopUxConformanceTests
         ["ExchangeAutoAcceptCasts_Click"] = "applies the auto-accept cast setting on touch",
         ["ExchangeTrust_Click"] = "explicitly confirms a certificate replacement",
         ["ExchangeForget_Click"] = "explicitly removes the account after confirmation",
+        ["ExchangeImportString_Click"] = "opens the paste/type editor without connecting",
+        ["ExchangeImportFile_Click"] = "reads a bounded file and fills the form without connecting",
+        ["ExchangeReadString_Click"] = "parses the typed string and fills the form without connecting",
+        ["ExchangeImportQrFile_Click"] = "reads a bounded picture file and fills the form without connecting",
+        ["ExchangeImportQrClipboard_Click"] = "reads the clipboard's picture and fills the form without connecting",
+        ["ExchangeImportCamera_Click"] = "opens the camera scan window; a connection string it reads fills the form and never connects (SP-0229)",
+        ["ExchangeChangePassword_Click"] = "opens the change-password dialog; nothing is sent until the dialog's own confirmation",
+        ["ExchangeDiagnose_Click"] = "opens the connection check dialog; the check runs only inside it, on this press (SP-0225)",
+        ["ExchangeEndpoint_TextChanged"] = "discards the imported pin after an endpoint edit; commits nothing",
+        ["ExchangeCancel_Click"] = "cancels the current join before any further enrollment work",
+        ["BroadcastAllowed_Click"] = "applies the broadcast permission on touch; the consent gate itself is the Settings value (SP-0217)",
+        ["BroadcastStartWithApp_Click"] = "applies the start-with-application setting on touch",
+        ["BroadcastLan_Click"] = "applies the LAN listening opt-in on touch",
+        ["BroadcastLanPort_TextChanged"] = "applies the LAN port choice as it is typed; invalid text commits nothing",
+        ["BroadcastCap_TextChanged"] = "applies the listener cap as it is typed; invalid text commits nothing",
+        ["BroadcastMicDevice_Changed"] = "applies the microphone choice on touch",
+        ["BroadcastQuality_Changed"] = "applies the audio quality choices on touch",
+        ["BroadcastMicStart_Click"] = "explicitly starts the microphone broadcast - the second consent step (SP-0217)",
+        ["BroadcastSoundStart_Click"] = "explicitly starts the system sound broadcast - the second consent step (SP-0217)",
+        ["BroadcastStopAll_Click"] = "explicitly stops every running broadcast",
         ["ThemeBox_SelectionChanged"] = "applies the theme choice on touch",
         ["TileSizeBox_SelectionChanged"] = "applies the tile size on touch",
-        ["AnimatedBackdropCheckBox_Click"] = "applies the animated backdrop setting on touch",
+        ["InterfaceSizeBox_SelectionChanged"] = "applies the interface size on touch; only an explicit choice resizes anything (SP-0231, UI-SIZING 2.1)",
+        ["InputProfileBox_SelectionChanged"] = "applies the input profile on touch; never inferred from an input event (SP-0231, UI-SIZING 2.1)",
+        ["AnimatedBackdropOption_Toggled"] = "applies the animated backdrop setting on touch; raised for a user's activation only (SP-0231, BOOLEAN-OPTION)",
         ["HideAdultContentCheckBox_Click"] = "applies the adult content filter on touch",
         ["UpdatePreviewsCheckBox_Click"] = "applies the thumbnail preview update setting on touch",
         ["KeepAwakeCheckBox_Click"] = "applies the keep awake setting on touch",
@@ -67,12 +89,12 @@ public sealed class DesktopUxConformanceTests
     {
         "Click", "Checked", "Unchecked", "SelectionChanged", "TextChanged", "ValueChanged",
         "MouseDoubleClick", "MouseLeftButtonUp", "PreviewMouseLeftButtonUp", "KeyDown", "PreviewKeyDown",
-        "LostFocus", "DropDownClosed"
+        "LostFocus", "DropDownClosed", "Toggled"
     };
 
     private static readonly HashSet<string> ValueChangingEvents = new(StringComparer.Ordinal)
     {
-        "SelectionChanged", "TextChanged", "ValueChanged", "Checked", "Unchecked"
+        "SelectionChanged", "TextChanged", "ValueChanged", "Checked", "Unchecked", "Toggled"
     };
 
     private static readonly HashSet<string> IrreversibleHandlers = new(StringComparer.Ordinal)
@@ -161,12 +183,13 @@ public sealed class DesktopUxConformanceTests
         var markup = SettingsMarkup();
         const string floor = "28";
 
-        bool SetsFloor(Func<XElement, bool> owner) => markup.Descendants()
+        bool SetsFloorIn(XDocument document, Func<XElement, bool> owner) => document.Descendants()
             .Where(owner)
             .SelectMany(element => element.Descendants())
             .Any(setter => setter.Name.LocalName == "Setter"
                 && setter.Attribute("Property")?.Value == "MinHeight"
                 && setter.Attribute("Value")?.Value == floor);
+        bool SetsFloor(Func<XElement, bool> owner) => SetsFloorIn(markup, owner);
 
         Assert.True(SetsFloor(style => style.Name.LocalName == "Style" && style.Attribute("TargetType")?.Value == "CheckBox"),
             "The settings window's CheckBox style does not set MinHeight 28.");
@@ -174,8 +197,13 @@ public sealed class DesktopUxConformanceTests
             "The settings window's ComboBox style does not set MinHeight 28.");
         Assert.True(SetsFloor(style => style.Name.LocalName == "Style" && style.Attribute("TargetType")?.Value == "ListBoxItem"),
             "The navigation row style does not set MinHeight 28.");
-        Assert.True(SetsFloor(style => style.Name.LocalName == "Style" && style.Attribute(XName.Get("Key", "http://schemas.microsoft.com/winfx/2006/xaml"))?.Value == "SettingsLinkButton"),
+        // SP-0222: the link style is shared (App.xaml), because the broadcast list and both password prompts carry
+        // the media-exchange link too and could not open while only the settings window defined it.
+        var application = XDocument.Parse(Assert.Single(AppSourceFile.LoadAll("App.xaml")).Text, LoadOptions.SetLineInfo);
+        Assert.True(SetsFloorIn(application, style => style.Name.LocalName == "Style" && style.Attribute(XName.Get("Key", "http://schemas.microsoft.com/winfx/2006/xaml"))?.Value == "SettingsLinkButton"),
             "The settings link button does not set MinHeight 28.");
+        Assert.DoesNotContain(markup.Descendants(), element => element.Name.LocalName == "Style"
+            && element.Attribute(XName.Get("Key", "http://schemas.microsoft.com/winfx/2006/xaml"))?.Value == "SettingsLinkButton");
         Assert.DoesNotContain(markup.Descendants(), element => element.Name.LocalName == "Hyperlink");
     }
 

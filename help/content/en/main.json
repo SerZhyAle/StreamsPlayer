@@ -1,0 +1,509 @@
+{
+  "summary": "Find a channel, play it, keep the ones you like and choose how the list looks.",
+  "lead": "This is the window you work in. It holds the list of channels, plays radio itself and opens video in its own window. Search or filter to find a channel, press play, pin the ones you like, and switch between List and Grid to change how it all looks.",
+  "order": [
+    "If the list is empty, bring channels in first: **{@op-import}**, **{@op-add}** or **{@op-paste}**. The buttons of **{@empty-state}** do the same.",
+    "Look for a channel: type in **{@search}**, or press one of the buttons **{@quick-audio}**, **{@quick-video}** and **{@quick-own}**.",
+    "Narrow the list with **{@filters}**: facets such as **{@filter-media}** and **{@filter-country}**, plus **{@sort}** and **{@filter-collection}**. **{@clear-filters}** takes them all off.",
+    "Choose the look that suits you: **{@list-view}** or **{@grid-view}**.",
+    "Start a channel with **{@play}** or a double-click on it. Radio plays right here, video opens in its own window, and **{@op-random}** picks a station for you.",
+    "Steer the radio from the bottom bar: **{@transport}**, **{@volume}**, **{@sleep-timer}**, **{@record}** and **{@compact}**.",
+    "Keep what you like: **{@pin}** puts a channel in its own section, and the **{@more}** menu adds it to a collection or lets you edit it."
+  ],
+  "elements": [
+    {
+      "id": "search",
+      "nameKey": "SearchCatalog",
+      "control": "SearchBox",
+      "one": "Finds channels by title, topic or language as you type.",
+      "full": [
+        "Type part of a channel's title, its topic or its language, and the list narrows to the channels that match. Upper and lower case do not matter, and the topic is matched by the word you see on screen, in your interface language.",
+        "Country and category are not searched; the filter row covers those."
+      ],
+      "why": "The quickest way to a channel you already have in mind.",
+      "next": "The list updates a moment after you stop typing. Pinned channels are searched too.",
+      "undo": "Empty the box and the full list is back; {@clear-search} does it in one press."
+    },
+    {
+      "id": "clear-search",
+      "nameKey": "ClearTip",
+      "one": "Empties the search box and puts the cursor back in it.",
+      "full": [
+        "Removes the search text in one press and returns the focus to the box, so a new search can be typed at once. Filters and the sort order are not touched."
+      ]
+    },
+    {
+      "id": "filters",
+      "nameKey": "FiltersAndSorting",
+      "control": "FiltersButton",
+      "one": "Opens the row with the filters and the sort order.",
+      "full": [
+        "Shows the filter row under the title line: Media, Category, Topic, Language, Country, minimum bitrate, sort order and collection. Filters combine: a channel is shown only when it passes all of them. The row stays open or closed the way you left it.",
+        "While the row is closed, this button gets an accent frame when a filter is narrowing the list, and its tooltip says how many are active, so channels never go missing without a sign."
+      ],
+      "why": "Use it when a search is not enough, for example to see only the channels of one country, or only streams of 128 kbps and up.",
+      "next": "The button gives way to the filter row; {@hide-filters} closes the row again.",
+      "undo": "Closing the row does not switch the filters off; {@clear-filters} does."
+    },
+    {
+      "id": "quick-video",
+      "nameKey": "QuickVideoTip",
+      "control": "QuickVideoButton",
+      "one": "Shows only video channels; press again to show everything.",
+      "full": [
+        "A shortcut for the Media filter set to Video, which also covers RTSP streams. The button lights up while the filter is on. It stays in the title line whether the filter row is open or closed, and it moves the same filter as {@filter-media}, so the two always agree."
+      ],
+      "undo": "Press it again, or choose All in {@filter-media}."
+    },
+    {
+      "id": "quick-audio",
+      "nameKey": "QuickAudioTip",
+      "control": "QuickAudioButton",
+      "one": "Shows only audio channels, that is radio; press again to show everything.",
+      "full": [
+        "The same shortcut for the Media filter set to Audio. Only one of the three quick buttons can be on at a time, because they all move that one Media filter."
+      ],
+      "undo": "Press it again, or choose All in {@filter-media}."
+    },
+    {
+      "id": "quick-own",
+      "nameKey": "QuickOwnTip",
+      "control": "QuickOwnButton",
+      "one": "Shows only the channels you added or imported yourself.",
+      "full": [
+        "The Own value of the Media filter as a button: the channels you added with {@op-add}, pasted with {@op-paste} or imported, without the ones that came with the shared catalog. Handy when your own channels are lost among the catalog's many."
+      ],
+      "undo": "Press it again, or choose All in {@filter-media}."
+    },
+    {
+      "id": "list-view",
+      "nameKey": "List",
+      "control": "ListModeButton",
+      "one": "Shows channels as compact cards.",
+      "full": [
+        "Each channel is a card with its icon, title, play button, details line and pin. The cards fill as many columns as the window is wide enough for. Pinned channels sit in a strip above the list that scrolls sideways.",
+        "The choice is remembered for the next start."
+      ],
+      "undo": "Press {@grid-view} to switch back."
+    },
+    {
+      "id": "grid-view",
+      "nameKey": "Grid",
+      "control": "GridModeButton",
+      "one": "Shows channels as picture tiles with a preview of the stream.",
+      "full": [
+        "Each channel is a tile: a preview picture when one is available, otherwise a colour monogram with the country flag, with the title over it. Tiles line up in columns that follow the window width, and pinned channels are tiles above the rest. See {@tile}.",
+        "The tile size is set in Settings, under \"Stream tile size\". Previews are captured from the streams themselves when automatic thumbnail updates are on in Settings, or they come from a ready-made picture pack that the app offers after an import."
+      ],
+      "undo": "Press {@list-view} to switch back.",
+      "tip": "In Grid view the **Operations** menu gains a **Refresh previews** entry, which captures the visible previews at once, when automatic thumbnail updates are on in Settings."
+    },
+    {
+      "id": "exchange",
+      "nameKey": "ExchangeTitle",
+      "mark": true,
+      "control": "ExchangeSourceStatusButton",
+      "one": "Shows how the connection to your exchange server is doing; opens its settings.",
+      "full": [
+        "Appears only while this device is signed in to your exchange server account and the account is switched on. Its second line says how the connection is doing, for example that it is connecting or connected.",
+        "Pressing it opens Settings on the Library page, where the account is set up and where a device without an active account is told why."
+      ],
+      "next": "Settings opens on the Library page, on top of this window.",
+      "tip": "Pressing [[Ctrl+V]] in this window while an exchange connection string, or a screenshot of its QR code, is on the clipboard opens the same page with the details filled in."
+    },
+    {
+      "id": "broadcasts",
+      "nameKey": "BroadcastsTitle",
+      "control": "BroadcastsButton",
+      "one": "Opens the list of live broadcasts running on your account's devices.",
+      "full": [
+        "Appears together with the exchange button. It opens the Live broadcasts window: the broadcasts your other devices are running right now, grouped by device. From there you can play one or add it to your channels.",
+        "The list is a companion window: it stays open beside the others, there is only one of it, and pressing the button again brings the open one forward."
+      ],
+      "next": "The Live broadcasts window opens, and this window stays usable."
+    },
+    {
+      "id": "broadcast-live",
+      "nameKey": "BroadcastIndicatorName",
+      "control": "BroadcastLiveButton",
+      "one": "Shows that this PC is broadcasting, and what it is broadcasting.",
+      "full": [
+        "Appears only while the PC microphone or the PC system sound is being broadcast, and reads, for example, \"Broadcasting: PC microphone\". It reports and manages; it never starts a broadcast.",
+        "Its menu names each live source and offers to stop it, to cast it to one of your own devices (only while the exchange account is on and one of its receivers is online) or to share it as a link or a description file."
+      ],
+      "undo": "Stop acts at once, without a question; a stopped broadcast has to be started again."
+    },
+    {
+      "id": "settings",
+      "nameKey": "Settings",
+      "control": "SettingsButton",
+      "one": "Opens the settings and the information about the app.",
+      "full": [
+        "Opens the Settings window on top of this one. Its pages are General, Library, Playback, Audio, Files and About: the preferences you change rarely, the library (catalog, playlists, hidden channels, TV schedule, exchange account) and information about the app."
+      ],
+      "next": "This window waits until you close Settings.",
+      "tip": "The button is greyed out while a download or another long operation is running."
+    },
+    {
+      "id": "operations",
+      "nameKey": "Operations",
+      "control": "OperationsButton",
+      "one": "The menu of less frequent actions: add or import channels, history, window options.",
+      "full": [
+        "Opens a menu with these entries, in this order: **Always on top** (a check mark; keeps this window above the others), **Refresh previews** (only in Grid view, and only when automatic thumbnail updates are on in Settings), **{@op-random}**, **{@op-history}**, **{@op-add}**, **{@op-paste}**, **Library settings** (opens Settings on the Library page) and, set apart at the end, **{@op-import}**.",
+        "The menu is built each time you open it, so the check mark and the Refresh previews entry always match the state of the window right now."
+      ],
+      "tip": "The button is greyed out while an import or another long operation is running."
+    },
+    {
+      "id": "op-import",
+      "nameKey": "UpdateCatalogPlain",
+      "one": "Downloads the latest shared channel list and adds it to yours.",
+      "full": [
+        "Fetches the shared catalog of internet radio and video channels, with the station icons, adds the new channels to your list and updates the ones already there. It runs only when you ask for it.",
+        "While it runs, a progress bar and {@cancel} appear in the bottom bar. When it ends, the status line gives the totals of added, updated and removed channels, and the app may ask whether to download a pack of ready-made preview pictures for Grid view; nothing is downloaded until you say yes."
+      ],
+      "why": "The shared list changes as stations come and go, so this keeps yours current.",
+      "next": "The list refills with the result of the import.",
+      "undo": "Streams you added or imported yourself are never touched by an import, and {@cancel} stops a running one with your list left as it was.",
+      "tip": "When you are offline nothing is requested, and the app offers the copy built into this version, if this build has one."
+    },
+    {
+      "id": "op-add",
+      "nameKey": "AddStreamPlain",
+      "one": "Adds a channel by its address and plays it at once.",
+      "full": [
+        "Opens a small window where you enter the stream's address and, if you like, a title and other details. The new channel goes into your list as your own and starts playing straight away. An address that is already in the list is refused with a message."
+      ],
+      "why": "For a station or stream that is not in the shared catalog.",
+      "undo": "You can change or correct it later with **Edit** in the channel's {@more} menu."
+    },
+    {
+      "id": "op-paste",
+      "nameKey": "PasteChannelPlain",
+      "one": "Adds a channel that someone sent you as text, from the clipboard.",
+      "full": [
+        "Reads the clipboard and, when it holds a channel shared with **Copy share text**, asks \"Add this channel to your list?\" and shows its title and address. Only your yes adds it. The address is taken as written, and nothing is requested from the network at this step.",
+        "If the channel is already in your list nothing is added: the app takes you to it, or offers to bring it back if you had hidden it. A live-broadcast link or description from another device, and an exchange connection string, are recognised too and handled where they belong."
+      ],
+      "tip": "You can also drop a broadcast description file (.fmsbcast or .spres) onto the window to import it."
+    },
+    {
+      "id": "op-random",
+      "nameKey": "RandomStation",
+      "one": "Plays a radio station picked at random from the whole catalog.",
+      "full": [
+        "Picks one radio station at random and starts it. If a station does not answer, the app quietly tries the next random pick, up to a set number of tries, and the status line shows which one it is trying. The first station that sounds stays on.",
+        "Only radio is drawn; channels you have hidden and channels the catalog no longer lists are left out."
+      ],
+      "why": "For when you have no particular station in mind.",
+      "undo": "Pressing it again draws a new station, and **Stop** on the playing card ends it."
+    },
+    {
+      "id": "op-history",
+      "nameKey": "HistoryOpen",
+      "one": "Lists the channels you played recently and lets you play one again.",
+      "full": [
+        "Opens the **Recently played** window: the channels you played, with when you played them and, for radio, the last track the app read. Press **Play** beside an entry to play it again. An entry whose channel is no longer in your list cannot be played."
+      ],
+      "undo": "**Clear history** asks you to confirm and removes only the history; your channels, pins and collections stay as they are."
+    },
+    {
+      "id": "filter-media",
+      "nameKey": "Media",
+      "control": "MediaFilter",
+      "one": "Narrows the list to audio, video or your own channels.",
+      "full": [
+        "Choose All, Audio, Video or Own. Video includes RTSP streams; Own means the channels you added, pasted or imported yourself. The three quick buttons in the title line move this same filter."
+      ]
+    },
+    {
+      "id": "filter-category",
+      "nameKey": "Category",
+      "control": "CategoryFilter",
+      "one": "Narrows the list to one category of the catalog.",
+      "full": [
+        "The choices are the categories the catalog gives its channels, plus All. Category and Topic come from two different columns of the catalog, so a channel can match one and not the other, and choosing both narrows by both."
+      ]
+    },
+    {
+      "id": "filter-topic",
+      "nameKey": "Topic",
+      "control": "TopicFilter",
+      "one": "Narrows the list to one topic of the catalog.",
+      "full": [
+        "The topic is the subject rubric of a channel. The names are shown in your interface language, and General, the broadest group, is listed last so that the narrowing topics come first. The search box and the Topic sort use the same rubrics."
+      ]
+    },
+    {
+      "id": "filter-language",
+      "nameKey": "Language",
+      "control": "LanguageFilter",
+      "one": "Narrows the list to channels broadcast in one language.",
+      "full": [
+        "A channel that is broadcast in several languages is shown for each of them."
+      ]
+    },
+    {
+      "id": "filter-country",
+      "nameKey": "Country",
+      "control": "CountryFilter",
+      "one": "Narrows the list to channels of one country.",
+      "full": [
+        "Each country is shown with its flag and its full name in your interface language. The countries of your interface language come first, set apart by a line, followed by the full alphabetical list. Typing a letter jumps to the name that starts with it."
+      ]
+    },
+    {
+      "id": "filter-bitrate",
+      "nameKey": "MinBitrate",
+      "control": "MinBitrateFilter",
+      "one": "Hides streams whose stated bitrate is below the minimum you pick.",
+      "full": [
+        "Choose All or one of 64, 128, 192, 256 and 320 kbps. The bitrate is the figure the catalog states for the stream, not a measurement. While a minimum is set, channels with no stated bitrate are left out. The box gets an accent frame whenever it is not on All."
+      ]
+    },
+    {
+      "id": "sort",
+      "nameKey": "SortBy",
+      "control": "SortMode",
+      "one": "Sets the order of the list.",
+      "full": [
+        "Sort by Name, Topic, Language, Country or Recently added. The order applies to the pinned section and to the list alike. Sorting only reorders: it does not count as a filter, and {@clear-filters} leaves it alone."
+      ]
+    },
+    {
+      "id": "filter-collection",
+      "nameKey": "CollectionLabel",
+      "control": "CollectionFilter",
+      "one": "Shows only the channels of one collection.",
+      "full": [
+        "A collection is a named group of channels that you make yourself, with **Add to collection** in the {@more} menu of a channel. Pick one here to see just its channels, or All for the whole list. One collection at a time."
+      ]
+    },
+    {
+      "id": "count",
+      "name": "Channel count",
+      "one": "Shows how many channels the search and filters show, out of all that are available.",
+      "full": [
+        "Reads \"Channels: shown / total\" and sits in the filter row, so it is visible while the row is open. The first number is what the current search and filters show, pinned channels included. The second is every channel you can reach in this list, so it does not shrink when you filter or pick a collection. Channels you have hidden are in neither number."
+      ]
+    },
+    {
+      "id": "clear-filters",
+      "nameKey": "Clear",
+      "control": "ClearFiltersButton",
+      "one": "Sets every filter back to All; the search and the sort order stay.",
+      "full": [
+        "Resets Media, Category, Topic, Language, Country, minimum bitrate and collection to All in one press, and the list updates at once. Your search text and the sort order are kept."
+      ],
+      "undo": "Nothing is lost; set the filters again if you want them back."
+    },
+    {
+      "id": "hide-filters",
+      "nameKey": "HideFilters",
+      "control": "HideFiltersButton",
+      "one": "Closes the filter row but keeps the filters switched on.",
+      "full": [
+        "Closes the row to give the list more room. The filters you set stay in force, and {@filters} shows an accent frame as a reminder while any of them is narrowing the list."
+      ],
+      "next": "{@filters} returns to the title line."
+    },
+    {
+      "id": "pinned-header",
+      "nameKey": "PinnedSectionHeader",
+      "one": "Folds the section of pinned channels away, or opens it again.",
+      "full": [
+        "The section appears above the list as soon as one channel is pinned. Pressing its header folds it away or opens it again, and the window remembers the choice."
+      ]
+    },
+    {
+      "id": "channels-header",
+      "nameKey": "MainSectionHeader",
+      "one": "Folds the list of channels away, or opens it again.",
+      "full": [
+        "Works like {@pinned-header}, for the main list, and the window remembers the choice as well. The header is hidden while there is nothing to show."
+      ]
+    },
+    {
+      "id": "list",
+      "name": "Channel list",
+      "control": "StreamsList",
+      "one": "One click selects a channel; a double-click plays it.",
+      "full": [
+        "One click selects a channel and frames it. A double-click anywhere on a card or tile, except on its buttons, plays it. Each card or tile carries its own buttons - {@play}, {@more} and, on cards, {@pin} - and the colour dot and details line described below.",
+        "The window remembers the selected channel, the scroll position, your search, the filters and the sort order, and brings them back at the next start."
+      ],
+      "shortcut": "In Grid view [[←]], [[→]], [[↑]] and [[↓]] move the selection from tile to tile."
+    },
+    {
+      "id": "play",
+      "nameKey": "PlayTip",
+      "one": "Starts the channel; on a playing radio card it becomes Stop.",
+      "full": [
+        "Radio starts right here in the main window, and starting another station replaces the one that was playing. Video and RTSP channels open in their own player window.",
+        "While a station plays, its card shows a turning note and the button reads Stop; pressing Stop ends that station."
+      ],
+      "why": "A double-click on the card does the same.",
+      "next": "A radio station connects and the bottom bar shows its name. If you are offline, a message says so and nothing is started. If the channel cannot be played, a message explains why and offers **Retry**, **Copy report**, **Hide** (for a catalog channel) or **Delete** (for one of your own), and **Keep**.",
+      "undo": "**Stop** ends the radio, and pressing play again restarts it. **Hide** can be undone from Settings; **Delete** asks for confirmation first and cannot be taken back."
+    },
+    {
+      "id": "more",
+      "nameKey": "MoreActionsTip",
+      "one": "Opens the menu of everything else you can do with this channel.",
+      "full": [
+        "The menu holds: **Open** (the same as play); **Open fullscreen** and **Open in new window** (video and RTSP only); **Create desktop shortcut**; **Copy PowerShell launch command**; **Copy share text**; **Edit**; **About channel**; **Pin** or **Unpin**; **Add to collection**, with your collections to tick, a field for a new one and **Manage collections..**; and **TV schedule channel..**, which lets you choose by hand which TV schedule channel belongs to this one, when a TV schedule is loaded.",
+        "**Copy share text** puts the channel on the clipboard as plain text that another person can add with **Paste channel**; if the address contains a password or a token, the app warns you first. **Edit** opens the Add stream window for this channel, and editing a catalog channel makes it yours, so a later import does not overwrite your changes. **About channel** shows what the app knows about it."
+      ],
+      "tip": "On a tile of the smallest size this button appears when you point at the tile or select it."
+    },
+    {
+      "id": "pin",
+      "nameKey": "PinTip",
+      "one": "Pins or unpins the channel, moving it into its own section.",
+      "full": [
+        "A pinned channel leaves the main list and sits in the pinned section above it: a strip that scrolls sideways in List view, tiles in Grid view. Pinned channels follow the same search, filters and sort order as the list. Only cards have this button; on a tile use **Pin** in the {@more} menu."
+      ],
+      "undo": "Press it again to unpin; the channel goes back to the list. Pinning deletes nothing."
+    },
+    {
+      "id": "status-dot",
+      "name": "Status dot",
+      "one": "Shows how the last attempt to play the channel went.",
+      "full": [
+        "Green means the channel started successfully the last time you played it here. Red means the last attempt failed, or that the address is not an http, https or rtsp address and cannot be played at all. Amber means the channel has not been played yet. Point at the dot to read the same in words.",
+        "The dot records what happened on this computer. It is not a live check of the stream, and a channel that worked yesterday can fail today."
+      ],
+      "tip": "In a high-contrast theme the three colours look alike, so read the tooltip."
+    },
+    {
+      "id": "metadata",
+      "name": "Details line",
+      "one": "Kind, topic, country and language, with stream details at the right end.",
+      "full": [
+        "Under the title a card shows the kind (AUDIO, VIDEO or RTSP), the topic, the country as a flag and the language; pointing at the line spells it out, with the country name in full. At the right end, when the catalog states them, come the stream's technical details: format, bitrate, protocol and whether it is live or on demand. These are the catalog maintainer's claims, not measurements.",
+        "A **Region-locked** label means the catalog maintainer could not open the channel from their own country; it may still work in the region it is broadcast to. If you loaded a TV schedule in Settings, a channel matched to it also shows the programme on air now under its title."
+      ]
+    },
+    {
+      "id": "tile",
+      "name": "Grid tile",
+      "one": "A channel as a picture, with its title and kind over it and buttons in the corners.",
+      "full": [
+        "The picture is a preview of the stream when one is available, otherwise a colour monogram with the country flag. The title and kind are at the bottom, the status dot above them, the **Pinned** and **Region-locked** badges at the top left, {@more} at the top right and {@play} at the bottom right. While a radio station plays, its tile shows a turning note.",
+        "At the smallest tile size (set in Settings, \"Stream tile size\") a tile shows only the picture and the dot; its title and buttons appear when you point at the tile or select it."
+      ]
+    },
+    {
+      "id": "empty-state",
+      "name": "Empty list",
+      "one": "Appears when nothing is shown: add a channel or import the catalog.",
+      "full": [
+        "Shows the message \"No streams yet. Add a URL, or import channels from the internet.\" with three buttons, **Add stream**, **Paste channel** and **Import channels from the internet**: the same commands as in the {@operations} menu.",
+        "The same panel also appears when your search and filters match nothing, so a full catalog can look empty. Open the filter row, or use {@clear-search} and {@clear-filters}, to bring the channels back."
+      ]
+    },
+    {
+      "id": "now-playing",
+      "name": "Now playing",
+      "one": "Names the station that is on air.",
+      "full": [
+        "Reads \"Nothing playing\" while the radio is silent, \"Connecting to\" and the station's name while a station connects, and \"Now playing\" followed by the station's name, and by the current track when the station sends one. The window's title bar, and so its taskbar button, carries the station's name too, so a minimised window still says what is on air.",
+        "It follows the radio of this window; a video channel has its own window."
+      ]
+    },
+    {
+      "id": "status-line",
+      "name": "Status line",
+      "one": "Says what the app has just done or is doing, with a progress bar for downloads.",
+      "full": [
+        "Reads \"Ready\" when idle, and then reports results and problems in plain words: what an import added, that a sleep timer is set, that you are offline, where a recording was saved. While a long operation runs, a thin progress bar appears under it, and {@settings} and {@operations} are greyed out so that a second operation cannot start."
+      ]
+    },
+    {
+      "id": "cancel",
+      "nameKey": "Cancel",
+      "control": "CancelOperationButton",
+      "one": "Stops a running download.",
+      "full": [
+        "Appears next to the progress bar while the channel list or the preview pictures are being downloaded. Once the transfer is over and the app is saving the result, the button goes dark, because it can no longer stop anything."
+      ],
+      "undo": "A cancelled import leaves your channel list exactly as it was."
+    },
+    {
+      "id": "transport",
+      "nameKey": "StopAudio",
+      "control": "AudioTransportButton",
+      "one": "Silences the station but keeps it, then plays it again.",
+      "full": [
+        "Appears once a station has been started. While the station plays the caption is Stop audio: pressing it stops the sound but keeps the station as the current one, and the caption becomes Resume audio. Pressing that connects to the station again.",
+        "To end the session altogether, use Stop on the station's own card, or start another station."
+      ]
+    },
+    {
+      "id": "record",
+      "nameKey": "Record",
+      "control": "AudioRecordButton",
+      "one": "Records the radio station that is playing into a file.",
+      "full": [
+        "Available while a station plays. Pressing it starts saving the live audio to a file, and the button then offers to stop the recording. When the recording ends, the status line names the saved file and its length. It also ends by itself if the station drops the connection; the part already saved is kept. Stopping the station ends the recording too.",
+        "A FastMediaSorter broadcast cannot be recorded, because it allows one connection and playback is using it; the button is then greyed out, with the reason in its tooltip. The folder for recordings is chosen in Settings."
+      ],
+      "undo": "**Stop recording** closes and saves the file."
+    },
+    {
+      "id": "volume",
+      "nameKey": "AudioVolumeName",
+      "control": "AudioVolumeSlider",
+      "one": "Sets the radio volume from 0 to 100.",
+      "full": [
+        "A click anywhere on the slider jumps straight to that level instead of stepping towards it. The level is remembered for the next time you play radio."
+      ]
+    },
+    {
+      "id": "sleep-timer",
+      "nameKey": "SleepTimer",
+      "control": "SleepTimerButton",
+      "one": "Stops the radio by itself after a time you choose.",
+      "full": [
+        "Opens a menu with ready-made durations in minutes and a **Stop at** field, where you type a time of day within the next 24 hours as HH:mm and press [[Enter]]. When a timer is set, the menu also offers **Cancel timer**, and the status line says when the radio will stop.",
+        "The timer belongs to the radio. It keeps running when you switch to another station, ends when you stop the station yourself or cancel it, and is not saved: closing the app drops it."
+      ],
+      "why": "For falling asleep to the radio without leaving it on all night."
+    },
+    {
+      "id": "compact",
+      "nameKey": "CompactPanelName",
+      "control": "CompactPanelButton",
+      "one": "Shrinks the window to a small panel that stays on top.",
+      "full": [
+        "Hides this window and shows the compact panel: a small window with the station and its main controls that stays above other windows by default. Expanding the panel brings this window back where you left it, with the scroll position, filters and selection intact.",
+        "Closing the panel with its own close button ends the application, not just the panel."
+      ],
+      "next": "This window hides and the panel takes its place; the taskbar still shows one item."
+    },
+    {
+      "id": "help",
+      "nameKey": "HelpName",
+      "one": "Opens this page.",
+      "full": [
+        "Every window that has help carries this button. Here it sits in the title line, at the left end of the buttons on the right. It opens the page of the window you are in, in your web browser; the application stays open."
+      ],
+      "next": "The page opens in your browser. Nothing in the application changes.",
+      "shortcut": "[[F1]] does the same from anywhere in the window."
+    }
+  ],
+  "related": [
+    { "help": "settings", "note": "Where the library, the exchange account, the tile size, the recording folder and the other preferences are set." },
+    { "help": "first-run", "note": "The question the app asks on its first start: where the channel list comes from." },
+    { "help": "player", "note": "The window where video and RTSP channels play." },
+    { "help": "compact-panel", "note": "The small panel that stays on top while the radio plays." },
+    { "help": "collections", "note": "Where you manage your collections of channels." },
+    { "help": "history", "note": "The list of channels you played recently." },
+    { "help": "add-stream", "note": "The window for adding a channel by its address, and for editing one." },
+    { "help": "channel-info", "note": "What the app knows about one channel." },
+    { "help": "broadcasts", "note": "The live broadcasts of your account's devices." },
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." },
+    { "site": "support", "note": "How to report a problem and what to send." }
+  ]
+}

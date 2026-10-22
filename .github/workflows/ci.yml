@@ -34,7 +34,13 @@ jobs:
         id: build
         run: dotnet build StreamsPlayer.sln -c Release --no-restore
       - name: Test
-        run: dotnet test StreamsPlayer.sln -c Release --no-build --verbosity normal
+        run: pwsh -NoProfile -File scripts/test.ps1 -Configuration Release -NoBuild
+      - name: Test verdict fixtures
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: pwsh -NoProfile -File scripts/Test-TestResultSummary.ps1
+      - name: Store listing fixtures
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: pwsh -NoProfile -File tools/store/Test-StoreListing.ps1
       # DOC-INTERNAL-QUALITY (SP-0140): registry and reverse coverage, links and anchors, assets, house style,
       # offline safety. Exit 0 pass, 1 finding, 2 could not verify (CHECK-VERDICT).
       - name: Documentation gate

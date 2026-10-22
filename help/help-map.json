@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "product": "STREAMS Player",
+  "helpRoot": "docs/help",
+  "pageTemplate": "{locale}/{help}.html",
+  "index": "index",
+  "sourceLocale": "en",
+  "surfaces": [
+    { "id": "main", "name": "STREAMS Player", "nameKey": "ProductName", "form": "page", "help": "main", "class": "MainWindow", "slice": "S1" },
+    { "id": "settings", "name": "STREAMS Player settings", "nameKey": "SettingsWindowTitle", "form": "page", "help": "settings", "class": "SettingsWindow", "slice": "S1",
+      "pages": [
+        { "id": "settings.general", "name": "General", "nameKey": "SettingsGeneral", "anchor": "general" },
+        { "id": "settings.library", "name": "Library", "nameKey": "SettingsLibrary", "anchor": "library" },
+        { "id": "settings.playback", "name": "Playback", "nameKey": "SettingsPlayback", "anchor": "playback" },
+        { "id": "settings.audio", "name": "Audio", "nameKey": "SettingsAudio", "anchor": "audio" },
+        { "id": "settings.files", "name": "Files", "nameKey": "SettingsFiles", "anchor": "files" },
+        { "id": "settings.about", "name": "About", "nameKey": "SettingsAbout", "anchor": "about" }
+      ] },
+    { "id": "first-run", "name": "Where should the channel list come from?", "nameKey": "FirstRunTitle", "form": "page", "help": "first-run", "class": "FirstRunCatalogWindow", "slice": "S1" },
+
+    { "id": "player", "name": "STREAMS Player video", "nameKey": "PlayerWindowTitle", "form": "page", "help": "player", "class": "PlayerWindow", "slice": "S2" },
+    { "id": "compact-panel", "name": "Compact panel", "nameKey": "CompactPanelName", "form": "page", "help": "compact-panel", "class": "CompactPanelWindow", "slice": "S2" },
+
+    { "id": "add-stream", "name": "Add stream", "nameKey": "AddWindowTitle", "form": "page", "help": "add-stream", "class": "AddStreamWindow", "slice": "S3" },
+    { "id": "channel-info", "name": "About the channel", "nameKey": "AboutChannelTitle", "form": "page", "help": "channel-info", "class": "ChannelInfoWindow", "slice": "S3" },
+    { "id": "collections", "name": "Collections", "nameKey": "CollectionManageTitle", "form": "page", "help": "collections", "class": "CollectionsWindow", "slice": "S3" },
+    { "id": "hidden-channels", "name": "Hidden channels", "nameKey": "ManageHiddenTitle", "form": "page", "help": "hidden-channels", "class": "HiddenChannelsWindow", "slice": "S3" },
+    { "id": "import-preview", "name": "Import preview", "nameKey": "ImportPreviewTitle", "form": "page", "help": "import-preview", "class": "ImportPreviewWindow", "slice": "S3" },
+    { "id": "history", "name": "Recently played", "nameKey": "HistoryTitle", "form": "page", "help": "history", "class": "ListeningHistoryWindow", "slice": "S3" },
+    { "id": "tv-schedule-binding", "name": "TV schedule channel", "nameKey": "TvScheduleBindingTitle", "form": "page", "help": "tv-schedule", "class": "TvScheduleBindingWindow", "slice": "S3" },
+
+    { "id": "broadcasts", "name": "Live broadcasts", "nameKey": "BroadcastsTitle", "form": "page", "help": "broadcasts", "class": "BroadcastsWindow", "slice": "S4" },
+    { "id": "broadcast-audio", "name": "Live broadcast, audio", "form": "page", "help": "broadcast-audio", "class": "BroadcastAudioWindow", "slice": "S4",
+      "reason": "The window's title is the broadcast's own channel title, so no fixed UI string names the surface; the page carries its name in the copy file." },
+    { "id": "exchange-diagnosis", "name": "Connection check", "nameKey": "ExchangeDiagnosisTitle", "form": "page", "help": "exchange-diagnosis", "class": "ExchangeDiagnosisWindow", "slice": "S4" },
+
+    { "id": "import-url", "name": "Import from URL", "nameKey": "ImportFromUrlTitle", "form": "inherit", "parent": "main", "class": "ImportUrlWindow",
+      "reason": "A one-field dialog opened from the Operations menu of the main window; the main page explains importing in its own entry." },
+    { "id": "exchange-password", "name": "Change the account password", "nameKey": "ExchangePasswordTitle", "form": "inherit", "parent": "settings", "anchor": "library", "class": "ExchangePasswordWindow",
+      "reason": "Opened from the exchange account section of Settings, Library; that section of the Settings page explains the account and its password." },
+    { "id": "exchange-camera-scan", "name": "Scan the connection QR", "nameKey": "ExchangeCameraTitle", "form": "inherit", "parent": "settings", "anchor": "library", "class": "ExchangeCameraScanWindow",
+      "reason": "Opened from the exchange connection setup in Settings, Library; that section explains the connection string it reads." },
+
+    { "id": "broadcast-password", "name": "Broadcast password", "nameKey": "BroadcastPasswordTitle", "form": "none", "class": "BroadcastPasswordWindow",
+      "reason": "A one-question prompt for one password: its own text is the whole explanation (CONTEXT-HELP rule 4)." },
+    { "id": "log-archive-ready", "name": "Send logs to the author", "nameKey": "SendLogs", "form": "none", "class": "LogArchiveReadyWindow",
+      "reason": "A confirmation that the log archive is ready, with its two answers named on their buttons; its text is the whole explanation (CONTEXT-HELP rule 4)." },
+    { "id": "playback-failure", "name": "Stream unavailable", "nameKey": "StreamUnavailableTitle", "form": "none", "class": "PlaybackFailureDialog",
+      "reason": "A failure message that names the cause and offers answers on labelled buttons; the step-by-step diagnosis is the Connection check window (SP-0225), which has its own entry." }
+  ]
+}

@@ -118,13 +118,8 @@ try {
     ) + $versionArgs)
 
     if ($Test) {
-        Invoke-DotNet @(
-            'test',
-            $solutionPath,
-            '--configuration', $Configuration,
-            '--no-build',
-            '--no-restore'
-        )
+        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'scripts/test.ps1') -Configuration $Configuration -NoBuild
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 
     if ($Publish) {

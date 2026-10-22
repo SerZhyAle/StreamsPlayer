@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-SETTINGS` |
-| **Version** | 0.3 (draft) |
+| **Version** | 0.7 read 2026-10-22; earlier implementation 0.3 (draft) |
 | **Home** | `Contracts/desktop-app-ux/README.md`, with the rules in `APP-SETTINGS.md` |
 | **Owner** | CyrFlip |
 | **This product's role** | **consumer** (opted in by SP-0188, 2026-10-02) |
@@ -26,3 +26,7 @@ The twelve rules are in the home page and are not repeated here. Repo-local fact
 button with `APP-BEHAVIOUR` rule 5's confirmation, never on a value control) is how the Settings window already works: the
 operation buttons are in `SettingsWindow.xaml.cs` and their confirmations default to the safe answer. Gate:
 `DesktopUxConformanceTests` (its handler list names three of the operation buttons; widening it to every one is optional).
+
+**SP-0232, 2026-10-22:** presentation is now delegated to the five unified UI contracts.
+SP-0231 owns their partial migration through 2027-03-31; the earlier descriptions above are history,
+including old fixed target sizes and optional-button policy. No new implementation claim is made.

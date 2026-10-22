@@ -1,0 +1,47 @@
+# CHECK-BASELINE for CONTEXT-HELP (SP-0230): accepted debt, which may only fall.
+# One identifier per line, the whole file in ordinal order. The kinds, in that order:
+#   button <surface>  the window answers F1 but does not carry the ? button yet (rule 2); <surface> is a map id
+#   locale <code>     the interface locale has no authored page set and opens the English one (rule 13)
+#   page <id>         a help id the map names whose page is not written yet; F1 opens the index meanwhile
+#   shot <id>         a written page that has no generated picture yet (rule 14); the generator draws no picture yet
+# A line whose debt is paid must be deleted: the gate fails on a stale line as it fails on a missing one.
+button add-stream
+button broadcast-audio
+button broadcasts
+button channel-info
+button collections
+button compact-panel
+button exchange-camera-scan
+button exchange-diagnosis
+button exchange-password
+button hidden-channels
+button history
+button import-preview
+button import-url
+button player
+button tv-schedule-binding
+locale ar
+locale bn
+locale de
+locale es
+locale fr
+locale hi
+locale it
+locale pt
+locale ur
+locale zh
+page add-stream
+page broadcast-audio
+page broadcasts
+page channel-info
+page collections
+page compact-panel
+page exchange-diagnosis
+page hidden-channels
+page history
+page import-preview
+page player
+page tv-schedule
+shot first-run
+shot main
+shot settings

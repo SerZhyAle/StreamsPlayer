@@ -300,5 +300,5 @@ internal sealed class CurrentLog : IDisposable
     // here covers every call site, including ones not written yet. Line breaks are flattened so each record
     // stays on one line. LogSinkRedactionSourceTests fails a WriteLine in this file that skips this method.
     private string Flatten(string message) =>
-        _paths.Redact(ExchangeDiagnosticRedactor.Redact(CatalogUrlIdentity.RedactText(message))).ReplaceLineEndings(" | ");
+        _paths.Redact(ExchangeDiagnosticRedactor.Redact(CatalogUrlIdentity.RedactText(DiagnosticValueRedactor.Redact(message)))).ReplaceLineEndings(" | ");
 }

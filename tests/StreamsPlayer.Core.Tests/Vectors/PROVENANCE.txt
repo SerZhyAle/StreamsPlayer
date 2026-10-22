@@ -1,0 +1,8 @@
+Contract: DEVICE-EXCHANGE 0.18, section 5.5 and section 16 item Y
+Source: Contracts/device-exchange/vectors/connection-string-v1.json
+Copied: 2026-10-11, byte for byte
+SHA-256: 4e75c0da11515f4b4e77a46e24751b55f874d699a0362de26cd591df79a8d26d
+Producer: FMS_W exchange-server/cmd/exchange-vectors
+Producer command: go run ./cmd/exchange-vectors -out testdata/vectors
+Producer verification: go run ./cmd/exchange-vectors -out testdata/vectors -check
+The artifact header predates the 0.18 fold and still names 0.17 and proposed 5.5, as item Y records.

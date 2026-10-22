@@ -120,16 +120,15 @@ the export is the column contract.
 Recorded Partner Center behaviour - all of it learned the hard way, and all of it now enforced by the
 builder rather than remembered:
 
-- **The import file must be UTF-8 without BOM.** A BOM is rejected. A Partner Center *export*
-  arrives with one; the builder strips it and says so. (An earlier version of this document told you
-  to keep the BOM. That was wrong.)
+- **New import files use UTF-8 without BOM.** Partner Center exports may carry a BOM;
+  `-FillNothing` preserves it for a byte-identical round trip. A BOM alone does not prove why an
+  import failed (`WINDOWS-STORE` amendment 2026-10-17).
 - Every field is quoted, records are separated by CRLF, and there is **no** trailing newline.
-- The import is all-or-nothing **per language, not per file**. One bad cell discards that language's
-  whole column and leaves the others alone - it does not reject the upload. Measured 2026-07-27: a
-  single invalid `DesktopScreenshot1` value dropped ten languages while `en-us`, `ru` and `ar`
-  imported cleanly. (An earlier version of this document said one bad cell rejects the whole file.
-  That was wrong, and it matters: a partial import **changes the submission**, so the export you were
-  holding is stale and must be re-taken before the next attempt.)
+- Imports can fail per language or be refused whole with an empty error report. The progress label
+  need not name the offending language. Start from the last accepted fresh draft export and bisect
+  with complete files; never blank cells to isolate the fault. Re-export the draft and compare bytes
+  with the complete upload to prove acceptance. A partial import changes the submission, so take a
+  new export before another attempt (`WINDOWS-STORE` amendment 2026-10-17).
 - A relative image path is rejected in a flat CSV upload - confirmed 2026-07-27, `The value you
   provided is not valid (app-uk.png)`, which is why the flat output carries no image path at all.
   The only value the field accepts is the asset URL of an image **already uploaded to the current

@@ -19,6 +19,9 @@ public partial class App : Application
 
     internal ExchangeSourceService Exchange { get; private set; } = null!;
 
+    /// <summary>SP-0217: this PC's own live broadcasts, behind the Settings permission. Null only before OnStartup.</summary>
+    internal BroadcastProducerService Broadcast { get; private set; } = null!;
+
     private CurrentLog? _log;
     private SingleInstanceLock? _instanceLock;
     private ActivationPipeListener? _activationListener;
@@ -53,6 +56,10 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
         ThemeService.Initialize();
+        // SP-0231: the interface profile is decided here, before the first window is built, so no window is ever
+        // laid out at one size and then resized by a profile that arrived late.
+        UiProfileService.Initialize(AppPaths.DataDirectory);
+        HelpService.Register();
         _log.Information("Application startup.");
         // A user-sent archive holds the last ten launches, which can span several builds, while its
         // environment summary names only the build that packed it. This line is what ties a session to its build.
@@ -76,10 +83,12 @@ public partial class App : Application
         _activationListener.Start();
 
         Exchange = new ExchangeSourceService(AppPaths.DataDirectory);
+        Broadcast = new BroadcastProducerService(AppPaths.DataDirectory, Exchange);
         Exchange.Start();
 
         var window = new MainWindow(_log, StreamLaunchRequest.Parse(e.Args));
         window.InitializeExchangeStatus(Exchange);
+        window.InitializeBroadcastIndicator();
         _mainWindow = window;
         MainWindow = window;
         // Registered after the window's own Closed handler, which is what starts the close work read below.
@@ -188,6 +197,13 @@ public partial class App : Application
         if (Interlocked.Exchange(ref _exitCompleted, 1) != 0)
         {
             return;
+        }
+
+        // SP-0217 constraint 6: the broadcasts end before the account says goodbye - `broadcast-end`
+        // precedes `bye`, on the control stream that is still alive at this point.
+        if (Broadcast is not null)
+        {
+            WaitPumping(Broadcast.StopAllAsync(), TimeSpan.FromSeconds(4));
         }
 
         if (Exchange is not null)

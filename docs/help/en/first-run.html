@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Help - Where should the channel list come from?</title>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <nav class="help-crumbs" aria-label="Breadcrumb">
+    <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Where should the channel list come from?</span>
+  </nav>
+  <header class="hero">
+    <p class="kicker">Window help</p>
+    <h1>Where should the channel list come from?</h1>
+    <p class="lead">The first time the app starts, its channel list is empty. This window asks where the list should come from, and nothing is downloaded until you choose.</p>
+  </header>
+
+  <h2>In this order</h2>
+  <ol class="order">
+    <li>Choose <b><a href="#e-internet">Import channels from the internet</a></b> if you are online and want the current list of channels.</li>
+    <li>Or choose <b><a href="#e-bundled">Use the built-in copy</a></b> to get a ready list at once, without going online. It is as old as this version of the app.</li>
+    <li>Or choose <b><a href="#e-skip">Start with an empty list</a></b> to look around first. The list stays empty and nothing is downloaded.</li>
+  </ol>
+
+  <h2>The elements</h2>
+  <div class="elements">
+    <details class="el" id="e-internet">
+      <summary><span><span class="name">Import channels from the internet</span><span class="one">Downloads the current shared channel list and adds it to yours.</span></span></summary>
+      <div class="full">
+        <p>Fetches the shared catalog of internet radio and video channels, with the station icons, and adds its channels to your list. It is the same import the <b>Operations</b> menu offers at any later time.</p>
+        <p>It is the only answer in this window that uses the internet.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>The shared list changes as stations come and go, so this gives you the newest one.</dd>
+          <dt>Next</dt><dd>The window closes and the download starts. The channels appear in the main window when it finishes.</dd>
+          <dt>Undo</dt><dd>An import adds and updates catalog channels only; streams you add yourself or import from a file stay as they are.</dd>
+          <dt>Shortcut</dt><dd><kbd>Enter</kbd> chooses it, because it is the button with the focus when the window opens.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-bundled">
+      <summary><span><span class="name">Use the built-in copy</span><span class="one">Adds the channels that came with this version, with no download.</span></span></summary>
+      <div class="full">
+        <p>Adds the channel list packed inside this version of the app, together with its icons, and does not go online. The list is as old as the version you installed, so it can miss newer stations.</p>
+        <p>This answer is shown only when the application contains a built-in copy. If it is missing here, this build has none.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>It works with no connection and puts channels in the list at once.</dd>
+          <dt>Next</dt><dd>The window closes and the channels appear in the main window. To bring the list up to date later, import channels from the internet in the <b>Operations</b> menu.</dd>
+          <dt>Undo</dt><dd>Nothing you made is touched. Channels you do not want can be hidden afterwards.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-skip">
+      <summary><span><span class="name">Start with an empty list</span><span class="one">Starts with an empty list and downloads nothing.</span></span></summary>
+      <div class="full">
+        <p>Closes this window and leaves the channel list empty. You can import channels at any moment from the <b>Operations</b> menu of the main window.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>For when you want to look around first, or are offline and do not want the built-in copy yet.</dd>
+          <dt>Next</dt><dd>The main window opens with an empty list.</dd>
+          <dt>Undo</dt><dd>Nothing changes, so there is nothing to undo.</dd>
+          <dt>Shortcut</dt><dd><kbd>Esc</kbd>, or closing the window, does the same.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-help">
+      <summary><span><span class="name">Help</span><span class="one">Opens this page.</span></span></summary>
+      <div class="full">
+        <p>Every window that has help carries this button near its top-right corner. It opens the page of the window you are in, in your web browser; the application stays open.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The page opens in your browser. Nothing in the application changes.</dd>
+          <dt>Shortcut</dt><dd><kbd>F1</kbd> does the same from anywhere in the window.</dd>
+        </dl>
+      </div>
+    </details>
+  </div>
+
+  <h2>Related</h2>
+  <ul class="related">
+    <li><a href="main.html"><b>STREAMS Player</b><span class="pill">Window</span><small>The main window, where the channels appear.</small></a></li>
+    <li><a href="settings.html"><b>STREAMS Player settings</b><span class="pill">Window</span><small>Where the channel list can be imported, refreshed or cleaned up later.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/index.html#use"><b>How to use</b><span class="pill gold">Site</span><small>The whole task, from the first start to your own playlists.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/support.html"><b>Support</b><span class="pill gold">Site</span><small>How to report a problem and what to send.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Written against STREAMS Player 26.1021, 2026-10-21.</span>
+    <a href="index.html">Help index</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/support.html">Ask a question or report a problem</a>
+  </footer>
+
+</main>
+<script>
+/* Progressive enhancement only: the page is complete without it. */
+(function () {
+  function openHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === 'DETAILS') { el.open = true; }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+})();
+</script>
+</body>
+</html>

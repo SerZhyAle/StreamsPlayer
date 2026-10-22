@@ -3,15 +3,16 @@
 | | |
 | --- | --- |
 | **Id** | `MEDIA-CLASSIFICATION` |
-| **Version** | 0.10 (draft) |
+| **Version** | 0.12, 2026-10-22 (SP-0232) |
 | **Home** | `Contracts/media-classification/README.md` |
 | **Owner** | FastMediaSorter Android |
-| **This product's role** | **consumer** |
+| **This product's role** | Primary-category boundary not implemented; stream routing only |
 
-## What this repository must do to stay conformant
+`MediaKind` has Audio/Video/Rtsp and `StreamMediaKindClassifier` selects playback under STREAM-BANK
+rule 4. It does not implement the eight-category file/URL enum of this contract: .m3u8 routing as
+video is not the primary STREAM category. The prior whole-contract claim is withdrawn.
+A dated proposal asks the owner to clarify this Windows scope. No image classifier or decoder
+capability is claimed from the product's name in a consumer list.
 
-1. **Normalized Media Kind:** Classify streams and URLs into standard `Audio`, `Video`, and `Rtsp` kinds.
-2. **Extension Classification:** Recognize standard video extensions (`.m3u8`, `.mpd`, `.mp4`, `.mkv`, `.webm`, `.ts`, `.mov`) and RTSP URI schemes (`rtsp://`), defaulting unknown or unparseable URLs to `Audio`.
-3. **Catalog Header Agreement:** Map upstream catalog `media_kind` tokens (`AUDIO`, `VIDEO`, `RTSP`) consistently, falling back to URL classification for blank or unrecognised values.
-
-Evidence: `src/StreamsPlayer.Core/StreamMediaKindClassifier.cs`, `Models.cs:5-10`. Tests: `StreamMediaKindClassifierTests.cs`.
+The [synchronization audit](../audits/SP-0232-contract-sync.md) records clause scope, evidence and remaining work. Own catalog registry rows remain
+the conformance authority; a read version does not upgrade an implementation claim.

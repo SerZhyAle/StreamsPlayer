@@ -9,8 +9,19 @@
          than a button row - the command names are whole sentences in several languages, and a row
          either clips them or forces a window wider than the main one. -->
     <StackPanel Margin="20">
-        <TextBlock Text="{DynamicResource FirstRunTitle}" FontWeight="SemiBold" FontSize="15"
-                   TextWrapping="Wrap" />
+        <!-- SP-0230: this window keeps the system caption, so the help button is the trailing end of the first row
+             of the content, never a second caption button (CONTEXT-HELP rule 2). -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{DynamicResource FirstRunTitle}" FontWeight="SemiBold" FontSize="15"
+                       TextWrapping="Wrap" VerticalAlignment="Center" />
+            <Button x:Name="HelpButton" Grid.Column="1" Style="{StaticResource HelpGlyphButton}" Margin="8,0,0,0"
+                    VerticalAlignment="Top" ToolTip="{DynamicResource HelpTip}"
+                    AutomationProperties.Name="{DynamicResource HelpName}" />
+        </Grid>
         <TextBlock Text="{DynamicResource FirstRunIntro}" TextWrapping="Wrap" Margin="0,8,0,0" />
 
         <!-- SP-0218: the acting answer keeps its accent fill (WINDOWS-UI 0.4 section 11 item 7); the glyph

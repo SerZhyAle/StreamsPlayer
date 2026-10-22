@@ -1,0 +1,17 @@
+# Vendored EXCHANGE-MARK artwork - byte-for-byte copies of Contracts/exchange-mark/artwork/<path> (owner: shared).
+# Written by tools/Sync-ExchangeMark.ps1. A copy is never edited, re-exported or recoloured (EXCHANGE-MARK rules 1, 2, 6).
+# EXCHANGE-MARK 0.3
+png/mark-16.png  032138cc7785d733c204d19c4f5505c361455ce7fc7e1d655651eafb0cb0d8b4  assets/exchange-mark/png/mark-16.png
+png/mark-20.png  22e67199cda5d3d8f93f43a91a303756cbd52f27800a9363040314ef14b570ee  assets/exchange-mark/png/mark-20.png
+png/mark-24.png  f3eb06c8ec0c73276c960bf7de155b652ae3a4f3f02d7eea92d7e436cf6afd35  assets/exchange-mark/png/mark-24.png
+png/mark-28.png  925f6d16e23a1d7b420a0cf2aa53dc133d2751c46dd3548b991b4e5c69b7aa85  assets/exchange-mark/png/mark-28.png
+png/mark-30.png  7a51151c4bd12a5376cfd7dc7a0d339a4cebd41e8891b6cf6f3b2049dee7c9e4  assets/exchange-mark/png/mark-30.png
+png/mark-32.png  612ac17f99d07144a613e087d96fb3f9fed328b069d88207e3a3c825f8303e9e  assets/exchange-mark/png/mark-32.png
+png/mark-36.png  00e66f2cffda2f312b87797d3b57326a6167ce5f5d4d02ac4138b5b04331418e  assets/exchange-mark/png/mark-36.png
+png/mark-40.png  d739bf42e2a0437c9b2b78188a8d173497af8cd1d4b1f54bdc9360fdc62fa589  assets/exchange-mark/png/mark-40.png
+png/mark-42.png  d5c4fcbe294b7184512764acf61e831b5b565174085ff1165633dffe1550b331  assets/exchange-mark/png/mark-42.png
+png/mark-48.png  0083264a11d69a0b97aec5ea96144ad6ea29ed1abdf59ca2c09c27b239b60e69  assets/exchange-mark/png/mark-48.png
+png/mark-56.png  2536533f866c576e8d0b2939ce8bce2c81a216658c3ebf8dda4cd7f05acc67d4  assets/exchange-mark/png/mark-56.png
+png/mark-64.png  ad8e63098713b5e87e4458b7e8e24a21175985f361b18782112633756aacd379  assets/exchange-mark/png/mark-64.png
+png/mark-96.png  a912b47c8941d4442eeb6d7bca6f8533ef4e9ddb91b683df37af948720c96187  assets/exchange-mark/png/mark-96.png
+svg/exchange-mark-mono.svg  124cc6f3136351e2c1bd064bd8c69aaf398f578a836d6565c1831abab3399b89  assets/glyphs/own/source.exchange-server.svg

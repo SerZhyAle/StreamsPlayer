@@ -12,6 +12,48 @@ public sealed class DiagnosticArchiveBuilderTests
     private static readonly DateTimeOffset Stamp = new(2026, 7, 30, 1, 2, 3, TimeSpan.Zero);
 
     [Fact]
+    public void TheLiveSinkRedactsStructuredPinsAndPrivateKeysBeforeWriting()
+    {
+        RunInTempDirectory(directory =>
+        {
+            using (var log = new StreamsPlayer.App.CurrentLog(directory))
+            {
+                log.Information("folderParams={\"accessPin\":\n\"sink-secret-pin\"}");
+                log.Information("-----BEGIN PRIVATE KEY-----\nsink-secret-key\n-----END PRIVATE KEY-----");
+            }
+            var text = File.ReadAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName));
+            Assert.DoesNotContain("sink-secret-pin", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("sink-secret-key", text, StringComparison.Ordinal);
+            Assert.Contains("[REDACTED]", text, StringComparison.Ordinal);
+        });
+    }
+
+    [Theory]
+    [InlineData("folderParams={\"folders\":[{\"label\":\"Family\",\"accessPin\":\"4821\",\"slideshowInterval\":15}]}", "4821")]
+    [InlineData("lastOpened=https://media.example.test/play?id=17&token=Zk93mQ&lang=en", "Zk93mQ")]
+    [InlineData("source=Host=nas.example.test;Port=22;User=guest;Password=Hq7-pL2x;Timeout=15", "Hq7-pL2x")]
+    [InlineData("folderParams={\"accessPin\":\n\"multiline-pin\"}", "multiline-pin")]
+    [InlineData("folderParams={\"access\\u0050in\":\"escaped-pin\"}", "escaped-pin")]
+    [InlineData("payload=[{\"accessPin\":\"array-pin\"}]", "array-pin")]
+    [InlineData("payload={\"accessPin\":]\"malformed-pin\"}", "malformed-pin")]
+    [InlineData("Authorization: Bearer synthetic-auth-secret", "synthetic-auth-secret")]
+    [InlineData("Proxy-Authorization: Negotiate synthetic-proxy-secret", "synthetic-proxy-secret")]
+    [InlineData("-----BEGIN PRIVATE KEY-----\nprivate-body\n-----END PRIVATE KEY-----", "private-body")]
+    [InlineData("-----BEGIN RSA PRIVATE KEY-----\nunfinished-body", "unfinished-body")]
+    public void Build_RedactsStructuredValuesAndMultilineSecretsBeforePacking(string input, string secret)
+    {
+        RunInTempDirectory(directory =>
+        {
+            File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), "safe before\n" + input + "\nsafe after");
+            using var archive = ZipFile.OpenRead(Build(directory, "summary", Stamp));
+            var packed = ReadEntry(archive, DiagnosticLogFiles.CurrentLogName);
+            Assert.DoesNotContain(secret, packed, StringComparison.Ordinal);
+            Assert.Contains("[REDACTED]", packed, StringComparison.Ordinal);
+            Assert.StartsWith("safe before", packed, StringComparison.Ordinal);
+        });
+    }
+
+    [Fact]
     public void Build_PacksEveryRetainedSessionLogAndTheSummary()
     {
         RunInTempDirectory(directory =>
@@ -132,32 +174,29 @@ public sealed class DiagnosticArchiveBuilderTests
     }
 
     [Fact]
-    public void Build_TruncatesAnOversizedLogToHeadAndTailAndSaysSo()
+    public void Build_OmitsAnOversizedUntrustedLogWithOnlyTheCanonicalMarker()
     {
         RunInTempDirectory(directory =>
         {
-            var headLine = "FIRST LINE: STARTUP OK\r\n";
             var text = new StringBuilder();
-            text.Append(headLine);
-            // A real log is one record per line; a single 16 MB line would be pathological by
-            // construction and is exactly what the redaction timeout exists to bound.
+            text.Append("-----BEGIN PRIVATE KEY-----\r\n");
             var chunk = new string('x', 64 * 1024) + "\r\n";
             while (text.Length < DiagnosticArchiveBuilder.MaxLogBytes + 128 * 1024)
             {
                 text.Append(chunk);
             }
 
-            text.Append("FINAL LINE: CRASH HERE\r\n");
-            File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), text.ToString());
+            text.Append("secret-tail-with-no-opening-marker\r\n-----END PRIVATE KEY-----\r\n");
+            var logPath = Path.Combine(directory, DiagnosticLogFiles.CurrentLogName);
+            File.WriteAllText(logPath, text.ToString(), new UTF8Encoding(false));
+            File.WriteAllText(Path.Combine(directory, "Session-20260730-0100.log"), "safe neighbour");
 
             using var archive = ZipFile.OpenRead(Build(directory, "summary\r\n", Stamp));
 
             var packed = ReadEntry(archive, DiagnosticLogFiles.CurrentLogName);
-            Assert.StartsWith("FIRST LINE: STARTUP OK\r\n", packed, StringComparison.Ordinal);
-            Assert.EndsWith("FINAL LINE: CRASH HERE\r\n", packed, StringComparison.Ordinal);
-            Assert.Contains("[Diag] LOG TRUNCATED | dropped_middle_bytes=", packed, StringComparison.Ordinal);
-            Assert.Contains("log_truncated=Current.log", ReadEntry(archive, DiagnosticArchiveBuilder.SummaryEntryName));
-            Assert.Contains("dropped_middle_bytes=", ReadEntry(archive, DiagnosticArchiveBuilder.SummaryEntryName));
+            Assert.Equal($"[Diag] LOG OMITTED | reason=oversized_untrusted | source_bytes={new FileInfo(logPath).Length}\r\n", packed);
+            Assert.Equal("safe neighbour", ReadEntry(archive, "Session-20260730-0100.log"));
+            Assert.Equal("summary\r\n", ReadEntry(archive, DiagnosticArchiveBuilder.SummaryEntryName));
         });
     }
 
@@ -240,9 +279,8 @@ public sealed class DiagnosticArchiveBuilderTests
         });
     }
 
-    // A truncation cut that lands inside a URL must not hand the redactor half an address it cannot read.
     [Fact]
-    public void Build_TruncationCutsOnLineBoundariesSoASplitUrlCannotLeak()
+    public void Build_OmitsAnOversizedRetiredLogWithoutChangingItsSource()
     {
         RunInTempDirectory(directory =>
         {
@@ -253,17 +291,33 @@ public sealed class DiagnosticArchiveBuilderTests
                 text.Append(line).Append(index).Append("\r\n");
             }
 
-            File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), text.ToString());
+            var logPath = Path.Combine(directory, "Session-20260730-0100.log");
+            File.WriteAllText(logPath, text.ToString());
 
             using var archive = ZipFile.OpenRead(Build(directory, "summary", Stamp));
 
-            var packed = ReadEntry(archive, DiagnosticLogFiles.CurrentLogName);
-            Assert.Contains("LOG TRUNCATED", packed, StringComparison.Ordinal);
+            var packed = ReadEntry(archive, "Session-20260730-0100.log");
+            Assert.StartsWith("[Diag] LOG OMITTED | reason=oversized_untrusted | source_bytes=", packed, StringComparison.Ordinal);
             Assert.DoesNotContain("hunter2", packed, StringComparison.Ordinal);
             Assert.DoesNotContain("admin", packed, StringComparison.Ordinal);
-            Assert.All(
-                packed.Split("\r\n", StringSplitOptions.RemoveEmptyEntries).Where(entry => !entry.Contains("LOG TRUNCATED")),
-                entry => Assert.StartsWith("[Diag] PLAYER OPEN | url=rtsp://camera.local/stream1 | n=", entry, StringComparison.Ordinal));
+            Assert.Equal(text.ToString(), File.ReadAllText(logPath));
+        });
+    }
+
+    [Fact]
+    public void Build_ALogExactlyAtTheByteCeilingIsRedactedInFull()
+    {
+        RunInTempDirectory(directory =>
+        {
+            const string lastLine = "\r\nurl=https://host/live?token=secret-ceiling\r\n";
+            var text = new string('x', (int)DiagnosticArchiveBuilder.MaxLogBytes - lastLine.Length) + lastLine;
+            File.WriteAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName), text, new UTF8Encoding(false));
+
+            using var archive = ZipFile.OpenRead(Build(directory, "summary", Stamp));
+            var packed = ReadEntry(archive, DiagnosticLogFiles.CurrentLogName);
+            Assert.DoesNotContain("LOG OMITTED", packed, StringComparison.Ordinal);
+            Assert.DoesNotContain("secret-ceiling", packed, StringComparison.Ordinal);
+            Assert.EndsWith("token=[REDACTED]\r\n", packed, StringComparison.Ordinal);
         });
     }
 

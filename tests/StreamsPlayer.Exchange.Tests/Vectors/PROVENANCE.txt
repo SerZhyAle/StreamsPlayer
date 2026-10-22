@@ -1,0 +1,7 @@
+Contract: DEVICE-EXCHANGE 0.19, section 17 items AG to AL
+Source: Contracts/device-exchange/vectors/protection-v1.json
+Copied: 2026-10-13, byte for byte
+SHA-256: 2f6b4ddfc97edfd53db7d2b5406ccaa0510ff8a229dd1866c72c51751e01cd75
+Producer: Media Exchange Server (Go) of Fast Media Sorter & Sharing for Windows, cmd/exchange-vectors
+Producer command: go run ./cmd/exchange-vectors -out testdata/vectors
+Producer verification: go run ./cmd/exchange-vectors -out testdata/vectors -check

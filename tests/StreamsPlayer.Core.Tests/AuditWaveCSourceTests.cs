@@ -147,7 +147,11 @@ public sealed class AuditWaveCSourceTests
         var file = Source("BroadcastsWindow.xaml.cs");
         var reports = file.Invocations("HandlerBoundary.Report");
 
-        Assert.Equal(2, reports.Count);
+        // SP-0222 grew the window's handlers from two (Play, Keep) to six: Enter on a row, the link field,
+        // the sign-in settings step and the guest sessions' fault report; SP-0225 added the connection check's
+        // button, the seventh. Every one of them reports under a window-qualified name, which is what this test
+        // holds - the count only pins that none was added without a name.
+        Assert.Equal(7, reports.Count);
         foreach (var report in reports)
         {
             var name = file.Text.Substring(report.Arguments[0].Start, report.Arguments[0].Length);

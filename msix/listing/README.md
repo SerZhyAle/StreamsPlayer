@@ -40,8 +40,8 @@ pwsh -NoProfile -File tools/store/build-store-listing-csv.ps1 -Export msix/dist/
 ```
 
 Everything a submission needs is assembled in `msix/dist`: the MSIX, this CSV, and the screenshot
-payload. Never hand Partner Center a file from the download folder - the export sitting there carries a
-BOM the import rejects, and nothing tells you that is why.
+payload. Build from a fresh draft export and keep the complete file. New imports use UTF-8 without BOM;
+`-FillNothing` preserves the export's BOM for a no-change round trip. A BOM alone does not diagnose a refusal.
 
 Three things are deliberately **not** per language:
 
@@ -49,7 +49,9 @@ Three things are deliberately **not** per language:
   must read the same in every column.
 - `search-terms.<listing-code>.txt` - that language's search terms. A language without such a file
   falls back to `search-terms.txt`, which holds the English set, so a new language ships English terms
-  rather than none. Per language: at most seven, no duplicates, nothing forbidden.
+  rather than none. Per language: at most seven, at most 21 words across all seven cells (a word is a
+  non-whitespace run), no duplicates, nothing forbidden. The builder checks both the terms and the
+  merged cells before writing; `tools/store/Test-StoreListing.ps1` exercises the boundary and refusals.
   (SP-0034 originally kept one English set in all thirteen columns for reviewability; the owner
   reversed that on 2026-07-27 because Store search matches terms literally and no Hindi or Arabic user
   types "internet radio". The header of `search-terms.txt` records the trade.)

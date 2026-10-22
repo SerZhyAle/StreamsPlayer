@@ -90,6 +90,9 @@ public static class FastMediaSorterBroadcastAttempts
     /// audio mode and MPEG-TS for a video mode, both a plain GET.
     /// </summary>
     private static bool IsRelayEndpoint(FastMediaSorterBroadcastEndpoint endpoint) =>
+        IsRelayShape(endpoint) && IsSealed(endpoint);
+
+    private static bool IsRelayShape(FastMediaSorterBroadcastEndpoint endpoint) =>
         string.Equals(endpoint.Transport, "RELAY", StringComparison.OrdinalIgnoreCase) &&
         Uri.TryCreate(endpoint.Url, UriKind.Absolute, out var uri) &&
         uri.Scheme == Uri.UriSchemeHttps;
@@ -101,6 +104,9 @@ public static class FastMediaSorterBroadcastAttempts
         uri.Scheme.Equals("rtsp", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsTunnelAudio(FastMediaSorterBroadcastEndpoint endpoint) =>
+        IsTunnelAudioShape(endpoint) && IsSealed(endpoint);
+
+    private static bool IsTunnelAudioShape(FastMediaSorterBroadcastEndpoint endpoint) =>
         (endpoint.Mode is null || string.Equals(endpoint.Mode, FastMediaSorterBroadcastDescriptor.AudioOnlyMode, StringComparison.Ordinal)) &&
         string.Equals(endpoint.Transport, "TUNNEL", StringComparison.OrdinalIgnoreCase) &&
         ExchangeTunnelUrl.TryParse(endpoint.Url, out var tunnel) &&
@@ -109,10 +115,67 @@ public static class FastMediaSorterBroadcastAttempts
         LaunchableAddress.TryParseHttp(endpoint.Inner, out _);
 
     private static bool IsTunnelVideo(string descriptorMode, FastMediaSorterBroadcastEndpoint endpoint) =>
+        IsTunnelVideoShape(descriptorMode, endpoint) && IsSealed(endpoint);
+
+    private static bool IsTunnelVideoShape(string descriptorMode, FastMediaSorterBroadcastEndpoint endpoint) =>
         (endpoint.Mode is null || string.Equals(endpoint.Mode, descriptorMode, StringComparison.Ordinal)) &&
         string.Equals(endpoint.Transport, "TUNNEL", StringComparison.OrdinalIgnoreCase) &&
         ExchangeTunnelUrl.TryParse(endpoint.Url, out var tunnel) &&
         (tunnel.Scheme is "rtsp" or "http") &&
         endpoint.Inner is not null &&
         LaunchableAddress.TryParse(endpoint.Inner, out _);
+
+    /// <summary>
+    /// SP-0226 / `DEVICE-EXCHANGE` items DK and DP: an exchange endpoint is played only when it declares a
+    /// `seal` version this build knows. An endpoint with none (an older producer) or with another version is not an
+    /// attempt - it is never played as clear bytes, and the person is told (<see cref="HasUnsealedExchangeEndpoint"/>).
+    /// A LAN endpoint does not pass through a server and is not judged here.
+    /// </summary>
+    private static bool IsSealed(FastMediaSorterBroadcastEndpoint endpoint) => endpoint.Seal is { IsKnown: true };
+
+    /// <summary>
+    /// Whether the descriptor lists a relay or tunnel endpoint of this build's shape that was left out for want of a
+    /// known seal - the case the person must be told about instead of seeing nothing play.
+    /// </summary>
+    public static bool HasUnsealedExchangeEndpoint(string mode, IReadOnlyList<FastMediaSorterBroadcastEndpoint> endpoints) =>
+        endpoints.Any(endpoint => !IsSealed(endpoint) &&
+            (FastMediaSorterBroadcastDescriptor.IsVideoMode(mode)
+                ? IsRelayShape(endpoint) && IsVideoMode(mode, endpoint.Mode) || IsTunnelVideoShape(mode, endpoint)
+                : IsRelayShape(endpoint) && IsAudioMode(endpoint.Mode) || IsTunnelAudioShape(endpoint)));
+}
+
+/// <summary>
+/// Which addresses are the exchange server's own. The test is the address, not the declared transport: a
+/// descriptor's top-level `url` is the relay or the tunnel when there is no LAN endpoint, and a sealed
+/// broadcast must not be reachable as clear bytes by falling back to it (`DEVICE-EXCHANGE` item DP).
+/// </summary>
+public static class ExchangeEndpointKinds
+{
+    /// <summary>`fmsx://host/b/&lt;id&gt;/&lt;scheme&gt;` (a tunnel) or `https://host/v2/b/&lt;id&gt;/stream` (a relay listen).</summary>
+    public static bool IsExchangeAddress(string? url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            return false;
+        }
+
+        if (uri.Scheme.Equals("fmsx", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var path = uri.AbsolutePath;
+        return uri.Scheme == Uri.UriSchemeHttps && path.StartsWith("/v2/b/", StringComparison.Ordinal)
+            && path.EndsWith("/stream", StringComparison.Ordinal);
+    }
+
+    /// <summary>An endpoint that passes through an exchange server: declared as `RELAY` or `TUNNEL`, or addressed as one.</summary>
+    public static bool IsExchangeEndpoint(FastMediaSorterBroadcastEndpoint endpoint) =>
+        string.Equals(endpoint.Transport, "RELAY", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(endpoint.Transport, "TUNNEL", StringComparison.OrdinalIgnoreCase)
+        || IsExchangeAddress(endpoint.Url);
+
+    /// <summary>The one rule: an exchange endpoint without a known seal is refused, whatever else describes it.</summary>
+    public static bool IsRefusedAsUnsealed(FastMediaSorterBroadcastEndpoint endpoint) =>
+        IsExchangeEndpoint(endpoint) && endpoint.Seal is not { IsKnown: true };
 }

@@ -27,6 +27,12 @@ internal static class HandlerBoundary
     /// <summary>Wires the boundary to the session log; called once, before the first window exists.</summary>
     public static void Initialize(CurrentLog log) => _log = log;
 
+    /// <summary>
+    /// Writes one line to the session log from a surface that holds no log of its own. The line passes the sink's
+    /// redaction like every other, but the caller is still responsible for handing it nothing private.
+    /// </summary>
+    public static void Record(string line) => _log?.Information(line);
+
     /// <summary>Runs an asynchronous handler body inside the boundary. Use in place of an <c>async</c> lambda.</summary>
     public static async void Run(string handler, Func<Task> action)
     {

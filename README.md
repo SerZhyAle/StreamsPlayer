@@ -221,11 +221,11 @@ code or features.
   collections and history stay; a catalog refresh never removes it. Audio and camera
   broadcasts play. A descriptor may list several ways to reach the same broadcast,
   and the app tries them in the order the device listed, starting again at the top
-  on a reconnect: the LAN address first; then, when the descriptor names one, your
-  exchange server's relay - an HTTPS stream whose self-signed certificate is checked
-  against the pin the descriptor carries, relayed by a temporary local proxy on
+  on a reconnect: the LAN address first; then, when the descriptor names one, the
+  stream distribution through the exchange server named in the description - an HTTPS stream whose self-signed certificate is checked
+  against the pin the descriptor carries, forwarded by a temporary local proxy on
   127.0.0.1 when the player engine cannot check the pin itself, and never with
-  checking off; then a tunnel. Video reaches the player window over RTSP or, on
+  checking off; then a server connection. Video reaches the player window over RTSP or, on
   the LAN, as MPEG-TS; audio keeps its own low-latency connection. Playback takes
   a separate low-latency path
   aimed at sound within about a second and no more than two seconds behind the
@@ -244,6 +244,8 @@ code or features.
   [live broadcast page](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/live-broadcast.html)
   says who can go on air, how a broadcast travels and what works today. The same
   link is on the **About** page in Settings.
+- When the exchange server will not connect, press **Check the connection** in **Settings (Library)**, in the broadcast list, or on a broadcast that stopped. The check runs only when you ask: it looks at one step at a time, from this PC outward, stops at the first step that fails and says in the family's common words what happened and what to try - the same words the other programs of the family show. The server's address and port appear only under **Details**, and the check leaves one line of codes in the log, with no address, login or password.
+- Broadcasts that go through the exchange server are protected end to end: what this PC sends is encrypted here and opened only on the devices of your account, or by whoever holds the link you handed out, and what it receives is opened here. A broadcast whose exchange endpoints are not protected (an older program, or a device with no key yet) is not played through the server - it still plays on the same network - and the broadcast list or the window says so. A device signed in before protection existed keeps working but cannot take part until you remove the server from the list and add it again. The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices.
 - Delete downloaded or imported catalog streams in one confirmed action from
   **Settings → Library**. Your added channels, pinned channels, channels in
   collections and channels with listening history are kept.
@@ -345,6 +347,10 @@ It needs FFmpeg libraries that are not shipped with the application; that page
 states whether they are installed, downloads them on request, and VLC
 stays the default until you change it.
 
+## .spres
+
+In the 64-bit viewer, right-click a video or audio file or its folder and choose Broadcast. Share Manager exports a .spres file, QR code or quick link for import in StreamsPlayer. A folder is one playlist channel with a frozen list; Refresh replaces that list and Revoke stops its link. The HTTP gateway has its own switch, off by default. Each token grants read-only access to one broadcast and normally expires after 24 hours. HTTP is unencrypted: share the document privately and keep internet access off unless you need it.
+
 ## Controls
 
 The same glyph and the same name everywhere in the portfolio - in the app, on the site and here (the shared `ICON-SET` vocabulary).
@@ -361,6 +367,7 @@ The same glyph and the same name everywhere in the portfolio - in the app, on th
 | <img src="docs/assets/glyphs/media.mute.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/media.volume.svg" width="16" height="16" alt=""> | **Mute** / **Unmute** - the video player |
 | <img src="docs/assets/glyphs/nav.more.svg" width="16" height="16" alt=""> | **More actions** - a channel's menu; the **Operations** menu in the header |
 | <img src="docs/assets/glyphs/app.settings.svg" width="16" height="16" alt=""> | **Settings** |
+| <img src="docs/assets/glyphs/app.help.svg" width="16" height="16" alt=""> | **Help** (`F1`) - a window with help has this button near its top-right corner; it opens that window's page in your browser, with no internet needed. The pages are written in English, Russian and Ukrainian; every other interface language opens the English page |
 | <img src="docs/assets/glyphs/action.filter.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/action.clear-filter.svg" width="16" height="16" alt=""> | **Filters and sorting** / **Clear** the filters |
 | <img src="docs/assets/glyphs/view.list.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/view.grid.svg" width="16" height="16" alt=""> | List view / grid view of the catalog |
 | <img src="docs/assets/glyphs/action.pin.svg" width="16" height="16" alt=""> | **Pin** a channel to the top of the list |
@@ -437,14 +444,14 @@ a release. Use `-Deploy:$false` when only the ordinary solution build is needed.
 ## Privacy
 
 STREAMS Player does not require an account and includes no advertising, analytics,
-telemetry, or author-operated service. Network access happens only on your
+telemetry, or author-operated service. The optional exchange account belongs to a private server - your own, or one run by someone who invited you - never to a service of this product. Network access happens only on your
 action: when you import the public catalog or accept the optional preview pack
 it offers afterwards (both from GitHub); when you play, record or ask **About
 channel** for a stream, or keep Grid mode active while visible video previews
 refresh (all to that stream's own provider); when you listen to a
 FastMediaSorter broadcast you imported (to that device on your local network, or -
-when the descriptor names it and the LAN address is unreachable - through your
-exchange server's relay over TLS, relayed by a temporary local proxy on 127.0.0.1
+when the descriptor names it and the LAN address is unreachable - through the
+server named in the description over TLS, forwarded by a temporary local proxy on 127.0.0.1
 while it plays); and when you download the optional FFmpeg libraries in **Settings (Playback)**
 (from a third-party GitHub project, `BtbN/FFmpeg-Builds`); and when you press
 **Download schedule** in **Settings (Library)** (from the TV schedule address you entered
@@ -453,7 +460,13 @@ send it yourself - **Send logs to the author** prepares an archive and a message
 your own mail program, and never sends anything on its own. See the
 [privacy page](https://serzhyale.github.io/StreamsPlayer/privacy.html) for details.
 
-The optional Exchange source in Library settings connects to your own server over TLS. Enrollment sends your login, password or pairing code, device identity, product version and receiver capabilities. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Every certificate leaf needs your explicit approval, including after renewal. The password and pairing code are discarded. The account, token and certificate pin are protected for your Windows user in a separate file; removing the account forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
+The optional Exchange source in Library settings connects to your own server over TLS. Signing in sends your login, password or pairing code, device identity, product version and receiver capabilities; this program signs in only and never creates an account. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Import a connection string, a file or a QR picture in Library settings, or paste or drop one in the main window. A connection string carries the server address and an optional certificate fingerprint, with no secret; an invitation inside it is checked and dropped, never sent or kept. Reading it only fills the form. The server's address and port are under Details in the form: check them before entering your password or pairing code; neither is kept. A supplied fingerprint must match, with no trust prompt. Without one, you approve the server fingerprint before signing in; a certificate renewed with the same key is accepted, and any other change needs your approval. Changing the account's password sends the old and the new password to your server once and keeps neither. No local agent or second program is needed. The password and pairing code are discarded. The account, tokens and certificate pins are protected for your Windows user in separate files; signing out on this device forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
+
+Broadcasting: the application can send the audio of this PC - a microphone you choose and the sound the PC is playing - live to the exchange server of your own account, only when you allow it in Settings and start a source yourself; it is off until then, nothing is captured while it is off, and a visible indicator with a stop is shown while a source is live. Listeners connect over your local network, if you enable it, or through your exchange server. You can limit the number of listeners. Each separately sent copy uses this PC’s upload; the exchange server can distribute one copy to many listeners. The description others receive - as a link, a file or in your account's directory - carries the addresses and the title, and no secret.
+
+**Exchange server, broadcasting and encryption.** An exchange server is private: everyone runs their own, or uses one whose owner invited them. There is no public exchange server, and no exchange server is a service of this product. The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices. To sign in, this PC sends your login and your password or pairing code once, then its device identity, its device name (STREAMS Player, not the name of your PC), product, version, platform (Windows) and roles, its receiver capabilities and the public half of its encryption key. While the connection is on, the server sees that this device is online. When you broadcast, it receives the broadcast's title, the fact that it is audio, and the audio itself, encrypted on this PC before it leaves; the private key never leaves this PC. Broadcasting stays off until you allow it in Settings, and you start each source yourself; only if you also turn on the option to start with the application do the sources you left chosen start again when the application starts, once the account is online. A listener's device can record what it receives, and this program cannot prevent that. The camera of this PC is used for one thing only: reading a connection QR when you press "Scan with the camera" in Settings. While the scan window is open, the picture is looked at in memory to find the QR; it is never stored, sent or logged, and the camera is released the moment the window closes. Where Windows reports no camera, the button is not offered. This program signs in and never creates an account. An account is deleted in FastMediaSorter on the phone, or by asking whoever runs the server; [the exchange portal](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/account-deletion.html) says how. Signing out on this device removes this device, not the account. See the [privacy page](https://serzhyale.github.io/StreamsPlayer/privacy.html) for the same statement in every site language.
+
+Other users’ broadcasts need no exchange account. Each description supplies its server address and optional certificate fingerprint; your own account and pin are never used for it. A broadcast protected by its own password asks for that password once, remembers it with the channel and sends it only to that broadcast’s server; a changed password is asked for again with one message, and nothing retries in the background. Any number of servers can be used over time. Up to 16 stream distribution proxies and server connection forwarders can be held open together; stopping playback releases its listener, and an idle listener closes after 30 seconds. Without a fingerprint, only a certificate this PC trusts is accepted; otherwise playback is refused with a message asking for an updated description.
 
 ## Ownership and license
 
@@ -461,3 +474,5 @@ STREAMS Player is independently owned and authored by
 [Serhii Zhyhunenko / SerZhyAle](https://github.com/SerZhyAle).
 
 Licensed under the [MIT License](LICENSE).
+
+This device keeps one exchange account of its own and a limited number of guest accounts beside it (Settings states the number); a guest account sees only what was given to it and announces nothing on its server. Signing in to a different own account asks first, signs the new account in, and only then leaves the current one; signing in again to the same account keeps the device identity. Signing out on this device asks the server to remove this device, then forgets the local connection even if the server is unavailable. Imported channels stay. If the server could not be notified, the app says the device may remain listed until another device removes it; it never retries in the background. When the account's password is changed elsewhere, this device is signed out, keeps the server and login, and asks for the new password; nothing retries.

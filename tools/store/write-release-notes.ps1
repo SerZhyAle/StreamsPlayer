@@ -7,7 +7,7 @@
   durable listing copy, while release notes are dated prose written once per submission. This script is
   that one field and nothing else: it reads the export, maps the language columns by header name
   (Partner Center reorders them between exports), rewrites the single ReleaseNotes line with correct
-  CSV quoting, and writes the result without a BOM, which the import rejects.
+  CSV quoting, and writes the result in the accepted no-BOM import dialect.
 
   The ten machine-translated languages take the English block, matching msix/store-listing.md: a
   release note is dated prose nobody proofreads twice.

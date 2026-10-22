@@ -160,6 +160,12 @@
             <!-- Column 2: window buttons (More actions + Expand + Minimize + Close). SP-0182: the overflow
                  button is the catalog cards' menu for the station playing now; always-on-top is an entry in it. -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                <!-- SP-0217: the compact panel's live-broadcast indicator - shown while any of this
+                     PC's sources is live; the main window fills its menu (a stop for each source). -->
+                <Button x:Name="BroadcastButton" Style="{StaticResource MoreGlyphButton}"
+                        Margin="4,0,0,0" Padding="9,7" Click="BroadcastButton_Click" Visibility="Collapsed"
+                        ToolTip="{DynamicResource BroadcastIndicatorName}"
+                        AutomationProperties.Name="{DynamicResource BroadcastIndicatorName}" />
                 <Button x:Name="OverflowButton" Style="{StaticResource MoreGlyphButton}"
                         Margin="4,0,0,0" Padding="9,7" Click="OverflowButton_Click"
                         ToolTip="{DynamicResource MoreActionsTip}"

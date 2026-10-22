@@ -97,7 +97,9 @@ public enum StreamLaunchTargetKind
     None,
     Url,
     ChannelId,
-    Invalid
+    Invalid,
+    /// <summary>196 section 6.2: a document handed to the player by the shell (a double-clicked `.spres`).</summary>
+    File
 }
 
 /// <param name="Url">
@@ -108,18 +110,29 @@ public enum StreamLaunchTargetKind
 public sealed record StreamLaunchRequest(
     StreamLaunchTargetKind Kind,
     string? Url = null,
-    Guid? ChannelId = null)
+    Guid? ChannelId = null,
+    string? File = null)
 {
     /// <summary>
     /// Accepts <c>--url ADDRESS</c>, <c>--id GUID</c>, or both together in either order (SP-0127: what a
     /// shortcut carries). Anything else - a repeated or unknown option, a missing value, an address that
-    /// is not launchable - is <see cref="StreamLaunchTargetKind.Invalid"/>.
+    /// is not launchable - is <see cref="StreamLaunchTargetKind.Invalid"/>. One single argument that
+    /// names a <c>.spres</c> document is <see cref="StreamLaunchTargetKind.File"/> (196 section 6.2: the
+    /// shell hands the double-clicked file to the application); the extension decides, no file access
+    /// happens here.
     /// </summary>
     public static StreamLaunchRequest Parse(IReadOnlyList<string> arguments)
     {
         if (arguments.Count == 0)
         {
             return new(StreamLaunchTargetKind.None);
+        }
+
+        if (arguments.Count == 1 &&
+            !arguments[0].StartsWith("--", StringComparison.Ordinal) &&
+            arguments[0].EndsWith(".spres", StringComparison.OrdinalIgnoreCase))
+        {
+            return new(StreamLaunchTargetKind.File, File: arguments[0].Trim());
         }
 
         if (arguments.Count is not (2 or 4))
@@ -189,6 +202,7 @@ public sealed record FastMediaSorterBroadcastInfo
     public required string Mode { get; init; }
     public string? SelectedTransport { get; init; }
     public IReadOnlyList<FastMediaSorterBroadcastEndpoint> Endpoints { get; init; } = [];
+    public FastMediaSorterBroadcastAuth? Auth { get; init; }
     public long? TargetLatencyMs { get; init; }
 
     // SP-0201: set only on a channel the exchange directory created. The directory's one act on a row it
@@ -259,6 +273,33 @@ public sealed record StreamChannel
     // FastMediaSorter, while a descriptor hand-off must remain recognisable after a restart so it can use
     // the one-listener low-latency playback route.
     public FastMediaSorterBroadcastInfo? FastMediaSorterBroadcast { get; init; }
+
+    // 196 section 6.3: additive, defaulted fields of a broadcast-resource row (`BROADCAST-RESOURCE`
+    // contract). An older state file deserializes to these initializer defaults and keeps its meaning.
+    /// <summary>
+    /// The other composed addresses of the broadcast (the document's access paths after the first).
+    /// Without them a channel is pinned to one subnet and dies when the PC's LAN address changes.
+    /// </summary>
+    public IReadOnlyList<string>? AlternateUrls { get; init; }
+
+    /// <summary>
+    /// The broadcast's resource path - the de-duplication key: re-importing a refreshed document for the
+    /// same broadcast updates that row instead of adding a second one.
+    /// </summary>
+    public string? ResourceKey { get; init; }
+
+    /// <summary>The broadcast's stated lifetime (null = until revoked). Renders "expires in..", and turns a
+    /// failure into the right sentence.</summary>
+    public DateTimeOffset? ResourceExpiresAt { get; init; }
+
+    /// <summary>Whether the address answers with an M3U the player plays item by item inside one window.</summary>
+    public bool IsPlaylistResource { get; init; }
+
+    /// <summary>
+    /// The document's optional localized line to show when every access path fails (196 section 6.3:
+    /// the no-address case produces this note, not a silent failure).
+    /// </summary>
+    public string? ResourceAccessNote { get; init; }
 
     // SP-0033: region-restriction heuristic observed from the catalog maintainer's network only. A
     // GeoRestricted channel is deliberately kept and stays fully playable - never gate, reorder, or

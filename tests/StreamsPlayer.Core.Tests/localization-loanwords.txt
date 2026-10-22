@@ -17,6 +17,9 @@
 # French - the entry below says so. Where it does not, the label is translated and no entry exists.
 
 # --- German ---
+de:ExchangeDiagnosisDetails # SP-0225: "Details" is the ordinary German word, written the same way.
+de:ExchangeDiagnosisServerLine # SP-0225: "Server: {0}" - "Server" and the colon label are German as written.
+de:ExchangeDiagnosisCodeLine # SP-0225: "Code: {0}" - "Code" is the ordinary German word for a code.
 de:TopicTalk        # German radio bills a spoken-word station as "Talk".
 de:TopicComedy      # "Comedy" is the established German genre name; "Komödie" means a stage or film play.
 de:TopicLifestyle   # "Lifestyle" is the ordinary German word for this genre.
@@ -51,6 +54,7 @@ de:FrameRateValue   # "fps" is what German media software prints for frames per 
 de:AudioChannelStereo # "Stereo" is German.
 
 # --- Italian ---
+it:ExchangeDiagnosisServerLine # SP-0225: "Server: {0}" - "server" is the ordinary Italian word.
 it:LiveLabel        # "Live" is standard Italian broadcast usage.
 it:AudioOption      # "Audio" is Italian.
 it:SettingsAudio    # "Audio" is Italian.
@@ -151,3 +155,24 @@ de:BroadcastsAudio # "Audio" is German.
 es:BroadcastsAudio # "Audio" is the Spanish media word (RAE: anglicism in normal use).
 fr:BroadcastsAudio # "Audio" is the French media word.
 it:BroadcastsAudio # "Audio" is Italian.
+
+# --- SP-0217 broadcast audio terms ---
+de:BroadcastLanPort     # German network terminology writes "Port".
+de:BroadcastBitrate     # "Bitrate" is the German audio term; alternatives read as worse synonyms.
+de:BroadcastMono        # German audio terminology writes "Mono".
+de:BroadcastStereo      # German audio terminology writes "Stereo".
+es:BroadcastMono        # Spanish audio terminology writes "mono" in lowercase; the label is the same word.
+fr:BroadcastLanPort    # French network terminology writes "Port" (le port).
+fr:BroadcastMicDevice   # "Microphone" is the French word for it.
+fr:BroadcastMono        # French audio terminology writes "Mono".
+it:BroadcastBitrate     # Italian audio practice keeps "bitrate"; the unit stays the same.
+it:BroadcastMono        # Italian audio terminology writes "Mono".
+it:BroadcastStereo      # Italian audio terminology writes "Stereo".
+pt:BroadcastMono        # Portuguese audio terminology writes "mono".
+de:InterfaceSizeStandard   # German interfaces say "Standard" for the default size; the word is the same.
+de:InputProfileTouch       # German says "Touch" for touch input; the label is the same word.
+fr:SettingsGeneralInterface   # "Interface" is the French word for it.
+fr:InterfaceSizeStandard   # "Standard" is the French word.
+it:InterfaceSizeStandard   # "Standard" is the Italian word.
+it:InputProfileLabel       # Italian interfaces keep "Input" for the way of entering commands.
+pt:SettingsGeneralInterface   # "Interface" is the Portuguese word for it.

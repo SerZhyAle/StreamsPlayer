@@ -1,0 +1,319 @@
+{
+  "source": "DEVICE-EXCHANGE 1.5 section 9 items CZ (messages) and CY (ladder) and the amendment of 2026-10-17 (format-unsupported); SP-0225",
+  "rows": [
+    {
+      "code": "bad-credentials",
+      "kind": "wire",
+      "step": "credentials",
+      "en": "The login or the password is wrong.",
+      "ru": "Логин или пароль неверны.",
+      "uk": "Логін або пароль неправильні."
+    },
+    {
+      "code": "bad-credentials-code",
+      "kind": "wire",
+      "step": "credentials",
+      "en": "The login or the one-time code is wrong.",
+      "ru": "Логин или одноразовый код неверны.",
+      "uk": "Логін або одноразовий код неправильні."
+    },
+    {
+      "code": "device-revoked",
+      "kind": "wire",
+      "step": "device-removed",
+      "en": "This device was removed from the account.",
+      "ru": "Это устройство удалено из аккаунта.",
+      "uk": "Цей пристрій видалено з акаунта."
+    },
+    {
+      "code": "signed-out",
+      "kind": "wire",
+      "step": "credentials",
+      "en": "The password of this account was changed, so this device was signed out.",
+      "ru": "Пароль этого аккаунта изменили, поэтому это устройство вышло из аккаунта.",
+      "uk": "Пароль цього акаунта змінили, тому цей пристрій вийшов з акаунта."
+    },
+    {
+      "code": "version-unsupported",
+      "kind": "wire",
+      "step": "operator",
+      "en": "This program and the server speak different versions of the exchange.",
+      "ru": "Эта программа и сервер работают по разным версиям обмена.",
+      "uk": "Ця програма і сервер працюють за різними версіями обміну."
+    },
+    {
+      "code": "tls-required",
+      "kind": "wire",
+      "step": "operator",
+      "en": "The server accepts this only over a protected connection, and this one is not protected.",
+      "ru": "Сервер принимает это только по защищённому соединению, а это соединение не защищено.",
+      "uk": "Сервер приймає це лише через захищене з'єднання, а це з'єднання не захищене."
+    },
+    {
+      "code": "id-collision",
+      "kind": "wire",
+      "step": null,
+      "en": "The server already knows another device under this device's number. Remove this server from the list and add it again.",
+      "ru": "Сервер уже знает другое устройство под номером этого. Удалите этот сервер из списка и добавьте его снова.",
+      "uk": "Сервер уже знає інший пристрій під таким самим номером. Видаліть цей сервер зі списку й додайте його знову."
+    },
+    {
+      "code": "capacity",
+      "kind": "wire",
+      "step": "operator",
+      "en": "The server cannot take this: it has reached a limit of its own, or the item is too big to be listed.",
+      "ru": "Сервер не может это принять: он достиг своего предела или объект слишком большой, чтобы показать его в списке.",
+      "uk": "Сервер не може це прийняти: він досяг свого ліміту або об'єкт завеликий, щоб показати його в списку."
+    },
+    {
+      "code": "port-unavailable",
+      "kind": "wire",
+      "step": "operator",
+      "en": "The server has no free port to open for this folder.",
+      "ru": "У сервера нет свободного порта для этой папки.",
+      "uk": "У сервера немає вільного порту для цієї папки."
+    },
+    {
+      "code": "unavailable",
+      "kind": "wire",
+      "step": "pc-asleep",
+      "en": "The device or the server is not available right now.",
+      "ru": "Сейчас устройство или сервер недоступны.",
+      "uk": "Зараз пристрій або сервер недоступні."
+    },
+    {
+      "code": "rate-limited",
+      "kind": "wire",
+      "step": "sign-in-rate",
+      "en": "Too many attempts in a row.",
+      "ru": "Слишком много попыток подряд.",
+      "uk": "Забагато спроб поспіль."
+    },
+    {
+      "code": "password-policy",
+      "kind": "wire",
+      "step": null,
+      "en": "The password is too simple. Use at least 10 characters, with capital and small Latin letters and digits.",
+      "ru": "Пароль слишком простой. Нужно не меньше 10 знаков: заглавные и строчные латинские буквы и цифры.",
+      "uk": "Пароль надто простий. Потрібно щонайменше 10 символів: великі й малі латинські літери та цифри."
+    },
+    {
+      "code": "limit-reached",
+      "kind": "wire",
+      "step": "operator",
+      "en": "A limit set on the server has been reached.",
+      "ru": "На сервере достигнут установленный предел.",
+      "uk": "На сервері досягнуто встановленого ліміту."
+    },
+    {
+      "code": "not-permitted",
+      "kind": "wire",
+      "step": null,
+      "en": "A guest account cannot do this. If you need it, ask for an invitation of the kind \"own device or family\".",
+      "ru": "Гостевой аккаунт не может это делать. Если это нужно, попросите приглашение «своё устройство или семья».",
+      "uk": "Гостьовий акаунт не може цього робити. Якщо це потрібно, попросіть запрошення «свій пристрій або сім'я»."
+    },
+    {
+      "code": "declined",
+      "kind": "cast",
+      "step": null,
+      "en": "The other device did not accept the cast.",
+      "ru": "Другое устройство не приняло cast.",
+      "uk": "Інший пристрій не прийняв cast."
+    },
+    {
+      "code": "timeout",
+      "kind": "cast",
+      "step": null,
+      "en": "The other device did not answer in time.",
+      "ru": "Другое устройство не ответило вовремя.",
+      "uk": "Інший пристрій не відповів вчасно."
+    },
+    {
+      "code": "unsupported",
+      "kind": "cast",
+      "step": null,
+      "en": "The other device cannot play this kind of broadcast.",
+      "ru": "Другое устройство не умеет воспроизводить такую трансляцию.",
+      "uk": "Інший пристрій не вміє відтворювати таку трансляцію."
+    },
+    {
+      "code": "unreachable-server",
+      "kind": "local",
+      "step": "pc-asleep",
+      "en": "Cannot reach the server.",
+      "ru": "Не удаётся связаться с сервером.",
+      "uk": "Не вдається зв'язатися із сервером."
+    },
+    {
+      "code": "unanswered",
+      "kind": "local",
+      "step": "operator",
+      "en": "The server did not answer.",
+      "ru": "Сервер не ответил.",
+      "uk": "Сервер не відповів."
+    },
+    {
+      "code": "tls-failed",
+      "kind": "local",
+      "step": "device-clock",
+      "en": "A protected connection could not be set up.",
+      "ru": "Не удалось установить защищённое соединение.",
+      "uk": "Не вдалося встановити захищене з'єднання."
+    },
+    {
+      "code": "certificate-changed",
+      "kind": "local",
+      "step": "certificate",
+      "en": "This server does not look like the one you connected to before.",
+      "ru": "Этот сервер не похож на тот, к которому вы подключались раньше.",
+      "uk": "Цей сервер не схожий на той, до якого ви підключалися раніше."
+    },
+    {
+      "code": "empty-credential",
+      "kind": "local",
+      "step": null,
+      "en": "Enter the login and the password first.",
+      "ru": "Сначала введите логин и пароль.",
+      "uk": "Спочатку введіть логін і пароль."
+    },
+    {
+      "code": "refused",
+      "kind": "wire",
+      "step": "operator",
+      "en": "The server refused this.",
+      "ru": "Сервер отказал в этом.",
+      "uk": "Сервер відмовив у цьому."
+    },
+    {
+      "code": "format-unsupported",
+      "kind": "local",
+      "step": null,
+      "en": "This format is newer than this program supports. Nothing was imported. Use a compatible program.",
+      "ru": "Этот формат новее, чем поддерживает программа. Ничего не импортировано. Используйте совместимую программу.",
+      "uk": "Цей формат новіший, ніж підтримує програма. Нічого не імпортовано. Скористайтеся сумісною програмою."
+    }
+  ],
+  "steps": [
+    {
+      "number": 1,
+      "id": "pc-asleep",
+      "applies": "any",
+      "en": "Switch on and wake the device that runs the server or the sharing service, and keep it from going to sleep.",
+      "ru": "Включите и разбудите устройство, на котором работает сервер или сервис шаринга, и не давайте ему засыпать.",
+      "uk": "Увімкніть і розбудіть пристрій, на якому працює сервер або сервіс шарингу, і не давайте йому засинати."
+    },
+    {
+      "number": 2,
+      "id": "address-lan",
+      "applies": "network",
+      "en": "Check the address, and make sure both devices are on the same Wi-Fi or home network.",
+      "ru": "Проверьте адрес и убедитесь, что оба устройства в одной сети Wi-Fi или в одной домашней сети.",
+      "uk": "Перевірте адресу й переконайтеся, що обидва пристрої в одній мережі Wi-Fi або в одній домашній мережі."
+    },
+    {
+      "number": 3,
+      "id": "guest-network",
+      "applies": "network",
+      "en": "Join the main Wi-Fi network, not the router's guest network: in a guest network devices often cannot see each other.",
+      "ru": "Подключитесь к основной сети Wi-Fi, а не к гостевой сети роутера: в гостевой сети устройства часто не видят друг друга.",
+      "uk": "Підключіться до основної мережі Wi-Fi, а не до гостьової мережі роутера: у гостьовій мережі пристрої часто не бачать одне одного."
+    },
+    {
+      "number": 4,
+      "id": "vpn",
+      "applies": "any",
+      "en": "Turn the VPN off on this device for a moment and try again.",
+      "ru": "Ненадолго выключите VPN на этом устройстве и попробуйте ещё раз.",
+      "uk": "На хвилину вимкніть VPN на цьому пристрої й спробуйте ще раз."
+    },
+    {
+      "number": 5,
+      "id": "windows-public-network",
+      "applies": "network",
+      "en": "On the Windows computer, set this network to private: Windows keeps other devices out of a public network.",
+      "ru": "На компьютере с Windows переключите эту сеть на «Частная»: из общедоступной сети Windows не пускает другие устройства.",
+      "uk": "На комп'ютері з Windows перемкніть цю мережу на «Приватна»: до загальнодоступної мережі Windows не пускає інші пристрої."
+    },
+    {
+      "number": 6,
+      "id": "ip-family",
+      "applies": "any",
+      "en": "Try another network, for example mobile data: the server may be reachable only by a kind of address (IPv4 or IPv6) that this network does not give you.",
+      "ru": "Попробуйте другую сеть, например мобильный интернет: возможно, сервер доступен только по такому виду адреса (IPv4 или IPv6), которого эта сеть вам не даёт.",
+      "uk": "Спробуйте іншу мережу, наприклад мобільний інтернет: можливо, сервер доступний лише за таким видом адреси (IPv4 або IPv6), якого ця мережа вам не дає."
+    },
+    {
+      "number": 7,
+      "id": "server-internet",
+      "applies": "internet",
+      "en": "From another network, for example mobile data, check that the server answers from the internet.",
+      "ru": "Из другой сети, например через мобильный интернет, проверьте, отвечает ли сервер из интернета.",
+      "uk": "З іншої мережі, наприклад через мобільний інтернет, перевірте, чи відповідає сервер з інтернету."
+    },
+    {
+      "number": 8,
+      "id": "port-forward",
+      "applies": "internet",
+      "en": "In the router's settings, forward the server's port to the computer that runs it.",
+      "ru": "В настройках роутера пробросьте порт сервера на компьютер, на котором он работает.",
+      "uk": "У налаштуваннях роутера пробросіть порт сервера на комп'ютер, на якому він працює."
+    },
+    {
+      "number": 9,
+      "id": "device-clock",
+      "applies": "any",
+      "en": "Set the right date and time on this device, or turn on automatic time, and try again.",
+      "ru": "Установите на этом устройстве правильные дату и время или включите автоматическую настройку времени и попробуйте ещё раз.",
+      "uk": "Встановіть на цьому пристрої правильні дату й час або ввімкніть автоматичне налаштування часу й спробуйте ще раз."
+    },
+    {
+      "number": 10,
+      "id": "certificate",
+      "applies": "any",
+      "en": "If you did not expect this, do not go on: ask whoever runs the server. If the server was reinstalled, confirm its new fingerprint.",
+      "ru": "Если вы этого не ждали, не продолжайте: спросите того, кто управляет сервером. Если сервер переустановили, подтвердите его новый отпечаток.",
+      "uk": "Якщо ви цього не чекали, не продовжуйте: запитайте того, хто керує сервером. Якщо сервер перевстановили, підтвердьте його новий відбиток."
+    },
+    {
+      "number": 11,
+      "id": "credentials",
+      "applies": "any",
+      "en": "Check the login and type the password again. If you used a one-time code, ask for a new one.",
+      "ru": "Проверьте логин и введите пароль ещё раз. Если вы вводили одноразовый код, попросите новый.",
+      "uk": "Перевірте логін і введіть пароль ще раз. Якщо ви вводили одноразовий код, попросіть новий."
+    },
+    {
+      "number": 12,
+      "id": "sign-in-rate",
+      "applies": "any",
+      "en": "Wait a few seconds and try again: the server takes about one attempt per second.",
+      "ru": "Подождите несколько секунд и попробуйте снова: сервер принимает не больше одной попытки в секунду.",
+      "uk": "Зачекайте кілька секунд і спробуйте знову: сервер приймає не більше однієї спроби на секунду."
+    },
+    {
+      "number": 13,
+      "id": "invitation",
+      "applies": "any",
+      "en": "Check the invitation or ask for a new one: each works once, and this one may be wrong, used or withdrawn.",
+      "ru": "Проверьте приглашение или попросите новое: каждое работает один раз, а это может быть неверным, уже использованным или отозванным.",
+      "uk": "Перевірте запрошення або попросіть нове: кожне працює один раз, а це може бути неправильним, уже використаним або відкликаним."
+    },
+    {
+      "number": 14,
+      "id": "device-removed",
+      "applies": "any",
+      "en": "Sign in to the account again to add this device back.",
+      "ru": "Войдите в аккаунт заново, чтобы снова добавить это устройство.",
+      "uk": "Увійдіть в акаунт знову, щоб додати цей пристрій назад."
+    },
+    {
+      "number": 15,
+      "id": "operator",
+      "applies": "any",
+      "en": "Ask whoever runs the server: this can be fixed only on the server's side.",
+      "ru": "Обратитесь к тому, кто управляет сервером: исправить это можно только на стороне сервера.",
+      "uk": "Зверніться до того, хто керує сервером: виправити це можна лише на боці сервера."
+    }
+  ]
+}

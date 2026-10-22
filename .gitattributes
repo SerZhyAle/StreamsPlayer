@@ -26,6 +26,9 @@ msix/store-listing-export.sample.csv -text
 # runner (v26.0924.1655), so git must leave these bytes alone.
 assets/glyphs/**/*.svg -text
 docs/assets/glyphs/*.svg -text
+# SP-0234 (EXCHANGE-MARK rule 6): the vendored mark is byte-for-byte too, pinned in assets/exchange-mark/PROVENANCE.txt.
+# Its PNG steps are binary by the *.png rule below; its one-tone glyph is assets/glyphs/own/source.exchange-server.svg,
+# covered by the line above, because a line-ending conversion would change the bytes and break the hash.
 
 *.ico binary
 *.png binary
@@ -45,3 +48,8 @@ docs/assets/sza-kit.css -text
 # SP-0195 follow-up: the vendored WAVE-PARTICLES reference implementation is served byte-identical too
 # (pinned in tools/site/kit-provenance.txt, checked by tools/site/build-site.ps1).
 docs/assets/wave-particles.js -text
+
+# SP-0226: the sealed-content corpus is a byte-for-byte copy of the contract catalog, pinned by SHA-256 in
+# its PROVENANCE.txt and by ExchangeHpkeTests, so git must leave these bytes alone.
+tests/StreamsPlayer.Core.Tests/Vectors/e2e-v1/* -text
+tests/StreamsPlayer.Core.Tests/Vectors/fmsw-234/* -text

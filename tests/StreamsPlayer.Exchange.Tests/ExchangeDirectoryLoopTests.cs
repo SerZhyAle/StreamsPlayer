@@ -44,6 +44,8 @@ public sealed class ExchangeDirectoryLoopTests
                     }
                 };
                 service.Start();
+                // SP-0222: the directory is fetched because a list is open, not because the session came up.
+                using var lease = service.AcquireDirectory(follow: true);
 
                 await Until(() => observed.Any(snapshot => snapshot.LiveBroadcastIds.Contains("b1")));
                 // Requirement 2: this device's own record never reaches the view it is shown.
@@ -68,6 +70,7 @@ public sealed class ExchangeDirectoryLoopTests
                     features = new[] { "directory" }, keepaliveSeconds = 30
                 }, false, token);
 
+                await ExpectAsync(tls, "list", token);
                 await ExchangeProtocol.WriteAsync(tls, DirectoryJson(1, ownDeviceId, withB1: true), true, token);
                 await ExpectAsync(tls, "subscribe", token);
                 // The record left: a removal push, one revision later.

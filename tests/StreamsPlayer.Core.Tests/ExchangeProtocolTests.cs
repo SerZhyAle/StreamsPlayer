@@ -127,9 +127,11 @@ public sealed class ExchangeProtocolTests
             var inner = pair.Transport == "TUNNEL"
                 ? (pair.Mode == FastMediaSorterBroadcastDescriptor.AudioOnlyMode ? "http://127.0.0.1/audio" : "rtsp://127.0.0.1/video")
                 : null;
+            // SP-0226: an exchange pair plays only as a sealed endpoint (items DK and DP), so the pair is offered as one.
             var endpoint = new FastMediaSorterBroadcastEndpoint(
                 url,
-                pair.Transport, pair.Mode, null, null, null, null, true, 500, null, inner);
+                pair.Transport, pair.Mode, null, null, null, null, true, 500, null, inner,
+                pair.Transport is "RELAY" or "TUNNEL" ? new ExchangeEndpointSeal(ExchangeEndpointSeal.CurrentVersion) : null);
             var descriptor = new FastMediaSorterBroadcast("http://localhost/fallback", pair.Mode, "", null, true, 500, [endpoint]);
             Assert.Equal(endpoint, descriptor.SelectPlaybackEndpoint());
             // And the persisted form a reconnect leg reads offers the same pair as an attempt.
@@ -137,8 +139,103 @@ public sealed class ExchangeProtocolTests
             Assert.Equal([endpoint], info.PlaybackAttemptEndpoints());
         }
 
-        using var receiver = JsonSerializer.SerializeToDocument(ExchangeCapabilities.Receiver);
-        Assert.Equal(11, receiver.RootElement.GetProperty("plays").GetArrayLength());
+        // Item AM: 3 modes x 4 transports is 12 pairs, over the bound of 8, so the declaration omits `plays`
+        // (item E then reads the two lists as that product) while the 11 pairs stay in `Plays` for cast answers.
+        using var receiver = JsonSerializer.SerializeToDocument(ExchangeCapabilities.Receiver, ExchangeProtocol.JsonOptions);
+        Assert.False(receiver.RootElement.TryGetProperty("plays", out _));
+        Assert.Equal(3, receiver.RootElement.GetProperty("modes").GetArrayLength());
+        Assert.Equal(4, receiver.RootElement.GetProperty("transports").GetArrayLength());
+    }
+
+    [Fact]
+    public void ADeclarationWithinTheBoundOfItemAM_StillWritesItsPairs()
+    {
+        var small = new[]
+        {
+            new ExchangePlayPair(FastMediaSorterBroadcastDescriptor.AudioOnlyMode, "HTTP"),
+            new ExchangePlayPair(FastMediaSorterBroadcastDescriptor.AudioOnlyMode, "RELAY"),
+            new ExchangePlayPair(FastMediaSorterBroadcastDescriptor.VideoOnlyMode, "HTTP")
+        };
+
+        using var declared = JsonSerializer.SerializeToDocument(ExchangeCapabilities.Declare(small), ExchangeProtocol.JsonOptions);
+
+        var plays = declared.RootElement.GetProperty("plays").EnumerateArray()
+            .Select(pair => $"{pair.GetProperty("mode").GetString()}:{pair.GetProperty("transport").GetString()}");
+        Assert.Equal(["AUDIO_ONLY:HTTP", "AUDIO_ONLY:RELAY", "VIDEO_ONLY:HTTP"], plays);
+    }
+
+    [Fact]
+    public void TheProductAtTheBoundIsDeclaredAndOneOverItIsNot()
+    {
+        ExchangePlayPair[] Grid(int modes, int transports) =>
+        [
+            .. Enumerable.Range(0, modes).SelectMany(mode =>
+                Enumerable.Range(0, transports).Select(transport => new ExchangePlayPair($"M{mode}", $"T{transport}")))
+        ];
+
+        using var atBound = JsonSerializer.SerializeToDocument(ExchangeCapabilities.Declare(Grid(2, 4)), ExchangeProtocol.JsonOptions);
+        using var overBound = JsonSerializer.SerializeToDocument(ExchangeCapabilities.Declare(Grid(3, 3)), ExchangeProtocol.JsonOptions);
+
+        Assert.Equal(8, atBound.RootElement.GetProperty("plays").GetArrayLength());
+        Assert.False(overBound.RootElement.TryGetProperty("plays", out _));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TheEnrollFrameStaysWithinTheBoundsOfItemAM(bool keyed)
+    {
+        using var deviceKey = keyed ? ExchangeE2eKeyPair.Generate() : null;
+        var fields = ExchangeEnrollmentFields.Build("alice", ExchangeProtocol.NewDeviceId(), "STREAMS Player",
+            "streamsplayer-windows", "26.1021.1200", "windows", ["receiver", "broadcaster"],
+            ExchangeCapabilities.Receiver, 30, deviceKey);
+        using var stream = new MemoryStream();
+
+        await ExchangeProtocol.WriteEnrollmentAsync(stream, fields, "password", "Aa secret 1234".ToCharArray(), default);
+
+        stream.Position = 0;
+        using var frame = await ExchangeProtocol.ReadAsync(stream, false, default);
+        var receiver = frame.RootElement.GetProperty("receiver");
+        foreach (var list in new[] { "modes", "transports", "plays" })
+        {
+            if (receiver.TryGetProperty(list, out var entries))
+            {
+                Assert.InRange(entries.GetArrayLength(), 1, 8);
+            }
+        }
+
+        foreach (var entry in receiver.GetProperty("modes").EnumerateArray().Concat(receiver.GetProperty("transports").EnumerateArray()))
+        {
+            Assert.InRange(entry.GetString()!.Length, 1, 16);
+        }
+
+        if (receiver.TryGetProperty("plays", out var pairs))
+        {
+            Assert.All(pairs.EnumerateArray(), pair =>
+            {
+                Assert.InRange(pair.GetProperty("mode").GetString()!.Length, 1, 16);
+                Assert.InRange(pair.GetProperty("transport").GetString()!.Length, 1, 16);
+            });
+        }
+
+        var modes = receiver.GetProperty("modes").GetArrayLength();
+        var transports = receiver.GetProperty("transports").GetArrayLength();
+        if (modes * transports > 8)
+        {
+            Assert.False(receiver.TryGetProperty("plays", out _));
+        }
+
+        foreach (var list in new[] { "roles", "capabilities" })
+        {
+            if (frame.RootElement.TryGetProperty(list, out var entries))
+            {
+                Assert.InRange(entries.GetArrayLength(), 1, 8);
+                Assert.All(entries.EnumerateArray(), entry => Assert.InRange(entry.GetString()!.Length, 1, 32));
+            }
+        }
+
+        Assert.Equal(keyed, frame.RootElement.TryGetProperty("capabilities", out _));
+        Assert.Equal(22, frame.RootElement.GetProperty("deviceId").GetString()!.Length);
     }
 
     [Fact]

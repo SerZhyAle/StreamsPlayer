@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Help - STREAMS Player</title>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <nav class="help-crumbs" aria-label="Breadcrumb">
+    <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>STREAMS Player</span>
+  </nav>
+  <header class="hero">
+    <p class="kicker">Window help</p>
+    <h1>STREAMS Player</h1>
+    <p class="lead">This is the window you work in. It holds the list of channels, plays radio itself and opens video in its own window. Search or filter to find a channel, press play, pin the ones you like, and switch between List and Grid to change how it all looks.</p>
+  </header>
+
+  <h2>In this order</h2>
+  <ol class="order">
+    <li>If the list is empty, bring channels in first: <b><a href="#e-op-import">Import channels from the internet</a></b>, <b><a href="#e-op-add">Add stream</a></b> or <b><a href="#e-op-paste">Paste channel</a></b>. The buttons of <b><a href="#e-empty-state">Empty list</a></b> do the same.</li>
+    <li>Look for a channel: type in <b><a href="#e-search">Search</a></b>, or press one of the buttons <b><a href="#e-quick-audio">Quick filter: audio only</a></b>, <b><a href="#e-quick-video">Quick filter: video only</a></b> and <b><a href="#e-quick-own">Quick filter: my channels (added or imported)</a></b>.</li>
+    <li>Narrow the list with <b><a href="#e-filters">Filters and sorting</a></b>: facets such as <b><a href="#e-filter-media">Media</a></b> and <b><a href="#e-filter-country">Country</a></b>, plus <b><a href="#e-sort">Sort by</a></b> and <b><a href="#e-filter-collection">Collection</a></b>. <b><a href="#e-clear-filters">Clear</a></b> takes them all off.</li>
+    <li>Choose the look that suits you: <b><a href="#e-list-view">List</a></b> or <b><a href="#e-grid-view">Grid</a></b>.</li>
+    <li>Start a channel with <b><a href="#e-play">Play stream</a></b> or a double-click on it. Radio plays right here, video opens in its own window, and <b><a href="#e-op-random">Random station</a></b> picks a station for you.</li>
+    <li>Steer the radio from the bottom bar: <b><a href="#e-transport">Stop audio</a></b>, <b><a href="#e-volume">Audio volume</a></b>, <b><a href="#e-sleep-timer">Sleep timer</a></b>, <b><a href="#e-record">Record</a></b> and <b><a href="#e-compact">Compact panel</a></b>.</li>
+    <li>Keep what you like: <b><a href="#e-pin">Pin or unpin</a></b> puts a channel in its own section, and the <b><a href="#e-more">More actions</a></b> menu adds it to a collection or lets you edit it.</li>
+  </ol>
+
+  <h2>The elements</h2>
+  <div class="elements">
+    <details class="el" id="e-search">
+      <summary><span><span class="name">Search</span><span class="one">Finds channels by title, topic or language as you type.</span></span></summary>
+      <div class="full">
+        <p>Type part of a channel's title, its topic or its language, and the list narrows to the channels that match. Upper and lower case do not matter, and the topic is matched by the word you see on screen, in your interface language.</p>
+        <p>Country and category are not searched; the filter row covers those.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>The quickest way to a channel you already have in mind.</dd>
+          <dt>Next</dt><dd>The list updates a moment after you stop typing. Pinned channels are searched too.</dd>
+          <dt>Undo</dt><dd>Empty the box and the full list is back; <a href="#e-clear-search">Clear search</a> does it in one press.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-clear-search">
+      <summary><span><span class="name">Clear search</span><span class="one">Empties the search box and puts the cursor back in it.</span></span></summary>
+      <div class="full">
+        <p>Removes the search text in one press and returns the focus to the box, so a new search can be typed at once. Filters and the sort order are not touched.</p>
+      </div>
+    </details>
+    <details class="el" id="e-filters">
+      <summary><span><span class="name">Filters and sorting</span><span class="one">Opens the row with the filters and the sort order.</span></span></summary>
+      <div class="full">
+        <p>Shows the filter row under the title line: Media, Category, Topic, Language, Country, minimum bitrate, sort order and collection. Filters combine: a channel is shown only when it passes all of them. The row stays open or closed the way you left it.</p>
+        <p>While the row is closed, this button gets an accent frame when a filter is narrowing the list, and its tooltip says how many are active, so channels never go missing without a sign.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>Use it when a search is not enough, for example to see only the channels of one country, or only streams of 128 kbps and up.</dd>
+          <dt>Next</dt><dd>The button gives way to the filter row; <a href="#e-hide-filters">Close filters and sorting</a> closes the row again.</dd>
+          <dt>Undo</dt><dd>Closing the row does not switch the filters off; <a href="#e-clear-filters">Clear</a> does.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-quick-video">
+      <summary><span><span class="name">Quick filter: video only</span><span class="one">Shows only video channels; press again to show everything.</span></span></summary>
+      <div class="full">
+        <p>A shortcut for the Media filter set to Video, which also covers RTSP streams. The button lights up while the filter is on. It stays in the title line whether the filter row is open or closed, and it moves the same filter as <a href="#e-filter-media">Media</a>, so the two always agree.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Press it again, or choose All in <a href="#e-filter-media">Media</a>.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-quick-audio">
+      <summary><span><span class="name">Quick filter: audio only</span><span class="one">Shows only audio channels, that is radio; press again to show everything.</span></span></summary>
+      <div class="full">
+        <p>The same shortcut for the Media filter set to Audio. Only one of the three quick buttons can be on at a time, because they all move that one Media filter.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Press it again, or choose All in <a href="#e-filter-media">Media</a>.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-quick-own">
+      <summary><span><span class="name">Quick filter: my channels (added or imported)</span><span class="one">Shows only the channels you added or imported yourself.</span></span></summary>
+      <div class="full">
+        <p>The Own value of the Media filter as a button: the channels you added with <a href="#e-op-add">Add stream</a>, pasted with <a href="#e-op-paste">Paste channel</a> or imported, without the ones that came with the shared catalog. Handy when your own channels are lost among the catalog's many.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Press it again, or choose All in <a href="#e-filter-media">Media</a>.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-list-view">
+      <summary><span><span class="name">List</span><span class="one">Shows channels as compact cards.</span></span></summary>
+      <div class="full">
+        <p>Each channel is a card with its icon, title, play button, details line and pin. The cards fill as many columns as the window is wide enough for. Pinned channels sit in a strip above the list that scrolls sideways.</p>
+        <p>The choice is remembered for the next start.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Press <a href="#e-grid-view">Grid</a> to switch back.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-grid-view">
+      <summary><span><span class="name">Grid</span><span class="one">Shows channels as picture tiles with a preview of the stream.</span></span></summary>
+      <div class="full">
+        <p>Each channel is a tile: a preview picture when one is available, otherwise a colour monogram with the country flag, with the title over it. Tiles line up in columns that follow the window width, and pinned channels are tiles above the rest. See <a href="#e-tile">Grid tile</a>.</p>
+        <p>The tile size is set in Settings, under &quot;Stream tile size&quot;. Previews are captured from the streams themselves when automatic thumbnail updates are on in Settings, or they come from a ready-made picture pack that the app offers after an import.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Press <a href="#e-list-view">List</a> to switch back.</dd>
+        </dl>
+        <div class="note"><span class="tag">Tip</span><p>In Grid view the <b>Operations</b> menu gains a <b>Refresh previews</b> entry, which captures the visible previews at once, when automatic thumbnail updates are on in Settings.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-exchange">
+      <summary><img src="../mark-24.png" srcset="../mark-24.png 1x, ../mark-48.png 2x" width="24" height="24" alt=""><span><span class="name">Exchange server</span><span class="one">Shows how the connection to your exchange server is doing; opens its settings.</span></span></summary>
+      <div class="full">
+        <p>Appears only while this device is signed in to your exchange server account and the account is switched on. Its second line says how the connection is doing, for example that it is connecting or connected.</p>
+        <p>Pressing it opens Settings on the Library page, where the account is set up and where a device without an active account is told why.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>Settings opens on the Library page, on top of this window.</dd>
+        </dl>
+        <div class="note"><span class="tag">Tip</span><p>Pressing <kbd>Ctrl</kbd> + <kbd>V</kbd> in this window while an exchange connection string, or a screenshot of its QR code, is on the clipboard opens the same page with the details filled in.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-broadcasts">
+      <summary><span><span class="name">Live broadcasts</span><span class="one">Opens the list of live broadcasts running on your account's devices.</span></span></summary>
+      <div class="full">
+        <p>Appears together with the exchange button. It opens the Live broadcasts window: the broadcasts your other devices are running right now, grouped by device. From there you can play one or add it to your channels.</p>
+        <p>The list is a companion window: it stays open beside the others, there is only one of it, and pressing the button again brings the open one forward.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The Live broadcasts window opens, and this window stays usable.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-live">
+      <summary><span><span class="name">Live broadcast indicator</span><span class="one">Shows that this PC is broadcasting, and what it is broadcasting.</span></span></summary>
+      <div class="full">
+        <p>Appears only while the PC microphone or the PC system sound is being broadcast, and reads, for example, &quot;Broadcasting: PC microphone&quot;. It reports and manages; it never starts a broadcast.</p>
+        <p>Its menu names each live source and offers to stop it, to cast it to one of your own devices (only while the exchange account is on and one of its receivers is online) or to share it as a link or a description file.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Stop acts at once, without a question; a stopped broadcast has to be started again.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-settings">
+      <summary><span><span class="name">Settings</span><span class="one">Opens the settings and the information about the app.</span></span></summary>
+      <div class="full">
+        <p>Opens the Settings window on top of this one. Its pages are General, Library, Playback, Audio, Files and About: the preferences you change rarely, the library (catalog, playlists, hidden channels, TV schedule, exchange account) and information about the app.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>This window waits until you close Settings.</dd>
+        </dl>
+        <div class="note"><span class="tag">Tip</span><p>The button is greyed out while a download or another long operation is running.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-operations">
+      <summary><span><span class="name">Operations</span><span class="one">The menu of less frequent actions: add or import channels, history, window options.</span></span></summary>
+      <div class="full">
+        <p>Opens a menu with these entries, in this order: <b>Always on top</b> (a check mark; keeps this window above the others), <b>Refresh previews</b> (only in Grid view, and only when automatic thumbnail updates are on in Settings), <b><a href="#e-op-random">Random station</a></b>, <b><a href="#e-op-history">History</a></b>, <b><a href="#e-op-add">Add stream</a></b>, <b><a href="#e-op-paste">Paste channel</a></b>, <b>Library settings</b> (opens Settings on the Library page) and, set apart at the end, <b><a href="#e-op-import">Import channels from the internet</a></b>.</p>
+        <p>The menu is built each time you open it, so the check mark and the Refresh previews entry always match the state of the window right now.</p>
+        <div class="note"><span class="tag">Tip</span><p>The button is greyed out while an import or another long operation is running.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-op-import">
+      <summary><span><span class="name">Import channels from the internet</span><span class="one">Downloads the latest shared channel list and adds it to yours.</span></span></summary>
+      <div class="full">
+        <p>Fetches the shared catalog of internet radio and video channels, with the station icons, adds the new channels to your list and updates the ones already there. It runs only when you ask for it.</p>
+        <p>While it runs, a progress bar and <a href="#e-cancel">Cancel</a> appear in the bottom bar. When it ends, the status line gives the totals of added, updated and removed channels, and the app may ask whether to download a pack of ready-made preview pictures for Grid view; nothing is downloaded until you say yes.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>The shared list changes as stations come and go, so this keeps yours current.</dd>
+          <dt>Next</dt><dd>The list refills with the result of the import.</dd>
+          <dt>Undo</dt><dd>Streams you added or imported yourself are never touched by an import, and <a href="#e-cancel">Cancel</a> stops a running one with your list left as it was.</dd>
+        </dl>
+        <div class="note"><span class="tag">Tip</span><p>When you are offline nothing is requested, and the app offers the copy built into this version, if this build has one.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-op-add">
+      <summary><span><span class="name">Add stream</span><span class="one">Adds a channel by its address and plays it at once.</span></span></summary>
+      <div class="full">
+        <p>Opens a small window where you enter the stream's address and, if you like, a title and other details. The new channel goes into your list as your own and starts playing straight away. An address that is already in the list is refused with a message.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>For a station or stream that is not in the shared catalog.</dd>
+          <dt>Undo</dt><dd>You can change or correct it later with <b>Edit</b> in the channel's <a href="#e-more">More actions</a> menu.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-op-paste">
+      <summary><span><span class="name">Paste channel</span><span class="one">Adds a channel that someone sent you as text, from the clipboard.</span></span></summary>
+      <div class="full">
+        <p>Reads the clipboard and, when it holds a channel shared with <b>Copy share text</b>, asks &quot;Add this channel to your list?&quot; and shows its title and address. Only your yes adds it. The address is taken as written, and nothing is requested from the network at this step.</p>
+        <p>If the channel is already in your list nothing is added: the app takes you to it, or offers to bring it back if you had hidden it. A live-broadcast link or description from another device, and an exchange connection string, are recognised too and handled where they belong.</p>
+        <div class="note"><span class="tag">Tip</span><p>You can also drop a broadcast description file (.fmsbcast or .spres) onto the window to import it.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-op-random">
+      <summary><span><span class="name">Random station</span><span class="one">Plays a radio station picked at random from the whole catalog.</span></span></summary>
+      <div class="full">
+        <p>Picks one radio station at random and starts it. If a station does not answer, the app quietly tries the next random pick, up to a set number of tries, and the status line shows which one it is trying. The first station that sounds stays on.</p>
+        <p>Only radio is drawn; channels you have hidden and channels the catalog no longer lists are left out.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>For when you have no particular station in mind.</dd>
+          <dt>Undo</dt><dd>Pressing it again draws a new station, and <b>Stop</b> on the playing card ends it.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-op-history">
+      <summary><span><span class="name">History</span><span class="one">Lists the channels you played recently and lets you play one again.</span></span></summary>
+      <div class="full">
+        <p>Opens the <b>Recently played</b> window: the channels you played, with when you played them and, for radio, the last track the app read. Press <b>Play</b> beside an entry to play it again. An entry whose channel is no longer in your list cannot be played.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd><b>Clear history</b> asks you to confirm and removes only the history; your channels, pins and collections stay as they are.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-filter-media">
+      <summary><span><span class="name">Media</span><span class="one">Narrows the list to audio, video or your own channels.</span></span></summary>
+      <div class="full">
+        <p>Choose All, Audio, Video or Own. Video includes RTSP streams; Own means the channels you added, pasted or imported yourself. The three quick buttons in the title line move this same filter.</p>
+      </div>
+    </details>
+    <details class="el" id="e-filter-category">
+      <summary><span><span class="name">Category</span><span class="one">Narrows the list to one category of the catalog.</span></span></summary>
+      <div class="full">
+        <p>The choices are the categories the catalog gives its channels, plus All. Category and Topic come from two different columns of the catalog, so a channel can match one and not the other, and choosing both narrows by both.</p>
+      </div>
+    </details>
+    <details class="el" id="e-filter-topic">
+      <summary><span><span class="name">Topic</span><span class="one">Narrows the list to one topic of the catalog.</span></span></summary>
+      <div class="full">
+        <p>The topic is the subject rubric of a channel. The names are shown in your interface language, and General, the broadest group, is listed last so that the narrowing topics come first. The search box and the Topic sort use the same rubrics.</p>
+      </div>
+    </details>
+    <details class="el" id="e-filter-language">
+      <summary><span><span class="name">Language</span><span class="one">Narrows the list to channels broadcast in one language.</span></span></summary>
+      <div class="full">
+        <p>A channel that is broadcast in several languages is shown for each of them.</p>
+      </div>
+    </details>
+    <details class="el" id="e-filter-country">
+      <summary><span><span class="name">Country</span><span class="one">Narrows the list to channels of one country.</span></span></summary>
+      <div class="full">
+        <p>Each country is shown with its flag and its full name in your interface language. The countries of your interface language come first, set apart by a line, followed by the full alphabetical list. Typing a letter jumps to the name that starts with it.</p>
+      </div>
+    </details>
+    <details class="el" id="e-filter-bitrate">
+      <summary><span><span class="name">Min bitrate</span><span class="one">Hides streams whose stated bitrate is below the minimum you pick.</span></span></summary>
+      <div class="full">
+        <p>Choose All or one of 64, 128, 192, 256 and 320 kbps. The bitrate is the figure the catalog states for the stream, not a measurement. While a minimum is set, channels with no stated bitrate are left out. The box gets an accent frame whenever it is not on All.</p>
+      </div>
+    </details>
+    <details class="el" id="e-sort">
+      <summary><span><span class="name">Sort by</span><span class="one">Sets the order of the list.</span></span></summary>
+      <div class="full">
+        <p>Sort by Name, Topic, Language, Country or Recently added. The order applies to the pinned section and to the list alike. Sorting only reorders: it does not count as a filter, and <a href="#e-clear-filters">Clear</a> leaves it alone.</p>
+      </div>
+    </details>
+    <details class="el" id="e-filter-collection">
+      <summary><span><span class="name">Collection</span><span class="one">Shows only the channels of one collection.</span></span></summary>
+      <div class="full">
+        <p>A collection is a named group of channels that you make yourself, with <b>Add to collection</b> in the <a href="#e-more">More actions</a> menu of a channel. Pick one here to see just its channels, or All for the whole list. One collection at a time.</p>
+      </div>
+    </details>
+    <details class="el" id="e-count">
+      <summary><span><span class="name">Channel count</span><span class="one">Shows how many channels the search and filters show, out of all that are available.</span></span></summary>
+      <div class="full">
+        <p>Reads &quot;Channels: shown / total&quot; and sits in the filter row, so it is visible while the row is open. The first number is what the current search and filters show, pinned channels included. The second is every channel you can reach in this list, so it does not shrink when you filter or pick a collection. Channels you have hidden are in neither number.</p>
+      </div>
+    </details>
+    <details class="el" id="e-clear-filters">
+      <summary><span><span class="name">Clear</span><span class="one">Sets every filter back to All; the search and the sort order stay.</span></span></summary>
+      <div class="full">
+        <p>Resets Media, Category, Topic, Language, Country, minimum bitrate and collection to All in one press, and the list updates at once. Your search text and the sort order are kept.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Nothing is lost; set the filters again if you want them back.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-hide-filters">
+      <summary><span><span class="name">Close filters and sorting</span><span class="one">Closes the filter row but keeps the filters switched on.</span></span></summary>
+      <div class="full">
+        <p>Closes the row to give the list more room. The filters you set stay in force, and <a href="#e-filters">Filters and sorting</a> shows an accent frame as a reminder while any of them is narrowing the list.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd><a href="#e-filters">Filters and sorting</a> returns to the title line.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-pinned-header">
+      <summary><span><span class="name">Pinned</span><span class="one">Folds the section of pinned channels away, or opens it again.</span></span></summary>
+      <div class="full">
+        <p>The section appears above the list as soon as one channel is pinned. Pressing its header folds it away or opens it again, and the window remembers the choice.</p>
+      </div>
+    </details>
+    <details class="el" id="e-channels-header">
+      <summary><span><span class="name">Channels</span><span class="one">Folds the list of channels away, or opens it again.</span></span></summary>
+      <div class="full">
+        <p>Works like <a href="#e-pinned-header">Pinned</a>, for the main list, and the window remembers the choice as well. The header is hidden while there is nothing to show.</p>
+      </div>
+    </details>
+    <details class="el" id="e-list">
+      <summary><span><span class="name">Channel list</span><span class="one">One click selects a channel; a double-click plays it.</span></span></summary>
+      <div class="full">
+        <p>One click selects a channel and frames it. A double-click anywhere on a card or tile, except on its buttons, plays it. Each card or tile carries its own buttons - <a href="#e-play">Play stream</a>, <a href="#e-more">More actions</a> and, on cards, <a href="#e-pin">Pin or unpin</a> - and the colour dot and details line described below.</p>
+        <p>The window remembers the selected channel, the scroll position, your search, the filters and the sort order, and brings them back at the next start.</p>
+        <dl class="facts">
+          <dt>Shortcut</dt><dd>In Grid view <kbd>←</kbd>, <kbd>→</kbd>, <kbd>↑</kbd> and <kbd>↓</kbd> move the selection from tile to tile.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-play">
+      <summary><span><span class="name">Play stream</span><span class="one">Starts the channel; on a playing radio card it becomes Stop.</span></span></summary>
+      <div class="full">
+        <p>Radio starts right here in the main window, and starting another station replaces the one that was playing. Video and RTSP channels open in their own player window.</p>
+        <p>While a station plays, its card shows a turning note and the button reads Stop; pressing Stop ends that station.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>A double-click on the card does the same.</dd>
+          <dt>Next</dt><dd>A radio station connects and the bottom bar shows its name. If you are offline, a message says so and nothing is started. If the channel cannot be played, a message explains why and offers <b>Retry</b>, <b>Copy report</b>, <b>Hide</b> (for a catalog channel) or <b>Delete</b> (for one of your own), and <b>Keep</b>.</dd>
+          <dt>Undo</dt><dd><b>Stop</b> ends the radio, and pressing play again restarts it. <b>Hide</b> can be undone from Settings; <b>Delete</b> asks for confirmation first and cannot be taken back.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-more">
+      <summary><span><span class="name">More actions</span><span class="one">Opens the menu of everything else you can do with this channel.</span></span></summary>
+      <div class="full">
+        <p>The menu holds: <b>Open</b> (the same as play); <b>Open fullscreen</b> and <b>Open in new window</b> (video and RTSP only); <b>Create desktop shortcut</b>; <b>Copy PowerShell launch command</b>; <b>Copy share text</b>; <b>Edit</b>; <b>About channel</b>; <b>Pin</b> or <b>Unpin</b>; <b>Add to collection</b>, with your collections to tick, a field for a new one and <b>Manage collections..</b>; and <b>TV schedule channel..</b>, which lets you choose by hand which TV schedule channel belongs to this one, when a TV schedule is loaded.</p>
+        <p><b>Copy share text</b> puts the channel on the clipboard as plain text that another person can add with <b>Paste channel</b>; if the address contains a password or a token, the app warns you first. <b>Edit</b> opens the Add stream window for this channel, and editing a catalog channel makes it yours, so a later import does not overwrite your changes. <b>About channel</b> shows what the app knows about it.</p>
+        <div class="note"><span class="tag">Tip</span><p>On a tile of the smallest size this button appears when you point at the tile or select it.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-pin">
+      <summary><span><span class="name">Pin or unpin</span><span class="one">Pins or unpins the channel, moving it into its own section.</span></span></summary>
+      <div class="full">
+        <p>A pinned channel leaves the main list and sits in the pinned section above it: a strip that scrolls sideways in List view, tiles in Grid view. Pinned channels follow the same search, filters and sort order as the list. Only cards have this button; on a tile use <b>Pin</b> in the <a href="#e-more">More actions</a> menu.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Press it again to unpin; the channel goes back to the list. Pinning deletes nothing.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-status-dot">
+      <summary><span><span class="name">Status dot</span><span class="one">Shows how the last attempt to play the channel went.</span></span></summary>
+      <div class="full">
+        <p>Green means the channel started successfully the last time you played it here. Red means the last attempt failed, or that the address is not an http, https or rtsp address and cannot be played at all. Amber means the channel has not been played yet. Point at the dot to read the same in words.</p>
+        <p>The dot records what happened on this computer. It is not a live check of the stream, and a channel that worked yesterday can fail today.</p>
+        <div class="note"><span class="tag">Tip</span><p>In a high-contrast theme the three colours look alike, so read the tooltip.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-metadata">
+      <summary><span><span class="name">Details line</span><span class="one">Kind, topic, country and language, with stream details at the right end.</span></span></summary>
+      <div class="full">
+        <p>Under the title a card shows the kind (AUDIO, VIDEO or RTSP), the topic, the country as a flag and the language; pointing at the line spells it out, with the country name in full. At the right end, when the catalog states them, come the stream's technical details: format, bitrate, protocol and whether it is live or on demand. These are the catalog maintainer's claims, not measurements.</p>
+        <p>A <b>Region-locked</b> label means the catalog maintainer could not open the channel from their own country; it may still work in the region it is broadcast to. If you loaded a TV schedule in Settings, a channel matched to it also shows the programme on air now under its title.</p>
+      </div>
+    </details>
+    <details class="el" id="e-tile">
+      <summary><span><span class="name">Grid tile</span><span class="one">A channel as a picture, with its title and kind over it and buttons in the corners.</span></span></summary>
+      <div class="full">
+        <p>The picture is a preview of the stream when one is available, otherwise a colour monogram with the country flag. The title and kind are at the bottom, the status dot above them, the <b>Pinned</b> and <b>Region-locked</b> badges at the top left, <a href="#e-more">More actions</a> at the top right and <a href="#e-play">Play stream</a> at the bottom right. While a radio station plays, its tile shows a turning note.</p>
+        <p>At the smallest tile size (set in Settings, &quot;Stream tile size&quot;) a tile shows only the picture and the dot; its title and buttons appear when you point at the tile or select it.</p>
+      </div>
+    </details>
+    <details class="el" id="e-empty-state">
+      <summary><span><span class="name">Empty list</span><span class="one">Appears when nothing is shown: add a channel or import the catalog.</span></span></summary>
+      <div class="full">
+        <p>Shows the message &quot;No streams yet. Add a URL, or import channels from the internet.&quot; with three buttons, <b>Add stream</b>, <b>Paste channel</b> and <b>Import channels from the internet</b>: the same commands as in the <a href="#e-operations">Operations</a> menu.</p>
+        <p>The same panel also appears when your search and filters match nothing, so a full catalog can look empty. Open the filter row, or use <a href="#e-clear-search">Clear search</a> and <a href="#e-clear-filters">Clear</a>, to bring the channels back.</p>
+      </div>
+    </details>
+    <details class="el" id="e-now-playing">
+      <summary><span><span class="name">Now playing</span><span class="one">Names the station that is on air.</span></span></summary>
+      <div class="full">
+        <p>Reads &quot;Nothing playing&quot; while the radio is silent, &quot;Connecting to&quot; and the station's name while a station connects, and &quot;Now playing&quot; followed by the station's name, and by the current track when the station sends one. The window's title bar, and so its taskbar button, carries the station's name too, so a minimised window still says what is on air.</p>
+        <p>It follows the radio of this window; a video channel has its own window.</p>
+      </div>
+    </details>
+    <details class="el" id="e-status-line">
+      <summary><span><span class="name">Status line</span><span class="one">Says what the app has just done or is doing, with a progress bar for downloads.</span></span></summary>
+      <div class="full">
+        <p>Reads &quot;Ready&quot; when idle, and then reports results and problems in plain words: what an import added, that a sleep timer is set, that you are offline, where a recording was saved. While a long operation runs, a thin progress bar appears under it, and <a href="#e-settings">Settings</a> and <a href="#e-operations">Operations</a> are greyed out so that a second operation cannot start.</p>
+      </div>
+    </details>
+    <details class="el" id="e-cancel">
+      <summary><span><span class="name">Cancel</span><span class="one">Stops a running download.</span></span></summary>
+      <div class="full">
+        <p>Appears next to the progress bar while the channel list or the preview pictures are being downloaded. Once the transfer is over and the app is saving the result, the button goes dark, because it can no longer stop anything.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>A cancelled import leaves your channel list exactly as it was.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-transport">
+      <summary><span><span class="name">Stop audio</span><span class="one">Silences the station but keeps it, then plays it again.</span></span></summary>
+      <div class="full">
+        <p>Appears once a station has been started. While the station plays the caption is Stop audio: pressing it stops the sound but keeps the station as the current one, and the caption becomes Resume audio. Pressing that connects to the station again.</p>
+        <p>To end the session altogether, use Stop on the station's own card, or start another station.</p>
+      </div>
+    </details>
+    <details class="el" id="e-record">
+      <summary><span><span class="name">Record</span><span class="one">Records the radio station that is playing into a file.</span></span></summary>
+      <div class="full">
+        <p>Available while a station plays. Pressing it starts saving the live audio to a file, and the button then offers to stop the recording. When the recording ends, the status line names the saved file and its length. It also ends by itself if the station drops the connection; the part already saved is kept. Stopping the station ends the recording too.</p>
+        <p>A FastMediaSorter broadcast cannot be recorded, because it allows one connection and playback is using it; the button is then greyed out, with the reason in its tooltip. The folder for recordings is chosen in Settings.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd><b>Stop recording</b> closes and saves the file.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-volume">
+      <summary><span><span class="name">Audio volume</span><span class="one">Sets the radio volume from 0 to 100.</span></span></summary>
+      <div class="full">
+        <p>A click anywhere on the slider jumps straight to that level instead of stepping towards it. The level is remembered for the next time you play radio.</p>
+      </div>
+    </details>
+    <details class="el" id="e-sleep-timer">
+      <summary><span><span class="name">Sleep timer</span><span class="one">Stops the radio by itself after a time you choose.</span></span></summary>
+      <div class="full">
+        <p>Opens a menu with ready-made durations in minutes and a <b>Stop at</b> field, where you type a time of day within the next 24 hours as HH:mm and press <kbd>Enter</kbd>. When a timer is set, the menu also offers <b>Cancel timer</b>, and the status line says when the radio will stop.</p>
+        <p>The timer belongs to the radio. It keeps running when you switch to another station, ends when you stop the station yourself or cancel it, and is not saved: closing the app drops it.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>For falling asleep to the radio without leaving it on all night.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-compact">
+      <summary><span><span class="name">Compact panel</span><span class="one">Shrinks the window to a small panel that stays on top.</span></span></summary>
+      <div class="full">
+        <p>Hides this window and shows the compact panel: a small window with the station and its main controls that stays above other windows by default. Expanding the panel brings this window back where you left it, with the scroll position, filters and selection intact.</p>
+        <p>Closing the panel with its own close button ends the application, not just the panel.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>This window hides and the panel takes its place; the taskbar still shows one item.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-help">
+      <summary><span><span class="name">Help</span><span class="one">Opens this page.</span></span></summary>
+      <div class="full">
+        <p>Every window that has help carries this button. Here it sits in the title line, at the left end of the buttons on the right. It opens the page of the window you are in, in your web browser; the application stays open.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The page opens in your browser. Nothing in the application changes.</dd>
+          <dt>Shortcut</dt><dd><kbd>F1</kbd> does the same from anywhere in the window.</dd>
+        </dl>
+      </div>
+    </details>
+  </div>
+
+  <h2>Related</h2>
+  <ul class="related">
+    <li><a href="settings.html"><b>STREAMS Player settings</b><span class="pill">Window</span><small>Where the library, the exchange account, the tile size, the recording folder and the other preferences are set.</small></a></li>
+    <li><a href="first-run.html"><b>Where should the channel list come from?</b><span class="pill">Window</span><small>The question the app asks on its first start: where the channel list comes from.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/index.html#use"><b>How to use</b><span class="pill gold">Site</span><small>The whole task, from the first start to your own playlists.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/support.html"><b>Support</b><span class="pill gold">Site</span><small>How to report a problem and what to send.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Written against STREAMS Player 26.1021, 2026-10-21.</span>
+    <a href="index.html">Help index</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/support.html">Ask a question or report a problem</a>
+  </footer>
+
+</main>
+<script>
+/* Progressive enhancement only: the page is complete without it. */
+(function () {
+  function openHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === 'DETAILS') { el.open = true; }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+})();
+</script>
+</body>
+</html>

@@ -123,6 +123,16 @@ Name: "{group}\STREAMS Player"; Filename: "{app}\StreamsPlayer.exe"
 Name: "{group}\{cm:UninstallProgram,STREAMS Player}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\STREAMS Player"; Filename: "{app}\StreamsPlayer.exe"; Tasks: desktopicon
 
+[Registry]
+; 196 section 6.2: the primary import path of a broadcast resource - double-click the document Fast
+; Media Sorter saved. The whole installer is per-user (PrivilegesRequired=lowest), so the classes are
+; written under HKCU and nothing here needs elevation; the Store/MSIX route gets the same association
+; from the package manifest instead. uninsdeletekey/value removes it with the product.
+Root: HKCU; Subkey: "Software\Classes\.spres"; ValueType: string; ValueName: ""; ValueData: "StreamsPlayer.spres"; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\StreamsPlayer.spres"; ValueType: string; ValueName: ""; ValueData: "Streams Player broadcast resource"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\StreamsPlayer.spres\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\StreamsPlayer.exe,0"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\StreamsPlayer.spres\shell\open\command"; ValueType: string; ValueName: ""; ValueData: "\"{app}\StreamsPlayer.exe\" \"%1\""; Flags: uninsdeletekey
+
 [Run]
 Filename: "{app}\StreamsPlayer.exe"; Description: "{cm:LaunchProgram,STREAMS Player}"; Flags: nowait postinstall skipifsilent
 

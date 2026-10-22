@@ -28,7 +28,7 @@ public partial class MainWindow
     private void SettingsButton_Click(object sender, RoutedEventArgs e) =>
         OpenSettings();
 
-    internal void OpenSettings(int? initialPage = null)
+    internal void OpenSettings(int? initialPage = null, ExchangeConnectionString? exchangeConnection = null)
     {
         try
         {
@@ -36,6 +36,12 @@ public partial class MainWindow
             {
                 Owner = this
             };
+            if (exchangeConnection is not null)
+            {
+                dialog.FillExchangeConnection(exchangeConnection);
+                dialog.Loaded += (_, _) => MessageBox.Show(dialog, LocalizationService.Get("ExchangeStringOpened"),
+                    LocalizationService.Get("ExchangeTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+            }
             dialog.ShowDialog();
         }
         catch (Exception exception)

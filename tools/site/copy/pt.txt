@@ -256,6 +256,9 @@ Escolher e reproduzir
 @@use-2-text
 Percorra o catálogo, filtre ou pesquise e então selecione um canal. O rádio começa na janela principal; vídeo e RTSP abrem na janela do player. Um início comum não reproduz nada; ative «Retomar a reprodução ao iniciar» nas [[glyph:app.settings]] configurações e o início traz de volta o que estava tocando no último fechamento.
 
+No visualizador de 64 bits, clique com o botão direito num vídeo, ficheiro de áudio ou na sua pasta e escolha a transmissão. Share Manager exporta um ficheiro .spres, código QR ou ligação rápida para StreamsPlayer. Uma pasta torna-se um canal com uma lista fixa; Atualizar substitui a lista e Revogar desativa a ligação. O gateway HTTP tem um interruptor próprio, desligado por defeito. Cada token permite apenas ler uma transmissão, normalmente durante 24 horas. HTTP não é cifrado: partilhe o documento em privado e ative a internet apenas se necessário.
+
+
 @@use-3-title
 Abrir qualquer URL diretamente
 
@@ -313,13 +316,40 @@ STREAMS Player · Privacidade
 Privado por padrão.
 
 @@privacy-intro
-Nenhuma conta é necessária para a reprodução normal. A conta de troca opcional pertence ao seu próprio servidor. Não há publicidade, análise, telemetria ou serviço operado pelo autor.
+Nenhuma conta é necessária para a reprodução normal. A conta de troca opcional pertence a um servidor privado - o seu ou o de alguém que convidou você -, nunca a um serviço deste produto. Não há publicidade, análise, telemetria ou serviço operado pelo autor.
 
 @@privacy-network-title
 Acesso à rede
 
 @@privacy-network
-O aplicativo conecta-se apenas sob sua ação e somente ao destino necessário: o catálogo público de transmissões e o pacote de prévias opcional no GitHub ao importar; o provedor de uma transmissão que você reproduz, grava ou consulta em «Sobre o canal», ou cuja prévia atualiza na grade; um dispositivo FastMediaSorter na sua rede local; e, apenas se solicitado em Configurações na página Reprodução, as bibliotecas FFmpeg opcionais para o mecanismo experimental FlyleafLib (BtbN/FFmpeg-Builds). Cada solicitação vai diretamente ao destino e sujeita-se às políticas dele; nenhuma passa por serviços do autor. O guia de TV é baixado apenas do endereço inserido em Configurações na página Biblioteca, uma vez ao clicar em «Baixar guia», e nunca em segundo plano. A fonte de troca opcional nas configurações da biblioteca conecta-se ao seu servidor por TLS. Envia nome de usuário e senha ou código de pareamento uma vez para o registro, depois identidade do dispositivo, versão do produto, recursos de recepção e token. Mantém uma conexão de controle com sinais de atividade e reconexões enquanto estiver ativada; desativar fecha a conexão. Cada certificado exige aprovação explícita, inclusive após renovação.  Quando uma transmissão é reproduzida através do retransmissor do seu servidor de troca com um certificado fixado, esse fluxo passa por um proxy local temporário em 127.0.0.1 que existe apenas enquanto a transmissão é reproduzida e só é acessível deste dispositivo.
+O aplicativo conecta-se apenas sob sua ação e somente ao destino necessário: o catálogo público de transmissões e o pacote de prévias opcional no GitHub ao importar; o provedor de uma transmissão que você reproduz, grava ou consulta em «Sobre o canal», ou cuja prévia atualiza na grade; um dispositivo FastMediaSorter na sua rede local; e, apenas se solicitado em Configurações na página Reprodução, as bibliotecas FFmpeg opcionais para o mecanismo experimental FlyleafLib (BtbN/FFmpeg-Builds). Cada solicitação vai diretamente ao destino e sujeita-se às políticas dele; nenhuma passa por serviços do autor. O guia de TV é baixado apenas do endereço inserido em Configurações na página Biblioteca, uma vez ao clicar em «Baixar guia», e nunca em segundo plano. A fonte de troca opcional nas configurações da biblioteca conecta-se ao seu servidor por TLS. Envia nome de usuário e senha ou código de pareamento uma vez para o registro, depois identidade do dispositivo, versão do produto, recursos de recepção e token. Mantém uma conexão de controle com sinais de atividade e reconexões enquanto estiver ativada; desativar fecha a conexão. Importe uma string ou arquivo nas configurações da biblioteca, ou cole ou arraste para a janela principal. Contém o endereço do servidor e uma impressão digital opcional, sem segredos. A leitura apenas preenche o formulário. Verifique o endereço antes de digitar a senha ou código em cada registro; não são salvos. A impressão indicada deve corresponder, sem pergunta. Sem ela, confirme a impressão antes do registro; alterações posteriores exigem aprovação. Não é preciso um agente local nem outro programa.  Quando uma transmissão é reproduzida através do retransmissor do seu servidor de troca com um certificado fixado, esse fluxo passa por um proxy local temporário em 127.0.0.1 que existe apenas enquanto a transmissão é reproduzida e só é acessível deste dispositivo. Transmissão: a aplicação pode enviar o áudio deste PC - um microfone à sua escolha e o som que o PC está a reproduzir - em direto para o servidor de trocas da sua própria conta, apenas quando o permitir nas definições e iniciar você mesmo uma fonte; até lá está desligada, nada é capturado enquanto estiver desligada, e enquanto uma fonte está em direto é mostrado um indicador visível com um botão de paragem. Os ouvintes ligam-se pela rede local, se a ativar, ou pelo servidor de troca. Pode limitar o seu número. Cada cópia enviada separadamente usa o envio deste PC; o servidor de troca pode distribuir uma cópia a vários ouvintes. A descrição que os outros recebem - como ligação, ficheiro ou no diretório da sua conta - traz os endereços e o título, sem segredo.
+
+No visualizador de 64 bits, clique com o botão direito num vídeo, ficheiro de áudio ou na sua pasta e escolha a transmissão. Share Manager exporta um ficheiro .spres, código QR ou ligação rápida para StreamsPlayer. Uma pasta torna-se um canal com uma lista fixa; Atualizar substitui a lista e Revogar desativa a ligação. O gateway HTTP tem um interruptor próprio, desligado por defeito. Cada token permite apenas ler uma transmissão, normalmente durante 24 horas. HTTP não é cifrado: partilhe o documento em privado e ative a internet apenas se necessário.
+
+
+@@privacy-exchange-title
+Servidor de troca, transmissão e criptografia
+
+@@privacy-exchange-private
+Um servidor de troca é privado: cada pessoa executa o seu ou usa um cujo proprietário a convidou. Não existe servidor de troca público, e nenhum servidor de troca é um serviço deste produto.
+
+@@privacy-exchange-honest
+O servidor de troca liga os seus dispositivos, por isso conhece os nomes da sua conta, dos dispositivos, das pastas e das transmissões, vê quais dispositivos estão ligados e quanto é enviado e quando. Não consegue abrir o que passa por ele: as pastas e os respetivos ficheiros, as transmissões e a área de transferência são cifrados no seu dispositivo e só são abertos nos seus outros dispositivos ou pelas pessoas a quem deu acesso. Para espreitar lá dentro, quem gere o servidor teria de adicionar um dispositivo seu à sua conta, e ele apareceria na sua lista de dispositivos.
+
+@@privacy-exchange-sends
+Para entrar, este PC envia uma única vez o seu login e a sua senha ou código de emparelhamento e, depois, a identidade do dispositivo, o nome dele (STREAMS Player, e não o nome do seu PC), o produto, a versão e a plataforma (Windows), as funções, as capacidades de recepção e a metade pública da sua chave de criptografia. Enquanto a conexão está ativa, o servidor vê que este dispositivo está online. Quando você transmite, ele recebe o título da transmissão, a indicação de que é áudio e o próprio áudio, criptografado neste PC antes de sair; a chave privada nunca sai deste PC.
+
+@@privacy-exchange-broadcast
+A transmissão envia o áudio deste PC: um microfone que você escolhe e o som que o PC está reproduzindo. Fica desativada até você permiti-la nas configurações, nada é captado enquanto estiver desativada e você inicia cada fonte; enquanto uma fonte está ao vivo, aparece um indicador visível com um botão de parada. Somente se você também ativar a opção de iniciar com a aplicação, as fontes que você deixou escolhidas voltam a iniciar quando a aplicação abre, com a conta online. O dispositivo de um ouvinte pode gravar o que recebe, e este programa não pode impedir isso.
+
+@@privacy-exchange-camera
+A câmera deste PC é usada para uma única coisa: ler um QR de conexão quando você aperta «Escanear com a câmera» nas configurações. Enquanto a janela de escaneamento está aberta, a imagem é apenas examinada na memória para encontrar o QR; ela nunca é salva, enviada nem registrada em log, e a câmera é liberada assim que a janela é fechada. Se o Windows não informa nenhuma câmera, o botão não é oferecido.
+
+@@privacy-exchange-account
+Este programa entra e nunca cria uma conta. Uma conta é excluída no FastMediaSorter no telefone, ou pedindo a quem administra o servidor; o portal de troca explica como. Sair neste dispositivo remove este dispositivo, não a conta.
+
+@@privacy-exchange-portal
+Como excluir uma conta
 
 @@privacy-site-title
 Este site
@@ -330,7 +360,7 @@ Esta seção trata do site, não do aplicativo. Cada página carrega suas fontes
 Dados locais
 
 @@privacy-local
-O STREAMS Player armazena o estado do catálogo, canais adicionados e importados, fixados, coleções, canais ocultos, histórico de reprodução, marcas, quadros de prévia em até 150 MB, bibliotecas FFmpeg opcionais e registros de diagnóstico dos últimos dez inícios em [[appdata]]. Gravações e quadros vão para as pastas escolhidas (por padrão Videos/Recordings, Music/Recordings e Pictures/Frames). Esses dados permanecem no dispositivo a menos que use «Enviar os registros ao autor» em Configurações na página Sobre para enviá-los a [[email]]. O guia de TV baixado e suas associações também ficam salvos lá; «Remover guia» em Configurações exclui ambos. A senha e o código são descartados. Conta, token e impressão são protegidos para seu usuário do Windows em um arquivo separado; remover a conta os apaga. Os arquivos de diagnóstico excluem esse arquivo e ocultam os dados da conta. As conexões de troca começam somente após sua configuração explícita da fonte.
+O STREAMS Player armazena o estado do catálogo, canais adicionados e importados, fixados, coleções, canais ocultos, histórico de reprodução, marcas, quadros de prévia em até 150 MB, bibliotecas FFmpeg opcionais e registros de diagnóstico dos últimos dez inícios em [[appdata]]. Gravações e quadros vão para as pastas escolhidas (por padrão Videos/Recordings, Music/Recordings e Pictures/Frames). Esses dados permanecem no dispositivo a menos que use «Enviar os registros ao autor» em Configurações na página Sobre para enviá-los a [[email]]. O guia de TV baixado e suas associações também ficam salvos lá; «Remover guia» em Configurações exclui ambos. A senha e o código são descartados. Conta, token e impressão são protegidos para seu usuário do Windows em um arquivo separado; remover a conta os apaga. Os arquivos de diagnóstico excluem esse arquivo e ocultam os dados da conta. As conexões de troca começam somente após sua configuração explícita da fonte. Este dispositivo guarda uma conta de intercâmbio. Mudar o servidor ou o nome de utilizador pede confirmação antes de remover a conta atual; entrar novamente na mesma conta mantém a identidade do dispositivo. A remoção pede ao servidor para remover este dispositivo e esquece a ligação local mesmo que o servidor esteja indisponível. Os canais importados são mantidos. Se não foi possível avisar o servidor, a aplicação informa que o dispositivo poderá continuar na lista até que outro o remova. A remoção não é repetida em segundo plano.
 
 @@privacy-contact-title
 Contato
@@ -429,7 +459,7 @@ O que o STREAMS Player nunca faz
 Ele nunca precisa de direitos de administrador para ser instalado ou executado, nunca se adiciona à inicialização do Windows e não instala nenhum serviço em segundo plano.
 
 @@trust-never-2
-Nenhuma conta é necessária para a reprodução normal. A conta de troca opcional pertence ao seu próprio servidor. Não há publicidade, análise, telemetria ou serviço operado pelo autor.
+Nenhuma conta é necessária para a reprodução normal. A conta de troca opcional pertence a um servidor privado - o seu ou o de alguém que convidou você -, nunca a um serviço deste produto. Não há publicidade, análise, telemetria ou serviço operado pelo autor.
 
 @@trust-never-3
 Conecta-se apenas quando você age e somente para o que for necessário: catálogo público e prévias no GitHub, provedor da transmissão reproduzida, gravada ou pré-visualizada, dispositivo FastMediaSorter na rede local e bibliotecas FFmpeg opcionais se solicitadas em Configurações. O guia de TV é baixado apenas do endereço inserido quando você clica em «Baixar guia».

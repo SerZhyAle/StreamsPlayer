@@ -1,6 +1,6 @@
 {
   "about": "SP-0113. This product's map to the portfolio icon vocabulary (ICON-SET, ICON-RENDER, ICON-EXTERNAL, consumer). Every glyph the application, its READMEs and its site draw is listed here once: a vocabulary meaning, a meaning asked for by proposal and pending, product chrome or illustration, or an external picture. Glyphs.xaml is generated from this file and assets/glyphs/ by tools/Sync-IconGlyphs.ps1; IconographyConformanceTests hold the three against each other.",
-  "contracts": { "ICON-SET": "0.30", "ICON-RENDER": "0.19", "ICON-EXTERNAL": "0.12" },
+  "contracts": { "ICON-SET": "0.36", "ICON-RENDER": "0.24", "ICON-EXTERNAL": "0.12" },
   "meanings": [
     { "id": "view.list", "name": "List view", "surfaces": [ "style:ListGlyphButton" ] },
     { "id": "view.grid", "name": "Grid view", "surfaces": [ "style:GridGlyphButton", "SettingsWindow.xaml tab GridSettings" ] },
@@ -39,6 +39,7 @@
     { "id": "nav.collapse", "name": "Collapse", "surfaces": [ "MainWindow.xaml section header (open)", "SettingsWindow.xaml group disclosure (open)", "style:SettingsCollapseAllGlyphButton" ] },
     { "id": "nav.dropdown", "name": "Choose from list", "surfaces": [ "App.xaml ComboBox" ] },
     { "id": "app.info", "name": "Information", "surfaces": [ "SettingsWindow.xaml tab About" ] },
+    { "id": "app.help", "name": "Help", "surfaces": [ "style:HelpGlyphButton", "style:OptionHelpGlyphButton" ], "nameKeys": [ "HelpName", "OptionHelpName" ], "note": "SP-0230, CONTEXT-HELP rule 2: the one button every help-bearing window carries; F1 asks the same. It means help and nothing else. SP-0231, BOOLEAN-OPTION section 2 rule 2: an option's own help is the same glyph, named for its option (OptionHelpName, 'Help: <option>'), and opens that option's explanation instead of the surface's help page." },
     { "id": "nav.open-external", "name": "Open in new window", "rtl": "mirror", "surfaces": [ "style:OpenFolderGlyphButton" ], "note": "Opens a capture folder in File Explorer." },
     { "id": "nav.scroll-top", "name": "Scroll to top", "surfaces": [ "site _footer.html back-to-top" ] },
     { "id": "media.record", "name": "Record", "surfaces": [ "style:RecordGlyphOnlyButton", "style:PlayerOverlayRecordGlyphButton" ], "nameKeys": [ "Record", "RecordTip" ] },
@@ -59,11 +60,14 @@
     { "id": "media.audio-track", "name": "Audio track", "surfaces": [ "style:PlayerOverlayAudioTracksGlyphButton" ] },
     { "id": "media.subtitles", "name": "Subtitles", "surfaces": [ "style:PlayerOverlaySubtitlesGlyphButton" ] },
     { "id": "content.stream", "name": "Stream", "surfaces": [ "style:BroadcastsGlyphButton" ], "note": "The live broadcasts of the account's devices, received by this app." },
+    {"id": "source.exchange-server", "name": "Exchange server", "surfaces": ["MainWindow.xaml exchange server status button"], "own": "EXCHANGE-MARK 0.3 section 6: until ICON-SET folds the accepted proposal, a product shows the exchange mark's one-tone glyph in this row; own/ is svg/exchange-mark-mono.svg of that contract, path data unchanged and pinned in assets/exchange-mark/PROVENANCE.txt, where the catalog's copy still draws the two server bays"},
+    {"id": "feature.live-broadcast", "name": "Live Broadcast", "surfaces": ["style:BroadcastingGlyphButton"], "note": "Outgoing capture and its live indicator; incoming broadcasts keep content.stream. own/ expands the catalog SVG's round strokes to filled contours because the WPF geometry template paints fills; the dot, arcs and dimensions are preserved."},
+    {"id": "feature.server-relay", "name": "Relay through the server", "surfaces": ["SettingsWindow.xaml broadcast exchange path hint"]},
+    {"id": "action.connect-device", "name": "Connect a device", "surfaces": ["style:ExchangeConnectGlyphButton"]},
     { "id": "app.theme", "name": "Theme", "site": true, "surfaces": [ "site theme switch" ] }
   ],
   "pending": [
-    { "key": "action.unhide", "name": "Unhide", "proposal": "PROPOSAL-2026-10-11-streamsplayer-button-meanings.md item 1", "surfaces": [ "style:UnhideGlyphButton" ] },
-    { "key": "source.exchange-server", "name": "Exchange server", "proposal": "PROPOSAL-2026-10-11-streamsplayer-button-meanings.md item 2", "surfaces": [ "MainWindow.xaml exchange server status button" ] }
+    { "key": "action.unhide", "name": "Unhide", "proposal": "PROPOSAL-2026-10-11-streamsplayer-button-meanings.md item 1", "surfaces": [ "style:UnhideGlyphButton" ] }
   ],
   "private": [
     { "key": "Chrome.scroll-up", "reason": "scroll bar line button - a part of a standard control, which the vocabulary puts out of its scope (ICON-SET 0.22 item E.3, answering proposal question 9); this product's dark-theme template draws it, declared chrome here, never a meaning" },
@@ -73,6 +77,7 @@
     { "key": "Chrome.check-box", "reason": "the check mark inside a check box - the control's own state chrome, stroked like the platform's" },
     { "key": "Chrome.menu-check", "reason": "the check mark of a checked menu item - state chrome" },
     { "key": "Chrome.submenu", "reason": "the arrow of a menu item that opens a submenu - platform chrome, mirrors with the layout" },
+    { "key": "Chrome.group-state", "reason": "the state triangle of a collapsible group header (COLLAPSIBLE-GROUP 1.1 section 3 rule 2): drawn pointing to the reading end, turned down by the template when the group is open and mirrored by the flow direction - it reports the current state, so it is not the nav.expand / nav.collapse action chevron" },
     { "key": "Illustration.empty-catalog", "reason": "48 px empty-state picture above the empty-catalog text (ICON-SET rule 7, amendment item G)" }
   ],
   "external": [

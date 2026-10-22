@@ -65,6 +65,23 @@ public sealed class ExchangeCertificatePinTests
     }
 
     [Fact]
+    public void TheFloorIsTls12AndTls13AndNothingLower()
+    {
+        // Item AX, asserted on the configured set and not on what a local handshake happens to negotiate.
+        Assert.Equal(System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
+            ExchangeCertificatePin.ClientProtocols);
+    }
+
+    [Fact]
+    public void TheBroadcastLegsTlsConnectionStatesTheFloorAndTheHost()
+    {
+        var options = ExchangeBroadcastCertificateException.ClientOptions("relay.example.net");
+
+        Assert.Equal(ExchangeCertificatePin.ClientProtocols, options.EnabledSslProtocols);
+        Assert.Equal("relay.example.net", options.TargetHost);
+    }
+
+    [Fact]
     public void APinIsNeverTradedForACheckedOffConnection()
     {
         // The pin wins even when the platform would have refused for a name mismatch: the equality

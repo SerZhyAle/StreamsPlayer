@@ -167,7 +167,7 @@ Mémoire tampon de direct d'environ 15 secondes, et la vidéo se cale sur la qua
 Enregistrez la vidéo en direct ou la radio en cours de lecture directement dans un fichier, sans interrompre la lecture : la vidéo va dans le dossier Recordings de Vidéos, la radio dans le dossier Recordings de Musique, ou dans les dossiers de votre choix.
 
 @@cap-play-6
-Écoutez une diffusion audio ou vidéo en direct depuis un téléphone ou une montre équipés de FastMediaSorter - via votre réseau local, ou par le relais de votre serveur d'échange quand la diffusion en propose un.
+Écoutez une diffusion audio ou vidéo en direct depuis un téléphone ou une montre équipés de FastMediaSorter - via votre réseau local, ou par le serveur d’échange de votre serveur d'échange quand la diffusion en propose un.
 
 @@cap-window-title
 Regarder à votre façon
@@ -256,6 +256,9 @@ Choisir et lire
 @@use-2-text
 Parcourez le catalogue, filtrez ou cherchez, puis sélectionnez une chaîne. La radio démarre dans la fenêtre principale ; la vidéo et le RTSP s'ouvrent dans la fenêtre du lecteur. Un lancement ordinaire ne lit rien ; activez « Reprendre la lecture au démarrage » dans les [[glyph:app.settings]] réglages et le lancement retrouve ce qui était en cours de lecture à la dernière fermeture.
 
+Dans le lecteur 64 bits, faites un clic droit sur une vidéo, un fichier audio ou son dossier et choisissez la diffusion. Share Manager exporte un fichier .spres, un code QR ou un lien rapide pour StreamsPlayer. Un dossier devient un canal avec une liste figée ; Actualiser remplace la liste et Révoquer désactive le lien. La passerelle HTTP a son propre interrupteur, désactivé par défaut. Chaque jeton permet seulement de lire une diffusion, normalement pendant 24 heures. HTTP n’est pas chiffré : partagez le document en privé et activez internet seulement si nécessaire.
+
+
 @@use-3-title
 Ouvrir n'importe quelle URL directement
 
@@ -313,13 +316,40 @@ STREAMS Player · Confidentialité
 Privé par défaut.
 
 @@privacy-intro
-Aucun compte n’est requis pour la lecture habituelle. Le compte d’échange facultatif appartient à votre propre serveur. Il n’y a ni publicité, ni analyse d’usage, ni télémétrie, ni service géré par l’auteur.
+Aucun compte n’est requis pour la lecture habituelle. Le compte d’échange facultatif appartient à un serveur privé - le vôtre, ou celui d’une personne qui vous a invité -, jamais à un service de ce produit. Il n’y a ni publicité, ni analyse d’usage, ni télémétrie, ni service géré par l’auteur.
 
 @@privacy-network-title
 Accès au réseau
 
 @@privacy-network
-L’application ne se connecte que lors de vos actions et uniquement vers les destinations nécessaires : le catalogue public de flux et le pack d’aperçus facultatif sur GitHub lors de l’importation ; le fournisseur d’un flux que vous lisez, enregistrez ou consultez dans « À propos de la chaîne », ou dont l’aperçu s’actualise en mode grille ; un appareil FastMediaSorter sur votre réseau local ; et, uniquement si vous les demandez dans Paramètres sur la page Lecture, les bibliothèques FFmpeg facultatives pour le moteur expérimental FlyleafLib (BtbN/FFmpeg-Builds). Chaque requête va directement à destination ; aucun intermédiaire n’est géré par l’auteur. Le programme TV est téléchargé uniquement depuis l’adresse saisie dans Paramètres sur la page Bibliothèque, une seule fois lors du clic sur « Télécharger le programme », et jamais en arrière-plan. La source d’échange facultative dans les paramètres de bibliothèque se connecte à votre serveur par TLS. Elle envoie l’identifiant et le mot de passe ou le code d’association une fois pour l’inscription, puis l’identité de l’appareil, la version du produit, ses capacités de réception et son jeton. Elle maintient une connexion de contrôle avec messages de présence et reconnexions tant qu’elle est activée ; la désactiver ferme la connexion. Chaque certificat exige votre accord explicite, y compris après renouvellement.  Lorsqu'une diffusion est lue via le relais de votre serveur d'échange avec un certificat épinglé, ce flux passe par un serveur mandataire local temporaire sur 127.0.0.1 qui n'existe que pendant la lecture de la diffusion et n'est accessible que depuis cet appareil.
+L’application ne se connecte que lors de vos actions et uniquement vers les destinations nécessaires : le catalogue public de flux et le pack d’aperçus facultatif sur GitHub lors de l’importation ; le fournisseur d’un flux que vous lisez, enregistrez ou consultez dans « À propos de la chaîne », ou dont l’aperçu s’actualise en mode grille ; un appareil FastMediaSorter sur votre réseau local ; et, uniquement si vous les demandez dans Paramètres sur la page Lecture, les bibliothèques FFmpeg facultatives pour le moteur expérimental FlyleafLib (BtbN/FFmpeg-Builds). Chaque requête va directement à destination ; aucun intermédiaire n’est géré par l’auteur. Le programme TV est téléchargé uniquement depuis l’adresse saisie dans Paramètres sur la page Bibliothèque, une seule fois lors du clic sur « Télécharger le programme », et jamais en arrière-plan. La source d’échange facultative dans les paramètres de bibliothèque se connecte à votre serveur par TLS. Elle envoie l’identifiant et le mot de passe ou le code d’association une fois pour l’inscription, puis l’identité de l’appareil, la version du produit, ses capacités de réception et son jeton. Elle maintient une connexion de contrôle avec messages de présence et reconnexions tant qu’elle est activée ; la désactiver ferme la connexion. Importez une chaîne ou un fichier dans les paramètres de bibliothèque, ou collez-le ou déposez-le dans la fenêtre principale. Il contient l’adresse du serveur et une empreinte facultative, aucun secret. Sa lecture remplit seulement le formulaire. Vérifiez l’adresse avant de saisir le mot de passe ou le code à chaque inscription ; ils ne sont pas conservés. L’empreinte fournie doit correspondre, sans demande de confiance. Sans elle, approuvez l’empreinte avant l’inscription ; les changements ultérieurs demandent votre accord. Aucun agent local ni second programme n’est nécessaire.  Lorsqu'une diffusion est lue via le serveur d’échange de votre serveur d'échange avec un certificat épinglé, ce flux passe par un serveur mandataire local temporaire sur 127.0.0.1 qui n'existe que pendant la lecture de la diffusion et n'est accessible que depuis cet appareil. Diffusion : l'application peut envoyer l'audio de ce PC - un microphone de votre choix et le son que le PC joue - en direct vers le serveur d'échange de votre propre compte, uniquement quand vous l'autorisez dans les paramètres et démarrez vous-même une source ; avant cela c'est désactivé, rien n'est capté tant que c'est désactivé, et pendant qu'une source est en direct, un indicateur visible avec un arrêt l'affiche. Les auditeurs se connectent par votre réseau local, si vous l’activez, ou par votre serveur d’échange. Vous pouvez limiter leur nombre. Chaque copie envoyée séparément utilise le débit sortant de ce PC ; le serveur d’échange peut distribuer une copie à plusieurs auditeurs. La description que les autres reçoivent - sous forme de lien, de fichier ou dans le répertoire de votre compte - porte les adresses et le titre, aucun secret.
+
+Dans le lecteur 64 bits, faites un clic droit sur une vidéo, un fichier audio ou son dossier et choisissez la diffusion. Share Manager exporte un fichier .spres, un code QR ou un lien rapide pour StreamsPlayer. Un dossier devient un canal avec une liste figée ; Actualiser remplace la liste et Révoquer désactive le lien. La passerelle HTTP a son propre interrupteur, désactivé par défaut. Chaque jeton permet seulement de lire une diffusion, normalement pendant 24 heures. HTTP n’est pas chiffré : partagez le document en privé et activez internet seulement si nécessaire.
+
+
+@@privacy-exchange-title
+Serveur d’échange, diffusion et chiffrement
+
+@@privacy-exchange-private
+Un serveur d’échange est privé : chacun fait tourner le sien ou utilise celui dont le propriétaire l’a invité. Il n’existe aucun serveur d’échange public, et aucun serveur d’échange n’est un service de ce produit.
+
+@@privacy-exchange-honest
+Le serveur d’échange relie vos appareils ; il connaît donc les noms de votre compte, de vos appareils, de vos dossiers et de vos diffusions, voit quels appareils sont en ligne, et combien est envoyé et quand. Il ne peut pas ouvrir ce qui passe par lui : les dossiers et leurs fichiers, les diffusions et le presse-papiers sont chiffrés sur votre appareil et ne sont ouverts que sur vos autres appareils ou par les personnes à qui vous avez donné accès. Pour regarder à l’intérieur, la personne qui gère le serveur devrait ajouter un appareil à elle à votre compte, et il apparaîtrait dans la liste de vos appareils.
+
+@@privacy-exchange-sends
+Pour se connecter, ce PC envoie une fois votre identifiant et votre mot de passe ou code d’appairage, puis l’identité de l’appareil, son nom (STREAMS Player, et non le nom de votre PC), le produit, la version et la plateforme (Windows), les rôles, les capacités de réception et la moitié publique de sa clé de chiffrement. Tant que la connexion est active, le serveur voit que cet appareil est en ligne. Quand vous diffusez, il reçoit le titre de la diffusion, l’indication qu’il s’agit d’audio et l’audio lui-même, chiffré sur ce PC avant de le quitter ; la clé privée ne quitte jamais ce PC.
+
+@@privacy-exchange-broadcast
+La diffusion envoie le son de ce PC : un microphone que vous choisissez et le son que le PC lit. Elle est désactivée tant que vous ne l’autorisez pas dans les paramètres, rien n’est capté tant qu’elle est désactivée, et vous démarrez chaque source vous-même ; un indicateur visible avec un bouton d’arrêt s’affiche tant qu’une source est en direct. Seulement si vous activez aussi l’option de démarrage avec l’application, les sources laissées choisies redémarrent au lancement de l’application, une fois le compte en ligne. L’appareil d’un auditeur peut enregistrer ce qu’il reçoit, et ce programme ne peut pas l’empêcher.
+
+@@privacy-exchange-camera
+La caméra de ce PC ne sert qu'à une chose : lire un QR de connexion lorsque vous appuyez sur « Scanner avec la caméra » dans les paramètres. Tant que la fenêtre de scan est ouverte, l'image est seulement examinée en mémoire pour y trouver le QR ; elle n'est jamais enregistrée, envoyée ni consignée dans un journal, et la caméra est libérée dès la fermeture de la fenêtre. Si Windows ne signale aucune caméra, le bouton n'est pas proposé.
+
+@@privacy-exchange-account
+Ce programme se connecte et ne crée jamais de compte. Un compte se supprime dans FastMediaSorter sur le téléphone, ou en le demandant à la personne qui gère le serveur ; le portail d’échange explique comment. Se déconnecter sur cet appareil retire cet appareil, pas le compte.
+
+@@privacy-exchange-portal
+Comment supprimer un compte
 
 @@privacy-site-title
 Ce site web
@@ -330,7 +360,7 @@ Cette section concerne le site web, pas l'application. Chaque page charge ses po
 Données locales
 
 @@privacy-local
-STREAMS Player stocke l’état du catalogue, vos chaînes ajoutées et importées, épingles, collections, chaînes masquées, historique d’écoute, repères de lecture, aperçus mis en cache dans une limite de 150 Mo, les bibliothèques FFmpeg facultatives et les journaux de diagnostic des dix derniers lancements sous [[appdata]]. Les enregistrements et captures vont dans les dossiers choisis (par défaut Videos/Recordings, Music/Recordings et Pictures/Frames). Ces données restent sur votre appareil sauf si vous utilisez « Envoyer les journaux à l’auteur » dans Paramètres sur la page À propos pour les transmettre à [[email]]. Le programme TV téléchargé et vos correspondances y sont aussi conservés ; « Supprimer le programme » dans Paramètres supprime les deux. Le mot de passe et le code sont supprimés. Le compte, le jeton et l’empreinte sont protégés pour votre utilisateur Windows dans un fichier séparé ; supprimer le compte les efface. Les archives de diagnostic excluent ce fichier et masquent les valeurs du compte. Les connexions d’échange commencent seulement après votre configuration explicite de la source.
+STREAMS Player stocke l’état du catalogue, vos chaînes ajoutées et importées, épingles, collections, chaînes masquées, historique d’écoute, repères de lecture, aperçus mis en cache dans une limite de 150 Mo, les bibliothèques FFmpeg facultatives et les journaux de diagnostic des dix derniers lancements sous [[appdata]]. Les enregistrements et captures vont dans les dossiers choisis (par défaut Videos/Recordings, Music/Recordings et Pictures/Frames). Ces données restent sur votre appareil sauf si vous utilisez « Envoyer les journaux à l’auteur » dans Paramètres sur la page À propos pour les transmettre à [[email]]. Le programme TV téléchargé et vos correspondances y sont aussi conservés ; « Supprimer le programme » dans Paramètres supprime les deux. Le mot de passe et le code sont supprimés. Le compte, le jeton et l’empreinte sont protégés pour votre utilisateur Windows dans un fichier séparé ; supprimer le compte les efface. Les archives de diagnostic excluent ce fichier et masquent les valeurs du compte. Les connexions d’échange commencent seulement après votre configuration explicite de la source. Cet appareil conserve un compte d'échange. Changer de serveur ou d'identifiant demande de confirmer la suppression du compte actuel ; se reconnecter au même compte conserve l'identité de l'appareil. La suppression demande au serveur de retirer cet appareil, puis oublie la connexion locale même si le serveur est indisponible. Les chaînes importées sont conservées. Si le serveur n'a pas pu être averti, l'application indique que l'appareil peut rester dans la liste jusqu'à ce qu'un autre le supprime. Aucun nouvel essai de suppression en arrière-plan.
 
 @@privacy-contact-title
 Contact
@@ -429,7 +459,7 @@ Ce que STREAMS Player ne fait jamais
 Il n'a jamais besoin de droits d'administrateur pour s'installer ou fonctionner, ne s'ajoute jamais au démarrage de Windows et n'installe aucun service en arrière-plan.
 
 @@trust-never-2
-Aucun compte n’est requis pour la lecture habituelle. Le compte d’échange facultatif appartient à votre propre serveur. Il n’y a ni publicité, ni analyse d’usage, ni télémétrie, ni service géré par l’auteur.
+Aucun compte n’est requis pour la lecture habituelle. Le compte d’échange facultatif appartient à un serveur privé - le vôtre, ou celui d’une personne qui vous a invité -, jamais à un service de ce produit. Il n’y a ni publicité, ni analyse d’usage, ni télémétrie, ni service géré par l’auteur.
 
 @@trust-never-3
 Elle ne se connecte que lors d’une action et uniquement pour ce qui est nécessaire : le catalogue public et ses aperçus sur GitHub, le fournisseur d’un flux lu, enregistré ou prévisualisé, un appareil FastMediaSorter sur votre réseau et les bibliothèques FFmpeg si vous les demandez dans Paramètres. Le programme TV n’est récupéré que depuis l’adresse que vous saisissez au moment où vous appuyez sur « Télécharger le programme ».

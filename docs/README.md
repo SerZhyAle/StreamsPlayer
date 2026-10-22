@@ -13,6 +13,12 @@ Index of this tree. Two very different things live here, and the split matters:
   generated separately by `tools/site/make-og-image.ps1`, and the lead screenshot under the hero,
   `assets/screens/grid-<code>.jpg` (the catalog as a grid of video channels, one per language), by
   `tools/site/export-site-screenshots.ps1` from the Store captures in `assets/store/`.
+- **The in-app help** - `help/<locale>/*.html` with `help.css` and the vendored `sza-kit.css` (SP-0230,
+  `CONTEXT-HELP`). Also **generated**, by `tools/help/build-help.ps1` from the help map and the copy in
+  the repository's `help/` folder and the UI dictionaries; the same folder is copied beside the executable
+  in every package, so the application opens its own copy with no network. Verify with
+  `build-help.ps1 -Check` and `scripts/check-help.ps1`. It is not a site page: the site generator
+  neither writes nor reads it.
 - **Hand-written documentation** - everything below. Edit these directly.
 
 Every document in the repository - these, the generated pages above, and every other `*.md` - has one

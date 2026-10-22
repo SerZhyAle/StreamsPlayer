@@ -129,6 +129,16 @@ public partial class MainWindow
             case StreamLaunchTargetKind.Invalid:
                 SetStatus("LaunchArgumentsInvalid");
                 return true;
+            case StreamLaunchTargetKind.File:
+                // 196 section 6.2: the shell handed the player a document (a double-clicked `.spres`).
+                // Imported first, then played - so the channel exists even if the broadcast is already
+                // dead, and the row carries the document's facts for the next attempt.
+                if (request.File is { Length: > 0 } file)
+                {
+                    await ImportBroadcastResourceFileAsync(file, this, playAfterImport: true);
+                }
+
+                return true;
             default:
                 return false;
         }

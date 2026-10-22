@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `WINDOWS-UI` |
-| **Version** | 0.3 (draft) |
+| **Version** | 0.10 read 2026-10-22; earlier implementation partial 0.4 (draft) |
 | **Home** | `Contracts/desktop-app-ux/WINDOWS-UI.md` |
 | **Owner** | Fast Media Sorter & Sharing for Windows (the reference viewer); portfolio-wide opt-in decided 2026-10-05 |
 | **This product's role** | **consumer** (opted in by the same portfolio decision; adopted and audited by SP-0191, 2026-10-05) |
@@ -58,3 +58,7 @@ SP-0191 adoption notes, per section:
   `DispatcherPriority.Loaded`, after layout (`SettingsWindow.Context.cs`). **Not measured**: section 9's first-visit and
   repeat-visit timings and the comparison with an unoptimized render have not been run, so this row stays at what was
   read, not at what was timed.
+
+**SP-0232, 2026-10-22:** presentation is now delegated to the five unified UI contracts.
+SP-0231 owns their partial migration through 2027-03-31; the earlier descriptions above are history,
+including old fixed target sizes and optional-button policy. No new implementation claim is made.

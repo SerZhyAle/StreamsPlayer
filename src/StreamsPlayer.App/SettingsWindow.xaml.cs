@@ -50,6 +50,7 @@ public partial class SettingsWindow : Window
     internal SettingsWindow(MainWindow mainWindow, Func<ToolsAction, Window, Task> runAction, Func<TvScheduleIndex> tvSchedule, int? initialPageIndex = null)
     {
         InitializeComponent();
+        InitializeInterfaceProfile();
 
         // The context decides the initial page, the group expansion and the window rectangle, and all
         // three have to be settled before the window is shown; a constructor cannot await, and the
@@ -73,6 +74,7 @@ public partial class SettingsWindow : Window
         }
 
         InitializeExchange();
+        InitializeBroadcasting();
 
         VersionText.Text = ProductInfo.Version;
         AuthorText.Text = ProductInfo.Author;
@@ -175,6 +177,8 @@ public partial class SettingsWindow : Window
         TileSizeBox.ItemsSource = sizes;
         TileSizeBox.SelectedItem = sizes.FirstOrDefault(item => item.Value == _mainWindow.State.TileSize.ToString()) ?? sizes[0];
 
+        PopulateInterfaceOptions();
+
         var backends = new[]
         {
             new UiOption(nameof(MediaBackend.LibVlc), LocalizationService.Get("VideoBackendLibVlc")),
@@ -185,7 +189,7 @@ public partial class SettingsWindow : Window
 
         HideAdultContentCheckBox.IsChecked = _mainWindow.State.HideAdultContent;
         UpdatePreviewsCheckBox.IsChecked = _mainWindow.State.UpdateStreamPreviews;
-        AnimatedBackdropCheckBox.IsChecked = _mainWindow.State.AnimatedBackdrop;
+        AnimatedBackdropOption.IsChecked = _mainWindow.State.AnimatedBackdrop;
         KeepAwakeCheckBox.IsChecked = _mainWindow.State.KeepAwakeDuringPlayback;
         SystemMediaControlsCheckBox.IsChecked = _mainWindow.State.SystemMediaControls;
         ResumePlaybackCheckBox.IsChecked = _mainWindow.State.ResumePlaybackOnStartup;
@@ -237,6 +241,7 @@ public partial class SettingsWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _closed = true;
+        UiProfileService.Changed -= UiProfile_Changed;
         base.OnClosed(e);
     }
 
@@ -316,15 +321,15 @@ public partial class SettingsWindow : Window
         }
     }
 
-    private void AnimatedBackdropCheckBox_Click(object sender, RoutedEventArgs e)
+    private void AnimatedBackdropOption_Toggled(object sender, RoutedEventArgs e)
     {
         if (_initializing)
         {
             return;
         }
 
-        HandlerBoundary.Run(nameof(AnimatedBackdropCheckBox_Click),
-            () => _mainWindow.ApplyAnimatedBackdropFromSettingsAsync(AnimatedBackdropCheckBox.IsChecked == true));
+        HandlerBoundary.Run(nameof(AnimatedBackdropOption_Toggled),
+            () => _mainWindow.ApplyAnimatedBackdropFromSettingsAsync(AnimatedBackdropOption.IsChecked));
     }
 
     private void HideAdultContentCheckBox_Click(object sender, RoutedEventArgs e)
@@ -508,6 +513,8 @@ public partial class SettingsWindow : Window
             "Website" => ProductInfo.WebsiteUrl,
             "Privacy" => ProductInfo.PrivacyUrl,
             "MediaExchange" => ProductInfo.ExchangePortalUrl(currentLanguage),
+            "ExchangeAccount" => ProductInfo.ExchangePortalUrl(currentLanguage, ExchangePortalPage.Account),
+            "ExchangeBroadcasts" => ProductInfo.ExchangePortalUrl(currentLanguage, ExchangePortalPage.Broadcasts),
             "Author" => ProductInfo.AuthorUrl,
             "Licence" => ProductInfo.LicenceUrl,
             _ => null
@@ -581,6 +588,13 @@ public partial class SettingsWindow : Window
     {
         if (_actionRunning && !_closeByRunningAction)
         {
+            if (_exchangeCancellation is not null)
+            {
+                _exchangeCancellation.Cancel();
+                e.Cancel = true;
+                base.OnClosing(e);
+                return;
+            }
             if (_installCancellation is not null)
             {
                 VideoComponentsCancelButton.IsEnabled = false;

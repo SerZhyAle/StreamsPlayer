@@ -116,6 +116,14 @@ public partial class MainWindow
             return;
         }
 
+        // 196 section 6.2: the import dialog learns the extension and dispatches by content - the M3U
+        // path below stays untouched.
+        if (Path.GetExtension(dialog.FileName).Equals(".spres", StringComparison.OrdinalIgnoreCase))
+        {
+            await ImportBroadcastResourceFileAsync(dialog.FileName, owner);
+            return;
+        }
+
         string text;
         try
         {
@@ -432,7 +440,7 @@ public partial class MainWindow
         // user saves can be given to anyone, so it is told before it is written. SP-0212 (L28): the keys
         // and their order come from the one owner - the export's credential wording stays the file's
         // own, the capability confirmation is the key every hand-out asks.
-        foreach (var key in ChannelHandOutWarnings.ExportKeysFor(rows.Select(row => row.Url)))
+        foreach (var key in ChannelHandOutWarnings.ExportKeysForRows(rows))
         {
             if (MessageBox.Show(owner, LocalizationService.Get(key),
                     LocalizationService.Get("ExportListPlain"), MessageBoxButton.YesNo, MessageBoxImage.Warning,

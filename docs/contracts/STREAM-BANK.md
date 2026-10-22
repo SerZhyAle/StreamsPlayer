@@ -3,33 +3,18 @@
 | | |
 | --- | --- |
 | **Id** | `STREAM-BANK` |
-| **Version** | 2.2 (active) |
-| **Home** | `Contracts/stream-catalog/README.md`, with the detail in `01_delivery_contract.md`, `03_catalog_format.md`, `04_favicon_atlas.md`, `09_logo_and_preview_atlases.md` and the dated amendments `10_` and `12_` |
-| **Owner** | FastMediaSorter Android - StreamsPlayer neither publishes the bank nor amends the contract |
-| **This product's role** | **consumer** of the published ZIP and of the on-demand artwork set |
+| **Version** | 2.4, 2026-10-22 (SP-0232) |
+| **Home** | `Contracts/stream-catalog/README.md` |
+| **Owner** | FastMediaSorter Android |
+| **This product's role** | Consumer of published ZIP and optional artwork |
 
-## What this repository must do to stay conformant
+`StreamBankReader`, `StreamCatalogCsvParser`, `CatalogMerger`, `UserAuthoredChannels`, artwork
+readers and PublishWindowRetry hold the published boundary. Refresh stays explicit; MANUAL/IMPORTED
+rows remain protected. ArtworkManifest.EnsureSupported already refuses higher schemas before fetch.
+The adoption is partial: rule 14's closed language/country vocabulary is not implemented by the raw
+parser/permissive facets; SP-0239 obtains the producer's vocabulary and vectors before migration.
+Collection JSON is not consumed, so unknown collection versions do not rewrite local collections.
+The Android source-normalizer/artwork rollout is not modified from this repository.
 
-The twelve rules are in the home page and are not repeated here. What is repo-local is which code holds
-each of them, so a change can be routed:
-
-| Rule | Held by |
-| --- | --- |
-| 1 explicit fetch | `StreamCatalogService` - no background refresh exists, and none may be added |
-| 2 `streams.csv` first | `StreamBankReader` |
-| 3 columns by header name | `StreamCatalogCsvParser` |
-| 4 drop rows without `url`/`name`; `media_kind` routes | `StreamCatalogCsvParser`, `StreamMediaKindClassifier` |
-| 5 merge by `url`, absence never deletes | `CatalogMerger`, `UserAuthoredChannels`, `StreamChannel.RetiredAt` |
-| 6 CSV and atlas are one artifact | `CatalogRefreshOutcome` and `CatalogSnapshotOutcome` (the indices are cleared when no usable atlas arrived), then `CatalogMerger` |
-| 7 blank `favicon_index` is no icon, `0` is a tile | `StreamCatalogCsvParser` |
-| 8 bounds-check, degrade to nothing | `StreamBankReader.MaximumAtlasBytes`, the atlas and tile readers |
-| 9 stable artwork names, geometry from the artifact | `ChannelPreviewArtworkService`, `ChannelPreviewTilePack`, `ChannelPreviewCoords` |
-| 10 `access` is opaque | `StreamCatalogCsvParser` |
-| 11 a publish-window 404 is expected | `PublishWindowRetry`, used by `StreamCatalogService` and `ChannelPreviewArtworkService` (SP-0107) |
-| 12 invalidate on the manifest `stamp` alone | `ArtworkManifest`, `CatalogState.ChannelPreviewArtworkStamp` |
-
-**Conformance evidence.** The contract names no vectors: the published `stream-catalog.zip` is the vector,
-plus the minimal consumer checklist in `01_delivery_contract.md` section 8. The live check is
-`dotnet run --project tools/StreamsPlayer.CatalogHarness`.
-
-**Deviations** are recorded in the store's `_meta/REGISTRY.md`, never here.
+The [synchronization audit](../audits/SP-0232-contract-sync.md) records clause scope, evidence and remaining work. Own catalog registry rows remain
+the conformance authority; a read version does not upgrade an implementation claim.

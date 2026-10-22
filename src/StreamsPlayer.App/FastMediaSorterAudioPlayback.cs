@@ -89,7 +89,8 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         int volume,
         CancellationToken cancellationToken,
         TimeSpan? connectTimeout = null,
-        string? certFingerprint = null)
+        string? certFingerprint = null,
+        ExchangeRelayCredentials? credentials = null)
     {
         ThrowIfDisposed();
         StopPlayback();
@@ -113,7 +114,7 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         FastMediaSorterPlaybackConnection connection;
         using (var request = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token))
         {
-            connection = await _transport.OpenAsync(endpoint, connectTimeout, certFingerprint, request.Token);
+            connection = await _transport.OpenAsync(endpoint, connectTimeout, certFingerprint, request.Token, credentials);
         }
 
         // Disposed while the request was out: the owner has already moved on, and starting an engine

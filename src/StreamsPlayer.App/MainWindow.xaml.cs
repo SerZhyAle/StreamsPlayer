@@ -135,6 +135,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         InitializeComponent();
         _log = log;
+        // SP-0226: the keys of a sealed link a person imported survive a restart in the secret store.
+        ExchangeBroadcastKeys.PersistedLookup = ExchangeLinkKeyStore.For(AppPaths.DataDirectory).Load;
         _launchRequest = launchRequest ?? new StreamLaunchRequest(StreamLaunchTargetKind.None);
         DataContext = this;
         _store = new StreamCatalogStore(_dataDirectory);
@@ -1029,6 +1031,44 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
+        // 196 section 6.3: a broadcast-resource row resolves its address by RACING every stored
+        // address (ordering is advice; racing is the contract), and a playlist channel additionally
+        // fetches its item list. Everything else about the flow - audio route, player window, outcome
+        // recording - is the ordinary one below, on the winning address.
+        if (channel.ResourceKey is { Length: > 0 })
+        {
+            var resolved = await ResolveBroadcastPlaybackAsync(channel, quiet);
+            if (resolved.Channel is null)
+            {
+                return; // every path failed: already reported with the right sentence
+            }
+
+            if (resolved.PlaylistItems is { } playlistItems)
+            {
+                OpenIndependentPlayerWindow(resolved.Channel, startFullscreen, quiet, playlistItems);
+                return;
+            }
+
+            channel = resolved.Channel;
+        }
+
+        // SP-0215 requirement 7: a protected broadcast answers the relay's challenge with the
+        // remembered password, or with the one prompt on a play the person asked for. A quiet resume
+        // and a hunt never prompt: they play on what is remembered, and the relay's refusal names the
+        // password state in its message - nothing retries in the background.
+        BroadcastCredentialsSession? broadcastCredentials = null;
+        if (IsPasswordProtected(channel))
+        {
+            var credentials = ResolveBroadcastCredentials(channel, interactive: !quiet && !randomHunt, out var declined);
+            if (declined)
+            {
+                return; // the person dismissed the one prompt: no play, no failure record
+            }
+
+            broadcastCredentials = new BroadcastCredentialsSession(credentials,
+                ResolveBroadcastCredentialsForRetry, ForgetBroadcastPassword);
+        }
+
         if (channel.MediaKind == MediaKind.Audio)
         {
             // Assigned on every audio start, so an ordinary user play is what clears a resume's quiet
@@ -1052,6 +1092,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             _audioWake = WakeGuard.Acquire(keepDisplayOn: false);
             _ = SuspendPreviewsAsync();
             SetNowPlaying("ConnectingAudio", StreamTitleFormatter.Display(channel.Title));
+            _playingBroadcastCredentials = broadcastCredentials?.Credentials;
             StartAudioPlayback(channel, reconnecting: false);
             EnsureSystemMediaControls();
             PublishAudioSession(playing: true);
@@ -1062,7 +1103,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         else
         {
-            OpenIndependentPlayerWindow(channel, startFullscreen, quiet);
+            OpenIndependentPlayerWindow(channel, startFullscreen, quiet, broadcastCredentials: broadcastCredentials);
         }
     }
 
@@ -1311,7 +1352,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             // SP-0062: a stream resumed at launch that never reached live reports itself in the status line.
             // Everything above this point - the outcome record, the session log - is identical to a click.
-            SetStatus("ResumeStreamFailed");
+            SetStatus(ExchangeBroadcastCertificateException.MessageKey(reason) ?? ExchangeBroadcastAuth.MessageKey(reason) ?? "ResumeStreamFailed");
             return;
         }
 
@@ -1325,8 +1366,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             FastMediaSorterPlaybackFailureKind.Recoverable => LocalizationService.Format("FmsBroadcastStopped", displayTitle),
             _ => null
         };
+        // SP-0215: the password refusals of a protected broadcast sit beside the certificate refusals -
+        // a named reason with its own localized sentence, in the dialog and on the compact status line.
+        var certificateKey = ExchangeBroadcastCertificateException.MessageKey(reason) ?? ExchangeBroadcastAuth.MessageKey(reason);
+        if (certificateKey is not null)
+            message = LocalizationService.Get(certificateKey);
         if (IsCompact)
         {
+            if (certificateKey is not null)
+            {
+                SetStatus(certificateKey);
+                return;
+            }
             switch (fastMediaSorterFailure)
             {
                 case FastMediaSorterPlaybackFailureKind.ListenerLimit:
@@ -1549,7 +1600,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
-    private void OpenIndependentPlayerWindow(StreamChannel channel, bool startFullscreen = false, bool quiet = false)
+    private PlayerWindow OpenIndependentPlayerWindow(StreamChannel channel, bool startFullscreen = false, bool quiet = false,
+        IReadOnlyList<string>? playlistItems = null, BroadcastCredentialsSession? broadcastCredentials = null)
     {
         var window = new PlayerWindow(
             channel,
@@ -1574,7 +1626,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             (_stateCommitter?.Requested ?? _state).AudioOutputDevice,
             (_stateCommitter?.Requested ?? _state).AudioChannelMode,
             (_stateCommitter?.Requested ?? _state).KeepPlayerControlsVisible,
-            SetKeepPlayerControlsVisibleAsync) { Owner = this };
+            SetKeepPlayerControlsVisibleAsync,
+            playlistItems,
+            broadcastCredentials) { Owner = this };
         AttachTvSchedule(window, channel);
         _openPlayerWindows++;
         _playerWindows.Add(window);
@@ -1617,6 +1671,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         // placed - see PlayerWindow_Loaded for why the player must not stay an owned window. A window
         // placed from memory has already set WindowStartupLocation to Manual and does not use it.
         window.Show();
+        return window;
     }
 
     // ToArray: every Close raises the Closed handler registered above, which mutates the set. Close raises the

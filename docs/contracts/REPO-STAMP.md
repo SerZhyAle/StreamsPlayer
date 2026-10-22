@@ -1,23 +1,17 @@
-# REPO-STAMP - pointer
+# REPO-STAMP / HARNESS-PROFILE / REPO-LAYOUT / RULE-DELIVERY - pointer
 
 | | |
 | --- | --- |
-| **Id** | `REPO-STAMP` (with `HARNESS-PROFILE`, `REPO-LAYOUT`, `RULE-DELIVERY`) |
-| **Version** | 0.12 / 0.11 / 0.11 / 0.12 (draft) |
+| **Id** | `REPO-STAMP`, `HARNESS-PROFILE`, `REPO-LAYOUT`, `RULE-DELIVERY` |
+| **Version** | 0.12 / 0.12 / 0.11 / 0.12, 2026-10-22 (SP-0232) |
 | **Home** | `Contracts/rule-adoption/README.md` |
 | **Owner** | sza-unified-rules |
-| **This product's role** | **consumer and producer** |
+| **This product's role** | Consumer and producer of repository declarations |
 
-## What this repository must do to stay conformant
+The stamp is .sza-canon.json. This product keeps ledger shape 4, null ledgerFile, no dev-log writer
+and no .sza-profile.json override. HARNESS-PROFILE's new shape-1/3 path tests are not applicable here;
+the earlier 0.11 implementation claim is retained. The release queue remains PLAN/RELEASE_QUEUE.md.
+This sync does not edit canon rules, other products' declarations or the installed plugin.
 
-1. **Repository Stamp:** Root `.sza-canon.json` is maintained with valid JSON, required keys (`canon`, `overlay`, `ledgerShape`), correct role (`product`), and verified core digest.
-2. **Standard Repository Layout:** Maintain root `CLAUDE.md`, `AGENTS.md`, `README.md`, `LICENSE`, and local pointers in `docs/contracts/<ID>.md` indexed by `docs/contracts/README.md`.
-3. **Canon Delivery Handshake:** Adopted plugin version and digest are kept fresh without hand-editing.
-
-Evidence: `.sza-canon.json`, `AGENTS.md`, `CLAUDE.md`, `docs/contracts/README.md`.
-
-**Read 2026-10-07 (SP-0206).** `REPO-STAMP` 0.12 rule 4 and `RULE-DELIVERY` 0.12 rule 5 (an unknown stamp age reads as past the
-180-day window): `.sza-canon.json` carries a parseable `adoptedOn` and `reconciledOn`, so the reader change moves nothing here.
-`HARNESS-PROFILE` 0.11 rule 2: this repository runs `ledgerShape` 4 with no `ledgerFile` and has no `.sza-profile.json`, so the
-derived `paths.changelog` is empty - which is true: it keeps no dev-log. It does not run the shipped dev-log tools.
-`REPO-LAYOUT` 0.11 rule 3: `PLAN/RELEASE_QUEUE.md` is the release queue under its default name.
+The [synchronization audit](../audits/SP-0232-contract-sync.md) records clause scope, evidence and remaining work. Own catalog registry rows remain
+the conformance authority; a read version does not upgrade an implementation claim.

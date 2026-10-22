@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Довідка</title>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <header class="hero">
+    <p class="kicker">Довідка щодо вікна</p>
+    <h1>Довідка</h1>
+    <p class="lead">У кожному вікні з довідкою є кнопка <b>?</b> біля правого верхнього кута, і воно відповідає на <kbd>F1</kbd>. Ці сторінки відкриваються за нею, написані вашою мовою й працюють без інтернету.</p>
+  </header>
+
+  <h2>Як відкрити довідку</h2>
+  <p>Натисніть <kbd>F1</kbd> у будь-якому вікні або кнопку <b>?</b>. Сторінка цього вікна відкриється в браузері; застосунок лишається відкритим, і в ньому нічого не змінюється.</p>
+  <p>У налаштуваннях сторінка відкривається на тому розділі, який ви зараз бачите. Якщо у фокусі елемент із власним записом, <kbd>F1</kbd> відкриє саме його.</p>
+
+  <h2>Вікна</h2>
+  <ul class="related">
+    <li><a href="main.html"><b>Трансляції</b><span class="pill">Вікно</span><small>Знайти канал, увімкнути його, зберегти улюблені й обрати, як виглядає список.</small></a></li>
+    <li><a href="settings.html"><b>Налаштування «Трансляцій»</b><span class="pill">Вікно</span><small>Усі налаштування застосунку за сторінками: що робить кожне і коли його варто змінювати.</small></a></li>
+    <li><a href="first-run.html"><b>Звідки взяти список каналів?</b><span class="pill">Вікно</span><small>Запитання, яке застосунок ставить під час першого запуску: звідки взяти список каналів.</small></a></li>
+  </ul>
+
+  <h2>Дивіться також</h2>
+  <ul class="related">
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/uk/index.html#use"><b>Як користуватися</b><span class="pill gold">Сайт</span><small>Уся задача цілком: від першого запуску до власних плейлистів.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/uk/support.html"><b>Підтримка</b><span class="pill gold">Сайт</span><small>Як повідомити про проблему і що додати.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/uk/privacy.html"><b>Конфіденційність</b><span class="pill gold">Сайт</span><small>Що лишається на вашому комп’ютері, а що йде в мережу.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Написано для версії 26.1021 застосунку «Трансляції», 2026-10-21.</span>
+    <a href="index.html">Зміст довідки</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/uk/support.html">Поставити запитання або повідомити про проблему</a>
+  </footer>
+
+</main>
+</body>
+</html>

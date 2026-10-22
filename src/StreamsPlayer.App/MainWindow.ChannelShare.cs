@@ -72,10 +72,16 @@ public partial class MainWindow
             return;
         }
 
+        if (ExchangeConnectionImport.Recognizes(text))
+        {
+            OpenExchangeImport(ExchangeConnectionImport.ReadText(text));
+            return;
+        }
+
         var broadcast = FastMediaSorterBroadcastDescriptor.Read(text);
         if (broadcast.Status != FastMediaSorterBroadcastReadStatus.NotBroadcast)
         {
-            await ImportFastMediaSorterBroadcastAsync(broadcast, this);
+            await ImportFastMediaSorterBroadcastAsync(broadcast, this, openAfterImport: true);
             return;
         }
 

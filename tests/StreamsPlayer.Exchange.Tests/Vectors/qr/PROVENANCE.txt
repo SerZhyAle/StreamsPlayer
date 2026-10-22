@@ -1,0 +1,9 @@
+Four files of FastMediaSorter Lite's dual-mode baseline (ticket 204), copied byte for byte on 2026-10-15 from
+P:\WINDOWS\FastMediaSorter_Lite\tests\Lite.Tests\TestData\dual-mode (the Lite product's own PROVENANCE.txt lists the same hashes).
+They are not DEVICE-EXCHANGE data: they are pictures of a QR code made by another product's encoder, together with the document
+each one carries, and serve one purpose here - a known answer for the QR reader that does not share a line of code with it.
+
+reference-share-lan-qr.png   d709744ae72c9ee0f00947b4030a61a09312d19216cf45bc53a7ab610bfad80c  carries reference-share-lan.fmscfg as text
+reference-share-lan.fmscfg   a20cd95de31ec5a3c14085355d1c84e71f65d6b31995fa3fe07b34df8b6c7603
+reference-share-full-qr.png  3facbae235a4ff55d9835b6f77c3c2ce00a2a54de9628d8c568df18ab586f245  carries "FMSCFG1:" + base64(gzip(reference-share-full.fmscfg))
+reference-share-full.fmscfg  68f76382f42f1b3dfd14d99178727a0b2951c6b89e687ded2f3842edb0322cd8

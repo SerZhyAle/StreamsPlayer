@@ -8,12 +8,31 @@
     <PackageReference Include="LibVLCSharp" Version="3.10.0" />
     <PackageReference Include="LibVLCSharp.WPF" Version="3.10.0" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1" />
+    <!-- SP-0221: reads the connection QR out of a picture (managed, Apache-2.0, no native binary). -->
+    <PackageReference Include="ZXing.Net" Version="0.16.10" />
   </ItemGroup>
 
   <!-- The country flags of the catalog's country facet (CountryFlags). Compiled into the assembly so they
        ship inside every package shape; provenance in THIRD-PARTY-NOTICES.txt. -->
   <ItemGroup>
     <Resource Include="Assets\Flags\*.png" />
+  </ItemGroup>
+
+  <!-- SP-0234, EXCHANGE-MARK rule 6: the mark's PNG steps are byte-for-byte copies kept once, at the repository
+       root (assets\exchange-mark\, provenance beside them), and compiled in from there under the name the
+       contract gives them. ExchangeMarkIcon picks the step; nothing here is scaled up or redrawn. -->
+  <ItemGroup>
+    <Resource Include="..\..\assets\exchange-mark\png\mark-*.png" Link="Assets\ExchangeMark\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- SP-0230, CONTEXT-HELP rule 12: the help pages travel with the product and open with no network. They are the
+       render target of tools/help/build-help.ps1 (docs/help is also what the site publishes), copied beside the
+       executable as help\<locale>\<page>.html. The zip, the installer and the MSIX are all made from one publish
+       folder, so this one item reaches the three of them; HelpService looks in AppContext.BaseDirectory\help. -->
+  <ItemGroup>
+    <Content Include="..\..\docs\help\**\*.html;..\..\docs\help\*.css;..\..\docs\help\*.png"
+             Link="help\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- SP-0026: opt-in FlyleafLib video engine (LGPL-3.0). The managed library + FFmpeg bindings come

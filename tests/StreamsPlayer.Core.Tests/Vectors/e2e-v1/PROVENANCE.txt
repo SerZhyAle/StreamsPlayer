@@ -1,0 +1,16 @@
+Sealed-content conformance vectors for DEVICE-EXCHANGE section 27 (end-to-end encryption), vendored for SP-0226.
+
+e2e-v1.json
+  producer:  FastMediaSorter Android, ticket S4240 (generator E2eVectorsGenerator, replayed there by E2eVectorsTest)
+  contract:  DEVICE-EXCHANGE vectors/e2e-v1.json, contract version 0.29, named as delivered by 1.0 (item DE to DR); read at 1.5
+  copied:    byte for byte on 2026-10-21 from the contract store (device-exchange/vectors/e2e-v1.json); never edited here
+  sha256:    5391a9ae33450c5de82b622278a5acb38773bdf2819ebe8ff8604114758fde35
+  note:      the privateKey members exist only so a replaying product can open the boxes; a real key never leaves its device.
+             The clipboard cases are not replayed: this product takes no part in the server clipboard (SP-0226, "Not in this ticket").
+
+rfc9180-a3.json
+  source:    RFC 9180 appendix A.3.3 (DHKEM(P-256, HKDF-SHA256), HKDF-SHA256, AES-128-GCM, Auth mode), sequence number 0
+  fetched:   https://www.rfc-editor.org/rfc/rfc9180.txt on 2026-10-21, sha256 f45a8b7c30231b26d668b1e8168074e5ab514b174d656b67e859895117f1f8f6
+  made by:   extracting the A.3.3 block of that text and joining its wrapped hex lines mechanically (nothing retyped); the
+             contract (item DH) requires an implementation to pass the Auth-mode vectors of appendix A.3 before it seals anything.
+  sha256:    recorded by ExchangeHpkeTests.CorpusFiles_HaveTheirRecordedHashes

@@ -2,16 +2,17 @@
 
 | | |
 | --- | --- |
-| **Id** | `CHECK-VERDICT` (with `CHECK-BASELINE`, `CHECK-PLACEMENT`, `BUILD-EVIDENCE`) |
-| **Version** | 0.11 / 0.10 / 0.11 / 0.10 (draft) |
+| **Id** | `CHECK-VERDICT` |
+| **Version** | 0.13; CHECK-BASELINE 0.11, CHECK-PLACEMENT 0.11, BUILD-EVIDENCE 0.10, 2026-10-22 (SP-0232) |
 | **Home** | `Contracts/automated-checks/README.md` |
 | **Owner** | FastMediaSorter Android |
-| **This product's role** | **consumer** |
+| **This product's role** | Consumer |
 
-## What this repository must do to stay conformant
+`scripts/test.ps1` reads fresh TRX counters through `TestResultSummary.ps1`: zero/missing/malformed
+suites and skips cannot yield PASS; failures take precedence. Its writer emits canonical run/skipped
+counts. Build, check, CI and release test entry points use it. `Test-TestResultSummary.ps1` exercises
+negative cases. `scripts/check.ps1` aggregates checks, not test counts. Legacy verdict paths remain
+a partial audit (SP-0239); smoke-playback evidence remains independently mandatory for release.
 
-1. **Deterministic Exit Codes:** Quality scripts (`scripts/check.ps1`, `scripts/smoke-playback.ps1`, site builder `-Check`) return standard exit codes (0 for pass, non-zero for failure).
-2. **Build Evidence & Monotonic Quality:** Tests run under Release configuration in CI; regressions are prevented by CI gates and conformance unit suites.
-3. **Smoke Playback Gate:** `scripts/smoke-playback.ps1` executes live stream validation before any release packaging.
-
-Evidence: `scripts/check.ps1`, `scripts/smoke-playback.ps1`, `build.ps1`, `tests/StreamsPlayer.Core.Tests/DesktopUxConformanceTests.cs`.
+The [synchronization audit](../audits/SP-0232-contract-sync.md) records clause scope, evidence and remaining work. Own catalog registry rows remain
+the conformance authority; a read version does not upgrade an implementation claim.

@@ -58,13 +58,32 @@
         // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
         // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
         var root = document.documentElement;
-        if (root.dataset.entry !== "true") {
-          return;
-        }
         var urls = {};
         try {
           urls = JSON.parse(document.getElementById("language-urls").textContent);
         } catch (error) {
+          return;
+        }
+        // PAGE-STYLE amendment 2026-10-17: explicit shipped locales override remembered choices,
+        // including on child/locale pages; a valid canonical query wins over the legacy spelling.
+        var query = new URLSearchParams(window.location.search);
+        var canonical = query.get("lang");
+        var legacy = query.get("l");
+        var requested = Object.prototype.hasOwnProperty.call(urls, canonical) ? canonical
+          : Object.prototype.hasOwnProperty.call(urls, legacy) ? legacy : null;
+        if (requested) {
+          root.setAttribute("data-lang", requested === "uk" ? "ua" : requested);
+          if (root.lang.split("-")[0] !== requested) {
+            var destination = new URL(urls[requested], window.location.href);
+            query.delete("lang");
+            query.delete("l");
+            destination.search = query.toString();
+            destination.hash = window.location.hash;
+            window.location.replace(destination.href);
+          }
+          return;
+        }
+        if (root.dataset.entry !== "true") {
           return;
         }
         // sza-lang holds only ru, en or ua (PAGE-STYLE section 7), so a further locale chosen here is
@@ -297,7 +316,9 @@
           <li class="step">
             <div>
               <h3>Escolher e reproduzir</h3>
-              <p>Percorra o catálogo, filtre ou pesquise e então selecione um canal. O rádio começa na janela principal; vídeo e RTSP abrem na janela do player. Um início comum não reproduz nada; ative «Retomar a reprodução ao iniciar» nas <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg> configurações e o início traz de volta o que estava tocando no último fechamento.</p>
+              <p>Percorra o catálogo, filtre ou pesquise e então selecione um canal. O rádio começa na janela principal; vídeo e RTSP abrem na janela do player. Um início comum não reproduz nada; ative «Retomar a reprodução ao iniciar» nas <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg> configurações e o início traz de volta o que estava tocando no último fechamento.
+
+No visualizador de 64 bits, clique com o botão direito num vídeo, ficheiro de áudio ou na sua pasta e escolha a transmissão. Share Manager exporta um ficheiro .spres, código QR ou ligação rápida para StreamsPlayer. Uma pasta torna-se um canal com uma lista fixa; Atualizar substitui a lista e Revogar desativa a ligação. O gateway HTTP tem um interruptor próprio, desligado por defeito. Cada token permite apenas ler uma transmissão, normalmente durante 24 horas. HTTP não é cifrado: partilhe o documento em privado e ative a internet apenas se necessário.</p>
             </div>
           </li>
           <li class="step">
@@ -372,7 +393,7 @@
         <h2 class="footer-heading">Mais ferramentas</h2>
         <div class="tools-grid">
           <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>Fast Media Sorter &amp; Organizer</b><span>Organizador de mídia para Android</span></a>
-          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>Organizador de mídia para Windows</span></a>
+          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter &amp; Sharing for Windows</b><span>Organizador de mídia para Windows</span></a>
           <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Corretor de layout de teclado para Windows</span></a>
           <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Conversor de e-books para Windows</span></a>
           <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Ferramenta de linha de comando de armazenamento para Windows</span></a>

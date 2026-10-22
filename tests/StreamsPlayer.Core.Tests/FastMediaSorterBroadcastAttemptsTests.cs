@@ -10,9 +10,12 @@ namespace StreamsPlayer.Core.Tests;
 /// </summary>
 public sealed class FastMediaSorterBroadcastAttemptsTests
 {
+    // SP-0226: an exchange endpoint is an attempt only when it declares a seal this build knows, so a fixture
+    // about order and shape declares one; the cases about its absence are the ones that say so.
     private static FastMediaSorterBroadcastEndpoint Endpoint(string url, string transport, string? mode = null,
-        long? targetLatencyMs = null, string? certFingerprint = null, string? inner = null) =>
-        new(url, transport, mode, null, null, null, null, true, targetLatencyMs, certFingerprint, inner);
+        long? targetLatencyMs = null, string? certFingerprint = null, string? inner = null, bool sealedEndpoint = true) =>
+        new(url, transport, mode, null, null, null, null, true, targetLatencyMs, certFingerprint, inner,
+            sealedEndpoint && transport is "RELAY" or "TUNNEL" ? new ExchangeEndpointSeal(1) : null);
 
     private static FastMediaSorterBroadcast Descriptor(string mode, params FastMediaSorterBroadcastEndpoint[] endpoints) =>
         new("rtsp://192.168.1.97:8554/live", mode, "Kitchen", "src-1", true, 1000, endpoints);
@@ -83,8 +86,8 @@ public sealed class FastMediaSorterBroadcastAttemptsTests
             {"schemaVersion":1,"url":"http://192.168.1.97:8768/live-audio.aac","title":"Kitchen","mode":"AUDIO_ONLY",
              "sourceId":"AAECAwQFBgcICQoLDA0ODw","isLive":true,"targetLatencyMs":1000,"endpoints":[
              {"url":"http://192.168.1.97:8768/live-audio.aac","transport":"HTTP","mode":"AUDIO_ONLY","audioCodec":"AAC","sampleRate":44100,"isLive":true,"targetLatencyMs":1000},
-             {"url":"https://exchange.example.net:44022/v2/b/ICEiIyQlJicoKSorLC0uLw/stream","transport":"RELAY","mode":"AUDIO_ONLY","audioCodec":"AAC","sampleRate":44100,"isLive":true,"targetLatencyMs":2000,"certFingerprint":"SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk"},
-             {"url":"fmsx://exchange.example.net:44022/b/ICEiIyQlJicoKSorLC0uLw/http","transport":"TUNNEL","inner":"http://192.168.1.97:8768/live-audio.aac","mode":"AUDIO_ONLY","audioCodec":"AAC","sampleRate":44100,"isLive":true,"targetLatencyMs":2000,"certFingerprint":"SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk"}]}
+             {"url":"https://exchange.example.net:44022/v2/b/ICEiIyQlJicoKSorLC0uLw/stream","transport":"RELAY","mode":"AUDIO_ONLY","audioCodec":"AAC","sampleRate":44100,"isLive":true,"targetLatencyMs":2000,"certFingerprint":"SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk","seal":{"v":1}},
+             {"url":"fmsx://exchange.example.net:44022/b/ICEiIyQlJicoKSorLC0uLw/http","transport":"TUNNEL","inner":"http://192.168.1.97:8768/live-audio.aac","mode":"AUDIO_ONLY","audioCodec":"AAC","sampleRate":44100,"isLive":true,"targetLatencyMs":2000,"certFingerprint":"SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk","seal":{"v":1}}]}
             """;
         var read = FastMediaSorterBroadcastDescriptor.Read(json);
         Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, read.Status);
@@ -131,6 +134,33 @@ public sealed class FastMediaSorterBroadcastAttemptsTests
             Endpoint("https://relay.example.net:44022/v2/b/b1/stream", "RELAY", null, 2000));
         var attempt = Assert.Single(descriptor.PlaybackAttemptEndpoints());
         Assert.Equal("RELAY", attempt.Transport);
+    }
+
+    [Fact]
+    public void AnUnsealedExchangeEndpointIsNeverAnAttemptAndALanOneBesideItStillIs()
+    {
+        var descriptor = Descriptor(
+            "AUDIO_ONLY",
+            Endpoint("http://192.168.1.97:8768/live-audio.aac", "HTTP", "AUDIO_ONLY"),
+            Endpoint("https://relay.example.net:44022/v2/b/b1/stream", "RELAY", "AUDIO_ONLY", sealedEndpoint: false),
+            Endpoint("fmsx://relay.example.net:44022/b/b1/http", "TUNNEL", "AUDIO_ONLY", inner: "http://192.0.2.1:8768/live-audio.aac",
+                sealedEndpoint: false));
+
+        Assert.Equal(["HTTP"], descriptor.PlaybackAttemptEndpoints().Select(endpoint => endpoint.Transport));
+        Assert.True(FastMediaSorterBroadcastAttempts.HasUnsealedExchangeEndpoint(descriptor.Mode, descriptor.Endpoints));
+        Assert.Equal([false, true, true], descriptor.Endpoints.Select(ExchangeEndpointKinds.IsRefusedAsUnsealed));
+    }
+
+    [Fact]
+    public void AnExchangeEndpointOfAnUnknownSealVersionIsSkipped()
+    {
+        var future = new FastMediaSorterBroadcastEndpoint("https://relay.example.net:44022/v2/b/b1/stream", "RELAY", "AUDIO_ONLY",
+            null, null, null, null, true, 2000, null, null, new ExchangeEndpointSeal(2));
+        var descriptor = Descriptor("AUDIO_ONLY", future);
+
+        // Only the descriptor's own legacy top-level address remains; the relay is not among the attempts.
+        Assert.DoesNotContain(descriptor.PlaybackAttemptEndpoints(), endpoint => endpoint.Transport == "RELAY");
+        Assert.True(ExchangeEndpointKinds.IsRefusedAsUnsealed(future));
     }
 
     [Fact]

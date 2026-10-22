@@ -1,0 +1,12 @@
+Vendored for SP-0228 from the contract store (device-exchange/vectors/fmsw-224/) on 2026-10-21.
+
+frames-v2.json is a byte-for-byte copy; connection-string-v1.json and PROVENANCE.txt were vendored earlier (SP-0221) and are
+unchanged. The generator's own PROVENANCE.txt is kept as filed and already lists frames-v2.json.
+sha256 of frames-v2.json: f5c6ae0db7dd47454467184c5df3378104e35bfe09609acfd37f703e833541d8 (the value its PROVENANCE.txt records)
+
+Use: ExchangeAccountLifecycleReplayTests replays the `registration`, `password` and `pace` transcripts (DEVICE-EXCHANGE items AO to AZ)
+and the seven transcripts it shares with server-frames-v2.json in their 0.28 form (accountKind on `enrolled` and `welcome`, the added
+refusals). The contract names this file and hash as the evidence for those items; it adopts it for the server and claims no replay by a
+client, and this product claims none beyond what the tests run. This product signs in and never registers, so the nine `register`
+frames and the two `account-delete` frames are not produced and are accounted for in the test. fmsw-234/frames-v2.json repeats the ten
+shared transcripts and is replayed by ExchangeSealedDirectoryTests; its sealed assertions are not repeated here.

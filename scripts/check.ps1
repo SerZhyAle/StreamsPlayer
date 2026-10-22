@@ -6,6 +6,11 @@
       site-sync     tools/site/build-site.ps1 -Check - docs/ matches its copy decks (DOC-INTERNAL-QUALITY rule 4),
                     every held site address resolves (SITE-STRUCTURE rule 8, SP-0193), and the facts the copy states
                     and the pillars of POSITIONING.md agree with their sources (SITE-REPRESENTATION rules 1 to 3, SP-0198)
+      help-build    tools/help/build-help.ps1 -Check - docs/help matches the help map, the copy and the dictionaries
+                    (CONTEXT-HELP rule 12, the pages are a render target; SP-0230)
+      help          scripts/check-help.ps1 - the generated help pages hold CONTEXT-HELP's anatomy, language, no-request
+                    and link rules in every authored locale; the windows against the map, the baseline and the anchors
+                    are HelpGateTests in `tests` (SP-0230)
       held-addresses-test  tools/site/Test-HeldAddresses.ps1 - the held-address gate's own fixture tests
       site-facts-test      tools/site/Test-SiteFacts.ps1 - the site-facts and positioning gate's own fixture tests
       site-discovery-test  tools/site/Test-SiteDiscovery.ps1 - the structured data, sitemap, robots.txt and search-console
@@ -57,12 +62,18 @@ try {
     if ($LASTEXITCODE -ne 0) { Write-Host "check: build failed (exit $LASTEXITCODE)"; Write-Host 'check: FAIL (build)'; exit 1 }
 
     $results = [ordered]@{}
-    dotnet test StreamsPlayer.sln -c $Configuration --no-build --verbosity normal
+    pwsh -NoProfile -File (Join-Path $root 'scripts/test.ps1') -Configuration $Configuration -NoBuild
     $results['tests'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'scripts/Test-TestResultSummary.ps1')
+    $results['test-results-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'scripts/check-docs.ps1')
     $results['docs-quality'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'tools/site/build-site.ps1') -Check
     $results['site-sync'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'tools/help/build-help.ps1') -Check
+    $results['help-build'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'scripts/check-help.ps1')
+    $results['help'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'tools/site/Test-HeldAddresses.ps1')
     $results['held-addresses-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'tools/site/Test-SiteFacts.ps1')
@@ -73,6 +84,8 @@ try {
     $results['release-notes-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'msix/Test-AssertMsixPackage.ps1')
     $results['msix-gate'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'tools/store/Test-StoreListing.ps1')
+    $results['store-listing-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'scripts/Test-ExistingReleaseState.ps1')
     $results['existing-release-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'tools/audit/Test-AuditVerdictGate.ps1')

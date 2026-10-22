@@ -67,7 +67,7 @@ Version REPLACE_VERSION
 
 Supersedes nothing: the 26.1003.0030 tag shipped as prepared below. The Settings window that remembers its place and
 follows high contrast, a pinned player panel, countries of the interface language first, FastMediaSorter broadcasts
-by endpoint order (relay, tunnel, HTTP MPEG-TS), the optional exchange server account with its live broadcasts and
+by endpoint order (stream distribution, server connection, HTTP MPEG-TS), the optional exchange server account with its live broadcasts and
 casts, a backdrop that rests on another desktop and bounded imports. The three blocks below are the files
 `msix/listing/release-notes/26.1010.0106.*.txt`.
 
@@ -77,7 +77,7 @@ Version 26.1010.0106
 - Settings remembers the page, the open groups, the scroll position and the window size, has a search box and "Expand all groups" / "Collapse all groups", follows the Windows high-contrast theme, and opens at a size that fits your display.
 - Pin the playback controls in the player so they stay on screen.
 - The country filter lists the countries where your interface language is official first, named in your language.
-- FastMediaSorter broadcasts try every address the sender lists, in its order (local network, relay, tunnel), play HTTP MPEG-TS video, and buffer by the broadcast's own delay instead of a fixed 15 seconds.
+- FastMediaSorter broadcasts try every address the sender lists, in its order (local network, exchange server), play HTTP MPEG-TS video, and buffer by the broadcast's own delay instead of a fixed 15 seconds.
 - Optional exchange server account, off until you enrol: see which of your devices are broadcasting, play one in two clicks and accept a cast from another of your devices. Nothing listens on a port.
 - The animated backdrop stops drawing while its window is on another virtual desktop.
 - An M3U import takes at most 100 000 new channels and treats an address that differs only in host case or default port as the same stream; a TV guide download follows redirects only on the host you agreed to.
@@ -90,7 +90,7 @@ Version 26.1010.0106
 - «Настройки» помнят страницу, раскрытые группы, положение прокрутки и размер окна, получили строку поиска и команды «Развернуть все группы» и «Свернуть все группы», следуют высококонтрастной теме Windows и открываются в размере, который подходит вашему экрану.
 - Закрепляйте панель управления воспроизведением в плеере, чтобы она оставалась на экране.
 - Фильтр стран сначала показывает страны, где ваш язык интерфейса государственный, с названиями на вашем языке.
-- Трансляции FastMediaSorter пробуют все адреса, которые перечислил отправитель, в его порядке (локальная сеть, ретранслятор, туннель), воспроизводят видео HTTP MPEG-TS и буферизуют по собственной задержке трансляции, а не по фиксированным 15 секундам.
+- Трансляции FastMediaSorter пробуют все адреса, которые перечислил отправитель, в его порядке (локальная сеть, сервер обмена, соединение через сервер), воспроизводят видео HTTP MPEG-TS и буферизуют по собственной задержке трансляции, а не по фиксированным 15 секундам.
 - Необязательная учётная запись «Сервера обмена», выключена, пока вы не зарегистрируете устройство: видно, какие ваши устройства сейчас в эфире, одно из них запускается в два действия, а трансляцию с другого вашего устройства можно принять. Ни один порт не прослушивается.
 - Анимированный фон перестаёт рисоваться, пока его окно находится на другом виртуальном рабочем столе.
 - Импорт M3U берёт не более 100 000 новых каналов и считает одним потоком адреса, различающиеся только регистром узла или портом по умолчанию; загрузка телепрограммы следует перенаправлениям только на том узле, на который вы согласились.
@@ -103,7 +103,7 @@ Version 26.1010.0106
 - «Налаштування» пам'ятають сторінку, розгорнуті групи, положення прокручування та розмір вікна, отримали рядок пошуку й команди «Розгорнути всі групи» та «Згорнути всі групи», дотримуються висококонтрастної теми Windows і відкриваються в розмірі, що пасує вашому екрану.
 - Закріплюйте панель керування відтворенням у програвачі, щоб вона лишалася на екрані.
 - Фільтр країн спершу показує країни, де ваша мова інтерфейсу державна, з назвами вашою мовою.
-- Трансляції FastMediaSorter пробують усі адреси, які перелічив відправник, у його порядку (локальна мережа, ретранслятор, тунель), відтворюють відео HTTP MPEG-TS і буферизують за власною затримкою трансляції, а не за фіксованими 15 секундами.
+- Трансляції FastMediaSorter пробують усі адреси, які перелічив відправник, у його порядку (локальна мережа, сервер обмена, з’єднання через сервер), відтворюють відео HTTP MPEG-TS і буферизують за власною затримкою трансляції, а не за фіксованими 15 секундами.
 - Необов'язковий обліковий запис «Сервера обміну», вимкнений, доки ви не зареєструєте пристрій: видно, які з ваших пристроїв зараз в ефірі, один із них запускається за дві дії, а трансляцію з іншого вашого пристрою можна прийняти. Жоден порт не прослуховується.
 - Анімоване тло перестає малюватися, доки його вікно перебуває на іншому віртуальному робочому столі.
 - Імпорт M3U бере не більше 100 000 нових каналів і вважає одним потоком адреси, що різняться лише регістром вузла чи портом за замовчуванням; завантаження телепрограми йде за перенаправленнями лише на тому вузлі, на який ви погодилися.
@@ -120,7 +120,7 @@ The accumulated blocks below are kept only for a Store that is still behind; do 
 Version 26.1010.0106
 
 - One Settings window (General, Library, Playback, Audio, Files, About) that remembers its page and size, has a search box and follows the high-contrast theme; pick the audio output device and channel mode.
-- Record video or radio to its own folders with a safe quit; live FastMediaSorter broadcasts from a phone or watch try each of the sender's addresses (local network, relay, tunnel) and play HTTP MPEG-TS video.
+- Record video or radio to its own folders with a safe quit; live FastMediaSorter broadcasts from a phone or watch try each of the sender's addresses (local network, exchange server) and play HTTP MPEG-TS video.
 - Optional exchange server account, off until you enrol: see which of your devices are broadcasting, play one in two clicks, accept a cast.
 - See what is on a TV channel now and next from an XMLTV guide you choose.
 - A calm animated background and a compact radio panel with the track, volume, sleep timer, Random station and always-on-top; pin the player's controls.
@@ -134,7 +134,7 @@ Version 26.1010.0106
 Версия 26.1010.0106
 
 - Одно окно «Настройки» со страницами «Общие», «Библиотека», «Воспроизведение», «Звук», «Файлы» и «О программе» помнит страницу и размер, ищет по настройкам и следует высококонтрастной теме; выбор устройства вывода звука и режима каналов.
-- Запись видео и радио в отдельные папки с безопасным выходом; трансляции FastMediaSorter с телефона или часов пробуют все адреса отправителя (локальная сеть, ретранслятор, туннель) и воспроизводят видео HTTP MPEG-TS.
+- Запись видео и радио в отдельные папки с безопасным выходом; трансляции FastMediaSorter с телефона или часов пробуют все адреса отправителя (локальная сеть, сервер обмена, соединение через сервер) и воспроизводят видео HTTP MPEG-TS.
 - Необязательная учётная запись «Сервера обмена», выключена, пока вы не зарегистрируете устройство: видно, какие ваши устройства в эфире, одно запускается в два действия, трансляцию с другого устройства можно принять.
 - Что идёт на ТВ-канале сейчас и дальше - по гиду XMLTV, который вы выбираете.
 - Спокойный анимированный фон и компактная радиопанель с треком, громкостью, таймером сна, случайной станцией и режимом «поверх окон»; закрепление панели управления плеера.
@@ -148,7 +148,7 @@ Version 26.1010.0106
 Версія 26.1010.0106
 
 - Одне вікно «Налаштування» зі сторінками «Загальні», «Бібліотека», «Відтворення», «Звук», «Файли» та «Про програму» пам'ятає сторінку й розмір, шукає в налаштуваннях і дотримується висококонтрастної теми; вибір пристрою виведення звуку та режиму каналів.
-- Запис відео та радіо в окремі теки з безпечним виходом; трансляції FastMediaSorter з телефона чи годинника пробують усі адреси відправника (локальна мережа, ретранслятор, тунель) і відтворюють відео HTTP MPEG-TS.
+- Запис відео та радіо в окремі теки з безпечним виходом; трансляції FastMediaSorter з телефона чи годинника пробують усі адреси відправника (локальна мережа, сервер обмена, з’єднання через сервер) і відтворюють відео HTTP MPEG-TS.
 - Необов'язковий обліковий запис «Сервера обміну», вимкнений, доки ви не зареєструєте пристрій: видно, які з ваших пристроїв в ефірі, один запускається за дві дії, трансляцію з іншого пристрою можна прийняти.
 - Що йде на ТБ-каналі зараз і далі - за гідом XMLTV, який ви обираєте.
 - Спокійне анімоване тло й компактна радіопанель з треком, гучністю, таймером сну, випадковою станцією та режимом «поверх вікон»; закріплення панелі керування програвача.
@@ -1311,23 +1311,31 @@ Suggested test path:
    Urdu to see the whole layout mirror right-to-left, then switch back.
 
 Individual third-party streams can be offline or use formats unsupported by the current media backend. This is reported in the player and does not prevent catalog browsing or another stream from being selected.
+
+The optional Exchange source and Broadcasting need a private exchange server that belongs to the user or to someone who invited the user. Both are off by default, no step above needs them, and they can be left untested. When used, broadcast audio (a microphone, the sound the PC plays) is captured only after the user allows broadcasting in Settings and starts a source, and it is encrypted on the PC before it leaves. Reading a connection QR with the camera is optional, needs a camera, and starts only when the user presses "Scan with the camera" in Settings; the picture is looked at in memory and is never stored, sent or logged.
 ```
 
 ## runFullTrust justification
 
 ```text
-StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. runFullTrust is required to launch the desktop executable and use its Windows and LibVLC-based media and thumbnail components. An enabled Exchange source holds a TLS control connection to the user-configured server. Other network requests occur for an explicit catalog refresh and the optional preview artwork the user accepts after it, selected stream playback and recording, enabled Grid thumbnail updates, a FastMediaSorter broadcast the user imported (a device on the same local network), and the optional FFmpeg libraries the user downloads from Settings. The app requires no account and has no advertising, analytics, telemetry, or author-side personal-data collection. Source code: https://github.com/SerZhyAle/StreamsPlayer
+StreamsPlayer is a full-trust .NET WPF desktop application packaged as MSIX. runFullTrust is required to launch the desktop executable and use its Windows and LibVLC-based media and thumbnail components. An enabled Exchange source holds a TLS control connection to the user-configured server. Broadcasting captures a microphone and the sound the PC plays only after the user allows it in Settings and starts a source, and encrypts it on the PC before it leaves. Other network requests occur for an explicit catalog refresh and the optional preview artwork the user accepts after it, selected stream playback and recording, enabled Grid thumbnail updates, a FastMediaSorter broadcast the user imported (a device on the same local network), and the optional FFmpeg libraries the user downloads from Settings. The app requires no account and has no advertising, analytics, telemetry, or author-side personal-data collection. Source code: https://github.com/SerZhyAle/StreamsPlayer
 ```
 
-The optional Exchange source in Library settings connects to your own server over TLS. Enrollment sends your login, password or pairing code, device identity, product version and receiver capabilities. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Every certificate leaf needs your explicit approval, including after renewal. The password and pairing code are discarded. The account, token and certificate pin are protected for your Windows user in a separate file; removing the account forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
+The optional Exchange source in Library settings connects to your own server over TLS. Signing in sends your login, password or pairing code, device identity, product version and receiver capabilities; this program signs in only and never creates an account. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Import a connection string, a file or a QR picture in Library settings, or paste or drop one in the main window. A connection string carries the server address and an optional certificate fingerprint, with no secret; an invitation inside it is checked and dropped, never sent or kept. Reading it only fills the form. The server's address and port are under Details in the form: check them before entering your password or pairing code; neither is kept. A supplied fingerprint must match, with no trust prompt. Without one, you approve the server fingerprint before signing in; a certificate renewed with the same key is accepted, and any other change needs your approval. Changing the account's password sends the old and the new password to your server once and keeps neither. No local agent or second program is needed. The password and pairing code are discarded. The account, tokens and certificate pins are protected for your Windows user in separate files; signing out on this device forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
+
+## webcam capability justification
+
+```text
+The webcam capability is declared so that Windows lists StreamsPlayer in its camera privacy settings from install. The camera is used for one thing only: reading a connection QR when the user presses "Scan with the camera" in Settings, a button offered only where Windows reports a camera. The picture is looked at in memory while the scan window is open, is never stored, sent or logged, and the camera is released the moment the window closes. No broadcast uses the camera.
+```
 
 ## Privacy and age-rating declarations
 
 - Declare the network capability and answer Partner Center privacy questions from actual package behavior. Provide the privacy URL even if Partner Center considers it optional.
 - Complete the IARC questionnaire accurately for an app that can open third-party live audio/video URLs. Do not copy a rating from this document.
-- The app supports an optional account on a user-owned exchange server. It provides no author-run account service, chat, purchases, advertising, location or content publishing.
+- The app supports an optional account on a private exchange server - the user's own, or one run by someone who invited the user. There is no public exchange server and none is a service of this product; the app provides no author-run account service, chat, purchases, advertising, location or content publishing.
 - Data-safety answers, kept identical to the privacy page (`tools/site/copy/<code>.txt`, keys
-  `privacy-network` and `privacy-local`) and to the install trust page's "never does" list (keys
+  `privacy-network`, `privacy-exchange-*` and `privacy-local`) and to the install trust page's "never does" list (keys
   `trust-never-*`, contract `INSTALL-TRUST` rule 6): no data is collected by the author or sent to an
   author-run service. The enabled optional exchange source maintains a TLS control connection to the user-configured server. Other network destinations, each on a user action only - the catalog and the optional
   preview artwork (GitHub release assets); the stream provider of a channel the user plays, previews,
@@ -1338,8 +1346,15 @@ The optional Exchange source in Library settings connects to your own server ove
   prepares an archive and a mail message; the user sends it, the app never does. The product
   website, not the app, loads its fonts from Google Fonts and asks `api.github.com` for the latest
   release on its home page; the privacy page's "This website" section (key `privacy-site`) says so.
+- Exchange server, broadcasting and encryption, in the privacy page's words (keys `privacy-exchange-*`; the
+  paragraph of what the server sees is the application's `ExchangeHonestText`, word for word - DEVICE-EXCHANGE
+  item DE): The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices. Signing in sends the login and the password or pairing code once, then the device identity, the device name (STREAMS Player, not the name of the PC), product, version, platform (Windows) and roles, the receiver capabilities and the public half of the device's encryption key; the private key never leaves the PC. Broadcasting sends the audio of the PC - a microphone the user chooses and the sound the PC is playing - only after the user allows it in Settings and starts a source, encrypted on the PC before it leaves; with the option to start with the application on, the sources the user left chosen start again when the application starts; a listener's device can record what it receives. The camera of this PC is used for one thing only: reading a connection QR when the user presses "Scan with the camera" in Settings. While the scan window is open, the picture is looked at in memory to find the QR; it is never stored, sent or logged, and the camera is released the moment the window closes. Where Windows reports no camera, the button is not offered. The app signs in and never creates an account; an account is deleted in FastMediaSorter on the phone or by asking whoever runs the server, and the portal page "How to delete an account" says how.
 
-The optional Exchange source in Library settings connects to your own server over TLS. Enrollment sends your login, password or pairing code, device identity, product version and receiver capabilities. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Every certificate leaf needs your explicit approval, including after renewal. The password and pairing code are discarded. The account, token and certificate pin are protected for your Windows user in a separate file; removing the account forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
+The optional Exchange source in Library settings connects to your own server over TLS. Signing in sends your login, password or pairing code, device identity, product version and receiver capabilities; this program signs in only and never creates an account. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Import a connection string, a file or a QR picture in Library settings, or paste or drop one in the main window. A connection string carries the server address and an optional certificate fingerprint, with no secret; an invitation inside it is checked and dropped, never sent or kept. Reading it only fills the form. The server's address and port are under Details in the form: check them before entering your password or pairing code; neither is kept. A supplied fingerprint must match, with no trust prompt. Without one, you approve the server fingerprint before signing in; a certificate renewed with the same key is accepted, and any other change needs your approval. Changing the account's password sends the old and the new password to your server once and keeps neither. No local agent or second program is needed. The password and pairing code are discarded. The account, tokens and certificate pins are protected for your Windows user in separate files; signing out on this device forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
+
+### Imported HTTP file broadcasts
+
+A .spres document imported from FastMediaSorter adds one private channel. Playing it probes the supplied addresses and contacts the host directly over plain HTTP; a folder plays its frozen playlist in one window. No author-run service handles the file, token or media. The document, QR code and quick link contain an access token: do not post them publicly. Channel export asks before writing a resource token; catalog refresh preserves imported rows. Tokens expire or can be revoked by the sender. Playback can use either configured video backend. This is separate from live capture and the optional Exchange source.
 
 ## Screenshot set
 

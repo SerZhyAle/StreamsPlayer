@@ -260,6 +260,15 @@ public partial class PlayerWindow
             return;
         }
 
+        // SP-0226 / items DK and DP: an exchange endpoint plays only sealed, with the keys its box or its link handed
+        // over - never as clear bytes through a server. The refusal is the leg's verdict, said once in words.
+        var decision = ExchangeBroadcastKeys.Decide(endpoint);
+        if (!decision.Allowed)
+        {
+            ReportOpenFailure(backend, epoch, decision.Reason);
+            return;
+        }
+
         Uri? address = null;
 
         if (endpoint is { Transport: "TUNNEL", Inner: { Length: > 0 } inner } &&
@@ -267,7 +276,8 @@ public partial class PlayerWindow
         {
             try
             {
-                var forwarder = ExchangeTunnelForwarder.Start(tunnelUrl, inner, endpoint.CertFingerprint);
+                var forwarder = ExchangeTunnelForwarder.Start(tunnelUrl, inner, endpoint.CertFingerprint, tunnelPin: decision.TunnelPin);
+                forwarder.Refused += reason => ReportOpenFailure(backend, epoch, reason);
                 if (!TryHoldAttemptResource(epoch, () => _tunnelForwarder = forwarder))
                 {
                     forwarder.Dispose();
@@ -286,17 +296,22 @@ public partial class PlayerWindow
         }
         else if (LaunchableAddress.TryParse(endpoint.Url, out var directAddress))
         {
-            if (endpoint.Transport?.Equals("RELAY", StringComparison.OrdinalIgnoreCase) == true &&
-                !string.IsNullOrWhiteSpace(endpoint.CertFingerprint))
+            if (endpoint.Transport?.Equals("RELAY", StringComparison.OrdinalIgnoreCase) == true)
             {
-                // SP-0203: a pinned relay endpoint plays through the loopback proxy - the engines
-                // cannot pin (the phase 0 spike), and checking is never turned off. The proxy exists
-                // for this attempt only and is disposed with it.
+                // The engines cannot pin or explain an untrusted unpinned leaf. The proxy owns
+                // both trust decisions and their named refusals, for this attempt only.
                 try
                 {
-                    var proxy = ExchangeRelayProxy.Start(endpoint.Url, endpoint.CertFingerprint);
+                    // SP-0215 requirement 7: a protected relay's Basic answer rides the proxy's own
+                    // verified TLS connection; the pin decision has passed before the pair is sent.
+                    var proxy = ExchangeRelayProxy.Start(endpoint.Url, endpoint.CertFingerprint,
+                        credentials: decision.Credentials ?? _broadcastCredentials?.Credentials,
+                        sealedRelay: decision.RelayOptions(endpoint.Url));
                     proxy.Failed += failureReason =>
+                    {
                         _log.Event("PLAYBACK RELAY PROXY", $"reason={failureReason}", $"url={endpoint.Url}");
+                        ReportOpenFailure(backend, epoch, failureReason);
+                    };
                     if (!TryHoldAttemptResource(epoch, () => _relayProxy = proxy))
                     {
                         proxy.Dispose();
@@ -315,7 +330,7 @@ public partial class PlayerWindow
             }
             else
             {
-                // A relay endpoint without a pin is the platform's own validation, in the engine.
+                // Direct endpoints stay in the engine; relay trust is decided in the proxy.
                 address = directAddress;
             }
         }

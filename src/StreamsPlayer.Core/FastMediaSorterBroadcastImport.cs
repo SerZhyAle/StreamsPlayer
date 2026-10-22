@@ -57,6 +57,7 @@ public static class FastMediaSorterBroadcastImport
             Mode = descriptor.Mode,
             SelectedTransport = endpoint.Transport,
             Endpoints = descriptor.Endpoints,
+            Auth = descriptor.Auth,
             TargetLatencyMs = endpoint.TargetLatencyMs ?? descriptor.TargetLatencyMs,
             DirectoryBroadcastId = origin,
             DirectoryEndedAt = null

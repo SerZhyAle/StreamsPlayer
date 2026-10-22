@@ -8,7 +8,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource ProductName}" Height="780" Width="1180" MinHeight="560" MinWidth="820"
         Background="{DynamicResource WindowBackground}"
-        AllowDrop="True" PreviewDragOver="MainWindow_PreviewDragOver" Drop="MainWindow_Drop">
+        AllowDrop="True" PreviewDragOver="MainWindow_PreviewDragOver" Drop="MainWindow_Drop" PreviewKeyDown="MainWindow_ExchangePasteKeyDown">
     <Window.Resources>
         <!-- SP-0050 decision 7: a hidden row must never narrow the catalog silently. The accent border
              is the same "away from All" vocabulary MinBitrateFilter already uses, so the mark reads as
@@ -122,39 +122,43 @@
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="{DynamicResource ProductName}" FontSize="30" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"
                                VerticalAlignment="Center" Margin="0,0,16,0" />
-                    <TextBox x:Name="SearchBox" Style="{StaticResource SearchTextBoxStyle}" Width="200"
+                    <TextBox x:Name="SearchBox" local:HelpAnchor.Id="e-search" Style="{StaticResource SearchTextBoxStyle}" Width="200"
                              ToolTip="{DynamicResource SearchTip}" TextChanged="FilterChanged"
                              VerticalAlignment="Center" AutomationProperties.Name="{DynamicResource SearchName}" />
                     <Button Style="{StaticResource ClearInputGlyphButton}" Click="ClearSearchButton_Click"
                             VerticalAlignment="Center" ToolTip="{DynamicResource ClearTip}" AutomationProperties.Name="{DynamicResource ClearTip}" />
-                    <Button x:Name="FiltersButton" Style="{StaticResource FiltersRevealButton}"
+                    <Button x:Name="FiltersButton" local:HelpAnchor.Id="e-filters" Style="{StaticResource FiltersRevealButton}"
                             Content="{DynamicResource FiltersAndSorting}" Click="FiltersButton_Click"
                             VerticalAlignment="Center" ToolTip="{DynamicResource FiltersAndSortingTip}"
                             AutomationProperties.Name="{DynamicResource FiltersAndSorting}" />
                     <!-- SP-0094: the Media facet's second form. They stay in the title line whether the
                          filter row is open or closed - unlike FiltersButton, which the open row replaces -
                          because the whole point is a switch that costs one click from wherever you are. -->
-                    <Button x:Name="QuickVideoButton" Style="{StaticResource QuickVideoFilterButton}"
+                    <Button x:Name="QuickVideoButton" local:HelpAnchor.Id="e-quick-video" Style="{StaticResource QuickVideoFilterButton}"
                             Click="QuickVideoButton_Click" VerticalAlignment="Center"
                             ToolTip="{DynamicResource QuickVideoTip}"
                             AutomationProperties.Name="{DynamicResource QuickVideoTip}" />
-                    <Button x:Name="QuickAudioButton" Style="{StaticResource QuickAudioFilterButton}"
+                    <Button x:Name="QuickAudioButton" local:HelpAnchor.Id="e-quick-audio" Style="{StaticResource QuickAudioFilterButton}"
                             Click="QuickAudioButton_Click" VerticalAlignment="Center"
                             ToolTip="{DynamicResource QuickAudioTip}"
                             AutomationProperties.Name="{DynamicResource QuickAudioTip}" />
-                    <Button x:Name="QuickOwnButton" Style="{StaticResource QuickOwnFilterButton}"
+                    <Button x:Name="QuickOwnButton" local:HelpAnchor.Id="e-quick-own" Style="{StaticResource QuickOwnFilterButton}"
                             Click="QuickOwnButton_Click" VerticalAlignment="Center"
                             ToolTip="{DynamicResource QuickOwnTip}"
                             AutomationProperties.Name="{DynamicResource QuickOwnTip}" />
                 </StackPanel>
             </Viewbox>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <!-- SP-0230, CONTEXT-HELP rule 2: the help button leads the trailing group, so every control that
+                     is already here keeps its place at the right-hand end. -->
+                <Button x:Name="HelpButton" Style="{StaticResource HelpGlyphButton}" Margin="0,0,8,0"
+                        ToolTip="{DynamicResource HelpTip}" AutomationProperties.Name="{DynamicResource HelpName}" />
                 <!-- SP-0102: Segmented pair with active state highlighting -->
                 <Border Background="{DynamicResource SectionBrush}" CornerRadius="4" Padding="2" Margin="0,0,6,0">
                     <StackPanel Orientation="Horizontal">
-                        <Button x:Name="ListModeButton" Style="{StaticResource SegmentedListButton}" Content="{DynamicResource List}" Click="ListModeButton_Click"
+                        <Button x:Name="ListModeButton" local:HelpAnchor.Id="e-list-view" Style="{StaticResource SegmentedListButton}" Content="{DynamicResource List}" Click="ListModeButton_Click"
                                 ToolTip="{DynamicResource ListTip}" AutomationProperties.Name="{DynamicResource ListName}" />
-                        <Button x:Name="GridModeButton" Style="{StaticResource SegmentedGridButton}" Content="{DynamicResource Grid}" Click="GridModeButton_Click"
+                        <Button x:Name="GridModeButton" local:HelpAnchor.Id="e-grid-view" Style="{StaticResource SegmentedGridButton}" Content="{DynamicResource Grid}" Click="GridModeButton_Click"
                                 ToolTip="{DynamicResource GridTip}" AutomationProperties.Name="{DynamicResource GridName}" />
                     </StackPanel>
                 </Border>
@@ -162,10 +166,10 @@
                      part of its content here rather than of a template (a template is not applied to a
                      content element). Provisional meaning: PROPOSAL-2026-10-11-streamsplayer-button-meanings.md
                      item 2. The gap is the 6 px of every glyph button. -->
-                <Button x:Name="ExchangeSourceStatusButton" Click="ExchangeSourceStatus_Click" Visibility="Collapsed" Margin="0,0,8,0">
+                <Button x:Name="ExchangeSourceStatusButton" local:HelpAnchor.Id="e-exchange" Click="ExchangeSourceStatus_Click" Visibility="Collapsed" Margin="0,0,8,0">
                     <StackPanel Orientation="Horizontal">
                         <Viewbox Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" FlowDirection="LeftToRight">
-                            <Path Data="{StaticResource Icon.pending.source.exchange-server}" Width="24" Height="24"
+                            <Path Data="{StaticResource Icon.source.exchange-server}" Width="24" Height="24"
                                   Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                         </Viewbox>
                         <StackPanel VerticalAlignment="Center">
@@ -176,14 +180,28 @@
                 </Button>
                 <!-- SP-0201: the account's live broadcasts, grouped by device. Shown once the device is
                      enrolled; the account section is where a device without an account is told why. -->
-                <Button x:Name="BroadcastsButton" Style="{StaticResource BroadcastsGlyphButton}" Content="{DynamicResource BroadcastsTitle}"
+                <Button x:Name="BroadcastsButton" local:HelpAnchor.Id="e-broadcasts" Style="{StaticResource BroadcastsGlyphButton}" Content="{DynamicResource BroadcastsTitle}"
                         Click="BroadcastsButton_Click" Visibility="Collapsed" Margin="0,0,8,0" />
-                <Button x:Name="SettingsButton" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource Settings}" Click="SettingsButton_Click"
+                <!-- SP-0217: the always-visible live-broadcast indicator - shown only while one of this
+                     PC's sources is live; its menu names each source and offers its stop, its cast
+                     targets and its hand-off channels. -->
+                <Button x:Name="BroadcastLiveButton" local:HelpAnchor.Id="e-broadcast-live" Style="{StaticResource BroadcastingGlyphButton}" Click="BroadcastLiveButton_Click"
+                        Visibility="Collapsed" Margin="0,0,8,0"
+                        AutomationProperties.Name="{DynamicResource BroadcastIndicatorName}">
+                    <StackPanel Orientation="Horizontal">
+                        <Viewbox Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" FlowDirection="LeftToRight">
+                            <Path Data="{StaticResource Icon.media.record}" Width="24" Height="24"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                        </Viewbox>
+                        <TextBlock x:Name="BroadcastLiveText" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+                <Button x:Name="SettingsButton" local:HelpAnchor.Id="e-settings" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource Settings}" Click="SettingsButton_Click"
                         ToolTip="{DynamicResource SettingsTip}" AutomationProperties.Name="{DynamicResource SettingsName}" />
                 <!-- SP-0050: the rare and the mode-conditional actions live here. The menu is rebuilt on
                      every open (MainWindow.Operations.cs), which is what keeps the always-on-top check
                      mark and the grid-only preview entry honest without a single subscription. -->
-                <Button x:Name="OperationsButton" Style="{StaticResource OperationsGlyphButton}"
+                <Button x:Name="OperationsButton" local:HelpAnchor.Id="e-operations" Style="{StaticResource OperationsGlyphButton}"
                         Content="{DynamicResource Operations}" Click="OperationsButton_Click"
                         ToolTip="{DynamicResource OperationsTip}" AutomationProperties.Name="{DynamicResource OperationsTip}">
                     <Button.ContextMenu>
@@ -207,32 +225,32 @@
                 <WrapPanel Grid.Row="0" Margin="0,0,0,6">
                     <StackPanel Orientation="Horizontal" Margin="0,3,14,3">
                         <TextBlock Text="{DynamicResource Media}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
-                        <ComboBox x:Name="MediaFilter" Width="90" SelectionChanged="FilterChanged" ToolTip="{DynamicResource MediaKindTip}"
+                        <ComboBox x:Name="MediaFilter" local:HelpAnchor.Id="e-filter-media" Width="90" SelectionChanged="FilterChanged" ToolTip="{DynamicResource MediaKindTip}"
                                   AutomationProperties.Name="{DynamicResource MediaFilterName}" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,3,14,3">
                         <TextBlock Text="{DynamicResource Category}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
-                        <ComboBox x:Name="CategoryFilter" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Category}"
+                        <ComboBox x:Name="CategoryFilter" local:HelpAnchor.Id="e-filter-category" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Category}"
                                   AutomationProperties.Name="{DynamicResource CategoryFilterName}" />
                     </StackPanel>
                     <!-- SP-0061: next to category deliberately. They are the catalog's two vocabulary facets
                          over two different, disjoint column sets, and a reader compares them. -->
                     <StackPanel Orientation="Horizontal" Margin="0,3,14,3">
                         <TextBlock Text="{DynamicResource Topic}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
-                        <ComboBox x:Name="TopicFilter" Width="130" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Topic}"
+                        <ComboBox x:Name="TopicFilter" local:HelpAnchor.Id="e-filter-topic" Width="130" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Topic}"
                                   ItemContainerStyle="{StaticResource TopicFacetItem}"
                                   AutomationProperties.Name="{DynamicResource TopicFilterName}" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,3,14,3">
                         <TextBlock Text="{DynamicResource Language}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
-                        <ComboBox x:Name="LanguageFilter" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Language}"
+                        <ComboBox x:Name="LanguageFilter" local:HelpAnchor.Id="e-filter-language" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Language}"
                                   AutomationProperties.Name="{DynamicResource LanguageFilterName}" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,3,14,3">
                         <TextBlock Text="{DynamicResource Country}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
                         <!-- The full name in the interface language beside its flag; the option's value stays the
                              ISO code. TextSearch lets a typed letter jump to the name rather than to the code. -->
-                        <ComboBox x:Name="CountryFilter" Width="190" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Country}"
+                        <ComboBox x:Name="CountryFilter" local:HelpAnchor.Id="e-filter-country" Width="190" SelectionChanged="FilterChanged" ToolTip="{DynamicResource Country}"
                                   TextSearch.TextPath="Label" ItemContainerStyle="{StaticResource CountryFacetItem}"
                                   AutomationProperties.Name="{DynamicResource CountryFilterName}">
                             <ComboBox.ItemTemplate>
@@ -254,18 +272,18 @@
                              that undoes the filters rather than in the status bar. Written by ApplyFilter. -->
                         <TextBlock x:Name="ChannelCountText" Foreground="{DynamicResource MutedBrush}"
                                    VerticalAlignment="Center" Margin="0,0,10,0" />
-                        <Button x:Name="ClearFiltersButton" Style="{StaticResource ClearFilterGlyphButton}"
+                        <Button x:Name="ClearFiltersButton" local:HelpAnchor.Id="e-clear-filters" Style="{StaticResource ClearFilterGlyphButton}"
                                 Content="{DynamicResource Clear}" Click="ClearFiltersButton_Click"
                                 VerticalAlignment="Center" ToolTip="{DynamicResource ClearFiltersTip}"
                                 AutomationProperties.Name="{DynamicResource ClearFiltersName}" Margin="0,0,6,0" />
-                        <Button x:Name="HideFiltersButton" Style="{StaticResource CloseGlyphOnlyButton}" Click="HideFiltersButton_Click"
+                        <Button x:Name="HideFiltersButton" local:HelpAnchor.Id="e-hide-filters" Style="{StaticResource CloseGlyphOnlyButton}" Click="HideFiltersButton_Click"
                                 VerticalAlignment="Center" ToolTip="{DynamicResource HideFilters}"
                                 AutomationProperties.Name="{DynamicResource HideFilters}" />
                     </StackPanel>
                     <WrapPanel VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,3,14,3">
                             <TextBlock Text="{DynamicResource MinBitrate}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
-                            <ComboBox x:Name="MinBitrateFilter" Width="100" SelectionChanged="FilterChanged" SelectedValuePath="Value"
+                            <ComboBox x:Name="MinBitrateFilter" local:HelpAnchor.Id="e-filter-bitrate" Width="100" SelectionChanged="FilterChanged" SelectedValuePath="Value"
                                       ToolTip="{DynamicResource MinBitrateTip}" AutomationProperties.Name="{DynamicResource MinBitrateName}">
                                 <ComboBox.Style>
                                     <!-- BasedOn keeps the app-wide ComboBox padding/margin; without it this filter
@@ -289,13 +307,13 @@
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,3,14,3">
                             <TextBlock Text="{DynamicResource SortBy}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
-                            <ComboBox x:Name="SortMode" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource SortOrderTip}"
+                            <ComboBox x:Name="SortMode" local:HelpAnchor.Id="e-sort" Width="110" SelectionChanged="FilterChanged" ToolTip="{DynamicResource SortOrderTip}"
                                       AutomationProperties.Name="{DynamicResource SortCatalogName}" />
                         </StackPanel>
                         <!-- SP-0017: one collection at a time, next to the other facets. -->
                         <StackPanel Orientation="Horizontal" Margin="0,3,14,3">
                             <TextBlock Text="{DynamicResource CollectionLabel}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
-                            <ComboBox x:Name="CollectionFilter" Width="130" SelectionChanged="FilterChanged" SelectedValuePath="Value"
+                            <ComboBox x:Name="CollectionFilter" local:HelpAnchor.Id="e-filter-collection" Width="130" SelectionChanged="FilterChanged" SelectedValuePath="Value"
                                       ToolTip="{DynamicResource CollectionFilterTip}" AutomationProperties.Name="{DynamicResource CollectionFilterName}" />
                         </StackPanel>
                     </WrapPanel>
@@ -1183,7 +1201,7 @@
                     <!-- SP-0067: ScrollUnit="Pixel" - the panel stays a virtualizing stack panel and
                          stays virtualized, only the granularity changes. Scrolling by item moved a whole
                          grid row per wheel notch, which in tile mode is a jump of a full tile height. -->
-                    <ListView x:Name="StreamsList" ItemsSource="{Binding GridRows}" BorderThickness="0"
+                    <ListView x:Name="StreamsList" local:HelpAnchor.Id="e-list" ItemsSource="{Binding GridRows}" BorderThickness="0"
                               ItemContainerStyle="{StaticResource CatalogItemContainerStyle}"
                               ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                               VirtualizingPanel.IsVirtualizing="True"
@@ -1257,20 +1275,20 @@
                     <!-- SP-0081: one button with two states - stop the sound of the current station, or
                          start it again. Its style and caption are assigned in code because they change
                          with the state; the XAML here only reserves the place. -->
-                    <Button x:Name="AudioTransportButton" Style="{StaticResource StopGlyphButton}" Content="{DynamicResource StopAudio}"
+                    <Button x:Name="AudioTransportButton" local:HelpAnchor.Id="e-transport" Style="{StaticResource StopGlyphButton}" Content="{DynamicResource StopAudio}"
                             Click="AudioTransportButton_Click" IsEnabled="False" Visibility="Collapsed" Margin="0,0,8,0" />
-                    <Button x:Name="AudioRecordButton" Style="{StaticResource RecordGlyphOnlyButton}"
+                    <Button x:Name="AudioRecordButton" local:HelpAnchor.Id="e-record" Style="{StaticResource RecordGlyphOnlyButton}"
                             Click="AudioRecordButton_Click" Visibility="Collapsed" Margin="0,0,8,0"
                             ToolTip="{DynamicResource RecordTip}" AutomationProperties.Name="{DynamicResource Record}"
                             ToolTipService.ShowOnDisabled="True" />
                     <!-- IsMoveToPointEnabled: a click jumps the volume straight to the clicked level instead of stepping toward it. -->
-                    <Slider x:Name="AudioVolumeSlider" Width="110" Minimum="0" Maximum="100" Value="100" TickFrequency="10"
+                    <Slider x:Name="AudioVolumeSlider" local:HelpAnchor.Id="e-volume" Width="110" Minimum="0" Maximum="100" Value="100" TickFrequency="10"
                             IsMoveToPointEnabled="True"
                             ValueChanged="AudioVolumeSlider_ValueChanged" VerticalAlignment="Center" Margin="0,0,8,0"
                             Visibility="Collapsed"
                             ToolTip="{DynamicResource AudioVolumeTip}" AutomationProperties.Name="{DynamicResource AudioVolumeName}" />
                     <!-- SP-0022: the sleep timer lives next to Stop, so it is one click away mid-listening. -->
-                    <Button x:Name="SleepTimerButton" Style="{StaticResource SleepTimerGlyphButton}"
+                    <Button x:Name="SleepTimerButton" local:HelpAnchor.Id="e-sleep-timer" Style="{StaticResource SleepTimerGlyphButton}"
                             Click="SleepTimerButton_Click" Visibility="Collapsed"
                             Margin="0,0,8,0"
                             ToolTip="{DynamicResource SleepTimerTip}" AutomationProperties.Name="{DynamicResource SleepTimer}">
@@ -1281,7 +1299,7 @@
                     <!-- SP-0080: one action, next to the controls it takes with it. Glyph only - the bar
                          has no width left for a fifth caption, and the tooltip and the accessible name
                          carry the words. -->
-                    <Button x:Name="CompactPanelButton" Style="{StaticResource PictureInPictureGlyphOnlyButton}"
+                    <Button x:Name="CompactPanelButton" local:HelpAnchor.Id="e-compact" Style="{StaticResource PictureInPictureGlyphOnlyButton}"
                             Click="CompactPanelButton_Click" Visibility="Collapsed" Margin="0,0,12,0"
                             ToolTip="{DynamicResource CompactPanelTip}"
                             AutomationProperties.Name="{DynamicResource CompactPanelName}" />
@@ -1301,7 +1319,7 @@
                         <ProgressBar x:Name="CatalogProgress" Height="4" Margin="0,4,0,2" Width="180" VerticalAlignment="Center"
                                      Maximum="100" IsIndeterminate="True" Visibility="Collapsed"
                                      AutomationProperties.Name="{DynamicResource CatalogProgressName}" />
-                        <Button x:Name="CancelOperationButton" Style="{StaticResource CancelGlyphButton}" Content="{DynamicResource Cancel}" Click="CancelOperationButton_Click"
+                        <Button x:Name="CancelOperationButton" local:HelpAnchor.Id="e-cancel" Style="{StaticResource CancelGlyphButton}" Content="{DynamicResource Cancel}" Click="CancelOperationButton_Click"
                                 Visibility="Collapsed" Margin="8,2,0,0" Padding="8,1" FontSize="11" VerticalAlignment="Center"
                                 ToolTip="{DynamicResource CancelDownloadTip}"
                                 AutomationProperties.Name="{DynamicResource CancelDownloadName}" />

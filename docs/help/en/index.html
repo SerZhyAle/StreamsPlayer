@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Help</title>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <header class="hero">
+    <p class="kicker">Window help</p>
+    <h1>Help</h1>
+    <p class="lead">Every window with help has a <b>?</b> button near its top-right corner and answers <kbd>F1</kbd>. These pages are what they open, in your language, and they work with no internet.</p>
+  </header>
+
+  <h2>How to ask</h2>
+  <p>Press <kbd>F1</kbd> in any window, or click the <b>?</b> button. The page of that window opens in your web browser; the application stays open and nothing in it changes.</p>
+  <p>In Settings the page opens at the section you are looking at. With a control focused that has its own entry, <kbd>F1</kbd> opens that entry.</p>
+
+  <h2>Windows</h2>
+  <ul class="related">
+    <li><a href="main.html"><b>STREAMS Player</b><span class="pill">Window</span><small>Find a channel, play it, keep the ones you like and choose how the list looks.</small></a></li>
+    <li><a href="settings.html"><b>STREAMS Player settings</b><span class="pill">Window</span><small>Every setting of the app, page by page: what it does and when to change it.</small></a></li>
+    <li><a href="first-run.html"><b>Where should the channel list come from?</b><span class="pill">Window</span><small>The question the app asks on its first start: where the channel list comes from.</small></a></li>
+  </ul>
+
+  <h2>Related</h2>
+  <ul class="related">
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/index.html#use"><b>How to use</b><span class="pill gold">Site</span><small>The whole task, from the first start to your own playlists.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/support.html"><b>Support</b><span class="pill gold">Site</span><small>How to report a problem and what to send.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/privacy.html"><b>Privacy</b><span class="pill gold">Site</span><small>What stays on your computer and what goes over the network.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Written against STREAMS Player 26.1021, 2026-10-21.</span>
+    <a href="index.html">Help index</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/support.html">Ask a question or report a problem</a>
+  </footer>
+
+</main>
+</body>
+</html>

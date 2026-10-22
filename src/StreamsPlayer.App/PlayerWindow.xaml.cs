@@ -34,7 +34,9 @@ public partial class PlayerWindow : Window
     private readonly DispatcherTimer _volumeSaveTimer;
     private readonly HashSet<ContextMenu> _openControlPanelMenus = [];
     private readonly Stopwatch _playbackClock = new();
-    private readonly StreamChannel _channel;
+    // Not readonly: a playlist channel advances by moving to the next item's URL (196 section 6.3),
+    // the same way a retry moves to a new leg. Everything else reads it as an immutable record.
+    private StreamChannel _channel;
     private readonly CurrentLog _log;
     private readonly Action<string, BitmapSource>? _onThumbnail;
     // SP-0038 / SP-0179: the user's folder per capture kind, read per save, not captured at open, so a folder
@@ -139,6 +141,11 @@ public partial class PlayerWindow : Window
     private IDisposable? _wake;
     private string? _audioOutputDevice;
     private AudioChannelMode _audioChannelMode = AudioChannelMode.Stereo;
+    // 196 section 6.3: a playlist channel's items, in the gateway's own snapshot order (the M3U body
+    // MainWindow fetched from the winning address - plain #EXTINF, no #EXT-X-). Null for an ordinary
+    // channel; a playlist window never routes end-of-item into live recovery.
+    private readonly IReadOnlyList<string>? _playlistItems;
+    private int _playlistIndex;
 
     internal PlayerWindow(
         StreamChannel channel,
@@ -163,7 +170,9 @@ public partial class PlayerWindow : Window
         string? audioOutputDevice = null,
         AudioChannelMode audioChannelMode = AudioChannelMode.Stereo,
         bool keepControlsVisible = false,
-        Func<bool, Task>? saveKeepControlsVisible = null)
+        Func<bool, Task>? saveKeepControlsVisible = null,
+        IReadOnlyList<string>? playlistItems = null,
+        BroadcastCredentialsSession? broadcastCredentials = null)
     {
         InitializeComponent();
         _channel = channel;
@@ -181,6 +190,8 @@ public partial class PlayerWindow : Window
         _saveAudioPreferences = saveAudioPreferences;
         _startFullscreen = startFullscreen;
         _quietUntilLive = quietUntilLive;
+        _playlistItems = playlistItems;
+        _broadcastCredentials = broadcastCredentials;
         _backendSelection = backend;
         _audioOutputDevice = audioOutputDevice;
         _audioChannelMode = audioChannelMode;
@@ -220,6 +231,11 @@ public partial class PlayerWindow : Window
         Topmost = topmost;
         _settingsReady = true;
         TitleText.Text = StreamTitleFormatter.Display(channel.Title);
+        if (playlistItems is { Count: > 1 })
+        {
+            ApplyPlaylistTitle();
+        }
+
         RefreshWindowTitle();
         Loaded += PlayerWindow_Loaded;
         Closed += PlayerWindow_Closed;
@@ -1054,10 +1070,17 @@ public partial class PlayerWindow : Window
 
         _failureShown = true;
         ReleaseAfterFailure();
-        SetWaitTextResource("PlayerUnavailable");
         // SP-0072: a terminal failure is a black screen too, and it is the one the user can be left
         // staring at after dismissing the dialog - or that raises no dialog at all under _quietUntilLive.
         NotifyInterrupted(PlaybackInterruptionKind.Unavailable);
+        // SP-0215 requirement 7: a refusal the relay's challenge caused forgets the stale password here -
+        // the session's own Retry is then the one new prompt, never a background retry.
+        if (reason == ExchangeBroadcastAuth.PasswordRefusedReason)
+        {
+            _broadcastCredentials?.NoteRefused(_channel.Id);
+        }
+        SetWaitTextResource(ExchangeBroadcastCertificateException.MessageKey(reason)
+            ?? ExchangeBroadcastAuth.MessageKey(reason) ?? "PlayerUnavailable");
         // SP-0073 acceptance 3: the broadcast is over, so what was on it stops being said. This is the
         // only ending this window outlives - a channel change opens a different window, and a stop closes
         // this one.
@@ -1093,7 +1116,8 @@ public partial class PlayerWindow : Window
             _channel.Title, _channel.SourceOrigin, report, _channel.Access,
             message: unlaunchable
                 ? LocalizationService.Format("PlaybackAddressNotLaunchable", StreamTitleFormatter.Display(_channel.Title))
-                : null,
+                : (ExchangeBroadcastCertificateException.MessageKey(reason) ?? ExchangeBroadcastAuth.MessageKey(reason)) is { } refusalKey
+                    ? LocalizationService.Get(refusalKey) : null,
             canRetry: !unlaunchable,
             reachability: reachability) { Owner = this };
         dialog.ShowDialog();
@@ -1108,6 +1132,12 @@ public partial class PlayerWindow : Window
                 // the hand retry is exactly the moment to stop insisting on a week-old opinion.
                 DropRememberedCeilingOnMiss();
                 NotifyInterrupted(PlaybackInterruptionKind.Connecting); // SP-0072: connecting again, by hand
+                if (_broadcastCredentials is not null)
+                {
+                    // The refusal above took the stale password away; the hand retry is the one
+                    // new prompt, and the new pair answers the next leg's challenge.
+                    _broadcastCredentials.ResolveForRetry(_channel.Id);
+                }
                 _ = RetryAfterFailureAsync();
                 break;
             case PlaybackFailureChoice.Remove:

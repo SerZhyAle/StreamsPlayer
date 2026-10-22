@@ -58,4 +58,30 @@ public static class ChannelHandOutWarnings
 
         return keys;
     }
+
+    /// <summary>
+    /// 196 section 6.4: the export gate for whole ROWS. A broadcast-resource row carries its token in
+    /// the URL path, which <see cref="CatalogUrlIdentity.HasCredentials"/> does not see - there is no
+    /// <c>user:pass@</c> - so a row with a <see cref="StreamChannel.ResourceKey"/> is a secret-bearing
+    /// row and gets the SAME confirmation a credential-bearing address gets, before the exported M3U
+    /// hands a stranger the token. Publishing broadcast rows into the shared stream catalog stays
+    /// forbidden outright (they are <see cref="SourceOrigin.Imported"/> user rows and never reach it).
+    /// </summary>
+    public static IReadOnlyList<string> ExportKeysForRows(IEnumerable<StreamChannel> rows)
+    {
+        var keys = new List<string>(2);
+        var rowList = rows as IList<StreamChannel> ?? rows.ToList();
+        if (rowList.Any(row => CatalogUrlIdentity.HasCredentials(row.Url)) ||
+            rowList.Any(row => row.ResourceKey is { Length: > 0 }))
+        {
+            keys.Add(ExportCredentialKey);
+        }
+
+        if (rowList.Any(row => BroadcastCapabilityAddress.CarriesCapability(row.Url)))
+        {
+            keys.Add(CapabilityKey);
+        }
+
+        return keys;
+    }
 }

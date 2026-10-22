@@ -167,7 +167,7 @@ Buffer live di circa 15 secondi, e il video si assesta sulla qualità che la tua
 Registra il video live o la radio che stai riproducendo direttamente in un file, senza interrompere la riproduzione: il video va nella cartella Recordings di Video, la radio nella cartella Recordings di Musica o nelle cartelle che scegli.
 
 @@cap-play-6
-Ascolta una trasmissione audio o video in diretta da un telefono o da un orologio con FastMediaSorter - attraverso la tua rete locale o tramite il relay del tuo server di scambio quando la trasmissione lo offre.
+Ascolta una trasmissione audio o video in diretta da un telefono o da un orologio con FastMediaSorter - attraverso la tua rete locale o tramite il server di scambio del tuo server di scambio quando la trasmissione lo offre.
 
 @@cap-window-title
 Guardare come vuoi
@@ -256,6 +256,9 @@ Scegli e riproduci
 @@use-2-text
 Sfoglia il catalogo, filtra o cerca, poi seleziona un canale. La radio parte nella finestra principale; video e RTSP si aprono nella finestra del lettore. Un avvio normale non riproduce nulla; attiva «Riprendi la riproduzione all'avvio» nelle [[glyph:app.settings]] impostazioni e l'avvio riporta ciò che era in riproduzione alla chiusura precedente.
 
+Nel visualizzatore a 64 bit, fai clic destro su un video, un file audio o la sua cartella e scegli la trasmissione. Share Manager esporta un file .spres, un codice QR o un collegamento rapido per StreamsPlayer. Una cartella diventa un canale con una playlist fissa; Aggiorna sostituisce la lista e Revoca disattiva il collegamento. Il gateway HTTP ha un interruttore separato, disattivato per impostazione predefinita. Ogni token consente solo la lettura di una trasmissione, normalmente per 24 ore. HTTP non è cifrato: condividi il documento privatamente e attiva internet solo se necessario.
+
+
 @@use-3-title
 Aprire un URL qualsiasi
 
@@ -313,13 +316,40 @@ STREAMS Player · Privacy
 Privato per impostazione predefinita.
 
 @@privacy-intro
-Non serve un account per la riproduzione normale. L’account di scambio facoltativo appartiene al tuo server. Non ci sono pubblicità, analisi, telemetria o servizi gestiti dall’autore.
+Non serve un account per la riproduzione normale. L’account di scambio facoltativo appartiene a un server privato - il tuo o quello di una persona che ti ha invitato -, mai a un servizio di questo prodotto. Non ci sono pubblicità, analisi, telemetria o servizi gestiti dall’autore.
 
 @@privacy-network-title
 Accesso alla rete
 
 @@privacy-network
-L’applicazione si connette solo su tua azione e unicamente verso la destinazione richiesta: il catalogo pubblico dei flussi e il pacchetto di anteprime opzionale su GitHub all’importazione; il provider di un flusso che riproduci, registri o consulti in «Informazioni sul canale», o la cui anteprima si aggiorna in modalità griglia; un dispositivo FastMediaSorter sulla tua rete locale; e, solo se richiesto in Impostazioni nella pagina Riproduzione, le librerie FFmpeg opzionali per il motore sperimentale FlyleafLib (BtbN/FFmpeg-Builds). Ogni richiesta va direttamente a destinazione ; nessun dato transita per server dell’autore. La guida TV viene scaricata solo dall’indirizzo inserito in Impostazioni nella pagina Libreria, una volta premuto «Scarica guida», e mai in background. La fonte di scambio facoltativa nelle impostazioni della libreria si collega al tuo server tramite TLS. Invia nome utente e password o codice di abbinamento una volta per la registrazione, poi identità del dispositivo, versione del prodotto, capacità di ricezione e token. Mantiene una connessione di controllo con segnali di presenza e riconnessioni mentre è attiva; disattivarla chiude la connessione. Ogni certificato richiede approvazione esplicita, anche dopo il rinnovo.  Quando una trasmissione viene riprodotta tramite il relay del proprio server di scambio con un certificato bloccato, quello stream passa attraverso un proxy locale temporaneo su 127.0.0.1 che esiste solo mentre la trasmissione è in riproduzione ed è raggiungibile solo da questo dispositivo.
+L’applicazione si connette solo su tua azione e unicamente verso la destinazione richiesta: il catalogo pubblico dei flussi e il pacchetto di anteprime opzionale su GitHub all’importazione; il provider di un flusso che riproduci, registri o consulti in «Informazioni sul canale», o la cui anteprima si aggiorna in modalità griglia; un dispositivo FastMediaSorter sulla tua rete locale; e, solo se richiesto in Impostazioni nella pagina Riproduzione, le librerie FFmpeg opzionali per il motore sperimentale FlyleafLib (BtbN/FFmpeg-Builds). Ogni richiesta va direttamente a destinazione ; nessun dato transita per server dell’autore. La guida TV viene scaricata solo dall’indirizzo inserito in Impostazioni nella pagina Libreria, una volta premuto «Scarica guida», e mai in background. La fonte di scambio facoltativa nelle impostazioni della libreria si collega al tuo server tramite TLS. Invia nome utente e password o codice di abbinamento una volta per la registrazione, poi identità del dispositivo, versione del prodotto, capacità di ricezione e token. Mantiene una connessione di controllo con segnali di presenza e riconnessioni mentre è attiva; disattivarla chiude la connessione. Importa una stringa o un file nelle impostazioni della raccolta, oppure incollalo o trascinalo nella finestra principale. Contiene l’indirizzo del server e un’impronta facoltativa, nessun segreto. La lettura compila solo il modulo. Controlla l’indirizzo prima di inserire password o codice a ogni registrazione; non vengono conservati. L’impronta fornita deve corrispondere, senza richiesta di fiducia. Senza di essa, approva l’impronta prima della registrazione; i cambiamenti successivi richiedono conferma. Non serve un agente locale né un altro programma.  Quando una trasmissione viene riprodotta tramite il server di scambio del proprio server di scambio con un certificato bloccato, quello stream passa attraverso un proxy locale temporaneo su 127.0.0.1 che esiste solo mentre la trasmissione è in riproduzione ed è raggiungibile solo da questo dispositivo. Trasmissione: l’applicazione può inviare l’audio di questo PC - un microfono a scelta e il suono che il PC riproduce - in diretta al server di scambio del proprio account, solo quando la si consente nelle impostazioni e si avvia da soli una sorgente; finché ciò non avviene è spenta, non si registra nulla mentre è spenta, e mentre una sorgente è in diretta un indicatore visibile con arresto lo mostra. Gli ascoltatori si collegano tramite la rete locale, se attivata, oppure tramite il server di scambio. È possibile limitarne il numero. Ogni copia inviata separatamente usa il traffico in uscita del PC; il server di scambio può distribuire una copia a più ascoltatori. La descrizione che gli altri ricevono - come collegamento, file o nella directory dell’account - porta gli indirizzi e il titolo, nessun segreto.
+
+Nel visualizzatore a 64 bit, fai clic destro su un video, un file audio o la sua cartella e scegli la trasmissione. Share Manager esporta un file .spres, un codice QR o un collegamento rapido per StreamsPlayer. Una cartella diventa un canale con una playlist fissa; Aggiorna sostituisce la lista e Revoca disattiva il collegamento. Il gateway HTTP ha un interruttore separato, disattivato per impostazione predefinita. Ogni token consente solo la lettura di una trasmissione, normalmente per 24 ore. HTTP non è cifrato: condividi il documento privatamente e attiva internet solo se necessario.
+
+
+@@privacy-exchange-title
+Server di scambio, trasmissione e crittografia
+
+@@privacy-exchange-private
+Un server di scambio è privato: ognuno gestisce il proprio o usa uno il cui proprietario lo ha invitato. Non esiste alcun server di scambio pubblico e nessun server di scambio è un servizio di questo prodotto.
+
+@@privacy-exchange-honest
+Il server di scambio collega i tuoi dispositivi, quindi conosce i nomi del tuo account, dei dispositivi, delle cartelle e delle trasmissioni, vede quali dispositivi sono online e quanto viene inviato e quando. Non può aprire ciò che passa attraverso di esso: cartelle e relativi file, trasmissioni e appunti vengono cifrati sul tuo dispositivo e aperti solo sui tuoi altri dispositivi o da chi hai dato accesso. Per guardarci dentro, chi gestisce il server dovrebbe aggiungere un proprio dispositivo al tuo account, e comparirebbe nell'elenco dei tuoi dispositivi.
+
+@@privacy-exchange-sends
+Per accedere, questo PC invia una sola volta il tuo login e la tua password o il codice di abbinamento, poi l’identità del dispositivo, il suo nome (STREAMS Player, non il nome del tuo PC), il prodotto, la versione e la piattaforma (Windows), i ruoli, le capacità di ricezione e la metà pubblica della sua chiave di crittografia. Finché la connessione è attiva, il server vede che questo dispositivo è online. Quando trasmetti, riceve il titolo della trasmissione, l’indicazione che è audio e l’audio stesso, cifrato su questo PC prima di uscirne; la chiave privata non lascia mai questo PC.
+
+@@privacy-exchange-broadcast
+La trasmissione invia l’audio di questo PC: un microfono che scegli e il suono che il PC sta riproducendo. È disattivata finché non la consenti nelle impostazioni, nulla viene acquisito mentre è disattivata e avvii tu ogni sorgente; finché una sorgente è in diretta compare un indicatore ben visibile con un pulsante di arresto. Solo se attivi anche l’opzione di avvio con l’applicazione, le sorgenti lasciate scelte ripartono all’avvio dell’applicazione, quando l’account è online. Il dispositivo di un ascoltatore può registrare ciò che riceve e questo programma non può impedirlo.
+
+@@privacy-exchange-camera
+La fotocamera di questo PC serve a una cosa sola: leggere un QR di connessione quando premi «Scansiona con la fotocamera» nelle impostazioni. Finché la finestra di scansione è aperta, l'immagine viene soltanto esaminata in memoria per trovare il QR; non viene mai salvata, inviata né registrata, e la fotocamera viene rilasciata appena la finestra si chiude. Se Windows non segnala alcuna fotocamera, il pulsante non viene offerto.
+
+@@privacy-exchange-account
+Questo programma accede e non crea mai un account. Un account si elimina in FastMediaSorter sul telefono, o chiedendolo a chi gestisce il server; il portale di scambio spiega come. Uscire su questo dispositivo rimuove questo dispositivo, non l’account.
+
+@@privacy-exchange-portal
+Come eliminare un account
 
 @@privacy-site-title
 Questo sito web
@@ -330,7 +360,7 @@ Questa sezione riguarda il sito web, non l'applicazione. Ogni pagina carica i pr
 Dati locali
 
 @@privacy-local
-STREAMS Player memorizza lo stato del catalogo, i canali aggiunti e importati, i preferiti, le raccolte, i canali nascosti, la cronologia di ascolto, i segnalibri di riproduzione, i fotogrammi di anteprima entro 150 MB, le librerie FFmpeg opzionali e i registri diagnostici degli ultimi dieci avvii in [[appdata]]. Registrazioni e fotogrammi vanno nelle cartelle scelte (per impostazione predefinita Videos/Recordings, Music/Recordings e Pictures/Frames). Questi dati restano sul dispositivo a meno che non si utilizzi «Invia i registri all’autore» in Impostazioni nella pagina Informazioni per inviarli a [[email]]. La guida TV scaricata e le relative associazioni sono conservate anch’esse lì; «Rimuovi guida» in Impostazioni le elimina entrambe. Password e codice vengono eliminati. Account, token e impronta sono protetti per il tuo utente Windows in un file separato; rimuovere l’account li cancella. Gli archivi diagnostici escludono quel file e oscurano i dati dell’account. Le connessioni di scambio iniziano solo dopo la tua configurazione esplicita della fonte.
+STREAMS Player memorizza lo stato del catalogo, i canali aggiunti e importati, i preferiti, le raccolte, i canali nascosti, la cronologia di ascolto, i segnalibri di riproduzione, i fotogrammi di anteprima entro 150 MB, le librerie FFmpeg opzionali e i registri diagnostici degli ultimi dieci avvii in [[appdata]]. Registrazioni e fotogrammi vanno nelle cartelle scelte (per impostazione predefinita Videos/Recordings, Music/Recordings e Pictures/Frames). Questi dati restano sul dispositivo a meno che non si utilizzi «Invia i registri all’autore» in Impostazioni nella pagina Informazioni per inviarli a [[email]]. La guida TV scaricata e le relative associazioni sono conservate anch’esse lì; «Rimuovi guida» in Impostazioni le elimina entrambe. Password e codice vengono eliminati. Account, token e impronta sono protetti per il tuo utente Windows in un file separato; rimuovere l’account li cancella. Gli archivi diagnostici escludono quel file e oscurano i dati dell’account. Le connessioni di scambio iniziano solo dopo la tua configurazione esplicita della fonte. Questo dispositivo conserva un account di scambio. Cambiare server o nome utente richiede conferma prima di rimuovere l'account attuale; accedere di nuovo allo stesso account mantiene l'identità del dispositivo. La rimozione chiede al server di rimuovere il dispositivo, poi dimentica la connessione locale anche se il server non è disponibile. I canali importati restano. Se il server non può essere avvisato, l'app indica che il dispositivo potrebbe restare nell'elenco finché un altro non lo rimuove. La rimozione non viene ritentata in background.
 
 @@privacy-contact-title
 Contatti
@@ -429,7 +459,7 @@ Cosa STREAMS Player non fa mai
 Non ha mai bisogno dei diritti di amministratore per installarsi o funzionare, non si aggiunge mai all'avvio di Windows e non installa alcun servizio in background.
 
 @@trust-never-2
-Non serve un account per la riproduzione normale. L’account di scambio facoltativo appartiene al tuo server. Non ci sono pubblicità, analisi, telemetria o servizi gestiti dall’autore.
+Non serve un account per la riproduzione normale. L’account di scambio facoltativo appartiene a un server privato - il tuo o quello di una persona che ti ha invitato -, mai a un servizio di questo prodotto. Non ci sono pubblicità, analisi, telemetria o servizi gestiti dall’autore.
 
 @@trust-never-3
 Si connette solo quando agisci e unicamente per ciò che l’azione richiede: catalogo pubblico e anteprime su GitHub, provider del flusso in riproduzione, registrazione o anteprima, dispositivo FastMediaSorter in rete locale e librerie FFmpeg opzionali se richieste in Impostazioni. La guida TV è scaricata solo dall’indirizzo inserito quando premi «Scarica guida».

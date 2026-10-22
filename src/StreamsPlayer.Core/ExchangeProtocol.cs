@@ -32,12 +32,36 @@ public static class ExchangeCapabilities
         new ExchangePlayPair(FastMediaSorterBroadcastDescriptor.VideoAudioMode, "TUNNEL")
     });
 
-    public static object Receiver => new
+    /// <summary>
+    /// Item AM: the most pairs an `enroll` may declare. A server closes an enrollment that exceeds it without
+    /// an answer, so the bound is kept here and not rediscovered from a dropped connection.
+    /// </summary>
+    public const int MaximumDeclaredPairs = 8;
+
+    public static object Receiver => Declare(Plays);
+
+    /// <summary>
+    /// The `receiver` member of an `enroll`. Item AM lets `plays` stay out when the product of `modes` and
+    /// `transports` exceeds <see cref="MaximumDeclaredPairs"/>, and item E reads the two lists as that same
+    /// product, so omitting it is the declaration the contract asks for and not a weaker one; the exact pairs
+    /// stay in <see cref="Plays"/> for the cast answers.
+    /// </summary>
+    public static object Declare(IReadOnlyList<ExchangePlayPair> plays)
     {
-        modes = Plays.Select(pair => pair.Mode).Distinct().ToArray(),
-        transports = Plays.Select(pair => pair.Transport).Distinct().ToArray(),
-        plays = Plays.Select(pair => new { mode = pair.Mode, transport = pair.Transport }).ToArray()
-    };
+        var modes = plays.Select(pair => pair.Mode).Distinct().ToArray();
+        var transports = plays.Select(pair => pair.Transport).Distinct().ToArray();
+        if (modes.Length * transports.Length > MaximumDeclaredPairs)
+        {
+            return new { modes, transports };
+        }
+
+        return new
+        {
+            modes,
+            transports,
+            plays = plays.Select(pair => new { mode = pair.Mode, transport = pair.Transport }).ToArray()
+        };
+    }
 }
 
 public static class ExchangeProtocol
@@ -49,7 +73,8 @@ public static class ExchangeProtocol
         "enroll", "enrolled", "hello", "welcome", "refused", "keepalive", "bye", "list", "directory",
         "subscribe", "changed", "publish", "published", "unpublish", "broadcast-start", "broadcast-started",
         "broadcast-update", "broadcast-end", "pairing-request", "pairing-code", "revoke", "connect", "open",
-        "attach", "connected", "upload", "upload-accepted", "cast", "cast-offer", "cast-answer", "cast-result", "cast-stop"
+        "attach", "connected", "upload", "upload-accepted", "cast", "cast-offer", "cast-answer", "cast-result", "cast-stop",
+        "password-change", "password-changed"
     };
     public static JsonSerializerOptions JsonOptions { get; } = new(JsonSerializerDefaults.Web);
 
@@ -61,19 +86,34 @@ public static class ExchangeProtocol
     public static string Fingerprint(ReadOnlySpan<byte> certificate) =>
         "SHA256:" + Convert.ToBase64String(SHA256.HashData(certificate)).TrimEnd('=');
 
-    public static string RefusalKey(string? reason) => reason switch
+    /// <summary>
+    /// The interface key of a <c>refused.reason</c>: the text of its row in the family's table of messages
+    /// (<c>DEVICE-EXCHANGE</c> item CZ). An unknown reason is the generic refusal. <paramref name="oneTimeCode"/>
+    /// selects the table's separate wording for a wrong one-time code (the pairing code).
+    /// </summary>
+    public static string RefusalKey(string? reason, bool oneTimeCode = false) =>
+        ExchangeFailureRows.OfWire(reason, oneTimeCode).MessageKey;
+
+    /// <summary>
+    /// Item AY: the leaf's public key, kept next to the leaf fingerprint so a renewal with the same key is told
+    /// from a different server. <c>SHA256:</c> over the DER SubjectPublicKeyInfo, in the same written form as
+    /// <see cref="Fingerprint"/>; null when the bytes are not a certificate. It is kept on the device only and
+    /// never written into a string, a descriptor or a record.
+    /// </summary>
+    public static string? PublicKeyFingerprint(ReadOnlySpan<byte> certificate)
     {
-        "bad-credentials" => "ExchangeBadCredentials",
-        "device-revoked" => "ExchangeDeviceRevoked",
-        "version-unsupported" => "ExchangeVersionUnsupported",
-        "tls-required" => "ExchangeTlsRequired",
-        "id-collision" => "ExchangeIdCollision",
-        "capacity" => "ExchangeCapacity",
-        "port-unavailable" => "ExchangePortUnavailable",
-        "unavailable" => "ExchangeUnavailable",
-        "rate-limited" => "ExchangeRateLimited",
-        _ => "ExchangeRefused"
-    };
+        try
+        {
+            using var parsed = System.Security.Cryptography.X509Certificates.X509CertificateLoader
+                .LoadCertificate(certificate);
+            return "SHA256:" + Convert.ToBase64String(SHA256.HashData(parsed.PublicKey.ExportSubjectPublicKeyInfo()))
+                .TrimEnd('=');
+        }
+        catch (CryptographicException)
+        {
+            return null;
+        }
+    }
 
     public static async Task<JsonDocument> ReadAsync(Stream stream, bool authenticated, CancellationToken cancellationToken)
     {

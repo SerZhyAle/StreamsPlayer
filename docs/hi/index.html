@@ -58,13 +58,32 @@
         // /de/ typed or followed that URL and must keep it, and redirecting from a language folder
         // would fight the visitor and risk a loop. Runs before paint so no wrong-language flash.
         var root = document.documentElement;
-        if (root.dataset.entry !== "true") {
-          return;
-        }
         var urls = {};
         try {
           urls = JSON.parse(document.getElementById("language-urls").textContent);
         } catch (error) {
+          return;
+        }
+        // PAGE-STYLE amendment 2026-10-17: explicit shipped locales override remembered choices,
+        // including on child/locale pages; a valid canonical query wins over the legacy spelling.
+        var query = new URLSearchParams(window.location.search);
+        var canonical = query.get("lang");
+        var legacy = query.get("l");
+        var requested = Object.prototype.hasOwnProperty.call(urls, canonical) ? canonical
+          : Object.prototype.hasOwnProperty.call(urls, legacy) ? legacy : null;
+        if (requested) {
+          root.setAttribute("data-lang", requested === "uk" ? "ua" : requested);
+          if (root.lang.split("-")[0] !== requested) {
+            var destination = new URL(urls[requested], window.location.href);
+            query.delete("lang");
+            query.delete("l");
+            destination.search = query.toString();
+            destination.hash = window.location.hash;
+            window.location.replace(destination.href);
+          }
+          return;
+        }
+        if (root.dataset.entry !== "true") {
           return;
         }
         // sza-lang holds only ru, en or ua (PAGE-STYLE section 7), so a further locale chosen here is
@@ -238,7 +257,7 @@
               <li>लाइव वीडियो और RTSP अलग प्लेयर विंडो में खुलते हैं, जो बज रहा ट्रैक तस्वीर के ऊपर दिखाती है।</li>
               <li>लगभग 15 सेकंड का लाइव बफ़र, और वीडियो उसी गुणवत्ता पर टिक जाता है जो आपका कनेक्शन संभाल सके, और अगली बार वहीं से खुलता है।</li>
               <li>जो लाइव वीडियो या रेडियो चल रहा है, उसे प्लेबैक रोके बिना सीधे एक फ़ाइल में रिकॉर्ड करें: वीडियो रिकॉर्डिंग &quot;वीडियो&quot; के Recordings फ़ोल्डर में जाती है, रेडियो रिकॉर्डिंग &quot;संगीत&quot; के Recordings फ़ोल्डर में, या आपके चुने हुए फ़ोल्डरों में।</li>
-              <li>FastMediaSorter वाले फ़ोन या घड़ी से लाइव ऑडियो या वीडियो प्रसारण सुनें या देखें - आपके स्थानीय नेटवर्क पर, या प्रसारण द्वारा इसे ऑफ़र किए जाने पर आपके एक्सचेंज सर्वर के रिले से।</li>
+              <li>FastMediaSorter वाले फ़ोन या घड़ी से लाइव ऑडियो या वीडियो प्रसारण सुनें या देखें - आपके स्थानीय नेटवर्क पर, या प्रसारण द्वारा इसे ऑफ़र किए जाने पर आपके एक्सचेंज सर्वर के एक्सचेंज सर्वर से।</li>
             </ul>
           </article>
           <article class="card cap">
@@ -297,7 +316,9 @@
           <li class="step">
             <div>
               <h3>चुनें और चलाएँ</h3>
-              <p>सूची देखें, फ़िल्टर करें या खोजें, फिर कोई चैनल चुनें। रेडियो मुख्य विंडो में शुरू होता है; वीडियो और RTSP प्लेयर विंडो में खुलते हैं। सामान्य शुरुआत में कुछ नहीं चलता; <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg> सेटिंग में «शुरू होने पर प्लेबैक फिर चालू करें» चालू करें और शुरुआत वही लौटा लाएगी जो पिछली बार बंद करते समय चल रहा था।</p>
+              <p>सूची देखें, फ़िल्टर करें या खोजें, फिर कोई चैनल चुनें। रेडियो मुख्य विंडो में शुरू होता है; वीडियो और RTSP प्लेयर विंडो में खुलते हैं। सामान्य शुरुआत में कुछ नहीं चलता; <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg> सेटिंग में «शुरू होने पर प्लेबैक फिर चालू करें» चालू करें और शुरुआत वही लौटा लाएगी जो पिछली बार बंद करते समय चल रहा था।
+
+64-बिट व्यूअर में वीडियो, ऑडियो फ़ाइल या उसके फ़ोल्डर पर दायाँ क्लिक करके प्रसारण चुनें। Share Manager, StreamsPlayer में आयात करने के लिए .spres फ़ाइल, QR कोड या त्वरित लिंक देता है। फ़ोल्डर एक स्थिर प्लेलिस्ट वाला चैनल बनता है; रीफ़्रेश सूची बदलता है और रद्द करने से लिंक बंद होता है। HTTP गेटवे का अलग स्विच है और वह डिफ़ॉल्ट रूप से बंद है। हर टोकन केवल एक प्रसारण को पढ़ने देता है, आम तौर पर 24 घंटे के लिए। HTTP एन्क्रिप्टेड नहीं है: दस्तावेज़ निजी तौर पर साझा करें और इंटरनेट पहुँच ज़रूरत पर ही चालू करें।</p>
             </div>
           </li>
           <li class="step">
@@ -372,7 +393,7 @@
         <h2 class="footer-heading">और उपकरण</h2>
         <div class="tools-grid">
           <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>Fast Media Sorter &amp; Organizer</b><span>Android मीडिया सॉर्टर</span></a>
-          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter for Windows</b><span>Windows मीडिया सॉर्टर</span></a>
+          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter &amp; Sharing for Windows</b><span>Windows मीडिया सॉर्टर</span></a>
           <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Windows कीबोर्ड लेआउट सुधारक</span></a>
           <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows ई-बुक कनवर्टर</span></a>
           <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows स्टोरेज कमांड-लाइन टूल</span></a>

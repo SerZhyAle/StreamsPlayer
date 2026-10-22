@@ -15,4 +15,16 @@ public static class SettingsUiProperties
     public static string? GetGroupId(DependencyObject obj) => (string?)obj.GetValue(GroupIdProperty);
 
     public static void SetGroupId(DependencyObject obj, string? value) => obj.SetValue(GroupIdProperty, value);
+
+    /// <summary>
+    /// SP-0234: a picture that leads a group's heading (the exchange mark beside "Exchange server",
+    /// <c>EXCHANGE-MARK</c> rule 8a). It is a property of the group rather than part of its header so the header
+    /// stays the text the toggle takes its accessible name from, and so every other group is drawn as before.
+    /// </summary>
+    public static readonly DependencyProperty HeaderMarkProperty = DependencyProperty.RegisterAttached(
+        "HeaderMark", typeof(object), typeof(SettingsUiProperties), new PropertyMetadata(null));
+
+    public static object? GetHeaderMark(DependencyObject obj) => obj.GetValue(HeaderMarkProperty);
+
+    public static void SetHeaderMark(DependencyObject obj, object? value) => obj.SetValue(HeaderMarkProperty, value);
 }

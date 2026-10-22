@@ -18,7 +18,7 @@ namespace StreamsPlayer.Exchange.Tests;
 /// some other server's certificate (SP-0200 item D). Every test drives the shipping <c>ExchangeSourceService</c>
 /// against scripted TLS servers.
 /// </summary>
-public sealed class ExchangeLoopRecoveryTests
+public sealed partial class ExchangeLoopRecoveryTests
 {
     [Theory]
     [InlineData("schema")]
@@ -50,7 +50,7 @@ public sealed class ExchangeLoopRecoveryTests
         try
         {
             await Until(() => server.Connections >= 2 && service.StatusKey == "ExchangeOnline");
-            Assert.Contains("ExchangeUnavailable", statuses);
+            Assert.Contains("ExchangeUnanswered", statuses);
         }
         finally
         {
@@ -99,10 +99,9 @@ public sealed class ExchangeLoopRecoveryTests
     }
 
     [Fact]
-    public async Task EnrollmentThatCannotConnect_PutsTheRunningReceiverBack()
+    public async Task ReplacementWithoutConfirmation_KeepsTheRunningReceiver()
     {
-        // expected: the receiver that EnrollAsync stopped is running again after the failure, and the failure
-        // stays on the status line until it is online | actual (before): nothing restarted it.
+        // A different endpoint needs explicit leave consent before the receiver or stored account changes.
         using var certificate = Certificate();
         using var scope = new TestDirectory();
         await using var server = new ScriptedServer(certificate, async (index, tls, token) =>
@@ -121,8 +120,9 @@ public sealed class ExchangeLoopRecoveryTests
             await service.EnrollAsync("localhost", closedPort, "someone", false, ['p', 'w'], null)
                 .WaitAsync(TimeSpan.FromSeconds(20));
 
-            Assert.Equal("ExchangeUnavailable", service.StatusKey);
-            await Until(() => server.Connections >= 2 && service.StatusKey == "ExchangeOnline");
+            Assert.Equal("ExchangeReplacementRequired", service.EnrollmentOutcomeKey);
+            Assert.Equal("ExchangeOnline", service.StatusKey);
+            Assert.Equal(1, server.Connections);
             Assert.NotNull(service.Account.Token);
         }
         finally
@@ -161,7 +161,7 @@ public sealed class ExchangeLoopRecoveryTests
         {
             await Until(() => service.StatusKey == "ExchangeOnline");
 
-            await service.EnrollAsync("localhost", server.Port, "someone", false, ['p', 'w'],
+            await service.EnrollAsync("localhost", server.Port, "test-login", false, ['p', 'w'],
                 ExchangeProtocol.Fingerprint(certificate.RawData)).WaitAsync(TimeSpan.FromSeconds(20));
             Assert.Equal("ExchangeBadCredentials", service.EnrollmentOutcomeKey);
 
@@ -256,7 +256,7 @@ public sealed class ExchangeLoopRecoveryTests
 
             Assert.Null(pin);
             Assert.Equal("ExchangeOnline", service.StatusKey);
-            Assert.Equal("ExchangeUnavailable", service.EnrollmentOutcomeKey);
+            Assert.Equal("ExchangeUnreachable", service.EnrollmentOutcomeKey);
         }
         finally
         {
@@ -307,7 +307,7 @@ public sealed class ExchangeLoopRecoveryTests
         Assert.Equal(newPin, presented);
         Assert.Equal(newPin, service.PresentedFingerprint);
         Assert.Equal(oldPin, service.PreviousFingerprint);
-        Assert.Equal("ExchangeCertificate", service.StatusKey);
+        Assert.Equal("ExchangeCertificateChanged", service.StatusKey);
 
         await service.AcceptReplacementPinAsync(newPin);
 
@@ -383,8 +383,8 @@ public sealed class ExchangeLoopRecoveryTests
 
     private static async Task SendFault(SslStream tls, string fault, CancellationToken token)
     {
+        // SP-0222: the session sends a keepalive and then nothing until a lease asks for the directory.
         using var keepalive = await ExchangeProtocol.ReadAsync(tls, true, token);
-        using var list = await ExchangeProtocol.ReadAsync(tls, true, token);
         switch (fault)
         {
             case "schema":

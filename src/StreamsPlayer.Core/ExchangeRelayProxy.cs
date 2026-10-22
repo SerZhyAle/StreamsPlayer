@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography;
@@ -15,7 +14,7 @@ namespace StreamsPlayer.Core;
 /// whole decision, and splices the relay's live body to that connection. It exists for one leg and
 /// is closed with it: while nothing plays, nothing listens.
 /// </summary>
-public sealed class ExchangeRelayProxy : IDisposable
+public sealed partial class ExchangeRelayProxy : IDisposable
 {
     /// <summary>Requirement 7: one leg, one connection. A second connection is refused outright.</summary>
     public const int MaximumConnections = 1;
@@ -27,6 +26,8 @@ public sealed class ExchangeRelayProxy : IDisposable
 
     private readonly Uri _relayUrl;
     private readonly string? _certFingerprint;
+    private readonly ExchangeRelayCredentials? _credentials;
+    private readonly ExchangeSealedRelayOptions? _sealed;
     private readonly Func<string, int, string?, CancellationToken, Task<Stream>> _streamConnector;
     private readonly TcpListener _listener;
     private readonly CancellationTokenSource _cts = new();
@@ -35,6 +36,9 @@ public sealed class ExchangeRelayProxy : IDisposable
     private readonly List<IDisposable> _activeResources = [];
     private int _claimed;
     private bool _disposed;
+    public static readonly TimeSpan IdleTimeout = ExchangeBroadcastResources.IdleTimeout;
+    private readonly Timer _idleTimer;
+    private readonly IDisposable _lease;
 
     public int BoundPort { get; }
     public string LoopbackUrl { get; }
@@ -49,43 +53,64 @@ public sealed class ExchangeRelayProxy : IDisposable
     private ExchangeRelayProxy(
         Uri relayUrl,
         string? certFingerprint,
-        Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector)
+        Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector,
+        ExchangeRelayCredentials? credentials,
+        ExchangeSealedRelayOptions? sealedRelay,
+        IDisposable lease)
     {
+        _lease = lease;
+        _sealed = sealedRelay;
         _relayUrl = relayUrl;
         _certFingerprint = certFingerprint;
-        _streamConnector = streamConnector ?? DefaultConnectAsync;
+        _credentials = credentials;
+        _streamConnector = streamConnector ?? ExchangeBroadcastCertificateException.ConnectAsync;
 
         _listener = new TcpListener(IPAddress.Loopback, 0);
         _listener.Start();
         BoundPort = ((IPEndPoint)_listener.LocalEndpoint).Port;
         LoopbackUrl = $"http://127.0.0.1:{BoundPort}/{_token}";
+        _idleTimer = new Timer(_ => Dispose(), null, IdleTimeout, Timeout.InfiniteTimeSpan);
     }
 
     public static ExchangeRelayProxy Start(
         string relayUrl,
         string? certFingerprint,
-        Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector = null)
+        Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector = null,
+        ExchangeRelayCredentials? credentials = null,
+        ExchangeSealedRelayOptions? sealedRelay = null)
     {
         if (!Uri.TryCreate(relayUrl, UriKind.Absolute, out var url) || url.Scheme != Uri.UriSchemeHttps)
         {
             throw new ArgumentException("The relay listen URL must be an absolute https address.", nameof(relayUrl));
         }
 
-        var proxy = new ExchangeRelayProxy(url, certFingerprint, streamConnector);
+        var proxy = ExchangeBroadcastResources.Start(lease => new ExchangeRelayProxy(url, certFingerprint, streamConnector, credentials, sealedRelay, lease));
         proxy.StartAcceptLoop();
         return proxy;
     }
 
     private void StartAcceptLoop()
     {
+        var token = _cts.Token;
         Task.Run(async () =>
         {
             try
             {
-                while (!_cts.IsCancellationRequested)
+                while (!token.IsCancellationRequested)
                 {
-                    var client = await _listener.AcceptTcpClientAsync(_cts.Token).ConfigureAwait(false);
-                    _ = Task.Run(() => HandleConnectionAsync(client, _cts.Token));
+                    var client = await _listener.AcceptTcpClientAsync(token).ConfigureAwait(false);
+                    lock (_lock)
+                    {
+                        if (_disposed || _claimed >= MaximumConnections ||
+                            _activeResources.OfType<TcpClient>().Any())
+                        {
+                            RefusedCount++;
+                            client.Dispose();
+                            continue;
+                        }
+                        _activeResources.Add(client);
+                    }
+                    _ = Task.Run(() => HandleConnectionAsync(client, token));
                 }
             }
             catch (OperationCanceledException)
@@ -127,11 +152,12 @@ public sealed class ExchangeRelayProxy : IDisposable
 
                 _claimed++;
                 claimed = true;
-                _activeResources.Add(client);
             }
 
             ConnectAttempts++;
-            relayStream = await _streamConnector(_relayUrl.Host, _relayUrl.Port, _certFingerprint, cancellationToken).ConfigureAwait(false);
+            using var connect = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            connect.CancelAfter(RelayHeadTimeout);
+            relayStream = await _streamConnector(_relayUrl.Host, _relayUrl.Port, _certFingerprint, connect.Token).ConfigureAwait(false);
             lock (_lock)
             {
                 if (_disposed)
@@ -152,9 +178,30 @@ public sealed class ExchangeRelayProxy : IDisposable
             var relayStatus = RelayStatus(head);
             if (relayStatus is not (>= 200 and < 300))
             {
-                LastFailure = relayStatus is { } refused ? $"relay-refused-{refused}" : "relay-head-unparsable";
+                // SP-0215 requirement 7: the relay's challenge is named, never a bare refusal -
+                // the message it drives tells the person which password state the broadcast is in.
+                if (relayStatus == 401)
+                {
+                    LastFailure = _credentials is null
+                        ? ExchangeBroadcastAuth.PasswordRequiredReason
+                        : ExchangeBroadcastAuth.PasswordRefusedReason;
+                }
+                else
+                {
+                    LastFailure = relayStatus is { } refused ? $"relay-refused-{refused}" : "relay-head-unparsable";
+                }
                 Failed?.Invoke(LastFailure);
-                await WriteClientHeadAsync(client, "HTTP/1.0 502 Bad Gateway\r\nConnection: close\r\n\r\n").ConfigureAwait(false);
+                // SP-0226: a sealed audio route classifies the answer's status itself (the watch's listener cap is a 503),
+                // so a sealed relay passes that one through; every other refusal is the gateway's 502 as before.
+                var answer = _sealed is not null && relayStatus == 503 ? "HTTP/1.0 503 Service Unavailable" : "HTTP/1.0 502 Bad Gateway";
+                await WriteClientHeadAsync(client, answer + "\r\nConnection: close\r\n\r\n").ConfigureAwait(false);
+                return;
+            }
+
+            if (_sealed is { } sealedRelay)
+            {
+                // SP-0226 / item DL: the body is records, not media; the player is handed clear media or nothing.
+                relayStream = await RunSealedAsync(relayStream, head, leftover, client, sealedRelay, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -167,6 +214,7 @@ public sealed class ExchangeRelayProxy : IDisposable
         {
             LastFailure = exception switch
             {
+                ExchangeBroadcastCertificateException certificate => certificate.Reason,
                 AuthenticationException => "certificate-refused",
                 OperationCanceledException => "cancelled",
                 _ => exception.GetType().Name
@@ -258,6 +306,12 @@ public sealed class ExchangeRelayProxy : IDisposable
         builder.Append("GET ").Append(_relayUrl.PathAndQuery).Append(" HTTP/1.1\r\n");
         builder.Append("Host: ").Append(_relayUrl.Authority).Append("\r\n");
         builder.Append("User-Agent: StreamsPlayer/0.1\r\n");
+        if (_credentials is not null)
+        {
+            // Item M: the pair rides the endpoint's own TLS connection, so the trust rule has
+            // already passed when these bytes are written, and no URL ever carries it.
+            builder.Append("Authorization: Basic ").Append(ExchangeBroadcastAuth.BasicValue(_credentials)).Append("\r\n");
+        }
         builder.Append("Accept: */*\r\n");
         builder.Append("Connection: close\r\n\r\n");
         return Encoding.ASCII.GetBytes(builder.ToString());
@@ -346,7 +400,7 @@ public sealed class ExchangeRelayProxy : IDisposable
         }
     }
 
-    private static async Task SpliceAsync(Stream relay, byte[] leftover, TcpClient client, CancellationToken cancellationToken)
+    private async Task SpliceAsync(Stream relay, byte[] leftover, TcpClient client, CancellationToken cancellationToken)
     {
         var playerStream = client.GetStream();
         if (leftover.Length > 0)
@@ -364,35 +418,18 @@ public sealed class ExchangeRelayProxy : IDisposable
                 break; // the broadcast ended; the client's Connection: close makes this the end too
             }
 
+            NoteActivity();
             await playerStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
             await playerStream.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private static async Task<Stream> DefaultConnectAsync(string host, int port, string? certFingerprint, CancellationToken cancellationToken)
+    private void NoteActivity()
     {
-        var client = new TcpClient();
-        try
+        lock (_lock)
         {
-            await client.ConnectAsync(host, port, cancellationToken).ConfigureAwait(false);
-            var ssl = new SslStream(client.GetStream(), leaveInnerStreamOpen: false,
-                (_, certificate, _, chainErrors) => ExchangeCertificatePin.Accepts(certificate, certFingerprint, chainErrors));
-            try
-            {
-                await ssl.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { TargetHost = host }, cancellationToken).ConfigureAwait(false);
-            }
-            catch
-            {
-                ssl.Dispose();
-                throw;
-            }
-
-            return ssl;
-        }
-        catch
-        {
-            client.Dispose();
-            throw;
+            if (!_disposed)
+                _idleTimer.Change(IdleTimeout, Timeout.InfiniteTimeSpan);
         }
     }
 
@@ -408,6 +445,7 @@ public sealed class ExchangeRelayProxy : IDisposable
             _disposed = true;
         }
 
+        _idleTimer.Dispose();
         _cts.Cancel();
         try
         {
@@ -437,5 +475,6 @@ public sealed class ExchangeRelayProxy : IDisposable
         }
 
         _cts.Dispose();
+        _lease.Dispose();
     }
 }

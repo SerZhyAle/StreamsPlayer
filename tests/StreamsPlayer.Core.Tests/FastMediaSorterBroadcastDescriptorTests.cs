@@ -405,7 +405,8 @@ public sealed class FastMediaSorterBroadcastDescriptorTests
                         "sampleRate": 44100,
                         "isLive": true,
                         "targetLatencyMs": 2000,
-                        "certFingerprint": "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk"
+                        "certFingerprint": "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk",
+                        "seal": { "v": 1, "pin": "SHA256:8f6TQvCbXjDMOyu4A9JzKcWlEHmR5pNsGgVaU2wYqhk" }
                     }
                 ]
             }
@@ -447,6 +448,36 @@ public sealed class FastMediaSorterBroadcastDescriptorTests
 
         Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, read.Status);
         Assert.Empty(read.Broadcast!.Endpoints);
+    }
+
+    [Fact]
+    public void ProtectedDescriptorCarriesTheAuthMarkerWithoutASecret()
+    {
+        var read = FastMediaSorterBroadcastDescriptor.Read(
+            """{"schemaVersion":1,"url":"http://192.168.1.97:8768/live-audio.aac","mode":"AUDIO_ONLY","auth":{"scheme":"password-v1","user":"listener"},"endpoints":[{"url":"https://relay.example/v2/b/id/stream","transport":"RELAY","mode":"AUDIO_ONLY"}]}""");
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.Ok, read.Status);
+        Assert.NotNull(read.Broadcast);
+        // Item M: the marker names the scheme and the user only - no password, no hash, nothing testable.
+        Assert.Equal("password-v1", read.Broadcast.Auth!.Scheme);
+        Assert.Equal("listener", read.Broadcast.Auth.User);
+    }
+
+    /// <summary>
+    /// Item M: a present <c>auth</c> that names no scheme or no user is a broken payload, not an
+    /// unprotected broadcast - reading it as one would send a listener to a door that always refuses.
+    /// </summary>
+    [Theory]
+    [InlineData("{\"schemaVersion\":1,\"url\":\"http://192.168.1.97:8768/live-audio.aac\",\"mode\":\"AUDIO_ONLY\",\"auth\":\"password-v1\"}")]
+    [InlineData("{\"schemaVersion\":1,\"url\":\"http://192.168.1.97:8768/live-audio.aac\",\"mode\":\"AUDIO_ONLY\",\"auth\":{}}")]
+    [InlineData("{\"schemaVersion\":1,\"url\":\"http://192.168.1.97:8768/live-audio.aac\",\"mode\":\"AUDIO_ONLY\",\"auth\":{\"scheme\":\"password-v1\"}}")]
+    [InlineData("{\"schemaVersion\":1,\"url\":\"http://192.168.1.97:8768/live-audio.aac\",\"mode\":\"AUDIO_ONLY\",\"auth\":{\"user\":\"listener\"}}")]
+    public void AuthMarkerThatNamesNoSchemeOrNoUserIsABrokenPayload(string payload)
+    {
+        var read = FastMediaSorterBroadcastDescriptor.Read(payload);
+
+        Assert.Equal(FastMediaSorterBroadcastReadStatus.InvalidPayload, read.Status);
+        Assert.Null(read.Broadcast);
     }
 
     // A test used to read a copy of the LIVE-BROADCAST document out of this repository and assert it

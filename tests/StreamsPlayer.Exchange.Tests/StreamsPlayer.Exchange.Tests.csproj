@@ -10,12 +10,49 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageReference Include="ZXing.Net" Version="0.16.10" />
     <Using Include="Xunit" />
     <ProjectReference Include="../../src/StreamsPlayer.Core/StreamsPlayer.Core.csproj" />
     <!-- Compile Windows-only seams as sources, on the Core tests' existing transport-seam pattern. -->
     <Compile Include="../../src/StreamsPlayer.App/ExchangeAccountStore.cs" Link="ExchangeAccountStore.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeBroadcastPasswordStore.cs" Link="ExchangeBroadcastPasswordStore.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeTlsConnection.cs" Link="ExchangeTlsConnection.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeTunnelBridge.cs" Link="ExchangeTunnelBridge.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeFailures.cs" Link="ExchangeFailures.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeDiagnosisProbes.cs" Link="ExchangeDiagnosisProbes.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeDiagnosisRequest.cs" Link="ExchangeDiagnosisRequest.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeConnectionImport.cs" Link="ExchangeConnectionImport.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeQrReader.cs" Link="ExchangeQrReader.cs" />
+    <!-- SP-0229: the camera scan's decisions. The capture itself (catalog, session) uses WinRT and is not compiled here. -->
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeCameraScanner.cs" Link="ExchangeCameraScanner.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeCameraFormats.cs" Link="ExchangeCameraFormats.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.cs" Link="ExchangeSourceService.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Leave.cs" Link="ExchangeSourceService.Leave.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Enroll.cs" Link="ExchangeSourceService.Enroll.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Password.cs" Link="ExchangeSourceService.Password.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeGuestEntries.cs" Link="ExchangeGuestEntries.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Producer.cs" Link="ExchangeSourceService.Producer.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Directory.cs" Link="ExchangeSourceService.Directory.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Sealed.cs" Link="ExchangeSourceService.Sealed.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeTrustBook.cs" Link="ExchangeTrustBook.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeGuestDirectoryViewer.cs" Link="ExchangeGuestDirectoryViewer.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ProductInfo.cs" Link="ProductInfo.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/CurrentLog.cs" Link="CurrentLog.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/FastMediaSorterPlaybackTransport.cs" Link="FastMediaSorterPlaybackTransport.cs" />
+    <Content Include="Vectors\protection-v1.json;Vectors\PROVENANCE.txt"
+             CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0221: the connection-string corpus adopted under vectors/fmsw-224 (one copy, held by the Core
+         tests) and two QR pictures made by another product's encoder, pinned by hash in the test. -->
+    <Content Include="..\StreamsPlayer.Core.Tests\Vectors\fmsw-224\connection-string-v1.json"
+             Link="Vectors\fmsw-224\connection-string-v1.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Vectors\qr\*.png;Vectors\qr\*.fmscfg;Vectors\qr\PROVENANCE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0228: the FMS_Win server corpus (DEVICE-EXCHANGE item BS) and the account transcripts (items AO to AZ) replayed through
+         the real service. One physical copy of each, held by the Core tests, with the loader and the AM checker they share. -->
+    <Content Include="..\StreamsPlayer.Core.Tests\Vectors\server\server-frames-v2.json"
+             Link="Vectors\server\server-frames-v2.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\StreamsPlayer.Core.Tests\Vectors\fmsw-224\frames-v2.json"
+             Link="Vectors\fmsw-224\frames-v2.json" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="..\StreamsPlayer.Core.Tests\ExchangeFramesCorpus.cs" Link="ExchangeFramesCorpus.cs" />
+    <Compile Include="..\StreamsPlayer.Core.Tests\ExchangeEnrollmentBounds.cs" Link="ExchangeEnrollmentBounds.cs" />
   </ItemGroup>
 </Project>

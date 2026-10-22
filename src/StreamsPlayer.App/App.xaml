@@ -1,7 +1,8 @@
 <Application x:Class="StreamsPlayer.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:StreamsPlayer.App">
+             xmlns:local="clr-namespace:StreamsPlayer.App"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -46,6 +47,39 @@
             <SolidColorBrush x:Key="NavInkAudio" Color="#FF7A2CA0" />
             <SolidColorBrush x:Key="NavInkFiles" Color="#FF965212" />
             <SolidColorBrush x:Key="NavInkAbout" Color="#FF5A657A" />
+            <!-- SP-0231 (UI-SIZING 1.1): the measurements every covered component shares - the design-time
+                 defaults, which are the Standard size with the Pointer profile. The live values are written by
+                 UiProfileService from UiMetricsResolver, the one place the numbers are decided, so a component
+                 names a token here and never carries a size of its own. UiTokenDeclarationTests holds this
+                 list and the service's publication to the same set of keys. -->
+            <sys:Double x:Key="UiScale">1</sys:Double>
+            <sys:Double x:Key="UiFontSize">12</sys:Double>
+            <sys:Double x:Key="UiFontProduct">13</sys:Double>
+            <sys:Double x:Key="UiFontTitle">18</sys:Double>
+            <sys:Double x:Key="UiFontHeading">24</sys:Double>
+            <sys:Double x:Key="UiTargetHeight">32</sys:Double>
+            <sys:Double x:Key="UiButtonPaddingX">12</sys:Double>
+            <sys:Double x:Key="UiGlyphSize">16</sys:Double>
+            <sys:Double x:Key="UiGlyphGap">8</sys:Double>
+            <CornerRadius x:Key="UiCornerRadius">4</CornerRadius>
+            <sys:Double x:Key="UiBorderWidth">1</sys:Double>
+            <sys:Double x:Key="UiButtonGap">8</sys:Double>
+            <sys:Double x:Key="UiSemanticGroupGap">16</sys:Double>
+            <sys:Double x:Key="UiCheckBoxBox">20</sys:Double>
+            <sys:Double x:Key="UiMarkerSize">16</sys:Double>
+            <sys:Double x:Key="UiNavRowHeight">32</sys:Double>
+            <sys:Double x:Key="UiNavGlyphSize">16</sys:Double>
+            <sys:Double x:Key="UiNavIndent">12</sys:Double>
+            <!-- The same gaps as thickness, for the places a gap is a Margin. WPF mirrors a margin with the
+                 flow direction, so "after" means the reading-end side in both directions. -->
+            <Thickness x:Key="UiBorderThickness">1</Thickness>
+            <Thickness x:Key="UiOptionCellMargin">8,0,0,0</Thickness>
+            <Thickness x:Key="UiOptionHeadingMargin">0,4,0,0</Thickness>
+            <Thickness x:Key="UiInlineGapAfter">0,0,8,0</Thickness>
+            <Thickness x:Key="UiInlineGapBefore">8,0,0,0</Thickness>
+            <Thickness x:Key="UiMarkerMargin">0,0,8,0</Thickness>
+            <Thickness x:Key="UiGroupBodyMargin">12,8,0,2</Thickness>
+            <Thickness x:Key="UiSiblingGroupMargin">0,0,0,8</Thickness>
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
             </Style>
@@ -363,51 +397,80 @@
                 <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
             </Style>
-            <!-- SP-0191: an independently collapsible settings group (WINDOWS-UI 3.1-3.2), drawn as the
-                 reference draws it: a full-width soft bar carries the disclosure glyph and the bold
-                 caption, the whole bar is the activation target, and the chevron shows the action a
-                 click performs (nav.expand when collapsed, nav.collapse when open). Collapse changes
-                 visibility only; the Expander's automation peer carries the expand/collapse state. -->
+            <!-- SP-0191 / SP-0231 (COLLAPSIBLE-GROUP 1.1): an independently collapsible group. A full-width soft
+                 bar carries a state triangle at the reading start and the bold caption; the whole bar is the
+                 activation target and the body is not. The triangle reports the current state - right when
+                 collapsed, down when open, and mirrored by the flow direction in a right-to-left layout - so
+                 it is a vector turned by the template, never the nav.expand / nav.collapse action chevron and
+                 never a typed arrow. Height, marker size and gaps come from the Ui* tokens. Collapse changes
+                 visibility only: a collapsed body takes no space, holds no focus target and leaves the
+                 accessibility tree; the Expander's automation peer carries the expand/collapse state. -->
             <Style x:Key="SettingsGroup" TargetType="Expander">
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                <Setter Property="Margin" Value="0,0,0,6" />
+                <Setter Property="Margin" Value="{DynamicResource UiSiblingGroupMargin}" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Expander">
                             <StackPanel>
+                                <!-- The header is a TextBlock, which a ToggleButton does not turn into a name: left alone, the
+                                     toggle reaches assistive technology as an unnamed button inside a named group. -->
                                 <ToggleButton x:Name="HeaderSite" FocusVisualStyle="{StaticResource ThemedFocusVisualInset}"
+                                              AutomationProperties.Name="{Binding Header.Text, RelativeSource={RelativeSource TemplatedParent}}"
                                               IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
                                             <Border x:Name="HeaderBorder" Background="{DynamicResource CardSelectedBrush}"
-                                                    CornerRadius="4" Padding="10,9" SnapsToDevicePixels="True"
+                                                    CornerRadius="{DynamicResource UiCornerRadius}" Padding="10,4" SnapsToDevicePixels="True"
+                                                    MinHeight="{DynamicResource UiTargetHeight}"
                                                     BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderBrush}">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Viewbox Width="14" Height="14" VerticalAlignment="Center" Margin="0,0,9,0"
-                                                             FlowDirection="LeftToRight">
-                                                        <Path x:Name="Disclosure" Data="{StaticResource Icon.nav.collapse}"
-                                                              Width="24" Height="24" Fill="{DynamicResource MutedBrush}" />
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <!-- Not marked LeftToRight, unlike the action glyphs: this one has to mirror. -->
+                                                    <Viewbox Width="{DynamicResource UiMarkerSize}" Height="{DynamicResource UiMarkerSize}"
+                                                             VerticalAlignment="Center" Margin="{DynamicResource UiMarkerMargin}">
+                                                        <Path x:Name="StateTriangle" Data="{StaticResource Chrome.group-state}"
+                                                              Width="10" Height="10" Fill="{DynamicResource TextBrush}"
+                                                              RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                                                            <Path.RenderTransform>
+                                                                <RotateTransform Angle="0" />
+                                                            </Path.RenderTransform>
+                                                        </Path>
                                                     </Viewbox>
-                                                    <ContentPresenter ContentSource="Content" VerticalAlignment="Center"
+                                                    <ContentPresenter Grid.Column="1" ContentSource="Content" VerticalAlignment="Center"
                                                                       TextElement.FontWeight="SemiBold" />
-                                                </StackPanel>
+                                                </Grid>
                                             </Border>
                                             <ControlTemplate.Triggers>
-                                                <Trigger Property="IsChecked" Value="False">
-                                                    <Setter TargetName="Disclosure" Property="Data" Value="{StaticResource Icon.nav.expand}" />
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="StateTriangle" Property="RenderTransform">
+                                                        <Setter.Value>
+                                                            <RotateTransform Angle="90" />
+                                                        </Setter.Value>
+                                                    </Setter>
                                                 </Trigger>
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource ControlHoverBrush}" />
-                                                    <Setter TargetName="Disclosure" Property="Fill" Value="{DynamicResource TextBrush}" />
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="HeaderBorder" Property="Background" Value="{DynamicResource ControlPressedBrush}" />
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </ToggleButton.Template>
-                                    <ContentPresenter ContentSource="Header" />
+                                    <!-- SP-0234: a group may lead its heading with a picture (HeaderMark); with none set the
+                                         first presenter is empty and takes no room, so no other group moves. -->
+                                    <DockPanel>
+                                        <ContentPresenter DockPanel.Dock="Left" VerticalAlignment="Center"
+                                                          Content="{Binding (local:SettingsUiProperties.HeaderMark), RelativeSource={RelativeSource TemplatedParent}}" />
+                                        <ContentPresenter ContentSource="Header" />
+                                    </DockPanel>
                                 </ToggleButton>
-                                <ContentPresenter x:Name="ExpandSite" ContentSource="Content" Margin="2,10,2,2" Visibility="Collapsed" />
+                                <ContentPresenter x:Name="ExpandSite" ContentSource="Content" Margin="{DynamicResource UiGroupBodyMargin}" Visibility="Collapsed" />
                             </StackPanel>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsExpanded" Value="True">
@@ -1067,6 +1130,12 @@
             <Style x:Key="NoneGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.system.none}" />
             </Style>
+            <Style x:Key="BroadcastingGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.feature.live-broadcast}" />
+            </Style>
+            <Style x:Key="ExchangeConnectGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.connect-device}" />
+            </Style>
             <Style x:Key="BroadcastsGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.content.stream}" />
             </Style>
@@ -1082,14 +1151,15 @@
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.subtitles}" />
             </Style>
             <!-- SP-0218: the answer buttons of a dialog (WINDOWS-UI 0.4 section 11 item 4, ICON-RENDER 0.19
-                 section 14). The glyph takes the hue of the answer's polarity and the face a 12 percent tint of
-                 it (ThemeService.ApplyAnswerFaces); the caption stays in the text colour, so shape, word and
-                 hue say the same thing three ways and colour never carries the meaning alone. Everything is a
-                 DynamicResource, so a live theme change repaints an open dialog; an unavailable answer drops
-                 hue and tint together and mutes glyph and caption to DisabledTextBrush; under high contrast
-                 the palette itself resolves to system colours. Padding and the 6 px gap are the reference
-                 values of item 3 and item 2, one home for every answer. Only the glyph's colour differs from
-                 GlyphButton's template, which paints glyph and caption from one Foreground. -->
+                 section 14). The glyph is painted from the button's Foreground, set to the hue of the answer's
+                 polarity, and the face is a 12 percent tint of that hue (ThemeService.ApplyAnswerFaces); the
+                 caption is drawn in the text colour, so shape, word and hue say the same thing three ways and
+                 colour never carries the meaning alone. Everything is a DynamicResource, so a live theme change
+                 repaints an open dialog; an unavailable answer drops hue and tint together and mutes glyph and
+                 caption to DisabledTextBrush; under high contrast the palette itself resolves to system
+                 colours. Padding and the 6 px gap are the reference values of item 3 and item 2, one home for
+                 every answer. Only the caption differs from GlyphButton's template, which paints glyph and
+                 caption from one Foreground. -->
             <Style x:Key="AnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="Padding" Value="14,6" />
                 <Setter Property="ContentTemplate">
@@ -1098,18 +1168,23 @@
                             <StackPanel Orientation="Horizontal">
                                 <Viewbox Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" FlowDirection="LeftToRight">
                                     <Path Data="{Binding (local:Glyph.Geometry), RelativeSource={RelativeSource AncestorType=Button}}" Width="24" Height="24"
-                                          Fill="{Binding (local:Glyph.Ink), RelativeSource={RelativeSource AncestorType=Button}}" />
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                                 </Viewbox>
-                                <TextBlock Text="{Binding}" VerticalAlignment="Center"
-                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                                <TextBlock x:Name="Caption" Text="{Binding}" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextBrush}" />
                             </StackPanel>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=Button}}" Value="False">
+                                    <Setter TargetName="Caption" Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
                         </DataTemplate>
                     </Setter.Value>
                 </Setter>
             </Style>
             <Style x:Key="AffirmAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AnswerGlyphButton}">
                 <Setter Property="Background" Value="{DynamicResource AnswerAffirmFaceBrush}" />
-                <Setter Property="local:Glyph.Ink" Value="{DynamicResource SuccessBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="Background" Value="{DynamicResource AnswerAffirmHoverFaceBrush}" />
@@ -1119,13 +1194,13 @@
                     </Trigger>
                     <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
-                        <Setter Property="local:Glyph.Ink" Value="{DynamicResource DisabledTextBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
             <Style x:Key="DismissAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AnswerGlyphButton}">
                 <Setter Property="Background" Value="{DynamicResource AnswerDismissFaceBrush}" />
-                <Setter Property="local:Glyph.Ink" Value="{DynamicResource DangerBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="Background" Value="{DynamicResource AnswerDismissHoverFaceBrush}" />
@@ -1135,7 +1210,7 @@
                     </Trigger>
                     <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
-                        <Setter Property="local:Glyph.Ink" Value="{DynamicResource DisabledTextBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -1143,20 +1218,21 @@
                  the only red face in the window is the one that cannot be undone (item 7). The face is the
                  ordinary control face with the base button's hover and press. -->
             <Style x:Key="DismissUntintedAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AnswerGlyphButton}">
-                <Setter Property="local:Glyph.Ink" Value="{DynamicResource DangerBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
                 <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">
-                        <Setter Property="local:Glyph.Ink" Value="{DynamicResource DisabledTextBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
-            <!-- The acting button of an irreversible act: the danger face with its own ink (APP-STYLE 4). It is
-                 never the default focus; the owner of the dialog keeps the safe answer there. -->
-            <Style x:Key="DangerAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AnswerGlyphButton}">
+            <!-- The acting button of an irreversible act: the danger face with its own ink (APP-STYLE 4), glyph
+                 and caption alike, so it keeps GlyphButton's single-Foreground template. It is never the
+                 default focus; the owner of the dialog keeps the safe answer there. -->
+            <Style x:Key="DangerAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
+                <Setter Property="Padding" Value="14,6" />
                 <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource DangerTextBrush}" />
-                <Setter Property="local:Glyph.Ink" Value="{DynamicResource DangerTextBrush}" />
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
@@ -1170,12 +1246,10 @@
                         <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
                         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
                         <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
-                        <Setter Property="local:Glyph.Ink" Value="{DynamicResource DisabledTextBrush}" />
                         <Setter Property="Opacity" Value="1" />
                     </Trigger>
                 </Style.Triggers>
-            </Style>
-            <Style x:Key="ConfirmAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AffirmAnswerGlyphButton}">
+            </Style>            <Style x:Key="ConfirmAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AffirmAnswerGlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.confirm}" />
             </Style>
             <Style x:Key="ImportAnswerGlyphButton" TargetType="Button" BasedOn="{StaticResource AffirmAnswerGlyphButton}">
@@ -1208,6 +1282,137 @@
             <Style x:Key="SettingsCollapseAllGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
                 <Setter Property="Padding" Value="7,6" />
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.nav.collapse}" />
+            </Style>
+            <!-- SP-0230, CONTEXT-HELP rule 2: the one help button of every help-bearing window. The style carries the
+                 command, so a window adds one element and no code, and the key and the button reach the same
+                 ApplicationCommands.Help binding (rule 3); the call site states HelpName and HelpTip like every
+                 glyph-only button (GlyphAutomationNameTests). It sits after GlyphOnlyButton for the reason the two
+                 styles above do. Focusable stays true: a button that cannot be reached by Tab is not a way in for a
+                 keyboard user who does not know F1. -->
+            <Style x:Key="HelpGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="Padding" Value="7,6" />
+                <Setter Property="Command" Value="{x:Static ApplicationCommands.Help}" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.app.help}" />
+            </Style>
+            <!-- SP-0231 (BOOLEAN-OPTION 2.0): the box alone. The row owns the caption, the explanation and the
+                 help, so the check box carries no content and is exposed as the one named checkbox of the option.
+                 Its visible square is UiCheckBoxBox (20 pointer / 24 touch at Standard) inside a hit target of
+                 UiTargetHeight; both come from the shared tokens. The outline is the muted ink and the checked
+                 fill the accent mark, both 3:1 or better on the page surface in the light and the dark theme
+                 (the ink on the mark is the surface role, never a baked white), and state is drawn as a check as
+                 well as a colour. -->
+            <ControlTemplate x:Key="BooleanOptionBoxTemplate" TargetType="CheckBox">
+                <Border Background="Transparent" MinWidth="{DynamicResource UiTargetHeight}" MinHeight="{DynamicResource UiTargetHeight}">
+                    <Border x:Name="Box" Width="{DynamicResource UiCheckBoxBox}" Height="{DynamicResource UiCheckBoxBox}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Background="{DynamicResource ControlBrush}" BorderBrush="{DynamicResource MutedBrush}"
+                            BorderThickness="{DynamicResource UiBorderThickness}" CornerRadius="{DynamicResource UiCornerRadius}">
+                        <!-- Never mirrored (SP-0113): a right-to-left layout flips the box's place, not the mark in it. -->
+                        <Viewbox Margin="2" FlowDirection="LeftToRight">
+                            <Path x:Name="CheckMark" Data="{StaticResource Chrome.check-box}" Width="15" Height="15"
+                                  Stroke="{DynamicResource SurfaceBrush}" StrokeThickness="2" StrokeLineJoin="Round"
+                                  Visibility="Collapsed" />
+                        </Viewbox>
+                    </Border>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="Box" Property="Background" Value="{DynamicResource ControlHoverBrush}" />
+                    </Trigger>
+                    <Trigger Property="IsChecked" Value="True">
+                        <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                        <Setter TargetName="Box" Property="Background" Value="{DynamicResource AccentMarkBrush}" />
+                        <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AccentMarkBrush}" />
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter TargetName="Box" Property="Opacity" Value="0.5" />
+                        <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource DisabledTextBrush}" />
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+            <!-- The option-local help button: the same app.help question mark as the surface's, but it opens this
+                 option's explanation and is not the F1 route (BOOLEAN-OPTION section 4 rule 5), so it carries no
+                 command. -->
+            <Style x:Key="OptionHelpGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="Command" Value="{x:Null}" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.app.help}" />
+                <Setter Property="Margin" Value="{DynamicResource UiInlineGapBefore}" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="MinWidth" Value="{DynamicResource UiTargetHeight}" />
+                <Setter Property="MinHeight" Value="{DynamicResource UiTargetHeight}" />
+                <Setter Property="VerticalAlignment" Value="Top" />
+            </Style>
+            <Style TargetType="local:BooleanOptionRow">
+                <Setter Property="Margin" Value="0,0,0,4" />
+                <Setter Property="IsTabStop" Value="False" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="local:BooleanOptionRow">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <!-- MinHeight 0: a window may carry an implicit CheckBox style with a floor of its own (the settings
+                                     window's 28), and the target of this box is the token, at every size including Compact. -->
+                                <CheckBox x:Name="PART_Check" Template="{StaticResource BooleanOptionBoxTemplate}" MinHeight="0"
+                                          FocusVisualStyle="{StaticResource ThemedFocusVisual}" VerticalAlignment="Top"
+                                          IsChecked="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                          AutomationProperties.Name="{TemplateBinding Caption}"
+                                          AutomationProperties.HelpText="{TemplateBinding Explanation}" />
+                                <StackPanel Grid.Column="1" Margin="{DynamicResource UiOptionCellMargin}">
+                                    <!-- Glyph and caption stay together at the reading start; the help follows the name with
+                                         a small gap and wraps to the next line only when the pair fills the row. -->
+                                    <WrapPanel>
+                                        <Grid MinHeight="{DynamicResource UiTargetHeight}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Viewbox x:Name="PART_Glyph" Width="{DynamicResource UiGlyphSize}" Height="{DynamicResource UiGlyphSize}"
+                                                     VerticalAlignment="Center" Margin="{DynamicResource UiInlineGapAfter}" FlowDirection="LeftToRight"
+                                                     Visibility="Collapsed">
+                                                <Path Data="{TemplateBinding Glyph}" Width="24" Height="24" Fill="{TemplateBinding Foreground}" />
+                                            </Viewbox>
+                                            <TextBlock x:Name="PART_Caption" Grid.Column="1" Text="{TemplateBinding Caption}"
+                                                       FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"
+                                                       Foreground="{TemplateBinding Foreground}" />
+                                        </Grid>
+                                        <Button x:Name="PART_Help" Style="{StaticResource OptionHelpGlyphButton}" Visibility="Collapsed" />
+                                    </WrapPanel>
+                                    <TextBlock x:Name="PART_Explanation" Text="{TemplateBinding Explanation}" Foreground="{DynamicResource MutedBrush}"
+                                               TextWrapping="Wrap" Margin="{DynamicResource UiOptionHeadingMargin}" Visibility="Collapsed" />
+                                    <!-- Hover and keyboard focus: a short summary that stays open while the pointer is on it. -->
+                                    <Popup x:Name="PART_SummaryPopup" PlacementTarget="{Binding ElementName=PART_Help}" Placement="Bottom"
+                                           StaysOpen="True" Focusable="False">
+                                        <Border Background="{DynamicResource ControlBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                                                BorderThickness="1" CornerRadius="{DynamicResource UiCornerRadius}" Padding="10,8" MaxWidth="320">
+                                            <TextBlock Text="{TemplateBinding HelpSummary}" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" />
+                                        </Border>
+                                    </Popup>
+                                    <!-- Click, tap or Enter: the whole explanation, until it is closed. -->
+                                    <Popup x:Name="PART_DetailPopup" PlacementTarget="{Binding ElementName=PART_Help}" Placement="Bottom"
+                                           StaysOpen="False">
+                                        <Border Background="{DynamicResource ControlBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                                                BorderThickness="1" CornerRadius="{DynamicResource UiCornerRadius}" Padding="12" MaxWidth="380">
+                                            <StackPanel>
+                                                <TextBlock Text="{TemplateBinding HelpDetail}" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" />
+                                                <Button x:Name="PART_DetailClose" Style="{StaticResource CloseAnswerGlyphButton}" HorizontalAlignment="Left"
+                                                        Margin="0,10,0,0" Content="{DynamicResource Close}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Popup>
+                                </StackPanel>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="PART_Caption" Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
             <!-- SP-0191: the player control panel's pin (WINDOWS-UI 8.4). A toggle draws its state: the
                  pin glyph when the panel is pinned, the declared off form when it is not. Out of theme
@@ -1273,6 +1478,31 @@
                                     </Border>
                                 </Popup>
                             </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!-- SP-0211: a link that opens a web page, as a button so its target is the 28 px floor rather than
+                 the height of one line of text. The look is the link's own: link ink, underlined, no chrome.
+                 SP-0222: shared, because the broadcast list and both password prompts carry the media-exchange link
+                 too, and a style defined inside the settings window alone left those windows unable to open. -->
+            <Style x:Key="SettingsLinkButton" TargetType="Button">
+                <Setter Property="Foreground" Value="{DynamicResource LinkBrush}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="0,5" />
+                <Setter Property="MinHeight" Value="28" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisualInset}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                <TextBlock Text="{TemplateBinding Content}" TextDecorations="Underline"
+                                           Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" />
+                            </Border>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>

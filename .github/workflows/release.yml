@@ -156,7 +156,7 @@ jobs:
       - name: Test
         if: steps.existing.outputs.complete != 'true'
         run: |
-          dotnet test StreamsPlayer.sln -c Release --no-build
+          pwsh -NoProfile -File scripts/test.ps1 -Configuration Release -NoBuild
           if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
       - name: Publish portable package
         if: steps.existing.outputs.complete != 'true'

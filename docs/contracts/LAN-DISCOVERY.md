@@ -3,14 +3,15 @@
 | | |
 | --- | --- |
 | **Id** | `LAN-DISCOVERY` |
-| **Version** | 0.10 (draft) |
+| **Version** | 0.11, 2026-10-22 (SP-0232) |
 | **Home** | `Contracts/lan-discovery/README.md` |
-| **Owner** | shared (candidate owner FMS Companion) |
-| **This product's role** | **consumer** |
+| **Owner** | Shared |
+| **This product's role** | Declared, not bound: no announcer or mDNS browser |
 
-## What this repository must do to stay conformant
+No discovery code or mDNS dependency exists in src/. Broadcasts are imported by description and
+connected through explicit endpoints under LIVE-BROADCAST/DEVICE-EXCHANGE. The old 0.10 consumer
+claim and its invented broadcast/SFTP discovery capability are withdrawn. Reserved services are not
+implemented. A future browser/announcer owes a new scoped adoption and mock/emission evidence.
 
-1. **Service Types:** Discover local broadcast services under `_fms-bcast._tcp.local` and `_fms-sftp._tcp.local`.
-2. **Graceful Fallback:** If mDNS / UDP multicast is blocked by local firewalls or network isolation, discovery fails silently without crashing, preserving manual stream URL input.
-
-Evidence: `src/StreamsPlayer.App/MainWindow.FastMediaSorterBroadcast.cs`, `FastMediaSorterPlaybackTransport.cs`.
+The [synchronization audit](../audits/SP-0232-contract-sync.md) records clause scope, evidence and remaining work. Own catalog registry rows remain
+the conformance authority; a read version does not upgrade an implementation claim.

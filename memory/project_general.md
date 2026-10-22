@@ -8,6 +8,18 @@ description: Cross-cutting project learnings, corrections, and non-obvious conte
 
 ## Project
 
+- **The OS AAC encoder on this machine (Windows 11 build 26200, Insider) crashes 0xC0000005 in its own
+  Media Foundation (SP-0214, 2026-10-14).** `mfplat.dll`'s sample objects die in `IMFSample.SetSampleTime`,
+  and `mfAACEnc.dll` (CLSID 93af0c51-..) dies in `IMFTransform.ProcessInput`/`ProcessOutput` once an output
+  type is set - with a hand-built native buffer too, so it is not marshaling (the same vtable slot returns the
+  documented `MF_E_TRANSFORM_NEED_MORE_INPUT` while no output type is set). Consequence: a real broadcast
+  (`BroadcastProducerService.StartAsync`) cannot complete on this PC; run broadcast run-and-observe evidence
+  on a machine with a healthy OS encoder. Found through `WindowsAacEncoder`, whose mfplat P/Invoke entry
+  points were also misspelled (`MfStartup` vs the real export `MFStartup` etc.) - that constructor had never
+  succeeded on any machine, and its `EntryPointNotFoundException` was swallowed into `BroadcastEncoderMissing`,
+  so "encoder missing" can mean a product P/Invoke bug, not just an absent codec (SP-0214,
+  `temp/SP-0214/encoder-verdict.txt`).
+
 - **Two traps in writing redaction/timeout tests (SP-0174, 2026-09-29).** First, `.gitignore` carries
   `*secret*` (leak pre-emption, line 38) - a test file named `*Secret*` is silently ignored and never
   committed; name such tests "Audited"/"Credential" instead. Second, a Regex match timeout cannot be
@@ -576,3 +588,7 @@ description: Cross-cutting project learnings, corrections, and non-obvious conte
 
 
 - **A site audit that needs real input, reduced motion or a 360 px viewport is run over the DevTools protocol, and five things falsify a naive run (2026-10-07, SP-0199).** The Chrome-extension automation could not give a page focus (`document.hasFocus()` false, Tab a no-op); a separate `chrome.exe --headless=new --remote-debugging-port` driven from Node (global `WebSocket`, no packages) gets trusted keys (`Input.dispatchKeyEvent` `rawKeyDown` + `keyUp`, `windowsVirtualKeyCode` 9), `Emulation.setEmulatedMedia` and a coarse-pointer phone (`setDeviceMetricsOverride` with `mobile: true` plus touch emulation). The traps: headless Chrome here reports `prefers-reduced-motion: reduce` by default (the OS animation setting), so a "baseline" must send `no-preference` explicitly; `Page.captureScreenshot` clips are in document coordinates; `html { scroll-behavior: smooth }` means a rect read right after a Tab is mid-scroll, so wait for `scrollY` to settle; `docs/404.html` addresses its CSS and scripts from the published base URL, so a local serve silently reads the *published* copy unless `Fetch.enable` remaps that base URL (`tools/site/build-site.ps1` holds it) to the local port - and a tracked file that spells the site address out fails the held-address gate; and never stretch the viewport to the document height to take one screenshot - `.privacy-main` has `min-height: calc(100vh - ..)`, the page grows with the viewport, the footer lands outside the image and the clamped edge pixels read as contrast failures (scroll an ordinary 1428 x 839 viewport in steps and sample the pixels under each text line after hiding the text instead). Computed-colour contrast (SP-0197) had missed a 0.85 `opacity` and an icon-only link 30 px wide; pixel sampling and a real coarse-pointer viewport found both. The harness is `temp/SP-0199/` (`cdp.mjs`, `tab.mjs`, `motion.mjs`, `width.mjs`, `contrast2.mjs`, `hover.mjs`, `locales.mjs`, `origins.mjs`, `overlap.mjs`); `temp/` is untracked, so promote it to `tools/site/` before the next release that changes the site's chrome if the run is to be repeated.
+
+- **A refused connection to a closed port takes about two seconds on Windows, so a connection probe with a shorter budget reads an awake machine as a silent one (2026-10-21, SP-0225).** The SYN is retried before the refusal is reported, even on loopback; a 2 s budget turned "nothing listens there" (the address or port is off) into "no answer" (the machine is off), and the check named the wrong step. `ExchangeDiagnosisProbes` budgets 4 s and its tests 5 s. Two other traps from the same ticket: an exchange dictionary edit across all 13 languages is a data file plus a pwsh script (replace in place, append before `</ResourceDictionary>`, UTF-8 without BOM, CRLF kept), and every new `Exchange*`/`Broadcast*` key must join a group of `tools/localization/exchange-term-map.json` or `ExchangeVocabularyTests` fails.
+
+- **Test data linked with `PreserveNewest` goes stale when a file is restored from a backup (2026-10-21, SP-0227).** A mutation check that edits a deck or README, runs the tests and then restores it with `Copy-Item` leaves the *mutated* copy in `tests/**/bin`: the restored file keeps its old modified time, so the next build sees the bin copy as newer and skips it, and a `--no-build` run fails on an edit that is no longer there. Set `LastWriteTime` to now after the restore (or rebuild once) before trusting the next run.

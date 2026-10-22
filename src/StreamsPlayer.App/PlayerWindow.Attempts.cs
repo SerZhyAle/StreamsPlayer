@@ -22,6 +22,7 @@ public partial class PlayerWindow
     private int _attemptIndex;
     private ExchangeTunnelForwarder? _tunnelForwarder;
     private ExchangeRelayProxy? _relayProxy;
+    private BroadcastCredentialsSession? _broadcastCredentials;
     private readonly Stopwatch _attemptClock = Stopwatch.StartNew();
 
     // Every attempt of a leg shares one backend, so the backend's identity cannot tell an answer from a
@@ -94,6 +95,29 @@ public partial class PlayerWindow
     /// </summary>
     private void AdvanceOrRecover(string advanceReason, PlaybackFailureSignal signal)
     {
+        // 196 section 6.3: a playlist channel (a folder broadcast) plays its items in order inside this
+        // one window. An end-of-item is the NEXT item, not a live-stream drop to re-anchor; an item that
+        // fails to open (a file deleted after the snapshot is a gap the gateway answers with 404) is
+        // skipped the same way - reported in the log, never spent out of any recovery budget. The last
+        // item playing to its end is the broadcast finishing, not a failure: no recovery, no dialog.
+        if (_playlistItems is { } items)
+        {
+            if (_playlistIndex + 1 < items.Count)
+            {
+                AdvancePlaylistItem(advanceReason == "end_reached" ? "playlist_next" : "playlist_gap");
+                return;
+            }
+
+            if (advanceReason == "end_reached")
+            {
+                _log.Event("PLAYLIST END", $"of={items.Count}", $"url={_channel.Url}");
+                return;
+            }
+
+            _ = RecoverAsync(signal);
+            return;
+        }
+
         if (CanAdvanceAttempt())
         {
             _ = AdvanceAttemptAsync(_backend, advanceReason);
@@ -101,6 +125,44 @@ public partial class PlayerWindow
         }
 
         _ = RecoverAsync(signal);
+    }
+
+    /// <summary>
+    /// Loads the next playlist item into this window's engine. Same restart route as a hand retry
+    /// (<c>RetryAfterFailureAsync</c>): a new session entitled to its own verdict, a fresh backend and
+    /// the failure latch cleared - a gap that failed must not silence the item that follows it.
+    /// </summary>
+    private void AdvancePlaylistItem(string reason)
+    {
+        _playlistIndex++;
+        var item = _playlistItems![_playlistIndex];
+        _channel = _channel with { Url = item };
+        _failureShown = false;
+        _wake ??= WakeGuard.Acquire(keepDisplayOn: true);
+        _watchdogTimer.Start();
+        ApplyPlaylistTitle();
+        _log.Event("PLAYLIST ADVANCE",
+            $"reason={reason}",
+            $"index={_playlistIndex + 1}",
+            $"of={_playlistItems!.Count}",
+            $"url={item}");
+        _ = StartMediaOffUiThreadAsync(reason, QualityCeiling);
+    }
+
+    /// <summary>196 section 6.3: the current position shown as n/total, beside the channel's name.</summary>
+    private void ApplyPlaylistTitle()
+    {
+        if (_playlistItems is not { } items)
+        {
+            return;
+        }
+
+        TitleText.Text = LocalizationService.Format(
+            "BroadcastPlaylistPosition",
+            StreamTitleFormatter.Display(_channel.Title),
+            _playlistIndex + 1,
+            items.Count);
+        RefreshWindowTitle();
     }
 
     /// <summary>

@@ -40,6 +40,13 @@
     <EmbeddedResource Include="Resources\country-names.json" LogicalName="country-names.json" />
   </ItemGroup>
 
+  <!-- SP-0230: the help map of CONTEXT-HELP rule 17. The file is authored in the repository's help/ folder,
+       beside the copy it describes, and embedded so the resolver in the application and the gate in the
+       tests read the same bytes in every packaging shape. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\help\help-map.json" LogicalName="help-map.json" />
+  </ItemGroup>
+
   <Target Name="RequireBundledCatalogSnapshot" BeforeTargets="BeforeBuild"
           Condition="'$(AllowMissingCatalogSnapshot)' != 'true' And !Exists('$(BundledCatalogSnapshotPath)')">
     <!-- The generator reads its contract from a built StreamsPlayer.Core, so regenerating from a tree

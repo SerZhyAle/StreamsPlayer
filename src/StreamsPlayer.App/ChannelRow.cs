@@ -357,13 +357,36 @@ public sealed class ChannelRow : INotifyPropertyChanged
 
     // SP-0018: compact, present-only technical claims. Absent when the catalog supplied none, so the
     // default card is never crowded; these are untrusted maintainer claims, not measured quality.
-    public string TechnicalDetails => _technicalDetails ??= string.Join("  ·  ", new[]
+    public string TechnicalDetails => Channel.ResourceKey is { Length: > 0 }
+        ? BuildTechnicalDetails()
+        : _technicalDetails ??= BuildTechnicalDetails();
+
+    private string BuildTechnicalDetails() => string.Join("  ·  ", new[]
     {
         Channel.Format?.Trim().ToUpperInvariant(),
         BitrateLabel(),
         Channel.Protocol?.Trim().ToUpperInvariant(),
-        LiveLabel()
+        LiveLabel(),
+        ResourceLifetime()
     }.Where(value => !string.IsNullOrWhiteSpace(value)));
+
+    private string? ResourceLifetime()
+    {
+        if (Channel.ResourceKey is not { Length: > 0 })
+        {
+            return null;
+        }
+
+        if (Channel.ResourceExpiresAt is not { } expiry)
+        {
+            return LocalizationService.Get("BroadcastResourceUntilRevoked");
+        }
+
+        var remaining = expiry - DateTimeOffset.UtcNow;
+        return remaining <= TimeSpan.Zero
+            ? LocalizationService.Get("BroadcastResourceExpired")
+            : LocalizationService.Format("BroadcastResourceExpiresIn", (long)Math.Ceiling(remaining.TotalMinutes));
+    }
 
     public Visibility TechnicalDetailsVisibility =>
         TechnicalDetails.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
