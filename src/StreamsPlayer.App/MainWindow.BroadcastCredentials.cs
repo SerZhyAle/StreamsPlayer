@@ -40,6 +40,13 @@ public partial class MainWindow
             return null;
         }
 
+        if (!channel.FastMediaSorterBroadcast.PlaybackAttemptEndpoints(channel.Url)
+            .Any(endpoint => ExchangeBroadcastKeys.Decide(endpoint).RelayOptions(endpoint.Url) is not null))
+        {
+            // Unsupported protected LAN/tunnel routes report their own refusal without asking for an unusable password.
+            return null;
+        }
+
         var remembered = BroadcastPasswords.Load(channel.Id);
         if (remembered is { Length: > 0 })
         {

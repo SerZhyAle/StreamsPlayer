@@ -499,7 +499,14 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
                     _inflight[request.Url] = captureCts;
                 }
 
-                var frame = await _captureService.CaptureAsync(request.Url, captureCts.Token);
+                var channel = await _dispatcher.InvokeAsync(() =>
+                    _visibleRows().FirstOrDefault(row => row.Channel.Url == request.Url)?.Channel);
+                if (channel is null)
+                {
+                    continue;
+                }
+
+                var frame = await _captureService.CaptureAsync(channel, captureCts.Token);
                 if (frame is null)
                 {
                     lock (_failureGate)
@@ -522,6 +529,10 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
                 await ApplyAsync(request.Url, frame, true);
                 // Persist against the session token: a frame that just left the viewport is still worth saving.
                 await _diskStore.SaveAsync(request.Url, frame, cancellationToken);
+            }
+            catch (ExchangeBroadcastCapacityException)
+            {
+                _diagnostics?.Invoke("PREVIEW TRANSPORT", [$"reason={ExchangeBroadcastResources.CapacityReason}", "outcome=deferred"]);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {

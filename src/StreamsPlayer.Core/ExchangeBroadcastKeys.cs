@@ -26,7 +26,8 @@ public sealed record ExchangeEndpointDecision(
 
     /// <summary>What the proxy needs to open this endpoint's relay, or null when the decision is not a sealed relay.</summary>
     public ExchangeSealedRelayOptions? RelayOptions(string relayUrl) =>
-        IsSealed && RelayKey is { } key && ExchangeBroadcastKeys.BroadcastIdOf(relayUrl) is { } id
+        IsSealed && relayUrl.StartsWith("https:", StringComparison.OrdinalIgnoreCase)
+            && RelayKey is { } key && ExchangeBroadcastKeys.BroadcastIdOf(relayUrl) is { } id
             ? new ExchangeSealedRelayOptions(id, key)
             : null;
 
@@ -109,11 +110,18 @@ public static class ExchangeBroadcastKeys
             return null;
         }
 
-        var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        var index = Array.IndexOf(segments, "b");
-        return index >= 0 && index + 1 < segments.Length && segments[index + 1].Length is > 0 and <= 128
-            ? Uri.UnescapeDataString(segments[index + 1])
-            : null;
+        var segments = uri.AbsolutePath.Split('/');
+        var index = uri.Scheme.Equals("fmsx", StringComparison.OrdinalIgnoreCase)
+            && segments.Length == 4 && segments[1] == "b" && segments[3] is "http" or "rtsp" ? 2
+            : uri.Scheme == Uri.UriSchemeHttps && segments.Length == 5
+                && segments[1] == "v2" && segments[2] == "b" && segments[4] == "stream" ? 3 : -1;
+        if (index < 0)
+        {
+            return null;
+        }
+
+        var id = Uri.UnescapeDataString(segments[index]);
+        return id.Length is > 0 and <= 128 && !id.Any(character => char.IsControl(character) || character is '/' or '\\') ? id : null;
     }
 
     /// <summary>
@@ -139,6 +147,12 @@ public static class ExchangeBroadcastKeys
         byte[] trusted;
         if (record.GrantId is { Length: > 0 } grantId)
         {
+            // DJ's registering box has no audience and establishes no sender trust.
+            if (box.Keys.Count == 0)
+            {
+                return ExchangeSealedState.None;
+            }
+
             // Item DJ: a guest knows none of the owner's devices; the first box of a grant fixes the sender's key.
             context = ExchangeSealedContext.Grant(grantId);
             if (!ExchangeBase64Url.TryDecode(box.FromKey, out var fromKey) || fromKey.Length != ExchangeE2eKeyPair.PublicLength
@@ -251,7 +265,7 @@ public static class ExchangeBroadcastKeys
     /// </summary>
     public static ExchangeEndpointDecision Decide(FastMediaSorterBroadcastEndpoint endpoint)
     {
-        if (!ExchangeEndpointKinds.IsExchangeEndpoint(endpoint))
+        if (!ExchangeEndpointKinds.IsExchangeEndpoint(endpoint) && endpoint.Seal is null)
         {
             return ExchangeEndpointDecision.Clear;
         }
@@ -262,11 +276,22 @@ public static class ExchangeBroadcastKeys
         }
 
         var broadcastId = BroadcastIdOf(endpoint.Url);
+        if (broadcastId is null)
+        {
+            // Every sealed relay needs this id to authenticate its records. Without it a caller would
+            // get no RelayOptions and could hand the encrypted endpoint straight to an ordinary player.
+            return ExchangeEndpointDecision.Refused(ExchangeSealedState.SealedFailed);
+        }
         var held = broadcastId is null ? null : Find(broadcastId);
         var relayKey = seal.GroupKey() ?? held?.RelayKey;
         var pin = seal.Pin ?? held?.TunnelPin;
         var isTunnel = string.Equals(endpoint.Transport, "TUNNEL", StringComparison.OrdinalIgnoreCase)
             || endpoint.Url.StartsWith("fmsx:", StringComparison.OrdinalIgnoreCase);
+        if (isTunnel && (!ExchangeTunnelUrl.TryParse(endpoint.Url, out _) || string.IsNullOrWhiteSpace(endpoint.Inner)))
+        {
+            return ExchangeEndpointDecision.Refused(ExchangeSealedState.SealedFailed);
+        }
+
         if (isTunnel ? pin is null : relayKey is null)
         {
             var failure = broadcastId is null ? ExchangeSealedState.None : FailureOf(broadcastId);

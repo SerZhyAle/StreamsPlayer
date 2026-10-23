@@ -41,6 +41,20 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# -Check is a gate and ends in one CHECK-VERDICT line, `site-sync: PASS|FAIL|COULD NOT VERIFY (..)` (rules 2.1, 2.5, 2.11).
+# A defect the check judges itself is FAIL, exit 1 (Stop-SiteSync); a terminating error nothing anticipated - a deck that
+# does not parse, a missing source, a throwing helper - means the comparison was never made: COULD NOT VERIFY, exit 2
+# (the trap). A plain generator run keeps its exceptions.
+function Stop-SiteSync([string] $Message) {
+    if ($Check) { Write-Host "site-sync: FAIL ($($Message -replace '\s+', ' '))"; exit 1 }
+    throw $Message
+}
+trap {
+    if (-not $Check) { break }
+    Write-Host "site-sync: COULD NOT VERIFY ($($_.Exception.Message -replace '\s+', ' '))"
+    exit 2
+}
+
 . "$PSScriptRoot/../InterfaceLanguages.ps1"
 . "$PSScriptRoot/HeldAddresses.ps1"
 . "$PSScriptRoot/SiteFacts.ps1"
@@ -94,7 +108,7 @@ foreach ($vendored in 'sza-kit.css', 'wave-particles.js') {
     if (-not (Test-Path -LiteralPath $vendoredPath)) { throw "docs/assets/$vendored is missing (vendor it: tools/site/kit-provenance.txt)." }
     $vendoredHash = (Get-FileHash -LiteralPath $vendoredPath -Algorithm SHA256).Hash
     if ($vendoredHash -ne $vendoredPins[$vendored]) {
-        throw "docs/assets/$vendored is not the pinned file (SHA-256 $vendoredHash, pinned $($vendoredPins[$vendored])). Vendored files are never edited in this repository."
+        Stop-SiteSync "docs/assets/$vendored is not the pinned file (SHA-256 $vendoredHash, pinned $($vendoredPins[$vendored])). Vendored files are never edited in this repository."
     }
 }
 
@@ -237,7 +251,7 @@ foreach ($file in Get-ChildItem -LiteralPath $copyDirectory -Filter '*.txt') {
 
 if ($problems.Count) {
     $problems | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
-    throw "The site copy decks do not match the shipped language list ($($problems.Count) problem(s))."
+    Stop-SiteSync "The site copy decks do not match the shipped language list ($($problems.Count) problem(s))."
 }
 
 $english = $decks['en']
@@ -245,7 +259,7 @@ foreach ($problem in Get-DeckParityProblem -English $english -Decks $decks -Glyp
 
 if ($problems.Count) {
     $problems | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
-    throw "The site copy decks are not in parity with English ($($problems.Count) problem(s))."
+    Stop-SiteSync "The site copy decks are not in parity with English ($($problems.Count) problem(s))."
 }
 
 Write-Host ("Copy decks: {0} languages x {1} keys" -f $decks.Count, $english.Keys.Count) -ForegroundColor Green
@@ -478,19 +492,16 @@ if ($Check) {
         Write-Host "Site facts and positioning (tools/site/site-facts.json, POSITIONING.md):" -ForegroundColor Red
         $factProblems | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
     }
-    if ($stale.Count) {
-        throw "docs/ does not match the generator ($($stale.Count) file(s)). Run tools/site/build-site.ps1 and commit the result."
-    }
-    if ($heldProblems.Count) {
-        throw "The held-address list and the site disagree ($($heldProblems.Count) problem(s))."
-    }
-    if ($factProblems.Count) {
-        throw "The site copy and its fact sources disagree ($($factProblems.Count) problem(s))."
-    }
+    $defects = [System.Collections.Generic.List[string]]::new()
+    if ($stale.Count) { $defects.Add("docs/ does not match the generator ($($stale.Count) file(s)); run tools/site/build-site.ps1 and commit the result") }
+    if ($heldProblems.Count) { $defects.Add("the held-address list and the site disagree ($($heldProblems.Count) problem(s))") }
+    if ($factProblems.Count) { $defects.Add("the site copy and its fact sources disagree ($($factProblems.Count) problem(s))") }
+    if ($defects.Count) { Write-Host "site-sync: FAIL ($($defects -join '; '))"; exit 1 }
     Write-Host "docs/ is up to date." -ForegroundColor Green
     Write-Host ("Held addresses: {0} listed, all resolve." -f (@((Get-Content -LiteralPath (Join-Path $root 'tools/site/held-addresses.json') -Raw | ConvertFrom-Json).addresses).Count)) -ForegroundColor Green
     Write-Host ("Site facts: {0} languages, {1} - rendered from their sources; channels and pillars hold on every surface." -f $siteFacts.Languages, $siteFacts.Windows) -ForegroundColor Green
-    return
+    Write-Host "site-sync: PASS ($($languages.Count) languages x $($pages.Count) pages in sync; held addresses and site facts hold)"
+    exit 0
 }
 
 Write-Host ("Pages: {0} languages x {1} = {2} files, plus site.js" -f $languages.Count, $pages.Count, ($languages.Count * $pages.Count)) -ForegroundColor Green

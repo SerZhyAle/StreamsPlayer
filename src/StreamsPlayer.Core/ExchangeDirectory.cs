@@ -440,6 +440,13 @@ public sealed partial class ExchangeDirectoryState
                 continue;
             }
 
+            var sealedBox = ReadSealedBox(record, out var sealedUnreadable);
+            var grantId = ReadString(record, "grantId");
+            if (grantId is { Length: > 0 } && sealedBox is { Keys.Count: 0 })
+            {
+                continue;
+            }
+
             // The one reader, with its own size cap and its own refusals - a record's descriptor never gets
             // a second, gentler path because it arrived over a socket instead of a link (SP-0201 req 3).
             var read = FastMediaSorterBroadcastDescriptor.Read(descriptor.GetRawText());
@@ -463,7 +470,7 @@ public sealed partial class ExchangeDirectoryState
                 new ExchangeBroadcastRecord(id, deviceId,
                     ReadString(record, "title") ?? read.Broadcast.Title,
                     mode, read.Broadcast, ReadUpdatedAt(record), ReadCredentials(record),
-                    ReadSealedBox(record, out var sealedUnreadable), sealedUnreadable, ReadString(record, "grantId")),
+                    sealedBox, sealedUnreadable, grantId),
                 SupportOf(read.Broadcast));
         }
 
@@ -477,7 +484,7 @@ public sealed partial class ExchangeDirectoryState
     /// carried beside it unopened (<see cref="ReadSealedBox"/>) and wins at the point of use (item DP).
     /// </summary>
     private static ExchangeRelayCredentials? ReadCredentials(JsonElement record) =>
-        record.TryGetProperty("credentials", out var pair) && pair.ValueKind == JsonValueKind.Object
+        !record.TryGetProperty("sealed", out _) && record.TryGetProperty("credentials", out var pair) && pair.ValueKind == JsonValueKind.Object
             ? ExchangeRelayCredentials.Create(ReadString(pair, "user"), ReadString(pair, "password"))
             : null;
 

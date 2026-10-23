@@ -5,17 +5,14 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// SP-0217: the producer side of the one control stream - the `broadcaster` role while the Settings
-/// permission is on, the server facts `welcome` carries that an endpoint is built from, the outgoing
+/// SP-0217: the producer side of the one control stream - the roles declared at enrollment,
+/// the server facts `welcome` carries that an endpoint is built from, the outgoing
 /// envelopes a broadcast's lifetime needs, the answers that come back, and the `open` of a tunnel the
 /// server asks this device to bridge. The stream itself stays where it was: this partial only adds
 /// what the producer posts and reads through it.
 /// </summary>
 internal sealed partial class ExchangeSourceService
 {
-    /// <summary>Whether this device declares the broadcaster role: only while the feature is built and the user allowed it (requirement 6).</summary>
-    internal Func<bool>? BroadcastRoleWanted { get; set; }
-
     /// <summary>`welcome.publicEndpoint` - the host:port every relay and tunnel URL is built from; null while offline.</summary>
     internal string? PublicEndpoint { get; private set; }
 
@@ -60,10 +57,8 @@ internal sealed partial class ExchangeSourceService
     /// <summary>A <c>broadcast-start</c> awaiting its answer; <c>Order</c> is the order it was asked in, which is the order the server answers in.</summary>
     private sealed record PendingStart(long Order, TaskCompletionSource<string?> Answer);
 
-    /// <summary>The roles this device declares: a role it does not hold is never asked of it (DEVICE-EXCHANGE 3).</summary>
-    internal string[] Roles() => BroadcastRoleWanted?.Invoke() == true && MayBroadcast
-        ? ["receiver", "broadcaster"]
-        : ["receiver"];
+    /// <summary>The product's roles at enroll (item AC); account kind and capture permission gate their use separately.</summary>
+    internal string[] Roles() => ["receiver", "broadcaster"];
 
     /// <summary>
     /// Posts one envelope on the live control stream and completes when it was written. False when no

@@ -44,6 +44,7 @@
     <sys:String x:Key="OperationsTip">Options de fenêtre, aperçus, historique, ajouter un flux, paramètres de bibliothèque, importer des chaînes depuis Internet</sys:String>
     <sys:String x:Key="AddStreamTip">Ajouter un flux à partir de son adresse</sys:String>
     <sys:String x:Key="UpdateCatalogTip">Télécharger le catalogue le plus récent depuis internet</sys:String>
+    <sys:String x:Key="SearchAndFilters">Recherche, filtres et tri</sys:String>
     <sys:String x:Key="FiltersAndSorting">Filtres et tri</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">Afficher la ligne de filtres et de tri</sys:String>
     <sys:String x:Key="FiltersActiveTip">Afficher la ligne de filtres et de tri. Filtres actifs : {0}</sys:String>
@@ -712,6 +713,8 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="SettingsFiles">Fichiers</sys:String>
     <sys:String x:Key="SettingsFilesDesc">Dossiers pour les captures d'images et enregistrements de flux</sys:String>
     <sys:String x:Key="SettingsAbout">À propos</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">Compte et connexion au serveur</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Sources, accès réseau et qualité audio</sys:String>
     <sys:String x:Key="SettingsAboutDesc">Informations sur l'application, licence et diagnostics</sys:String>
     <sys:String x:Key="ThemeHint">Choisissez clair, sombre ou suivez les paramètres d'apparence de Windows.</sys:String>
     <sys:String x:Key="TileSizeHint">Ajustez la taille des vignettes de chaînes dans la grille.</sys:String>
@@ -772,7 +775,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="ExchangeForgotten">Déconnecté sur cet appareil. La connexion et l'empreinte du certificat ont été oubliées.</sys:String>
     <sys:String x:Key="ExchangeCertificate">Le certificat du serveur nécessite votre accord.</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">Faire confiance à ce certificat serveur ? Ancienne empreinte : {0} Nouvelle empreinte : {1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">Diffusions en direct</sys:String>
+    <sys:String x:Key="BroadcastsTitle">Mes diffusions</sys:String>
     <sys:String x:Key="BroadcastsEmpty">Ce compte n’a aucune diffusion actuellement ; elles apparaîtront ici lorsque vos autres appareils les lanceront.</sys:String>
     <sys:String x:Key="BroadcastsOnline">en ligne</sys:String>
     <sys:String x:Key="BroadcastsOffline">hors ligne</sys:String>
@@ -976,4 +979,8 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="ExchangeDiagnosisServerLine">Serveur : {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Code : {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Il n'y a pas encore de serveur à vérifier. Importez d'abord une chaîne de connexion ou connectez-vous.</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">Personne ne peut recevoir cette diffusion. Activez le réseau local ou connectez-vous au serveur d’échange, puis réessayez.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Cette adresse protégée ne peut pas être lue ici. Demandez un lien via le serveur d’échange à l’émetteur.</sys:String>
+    <sys:String x:Key="BroadcastNotListed">absent de la liste</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">Ce PC ne peut pas vérifier le certificat de {0}. Comparez cette empreinte avec l’émetteur avant de lui faire confiance pour cette chaîne :&#10;{1}&#10;Faire confiance à ce certificat ?</sys:String>
 </ResourceDictionary>

@@ -20,9 +20,10 @@ internal static class RecordingStaging
     /// A fresh directory name for one engine instance. Not created here - an engine that never records leaves no
     /// trace - and never reused, so a directory left behind by a crash cannot collect a later session's files.
     /// </summary>
-    internal static string NewInstanceDirectory()
+    internal static string NewInstanceDirectory(CaptureKind kind = CaptureKind.StreamVideo)
     {
-        var directory = Path.Combine(Root, $"{DateTime.Now:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}"[..24]);
+        var name = $"{DateTime.Now:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}"[..24];
+        var directory = Path.Combine(Root, kind == CaptureKind.StreamAudio ? "audio-" + name : name);
         Owned.TryAdd(Path.GetFullPath(directory), 0);
         return directory;
     }
@@ -41,16 +42,21 @@ internal static class RecordingStaging
     /// Moves every file a previous session left in staging into the recordings folder, removes the emptied
     /// directories, and reports what it did. Runs on a worker thread; a single file that cannot be moved is
     /// counted and left where it is, and the result names that place.
-    /// <para>SP-0179: only the LibVLC video engine stages, so a leftover is a <c>stream_video</c> and walks the video
-    /// chain. It is renamed by the contract's grammar with no label - the channel it came from is not known any
-    /// more - and stamped with the file's creation time, the nearest record of when the capture started.</para>
+    /// <para>Audio input recordings use audio-prefixed instance directories; legacy and video directories keep
+    /// the video chain. A recovered file has no channel label and uses its creation time, the nearest surviving
+    /// record of when capture started.</para>
     /// </summary>
-    internal static Task<StagingHandOver> HandOverLeftoversAsync(IReadOnlyList<string> chain, CurrentLog log) => Task.Run(() =>
+    internal static Task<StagingHandOver> HandOverLeftoversAsync(IReadOnlyList<string> chain, CurrentLog log,
+        IReadOnlyList<string>? audioChain = null) => Task.Run(() =>
     {
         // SP-0164: first, the partial copies a killed session left in the recordings folders - their staged
         // originals are what this hand-over files away, and a partial beside a recording's final name is
         // nothing the user should ever see. Runs even when staging itself is empty.
         RecordingFinisher.RemoveStalePartials(chain, log, DateTimeOffset.Now);
+        if (audioChain is not null)
+        {
+            RecordingFinisher.RemoveStalePartials(audioChain, log, DateTimeOffset.Now);
+        }
 
         var root = Root;
         if (!Directory.Exists(root))
@@ -71,9 +77,11 @@ internal static class RecordingStaging
                     continue;
                 }
 
+                var audio = Path.GetRelativePath(root, file).Split(Path.DirectorySeparatorChar)[0].StartsWith("audio-", StringComparison.Ordinal);
                 var name = CaptureFileName.For(
-                    CaptureKind.StreamVideo, new DateTimeOffset(File.GetCreationTime(file)), null, Path.GetExtension(file));
-                var (destination, skipped) = RecordingFinisher.MoveIntoFirst(file, chain, name);
+                    audio ? CaptureKind.StreamAudio : CaptureKind.StreamVideo,
+                    new DateTimeOffset(File.GetCreationTime(file)), null, Path.GetExtension(file));
+                var (destination, skipped) = RecordingFinisher.MoveIntoFirst(file, audio ? audioChain ?? chain : chain, name);
                 targetFolder = Path.GetDirectoryName(destination) ?? targetFolder;
                 log.Event("RECORD RECOVERED", $"from={file}", $"to={destination}", $"skipped={skipped ?? "none"}");
                 moved++;

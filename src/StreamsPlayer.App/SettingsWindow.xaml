@@ -175,6 +175,18 @@
                                 <TextBlock Text="{DynamicResource SettingsFiles}" VerticalAlignment="Center" />
                             </StackPanel>
                         </ListBoxItem>
+                        <ListBoxItem AutomationProperties.Name="{DynamicResource ExchangeTitle}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource NavIcon}" FlowDirection="LeftToRight" Data="{StaticResource Icon.source.exchange-server}" Fill="{DynamicResource NavInkLibrary}" />
+                                <TextBlock Text="{DynamicResource ExchangeTitle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </ListBoxItem>
+                        <ListBoxItem AutomationProperties.Name="{DynamicResource BroadcastTitle}">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Style="{StaticResource NavIcon}" FlowDirection="LeftToRight" Data="{StaticResource Icon.feature.live-broadcast}" Fill="{DynamicResource NavInkPlayback}" />
+                                <TextBlock Text="{DynamicResource BroadcastTitle}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </ListBoxItem>
                         <ListBoxItem AutomationProperties.Name="{DynamicResource SettingsAbout}">
                             <StackPanel Orientation="Horizontal">
                                 <Path Style="{StaticResource NavIcon}" FlowDirection="LeftToRight" Data="{StaticResource Icon.app.info}" Fill="{DynamicResource NavInkAbout}" />
@@ -201,8 +213,12 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
-                            <TextBlock x:Name="PageTitleText" FontSize="{DynamicResource UiFontTitle}" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" />
+                            <DockPanel>
+                                <local:ExchangeMarkIcon x:Name="ExchangePageMark" DipSize="24" DockPanel.Dock="Left"
+                                                        Margin="0,0,8,0" VerticalAlignment="Top" Visibility="Collapsed" />
+                                <TextBlock x:Name="PageTitleText" FontSize="{DynamicResource UiFontTitle}" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" />
+                            </DockPanel>
                             <TextBlock x:Name="PageDescText" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="12,0,0,0">
@@ -424,191 +440,6 @@
                                     </StackPanel>
                                 </Expander>
 
-                                <Expander x:Name="ExchangeGroup" Style="{StaticResource SettingsGroup}" local:SettingsUiProperties.GroupId="library.exchange" IsExpanded="True">
-                                    <!-- SP-0234, EXCHANGE-MARK rule 8a: the screen where the account is added, signed in to and managed
-                                         wears the mark beside the name. Decorative: the heading text beside it is the accessible name. -->
-                                    <local:SettingsUiProperties.HeaderMark>
-                                        <local:ExchangeMarkIcon DipSize="24" Margin="0,0,8,0" />
-                                    </local:SettingsUiProperties.HeaderMark>
-                                    <Expander.Header><TextBlock Text="{DynamicResource ExchangeTitle}" TextWrapping="Wrap" /></Expander.Header>
-                                    <StackPanel>
-                                        <TextBlock Text="{DynamicResource ExchangeHint}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,4" />
-                                        <TextBlock Text="{DynamicResource ExchangeLoginOnly}" TextWrapping="Wrap" Margin="0,0,0,4" />
-                                        <!-- SP-0226 / DEVICE-EXCHANGE item DE: wherever the product says protected, it says what the server still sees - in the contract's words. -->
-                                        <TextBlock Text="{DynamicResource ExchangeHonestText}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,4" />
-                                        <!-- SP-0234, rule 10: a link to the page about the server may carry the mark; it stands beside the link, not in it. -->
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,8">
-                                            <local:ExchangeMarkIcon DipSize="16" Margin="0,0,6,0" />
-                                            <Button Style="{StaticResource SettingsLinkButton}" Tag="ExchangeAccount" Click="OpenLink_Click"
-                                                    AutomationProperties.Name="{DynamicResource ExchangePortalLink}" Content="{DynamicResource ExchangePortalLink}" />
-                                        </StackPanel>
-                                        <WrapPanel>
-                                            <Button x:Name="ExchangeImportStringButton" local:HelpAnchor.Id="e-exchange-import-string" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeImportString}" Click="ExchangeImportString_Click" Margin="0,0,8,8" />
-                                            <Button x:Name="ExchangeImportFileButton" local:HelpAnchor.Id="e-exchange-import-file" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeImportFile}" Click="ExchangeImportFile_Click" Margin="0,0,8,8" />
-                                            <Button x:Name="ExchangeImportQrFileButton" local:HelpAnchor.Id="e-exchange-qr-file" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeImportQrFile}" Click="ExchangeImportQrFile_Click" Margin="0,0,8,8" />
-                                            <Button x:Name="ExchangeImportQrClipboardButton" local:HelpAnchor.Id="e-exchange-qr-clipboard" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeImportQrClipboard}" Click="ExchangeImportQrClipboard_Click" Margin="0,0,8,8" />
-                                            <!-- SP-0229: absent, not disabled, where Windows reports no camera. -->
-                                            <Button x:Name="ExchangeImportCameraButton" local:HelpAnchor.Id="e-exchange-camera" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeImportCamera}" Click="ExchangeImportCamera_Click" Visibility="Collapsed" Margin="0,0,8,8" />
-                                        </WrapPanel>
-                                        <StackPanel x:Name="ExchangeStringEntry" Visibility="Collapsed">
-                                            <TextBox x:Name="ExchangeStringBox" AutomationProperties.Name="{DynamicResource ExchangeImportString}" FlowDirection="LeftToRight" Margin="0,0,0,8" />
-                                            <Button x:Name="ExchangeReadStringButton" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeReadString}" Click="ExchangeReadString_Click" HorizontalAlignment="Left" Margin="0,0,0,8" />
-                                        </StackPanel>
-                                        <!-- SP-0221 requirement 3: the face names the server and says how its certificate is
-                                             trusted; the address and port are one control away, collapsed, and still reachable
-                                             before the password is used. -->
-                                        <StackPanel x:Name="ExchangePreview" Visibility="Collapsed" Margin="0,0,0,8">
-                                            <TextBlock x:Name="ExchangePreviewText" TextWrapping="Wrap" />
-                                            <TextBlock x:Name="ExchangeNameText" TextWrapping="Wrap" />
-                                            <TextBlock x:Name="ExchangeTrustText" TextWrapping="Wrap" />
-                                            <TextBlock x:Name="ExchangeInvitationText" TextWrapping="Wrap" Visibility="Collapsed" />
-                                        </StackPanel>
-                                        <Expander x:Name="ExchangeDetailsExpander" local:HelpAnchor.Id="e-exchange-details" local:SettingsUiProperties.GroupId="library.exchange.details"
-                                                  IsExpanded="False" Margin="0,0,0,8"
-                                                  AutomationProperties.Name="{DynamicResource ExchangeDetails}">
-                                            <Expander.Header><TextBlock Text="{DynamicResource ExchangeDetails}" TextWrapping="Wrap" /></Expander.Header>
-                                            <StackPanel>
-                                                <Grid Style="{StaticResource ValueRow}">
-                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{DynamicResource ExchangeAddress}" VerticalAlignment="Center" />
-                                                    <TextBox x:Name="ExchangeAddressBox" local:HelpAnchor.Id="e-exchange-address" Grid.Column="1" AutomationProperties.Name="{DynamicResource ExchangeAddress}" FlowDirection="LeftToRight" TextChanged="ExchangeEndpoint_TextChanged" />
-                                                </Grid>
-                                                <Grid Style="{StaticResource ValueRow}">
-                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{DynamicResource ExchangePort}" VerticalAlignment="Center" />
-                                                    <TextBox x:Name="ExchangePortBox" local:HelpAnchor.Id="e-exchange-port" Grid.Column="1" AutomationProperties.Name="{DynamicResource ExchangePort}" FlowDirection="LeftToRight" TextChanged="ExchangeEndpoint_TextChanged" />
-                                                </Grid>
-                                                <TextBlock x:Name="ExchangeImportedPinText" FlowDirection="LeftToRight" TextWrapping="Wrap" />
-                                            </StackPanel>
-                                        </Expander>
-                                        <Grid Style="{StaticResource ValueRow}">
-                                            <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                            <TextBlock Text="{DynamicResource ExchangeLogin}" VerticalAlignment="Center" />
-                                            <TextBox x:Name="ExchangeLoginBox" local:HelpAnchor.Id="e-exchange-login" Grid.Column="1" AutomationProperties.Name="{DynamicResource ExchangeLogin}" />
-                                        </Grid>
-                                        <Grid Style="{StaticResource ValueRow}">
-                                            <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                            <ComboBox x:Name="ExchangeMethodBox" local:HelpAnchor.Id="e-exchange-method" SelectedIndex="0" Margin="0,0,8,0" AutomationProperties.Name="{DynamicResource ExchangePassword}">
-                                                <ComboBoxItem Content="{DynamicResource ExchangePassword}" />
-                                                <ComboBoxItem Content="{DynamicResource ExchangePairingCode}" />
-                                            </ComboBox>
-                                            <PasswordBox x:Name="ExchangeSecretBox" local:HelpAnchor.Id="e-exchange-password" Grid.Column="1" MinHeight="28" AutomationProperties.Name="{DynamicResource ExchangePassword}" />
-                                        </Grid>
-                                        <CheckBox x:Name="ExchangeEnabledCheckBox" local:HelpAnchor.Id="e-exchange-enabled" Content="{DynamicResource ExchangeEnabled}" Checked="ExchangeEnabled_Click" Unchecked="ExchangeEnabled_Click" Margin="0,0,0,8" />
-                                        <CheckBox x:Name="ExchangeAutoAcceptCastsCheckBox" local:HelpAnchor.Id="e-exchange-auto-accept" Content="{DynamicResource ExchangeAutoAcceptCasts}" Checked="ExchangeAutoAcceptCasts_Click" Unchecked="ExchangeAutoAcceptCasts_Click" Margin="0,0,0,8" />
-                                        <WrapPanel>
-                                            <Button x:Name="ExchangeEnrollButton" local:HelpAnchor.Id="e-exchange-enroll" Style="{StaticResource ExchangeConnectGlyphButton}" Content="{DynamicResource ExchangeEnroll}" Click="ExchangeEnroll_Click" Margin="0,0,8,8" />
-                                            <Button x:Name="ExchangeChangePasswordButton" local:HelpAnchor.Id="e-exchange-change-password" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource ExchangeChangePassword}" Click="ExchangeChangePassword_Click" Margin="0,0,8,8" />
-                                            <Button x:Name="ExchangeDiagnoseButton" local:HelpAnchor.Id="e-exchange-diagnose" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource ExchangeDiagnose}" Click="ExchangeDiagnose_Click" Margin="0,0,8,8" />
-                                            <Button x:Name="ExchangeForgetButton" local:HelpAnchor.Id="e-exchange-forget" Style="{StaticResource RemoveGlyphButton}" Content="{DynamicResource ExchangeForget}" Click="ExchangeForget_Click" Margin="0,0,8,8" />
-                                            <Button x:Name="ExchangeTrustButton" local:HelpAnchor.Id="e-exchange-trust" Style="{StaticResource ConfirmGlyphButton}" Content="{DynamicResource ExchangeTrust}" Click="ExchangeTrust_Click" Margin="0,0,8,8" Visibility="Collapsed" />
-                                            <Button x:Name="ExchangeCancelButton" Style="{StaticResource CancelGlyphButton}" Content="{DynamicResource Cancel}" Click="ExchangeCancel_Click" Margin="0,0,8,8" Visibility="Collapsed" />
-                                        </WrapPanel>
-                                        <ProgressBar x:Name="ExchangeProgress" IsIndeterminate="True" Height="4" Margin="0,0,0,8" Visibility="Collapsed" AutomationProperties.Name="{DynamicResource ExchangeConnecting}" />
-                                        <!-- SP-0234, rule 8c: a status or a failure about the server leads with the mark; an empty line shows none. -->
-                                        <DockPanel>
-                                            <local:ExchangeMarkIcon DipSize="16" DockPanel.Dock="Left" VerticalAlignment="Top" Margin="0,2,6,0">
-                                                <local:ExchangeMarkIcon.Style>
-                                                    <Style TargetType="local:ExchangeMarkIcon">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Text, ElementName=ExchangeStatusText}" Value="">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </local:ExchangeMarkIcon.Style>
-                                            </local:ExchangeMarkIcon>
-                                            <TextBlock x:Name="ExchangeStatusText" TextWrapping="Wrap" />
-                                        </DockPanel>
-                                        <TextBlock x:Name="ExchangeFingerprintText" TextWrapping="Wrap" FlowDirection="LeftToRight" Margin="0,8,0,0" />
-                                        <!-- SP-0221 requirement 9: guest accounts held beside the own one - labelled, bounded, each
-                                             signed out on its own. A guest entry is never connected or announced from here. -->
-                                        <StackPanel x:Name="ExchangeGuestPanel" Margin="0,12,0,0">
-                                            <TextBlock Text="{DynamicResource ExchangeGuests}" FontWeight="SemiBold" />
-                                            <TextBlock x:Name="ExchangeGuestBoundText" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,4" />
-                                            <StackPanel x:Name="ExchangeGuestList" />
-                                            <DockPanel Margin="0,4,0,0">
-                                                <local:ExchangeMarkIcon DipSize="16" DockPanel.Dock="Left" VerticalAlignment="Top" Margin="0,2,6,0">
-                                                    <local:ExchangeMarkIcon.Style>
-                                                        <Style TargetType="local:ExchangeMarkIcon">
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Text, ElementName=ExchangeGuestStatusText}" Value="">
-                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </local:ExchangeMarkIcon.Style>
-                                                </local:ExchangeMarkIcon>
-                                                <TextBlock x:Name="ExchangeGuestStatusText" TextWrapping="Wrap" />
-                                            </DockPanel>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Expander>
-                                <Expander x:Name="BroadcastGroup" Style="{StaticResource SettingsGroup}" local:SettingsUiProperties.GroupId="library.broadcast" IsExpanded="True">
-                                    <Expander.Header><TextBlock Text="{DynamicResource BroadcastTitle}" TextWrapping="Wrap" /></Expander.Header>
-                                    <StackPanel>
-                                        <DockPanel Margin="0,0,0,8">
-                                            <Path Data="{StaticResource Icon.feature.server-relay}" Width="24" Height="24" Stretch="Uniform" FlowDirection="LeftToRight"
-                                                  Fill="{DynamicResource TextBrush}" VerticalAlignment="Top" Margin="0,0,8,0" />
-                                            <TextBlock Text="{DynamicResource BroadcastHint}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" />
-                                        </DockPanel>
-                                        <Button Style="{StaticResource SettingsLinkButton}" Tag="ExchangeBroadcasts" Click="OpenLink_Click" HorizontalAlignment="Left" Margin="0,0,0,8"
-                                                ToolTip="{DynamicResource MediaExchangeTip}" AutomationProperties.Name="{DynamicResource MediaExchange}" Content="{DynamicResource MediaExchange}" />
-                                        <!-- SP-0221 requirement 8: a guest announces nothing on its server, and says why here. -->
-                                        <TextBlock x:Name="BroadcastGuestNoteText" Text="{DynamicResource BroadcastGuestOnly}" TextWrapping="Wrap"
-                                                   Visibility="Collapsed" Margin="0,0,0,8" />
-                                        <CheckBox x:Name="BroadcastAllowedCheckBox" local:HelpAnchor.Id="e-broadcast-allow" Content="{DynamicResource BroadcastAllow}"
-                                                  Checked="BroadcastAllowed_Click" Unchecked="BroadcastAllowed_Click" Margin="0,0,0,8" />
-                                        <StackPanel x:Name="BroadcastControls" Visibility="Collapsed">
-                                            <CheckBox x:Name="BroadcastStartWithAppCheckBox" local:HelpAnchor.Id="e-broadcast-start-with-app" Content="{DynamicResource BroadcastStartWithApp}"
-                                                      Checked="BroadcastStartWithApp_Click" Unchecked="BroadcastStartWithApp_Click" Margin="0,0,0,8" />
-                                            <WrapPanel Margin="0,0,0,8">
-                                                <Button x:Name="BroadcastMicButton" local:HelpAnchor.Id="e-broadcast-mic" Style="{StaticResource BroadcastingGlyphButton}" Content="{DynamicResource BroadcastMicStart}" Click="BroadcastMicStart_Click" Margin="0,0,8,8" AutomationProperties.Name="{DynamicResource BroadcastMicStart}" />
-                                                <Button x:Name="BroadcastSoundButton" local:HelpAnchor.Id="e-broadcast-sound" Style="{StaticResource BroadcastingGlyphButton}" Content="{DynamicResource BroadcastSoundStart}" Click="BroadcastSoundStart_Click" Margin="0,0,8,8" AutomationProperties.Name="{DynamicResource BroadcastSoundStart}" />
-                                                <Button x:Name="BroadcastStopButton" local:HelpAnchor.Id="e-broadcast-stop" Style="{StaticResource RemoveGlyphButton}" Content="{DynamicResource BroadcastStopAll}" Click="BroadcastStopAll_Click" Margin="0,0,8,8" AutomationProperties.Name="{DynamicResource BroadcastStopAll}" />
-                                            </WrapPanel>
-                                            <Grid Margin="0,0,0,8">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                </Grid.RowDefinitions>
-                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{DynamicResource BroadcastMicDevice}" VerticalAlignment="Center" Margin="0,0,8,8" />
-                                                <ComboBox x:Name="BroadcastMicDeviceBox" local:HelpAnchor.Id="e-broadcast-mic-device" Grid.Row="0" Grid.Column="1" SelectionChanged="BroadcastMicDevice_Changed" Margin="0,0,0,8"
-                                                          AutomationProperties.Name="{DynamicResource BroadcastMicDevice}" />
-                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{DynamicResource BroadcastLanListening}" VerticalAlignment="Center" Margin="0,0,8,8" />
-                                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
-                                                    <CheckBox x:Name="BroadcastLanCheckBox" local:HelpAnchor.Id="e-broadcast-lan" Checked="BroadcastLan_Click" Unchecked="BroadcastLan_Click" VerticalAlignment="Center" />
-                                                    <TextBlock x:Name="BroadcastLanPortLabel" Text="{DynamicResource BroadcastLanPort}" VerticalAlignment="Center" Margin="12,0,8,0" />
-                                                    <TextBox x:Name="BroadcastLanPortBox" local:HelpAnchor.Id="e-broadcast-lan-port" Width="70" TextChanged="BroadcastLanPort_TextChanged" AutomationProperties.Name="{DynamicResource BroadcastLanPort}" />
-                                                </StackPanel>
-                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="{DynamicResource BroadcastCap}" VerticalAlignment="Top" Margin="0,0,8,8" />
-                                                <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,8">
-                                                    <TextBox x:Name="BroadcastCapBox" local:HelpAnchor.Id="e-broadcast-cap" Width="70" TextChanged="BroadcastCap_TextChanged" AutomationProperties.Name="{DynamicResource BroadcastCap}" />
-                                                    <TextBlock Text="{DynamicResource BroadcastCapHint}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
-                                                </StackPanel>
-                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="{DynamicResource BroadcastQuality}" VerticalAlignment="Center" Margin="0,0,8,8" />
-                                                <WrapPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,8">
-                                                    <TextBlock Text="{DynamicResource BroadcastSampleRate}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                    <ComboBox x:Name="BroadcastSampleRateBox" local:HelpAnchor.Id="e-broadcast-sample-rate" Width="90" SelectionChanged="BroadcastQuality_Changed" AutomationProperties.Name="{DynamicResource BroadcastSampleRate}" Margin="0,0,12,0" />
-                                                    <TextBlock Text="{DynamicResource BroadcastMicChannels}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                    <ComboBox x:Name="BroadcastMicChannelsBox" local:HelpAnchor.Id="e-broadcast-mic-channels" Width="90" SelectionChanged="BroadcastQuality_Changed" AutomationProperties.Name="{DynamicResource BroadcastMicChannels}" Margin="0,0,12,0" />
-                                                    <TextBlock Text="{DynamicResource BroadcastSoundChannels}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                    <ComboBox x:Name="BroadcastSoundChannelsBox" local:HelpAnchor.Id="e-broadcast-sound-channels" Width="90" SelectionChanged="BroadcastQuality_Changed" AutomationProperties.Name="{DynamicResource BroadcastSoundChannels}" Margin="0,0,12,0" />
-                                                    <TextBlock Text="{DynamicResource BroadcastBitrate}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                    <ComboBox x:Name="BroadcastBitrateBox" local:HelpAnchor.Id="e-broadcast-bitrate" Width="90" SelectionChanged="BroadcastQuality_Changed" AutomationProperties.Name="{DynamicResource BroadcastBitrate}" />
-                                                </WrapPanel>
-                                            </Grid>
-                                            <TextBlock x:Name="BroadcastStatusText" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                            <TextBlock Text="{DynamicResource BroadcastVideoPending}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Expander>
                                 <Expander Style="{StaticResource SettingsGroup}" local:SettingsUiProperties.GroupId="library.tv" IsExpanded="True">
                                     <Expander.Header>
                                         <TextBlock Text="{DynamicResource TvScheduleTitle}" TextWrapping="Wrap" />
@@ -911,6 +742,185 @@
                                         <TextBlock Text="{DynamicResource SendLogsHint}" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" />
                                     </StackPanel>
                                 </Expander>
+                            </StackPanel>
+                            <StackPanel x:Name="PageExchange" Margin="0,0,4,0" Visibility="Collapsed">
+                                <StackPanel x:Name="ExchangeGroup" local:SettingsUiProperties.GroupId="library.exchange" Margin="6,0,0,0">
+                                    <TextBlock Text="{DynamicResource ExchangeHint}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,4" />
+                                    <TextBlock Text="{DynamicResource ExchangeLoginOnly}" TextWrapping="Wrap" Margin="0,0,0,4" />
+                                    <!-- SP-0226 / DEVICE-EXCHANGE item DE: wherever the product says protected, it says what the server still sees - in the contract's words. -->
+                                    <TextBlock Text="{DynamicResource ExchangeHonestText}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,4" />
+                                    <!-- SP-0234, rule 10: a link to the page about the server may carry the mark; it stands beside the link, not in it. -->
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,8">
+                                        <local:ExchangeMarkIcon DipSize="16" Margin="0,0,6,0" />
+                                        <Button Style="{StaticResource SettingsLinkButton}" Tag="ExchangeAccount" Click="OpenLink_Click"
+                                                AutomationProperties.Name="{DynamicResource ExchangePortalLink}" Content="{DynamicResource ExchangePortalLink}" />
+                                    </StackPanel>
+                                    <WrapPanel>
+                                        <Button x:Name="ExchangeImportStringButton" local:HelpAnchor.Id="e-exchange-import-string" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeImportString}" Click="ExchangeImportString_Click" Margin="0,0,8,8" />
+                                        <Button x:Name="ExchangeImportFileButton" local:HelpAnchor.Id="e-exchange-import-file" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeImportFile}" Click="ExchangeImportFile_Click" Margin="0,0,8,8" />
+                                        <Button x:Name="ExchangeImportQrFileButton" local:HelpAnchor.Id="e-exchange-qr-file" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeImportQrFile}" Click="ExchangeImportQrFile_Click" Margin="0,0,8,8" />
+                                        <Button x:Name="ExchangeImportQrClipboardButton" local:HelpAnchor.Id="e-exchange-qr-clipboard" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeImportQrClipboard}" Click="ExchangeImportQrClipboard_Click" Margin="0,0,8,8" />
+                                        <!-- SP-0229: absent, not disabled, where Windows reports no camera. -->
+                                        <Button x:Name="ExchangeImportCameraButton" local:HelpAnchor.Id="e-exchange-camera" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeImportCamera}" Click="ExchangeImportCamera_Click" Visibility="Collapsed" Margin="0,0,8,8" />
+                                    </WrapPanel>
+                                    <StackPanel x:Name="ExchangeStringEntry" Visibility="Collapsed">
+                                        <TextBox x:Name="ExchangeStringBox" AutomationProperties.Name="{DynamicResource ExchangeImportString}" FlowDirection="LeftToRight" Margin="0,0,0,8" />
+                                        <Button x:Name="ExchangeReadStringButton" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeReadString}" Click="ExchangeReadString_Click" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                                    </StackPanel>
+                                    <!-- SP-0221 requirement 3: the face names the server and says how its certificate is
+                                         trusted; the address and port are one control away, collapsed, and still reachable
+                                         before the password is used. -->
+                                    <StackPanel x:Name="ExchangePreview" Visibility="Collapsed" Margin="0,0,0,8">
+                                        <TextBlock x:Name="ExchangePreviewText" TextWrapping="Wrap" />
+                                        <TextBlock x:Name="ExchangeNameText" TextWrapping="Wrap" />
+                                        <TextBlock x:Name="ExchangeTrustText" TextWrapping="Wrap" />
+                                        <TextBlock x:Name="ExchangeInvitationText" TextWrapping="Wrap" Visibility="Collapsed" />
+                                    </StackPanel>
+                                    <Expander x:Name="ExchangeDetailsExpander" local:HelpAnchor.Id="e-exchange-details" local:SettingsUiProperties.GroupId="library.exchange.details"
+                                              IsExpanded="False" Margin="0,0,0,8"
+                                              AutomationProperties.Name="{DynamicResource ExchangeDetails}">
+                                        <Expander.Header><TextBlock Text="{DynamicResource ExchangeDetails}" TextWrapping="Wrap" /></Expander.Header>
+                                        <StackPanel>
+                                            <Grid Style="{StaticResource ValueRow}">
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{DynamicResource ExchangeAddress}" VerticalAlignment="Center" />
+                                                <TextBox x:Name="ExchangeAddressBox" local:HelpAnchor.Id="e-exchange-address" Grid.Column="1" AutomationProperties.Name="{DynamicResource ExchangeAddress}" FlowDirection="LeftToRight" TextChanged="ExchangeEndpoint_TextChanged" />
+                                            </Grid>
+                                            <Grid Style="{StaticResource ValueRow}">
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                                <TextBlock Text="{DynamicResource ExchangePort}" VerticalAlignment="Center" />
+                                                <TextBox x:Name="ExchangePortBox" local:HelpAnchor.Id="e-exchange-port" Grid.Column="1" AutomationProperties.Name="{DynamicResource ExchangePort}" FlowDirection="LeftToRight" TextChanged="ExchangeEndpoint_TextChanged" />
+                                            </Grid>
+                                            <TextBlock x:Name="ExchangeImportedPinText" FlowDirection="LeftToRight" TextWrapping="Wrap" />
+                                            <TextBlock x:Name="ExchangeFailureCodeText" TextWrapping="Wrap" Visibility="Collapsed" />
+                                        </StackPanel>
+                                    </Expander>
+                                    <Grid Style="{StaticResource ValueRow}">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                        <TextBlock Text="{DynamicResource ExchangeLogin}" VerticalAlignment="Center" />
+                                        <TextBox x:Name="ExchangeLoginBox" local:HelpAnchor.Id="e-exchange-login" Grid.Column="1" AutomationProperties.Name="{DynamicResource ExchangeLogin}" />
+                                    </Grid>
+                                    <Grid Style="{StaticResource ValueRow}">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="1.4*" MinWidth="200" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                        <ComboBox x:Name="ExchangeMethodBox" local:HelpAnchor.Id="e-exchange-method" SelectedIndex="0" Margin="0,0,8,0" AutomationProperties.Name="{DynamicResource ExchangePassword}">
+                                            <ComboBoxItem Content="{DynamicResource ExchangePassword}" />
+                                            <ComboBoxItem Content="{DynamicResource ExchangePairingCode}" />
+                                        </ComboBox>
+                                        <PasswordBox x:Name="ExchangeSecretBox" local:HelpAnchor.Id="e-exchange-password" Grid.Column="1" MinHeight="28" AutomationProperties.Name="{DynamicResource ExchangePassword}" />
+                                    </Grid>
+                                    <CheckBox x:Name="ExchangeEnabledCheckBox" local:HelpAnchor.Id="e-exchange-enabled" Content="{DynamicResource ExchangeEnabled}" Checked="ExchangeEnabled_Click" Unchecked="ExchangeEnabled_Click" Margin="0,0,0,8" />
+                                    <CheckBox x:Name="ExchangeAutoAcceptCastsCheckBox" local:HelpAnchor.Id="e-exchange-auto-accept" Content="{DynamicResource ExchangeAutoAcceptCasts}" Checked="ExchangeAutoAcceptCasts_Click" Unchecked="ExchangeAutoAcceptCasts_Click" Margin="0,0,0,8" />
+                                    <WrapPanel>
+                                        <Button x:Name="ExchangeEnrollButton" local:HelpAnchor.Id="e-exchange-enroll" Style="{StaticResource ExchangeConnectGlyphButton}" Content="{DynamicResource ExchangeEnroll}" Click="ExchangeEnroll_Click" Margin="0,0,8,8" />
+                                        <Button x:Name="ExchangeChangePasswordButton" local:HelpAnchor.Id="e-exchange-change-password" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource ExchangeChangePassword}" Click="ExchangeChangePassword_Click" Margin="0,0,8,8" />
+                                        <Button x:Name="ExchangeDiagnoseButton" local:HelpAnchor.Id="e-exchange-diagnose" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource ExchangeDiagnose}" Click="ExchangeDiagnose_Click" Margin="0,0,8,8" />
+                                        <Button x:Name="ExchangeForgetButton" local:HelpAnchor.Id="e-exchange-forget" Style="{StaticResource RemoveGlyphButton}" Content="{DynamicResource ExchangeForget}" Click="ExchangeForget_Click" Margin="0,0,8,8" />
+                                        <Button x:Name="ExchangeTrustButton" local:HelpAnchor.Id="e-exchange-trust" Style="{StaticResource ConfirmGlyphButton}" Content="{DynamicResource ExchangeTrust}" Click="ExchangeTrust_Click" Margin="0,0,8,8" Visibility="Collapsed" />
+                                        <Button x:Name="ExchangeCancelButton" Style="{StaticResource CancelGlyphButton}" Content="{DynamicResource Cancel}" Click="ExchangeCancel_Click" Margin="0,0,8,8" Visibility="Collapsed" />
+                                    </WrapPanel>
+                                    <ProgressBar x:Name="ExchangeProgress" IsIndeterminate="True" Height="4" Margin="0,0,0,8" Visibility="Collapsed" AutomationProperties.Name="{DynamicResource ExchangeConnecting}" />
+                                    <!-- SP-0234, rule 8c: a status or a failure about the server leads with the mark; an empty line shows none. -->
+                                    <DockPanel>
+                                        <local:ExchangeMarkIcon DipSize="16" DockPanel.Dock="Left" VerticalAlignment="Top" Margin="0,2,6,0">
+                                            <local:ExchangeMarkIcon.Style>
+                                                <Style TargetType="local:ExchangeMarkIcon">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Text, ElementName=ExchangeStatusText}" Value="">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </local:ExchangeMarkIcon.Style>
+                                        </local:ExchangeMarkIcon>
+                                        <TextBlock x:Name="ExchangeStatusText" TextWrapping="Wrap" />
+                                    </DockPanel>
+                                    <TextBlock x:Name="ExchangeFingerprintText" TextWrapping="Wrap" FlowDirection="LeftToRight" Margin="0,8,0,0" />
+                                    <!-- SP-0221 requirement 9: guest accounts held beside the own one - labelled, bounded, each
+                                         signed out on its own. A guest entry is never connected or announced from here. -->
+                                    <StackPanel x:Name="ExchangeGuestPanel" Margin="0,12,0,0">
+                                        <TextBlock Text="{DynamicResource ExchangeGuests}" FontWeight="SemiBold" />
+                                        <TextBlock x:Name="ExchangeGuestBoundText" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,4" />
+                                        <StackPanel x:Name="ExchangeGuestList" />
+                                        <DockPanel Margin="0,4,0,0">
+                                            <local:ExchangeMarkIcon DipSize="16" DockPanel.Dock="Left" VerticalAlignment="Top" Margin="0,2,6,0">
+                                                <local:ExchangeMarkIcon.Style>
+                                                    <Style TargetType="local:ExchangeMarkIcon">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Text, ElementName=ExchangeGuestStatusText}" Value="">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </local:ExchangeMarkIcon.Style>
+                                            </local:ExchangeMarkIcon>
+                                            <TextBlock x:Name="ExchangeGuestStatusText" TextWrapping="Wrap" />
+                                        </DockPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel x:Name="PageBroadcast" Margin="0,0,4,0" Visibility="Collapsed">
+                                <StackPanel x:Name="BroadcastGroup" local:SettingsUiProperties.GroupId="library.broadcast" Margin="6,0,0,0">
+                                    <DockPanel Margin="0,0,0,8">
+                                        <Path Data="{StaticResource Icon.feature.server-relay}" Width="24" Height="24" Stretch="Uniform" FlowDirection="LeftToRight"
+                                              Fill="{DynamicResource TextBrush}" VerticalAlignment="Top" Margin="0,0,8,0" />
+                                        <TextBlock Text="{DynamicResource BroadcastHint}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" />
+                                    </DockPanel>
+                                    <Button Style="{StaticResource SettingsLinkButton}" Tag="ExchangeBroadcasts" Click="OpenLink_Click" HorizontalAlignment="Left" Margin="0,0,0,8"
+                                            ToolTip="{DynamicResource MediaExchangeTip}" AutomationProperties.Name="{DynamicResource MediaExchange}" Content="{DynamicResource MediaExchange}" />
+                                    <!-- SP-0221 requirement 8: a guest announces nothing on its server, and says why here. -->
+                                    <TextBlock x:Name="BroadcastGuestNoteText" Text="{DynamicResource BroadcastGuestOnly}" TextWrapping="Wrap"
+                                               Visibility="Collapsed" Margin="0,0,0,8" />
+                                    <CheckBox x:Name="BroadcastAllowedCheckBox" local:HelpAnchor.Id="e-broadcast-allow" Content="{DynamicResource BroadcastAllow}"
+                                              Checked="BroadcastAllowed_Click" Unchecked="BroadcastAllowed_Click" Margin="0,0,0,8" />
+                                    <StackPanel x:Name="BroadcastControls" Visibility="Collapsed">
+                                        <CheckBox x:Name="BroadcastStartWithAppCheckBox" local:HelpAnchor.Id="e-broadcast-start-with-app" Content="{DynamicResource BroadcastStartWithApp}"
+                                                  Checked="BroadcastStartWithApp_Click" Unchecked="BroadcastStartWithApp_Click" Margin="0,0,0,8" />
+                                        <WrapPanel Margin="0,0,0,8">
+                                            <Button x:Name="BroadcastMicButton" local:HelpAnchor.Id="e-broadcast-mic" Style="{StaticResource BroadcastingGlyphButton}" Content="{DynamicResource BroadcastMicStart}" Click="BroadcastMicStart_Click" Margin="0,0,8,8" AutomationProperties.Name="{DynamicResource BroadcastMicStart}" />
+                                            <Button x:Name="BroadcastSoundButton" local:HelpAnchor.Id="e-broadcast-sound" Style="{StaticResource BroadcastingGlyphButton}" Content="{DynamicResource BroadcastSoundStart}" Click="BroadcastSoundStart_Click" Margin="0,0,8,8" AutomationProperties.Name="{DynamicResource BroadcastSoundStart}" />
+                                            <Button x:Name="BroadcastStopButton" local:HelpAnchor.Id="e-broadcast-stop" Style="{StaticResource RemoveGlyphButton}" Content="{DynamicResource BroadcastStopAll}" Click="BroadcastStopAll_Click" Margin="0,0,8,8" AutomationProperties.Name="{DynamicResource BroadcastStopAll}" />
+                                        </WrapPanel>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{DynamicResource BroadcastMicDevice}" VerticalAlignment="Center" Margin="0,0,8,8" />
+                                            <ComboBox x:Name="BroadcastMicDeviceBox" local:HelpAnchor.Id="e-broadcast-mic-device" Grid.Row="0" Grid.Column="1" SelectionChanged="BroadcastMicDevice_Changed" Margin="0,0,0,8"
+                                                      AutomationProperties.Name="{DynamicResource BroadcastMicDevice}" />
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{DynamicResource BroadcastLanListening}" VerticalAlignment="Center" Margin="0,0,8,8" />
+                                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
+                                                <CheckBox x:Name="BroadcastLanCheckBox" local:HelpAnchor.Id="e-broadcast-lan" Checked="BroadcastLan_Click" Unchecked="BroadcastLan_Click" VerticalAlignment="Center" />
+                                                <TextBlock x:Name="BroadcastLanPortLabel" Text="{DynamicResource BroadcastLanPort}" VerticalAlignment="Center" Margin="12,0,8,0" />
+                                                <TextBox x:Name="BroadcastLanPortBox" local:HelpAnchor.Id="e-broadcast-lan-port" Width="70" TextChanged="BroadcastLanPort_TextChanged" AutomationProperties.Name="{DynamicResource BroadcastLanPort}" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{DynamicResource BroadcastCap}" VerticalAlignment="Top" Margin="0,0,8,8" />
+                                            <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,8">
+                                                <TextBox x:Name="BroadcastCapBox" local:HelpAnchor.Id="e-broadcast-cap" Width="70" TextChanged="BroadcastCap_TextChanged" AutomationProperties.Name="{DynamicResource BroadcastCap}" />
+                                                <TextBlock Text="{DynamicResource BroadcastCapHint}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="{DynamicResource BroadcastQuality}" VerticalAlignment="Center" Margin="0,0,8,8" />
+                                            <WrapPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,8">
+                                                <TextBlock Text="{DynamicResource BroadcastSampleRate}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                <ComboBox x:Name="BroadcastSampleRateBox" local:HelpAnchor.Id="e-broadcast-sample-rate" Width="90" SelectionChanged="BroadcastQuality_Changed" AutomationProperties.Name="{DynamicResource BroadcastSampleRate}" Margin="0,0,12,0" />
+                                                <TextBlock Text="{DynamicResource BroadcastMicChannels}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                <ComboBox x:Name="BroadcastMicChannelsBox" local:HelpAnchor.Id="e-broadcast-mic-channels" Width="90" SelectionChanged="BroadcastQuality_Changed" AutomationProperties.Name="{DynamicResource BroadcastMicChannels}" Margin="0,0,12,0" />
+                                                <TextBlock Text="{DynamicResource BroadcastSoundChannels}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                <ComboBox x:Name="BroadcastSoundChannelsBox" local:HelpAnchor.Id="e-broadcast-sound-channels" Width="90" SelectionChanged="BroadcastQuality_Changed" AutomationProperties.Name="{DynamicResource BroadcastSoundChannels}" Margin="0,0,12,0" />
+                                                <TextBlock Text="{DynamicResource BroadcastBitrate}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                <ComboBox x:Name="BroadcastBitrateBox" local:HelpAnchor.Id="e-broadcast-bitrate" Width="90" SelectionChanged="BroadcastQuality_Changed" AutomationProperties.Name="{DynamicResource BroadcastBitrate}" />
+                                            </WrapPanel>
+                                        </Grid>
+                                        <TextBlock x:Name="BroadcastStatusText" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                        <TextBlock Text="{DynamicResource BroadcastVideoPending}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                    </StackPanel>
+                                </StackPanel>
                             </StackPanel>
                         </Grid>
                     </ScrollViewer>

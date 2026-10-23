@@ -63,7 +63,8 @@ internal interface IVideoBackend
     /// <para>An engine that cannot express the limit must leave its behaviour alone and let the player
     /// record that it did, rather than claim a cap that does not cap.</para>
     /// </param>
-    bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling);
+    bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling,
+        bool liveBroadcast = false);
 
     /// <summary>
     /// Stops and disposes the engine, doing the blocking native teardown off the UI thread; the view-side

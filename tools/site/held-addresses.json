@@ -17,11 +17,13 @@
         ".github/ISSUE_TEMPLATE/config.yml",
         "AGENTS.md",
         "Directory.Build.props",
+        "msix/store-listing.md",
         "README.md",
         "README.ru.md",
         "README.uk.md",
-        "msix/store-listing.md",
+        "scripts/check-help.ps1",
         "src/StreamsPlayer.App/ProductInfo.cs",
+        "tools/help/build-help.ps1",
         "winget/templates/SerZhyAle.StreamsPlayer.locale.en-US.yaml",
         "winget/templates/SerZhyAle.StreamsPlayer.locale.ru-RU.yaml",
         "winget/templates/SerZhyAle.StreamsPlayer.locale.uk-UA.yaml"
@@ -30,12 +32,14 @@
     {
       "url": "https://serzhyale.github.io/StreamsPlayer/privacy.html",
       "heldBy": [
+        "docs/help/en/index.html",
+        "docs/help/en/settings.html",
+        "msix/store-listing.md",
         "README.md",
         "README.ru.md",
         "README.uk.md",
-        "STORE_PUBLISHING.md",
-        "msix/store-listing.md",
         "src/StreamsPlayer.App/ProductInfo.cs",
+        "STORE_PUBLISHING.md",
         "winget/templates/SerZhyAle.StreamsPlayer.locale.en-US.yaml",
         "winget/templates/SerZhyAle.StreamsPlayer.locale.ru-RU.yaml",
         "winget/templates/SerZhyAle.StreamsPlayer.locale.uk-UA.yaml"
@@ -62,6 +66,10 @@
     {
       "url": "https://serzhyale.github.io/StreamsPlayer/support.html",
       "heldBy": [
+        "docs/help/en/first-run.html",
+        "docs/help/en/index.html",
+        "docs/help/en/main.html",
+        "docs/help/en/settings.html",
         "msix/store-listing.md",
         "winget/templates/SerZhyAle.StreamsPlayer.locale.en-US.yaml"
       ]
@@ -69,13 +77,62 @@
     {
       "url": "https://serzhyale.github.io/StreamsPlayer/ru/support.html",
       "heldBy": [
+        "docs/help/ru/first-run.html",
+        "docs/help/ru/index.html",
+        "docs/help/ru/main.html",
+        "docs/help/ru/settings.html",
         "winget/templates/SerZhyAle.StreamsPlayer.locale.ru-RU.yaml"
       ]
     },
     {
       "url": "https://serzhyale.github.io/StreamsPlayer/uk/support.html",
       "heldBy": [
+        "docs/help/uk/first-run.html",
+        "docs/help/uk/index.html",
+        "docs/help/uk/main.html",
+        "docs/help/uk/settings.html",
         "winget/templates/SerZhyAle.StreamsPlayer.locale.uk-UA.yaml"
+      ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/index.html#use",
+      "heldBy": [
+        "docs/help/en/first-run.html",
+        "docs/help/en/index.html",
+        "docs/help/en/main.html",
+        "docs/help/en/settings.html"
+      ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/ru/index.html#use",
+      "heldBy": [
+        "docs/help/ru/first-run.html",
+        "docs/help/ru/index.html",
+        "docs/help/ru/main.html",
+        "docs/help/ru/settings.html"
+      ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/ru/privacy.html",
+      "heldBy": [
+        "docs/help/ru/index.html",
+        "docs/help/ru/settings.html"
+      ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/uk/index.html#use",
+      "heldBy": [
+        "docs/help/uk/first-run.html",
+        "docs/help/uk/index.html",
+        "docs/help/uk/main.html",
+        "docs/help/uk/settings.html"
+      ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/uk/privacy.html",
+      "heldBy": [
+        "docs/help/uk/index.html",
+        "docs/help/uk/settings.html"
       ]
     }
   ]

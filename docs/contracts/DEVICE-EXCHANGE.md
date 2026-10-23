@@ -252,3 +252,16 @@ implements the `pin-v1` capability or keeps the explicit deny - one of the two, 
 published concurrently with this run. No password-choice profile or verifiers member exists in the
 producer; SP-0239 item 10 coordinates them with SP-0237 item 9. An unconditional empty verifiers
 array would invent the person's choice of none and is not a safe patch. Partial 1.5 is retained.
+
+**SP-0237 corrections, 2026-10-22:** directory absence now retains a device's trusted key; off-curve
+keys are excluded without aborting other recipients; a registering grant is hidden and establishes
+no sender trust. Re-establishing a broadcast refreshes recipients and rotates the departed device's
+group key and epoch; a cast refreshes the directory and writes its box before offering only to an
+addressed recipient. Sealed addresses without the required broadcast path are refused before any
+plain transport. Clear credentials are ignored whenever a sealed member exists. Imported directory
+channels carry their listing entry's stable identity and remain with a not-listed label on removal.
+Enrollment validates the credential bounds before connecting and declares broadcaster independently
+of the capture permission (owner answer in this session); existing entries need explicit re-enrollment
+to change their server-held roles. An unpinned descriptor leaf the platform rejects can be accepted
+explicitly for that channel, with trust stored separately from account trust (owner answer in this
+session). These local corrections do not certify the outstanding producer-password or joint-peer work.

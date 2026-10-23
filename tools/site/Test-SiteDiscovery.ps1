@@ -292,16 +292,16 @@ try {
 
     foreach ($bad in @('short', 'has space 0123456789', 'quote"0123456789', 'angle<0123456789>', ('x' * 129))) {
         Set-Tokens $bad $null
-        Check (Throws { Get-VerificationMeta -Root $fixture -IsRootLanding $true }) "a malformed Google token throws on the root landing ('$($bad.Substring(0, [Math]::Min(12, $bad.Length)))')"
+        Check (ThrowsLike { Get-VerificationMeta -Root $fixture -IsRootLanding $true } "'google' is not a verification token") "a malformed Google token throws on the root landing ('$($bad.Substring(0, [Math]::Min(12, $bad.Length)))')"
     }
     Set-Tokens $null 'bad token with spaces'
-    Check (Throws { Get-VerificationMeta -Root $fixture -IsRootLanding $false }) 'a malformed Bing token throws on every page, not only the root landing'
+    Check (ThrowsLike { Get-VerificationMeta -Root $fixture -IsRootLanding $false } "'bing' is not a verification token") 'a malformed Bing token throws on every page, not only the root landing'
     Write-Fixture 'tools/site/search-verification.json' '{ "google": 1234567890123 }'
-    Check (Throws { Get-VerificationMeta -Root $fixture -IsRootLanding $true }) 'a token that is not a string throws'
+    Check (ThrowsLike { Get-VerificationMeta -Root $fixture -IsRootLanding $true } "'google' is not a verification token") 'a token that is not a string throws'
     Write-Fixture 'tools/site/search-verification.json' '{ not json'
-    Check (Throws { Get-VerificationMeta -Root $fixture -IsRootLanding $true }) 'an unparseable verification file throws'
+    Check (ThrowsLike { Get-VerificationMeta -Root $fixture -IsRootLanding $true } 'is not valid JSON') 'an unparseable verification file throws'
     Remove-Item (Join-Path $fixture 'tools/site/search-verification.json')
-    Check (Throws { Get-VerificationMeta -Root $fixture -IsRootLanding $true }) 'a missing verification file throws'
+    Check (ThrowsLike { Get-VerificationMeta -Root $fixture -IsRootLanding $true } 'search-verification\.json does not exist') 'a missing verification file throws'
 
     # --- sitemap
     $sitemap = New-SitemapXml -Pages $pages -Languages $languages -BaseUrl $baseUrl
@@ -372,7 +372,7 @@ try {
     }
     Remove-Item (Join-Path $screens 'grid-ru.jpg')
     $ruLanding = $languages[1]
-    Check (Throws { Get-JsonLd -Page $pages[0] -Pages $pages -Deck $deck -Language $ruLanding -Canonical $baseUrl -BaseUrl $baseUrl -ScreenshotDirectory $screens }) 'a landing whose locale has no screenshot throws'
+    Check (ThrowsLike { Get-JsonLd -Page $pages[0] -Pages $pages -Deck $deck -Language $ruLanding -Canonical $baseUrl -BaseUrl $baseUrl -ScreenshotDirectory $screens } 'assets/screens/grid-ru\.jpg, which does not exist') 'a landing whose locale has no screenshot throws'
     Check (-not (Throws { Get-JsonLd -Page $pages[1] -Pages $pages -Deck $deck -Language $ruLanding -Canonical "${baseUrl}ru/privacy.html" -BaseUrl $baseUrl -ScreenshotDirectory $screens })) 'a further page does not need a screenshot'
 
     # A landing is only rendered from a page list that holds the release notes and the support page, each once.
@@ -517,6 +517,14 @@ try {
     } else {
         Check $true 'the generated pages hold'
     }
+}
+catch {
+    # A setup step or a subject function threw instead of answering (an unreadable -DocsDirectory, a generator that no longer
+    # parses): nothing was judged past this point, so the run could not verify (CHECK-VERDICT 2.1, 2.5, 2.11). A check that
+    # already failed still outranks it (2.14).
+    $reason = $_.Exception.Message -replace '\s+', ' '
+    if ($failures.Count -eq 0) { Write-Output "site-discovery: COULD NOT VERIFY ($reason)"; exit 2 }
+    Write-Output "site-discovery: the run stopped early: $reason"
 }
 finally {
     Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue

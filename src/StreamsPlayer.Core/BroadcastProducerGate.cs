@@ -22,6 +22,12 @@ public enum BroadcastStartRefusal
 /// </summary>
 public static class BroadcastProducerGate
 {
+    /// <summary>A source must have a reachable LAN listener or a session able to carry a sealed broadcast.</summary>
+    public static bool IsReachable(string? lanAddress, bool exchangeOnline, bool mayBroadcast, bool serverSeals,
+        bool ownKeyMissing, IReadOnlyCollection<string> features) =>
+        lanAddress is not null || exchangeOnline && mayBroadcast && serverSeals && !ownKeyMissing
+            && (features.Contains("relay") || features.Contains("tunnel"));
+
     public static BroadcastStartRefusal? RefusalFor(BroadcastProducerSettings settings, BroadcastSource source,
         IReadOnlyCollection<BroadcastSource> running)
     {

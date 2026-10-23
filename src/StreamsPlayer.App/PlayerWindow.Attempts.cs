@@ -20,8 +20,7 @@ public partial class PlayerWindow
 
     private IReadOnlyList<FastMediaSorterBroadcastEndpoint> _attemptPlan = [];
     private int _attemptIndex;
-    private ExchangeTunnelForwarder? _tunnelForwarder;
-    private ExchangeRelayProxy? _relayProxy;
+    private BroadcastVideoRoute? _broadcastRoute;
     private BroadcastCredentialsSession? _broadcastCredentials;
     private readonly Stopwatch _attemptClock = Stopwatch.StartNew();
 
@@ -198,10 +197,8 @@ public partial class PlayerWindow
                 return; // a worker's cleanup for an attempt that is gone must not take the next one's resource
             }
 
-            _tunnelForwarder?.Dispose();
-            _tunnelForwarder = null;
-            _relayProxy?.Dispose();
-            _relayProxy = null;
+            _broadcastRoute?.Dispose();
+            _broadcastRoute = null;
         }
     }
 

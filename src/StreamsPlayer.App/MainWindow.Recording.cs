@@ -196,9 +196,10 @@ public partial class MainWindow
     /// </summary>
     private async Task HandOverStagedRecordingsAsync()
     {
-        // SP-0179: only the LibVLC video engine stages, so a leftover takes the video recordings' chain.
+        // Video engines and incoming audio taps stage; the instance directory retains the capture kind.
         var handOver = await RecordingStaging.HandOverLeftoversAsync(
-            CaptureFolders.Chain(CaptureKind.StreamVideo, CaptureFolderChoices.For(_state, CaptureKind.StreamVideo)), _log);
+            CaptureFolders.Chain(CaptureKind.StreamVideo, CaptureFolderChoices.For(_state, CaptureKind.StreamVideo)), _log,
+            CaptureFolders.Chain(CaptureKind.StreamAudio, CaptureFolderChoices.For(_state, CaptureKind.StreamAudio)));
         if (handOver.Stranded > 0)
         {
             SetStatus("RecordingsRecoveryFailed", handOver.Stranded, handOver.StagingRoot);

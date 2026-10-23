@@ -1,3 +1,6 @@
+using System.Buffers;
+using System.Text;
+
 namespace StreamsPlayer.Core;
 
 /// <summary>
@@ -9,6 +12,31 @@ namespace StreamsPlayer.Core;
 public static class ExchangeEnrollmentFields
 {
     public const string Capability = "e2e-v1";
+
+    /// <summary>AM bounds before opening a connection: UTF-8 bytes for passwords, Unicode characters for pairing codes.</summary>
+    public static bool IsValidSecret(ReadOnlySpan<char> secret, bool pairingCode)
+    {
+        var characters = 0;
+        var bytes = 0;
+        while (!secret.IsEmpty)
+        {
+            if (Rune.DecodeFromUtf16(secret, out var rune, out var consumed) != OperationStatus.Done || Rune.IsControl(rune))
+            {
+                return false;
+            }
+
+            characters++;
+            bytes += rune.Utf8SequenceLength;
+            if (pairingCode ? characters > 64 : bytes > 1024)
+            {
+                return false;
+            }
+
+            secret = secret[consumed..];
+        }
+
+        return characters > 0;
+    }
 
     public static Dictionary<string, object> Build(
         string login, string deviceId, string deviceName, string product, string productVersion, string platform,

@@ -34,6 +34,7 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
     private Media? _media;
     private StreamMediaInput? _input;
     private FastMediaSorterPlaybackConnection? _connection;
+    private BroadcastAudioReadStream? _recordingInput;
     private bool _disposed;
     // SP-0165 (shared rule with StandardAudioPlayback): engines abandoned to stops that never returned are counted,
     // and past the cap the feature pauses for the rest of the session. A leg is a new instance on every reconnect,
@@ -146,7 +147,8 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
             _player.Playing += Player_Playing;
             _player.EndReached += Player_EndReached;
             _player.EncounteredError += Player_EncounteredError;
-            _input = new StreamMediaInput(connection.Stream);
+            _recordingInput = new BroadcastAudioReadStream(connection.Stream, connection.ContentType);
+            _input = new StreamMediaInput(_recordingInput);
             _media = new Media(
                 libVlc,
                 _input,
@@ -178,6 +180,14 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         }
     }
 
+    internal bool StartRecording(RecordingTarget target, CurrentLog log) =>
+        !_disposed && _recordingInput?.StartRecording(target, log) == true;
+
+    internal BroadcastAudioRecorder? EndRecording() => _recordingInput?.EndRecording();
+
+    internal bool IsRecordingWriting => _recordingInput?.IsRecordingWriting == true;
+    internal bool CanRecord => _recordingInput?.CanRecord == true;
+
     public void StopPlayback()
     {
         var player = _player;
@@ -194,6 +204,8 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         // so the other order can hang the UI thread for as long as the network stays silent.
         _connection?.Dispose();
         _connection = null;
+        _recordingInput?.Dispose();
+        _recordingInput = null;
         if (player is not null)
         {
             // Route the native Stop and Dispose through the retire-under-deadline pattern to prevent

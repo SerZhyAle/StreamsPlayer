@@ -43,10 +43,13 @@ public static class ExchangeBroadcastAuth
     /// <summary>The relay refused the pair the leg sent - a wrong password, or one the broadcaster changed.</summary>
     public const string PasswordRefusedReason = "relay-password-refused";
 
+    public const string UnsupportedEndpointReason = "broadcast-auth-unsupported";
+
     public static string? MessageKey(string? reason) => reason switch
     {
         PasswordRequiredReason => "BroadcastPasswordRequired",
         PasswordRefusedReason => "BroadcastPasswordRefused",
+        UnsupportedEndpointReason => "BroadcastProtectedEndpointUnsupported",
         _ => null
     };
 

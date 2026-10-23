@@ -16,14 +16,10 @@ internal enum BroadcastLegState
 
 /// <summary>
 /// SP-0222 requirement 3: one audio-only broadcast listened to in a window of its own. The main window's audio
-/// session holds one station and cannot hold two broadcasts or leave a station playing beside one, so an incoming
-/// broadcast does not go through it: this session owns its engine, its volume, its stop and its recovery, and
-/// touches no state of the main window. The walk over the descriptor's endpoints is the one the main window's
-/// FastMediaSorter audio route makes - the producer's listed order, a tunnel through a loopback forwarder, the
-/// pair answered only to a relay endpoint (SP-0215 requirement 7) - kept apart so the two sessions cannot hold
-/// each other's generation, forwarder or credentials.
+/// session holds one station; this session keeps its own volume, stop and recovery while the shared audio
+/// leg owns its engine, ordered endpoint attempts, transports and cancellation.
 /// </summary>
-internal sealed class BroadcastAudioSession : IDisposable
+internal sealed partial class BroadcastAudioSession : IDisposable
 {
     private readonly StreamChannel _channel;
     private readonly BroadcastCredentialsSession? _credentials;
@@ -33,9 +29,7 @@ internal sealed class BroadcastAudioSession : IDisposable
     private readonly object _gate = new();
     private LivePlaybackRecoveryPolicy _policy = new();
     private CancellationTokenSource? _sessionCancellation;
-    private FastMediaSorterAudioPlayback? _playback;
-    private ExchangeTunnelForwarder? _forwarder;
-    private ExchangeRelayProxy? _relayProxy;
+    private FastMediaSorterAudioLeg? _playback;
     private Stopwatch? _legPlayed;
     private int _generation;
     private int _volume;
@@ -62,6 +56,7 @@ internal sealed class BroadcastAudioSession : IDisposable
 
     /// <summary>The localization key of the message that ends a failed session, or null.</summary>
     internal string? MessageKey { get; private set; }
+    internal string? LastFailureReason { get; private set; }
 
     /// <summary>Raised from whatever thread the change happened on; the window marshals it.</summary>
     internal event Action? Changed;
@@ -140,7 +135,7 @@ internal sealed class BroadcastAudioSession : IDisposable
 
     private void BeginLeg(bool reconnecting, CancellationToken token)
     {
-        FastMediaSorterAudioPlayback playback;
+        FastMediaSorterAudioLeg playback;
         int generation;
         lock (_gate)
         {
@@ -150,7 +145,7 @@ internal sealed class BroadcastAudioSession : IDisposable
             }
 
             StopLegLocked();
-            playback = new FastMediaSorterAudioPlayback(_log)
+            playback = new FastMediaSorterAudioLeg(_log)
             {
                 AudioOutputDevice = _outputDevice,
                 AudioChannelMode = _channelMode
@@ -161,6 +156,7 @@ internal sealed class BroadcastAudioSession : IDisposable
             playback.Playing += Playback_Playing;
             playback.Ended += Playback_Ended;
             playback.Failed += Playback_Failed;
+            playback.RelayFailed += failure => HandleFailure(playback, generation, token, failure, null);
         }
 
         SetState(reconnecting ? BroadcastLegState.Reconnecting : BroadcastLegState.Connecting, null);
@@ -185,161 +181,16 @@ internal sealed class BroadcastAudioSession : IDisposable
         return null;
     }
 
-    private async Task OpenAsync(FastMediaSorterAudioPlayback playback, int generation, CancellationToken token)
+    private async Task OpenAsync(FastMediaSorterAudioLeg playback, int generation, CancellationToken token)
     {
         try
         {
-            var listed = _channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints();
-            var attempts = listed is { Count: > 0 }
-                ? listed
-                : (IReadOnlyList<FastMediaSorterBroadcastEndpoint>)[new FastMediaSorterBroadcastEndpoint(_channel.Url, "HTTP", null, null, null, null, null, null, null)];
-            FastMediaSorterAudioOpenResult result = new(null, TimeSpan.Zero, null, Cancelled: false);
-            var reason = "unsupported_address";
-            for (var index = 0; index < attempts.Count; index++)
+            var result = await playback.OpenAsync(_channel, _volume, _credentials?.Credentials, token,
+                generation, State == BroadcastLegState.Reconnecting).ConfigureAwait(false);
+            if (!result.Started && !result.Cancelled)
             {
-                var endpoint = attempts[index];
-                // SP-0226 / items DK and DP: an exchange endpoint plays only sealed, with the keys its box or its link
-                // handed over; the refusal is the leg's verdict and is said once, in words.
-                var decision = ExchangeBroadcastKeys.Decide(endpoint);
-                if (!decision.Allowed)
-                {
-                    reason = decision.Reason;
-                    _log?.Invoke("FMS AUDIO ATTEMPT", [$"attempt={index}", $"outcome={reason}"]);
-                    continue;
-                }
-
-                ExchangeTunnelForwarder? forwarder = null;
-                ExchangeRelayProxy? relayProxy = null;
-                Uri? address = null;
-                if (endpoint is { Transport: "TUNNEL", Inner: { Length: > 0 } inner } &&
-                    ExchangeTunnelUrl.TryParse(endpoint.Url, out var tunnelUrl))
-                {
-                    try
-                    {
-                        forwarder = ExchangeTunnelForwarder.Start(tunnelUrl, inner, endpoint.CertFingerprint, tunnelPin: decision.TunnelPin);
-                        lock (_gate)
-                        {
-                            if (IsCurrent(playback, generation))
-                            {
-                                _forwarder = forwarder;
-                            }
-                        }
-
-                        if (LaunchableAddress.TryParseHttp(forwarder.LoopbackUrl, out var loopback))
-                        {
-                            address = loopback;
-                        }
-                    }
-                    catch (ExchangeBroadcastCapacityException)
-                    {
-                        // The local listeners every incoming broadcast shares are all taken: the person is told the
-                        // bound, and no other endpoint of this leg is worth a second try for the same reason.
-                        reason = ExchangeBroadcastResources.CapacityReason;
-                        _log?.Invoke("FMS AUDIO TUNNEL ERROR", ["reason=capacity"]);
-                        break;
-                    }
-                    catch (Exception exception)
-                    {
-                        _log?.Invoke("FMS AUDIO TUNNEL ERROR", [$"err={exception.GetType().Name}"]);
-                    }
-                }
-                else if (decision.RelayOptions(endpoint.Url) is { } sealedRelay)
-                {
-                    // Item DL: the sealed relay is opened by the loopback proxy; the leg reads clear media from it.
-                    try
-                    {
-                        relayProxy = ExchangeRelayProxy.Start(endpoint.Url, endpoint.CertFingerprint,
-                            credentials: decision.Credentials ?? _credentials?.Credentials, sealedRelay: sealedRelay);
-                        lock (_gate)
-                        {
-                            if (IsCurrent(playback, generation))
-                            {
-                                _relayProxy = relayProxy;
-                            }
-                        }
-
-                        if (LaunchableAddress.TryParseHttp(relayProxy.LoopbackUrl, out var proxyAddress))
-                        {
-                            address = proxyAddress;
-                        }
-                    }
-                    catch (ExchangeBroadcastCapacityException)
-                    {
-                        reason = ExchangeBroadcastResources.CapacityReason;
-                        _log?.Invoke("FMS AUDIO RELAY ERROR", ["reason=capacity"]);
-                        break;
-                    }
-                    catch (Exception exception)
-                    {
-                        _log?.Invoke("FMS AUDIO RELAY ERROR", [$"err={exception.GetType().Name}"]);
-                    }
-                }
-                else if (LaunchableAddress.TryParseHttp(endpoint.Url, out var direct))
-                {
-                    address = direct;
-                }
-
-                if (address is null)
-                {
-                    ReleaseForwarder(forwarder);
-                    ReleaseRelayProxy(relayProxy);
-                    _log?.Invoke("FMS AUDIO ATTEMPT", [$"attempt={index}", "outcome=unsupported_address"]);
-                    continue;
-                }
-
-                // File 12 section 6.2's one number on record is the LAN connect bound; a relay or tunnel attempt keeps
-                // the handler default behind the 15 s header budget.
-                var connectTimeout =
-                    address.Scheme == Uri.UriSchemeHttp && string.Equals(endpoint.Transport, "HTTP", StringComparison.OrdinalIgnoreCase)
-                        ? FastMediaSorterPlaybackTransport.LanConnectTimeout
-                        : (TimeSpan?)null;
-
-                // SP-0215 requirement 7: only the relay endpoint sees the pair - a direct LAN address and a tunnel
-                // inner address are the producer's own servers, and no pair rides a leg that did not ask.
-                var relayCredentials = relayProxy is null && endpoint.Transport?.Equals("RELAY", StringComparison.OrdinalIgnoreCase) == true
-                    ? _credentials?.Credentials
-                    : null;
-                result = await playback.StartAsync(address, _volume, token, connectTimeout,
-                        relayProxy is null ? endpoint.CertFingerprint : null, relayCredentials)
-                    .ConfigureAwait(false);
-                if (!IsCurrent(playback, generation) || result.Cancelled)
-                {
-                    playback.Dispose();
-                    ReleaseForwarder(forwarder);
-                    ReleaseRelayProxy(relayProxy);
-                    return;
-                }
-
-                if (result.Started)
-                {
-                    // A record that fails once the leg is live ends it, as an open that fails does; before that the open
-                    // loop reads the proxy's verdict itself and may still try the next endpoint.
-                    if (relayProxy is not null)
-                    {
-                        relayProxy.Failed += failure => HandleFailure(playback, generation, token, failure, null);
-                    }
-
-                    return;
-                }
-
-                reason = forwarder?.LastRefusalReason
-                    ?? relayProxy?.LastFailure
-                    ?? (result.Error is ExchangeBroadcastCertificateException certificate ? certificate.Reason
-                        : result.Error is not null ? result.Error.GetType().Name : "refused");
-                if (result.StatusCode == 401 && channelIsProtected())
-                {
-                    reason = relayCredentials is null
-                        ? ExchangeBroadcastAuth.PasswordRequiredReason
-                        : ExchangeBroadcastAuth.PasswordRefusedReason;
-                }
-
-                _log?.Invoke("FMS AUDIO ATTEMPT", [$"attempt={index}", $"transport={endpoint.Transport ?? "n/a"}",
-                    $"outcome={reason}", $"http={result.StatusCode?.ToString() ?? "n/a"}"]);
-                ReleaseForwarder(forwarder);
-                ReleaseRelayProxy(relayProxy);
+                HandleFailure(playback, generation, token, result.Reason, result.StatusCode);
             }
-
-            HandleFailure(playback, generation, token, reason, result.StatusCode);
         }
         catch (OperationCanceledException)
         {
@@ -355,9 +206,6 @@ internal sealed class BroadcastAudioSession : IDisposable
                 End(BroadcastLegState.Failed, IncomingBroadcastFailure.NoLongerAvailableKey);
             }
         }
-
-        bool channelIsProtected() => _channel.FastMediaSorterBroadcast?.Auth is { } auth &&
-            string.Equals(auth.Scheme, ExchangeBroadcastAuth.SupportedScheme, StringComparison.Ordinal);
     }
 
     private void Playback_Playing(object? sender, FastMediaSorterAudioPlaybackEventArgs e)
@@ -408,16 +256,18 @@ internal sealed class BroadcastAudioSession : IDisposable
             token = _sessionCancellation.Token;
         }
 
-        HandleFailure((FastMediaSorterAudioPlayback)sender!, generation, token,
+        HandleFailure((FastMediaSorterAudioLeg)sender!, generation, token,
             e.TransportError?.GetType().Name ?? "decoder_error", e.StatusCode);
     }
 
-    private void HandleFailure(FastMediaSorterAudioPlayback playback, int generation, CancellationToken token, string reason, int? status)
+    private void HandleFailure(FastMediaSorterAudioLeg playback, int generation, CancellationToken token, string reason, int? status)
     {
         if (!IsCurrent(playback, generation) || token.IsCancellationRequested)
         {
             return;
         }
+
+        LastFailureReason = reason;
 
         // The refusals no reconnect can mend (a refused password, a certificate that does not match, the bound, a
         // full listener list) end the leg at once with their message; everything else spends the recovery budget.
@@ -490,7 +340,7 @@ internal sealed class BroadcastAudioSession : IDisposable
         SetState(state, messageKey);
     }
 
-    private bool IsCurrent(FastMediaSorterAudioPlayback playback, int generation)
+    private bool IsCurrent(FastMediaSorterAudioLeg playback, int generation)
     {
         lock (_gate)
         {
@@ -500,14 +350,8 @@ internal sealed class BroadcastAudioSession : IDisposable
 
     private void StopLegLocked()
     {
+        EndRecordingLocked();
         _generation++;
-        var forwarder = _forwarder;
-        _forwarder = null;
-        DisposeForwarder(forwarder);
-        var relayProxy = _relayProxy;
-        _relayProxy = null;
-        relayProxy?.Dispose();
-
         var playback = _playback;
         _playback = null;
         if (playback is not null)
@@ -517,46 +361,6 @@ internal sealed class BroadcastAudioSession : IDisposable
             playback.Failed -= Playback_Failed;
             playback.Dispose();
         }
-    }
-
-    private static void DisposeForwarder(ExchangeTunnelForwarder? forwarder) => forwarder?.Dispose();
-
-    /// <summary>A relay proxy an attempt is done with: forgotten by the leg as well as closed.</summary>
-    private void ReleaseRelayProxy(ExchangeRelayProxy? relayProxy)
-    {
-        if (relayProxy is null)
-        {
-            return;
-        }
-
-        lock (_gate)
-        {
-            if (ReferenceEquals(_relayProxy, relayProxy))
-            {
-                _relayProxy = null;
-            }
-        }
-
-        relayProxy.Dispose();
-    }
-
-    /// <summary>A forwarder an attempt is done with: forgotten by the leg as well as closed, so the stop of the leg does not close it twice.</summary>
-    private void ReleaseForwarder(ExchangeTunnelForwarder? forwarder)
-    {
-        if (forwarder is null)
-        {
-            return;
-        }
-
-        lock (_gate)
-        {
-            if (ReferenceEquals(_forwarder, forwarder))
-            {
-                _forwarder = null;
-            }
-        }
-
-        forwarder.Dispose();
     }
 
     private void SetState(BroadcastLegState state, string? messageKey)

@@ -187,7 +187,7 @@ public static class RecordedAudioFormat
     private static readonly int[] Mpeg1Rates = [44100, 48000, 32000, 0];
 
     /// <summary>Frame length of an MPEG layer III header at <paramref name="at"/>, or null when it is not one.</summary>
-    private static int? MpegFrameLength(ReadOnlySpan<byte> head, int at)
+    internal static int? MpegFrameLength(ReadOnlySpan<byte> head, int at)
     {
         if (at + 3 >= head.Length)
         {

@@ -28,13 +28,13 @@
         file within its byte cap, and all three present.
     Paths are relative to the repository root, not the current directory.
 
-    Exit codes (CHECK-VERDICT, plus one of this script's own):
+    Exit codes (CHECK-VERDICT):
       0  passed (encode: the three files were written)
-      1  a defect: a file breaks a rule above, or the encode failed
+      1  a defect: a file breaks a rule above, a file of the set does not exist (-Check only), or the encode failed.
+         scripts/check.ps1 does not call the check while the folder holds no demo file at all; a folder with only
+         some of them is a defect and ends here.
       2  could not verify: a file exists but could not be read (locked, access denied)
-      3  not there yet: a file of the set does not exist (-Check only). scripts/check.ps1 does not call the check while
-         the folder holds no demo file at all; a folder with only some of them is a defect and ends here.
-    In -Check mode the last line is `demo-capture: PASS|FAIL|MISSING|CANNOT VERIFY ..`.
+    In -Check mode the last line is `demo-capture: PASS|FAIL|COULD NOT VERIFY ..`.
 
 .EXAMPLE
     pwsh -NoProfile -File tools/site/make-demo.ps1 -Source temp/SP-0039/demo-master.mp4 -GifStart 40
@@ -99,7 +99,7 @@ $PosterMaxBytes = 1MB
 $MaxBoxes = 100000
 
 $ExitPass = 0; $ExitDefect = 1
-$ExitCannotVerify = 2; $ExitMissing = 3
+$ExitCannotVerify = 2
 
 function Resolve-RepoPath {
     param([Parameter(Mandatory)] [string] $Path)
@@ -319,8 +319,8 @@ function Get-StillVerdict {
 }
 
 function Test-DemoFile {
-    # Judges one file with its verdict function and files the outcome in the report. A missing file is a
-    # category of its own (exit 3), a file that cannot be read another (exit 2), a broken rule a defect (exit 1).
+    # Judges one file with its verdict function and files the outcome in the report. A missing file and a broken rule
+    # are both defects (exit 1); a file that cannot be read is another outcome (exit 2).
     param($Report, [string] $Path, [ValidateSet('mp4', 'gif', 'poster')] [string] $Kind)
     $name = Split-Path -Leaf $Path
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
@@ -363,15 +363,16 @@ function Invoke-DemoCheck {
 }
 
 function Write-DemoVerdict {
-    # Prints the last line and returns the exit code. A defect outranks a missing file, which outranks a file that
+    # Prints the last line and returns the exit code. A defect, a missing file included, outranks a file that
     # could not be read: a definite failure is not softened by something unknown.
     param($Report)
-    if ($Report.Findings.Count -gt 0) { Write-Host "demo-capture: FAIL ($($Report.Findings.Count) finding(s))"; return $ExitDefect }
-    if ($Report.Missing.Count -gt 0) {
-        Write-Host "demo-capture: MISSING ($($Report.Missing -join ', ')) - record with SP-0039 6.3, then run tools/site/make-demo.ps1"
-        return $ExitMissing
+    $defects = $Report.Findings.Count + $Report.Missing.Count
+    if ($defects -gt 0) {
+        if ($Report.Missing.Count -gt 0) { Write-Host "demo-capture: missing $($Report.Missing -join ', ') - record with SP-0039 6.3, then run tools/site/make-demo.ps1" }
+        Write-Host "demo-capture: FAIL ($($Report.Findings.Count) finding(s), $($Report.Missing.Count) missing)"
+        return $ExitDefect
     }
-    if ($Report.Unreadable.Count -gt 0) { Write-Host "demo-capture: CANNOT VERIFY ($($Report.Unreadable -join ', '))"; return $ExitCannotVerify }
+    if ($Report.Unreadable.Count -gt 0) { Write-Host "demo-capture: COULD NOT VERIFY ($($Report.Unreadable -join ', '))"; return $ExitCannotVerify }
     Write-Host 'demo-capture: PASS'
     return $ExitPass
 }
@@ -387,7 +388,7 @@ if ($Check) {
         exit (Write-DemoVerdict $report)
     }
     catch {
-        Write-Host "demo-capture: CANNOT VERIFY ($($_.Exception.Message))"
+        Write-Host "demo-capture: COULD NOT VERIFY ($($_.Exception.Message))"
         exit $ExitCannotVerify
     }
 }

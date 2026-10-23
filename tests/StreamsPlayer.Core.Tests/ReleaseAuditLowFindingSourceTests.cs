@@ -43,7 +43,7 @@ public sealed class ReleaseAuditLowFindingSourceTests
     [Fact]
     public void TheExchangeAccountIsSavedOnlyWhenItIsNew()
     {
-        var body = Body(Source("ExchangeSourceService.cs"), @"internal ExchangeSourceService\(string directory\)");
+        var body = Body(Source("ExchangeSourceService.cs"), @"internal ExchangeSourceService\(string directory, Action<string>\? diagnostic = null\)");
         var guard = body.IndexOf("if (_store.CreatedFresh)", StringComparison.Ordinal);
         var save = body.IndexOf("_store.Save(Account)", StringComparison.Ordinal);
         Assert.True(guard >= 0, "the constructor no longer guards the account save with CreatedFresh");

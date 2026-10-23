@@ -3,10 +3,9 @@
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
-  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
   xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap uap3 uap5 rescap">
+  IgnorableNamespaces="uap uap5 rescap">
   <Identity Name="__IDENTITY_NAME__" Publisher="__PUBLISHER__" Version="__VERSION__" ProcessorArchitecture="x64" />
   <Properties>
     <DisplayName>Streams Player</DisplayName>
@@ -30,13 +29,16 @@
         </uap5:Extension>
         <!-- 196 section 6.2: the primary import path of a broadcast resource - double-click the
              document Fast Media Sorter saved. The launch argument is the file's path; the app's
-             StreamLaunchRequest answers it as a File target. -->
+             StreamLaunchRequest answers it as a File target. SP-0238: no DesiredView (a UWP view-size
+             hint whose values are default/useLess/useHalf/useMore/useMinimum) and no AllowOn (no
+             schema defines it) - the package targets Windows.Desktop only, and a second launch is
+             forwarded to the running window by the app itself (APP-ACTIVATION). -->
         <uap:Extension Category="windows.fileTypeAssociation">
-          <uap3:FileTypeAssociation Name="spres" DesiredView="same" AllowOn="desktop">
+          <uap:FileTypeAssociation Name="spres">
             <uap:SupportedFileTypes>
               <uap:FileType ContentType="application/json">.spres</uap:FileType>
             </uap:SupportedFileTypes>
-          </uap3:FileTypeAssociation>
+          </uap:FileTypeAssociation>
         </uap:Extension>
       </Extensions>
     </Application>

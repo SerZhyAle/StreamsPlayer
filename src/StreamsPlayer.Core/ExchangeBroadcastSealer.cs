@@ -70,7 +70,7 @@ public sealed class ExchangeBroadcastSealer : IDisposable
         try
         {
             Box = ExchangeSealedBoxes.Seal(payload, ExchangeSealedContext.Broadcast(_broadcastId), senderDeviceId, sender, recipients);
-            _recipients = Fingerprint(recipients);
+            _recipients = Fingerprint(recipients.Where(recipient => Box.Keys.Any(key => key.To == recipient.DeviceId)));
             return Box;
         }
         finally
@@ -89,8 +89,10 @@ public sealed class ExchangeBroadcastSealer : IDisposable
         string senderDeviceId, ExchangeE2eKeyPair sender, IReadOnlyList<ExchangeSealedRecipient> recipients,
         ExchangeRelayCredentials? credentials = null)
     {
+        recipients = recipients.Where(recipient => ExchangeE2eKeyPair.IsValidPublicPoint(recipient.PublicPoint))
+            .Take(ExchangeSealedBox.MaximumRecipients).ToArray();
         var current = Fingerprint(recipients);
-        if (current.SequenceEqual(_recipients))
+        if (Box is not null && current.SequenceEqual(_recipients))
         {
             return new ExchangeSealRefresh(false, false, Box);
         }

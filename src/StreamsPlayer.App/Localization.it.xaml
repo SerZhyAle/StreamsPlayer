@@ -44,6 +44,7 @@
     <sys:String x:Key="OperationsTip">Opzioni della finestra, anteprime, cronologia, aggiungi flusso, impostazioni libreria, importa canali da Internet</sys:String>
     <sys:String x:Key="AddStreamTip">Aggiungere un flusso tramite il suo indirizzo</sys:String>
     <sys:String x:Key="UpdateCatalogTip">Scaricare il catalogo più recente da internet</sys:String>
+    <sys:String x:Key="SearchAndFilters">Ricerca, filtri e ordinamento</sys:String>
     <sys:String x:Key="FiltersAndSorting">Filtri e ordinamento</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">Mostrare la riga di filtri e ordinamento</sys:String>
     <sys:String x:Key="FiltersActiveTip">Mostrare la riga di filtri e ordinamento. Filtri attivi: {0}</sys:String>
@@ -712,6 +713,8 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="SettingsFiles">File</sys:String>
     <sys:String x:Key="SettingsFilesDesc">Cartelle per fotogrammi e registrazioni dei flussi</sys:String>
     <sys:String x:Key="SettingsAbout">Informazioni</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">Account e connessione al server</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Sorgenti, accesso alla rete e qualità audio</sys:String>
     <sys:String x:Key="SettingsAboutDesc">Informazioni sull'applicazione, licenza e diagnostica</sys:String>
     <sys:String x:Key="ThemeHint">Scegli chiaro, scuro o segui l'aspetto di Windows.</sys:String>
     <sys:String x:Key="TileSizeHint">Regola le dimensioni delle schede dei canali nella griglia.</sys:String>
@@ -772,7 +775,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="ExchangeForgotten">Uscito su questo dispositivo. Accesso e impronta del certificato dimenticati.</sys:String>
     <sys:String x:Key="ExchangeCertificate">Il certificato del server richiede la tua approvazione.</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">Considerare attendibile questo certificato del server? Impronta precedente: {0} Nuova impronta: {1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">Trasmissioni in diretta</sys:String>
+    <sys:String x:Key="BroadcastsTitle">Le mie trasmissioni</sys:String>
     <sys:String x:Key="BroadcastsEmpty">Questo account non ha trasmissioni al momento; appariranno qui quando gli altri tuoi dispositivi le avvieranno.</sys:String>
     <sys:String x:Key="BroadcastsOnline">in linea</sys:String>
     <sys:String x:Key="BroadcastsOffline">fuori linea</sys:String>
@@ -976,4 +979,8 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="ExchangeDiagnosisServerLine">Server: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Codice: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Non c'è ancora nessun server da controllare. Importa prima una stringa di connessione o accedi.</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">Nessuno può ricevere questa trasmissione. Abilita la rete locale o connettiti al server di scambio e riprova.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Questo indirizzo protetto non può essere riprodotto qui. Chiedi a chi trasmette un collegamento tramite il server di scambio.</sys:String>
+    <sys:String x:Key="BroadcastNotListed">non in elenco</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">Questo PC non può verificare il certificato di {0}. Confronta l’impronta con chi trasmette prima di considerarla attendibile per questo canale:&#10;{1}&#10;Considerare attendibile il certificato?</sys:String>
 </ResourceDictionary>

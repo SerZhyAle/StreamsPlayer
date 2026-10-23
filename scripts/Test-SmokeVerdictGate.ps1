@@ -165,6 +165,13 @@ try {
     # --- the gate and the writer agree -------------------------------------------------------------------------
     Check ((Invoke-Script $gate @('-Version', $version, '-Root', $fixture)).Exit -eq 0) 'the gate passes on the verdict the writer just wrote'
 }
+catch {
+    # A setup step or a subject script threw instead of answering: nothing was judged past this point, so the run could
+    # not verify (CHECK-VERDICT 2.1, 2.5, 2.11). A check that already failed still outranks it (2.14).
+    $reason = $_.Exception.Message -replace '\s+', ' '
+    if ($failures.Count -eq 0) { "smoke-verdict-gate: COULD NOT VERIFY ($reason)"; exit 2 }
+    "smoke-verdict-gate: the run stopped early: $reason"
+}
 finally {
     foreach ($dir in $fixture, $work) {
         if ($dir -and (Test-Path -LiteralPath $dir)) {

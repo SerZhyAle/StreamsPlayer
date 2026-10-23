@@ -814,7 +814,9 @@ public partial class PlayerWindow : Window
         SubtitleTracksButton.Visibility = _backend.SubtitleTracks.Count > 1 ? Visibility.Visible : Visibility.Hidden;
     }
 
-    private void AudioTracksButton_Click(object sender, RoutedEventArgs e) =>
+    private void AudioTracksButton_Click(object sender, RoutedEventArgs e) => OpenAudioTrackMenu();
+
+    private void OpenAudioTrackMenu() =>
         OpenTrackMenu(AudioTracksButton, _backend.AudioTracks, _backend.SelectedAudioTrackId, _backend.SelectAudioTrack);
 
     private void SubtitleTracksButton_Click(object sender, RoutedEventArgs e) =>
@@ -1096,7 +1098,11 @@ public partial class PlayerWindow : Window
             _ = _recordOutcome(_channel.Id, false);
         }
 
-        if (notifyUser && !_quietUntilLive)
+        if (_channel.FastMediaSorterBroadcast is not null)
+        {
+            ShowBroadcastFailure(reason);
+        }
+        else if (notifyUser && !_quietUntilLive)
         {
             ShowFailureDialog(reason, reachability);
         }
@@ -1177,7 +1183,9 @@ public partial class PlayerWindow : Window
         }
     }
 
-    private void MuteButton_Click(object sender, RoutedEventArgs e)
+    private void MuteButton_Click(object sender, RoutedEventArgs e) => ToggleMute();
+
+    private void ToggleMute()
     {
         _isMuted = !_isMuted;
         _backend.Mute = _isMuted;
@@ -1427,25 +1435,6 @@ public partial class PlayerWindow : Window
         else
         {
             ApplyControlsPin(!_controlsPinned);
-        }
-    }
-
-    private void Window_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.F11 && !e.IsRepeat)
-        {
-            ToggleFullscreen();
-            e.Handled = true;
-        }
-        else if (e.Key == Key.Escape && _fullscreen)
-        {
-            ExitFullscreen();
-            e.Handled = true;
-        }
-        else if (e.Key == Key.R && !e.IsRepeat)
-        {
-            HandlerBoundary.Run("PlayerRecord.Key", ToggleRecordingAsync);
-            e.Handled = true;
         }
     }
 

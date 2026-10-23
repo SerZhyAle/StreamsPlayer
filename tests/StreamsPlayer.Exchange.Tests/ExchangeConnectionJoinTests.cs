@@ -54,7 +54,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             using var frame = await ExchangeProtocol.ReadAsync(tls, false, token);
             Assert.Equal("enroll", ExchangeProtocol.String(frame.RootElement, "type"));
             Assert.Equal("private-password", ExchangeProtocol.String(frame.RootElement, "password"));
-            Assert.Equal(new[] { "receiver" }, frame.RootElement.GetProperty("roles").EnumerateArray().Select(r => r.GetString()));
+            Assert.Equal(new[] { "receiver", "broadcaster" }, frame.RootElement.GetProperty("roles").EnumerateArray().Select(r => r.GetString()));
             await Until(() => secret.All(c => c == '\0'));
             if (badCredentials)
             {

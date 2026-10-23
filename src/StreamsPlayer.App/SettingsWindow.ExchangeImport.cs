@@ -28,7 +28,6 @@ public partial class SettingsWindow
             ShowExchangePrompt();
             ExchangeStringEntry.Visibility = Visibility.Collapsed;
             ExchangeStringBox.Clear();
-            ExchangeGroup.IsExpanded = true;
             void Reveal() => Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle,
                 () => PageScroll.ScrollToVerticalOffset(Math.Max(0, ScrollOffsetOf(ExchangeGroup) - 8)));
             if (IsLoaded) Reveal();

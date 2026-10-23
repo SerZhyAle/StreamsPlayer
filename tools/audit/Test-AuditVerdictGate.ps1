@@ -146,6 +146,13 @@ try {
     Remove-Item -LiteralPath (& $verdictFile) -Force
     Check ((Invoke-Gate).Exit -ne 0) 'a missing verdict fails the gate'
 }
+catch {
+    # A setup step or the writer/gate script threw instead of answering: nothing was judged past this point, so the run could
+    # not verify (CHECK-VERDICT 2.1, 2.5, 2.11). A check that already failed still outranks it (2.14).
+    $reason = $_.Exception.Message -replace '\s+', ' '
+    if ($failures.Count -eq 0) { "audit-verdict-gate: COULD NOT VERIFY ($reason)"; exit 2 }
+    "audit-verdict-gate: the run stopped early: $reason"
+}
 finally {
     foreach ($dir in $fixture, $work) {
         if ($dir -and (Test-Path -LiteralPath $dir)) {

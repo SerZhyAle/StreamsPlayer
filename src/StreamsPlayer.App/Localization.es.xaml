@@ -44,6 +44,7 @@
     <sys:String x:Key="OperationsTip">Opciones de ventana, vistas previas, historial, añadir transmisión, configuración de biblioteca, importar canales de internet</sys:String>
     <sys:String x:Key="AddStreamTip">Añadir una transmisión por su dirección</sys:String>
     <sys:String x:Key="UpdateCatalogTip">Descargar el catálogo más reciente desde internet</sys:String>
+    <sys:String x:Key="SearchAndFilters">Búsqueda, filtros y ordenación</sys:String>
     <sys:String x:Key="FiltersAndSorting">Filtros y orden</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">Mostrar la fila de filtros y orden</sys:String>
     <sys:String x:Key="FiltersActiveTip">Mostrar la fila de filtros y orden. Filtros activos: {0}</sys:String>
@@ -712,6 +713,8 @@
     <sys:String x:Key="SettingsFiles">Archivos</sys:String>
     <sys:String x:Key="SettingsFilesDesc">Carpetas para capturas de fotogramas y grabaciones de transmisiones</sys:String>
     <sys:String x:Key="SettingsAbout">Acerca de</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">Cuenta y conexión al servidor</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Fuentes, acceso a la red y calidad de audio</sys:String>
     <sys:String x:Key="SettingsAboutDesc">Información de la aplicación, licencia y diagnóstico</sys:String>
     <sys:String x:Key="ThemeHint">Elija claro, oscuro o siga la apariencia de Windows.</sys:String>
     <sys:String x:Key="TileSizeHint">Ajuste el tamaño de las tarjetas de canales en la cuadrícula.</sys:String>
@@ -772,7 +775,7 @@
     <sys:String x:Key="ExchangeForgotten">Sesión cerrada en este dispositivo. Se olvidaron el inicio de sesión y la huella del certificado.</sys:String>
     <sys:String x:Key="ExchangeCertificate">El certificado del servidor requiere tu aprobación.</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">¿Confiar en este certificado del servidor? Huella anterior: {0} Huella nueva: {1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">Emisiones en directo</sys:String>
+    <sys:String x:Key="BroadcastsTitle">Mis emisiones</sys:String>
     <sys:String x:Key="BroadcastsEmpty">Esta cuenta no tiene emisiones ahora; aparecerán aquí cuando tus otros dispositivos las inicien.</sys:String>
     <sys:String x:Key="BroadcastsOnline">en línea</sys:String>
     <sys:String x:Key="BroadcastsOffline">desconectado</sys:String>
@@ -976,4 +979,8 @@
     <sys:String x:Key="ExchangeDiagnosisServerLine">Servidor: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Código: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Todavía no hay ningún servidor que comprobar. Importe primero una cadena de conexión o inicie sesión.</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">Nadie puede recibir esta emisión. Active la red local o conéctese al servidor de intercambio e inténtelo de nuevo.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Esta dirección protegida no se puede reproducir aquí. Pida al emisor un enlace a través del servidor de intercambio.</sys:String>
+    <sys:String x:Key="BroadcastNotListed">no figura en la lista</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">Este PC no puede verificar el certificado de {0}. Compruebe la huella con el emisor antes de confiar en ella para este canal:&#10;{1}&#10;¿Confiar en este certificado?</sys:String>
 </ResourceDictionary>

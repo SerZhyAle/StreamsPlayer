@@ -39,6 +39,16 @@
     <Compile Include="../../src/StreamsPlayer.App/ProductInfo.cs" Link="ProductInfo.cs" />
     <Compile Include="../../src/StreamsPlayer.App/CurrentLog.cs" Link="CurrentLog.cs" />
     <Compile Include="../../src/StreamsPlayer.App/FastMediaSorterPlaybackTransport.cs" Link="FastMediaSorterPlaybackTransport.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/BroadcastVideoRoute.cs" Link="BroadcastVideoRoute.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.cs" Link="BroadcastProducerService.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.Sealed.cs" Link="BroadcastProducerService.Sealed.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/BroadcastSealing.cs" Link="BroadcastSealing.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/WindowsAudioCapture.cs" Link="WindowsAudioCapture.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/WindowsAacEncoder.cs" Link="WindowsAacEncoder.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/LocalizationService.cs" Link="LocalizationService.cs" />
+    <!-- SP-0239 P4 (CAPTURE-OUTPUT rule 16): the frame writer and its folder seam. Both need only Core and WPF imaging. -->
+    <Compile Include="../../src/StreamsPlayer.App/CapturedFrameWriter.cs" Link="CapturedFrameWriter.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/CaptureFolders.cs" Link="CaptureFolders.cs" />
     <Content Include="Vectors\protection-v1.json;Vectors\PROVENANCE.txt"
              CopyToOutputDirectory="PreserveNewest" />
     <!-- SP-0221: the connection-string corpus adopted under vectors/fmsw-224 (one copy, held by the Core

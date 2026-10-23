@@ -17,11 +17,31 @@
     Rule 4 (generated documentation in sync) is tools/site/build-site.ps1 -Check; scripts/check.ps1 and CI run
     both.
 
-    Exit codes (CHECK-VERDICT): 0 passed, 1 a finding, 2 could not verify (no git, no or unreadable registry).
+    The portal contribution (docs/portal/*.md, the exchange guide sections handed to the shared media exchange portal)
+    is also judged against DOC-EXTERNAL-QUALITY, SP-0239 P5:
+
+      terms      rule 4 - a control name must be exactly a string of the interface. The locale comes from the file
+                          name (streamsplayer.md = en, streamsplayer.ru.md = ru, streamsplayer.uk.md = uk) and the
+                          reference is src/StreamsPlayer.App/Localization.<locale>.xaml, the decoded value of any key,
+                          compared ordinally. Recognition syntax: in prose (code spans and fences excluded) every bold
+                          span **Name** and every guillemet pair «Name» is a control name. Nothing else in those files
+                          may be bold or guillemet-quoted; any other form of quotation is not recognized and escapes
+                          the rule. A control name is never inflected inside its marks: "in **Settings**" is written
+                          "open **Settings**" or "in the «Settings» window", the case ending stays outside.
+      freshness  rule 3 - a translation records the fingerprint of the English text it was rebuilt from. In
+                          DOCUMENT_REGISTRY.jsonl the entry of docs/portal/<name>.<ru|uk>.md carries
+                          "mirrorOf":"docs/portal/<name>.md" and "mirrorOfHash":"sha256:<16 hex>" (the form of
+                          scripts/SourceFingerprint.ps1). It fails when the field is missing or malformed, or when the
+                          English file now hashes to something else: rebuild the translation from the current English
+                          text, then record the new fingerprint named in the finding. Any other entry that carries
+                          mirrorOf is held to the same check.
+
+    Exit codes (CHECK-VERDICT): 0 passed, 1 a finding, 2 could not verify (no git, no or unreadable registry, a portal
+    page with no dictionary to judge it against).
     The run never stops at the first finding; the last line is the verdict:
         docs-quality: PASS (<n> documents, <m> links)
         docs-quality: FAIL (<n> finding(s))
-        docs-quality: CANNOT VERIFY (<reason>)
+        docs-quality: COULD NOT VERIFY (<reason>)
 
     Usage:
         pwsh -NoProfile -File scripts/check-docs.ps1
@@ -42,9 +62,24 @@ function Add-Finding([string] $Rule, [string] $Where, [string] $Message) {
 
 function Exit-CannotVerify([string] $Reason) {
     Write-Host "docs-quality: $Reason" -ForegroundColor Red
-    Write-Host "docs-quality: CANNOT VERIFY ($Reason)"
+    Write-Host "docs-quality: COULD NOT VERIFY ($Reason)"
     exit 2
 }
+
+# A terminating error nothing below anticipated (an unreadable document, a failing file API) stops the run before it can
+# judge: could not verify, with a verdict line, not a stack trace and exit 1 (CHECK-VERDICT 2.1, 2.5, 2.11). Findings
+# already recorded still outrank it (2.14).
+trap {
+    $reason = $_.Exception.Message -replace '\s+', ' '
+    if ($findings.Count -eq 0) { Exit-CannotVerify $reason }
+    foreach ($finding in $findings) { Write-Host "  $finding" -ForegroundColor Red }
+    Write-Host "docs-quality: the run stopped early: $reason"
+    Write-Host "docs-quality: FAIL ($($findings.Count) finding(s))"
+    exit 1
+}
+
+# The fingerprint of the translation-freshness rule has one definition, shared with tools/help/build-help.ps1 -Check.
+. (Join-Path $PSScriptRoot 'SourceFingerprint.ps1')
 
 # ---------------------------------------------------------------- the file set git sees
 
@@ -92,7 +127,7 @@ foreach ($raw in [System.IO.File]::ReadAllLines($registryPath)) {
 
     if ($record.ContainsKey('ignore')) {
         if (-not $record['reason']) { Add-Finding 'registry' $where "ignore entry '$($record['ignore'])' has no reason" }
-        $entries.Add([pscustomobject]@{ Kind = 'ignore'; Pattern = [string] $record['ignore']; Regex = (ConvertTo-GlobRegex $record['ignore']); Where = $where; Role = 'ignore'; Matched = 0 })
+        $entries.Add([pscustomobject]@{ Kind = 'ignore'; Pattern = [string] $record['ignore']; Regex = (ConvertTo-GlobRegex $record['ignore']); Where = $where; Role = 'ignore'; Matched = 0; Record = $record })
         continue
     }
 
@@ -108,7 +143,7 @@ foreach ($raw in [System.IO.File]::ReadAllLines($registryPath)) {
     if ($role -eq 'render' -and -not ([string] $record['generator']).Trim()) { Add-Finding 'registry' $where "render entry $path names no generator" }
     if ($role -eq 'source' -and $path.Contains('*')) { Add-Finding 'registry' $where "source entry $path is a pattern - a hand-written document is declared by its own path" }
 
-    $entries.Add([pscustomobject]@{ Kind = 'path'; Pattern = $path; Regex = (ConvertTo-GlobRegex $path); Where = $where; Role = $role; Matched = 0 })
+    $entries.Add([pscustomobject]@{ Kind = 'path'; Pattern = $path; Regex = (ConvertTo-GlobRegex $path); Where = $where; Role = $role; Matched = 0; Record = $record })
 }
 
 # ---------------------------------------------------------------- rule 2: reverse coverage
@@ -266,6 +301,63 @@ foreach ($document in $sources) {
     }
 }
 
+# ---------------------------------------------------------------- DOC-EXTERNAL-QUALITY rule 4: terms
+
+$xamlNamespace = 'http://schemas.microsoft.com/winfx/2006/xaml'
+$dictionaryCache = @{}
+function Get-InterfaceStrings([string] $Locale) {
+    if (-not $dictionaryCache.ContainsKey($Locale)) {
+        $relative = "src/StreamsPlayer.App/Localization.$Locale.xaml"
+        if (-not (Test-Path -LiteralPath (Join-Path $root $relative))) { throw "no $relative to judge the control names of the $Locale portal page against" }
+        $xml = [xml] [System.IO.File]::ReadAllText((Join-Path $root $relative))
+        $strings = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+        foreach ($node in $xml.DocumentElement.ChildNodes) {
+            if ($node.NodeType -eq 'Element' -and $node.GetAttribute('Key', $xamlNamespace)) { [void] $strings.Add($node.InnerText) }
+        }
+        $dictionaryCache[$Locale] = $strings
+    }
+    return , $dictionaryCache[$Locale]
+}
+
+$portalPages = @($files | Where-Object { $_ -match '^docs/portal/[^/]+\.md$' } | Sort-Object)
+$controlNamePattern = [regex]::new('\*\*(?<bold>[^*]+)\*\*|«(?<quoted>[^»]+)»')
+$termCount = 0
+foreach ($page in $portalPages) {
+    $locale = if ($page -match '\.(?<code>[a-z]{2})\.md$') { $Matches['code'] } else { 'en' }
+    $prose = Get-ProseLines (Join-Path $root $page)
+    for ($i = 0; $i -lt $prose.Length; $i++) {
+        foreach ($match in $controlNamePattern.Matches($prose[$i])) {
+            $name = $match.Groups['bold'].Value + $match.Groups['quoted'].Value
+            $termCount++
+            if (-not (Get-InterfaceStrings $locale).Contains($name)) {
+                Add-Finding 'terms' "${page}:$($i + 1)" "'$name' is no string of Localization.$locale.xaml (quote a control exactly as the interface shows it; the case ending stays outside the marks)"
+            }
+        }
+    }
+}
+
+# ---------------------------------------------------------------- DOC-EXTERNAL-QUALITY rule 3: freshness
+
+$fingerprintForm = '^sha256:[0-9a-f]{16}$'
+$mirrorCount = 0
+foreach ($entry in @($entries | Where-Object Kind -eq 'path')) {
+    $record = $entry.Record
+    $expectedSource = if ($entry.Pattern -match '^docs/portal/(?<stem>[^/]+?)\.[a-z]{2}\.md$') { "docs/portal/$($Matches['stem']).md" } else { '' }
+    if (-not $expectedSource -and -not $record.ContainsKey('mirrorOf') -and -not $record.ContainsKey('mirrorOfHash')) { continue }
+    $mirrorCount++
+
+    $source = [string] $record['mirrorOf']
+    $recorded = [string] $record['mirrorOfHash']
+    if (-not $source) { Add-Finding 'freshness' $entry.Pattern "$($entry.Where) has no mirrorOf (the English source $expectedSource it is rebuilt from)"; continue }
+    if ($expectedSource -and $source -cne $expectedSource) { Add-Finding 'freshness' $entry.Pattern "$($entry.Where) names $source as its source (expected $expectedSource)"; continue }
+    if (-not $files.Contains($source)) { Add-Finding 'freshness' $entry.Pattern "$($entry.Where) names $source as its source, which is no tracked file"; continue }
+    if ($recorded -notmatch $fingerprintForm) { Add-Finding 'freshness' $entry.Pattern "$($entry.Where) has no mirrorOfHash of the form sha256:<16 hex> (the fingerprint of $source it was rebuilt from)"; continue }
+    $current = Get-SourceFingerprint (Join-Path $root $source)
+    if ($current -ne $recorded) {
+        Add-Finding 'freshness' $entry.Pattern "$source is $current but the mirror was rebuilt from $recorded - rebuild it from the current English text, then record $current as mirrorOfHash in $($entry.Where)"
+    }
+}
+
 # ---------------------------------------------------------------- verdict
 
 if ($findings.Count -gt 0) {
@@ -273,5 +365,5 @@ if ($findings.Count -gt 0) {
     Write-Host "docs-quality: FAIL ($($findings.Count) finding(s))"
     exit 1
 }
-Write-Host "docs-quality: PASS ($($documents.Count) documents, $($sources.Count) source documents checked, $linkCount links)"
+Write-Host "docs-quality: PASS ($($documents.Count) documents, $($sources.Count) source documents checked, $linkCount links, $termCount control names, $mirrorCount mirrors)"
 exit 0

@@ -44,6 +44,7 @@
     <sys:String x:Key="OperationsTip">Opções de janela, pré-visualizações, histórico, adicionar transmissão, configurações da biblioteca, importar canais da Internet</sys:String>
     <sys:String x:Key="AddStreamTip">Adicionar uma transmissão pelo endereço dela</sys:String>
     <sys:String x:Key="UpdateCatalogTip">Baixar o catálogo mais recente da internet</sys:String>
+    <sys:String x:Key="SearchAndFilters">Pesquisa, filtros e ordenação</sys:String>
     <sys:String x:Key="FiltersAndSorting">Filtros e ordenação</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">Mostrar a linha de filtros e ordenação</sys:String>
     <sys:String x:Key="FiltersActiveTip">Mostrar a linha de filtros e ordenação. Filtros ativos: {0}</sys:String>
@@ -712,6 +713,8 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="SettingsFiles">Arquivos</sys:String>
     <sys:String x:Key="SettingsFilesDesc">Pastas para capturas de quadros e gravações de transmissões</sys:String>
     <sys:String x:Key="SettingsAbout">Sobre</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">Conta e conexão ao servidor</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Fontes, acesso à rede e qualidade de áudio</sys:String>
     <sys:String x:Key="SettingsAboutDesc">Informações do aplicativo, licença e diagnóstico</sys:String>
     <sys:String x:Key="ThemeHint">Escolha claro, escuro ou siga a aparência do Windows.</sys:String>
     <sys:String x:Key="TileSizeHint">Ajuste o tamanho dos blocos de canais na grade.</sys:String>
@@ -772,7 +775,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="ExchangeForgotten">Saiu neste dispositivo. A entrada e a impressão digital do certificado foram esquecidas.</sys:String>
     <sys:String x:Key="ExchangeCertificate">O certificado do servidor precisa da sua aprovação.</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">Confiar neste certificado do servidor? Impressão anterior: {0} Nova impressão: {1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">Transmissões ao vivo</sys:String>
+    <sys:String x:Key="BroadcastsTitle">Minhas transmissões</sys:String>
     <sys:String x:Key="BroadcastsEmpty">Esta conta não tem transmissões agora; aparecerão aqui quando os seus outros dispositivos as iniciarem.</sys:String>
     <sys:String x:Key="BroadcastsOnline">em linha</sys:String>
     <sys:String x:Key="BroadcastsOffline">desligado</sys:String>
@@ -976,4 +979,8 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="ExchangeDiagnosisServerLine">Servidor: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Código: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Ainda não há servidor para verificar. Primeiro importe uma string de conexão ou entre na conta.</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">Ninguém pode receber esta transmissão. Ative a rede local ou conecte-se ao servidor de troca e tente novamente.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Este endereço protegido não pode ser reproduzido aqui. Peça ao emissor um link pelo servidor de troca.</sys:String>
+    <sys:String x:Key="BroadcastNotListed">não listado</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">Este computador não consegue verificar o certificado de {0}. Compare a impressão digital com o emissor antes de confiar nela para este canal:&#10;{1}&#10;Confiar neste certificado?</sys:String>
 </ResourceDictionary>

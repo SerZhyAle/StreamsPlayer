@@ -101,6 +101,13 @@ try {
     Check ([System.Linq.Enumerable]::SequenceEqual($before, $after)) 'the file the output path already held is left byte-identical'
     Check (-not (Test-Path -LiteralPath "$target.tmp")) 'the invalid staged archive is removed, not left behind'
 }
+catch {
+    # A setup step or a subject script threw instead of answering: nothing was judged past this point, so the run could
+    # not verify (CHECK-VERDICT 2.1, 2.5, 2.11). A check that already failed still outranks it (2.14).
+    $reason = $_.Exception.Message -replace '\s+', ' '
+    if ($failures.Count -eq 0) { "catalog-snapshot-tool: COULD NOT VERIFY ($reason)"; exit 2 }
+    "catalog-snapshot-tool: the run stopped early: $reason"
+}
 finally {
     if (Test-Path -LiteralPath $work) {
         Get-ChildItem -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { try { $_.Attributes = 'Normal' } catch { } }

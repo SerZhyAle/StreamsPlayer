@@ -89,8 +89,8 @@ internal sealed partial class ExchangeSourceService
 
     /// <summary>
     /// Applies a directory to the trust: every listed device is observed (so a first key is remembered and a
-    /// changed one is noticed), and a device that is no longer listed is forgotten, which is what lets a removed and
-    /// re-added device come back with a new key (item DG).
+    /// changed one is noticed). Absence is not the person's revoke: keep its key so a server cannot hide a device
+    /// and reintroduce its id with a substituted key (item DG).
     /// </summary>
     private void ObserveDirectoryKeys(ExchangeDirectorySnapshot snapshot)
     {
@@ -100,19 +100,12 @@ internal sealed partial class ExchangeSourceService
         }
 
         var trust = Trust;
-        var listed = new HashSet<string>(StringComparer.Ordinal);
         foreach (var device in devices)
         {
-            listed.Add(device.DeviceId);
             if (!string.Equals(device.DeviceId, Account.DeviceId, StringComparison.Ordinal))
             {
                 _ = ExchangeRecipients.Classify(device, trust);
             }
-        }
-
-        foreach (var gone in trust.DeviceIds.Where(id => !listed.Contains(id)).ToArray())
-        {
-            trust.ForgetDevice(gone);
         }
 
         _trustBook.SaveIfDirty();

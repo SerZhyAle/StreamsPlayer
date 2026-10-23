@@ -82,7 +82,7 @@ public partial class App : Application
         _activationListener = new ActivationPipeListener(identity.PipeName, OnForwardedLaunch, OnForwardedLaunchRejected);
         _activationListener.Start();
 
-        Exchange = new ExchangeSourceService(AppPaths.DataDirectory);
+        Exchange = new ExchangeSourceService(AppPaths.DataDirectory, line => _log.Information(line));
         Broadcast = new BroadcastProducerService(AppPaths.DataDirectory, Exchange);
         Exchange.Start();
 

@@ -11,12 +11,14 @@ public partial class MainWindow
     {
         void Refresh()
         {
+            ApplyExchangeEntryBindings();
             // Both buttons belong to the exchange server, so both follow the Settings page: an account that is
             // switched off or was never registered shows neither. The status line and the way back in stay
-            // in Settings > Library, which is where a device without an active account is told why (SP-0201).
+            // in Settings > Exchange server, which is where a device without an active account is told why (SP-0201).
             var visibility = source.IsActive ? Visibility.Visible : Visibility.Collapsed;
             ExchangeSourceStatusButton.Visibility = visibility;
             BroadcastsButton.Visibility = visibility;
+            ExchangeSourceStatusButton.SetResourceReference(System.Windows.Automation.AutomationProperties.HelpTextProperty, source.StatusKey);
             ExchangeSourceStatusText.SetResourceReference(System.Windows.Controls.TextBlock.TextProperty, source.StatusKey);
             if (source.SignedOutNotice)
             {
@@ -26,12 +28,10 @@ public partial class MainWindow
                 Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, () =>
                     HandlerBoundary.Run(nameof(InitializeExchangeStatus), () =>
                     {
-                        MessageBox.Show(this, LocalizationService.Get("ExchangeSignedOut") + Environment.NewLine
-                            + LocalizationService.Get("ExchangeSignInAgain"), LocalizationService.Get("ExchangeTitle"),
-                            MessageBoxButton.OK, MessageBoxImage.Information);
+                        new ExchangeFailureWindow(ExchangeFailureRows.SignedOut) { Owner = this }.ShowDialog();
                         if (!_busy)
                         {
-                            OpenSettings(1);
+                            OpenSettings(SettingsWindow.ExchangePageIndex);
                         }
 
                         return Task.CompletedTask;
@@ -71,7 +71,7 @@ public partial class MainWindow
         Refresh();
     }
 
-    private void ExchangeSourceStatus_Click(object sender, RoutedEventArgs e) => OpenSettings(1);
+    private void ExchangeSourceStatus_Click(object sender, RoutedEventArgs e) => OpenSettings(SettingsWindow.ExchangePageIndex);
 
     private void BroadcastsButton_Click(object sender, RoutedEventArgs e)
         => OpenExchangeBroadcasts(DialogOwner);
@@ -122,18 +122,20 @@ public partial class MainWindow
             }
 
             var snapshot = Exchange.Directory;
+            ApplyExchangeEntryBindings();
             if (snapshot is null)
             {
                 return;
             }
 
             var broadcasts = snapshot.Groups.SelectMany(group => group.Broadcasts).ToList();
+            var entryIdentity = ExchangeAccountIdentity.Key(Exchange.Account.Host, Exchange.Account.Port, Exchange.Account.Login);
             var changed = false;
             await PersistAsync(state =>
             {
-                var refreshed = ExchangeDirectoryChannels.RefreshStored(state.Channels, broadcasts, DateTimeOffset.UtcNow);
+                var refreshed = ExchangeDirectoryChannels.RefreshStored(state.Channels, broadcasts, DateTimeOffset.UtcNow, entryIdentity);
                 var ended = ExchangeDirectoryChannels.MarkEnded(
-                    refreshed, snapshot.LiveSourceIds, snapshot.LiveBroadcastIds, DateTimeOffset.UtcNow);
+                    refreshed, snapshot.LiveSourceIds, snapshot.LiveBroadcastIds, DateTimeOffset.UtcNow, entryIdentity);
                 var byId = ended.ToDictionary(row => row.Id);
                 var channels = refreshed
                     .Select(channel => byId.TryGetValue(channel.Id, out var marked) ? marked : channel)
@@ -169,8 +171,14 @@ public partial class MainWindow
         }
     }
 
-    private async Task<StreamChannel?> ImportExchangeBroadcastAsync(ExchangeBroadcastView view)
+    private async Task<StreamChannel?> ImportExchangeBroadcastAsync(ExchangeBroadcastView view, ExchangeAccount? listingEntry = null)
     {
+        if (listingEntry is null ? !Exchange.HasAccount
+            : Exchange.Guests.Find(listingEntry.Host, listingEntry.Port, listingEntry.Login) is null)
+        {
+            return null;
+        }
+
         if (_busy)
         {
             SetStatus("FmsBroadcastBusy");
@@ -190,8 +198,10 @@ public partial class MainWindow
         {
             // Playing or keeping one is the explicit act that creates the channel (Option A); the record's
             // broadcastId is what makes the row the directory's, and therefore the one a leaving record marks.
+            var entry = listingEntry ?? Exchange.Account;
             applied = FastMediaSorterBroadcastImport.Apply(
-                state.Channels, descriptor, DateTimeOffset.UtcNow, view.Record.BroadcastId);
+                state.Channels, descriptor, DateTimeOffset.UtcNow, view.Record.BroadcastId,
+                directoryEntryIdentity: ExchangeAccountIdentity.Key(entry.Host, entry.Port, entry.Login));
             return state with { Channels = [.. applied.Channels] };
         });
         if (applied is null)

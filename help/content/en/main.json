@@ -12,13 +12,26 @@
   ],
   "elements": [
     {
+      "id": "search-tools",
+      "nameKey": "SearchAndFilters",
+      "control": "CompactFiltersButton",
+      "one": "Opens search, quick selection, filters and sorting when the window is too narrow to show them inline.",
+      "full": [
+        "When the toolbar cannot fit the controls at their normal size, this filter icon replaces search and the quick selection buttons. Settings and Operations also show only their icons; their names remain in tooltips. The product name appears in the Windows title bar.",
+        "Press the filter icon to show the same search, quick selection and filter controls in rows below the toolbar. Press it again, use the close button in the filter row, or press Escape while typing in search to close them. Search text and filter values are kept; the icon is marked while a hidden choice narrows the list.",
+        "Widening the window brings search and quick selection back into the toolbar and restores the action captions. Resizing does not change your search, filters or the remembered wide filter-row preference."
+      ],
+      "next": "The controls open below the toolbar, with the cursor in search."
+    },
+    {
       "id": "search",
       "nameKey": "SearchCatalog",
       "control": "SearchBox",
       "one": "Finds channels by title, topic or language as you type.",
       "full": [
         "Type part of a channel's title, its topic or its language, and the list narrows to the channels that match. Upper and lower case do not matter, and the topic is matched by the word you see on screen, in your interface language.",
-        "Country and category are not searched; the filter row covers those."
+        "Country and category are not searched; the filter row covers those.",
+        "In a narrow window, first open {@search-tools}; the controls keep their normal size."
       ],
       "why": "The quickest way to a channel you already have in mind.",
       "next": "The list updates a moment after you stop typing. Pinned channels are searched too.",
@@ -39,7 +52,8 @@
       "one": "Opens the row with the filters and the sort order.",
       "full": [
         "Shows the filter row under the title line: Media, Category, Topic, Language, Country, minimum bitrate, sort order and collection. Filters combine: a channel is shown only when it passes all of them. The row stays open or closed the way you left it.",
-        "While the row is closed, this button gets an accent frame when a filter is narrowing the list, and its tooltip says how many are active, so channels never go missing without a sign."
+        "While the row is closed, this button gets an accent frame when a filter is narrowing the list, and its tooltip says how many are active, so channels never go missing without a sign.",
+        "In a narrow window, first open {@search-tools}; the controls keep their normal size."
       ],
       "why": "Use it when a search is not enough, for example to see only the channels of one country, or only streams of 128 kbps and up.",
       "next": "The button gives way to the filter row; {@hide-filters} closes the row again.",
@@ -51,7 +65,8 @@
       "control": "QuickVideoButton",
       "one": "Shows only video channels; press again to show everything.",
       "full": [
-        "A shortcut for the Media filter set to Video, which also covers RTSP streams. The button lights up while the filter is on. It stays in the title line whether the filter row is open or closed, and it moves the same filter as {@filter-media}, so the two always agree."
+        "A shortcut for the Media filter set to Video, which also covers RTSP streams. The button lights up while the filter is on. In a wide window it stays in the toolbar whether the filter row is open or closed, and it moves the same filter as {@filter-media}, so the two always agree.",
+        "In a narrow window the quick selection buttons are inside {@search-tools}."
       ],
       "undo": "Press it again, or choose All in {@filter-media}."
     },
@@ -61,7 +76,8 @@
       "control": "QuickAudioButton",
       "one": "Shows only audio channels, that is radio; press again to show everything.",
       "full": [
-        "The same shortcut for the Media filter set to Audio. Only one of the three quick buttons can be on at a time, because they all move that one Media filter."
+        "The same shortcut for the Media filter set to Audio. Only one of the three quick buttons can be on at a time, because they all move that one Media filter.",
+        "In a narrow window the quick selection buttons are inside {@search-tools}."
       ],
       "undo": "Press it again, or choose All in {@filter-media}."
     },
@@ -71,7 +87,8 @@
       "control": "QuickOwnButton",
       "one": "Shows only the channels you added or imported yourself.",
       "full": [
-        "The Own value of the Media filter as a button: the channels you added with {@op-add}, pasted with {@op-paste} or imported, without the ones that came with the shared catalog. Handy when your own channels are lost among the catalog's many."
+        "The Own value of the Media filter as a button: the channels you added with {@op-add}, pasted with {@op-paste} or imported, without the ones that came with the shared catalog. Handy when your own channels are lost among the catalog's many.",
+        "In a narrow window the quick selection buttons are inside {@search-tools}."
       ],
       "undo": "Press it again, or choose All in {@filter-media}."
     },
@@ -82,7 +99,8 @@
       "one": "Shows channels as compact cards.",
       "full": [
         "Each channel is a card with its icon, title, play button, details line and pin. The cards fill as many columns as the window is wide enough for. Pinned channels sit in a strip above the list that scrolls sideways.",
-        "The choice is remembered for the next start."
+        "The choice is remembered for the next start.",
+        "This button shows only its icon; hover over it to read its name."
       ],
       "undo": "Press {@grid-view} to switch back."
     },
@@ -93,7 +111,8 @@
       "one": "Shows channels as picture tiles with a preview of the stream.",
       "full": [
         "Each channel is a tile: a preview picture when one is available, otherwise a colour monogram with the country flag, with the title over it. Tiles line up in columns that follow the window width, and pinned channels are tiles above the rest. See {@tile}.",
-        "The tile size is set in Settings, under \"Stream tile size\". Previews are captured from the streams themselves when automatic thumbnail updates are on in Settings, or they come from a ready-made picture pack that the app offers after an import."
+        "The tile size is set in Settings, under \"Stream tile size\". Previews are captured from the streams themselves when automatic thumbnail updates are on in Settings, or they come from a ready-made picture pack that the app offers after an import.",
+        "This button shows only its icon; hover over it to read its name."
       ],
       "undo": "Press {@list-view} to switch back.",
       "tip": "In Grid view the **Operations** menu gains a **Refresh previews** entry, which captures the visible previews at once, when automatic thumbnail updates are on in Settings."
@@ -105,10 +124,10 @@
       "control": "ExchangeSourceStatusButton",
       "one": "Shows how the connection to your exchange server is doing; opens its settings.",
       "full": [
-        "Appears only while this device is signed in to your exchange server account and the account is switched on. Its second line says how the connection is doing, for example that it is connecting or connected.",
-        "Pressing it opens Settings on the Library page, where the account is set up and where a device without an active account is told why."
+        "This icon appears only while this device is signed in to your exchange server account and the account is switched on. Its tooltip shows the connection state, for example connecting or connected.",
+        "Pressing it opens the Exchange server page in Settings, where the account is set up and its connection state is shown."
       ],
-      "next": "Settings opens on the Library page, on top of this window.",
+      "next": "Settings opens on the Exchange server page, on top of this window.",
       "tip": "Pressing [[Ctrl+V]] in this window while an exchange connection string, or a screenshot of its QR code, is on the clipboard opens the same page with the details filled in."
     },
     {
@@ -117,10 +136,13 @@
       "control": "BroadcastsButton",
       "one": "Opens the list of live broadcasts running on your account's devices.",
       "full": [
-        "Appears together with the exchange button. It opens the Live broadcasts window: the broadcasts your other devices are running right now, grouped by device. From there you can play one or add it to your channels.",
-        "The list is a companion window: it stays open beside the others, there is only one of it, and pressing the button again brings the open one forward."
+        "Appears together with the exchange button. It opens the My broadcasts window: the broadcasts your other devices are running right now, grouped by device. From there you can play one or add it to your channels.",
+        "The list is a companion window: it stays open beside the others, there is only one of it, and pressing the button again brings the open one forward.",
+        "A failed incoming video broadcast keeps its window and offers Retry in that window. Details shows the failure code; the message first says what happened and then what to try. Other broadcast windows keep playing.",
+        "If a description gives no certificate fingerprint and this PC cannot verify the server, compare the fingerprint with the broadcaster before accepting it. Trust is kept only for that channel. Removing an exchange entry keeps its imported channels with the label not listed.",
+        "This button shows only its icon; hover over it to read its name."
       ],
-      "next": "The Live broadcasts window opens, and this window stays usable."
+      "next": "The My broadcasts window opens, and this window stays usable."
     },
     {
       "id": "broadcast-live",
@@ -128,8 +150,8 @@
       "control": "BroadcastLiveButton",
       "one": "Shows that this PC is broadcasting, and what it is broadcasting.",
       "full": [
-        "Appears only while the PC microphone or the PC system sound is being broadcast, and reads, for example, \"Broadcasting: PC microphone\". It reports and manages; it never starts a broadcast.",
-        "Its menu names each live source and offers to stop it, to cast it to one of your own devices (only while the exchange account is on and one of its receivers is online) or to share it as a link or a description file."
+        "Appears only while this PC is broadcasting. It shows a red broadcast icon, without a caption. Its tooltip names the active sources in your interface language, for example the PC microphone, system sound, or both.",
+        "Pressing it opens the menu for stopping, casting or sharing the active sources. It never starts a capture. Stopping the last source hides the icon."
       ],
       "undo": "Stop acts at once, without a question; a stopped broadcast has to be started again."
     },
@@ -139,7 +161,8 @@
       "control": "SettingsButton",
       "one": "Opens the settings and the information about the app.",
       "full": [
-        "Opens the Settings window on top of this one. Its pages are General, Library, Playback, Audio, Files and About: the preferences you change rarely, the library (catalog, playlists, hidden channels, TV schedule, exchange account) and information about the app."
+        "Opens Settings with eight pages in the left menu: General, Library, Playback, Audio, Files, Exchange server, Broadcasting and About.",
+        "In a narrow window this button shows only its icon; its tooltip and accessible name remain available."
       ],
       "next": "This window waits until you close Settings.",
       "tip": "The button is greyed out while a download or another long operation is running."
@@ -151,7 +174,8 @@
       "one": "The menu of less frequent actions: add or import channels, history, window options.",
       "full": [
         "Opens a menu with these entries, in this order: **Always on top** (a check mark; keeps this window above the others), **Refresh previews** (only in Grid view, and only when automatic thumbnail updates are on in Settings), **{@op-random}**, **{@op-history}**, **{@op-add}**, **{@op-paste}**, **Library settings** (opens Settings on the Library page) and, set apart at the end, **{@op-import}**.",
-        "The menu is built each time you open it, so the check mark and the Refresh previews entry always match the state of the window right now."
+        "The menu is built each time you open it, so the check mark and the Refresh previews entry always match the state of the window right now.",
+        "In a narrow window this button shows only its icon; its tooltip and accessible name remain available."
       ],
       "tip": "The button is greyed out while an import or another long operation is running."
     },
@@ -447,7 +471,7 @@
       "one": "Records the radio station that is playing into a file.",
       "full": [
         "Available while a station plays. Pressing it starts saving the live audio to a file, and the button then offers to stop the recording. When the recording ends, the status line names the saved file and its length. It also ends by itself if the station drops the connection; the part already saved is kept. Stopping the station ends the recording too.",
-        "A FastMediaSorter broadcast cannot be recorded, because it allows one connection and playback is using it; the button is then greyed out, with the reason in its tooltip. The folder for recordings is chosen in Settings."
+        "An incoming audio broadcast has its own Record button in its window; R starts or stops it. It records the connection already playing, so the broadcaster still sees one listener. Its timer shows elapsed recording time, and stopping shows the saved path and length. Stopping playback, a reconnect or closing the window ends and saves that recording; press Record again after reconnecting. Audio stays in its received format without transcoding: MP3, AAC, Ogg, Opus, FLAC or WAV. A slow or full disk ends only the recording, with a message. The radio recordings folder is chosen in Settings; a refused folder falls back to the default and then Downloads, with a message. Other windows keep playing."
       ],
       "undo": "**Stop recording** closes and saves the file."
     },
@@ -494,16 +518,49 @@
     }
   ],
   "related": [
-    { "help": "settings", "note": "Where the library, the exchange account, the tile size, the recording folder and the other preferences are set." },
-    { "help": "first-run", "note": "The question the app asks on its first start: where the channel list comes from." },
-    { "help": "player", "note": "The window where video and RTSP channels play." },
-    { "help": "compact-panel", "note": "The small panel that stays on top while the radio plays." },
-    { "help": "collections", "note": "Where you manage your collections of channels." },
-    { "help": "history", "note": "The list of channels you played recently." },
-    { "help": "add-stream", "note": "The window for adding a channel by its address, and for editing one." },
-    { "help": "channel-info", "note": "What the app knows about one channel." },
-    { "help": "broadcasts", "note": "The live broadcasts of your account's devices." },
-    { "site": "use", "note": "The whole task, from the first start to your own playlists." },
-    { "site": "support", "note": "How to report a problem and what to send." }
+    {
+      "help": "settings",
+      "note": "Where the library, the exchange account, the tile size, the recording folder and the other preferences are set."
+    },
+    {
+      "help": "first-run",
+      "note": "The question the app asks on its first start: where the channel list comes from."
+    },
+    {
+      "help": "player",
+      "note": "The window where video and RTSP channels play."
+    },
+    {
+      "help": "compact-panel",
+      "note": "The small panel that stays on top while the radio plays."
+    },
+    {
+      "help": "collections",
+      "note": "Where you manage your collections of channels."
+    },
+    {
+      "help": "history",
+      "note": "The list of channels you played recently."
+    },
+    {
+      "help": "add-stream",
+      "note": "The window for adding a channel by its address, and for editing one."
+    },
+    {
+      "help": "channel-info",
+      "note": "What the app knows about one channel."
+    },
+    {
+      "help": "broadcasts",
+      "note": "The live broadcasts of your account's devices."
+    },
+    {
+      "site": "use",
+      "note": "The whole task, from the first start to your own playlists."
+    },
+    {
+      "site": "support",
+      "note": "How to report a problem and what to send."
+    }
   ]
 }

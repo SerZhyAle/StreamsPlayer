@@ -56,6 +56,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     private readonly Stopwatch _bufferClock = new();
     private readonly Stopwatch _liveEdgeClock = new();
     private double _liveEdgeSpeed = 1d;
+    private LiveEdgeCorridor _liveEdgeCorridor = LiveEdgeCorridor.Default;
     private int _selectedAudioPos = -1;
     private int _selectedSubtitlePos = -1;
     private volatile TrackSnapshot _audioTracks = TrackSnapshot.Empty;
@@ -284,7 +285,8 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
     public event Action? TracksChanged;
     public event Action<Guid, BitmapSource>? SnapshotReady;
 
-    public bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling)
+    public bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling,
+        bool liveBroadcast = false)
     {
         lock (_mediaGate)
         {
@@ -293,6 +295,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
                 return false; // tearing down; the player is being disposed on another thread
             }
 
+            _liveEdgeCorridor = liveBroadcast ? LiveEdgeCorridor.ForBroadcast(cacheMilliseconds) : LiveEdgeCorridor.Default;
             return PlayUnderGate(url, cacheMilliseconds, rtspOverTcp, softwareDecode, qualityCeiling);
         }
     }
@@ -771,7 +774,7 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
             return;
         }
 
-        var corridor = LiveEdgeCorridor.Default;
+        var corridor = _liveEdgeCorridor;
         _config.Player.MinLatency = corridor.Floor.Ticks;
         _config.Player.MaxLatency = corridor.Target.Ticks;
         _liveEdgeClock.Restart();

@@ -479,7 +479,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             Assert.Equal(emptySlotId, entry.DeviceId);
             Assert.Equal(new string('g', 43), entry.Token);
             Assert.NotNull(entry.PinKey);
-            Assert.Equal("[\"receiver\"]", roles);
+            Assert.Equal("[\"receiver\",\"broadcaster\"]", roles);
             // Reloaded from its DPAPI file: still one guest, with its token.
             Assert.Equal(entry.Token, Assert.Single(new ExchangeGuestEntries(scope.Path).Entries).Token);
             await Until(() => frames.Contains("bye"));

@@ -45,6 +45,25 @@ public sealed class ExchangeE2eKeyPair : IDisposable
         return new ExchangeE2eKeyPair(parameters.D!, Encode(parameters.Q));
     }
 
+    /// <summary>Validates a public point with the platform curve implementation before trusting or wrapping to it.</summary>
+    public static bool IsValidPublicPoint(ReadOnlySpan<byte> point)
+    {
+        if (point.Length != PublicLength || point[0] != 0x04)
+        {
+            return false;
+        }
+
+        try
+        {
+            using var key = ECDiffieHellman.Create(new ECParameters { Curve = ECCurve.NamedCurves.nistP256, Q = Decode(point) });
+            return true;
+        }
+        catch (Exception exception) when (exception is CryptographicException or PlatformNotSupportedException)
+        {
+            return false;
+        }
+    }
+
     /// <summary>
     /// Builds the pair from stored values. The public point must belong to the scalar: a pair whose halves
     /// disagree is refused here rather than failing every later seal with no explanation.

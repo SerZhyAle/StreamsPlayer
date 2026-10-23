@@ -19,7 +19,8 @@ public static class ExchangeDirectoryChannels
         IEnumerable<StreamChannel> channels,
         IReadOnlyCollection<string> liveSourceIds,
         IReadOnlyCollection<string> liveBroadcastIds,
-        DateTimeOffset endedAt)
+        DateTimeOffset endedAt,
+        string? entryIdentity = null)
     {
         ArgumentNullException.ThrowIfNull(channels);
         ArgumentNullException.ThrowIfNull(liveSourceIds);
@@ -29,7 +30,8 @@ public static class ExchangeDirectoryChannels
         foreach (var channel in channels)
         {
             var broadcast = channel.FastMediaSorterBroadcast;
-            if (broadcast?.DirectoryBroadcastId is not { } origin || broadcast.DirectoryEndedAt is not null)
+            if (broadcast?.DirectoryBroadcastId is not { } origin || broadcast.DirectoryEndedAt is not null
+                || entryIdentity is not null && broadcast.DirectoryEntryIdentity is { } bound && bound != entryIdentity)
             {
                 continue;
             }
@@ -58,7 +60,8 @@ public static class ExchangeDirectoryChannels
     public static IReadOnlyList<StreamChannel> RefreshStored(
         IEnumerable<StreamChannel> channels,
         IEnumerable<ExchangeBroadcastView> broadcasts,
-        DateTimeOffset now)
+        DateTimeOffset now,
+        string? entryIdentity = null)
     {
         ArgumentNullException.ThrowIfNull(channels);
         ArgumentNullException.ThrowIfNull(broadcasts);
@@ -72,7 +75,7 @@ public static class ExchangeDirectoryChannels
             }
 
             var applied = FastMediaSorterBroadcastImport.ApplyStored(
-                current, descriptor, now, view.Record.BroadcastId);
+                current, descriptor, now, view.Record.BroadcastId, entryIdentity);
             if (applied is not null)
             {
                 current = [.. applied.Channels];
@@ -81,4 +84,18 @@ public static class ExchangeDirectoryChannels
 
         return current;
     }
+
+    /// <summary>Removing an entry keeps its channels; re-adding the same identity restores their listing binding.</summary>
+    public static IReadOnlyList<StreamChannel> ReconcileEntries(IEnumerable<StreamChannel> channels,
+        IReadOnlyCollection<string> heldEntryIdentities) => channels.Select(channel =>
+    {
+        if (channel.FastMediaSorterBroadcast is not { DirectoryEntryIdentity: { } identity } broadcast)
+        {
+            return channel;
+        }
+
+        var removed = !heldEntryIdentities.Contains(identity);
+        return broadcast.DirectoryEntryRemoved == removed ? channel
+            : channel with { FastMediaSorterBroadcast = broadcast with { DirectoryEntryRemoved = removed } };
+    }).ToArray();
 }

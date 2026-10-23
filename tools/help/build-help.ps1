@@ -26,6 +26,13 @@
     -Check writes nothing: exit 0 when docs/help matches what would be written, 1 when a file differs, is
     missing, or is left over (CHECK-VERDICT), 2 when the generator cannot run.
 
+    -Check also holds each translation to the English copy it was rebuilt from (SP-0239 P5, DOC-EXTERNAL-QUALITY
+    rule 3): every _chrome.json and page copy of a locale other than the source locale carries a top-level
+    "sourceHash": "sha256:<16 hex>", the fingerprint (scripts/SourceFingerprint.ps1) of the same-named file of the
+    source locale. The renderer ignores the property. A missing or malformed value, or an English file that now hashes
+    to something else, fails the check: rebuild the translation from the current English copy, then record the new
+    fingerprint the failure names. The plain generator run does not look at it.
+
 .EXAMPLE
     pwsh -NoProfile -File ./tools/help/build-help.ps1
     pwsh -NoProfile -File ./tools/help/build-help.ps1 -Check
@@ -51,9 +58,21 @@ function Stop-Unverified([string] $Why) {
     exit 2
 }
 
+# -Check is a gate: a terminating error nothing below anticipated (an unreadable file, a throwing renderer) means the
+# comparison was never made - could not verify, with a verdict line, not a stack trace and exit 1 (CHECK-VERDICT 2.1,
+# 2.5, 2.11). A plain generator run keeps its exception.
+trap {
+    if (-not $Check) { break }
+    Stop-Unverified ($_.Exception.Message -replace '\s+', ' ')
+}
+
+# Only the freshness comparison of -Check needs the fingerprint; the generator run does not depend on the file.
+if ($Check) { . (Join-Path $root 'scripts/SourceFingerprint.ps1') }
+
 function Read-Json([string] $Path) {
     if (-not (Test-Path -LiteralPath $Path)) { Stop-Unverified "missing $Path" }
-    return Get-Content -LiteralPath $Path -Raw -Encoding utf8 | ConvertFrom-Json -Depth 30
+    try { return Get-Content -LiteralPath $Path -Raw -Encoding utf8 | ConvertFrom-Json -Depth 30 }
+    catch { Stop-Unverified "$Path does not parse: $($_.Exception.Message -replace '\s+', ' ')" }
 }
 
 function Has([object] $Object, [string] $Name) {
@@ -63,8 +82,9 @@ function Has([object] $Object, [string] $Name) {
 function Get-Dictionary([string] $Code) {
     $path = Join-Path $root "src/StreamsPlayer.App/Localization.$Code.xaml"
     if (-not (Test-Path -LiteralPath $path)) { Stop-Unverified "no dictionary for $Code" }
-    $xml = [xml](Get-Content -LiteralPath $path -Raw -Encoding utf8)
-    $ns = 'http://schemas.microsoft.com/winfx/2006/xaml'
+    try { $xml = [xml](Get-Content -LiteralPath $path -Raw -Encoding utf8) }
+    catch { Stop-Unverified "$path does not parse: $($_.Exception.Message -replace '\s+', ' ')" }
+    $ns ='http://schemas.microsoft.com/winfx/2006/xaml'
     $table = @{}
     foreach ($node in $xml.DocumentElement.ChildNodes) {
         if ($node.NodeType -ne 'Element') { continue }
@@ -363,6 +383,30 @@ foreach ($frame in 'mark-24.png', 'mark-48.png') {
     $generatedBytes[$frame] = [System.IO.File]::ReadAllBytes((Join-Path $root "assets/exchange-mark/png/$frame"))
 }
 
+# ---------------------------------------------------------------------------------------- translation freshness
+
+$outdated = [System.Collections.Generic.List[string]]::new()
+if ($Check) {
+    $fingerprintForm = '^sha256:[0-9a-f]{16}$'
+    $copyNames = @('_chrome') + @($pageSurfaces | ForEach-Object { $_.help })
+    foreach ($locale in @($locales | Where-Object { $_ -ne $map.sourceLocale })) {
+        foreach ($name in $copyNames) {
+            $translation = "help/content/$locale/$name.json"
+            $english = "help/content/$($map.sourceLocale)/$name.json"
+            $copy = Read-Json (Join-Path $root $translation)
+            $recorded = if (Has $copy 'sourceHash') { [string] $copy.sourceHash } else { '' }
+            if ($recorded -notmatch $fingerprintForm) {
+                $outdated.Add("$translation has no sourceHash of the form sha256:<16 hex> (the fingerprint of $english it was rebuilt from)")
+                continue
+            }
+            $current = Get-SourceFingerprint (Join-Path $root $english)
+            if ($current -ne $recorded) {
+                $outdated.Add("$english is $current but $translation was rebuilt from $recorded - rebuild it from the current English copy, then record $current as its sourceHash")
+            }
+        }
+    }
+}
+
 # ---------------------------------------------------------------------------------------- write or compare
 
 $problems = [System.Collections.Generic.List[string]]::new()
@@ -391,9 +435,12 @@ if (Test-Path -LiteralPath $output) {
     }
 }
 
-if ($problems.Count) {
-    foreach ($problem in $problems) { Write-Host "  $problem" }
-    Write-Host "help-build: FAIL ($($problems.Count) file(s) out of date; run tools/help/build-help.ps1)"
+if ($problems.Count -or $outdated.Count) {
+    foreach ($problem in @($problems) + @($outdated)) { Write-Host "  $problem" }
+    $reasons = @()
+    if ($problems.Count) { $reasons += "$($problems.Count) file(s) out of date; run tools/help/build-help.ps1" }
+    if ($outdated.Count) { $reasons += "$($outdated.Count) translation(s) older than their English copy; rebuild them and record its fingerprint" }
+    Write-Host "help-build: FAIL ($($reasons -join '; '))"
     exit 1
 }
 Write-Host "help-build: PASS ($($locales.Count) locales, $($pageSurfaces.Count) pages and an index each$(if ($Check) { ', in sync' } else { ', written' }))"

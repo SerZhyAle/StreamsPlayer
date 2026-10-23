@@ -24,7 +24,7 @@
 
 .OUTPUTS
     Exit 0 - campaign closed; 1 - slices open or a coverage/ticket gap; 2 - cannot verify.
-    The last line is the verdict: `audit-campaign: CLOSED|OPEN (..)|CANNOT VERIFY (..)`.
+    The last line is the verdict: `audit-campaign: CLOSED|OPEN (..)|COULD NOT VERIFY (..)`.
 #>
 [CmdletBinding()]
 param(
@@ -38,7 +38,7 @@ $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'AuditCampaign.psm1') -Force
 
 function Fail([string] $Message) {
-    [Console]::Out.WriteLine("audit-campaign: CANNOT VERIFY ($Message)")
+    [Console]::Out.WriteLine("audit-campaign: COULD NOT VERIFY ($Message)")
     exit 2
 }
 

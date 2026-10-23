@@ -45,5 +45,6 @@ public static class IncomingBroadcastFailure
     }
 
     /// <summary>Whether the failure is a refused password, whose stored value is the broadcaster's old one and must be forgotten.</summary>
-    public static bool IsPasswordRefusal(string? reason) => ExchangeBroadcastAuth.MessageKey(reason) is not null;
+    public static bool IsPasswordRefusal(string? reason) =>
+        reason is ExchangeBroadcastAuth.PasswordRequiredReason or ExchangeBroadcastAuth.PasswordRefusedReason;
 }

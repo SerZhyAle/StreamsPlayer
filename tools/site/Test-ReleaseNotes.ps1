@@ -310,6 +310,13 @@ try {
     Check (@($real | Where-Object { $_.Notes['en'].Count -lt 1 -or $_.Notes['ru'].Count -lt 1 -or $_.Notes['uk'].Count -lt 1 }).Count -eq 0) 'every repository version has bullets in en, ru and uk'
     Check ((ConvertTo-ReleaseNotesHtml -Notes $real -Code 'de' -Authored $authored).Contains("id=`"v$($real[0].Version.Replace('.', '-'))`"")) 'the repository notes render, newest first'
 }
+catch {
+    # A setup step or a subject function threw instead of answering: nothing was judged past this point, so the run could
+    # not verify (CHECK-VERDICT 2.1, 2.5, 2.11). A check that already failed still outranks it (2.14).
+    $reason = $_.Exception.Message -replace '\s+', ' '
+    if ($failures.Count -eq 0) { Write-Output "release-notes: COULD NOT VERIFY ($reason)"; exit 2 }
+    Write-Output "release-notes: the run stopped early: $reason"
+}
 finally {
     Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue
 }

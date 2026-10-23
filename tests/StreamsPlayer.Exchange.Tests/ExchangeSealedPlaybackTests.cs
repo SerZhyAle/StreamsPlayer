@@ -145,6 +145,46 @@ public sealed class ExchangeSealedPlaybackTests
     // ------------------------------------------------------------------ the sealed relay
 
     [Fact]
+    public async Task AStalledSiblingDoesNotBlockAnotherSealedListenerOrItsStop()
+    {
+        using var encoder = new ExchangeSealedRelayEncoder("b1", "video/mp2t");
+        var key = encoder.NewGroupKey("own");
+        var media = TransportStream(4);
+        var body = Join([encoder.HeaderChunk([]), encoder.SealChunk(ExchangeUploadChunks.Joinable, media)]);
+        using var stopStall = new CancellationTokenSource();
+        var stalled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var slow = new FakeRelay(async (_, stream) =>
+        {
+            stalled.TrySetResult();
+            await Task.Delay(Timeout.Infinite, stopStall.Token).ContinueWith(_ => { }, TaskScheduler.Default);
+            return [];
+        });
+        await using var healthy = new FakeRelay(async (_, stream) =>
+        {
+            await stream.WriteAsync(Encoding.ASCII.GetBytes(RelayHead()));
+            await WriteChunkedAsync(stream, body, 7);
+            await stream.WriteAsync("0\r\n\r\n"u8.ToArray());
+            return body;
+        });
+        using var slowProxy = Proxy(slow, key);
+        var slowPlay = PlayAsync(slowProxy);
+        await stalled.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        try
+        {
+            using var healthyProxy = Proxy(healthy, key);
+            var (_, played) = await PlayAsync(healthyProxy).WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.Equal(media, played);
+            Assert.False(slowPlay.IsCompleted);
+        }
+        finally
+        {
+            slowProxy.Dispose();
+            stopStall.Cancel();
+            await slowPlay.WaitAsync(TimeSpan.FromSeconds(3));
+        }
+    }
+
+    [Fact]
     public async Task ASealedRelay_GivesThePlayerClearMediaAndTheTrueType_AndTheServerSeesNone()
     {
         using var encoder = new ExchangeSealedRelayEncoder("b1", "video/mp2t");

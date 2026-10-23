@@ -44,6 +44,7 @@
     <sys:String x:Key="OperationsTip">Параметри вікна, прев’ю, журнал, додати потік, налаштування бібліотеки, імпорт каналів з інтернету</sys:String>
     <sys:String x:Key="AddStreamTip">Додати потік за адресою</sys:String>
     <sys:String x:Key="UpdateCatalogTip">Завантажити свіжий каталог з інтернету</sys:String>
+    <sys:String x:Key="SearchAndFilters">Пошук, фільтри й сортування</sys:String>
     <sys:String x:Key="FiltersAndSorting">Фільтри та сортування</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">Показати рядок фільтрів і сортування</sys:String>
     <sys:String x:Key="FiltersActiveTip">Показати рядок фільтрів і сортування. Активних фільтрів: {0}</sys:String>
@@ -712,6 +713,8 @@
     <sys:String x:Key="SettingsFiles">Файли</sys:String>
     <sys:String x:Key="SettingsFilesDesc">Папки для знімків кадрів і записів потоків</sys:String>
     <sys:String x:Key="SettingsAbout">Про програму</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">Обліковий запис і підключення до сервера</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Джерела, мережа та якість звуку</sys:String>
     <sys:String x:Key="SettingsAboutDesc">Відомості про застосунок, ліцензія та діагностика</sys:String>
     <sys:String x:Key="ThemeHint">Оберіть світлу або темну тему, або відповідність оформленню Windows.</sys:String>
     <sys:String x:Key="TileSizeHint">Налаштуйте розмір плиток каналів у сітці.</sys:String>
@@ -772,7 +775,7 @@
     <sys:String x:Key="ExchangeForgotten">Ви вийшли на цьому пристрої. Вхід і закріплений сертифікат забуто.</sys:String>
     <sys:String x:Key="ExchangeCertificate">Сертифікат сервера потребує вашого підтвердження.</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">Довіряти цьому сертифікату сервера? Попередній відбиток: {0} Новий відбиток: {1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">Прямі трансляції</sys:String>
+    <sys:String x:Key="BroadcastsTitle">Свої трансляції</sys:String>
     <sys:String x:Key="BroadcastsEmpty">Зараз цей обліковий запис не має трансляцій; вони з’являться тут, коли інші ваші пристрої їх запустять.</sys:String>
     <sys:String x:Key="BroadcastsOnline">у мережі</sys:String>
     <sys:String x:Key="BroadcastsOffline">поза мережею</sys:String>
@@ -976,4 +979,8 @@
     <sys:String x:Key="ExchangeDiagnosisServerLine">Сервер: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Код: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Поки немає сервера для перевірки. Спочатку імпортуйте рядок підключення або увійдіть.</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">Ніхто не зможе прийняти трансляцію. Увімкніть доступ у локальній мережі або підключіться до сервера обміну та спробуйте ще раз.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Ця захищена адреса трансляції тут не підтримується. Попросіть автора надати посилання через сервер обміну.</sys:String>
+    <sys:String x:Key="BroadcastNotListed">немає у списку</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">Сервер {0} надав сертифікат, який цей ПК не може перевірити. Звірте відбиток з автором трансляції, перш ніж довіряти йому для цього каналу:&#10;{1}&#10;Довіряти сертифікату?</sys:String>
 </ResourceDictionary>

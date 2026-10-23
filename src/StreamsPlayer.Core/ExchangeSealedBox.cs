@@ -125,7 +125,8 @@ public static class ExchangeSealedBoxes
             }
 
             var keys = new List<ExchangeSealedBoxKey>();
-            foreach (var recipient in recipients.Take(ExchangeSealedBox.MaximumRecipients))
+            foreach (var recipient in recipients.Where(recipient => ExchangeE2eKeyPair.IsValidPublicPoint(recipient.PublicPoint))
+                .Take(ExchangeSealedBox.MaximumRecipients))
             {
                 var (enc, wrapped) = ExchangeHpke.SealAuth(recipient.PublicPoint, sender, HpkeInfo, aad, contentKey);
                 keys.Add(new ExchangeSealedBoxKey(recipient.DeviceId, ExchangeBase64Url.Encode(enc), ExchangeBase64Url.Encode(wrapped)));

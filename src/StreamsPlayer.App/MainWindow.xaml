@@ -77,8 +77,19 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="ExchangeStatusGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+            <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.source.exchange-server}" />
+        </Style>
+        <Style x:Key="BroadcastsGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+            <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.content.stream}" />
+        </Style>
+        <Style x:Key="BroadcastLiveGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+            <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.feature.live-broadcast}" />
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+        </Style>
         <!-- SP-0102: Segmented mode buttons with active state highlight -->
-        <Style x:Key="SegmentedListButton" TargetType="Button" BasedOn="{StaticResource ListGlyphButton}">
+        <Style x:Key="SegmentedListButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+            <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.view.list}" />
             <Setter Property="Padding" Value="9,5" />
             <Setter Property="Margin" Value="1,0" />
             <Style.Triggers>
@@ -89,7 +100,8 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="SegmentedGridButton" TargetType="Button" BasedOn="{StaticResource GridGlyphButton}">
+        <Style x:Key="SegmentedGridButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+            <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.view.grid}" />
             <Setter Property="Padding" Value="9,5" />
             <Setter Property="Margin" Value="1,0" />
             <Style.Triggers>
@@ -109,20 +121,24 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="0,0,0,12">
+        <Grid x:Name="HeaderGrid" Grid.Row="0" Margin="0,0,0,12" SizeChanged="HeaderGrid_SizeChanged"
+              TextElement.FontSize="{DynamicResource UiFontSize}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <!-- SP-0050: the title line carries the product name, the search field and the one control
-                 that reveals the filter row. It scales inside a DownOnly Viewbox - the same mechanism the
-                 filter band uses - so the longest labels shrink at the minimum window width instead of
-                 clipping the product name or collapsing the search field. -->
-            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="{DynamicResource ProductName}" FontSize="30" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"
-                               VerticalAlignment="Center" Margin="0,0,16,0" />
-                    <TextBox x:Name="SearchBox" local:HelpAnchor.Id="e-search" Style="{StaticResource SearchTextBoxStyle}" Width="200"
+            <Button x:Name="CompactFiltersButton" local:HelpAnchor.Id="e-search-tools" Grid.Row="0" Grid.Column="0"
+                    Style="{StaticResource FiltersRevealButton}" Content="{DynamicResource SearchAndFilters}"
+                    HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed"
+                    Click="CompactFiltersButton_Click" ToolTip="{DynamicResource SearchAndFilters}"
+                    AutomationProperties.Name="{DynamicResource SearchAndFilters}" />
+            <WrapPanel x:Name="SearchTools" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"
+                       PreviewKeyDown="SearchTools_PreviewKeyDown">
+                    <TextBox x:Name="SearchBox" local:HelpAnchor.Id="e-search" Style="{StaticResource SearchTextBoxStyle}" Width="200" MinHeight="{DynamicResource UiTargetHeight}"
                              ToolTip="{DynamicResource SearchTip}" TextChanged="FilterChanged"
                              VerticalAlignment="Center" AutomationProperties.Name="{DynamicResource SearchName}" />
                     <Button Style="{StaticResource ClearInputGlyphButton}" Click="ClearSearchButton_Click"
@@ -131,9 +147,6 @@
                             Content="{DynamicResource FiltersAndSorting}" Click="FiltersButton_Click"
                             VerticalAlignment="Center" ToolTip="{DynamicResource FiltersAndSortingTip}"
                             AutomationProperties.Name="{DynamicResource FiltersAndSorting}" />
-                    <!-- SP-0094: the Media facet's second form. They stay in the title line whether the
-                         filter row is open or closed - unlike FiltersButton, which the open row replaces -
-                         because the whole point is a switch that costs one click from wherever you are. -->
                     <Button x:Name="QuickVideoButton" local:HelpAnchor.Id="e-quick-video" Style="{StaticResource QuickVideoFilterButton}"
                             Click="QuickVideoButton_Click" VerticalAlignment="Center"
                             ToolTip="{DynamicResource QuickVideoTip}"
@@ -146,9 +159,8 @@
                             Click="QuickOwnButton_Click" VerticalAlignment="Center"
                             ToolTip="{DynamicResource QuickOwnTip}"
                             AutomationProperties.Name="{DynamicResource QuickOwnTip}" />
-                </StackPanel>
-            </Viewbox>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+            </WrapPanel>
+            <StackPanel x:Name="HeaderActions" Grid.Row="0" Grid.Column="1" Margin="16,0,0,0" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <!-- SP-0230, CONTEXT-HELP rule 2: the help button leads the trailing group, so every control that
                      is already here keeps its place at the right-hand end. -->
                 <Button x:Name="HelpButton" Style="{StaticResource HelpGlyphButton}" Margin="0,0,8,0"
@@ -162,40 +174,30 @@
                                 ToolTip="{DynamicResource GridTip}" AutomationProperties.Name="{DynamicResource GridName}" />
                     </StackPanel>
                 </Border>
-                <!-- SP-0218: a button that holds two lines of text still carries its glyph first, so the glyph is
-                     part of its content here rather than of a template (a template is not applied to a
-                     content element). Provisional meaning: PROPOSAL-2026-10-11-streamsplayer-button-meanings.md
-                     item 2. The gap is the 6 px of every glyph button. -->
-                <Button x:Name="ExchangeSourceStatusButton" local:HelpAnchor.Id="e-exchange" Click="ExchangeSourceStatus_Click" Visibility="Collapsed" Margin="0,0,8,0">
-                    <StackPanel Orientation="Horizontal">
-                        <Viewbox Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" FlowDirection="LeftToRight">
-                            <Path Data="{StaticResource Icon.source.exchange-server}" Width="24" Height="24"
-                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
-                        </Viewbox>
-                        <StackPanel VerticalAlignment="Center">
+                <Button IsVisibleChanged="HeaderAction_IsVisibleChanged" x:Name="ExchangeSourceStatusButton" local:HelpAnchor.Id="e-exchange" Style="{StaticResource ExchangeStatusGlyphOnlyButton}"
+                        Content="{DynamicResource ExchangeTitle}"
+                        AutomationProperties.Name="{DynamicResource ExchangeTitle}"
+                        Click="ExchangeSourceStatus_Click" Visibility="Collapsed" Margin="0,0,8,0">
+                    <Button.ToolTip>
+                        <StackPanel>
                             <TextBlock Text="{DynamicResource ExchangeTitle}" />
-                            <TextBlock x:Name="ExchangeSourceStatusText" FontSize="11" />
+                            <TextBlock x:Name="ExchangeSourceStatusText" />
                         </StackPanel>
-                    </StackPanel>
+                    </Button.ToolTip>
                 </Button>
                 <!-- SP-0201: the account's live broadcasts, grouped by device. Shown once the device is
                      enrolled; the account section is where a device without an account is told why. -->
-                <Button x:Name="BroadcastsButton" local:HelpAnchor.Id="e-broadcasts" Style="{StaticResource BroadcastsGlyphButton}" Content="{DynamicResource BroadcastsTitle}"
+                <Button IsVisibleChanged="HeaderAction_IsVisibleChanged" x:Name="BroadcastsButton" local:HelpAnchor.Id="e-broadcasts" Style="{StaticResource BroadcastsGlyphOnlyButton}"
+                        Content="{DynamicResource BroadcastsTitle}" ToolTip="{DynamicResource BroadcastsTitle}"
+                        AutomationProperties.Name="{DynamicResource BroadcastsTitle}"
                         Click="BroadcastsButton_Click" Visibility="Collapsed" Margin="0,0,8,0" />
                 <!-- SP-0217: the always-visible live-broadcast indicator - shown only while one of this
                      PC's sources is live; its menu names each source and offers its stop, its cast
                      targets and its hand-off channels. -->
-                <Button x:Name="BroadcastLiveButton" local:HelpAnchor.Id="e-broadcast-live" Style="{StaticResource BroadcastingGlyphButton}" Click="BroadcastLiveButton_Click"
-                        Visibility="Collapsed" Margin="0,0,8,0"
-                        AutomationProperties.Name="{DynamicResource BroadcastIndicatorName}">
-                    <StackPanel Orientation="Horizontal">
-                        <Viewbox Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" FlowDirection="LeftToRight">
-                            <Path Data="{StaticResource Icon.media.record}" Width="24" Height="24"
-                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
-                        </Viewbox>
-                        <TextBlock x:Name="BroadcastLiveText" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
+                <Button x:Name="BroadcastLiveButton" local:HelpAnchor.Id="e-broadcast-live" Style="{StaticResource BroadcastLiveGlyphOnlyButton}"
+                        Content="{DynamicResource BroadcastIndicatorName}" Click="BroadcastLiveButton_Click"
+                        IsVisibleChanged="HeaderAction_IsVisibleChanged" Visibility="Collapsed" Margin="0,0,8,0"
+                        AutomationProperties.Name="{DynamicResource BroadcastIndicatorName}" />
                 <Button x:Name="SettingsButton" local:HelpAnchor.Id="e-settings" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource Settings}" Click="SettingsButton_Click"
                         ToolTip="{DynamicResource SettingsTip}" AutomationProperties.Name="{DynamicResource SettingsName}" />
                 <!-- SP-0050: the rare and the mode-conditional actions live here. The menu is rebuilt on

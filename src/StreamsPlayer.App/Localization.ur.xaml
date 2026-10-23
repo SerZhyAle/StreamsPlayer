@@ -44,6 +44,7 @@
     <sys:String x:Key="OperationsTip">ونڈو کے اختیارات، پیش منظر، تاریخ، نشریات شامل کریں، لائبریری ترتیبات، انٹرنیٹ سے چینلز درآمد کریں</sys:String>
     <sys:String x:Key="AddStreamTip">پتے کے ذریعے نشریات شامل کریں</sys:String>
     <sys:String x:Key="UpdateCatalogTip">انٹرنیٹ سے تازہ ترین فہرست ڈاؤن لوڈ کریں</sys:String>
+    <sys:String x:Key="SearchAndFilters">تلاش، فلٹر اور ترتیب</sys:String>
     <sys:String x:Key="FiltersAndSorting">فلٹر اور ترتیب</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">فلٹر اور ترتیب کی سطر دکھائیں</sys:String>
     <sys:String x:Key="FiltersActiveTip">فلٹر اور ترتیب کی سطر دکھائیں۔ فعال فلٹر: {0}</sys:String>
@@ -712,6 +713,8 @@
     <sys:String x:Key="SettingsFiles">فائلیں</sys:String>
     <sys:String x:Key="SettingsFilesDesc">اسکرین شاٹس اور نشریات کی ریکارڈنگ کے فولڈرز</sys:String>
     <sys:String x:Key="SettingsAbout">کے بارے میں</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">اکاؤنٹ اور سرور سے اتصال</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">ذرائع، نیٹ ورک تک رسائی اور آڈیو کا معیار</sys:String>
     <sys:String x:Key="SettingsAboutDesc">ایپ کی معلومات، لائسنس اور تشخیص</sys:String>
     <sys:String x:Key="ThemeHint">ہلکا، گہرا منتخب کریں یا اپنے Windows کے انداز کی پیروی کریں۔</sys:String>
     <sys:String x:Key="TileSizeHint">گرڈ میں چینل ٹائلز کا سائز ترتیب دیں۔</sys:String>
@@ -772,7 +775,7 @@
     <sys:String x:Key="ExchangeForgotten">اس ڈیوائس پر سائن آؤٹ ہو گیا۔ سائن اِن اور سرٹیفکیٹ کا فنگر پرنٹ بھلا دیا گیا۔</sys:String>
     <sys:String x:Key="ExchangeCertificate">سرور کے سرٹیفکیٹ کو آپ کی منظوری درکار ہے۔</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">اس سرور کے سرٹیفکیٹ پر اعتماد کریں؟ پچھلا فنگرپرنٹ: {0} نیا فنگرپرنٹ: {1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">براہِ راست نشریات</sys:String>
+    <sys:String x:Key="BroadcastsTitle">میری نشریات</sys:String>
     <sys:String x:Key="BroadcastsEmpty">اس اکاؤنٹ میں ابھی کوئی نشریات نہیں؛ آپ کے دوسرے آلات شروع کریں گے تو یہاں نظر آئیں گی۔</sys:String>
     <sys:String x:Key="BroadcastsOnline">آن لائن</sys:String>
     <sys:String x:Key="BroadcastsOffline">آف لائن</sys:String>
@@ -976,4 +979,8 @@
     <sys:String x:Key="ExchangeDiagnosisServerLine">سرور: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">کوڈ: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">ابھی جانچنے کے لیے کوئی سرور نہیں ہے۔ پہلے کنکشن اسٹرنگ درآمد کریں یا سائن اِن کریں۔</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">کوئی اس نشریات کو وصول نہیں کر سکتا۔ مقامی نیٹ ورک فعال کریں یا تبادلہ سرور سے جڑ کر پھر کوشش کریں۔</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">یہ محفوظ نشریاتی پتہ یہاں نہیں چلایا جا سکتا۔ بھیجنے والے سے تبادلہ سرور کے ذریعے لنک مانگیں۔</sys:String>
+    <sys:String x:Key="BroadcastNotListed">فہرست میں نہیں</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">یہ کمپیوٹر {0} کے سرٹیفکیٹ کی تصدیق نہیں کر سکتا۔ اس چینل کے لیے اعتماد کرنے سے پہلے بھیجنے والے سے فنگرپرنٹ ملائیں:&#10;{1}&#10;کیا اس سرٹیفکیٹ پر اعتماد کریں؟</sys:String>
 </ResourceDictionary>

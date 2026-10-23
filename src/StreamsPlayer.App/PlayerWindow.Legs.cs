@@ -196,7 +196,7 @@ public partial class PlayerWindow
         // reconnect is a fresh leg), and the dead-source slice is the first attempt's own. A channel
         // with no descriptor, or one stored before endpoints were listed, stays the single attempt at
         // its own address that it always was.
-        var listed = _channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints();
+        var listed = _channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints(_channel.Url);
         _attemptPlan = listed is { Count: > 0 } ? listed : [SingleAttempt(_channel)];
         _attemptIndex = 0;
         _openBudget = new PlaybackOpenBudget(AttemptSlice(_attemptPlan[0], hasSuccessor: _attemptPlan.Count > 1));
@@ -260,91 +260,37 @@ public partial class PlayerWindow
             return;
         }
 
-        // SP-0226 / items DK and DP: an exchange endpoint plays only sealed, with the keys its box or its link handed
-        // over - never as clear bytes through a server. The refusal is the leg's verdict, said once in words.
-        var decision = ExchangeBroadcastKeys.Decide(endpoint);
-        if (!decision.Allowed)
+        BroadcastVideoRoute? route;
+        try
         {
-            ReportOpenFailure(backend, epoch, decision.Reason);
-            return;
+            route = BroadcastVideoRoute.Open(endpoint, _broadcastCredentials?.Credentials,
+                reason => ReportOpenFailure(backend, epoch, reason), passwordProtected: _channel.FastMediaSorterBroadcast?.Auth is not null,
+                verifyHttp: _channel.FastMediaSorterBroadcast is not null);
         }
-
-        Uri? address = null;
-
-        if (endpoint is { Transport: "TUNNEL", Inner: { Length: > 0 } inner } &&
-            ExchangeTunnelUrl.TryParse(endpoint.Url, out var tunnelUrl))
+        catch (Exception exception) when (exception is System.Net.Sockets.SocketException or ArgumentException or InvalidOperationException)
         {
-            try
-            {
-                var forwarder = ExchangeTunnelForwarder.Start(tunnelUrl, inner, endpoint.CertFingerprint, tunnelPin: decision.TunnelPin);
-                forwarder.Refused += reason => ReportOpenFailure(backend, epoch, reason);
-                if (!TryHoldAttemptResource(epoch, () => _tunnelForwarder = forwarder))
-                {
-                    forwarder.Dispose();
-                    return;
-                }
-
-                if (LaunchableAddress.TryParse(forwarder.LoopbackUrl, out var loopbackAddress))
-                {
-                    address = loopbackAddress;
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.Event("PLAYBACK TUNNEL ERROR", $"err={ex.Message}", $"url={endpoint.Url}");
-            }
-        }
-        else if (LaunchableAddress.TryParse(endpoint.Url, out var directAddress))
-        {
-            if (endpoint.Transport?.Equals("RELAY", StringComparison.OrdinalIgnoreCase) == true)
-            {
-                // The engines cannot pin or explain an untrusted unpinned leaf. The proxy owns
-                // both trust decisions and their named refusals, for this attempt only.
-                try
-                {
-                    // SP-0215 requirement 7: a protected relay's Basic answer rides the proxy's own
-                    // verified TLS connection; the pin decision has passed before the pair is sent.
-                    var proxy = ExchangeRelayProxy.Start(endpoint.Url, endpoint.CertFingerprint,
-                        credentials: decision.Credentials ?? _broadcastCredentials?.Credentials,
-                        sealedRelay: decision.RelayOptions(endpoint.Url));
-                    proxy.Failed += failureReason =>
-                    {
-                        _log.Event("PLAYBACK RELAY PROXY", $"reason={failureReason}", $"url={endpoint.Url}");
-                        ReportOpenFailure(backend, epoch, failureReason);
-                    };
-                    if (!TryHoldAttemptResource(epoch, () => _relayProxy = proxy))
-                    {
-                        proxy.Dispose();
-                        return;
-                    }
-
-                    if (LaunchableAddress.TryParse(proxy.LoopbackUrl, out var proxyAddress))
-                    {
-                        address = proxyAddress;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _log.Event("PLAYBACK RELAY ERROR", $"err={ex.Message}", $"url={endpoint.Url}");
-                }
-            }
-            else
-            {
-                // Direct endpoints stay in the engine; relay trust is decided in the proxy.
-                address = directAddress;
-            }
-        }
-
-        if (address is null)
-        {
-            DisposeAttemptResource(epoch);
+            _log.Event("PLAYBACK TRANSPORT", $"err={exception.GetType().Name}", $"url={endpoint.Url}");
             ReportOpenFailure(backend, epoch, "unsupported_address");
             return;
         }
 
+        if (route is null)
+        {
+            return;
+        }
+
+        if (!TryHoldAttemptResource(epoch, () => _broadcastRoute = route))
+        {
+            route.Dispose();
+            return;
+        }
+
+        var address = route.Address;
+
         try
         {
-            if (!backend.Play(address, cacheMs, rtspOverTcp: true, softwareDecode: true, qualityCeiling))
+            if (!backend.Play(address, cacheMs, rtspOverTcp: true, softwareDecode: true, qualityCeiling,
+                liveBroadcast: _channel.FastMediaSorterBroadcast is not null))
             {
                 ReportOpenFailure(backend, epoch, "play_rejected");
             }

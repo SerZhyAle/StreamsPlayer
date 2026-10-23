@@ -28,7 +28,7 @@ try {
 }
 catch {
     Write-Host "tests: $($_.Exception.Message)"
-    Write-Host 'tests: CANNOT VERIFY run=0 skipped=0'
+    Write-Host 'tests: COULD NOT VERIFY run=0 skipped=0'
     exit 2
 }
 finally { Pop-Location }

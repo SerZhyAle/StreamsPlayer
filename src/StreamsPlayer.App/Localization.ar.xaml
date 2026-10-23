@@ -44,6 +44,7 @@
     <sys:String x:Key="OperationsTip">خيارات النافذة، المعاينات، السجل، إضافة بث، إعدادات المكتبة، استيراد القنوات من الإنترنت</sys:String>
     <sys:String x:Key="AddStreamTip">إضافة بث عن طريق عنوانه</sys:String>
     <sys:String x:Key="UpdateCatalogTip">تنزيل أحدث كتالوج من الإنترنت</sys:String>
+    <sys:String x:Key="SearchAndFilters">البحث والتصفية والترتيب</sys:String>
     <sys:String x:Key="FiltersAndSorting">التصفية والترتيب</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">إظهار صف التصفية والترتيب</sys:String>
     <sys:String x:Key="FiltersActiveTip">إظهار صف التصفية والترتيب. عوامل التصفية النشطة: {0}</sys:String>
@@ -712,6 +713,8 @@
     <sys:String x:Key="SettingsFiles">الملفات</sys:String>
     <sys:String x:Key="SettingsFilesDesc">مجلدات لقطات الشاشة وتسجيلات البث</sys:String>
     <sys:String x:Key="SettingsAbout">حول</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">الحساب والاتصال بالخادم</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">المصادر والوصول إلى الشبكة وجودة الصوت</sys:String>
     <sys:String x:Key="SettingsAboutDesc">معلومات التطبيق، الترخيص والتشخيص</sys:String>
     <sys:String x:Key="ThemeHint">اختر الفاتح، الداكن، أو اتبع مظهر Windows.</sys:String>
     <sys:String x:Key="TileSizeHint">اضبط حجم بطاقات القنوات في الشبكة.</sys:String>
@@ -772,7 +775,7 @@
     <sys:String x:Key="ExchangeForgotten">تم تسجيل الخروج على هذا الجهاز. نُسي تسجيل الدخول وبصمة الشهادة.</sys:String>
     <sys:String x:Key="ExchangeCertificate">تحتاج شهادة الخادم إلى موافقتك.</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">هل تثق بشهادة هذا الخادم؟ البصمة السابقة: {0} البصمة الجديدة: {1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">بث مباشر</sys:String>
+    <sys:String x:Key="BroadcastsTitle">عمليات البث الخاصة بي</sys:String>
     <sys:String x:Key="BroadcastsEmpty">لا توجد عمليات بث لهذا الحساب الآن؛ ستظهر هنا عندما تبدأ أجهزتك الأخرى البث.</sys:String>
     <sys:String x:Key="BroadcastsOnline">متصل</sys:String>
     <sys:String x:Key="BroadcastsOffline">غير متصل</sys:String>
@@ -976,4 +979,8 @@
     <sys:String x:Key="ExchangeDiagnosisServerLine">الخادم: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">الرمز: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">لا يوجد خادم للتحقق منه بعد. استورد سلسلة اتصال أو سجّل الدخول أولًا.</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">لا يمكن لأحد استقبال هذا البث. فعّل الوصول عبر الشبكة المحلية أو اتصل بخادم التبادل ثم حاول مجددًا.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">لا يمكن تشغيل عنوان البث المحمي هذا هنا. اطلب من المرسل رابطًا عبر خادم التبادل.</sys:String>
+    <sys:String x:Key="BroadcastNotListed">غير مدرج</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">يقدم الخادم {0} شهادة لا يستطيع هذا الكمبيوتر التحقق منها. تحقق من هذه البصمة مع المرسل قبل الوثوق بها لهذه القناة:&#10;{1}&#10;هل تثق بهذه الشهادة؟</sys:String>
 </ResourceDictionary>

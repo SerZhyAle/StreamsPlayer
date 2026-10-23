@@ -419,7 +419,9 @@ public sealed class ChannelRow : INotifyPropertyChanged
     // SP-0201 requirement 4: a channel that came from the directory and whose broadcast left stays in the
     // library, marked ended - the one word the row says about it, in place of the live label it carried.
     private string? LiveLabel() => FastMediaSorterBroadcastImport.IsFastMediaSorterBroadcast(Channel)
-        ? Channel.FastMediaSorterBroadcast?.DirectoryEndedAt is null
+        ? Channel.FastMediaSorterBroadcast?.DirectoryEntryRemoved == true
+            ? LocalizationService.Get("BroadcastNotListed")
+            : Channel.FastMediaSorterBroadcast?.DirectoryEndedAt is null
             ? LocalizationService.Get("LiveLabel")
             : LocalizationService.Get("EndedLabel")
         : Channel.IsLive switch

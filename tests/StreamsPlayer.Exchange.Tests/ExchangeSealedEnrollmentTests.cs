@@ -64,6 +64,7 @@ public sealed partial class ExchangeLoopRecoveryTests
     {
         using var frame = await EnrollOnce(null, ["directory", "sealed"]);
         var root = frame.RootElement;
+        Assert.Contains("broadcaster", root.GetProperty("roles").EnumerateArray().Select(role => role.GetString()));
 
         Assert.Equal(["e2e-v1"], root.GetProperty("capabilities").EnumerateArray().Select(c => c.GetString()).ToArray());
         var key = root.GetProperty("e2eKey");

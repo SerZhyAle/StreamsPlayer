@@ -27,6 +27,30 @@ public sealed class RecordingFinisherTests : IDisposable
     }
 
     [Fact]
+    public async Task AudioSegmentKeepsItsContainerAndUsesTheAudioFileName()
+    {
+        var staged = Path.Combine(_staging, "native.mp4");
+        var payload = new byte[4096];
+        Random.Shared.NextBytes(payload);
+        File.WriteAllBytes(staged, payload);
+        var results = await RecordingFinisher.FinishAsync(new RecordingSegment
+        {
+            Engine = "libvlc",
+            Target = new RecordingTarget(_recordings, "Broadcast", [], CaptureKind.StreamAudio),
+            StartedAt = DateTimeOffset.Now.AddSeconds(-4),
+            EndedAt = DateTimeOffset.Now,
+            StagingDirectories = [_staging],
+            ClosedByEngine = true
+        }, _log);
+
+        var saved = Assert.Single(results);
+        Assert.Equal(SegmentFate.Saved, saved.Fate);
+        Assert.StartsWith("stream_audio_", Path.GetFileName(saved.Path!));
+        Assert.EndsWith(".mp4", saved.Path);
+        Assert.Equal(payload, File.ReadAllBytes(saved.Path!));
+    }
+
+    [Fact]
     public void AFinishedSegmentArrivesWholeAndLeavesNoPartialOrStagedOriginal()
     {
         var staged = Path.Combine(_staging, "vlc-record-2026-09-29-12h00m00s.mp4");

@@ -199,6 +199,7 @@ public partial class MainWindow
         ApplyFilter();
         // The reveal button's tooltip is set in code, not bound, so it has to be re-rendered by hand.
         UpdateFilterPanelChrome();
+        RefreshBroadcastIndicator();
         RefreshLocalizedStateText();
     }
 

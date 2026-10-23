@@ -42,11 +42,23 @@
 
   <h2>The elements</h2>
   <div class="elements">
+    <details class="el" id="e-search-tools">
+      <summary><span><span class="name">Search, filters and sorting</span><span class="one">Opens search, quick selection, filters and sorting when the window is too narrow to show them inline.</span></span></summary>
+      <div class="full">
+        <p>When the toolbar cannot fit the controls at their normal size, this filter icon replaces search and the quick selection buttons. Settings and Operations also show only their icons; their names remain in tooltips. The product name appears in the Windows title bar.</p>
+        <p>Press the filter icon to show the same search, quick selection and filter controls in rows below the toolbar. Press it again, use the close button in the filter row, or press Escape while typing in search to close them. Search text and filter values are kept; the icon is marked while a hidden choice narrows the list.</p>
+        <p>Widening the window brings search and quick selection back into the toolbar and restores the action captions. Resizing does not change your search, filters or the remembered wide filter-row preference.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The controls open below the toolbar, with the cursor in search.</dd>
+        </dl>
+      </div>
+    </details>
     <details class="el" id="e-search">
       <summary><span><span class="name">Search</span><span class="one">Finds channels by title, topic or language as you type.</span></span></summary>
       <div class="full">
         <p>Type part of a channel's title, its topic or its language, and the list narrows to the channels that match. Upper and lower case do not matter, and the topic is matched by the word you see on screen, in your interface language.</p>
         <p>Country and category are not searched; the filter row covers those.</p>
+        <p>In a narrow window, first open <a href="#e-search-tools">Search, filters and sorting</a>; the controls keep their normal size.</p>
         <dl class="facts">
           <dt>Why</dt><dd>The quickest way to a channel you already have in mind.</dd>
           <dt>Next</dt><dd>The list updates a moment after you stop typing. Pinned channels are searched too.</dd>
@@ -65,6 +77,7 @@
       <div class="full">
         <p>Shows the filter row under the title line: Media, Category, Topic, Language, Country, minimum bitrate, sort order and collection. Filters combine: a channel is shown only when it passes all of them. The row stays open or closed the way you left it.</p>
         <p>While the row is closed, this button gets an accent frame when a filter is narrowing the list, and its tooltip says how many are active, so channels never go missing without a sign.</p>
+        <p>In a narrow window, first open <a href="#e-search-tools">Search, filters and sorting</a>; the controls keep their normal size.</p>
         <dl class="facts">
           <dt>Why</dt><dd>Use it when a search is not enough, for example to see only the channels of one country, or only streams of 128 kbps and up.</dd>
           <dt>Next</dt><dd>The button gives way to the filter row; <a href="#e-hide-filters">Close filters and sorting</a> closes the row again.</dd>
@@ -75,7 +88,8 @@
     <details class="el" id="e-quick-video">
       <summary><span><span class="name">Quick filter: video only</span><span class="one">Shows only video channels; press again to show everything.</span></span></summary>
       <div class="full">
-        <p>A shortcut for the Media filter set to Video, which also covers RTSP streams. The button lights up while the filter is on. It stays in the title line whether the filter row is open or closed, and it moves the same filter as <a href="#e-filter-media">Media</a>, so the two always agree.</p>
+        <p>A shortcut for the Media filter set to Video, which also covers RTSP streams. The button lights up while the filter is on. In a wide window it stays in the toolbar whether the filter row is open or closed, and it moves the same filter as <a href="#e-filter-media">Media</a>, so the two always agree.</p>
+        <p>In a narrow window the quick selection buttons are inside <a href="#e-search-tools">Search, filters and sorting</a>.</p>
         <dl class="facts">
           <dt>Undo</dt><dd>Press it again, or choose All in <a href="#e-filter-media">Media</a>.</dd>
         </dl>
@@ -85,6 +99,7 @@
       <summary><span><span class="name">Quick filter: audio only</span><span class="one">Shows only audio channels, that is radio; press again to show everything.</span></span></summary>
       <div class="full">
         <p>The same shortcut for the Media filter set to Audio. Only one of the three quick buttons can be on at a time, because they all move that one Media filter.</p>
+        <p>In a narrow window the quick selection buttons are inside <a href="#e-search-tools">Search, filters and sorting</a>.</p>
         <dl class="facts">
           <dt>Undo</dt><dd>Press it again, or choose All in <a href="#e-filter-media">Media</a>.</dd>
         </dl>
@@ -94,6 +109,7 @@
       <summary><span><span class="name">Quick filter: my channels (added or imported)</span><span class="one">Shows only the channels you added or imported yourself.</span></span></summary>
       <div class="full">
         <p>The Own value of the Media filter as a button: the channels you added with <a href="#e-op-add">Add stream</a>, pasted with <a href="#e-op-paste">Paste channel</a> or imported, without the ones that came with the shared catalog. Handy when your own channels are lost among the catalog's many.</p>
+        <p>In a narrow window the quick selection buttons are inside <a href="#e-search-tools">Search, filters and sorting</a>.</p>
         <dl class="facts">
           <dt>Undo</dt><dd>Press it again, or choose All in <a href="#e-filter-media">Media</a>.</dd>
         </dl>
@@ -104,6 +120,7 @@
       <div class="full">
         <p>Each channel is a card with its icon, title, play button, details line and pin. The cards fill as many columns as the window is wide enough for. Pinned channels sit in a strip above the list that scrolls sideways.</p>
         <p>The choice is remembered for the next start.</p>
+        <p>This button shows only its icon; hover over it to read its name.</p>
         <dl class="facts">
           <dt>Undo</dt><dd>Press <a href="#e-grid-view">Grid</a> to switch back.</dd>
         </dl>
@@ -114,6 +131,7 @@
       <div class="full">
         <p>Each channel is a tile: a preview picture when one is available, otherwise a colour monogram with the country flag, with the title over it. Tiles line up in columns that follow the window width, and pinned channels are tiles above the rest. See <a href="#e-tile">Grid tile</a>.</p>
         <p>The tile size is set in Settings, under &quot;Stream tile size&quot;. Previews are captured from the streams themselves when automatic thumbnail updates are on in Settings, or they come from a ready-made picture pack that the app offers after an import.</p>
+        <p>This button shows only its icon; hover over it to read its name.</p>
         <dl class="facts">
           <dt>Undo</dt><dd>Press <a href="#e-list-view">List</a> to switch back.</dd>
         </dl>
@@ -123,29 +141,32 @@
     <details class="el" id="e-exchange">
       <summary><img src="../mark-24.png" srcset="../mark-24.png 1x, ../mark-48.png 2x" width="24" height="24" alt=""><span><span class="name">Exchange server</span><span class="one">Shows how the connection to your exchange server is doing; opens its settings.</span></span></summary>
       <div class="full">
-        <p>Appears only while this device is signed in to your exchange server account and the account is switched on. Its second line says how the connection is doing, for example that it is connecting or connected.</p>
-        <p>Pressing it opens Settings on the Library page, where the account is set up and where a device without an active account is told why.</p>
+        <p>This icon appears only while this device is signed in to your exchange server account and the account is switched on. Its tooltip shows the connection state, for example connecting or connected.</p>
+        <p>Pressing it opens the Exchange server page in Settings, where the account is set up and its connection state is shown.</p>
         <dl class="facts">
-          <dt>Next</dt><dd>Settings opens on the Library page, on top of this window.</dd>
+          <dt>Next</dt><dd>Settings opens on the Exchange server page, on top of this window.</dd>
         </dl>
         <div class="note"><span class="tag">Tip</span><p>Pressing <kbd>Ctrl</kbd> + <kbd>V</kbd> in this window while an exchange connection string, or a screenshot of its QR code, is on the clipboard opens the same page with the details filled in.</p></div>
       </div>
     </details>
     <details class="el" id="e-broadcasts">
-      <summary><span><span class="name">Live broadcasts</span><span class="one">Opens the list of live broadcasts running on your account's devices.</span></span></summary>
+      <summary><span><span class="name">My broadcasts</span><span class="one">Opens the list of live broadcasts running on your account's devices.</span></span></summary>
       <div class="full">
-        <p>Appears together with the exchange button. It opens the Live broadcasts window: the broadcasts your other devices are running right now, grouped by device. From there you can play one or add it to your channels.</p>
+        <p>Appears together with the exchange button. It opens the My broadcasts window: the broadcasts your other devices are running right now, grouped by device. From there you can play one or add it to your channels.</p>
         <p>The list is a companion window: it stays open beside the others, there is only one of it, and pressing the button again brings the open one forward.</p>
+        <p>A failed incoming video broadcast keeps its window and offers Retry in that window. Details shows the failure code; the message first says what happened and then what to try. Other broadcast windows keep playing.</p>
+        <p>If a description gives no certificate fingerprint and this PC cannot verify the server, compare the fingerprint with the broadcaster before accepting it. Trust is kept only for that channel. Removing an exchange entry keeps its imported channels with the label not listed.</p>
+        <p>This button shows only its icon; hover over it to read its name.</p>
         <dl class="facts">
-          <dt>Next</dt><dd>The Live broadcasts window opens, and this window stays usable.</dd>
+          <dt>Next</dt><dd>The My broadcasts window opens, and this window stays usable.</dd>
         </dl>
       </div>
     </details>
     <details class="el" id="e-broadcast-live">
       <summary><span><span class="name">Live broadcast indicator</span><span class="one">Shows that this PC is broadcasting, and what it is broadcasting.</span></span></summary>
       <div class="full">
-        <p>Appears only while the PC microphone or the PC system sound is being broadcast, and reads, for example, &quot;Broadcasting: PC microphone&quot;. It reports and manages; it never starts a broadcast.</p>
-        <p>Its menu names each live source and offers to stop it, to cast it to one of your own devices (only while the exchange account is on and one of its receivers is online) or to share it as a link or a description file.</p>
+        <p>Appears only while this PC is broadcasting. It shows a red broadcast icon, without a caption. Its tooltip names the active sources in your interface language, for example the PC microphone, system sound, or both.</p>
+        <p>Pressing it opens the menu for stopping, casting or sharing the active sources. It never starts a capture. Stopping the last source hides the icon.</p>
         <dl class="facts">
           <dt>Undo</dt><dd>Stop acts at once, without a question; a stopped broadcast has to be started again.</dd>
         </dl>
@@ -154,7 +175,8 @@
     <details class="el" id="e-settings">
       <summary><span><span class="name">Settings</span><span class="one">Opens the settings and the information about the app.</span></span></summary>
       <div class="full">
-        <p>Opens the Settings window on top of this one. Its pages are General, Library, Playback, Audio, Files and About: the preferences you change rarely, the library (catalog, playlists, hidden channels, TV schedule, exchange account) and information about the app.</p>
+        <p>Opens Settings with eight pages in the left menu: General, Library, Playback, Audio, Files, Exchange server, Broadcasting and About.</p>
+        <p>In a narrow window this button shows only its icon; its tooltip and accessible name remain available.</p>
         <dl class="facts">
           <dt>Next</dt><dd>This window waits until you close Settings.</dd>
         </dl>
@@ -166,6 +188,7 @@
       <div class="full">
         <p>Opens a menu with these entries, in this order: <b>Always on top</b> (a check mark; keeps this window above the others), <b>Refresh previews</b> (only in Grid view, and only when automatic thumbnail updates are on in Settings), <b><a href="#e-op-random">Random station</a></b>, <b><a href="#e-op-history">History</a></b>, <b><a href="#e-op-add">Add stream</a></b>, <b><a href="#e-op-paste">Paste channel</a></b>, <b>Library settings</b> (opens Settings on the Library page) and, set apart at the end, <b><a href="#e-op-import">Import channels from the internet</a></b>.</p>
         <p>The menu is built each time you open it, so the check mark and the Refresh previews entry always match the state of the window right now.</p>
+        <p>In a narrow window this button shows only its icon; its tooltip and accessible name remain available.</p>
         <div class="note"><span class="tag">Tip</span><p>The button is greyed out while an import or another long operation is running.</p></div>
       </div>
     </details>
@@ -405,7 +428,7 @@
       <summary><span><span class="name">Record</span><span class="one">Records the radio station that is playing into a file.</span></span></summary>
       <div class="full">
         <p>Available while a station plays. Pressing it starts saving the live audio to a file, and the button then offers to stop the recording. When the recording ends, the status line names the saved file and its length. It also ends by itself if the station drops the connection; the part already saved is kept. Stopping the station ends the recording too.</p>
-        <p>A FastMediaSorter broadcast cannot be recorded, because it allows one connection and playback is using it; the button is then greyed out, with the reason in its tooltip. The folder for recordings is chosen in Settings.</p>
+        <p>An incoming audio broadcast has its own Record button in its window; R starts or stops it. It records the connection already playing, so the broadcaster still sees one listener. Its timer shows elapsed recording time, and stopping shows the saved path and length. Stopping playback, a reconnect or closing the window ends and saves that recording; press Record again after reconnecting. Audio stays in its received format without transcoding: MP3, AAC, Ogg, Opus, FLAC or WAV. A slow or full disk ends only the recording, with a message. The radio recordings folder is chosen in Settings; a refused folder falls back to the default and then Downloads, with a message. Other windows keep playing.</p>
         <dl class="facts">
           <dt>Undo</dt><dd><b>Stop recording</b> closes and saves the file.</dd>
         </dl>

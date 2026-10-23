@@ -70,7 +70,7 @@ internal sealed partial class ExchangeSourceService
             if (Uri.CheckHostName(host) == UriHostNameType.Unknown || port is < 1 or > 65535
                 || login.Length is < 3 or > 64 || login.Any(character =>
                     character is not (>= 'a' and <= 'z') and not (>= '0' and <= '9') and not '.' and not '_' and not '-')
-                || secret.Length == 0 || (requireImportedPin && acceptedPin is null))
+                || !ExchangeEnrollmentFields.IsValidSecret(secret, pairingCode) || (requireImportedPin && acceptedPin is null))
             {
                 // Nothing was stopped, so the receiver's connection line is not this attempt's to overwrite.
                 ReportOutcome("ExchangeInvalidEntry");
@@ -142,6 +142,7 @@ internal sealed partial class ExchangeSourceService
                     login, deviceId, "STREAMS Player", "streamsplayer-windows", ProductInfo.Version, "windows", Roles(),
                     ExchangeCapabilities.Receiver, 30, deviceKey),
                     pairingCode ? "pairingCode" : "password", regenerated ? retrySecret! : secret, deadline.Token).ConfigureAwait(false);
+                _lastEnvelopeType = "enroll";
                 response = await ExchangeHandshake.ReadAsync(connection.Stream, "enrolled", deadline.Token).ConfigureAwait(false);
                 var root = response.RootElement;
                 if (ExchangeProtocol.String(root, "type") != "refused")
@@ -246,6 +247,10 @@ internal sealed partial class ExchangeSourceService
         }
         catch (Exception exception) when (IsConnectionFailure(exception))
         {
+            if (connection is not null)
+            {
+                _diagnostic?.Invoke($"EXCHANGE CLOSED code=unanswered envelope={_lastEnvelopeType ?? "enroll"}");
+            }
             RefuseEnrollment(candidate, savingAccount || _storageUnavailable || exception is UnauthorizedAccessException
                 ? "ExchangeStorageFailed" : ExchangeFailures.KeyOf(exception, connectionOpen: connection is not null));
         }

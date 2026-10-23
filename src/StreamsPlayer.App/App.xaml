@@ -1139,10 +1139,8 @@
             <Style x:Key="BroadcastsGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.content.stream}" />
             </Style>
-            <!-- Provisional (ICON-SET 0.30 section 15): the vocabulary has no meaning for showing a hidden item
-                 again; PROPOSAL-2026-10-11-streamsplayer-button-meanings.md item 1 asks for one. -->
             <Style x:Key="UnhideGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
-                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.pending.action.unhide}" />
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.unhide}" />
             </Style>
             <Style x:Key="PlayerOverlayAudioTracksGlyphButton" TargetType="Button" BasedOn="{StaticResource PlayerOverlayGlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.media.audio-track}" />

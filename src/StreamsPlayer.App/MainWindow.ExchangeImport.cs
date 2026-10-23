@@ -68,7 +68,7 @@ public partial class MainWindow
             return;
         }
         if (result.Data is { } data)
-            OpenSettings(1, data);
+            OpenSettings(SettingsWindow.ExchangePageIndex, data);
         else
             MessageBox.Show(this, LocalizationService.Get(result.MessageKey!), LocalizationService.Get("ExchangeTitle"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -78,7 +78,8 @@ public partial class MainWindow
     {
         text = path = null;
         if (e.Data.GetDataPresent(DataFormats.FileDrop) && e.Data.GetData(DataFormats.FileDrop) is string[] files
-            && files.Length == 1 && Path.GetExtension(files[0]).Equals(".fmsexch", StringComparison.OrdinalIgnoreCase))
+            && files.Length == 1 && (ExchangeConnectionImport.RecognizesFile(files[0])
+                || Path.GetExtension(files[0]).Equals(".fmsexch", StringComparison.OrdinalIgnoreCase)))
         {
             path = files[0];
             return true;

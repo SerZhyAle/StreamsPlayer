@@ -26,11 +26,11 @@
   <header class="hero">
     <p class="kicker">Window help</p>
     <h1>STREAMS Player settings</h1>
-    <p class="lead">Settings is where you choose how the app looks, plays and stores things, and where you manage the channel list, the optional exchange account and the TV schedule. It has six pages; this page has one section for each, and <kbd>F1</kbd> opens the section of the page you are looking at.</p>
+    <p class="lead">Settings is where you choose how the app looks, plays and stores things, and where you manage the channel list, the optional exchange account and the TV schedule. It has eight pages; this page has one section for each, and <kbd>F1</kbd> opens the section of the page you are looking at.</p>
   </header>
 
   <h2>In this order</h2>
-  <p>Settings can be changed in any order, and each change applies at once - there is no Save button, and <kbd>Esc</kbd> or closing the window is the only way out; the entries say where a change waits for the next player, the next source or the next start. The pages are listed on the left, the search box finds a setting and takes you to it, and the two arrow buttons beside it expand or collapse the groups of the page you are on.</p>
+  <p>Settings can be changed in any order, and each change applies at once - there is no Save button, and <kbd>Esc</kbd> or closing the window is the only way out; the entries say where a change waits for the next player, the next source or the next start. The pages are listed on the left, the search box finds a setting and takes you to it, and the two arrow buttons beside it expand or collapse the groups of the page you are on. The group buttons are absent on Exchange server and Broadcasting.</p>
 
   <h2>The elements</h2>
   <section id="general">
@@ -111,7 +111,7 @@
     <details class="el" id="e-help">
       <summary><span><span class="name">Help</span><span class="one">Opens this page at the section for the settings page you are on.</span></span></summary>
       <div class="full">
-        <p>The button sits in the header that all six pages share, next to the search box, so it is in the same place on every page. It opens this help page in your web browser at the section that matches the page on screen - General, Library, Playback, Audio, Files or About. Settings stays open.</p>
+        <p>The button sits in the header that all eight pages share, next to the search box, so it is in the same place on every page. It opens this help page in your web browser at the section that matches the page on screen - General, Library, Playback, Audio, Files, Exchange server, Broadcasting or About. Settings stays open.</p>
         <dl class="facts">
           <dt>Next</dt><dd>The page opens in your browser. Nothing in Settings changes.</dd>
           <dt>Shortcut</dt><dd><kbd>F1</kbd> does the same from anywhere in the window; with a control focused that has its own entry on this page, it opens that entry instead.</dd>
@@ -122,7 +122,7 @@
   </section>
   <section id="library">
   <h3>Library</h3>
-  <p>Everything about the channel list: which channels are shown, where they come from, playlists you import or export, the optional exchange account with its broadcasting, and the TV schedule.</p>
+  <p>The channel list, catalog imports, playlists, hidden channels and TV schedule.</p>
   <div class="elements">
     <details class="el" id="e-hide-adult">
       <summary><span><span class="name">Hide adult channels</span><span class="one">Keeps channels of the adult rubric out of the list, the filters and the search.</span></span></summary>
@@ -238,275 +238,6 @@
       <summary><span><span class="name">Pinned only</span><span class="one">Saves only the pinned channels among your own to an M3U file.</span></span></summary>
       <div class="full">
         <p>The same as <a href="#e-export-all">All my channels</a>, limited to your own channels that you pinned. If none of them is pinned, the app says so and writes nothing.</p>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-guide">
-      <summary><img src="../mark-24.png" srcset="../mark-24.png 1x, ../mark-48.png 2x" width="24" height="24" alt=""><span><span class="name">How to get an account</span><span class="one">Opens the account page of the media-exchange guide in your browser.</span></span></summary>
-      <div class="full">
-        <p>The exchange server section is optional: it signs this PC in to an account on your own server. This program signs in only. An account is created in Fast Media Sorter &amp; Organizer for Android or Fast Media Sorter &amp; Sharing for Windows - on a phone or on Windows - or by whoever runs the server.</p>
-        <p>The link opens the guide page in Russian or Ukrainian when the interface is in one of them, and in English otherwise. The text at the top of the section also says what the server still sees; read it before you sign in.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The page opens in your browser. If Windows cannot open it, a message says so.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-import-string">
-      <summary><span><span class="name">Import connection string</span><span class="one">Fills in the server form from a connection string you paste.</span></span></summary>
-      <div class="full">
-        <p>A connection string carries a server's address, its port and, when the string has one, a login. The button shows a text box, filled from the clipboard when it holds text; <b>Read string</b> reads what is in the box and fills the form. Reading never signs in: you still type the password and press <b>Sign in</b>.</p>
-        <p>After a string is read, a short review shows the name the string gives the server (only a hint - the certificate identifies the server), how the server's certificate will be trusted and, if the string carries an invitation, a note that this program does not register. A string that cannot be read gets a message saying why.</p>
-        <div class="note"><span class="tag">Tip</span><p>A string that came as a file, a QR picture or from the camera has its own button below; all of them fill the same form.</p></div>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-import-file">
-      <summary><span><span class="name">Import from file</span><span class="one">Reads a connection file (.fmsexch) and fills in the server form.</span></span></summary>
-      <div class="full">
-        <p>Opens a file picker for connection files (*.fmsexch; any other file can be chosen too) and puts what the file holds into the form, the same as <a href="#e-exchange-import-string">Import connection string</a>. Nothing connects until you press <b>Sign in</b>.</p>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-qr-file">
-      <summary><span><span class="name">Read a QR from a picture</span><span class="one">Reads a connection QR code from a picture file and fills in the form.</span></span></summary>
-      <div class="full">
-        <p>Opens a file picker for pictures (PNG, JPG, BMP, GIF, TIFF) and looks for a QR code in the one you choose - a saved image or a screenshot file, for example. The QR carries the same connection string, so the result is the same as <a href="#e-exchange-import-string">Import connection string</a>: the form is filled and nothing connects.</p>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-qr-clipboard">
-      <summary><span><span class="name">Paste a QR picture</span><span class="one">Reads a connection QR code from a picture on the clipboard.</span></span></summary>
-      <div class="full">
-        <p>Uses the picture currently on the clipboard - a screenshot taken to the clipboard, for instance - and looks for a QR code in it. If the clipboard holds no picture, the app says so; if Windows cannot read the clipboard, it says that, and nothing is changed.</p>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-camera">
-      <summary><span><span class="name">Scan with the camera</span><span class="one">Scans the server's QR code with a camera; shown only when Windows reports one.</span></span></summary>
-      <div class="full">
-        <p>Opens a scan window: hold the server's QR code in front of the camera. If several cameras are found, a list lets you choose one. When a code is read, the same form is filled and nothing connects; <b>Cancel</b> closes the window. The button is absent, not greyed out, where Windows reports no camera, and the app looks again whenever Settings regains focus, so a camera plugged in meanwhile appears.</p>
-        <p>The camera picture is only looked at in this window. It is not stored, sent or logged, and the camera is released when this window closes.</p>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-details">
-      <summary><span><span class="name">Details: server address and port</span><span class="one">A collapsed block holding the server's address and port.</span></span></summary>
-      <div class="full">
-        <p>It is closed by default because a connection string fills it in for you. Open it to type the server by hand or to check what a string put there; the certificate fingerprint a string named is shown here too. If you press <b>Sign in</b> with the address or port missing, the block opens by itself.</p>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-address">
-      <summary><span><span class="name">Server address</span><span class="one">The address of the exchange server.</span></span></summary>
-      <div class="full">
-        <p>The server's host name or IP address. Changing it after a connection string was read makes the app forget what the string said about the name and the certificate, and empties the password box; the server's certificate is then shown for you to confirm when you sign in.</p>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-port">
-      <summary><span><span class="name">Port</span><span class="one">The port number of the exchange server.</span></span></summary>
-      <div class="full">
-        <p>A number from 1 to 65535. If it is not a valid number when you press <b>Sign in</b>, the app asks you to complete the entry. Like the address, editing it after a string was read drops what the string said about the certificate.</p>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-login">
-      <summary><span><span class="name">Login</span><span class="one">The account's login on that server.</span></span></summary>
-      <div class="full">
-        <p>Typed here, or filled in from a connection string that carries one. It is needed to sign in, together with the password or pairing code.</p>
-        <p>If the account ends this device's sign-in, the server and login stay in the form, the window tells you to enter the password again, and the password box takes the focus.</p>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-password">
-      <summary><span><span class="name">Password</span><span class="one">Where you type the account's password, or the pairing code you chose.</span></span></summary>
-      <div class="full">
-        <p>The characters are hidden as you type. The box is emptied the moment you press <b>Sign in</b> and again when the window closes, so nothing waits in it afterwards.</p>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-method">
-      <summary><span><span class="name">Pairing code</span><span class="one">Chooses whether the box beside it takes a password or a pairing code.</span></span></summary>
-      <div class="full">
-        <p>The list has two choices, <b>Password</b> and <b>Pairing code</b>. Pick <b>Pairing code</b> when what you have is a pairing code instead of a password; <b>Sign in</b> then sends it as one.</p>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-enabled">
-      <summary><span><span class="name">Enable exchange source</span><span class="one">Switches the connection to the exchange server on or off for this PC.</span></span></summary>
-      <div class="full">
-        <p>While it is on, the app keeps a connection to your server open. The box is available only once you are signed in, and the line under the buttons shows the state of the connection.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The connection is made or closed at once.</dd>
-          <dt>Undo</dt><dd>Tick or untick it again. Switching it off does not sign you out; that is <a href="#e-exchange-forget">Sign out on this device</a>.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-auto-accept">
-      <summary><span><span class="name">Automatically accept casts from my devices</span><span class="one">Plays what your own devices cast to this PC without asking first.</span></span></summary>
-      <div class="full">
-        <p>A cast is a stream that another of your devices sends to this PC to play. By default the app asks you each time and your answer decides. With this on, a cast is accepted at once and starts playing. The box is available only once you are signed in.</p>
-        <dl class="facts">
-          <dt>Why</dt><dd>For when you cast to this PC often and the question only gets in the way.</dd>
-          <dt>Undo</dt><dd>Untick it and the app asks again.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-enroll">
-      <summary><span><span class="name">Sign in</span><span class="one">Signs this PC in to the account on the server named in the form.</span></span></summary>
-      <div class="full">
-        <p>Checks the form - server address, port, login and a password or pairing code - then asks the server for its certificate and, when it is new or has changed, shows the fingerprint for you to confirm before the password is sent. An incomplete form gets a message instead.</p>
-        <p>If this PC is already signed in to another account, a question explains what happens: your own or a family account replaces the old sign-in, so this PC's broadcasts end and it signs out of the old account, while a guest account is added beside it. While the sign-in runs, a progress bar and a <b>Cancel</b> button appear.</p>
-        <dl class="facts">
-          <dt>Why</dt><dd>Signing in is the step that makes the exchange server usable from this PC.</dd>
-          <dt>Next</dt><dd>The status line under the buttons shows the result; a failure leaves its reason there. After a successful sign-in with your own or a family account, the <b>Live broadcasts</b> window opens.</dd>
-          <dt>Undo</dt><dd><a href="#e-exchange-forget">Sign out on this device</a> signs this PC out again.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-change-password">
-      <summary><span><span class="name">Change password..</span><span class="one">Opens a window to change the account's password from this signed-in PC.</span></span></summary>
-      <div class="full">
-        <p>Available only while this PC is signed in. The window asks for the old password and the new one twice, and states the rule above the fields: at least 10 characters, with capital and small Latin letters and digits.</p>
-        <p>One request is sent at a time; a slow answer is shown as waiting and is never sent again by itself. When the password is changed, the window says so and its button turns into <b>Close</b>.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The window opens over Settings; the account's status line updates afterwards.</dd>
-          <dt>Undo</dt><dd>A changed password cannot be taken back; change it again to set another.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-diagnose">
-      <summary><span><span class="name">Check the connection</span><span class="one">Opens the Connection check window for the server in the form.</span></span></summary>
-      <div class="full">
-        <p>It runs only because you pressed it, never earlier. It looks at the server named in the form - the one you typed or imported - or at the account's own server when the form is empty, and shows what it finds step by step in the <b>Connection check</b> window.</p>
-        <p>The account's own connection lines are added only when the form names the account's server.</p>
-        <dl class="facts">
-          <dt>Why</dt><dd>For when signing in fails or the connection drops and you want to know where it stops.</dd>
-          <dt>Next</dt><dd>The window opens over Settings; close it to return.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-forget">
-      <summary><span><span class="name">Sign out on this device</span><span class="one">Signs this PC out of the account and removes it from the account's device list.</span></span></summary>
-      <div class="full">
-        <p>Asks first, naming the account; the question defaults to No. Signing out ends this PC's broadcasts and removes this device from the account's device list. Imported channels stay.</p>
-        <p>If the server cannot be told, the status line says so: the device may stay in the server's list until another device removes it, and no retry runs.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The status line says whether the server was told.</dd>
-          <dt>Undo</dt><dd>Sign in again with <a href="#e-exchange-enroll">Sign in</a> to use the account on this PC again.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-trust">
-      <summary><span><span class="name">Replace certificate pin</span><span class="one">Accepts a changed server certificate after you have compared the fingerprints.</span></span></summary>
-      <div class="full">
-        <p>Shown only while this PC is signed in and the server presents a certificate different from the one remembered. The button asks whether to trust the new certificate, showing the previous fingerprint beside the new one; the question defaults to No.</p>
-        <p>The line under the buttons shows the same two fingerprints while the choice is open. A changed certificate may be a routine renewal or a different server answering, so compare them with the ones you were given.</p>
-        <dl class="facts">
-          <dt>Undo</dt><dd>Declining keeps the remembered certificate and changes nothing. Accepting replaces it with the new one.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-exchange-guests">
-      <summary><img src="../mark-24.png" srcset="../mark-24.png 1x, ../mark-48.png 2x" width="24" height="24" alt=""><span><span class="name">Guest accounts</span><span class="one">Lists the guest accounts signed in on this PC, each with its own sign out button.</span></span></summary>
-      <div class="full">
-        <p>A guest account sees only what was given to it and announces nothing. This PC holds a few of them beside your own account; the window states the exact number above the list. A guest account is added when you sign in to one with <a href="#e-exchange-enroll">Sign in</a>.</p>
-        <p>Each entry has its own <b>Sign out on this device</b> button. It asks first, naming the account; this device then leaves that account's device list.</p>
-        <dl class="facts">
-          <dt>Undo</dt><dd>Each guest account is signed out on its own and your own account is not touched. Sign in to the guest account again to bring it back.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-guide">
-      <summary><span><span class="name">Media exchange</span><span class="one">Opens the live-broadcast page of the media-exchange guide in your browser.</span></span></summary>
-      <div class="full">
-        <p>Opens the guide's page about live broadcasts, in Russian or Ukrainian when the interface is in one of them and in English otherwise. The About page has a link to the guide's start page under the same name.</p>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-allow">
-      <summary><span><span class="name">Allow this PC to broadcast</span><span class="one">The permission that must be on before this PC can broadcast anything.</span></span></summary>
-      <div class="full">
-        <p>Sending what this PC captures to the exchange server of your account takes two steps: first allow it here, then start a source yourself. Nothing is captured until both are done. It is off by default, and while it is off the rest of this group stays hidden.</p>
-        <p>While this PC is signed in to a server only as a guest, it announces nothing on that server; the link and the LAN share still work.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The other controls of the group appear and the list of microphones is read.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-start-with-app">
-      <summary><span><span class="name">Start the chosen sources when the application starts</span><span class="one">Starts the sources you chose earlier when the application starts.</span></span></summary>
-      <div class="full">
-        <p>With it on, the sources you started and have not stopped since are started again when the app starts, once the account is online. With it off, nothing starts by itself: every source is started by pressing its button.</p>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-mic">
-      <summary><span><span class="name">Broadcast microphone</span><span class="one">Starts broadcasting the microphone chosen below.</span></span></summary>
-      <div class="full">
-        <p>Starts capturing the microphone and offers it as a live broadcast: through the exchange server when the account is connected, and on the local network when <a href="#e-broadcast-lan">Local network</a> is on. The capture begins only when you press the button. The button is unavailable while the microphone is already being broadcast.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The line below the quality options reports what happened. <b>Stop all</b> ends the broadcast.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-sound">
-      <summary><span><span class="name">Broadcast system sound</span><span class="one">Starts broadcasting the system sound of this PC.</span></span></summary>
-      <div class="full">
-        <p>Works like <a href="#e-broadcast-mic">Broadcast microphone</a>, with the sound this PC plays as the source instead of a microphone. Its channels are set by <b>System sound channels</b> below.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The line below the quality options reports what happened. <b>Stop all</b> ends the broadcast.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-stop">
-      <summary><span><span class="name">Stop all</span><span class="one">Ends every broadcast running from this PC.</span></span></summary>
-      <div class="full">
-        <p>Stops all the sources that are live. The button is available only while something is running.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The sources stop at once; start any of them again with its own button.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-mic-device">
-      <summary><span><span class="name">Microphone</span><span class="one">Chooses which microphone the microphone broadcast uses.</span></span></summary>
-      <div class="full">
-        <p><b>Windows default</b> follows whatever Windows uses as the default recording device; the other entries are the microphones Windows lists. The list is read only after broadcasting is allowed, so no capture device is touched before that.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The choice is used the next time you start the microphone.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-lan">
-      <summary><span><span class="name">Local network</span><span class="one">Lets devices on your local network listen to this PC directly.</span></span></summary>
-      <div class="full">
-        <p>When it is on, a broadcast is also offered on this PC's local-network address, on the port beside the box, so devices on the same network can listen without the exchange server. It is off by default.</p>
-        <p>Each direct listener uses this PC's upload; through the exchange server this PC sends one copy for all listeners.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>Read when a source starts: a source that is already live keeps what it started with.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-lan-port">
-      <summary><span><span class="name">Port</span><span class="one">The port the local-network share listens on.</span></span></summary>
-      <div class="full">
-        <p>A number from 1 to 65535; the default is 8768. A value outside that range is ignored and the last good port stays. It is read when a source starts.</p>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-cap">
-      <summary><span><span class="name">Maximum listeners</span><span class="one">Caps how many listeners a broadcast takes; 0 means no limit.</span></span></summary>
-      <div class="full">
-        <p>A number from 0 to 64, where 0 means no limit. Each direct listener on the local network uses this PC's upload, while through the exchange server this PC sends one copy for all listeners. A value outside the range is ignored.</p>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-sample-rate">
-      <summary><span><span class="name">Sample rate</span><span class="one">The sample rate of the broadcast audio: 44100 or 48000.</span></span></summary>
-      <div class="full">
-        <p>The default is 44100. This and the three other <b>Quality</b> choices - microphone channels, system sound channels and bitrate - are read when a source starts, so a source that is already live keeps the values it started with.</p>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-mic-channels">
-      <summary><span><span class="name">Microphone channels</span><span class="one">Mono or stereo for the microphone broadcast.</span></span></summary>
-      <div class="full">
-        <p>Choose <b>Mono</b> or <b>Stereo</b>. The default is Mono.</p>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-sound-channels">
-      <summary><span><span class="name">System sound channels</span><span class="one">Mono or stereo for the system sound broadcast.</span></span></summary>
-      <div class="full">
-        <p>Choose <b>Mono</b> or <b>Stereo</b> for the sound this PC plays.</p>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-bitrate">
-      <summary><span><span class="name">Bitrate (kbit/s)</span><span class="one">How much data per second the broadcast uses: 96, 128, 192 or 256 kbit/s.</span></span></summary>
-      <div class="full">
-        <p>A higher bitrate sounds better and uses more of this PC's upload. The default is 128 kbit/s.</p>
       </div>
     </details>
     <details class="el" id="e-tv-address">
@@ -670,6 +401,289 @@
           <dt>Next</dt><dd>A folder you choose is used at once.</dd>
           <dt>Undo</dt><dd><b>Use the default folder</b> goes back to the default; recordings already saved stay where they are.</dd>
         </dl>
+      </div>
+    </details>
+  </div>
+  </section>
+  <section id="exchange">
+  <h3>Exchange server</h3>
+  <p>Set up the optional exchange account, manage sign-in and check its connection. The controls are shown directly on this page; only the optional Details block can be expanded.</p>
+  <div class="elements">
+    <details class="el" id="e-exchange-guide">
+      <summary><img src="../mark-24.png" srcset="../mark-24.png 1x, ../mark-48.png 2x" width="24" height="24" alt=""><span><span class="name">How to get an account</span><span class="one">Opens the account page of the media-exchange guide in your browser.</span></span></summary>
+      <div class="full">
+        <p>The exchange server section is optional: it signs this PC in to an account on your own server. This program signs in only. An account is created in Fast Media Sorter &amp; Organizer for Android or Fast Media Sorter &amp; Sharing for Windows - on a phone or on Windows - or by whoever runs the server.</p>
+        <p>The link opens the guide page in Russian or Ukrainian when the interface is in one of them, and in English otherwise. The text at the top of the section also says what the server still sees; read it before you sign in.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The page opens in your browser. If Windows cannot open it, a message says so.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-import-string">
+      <summary><span><span class="name">Import connection string</span><span class="one">Fills in the server form from a connection string you paste.</span></span></summary>
+      <div class="full">
+        <p>A connection string carries a server's address, its port and, when the string has one, a login. The button shows a text box, filled from the clipboard when it holds text; <b>Read string</b> reads what is in the box and fills the form. Reading never signs in: you still type the password and press <b>Sign in</b>.</p>
+        <p>After a string is read, a short review shows the name the string gives the server (only a hint - the certificate identifies the server), how the server's certificate will be trusted and, if the string carries an invitation, a note that this program does not register. A string that cannot be read gets a message saying why.</p>
+        <div class="note"><span class="tag">Tip</span><p>A string that came as a file, a QR picture or from the camera has its own button below; all of them fill the same form.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-import-file">
+      <summary><span><span class="name">Import from file</span><span class="one">Reads a connection file (.fmsexch) and fills in the server form.</span></span></summary>
+      <div class="full">
+        <p>Opens a file picker for connection files (*.fmsexch; any other file can be chosen too) and puts what the file holds into the form, the same as <a href="#e-exchange-import-string">Import connection string</a>. Nothing connects until you press <b>Sign in</b>.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-qr-file">
+      <summary><span><span class="name">Read a QR from a picture</span><span class="one">Reads a connection QR code from a picture file and fills in the form.</span></span></summary>
+      <div class="full">
+        <p>Opens a file picker for pictures (PNG, JPG, BMP, GIF, TIFF) and looks for a QR code in the one you choose - a saved image or a screenshot file, for example. The QR carries the same connection string, so the result is the same as <a href="#e-exchange-import-string">Import connection string</a>: the form is filled and nothing connects.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-qr-clipboard">
+      <summary><span><span class="name">Paste a QR picture</span><span class="one">Reads a connection QR code from a picture on the clipboard.</span></span></summary>
+      <div class="full">
+        <p>Uses the picture currently on the clipboard - a screenshot taken to the clipboard, for instance - and looks for a QR code in it. If the clipboard holds no picture, the app says so; if Windows cannot read the clipboard, it says that, and nothing is changed.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-camera">
+      <summary><span><span class="name">Scan with the camera</span><span class="one">Scans the server's QR code with a camera; shown only when Windows reports one.</span></span></summary>
+      <div class="full">
+        <p>Opens a scan window: hold the server's QR code in front of the camera. If several cameras are found, a list lets you choose one. When a code is read, the same form is filled and nothing connects; <b>Cancel</b> closes the window. The button is absent, not greyed out, where Windows reports no camera, and the app looks again whenever Settings regains focus, so a camera plugged in meanwhile appears.</p>
+        <p>The camera picture is only looked at in this window. It is not stored, sent or logged, and the camera is released when this window closes.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-details">
+      <summary><span><span class="name">Details: server address and port</span><span class="one">A collapsed block holding the server's address and port.</span></span></summary>
+      <div class="full">
+        <p>It is closed by default because a connection string fills it in for you. Open it to type the server by hand or to check what a string put there; the certificate fingerprint a string named is shown here too. If you press <b>Sign in</b> with the address or port missing, the block opens by itself.</p>
+        <p>A signed-out message gives the next step. Open Details to see its failure code.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-address">
+      <summary><span><span class="name">Server address</span><span class="one">The address of the exchange server.</span></span></summary>
+      <div class="full">
+        <p>The server's host name or IP address. Changing it after a connection string was read makes the app forget what the string said about the name and the certificate, and empties the password box; the server's certificate is then shown for you to confirm when you sign in.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-port">
+      <summary><span><span class="name">Port</span><span class="one">The port number of the exchange server.</span></span></summary>
+      <div class="full">
+        <p>A number from 1 to 65535. If it is not a valid number when you press <b>Sign in</b>, the app asks you to complete the entry. Like the address, editing it after a string was read drops what the string said about the certificate.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-login">
+      <summary><span><span class="name">Login</span><span class="one">The account's login on that server.</span></span></summary>
+      <div class="full">
+        <p>Typed here, or filled in from a connection string that carries one. It is needed to sign in, together with the password or pairing code.</p>
+        <p>If the account ends this device's sign-in, the server and login stay in the form, the window tells you to enter the password again, and the password box takes the focus.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-password">
+      <summary><span><span class="name">Password</span><span class="one">Where you type the account's password, or the pairing code you chose.</span></span></summary>
+      <div class="full">
+        <p>The characters are hidden as you type. The box is emptied the moment you press <b>Sign in</b> and again when the window closes, so nothing waits in it afterwards.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-method">
+      <summary><span><span class="name">Pairing code</span><span class="one">Chooses whether the box beside it takes a password or a pairing code.</span></span></summary>
+      <div class="full">
+        <p>The list has two choices, <b>Password</b> and <b>Pairing code</b>. Pick <b>Pairing code</b> when what you have is a pairing code instead of a password; <b>Sign in</b> then sends it as one.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-enabled">
+      <summary><span><span class="name">Enable exchange source</span><span class="one">Switches the connection to the exchange server on or off for this PC.</span></span></summary>
+      <div class="full">
+        <p>While it is on, the app keeps a connection to your server open. The box is available only once you are signed in, and the line under the buttons shows the state of the connection.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The connection is made or closed at once.</dd>
+          <dt>Undo</dt><dd>Tick or untick it again. Switching it off does not sign you out; that is <a href="#e-exchange-forget">Sign out on this device</a>.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-auto-accept">
+      <summary><span><span class="name">Automatically accept casts from my devices</span><span class="one">Plays what your own devices cast to this PC without asking first.</span></span></summary>
+      <div class="full">
+        <p>A cast is a stream that another of your devices sends to this PC to play. By default the app asks you each time and your answer decides. With this on, a cast is accepted at once and starts playing. The box is available only once you are signed in.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>For when you cast to this PC often and the question only gets in the way.</dd>
+          <dt>Undo</dt><dd>Untick it and the app asks again.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-enroll">
+      <summary><span><span class="name">Sign in</span><span class="one">Signs this PC in to the account on the server named in the form.</span></span></summary>
+      <div class="full">
+        <p>Checks the form - server address, port, login and a password or pairing code - then asks the server for its certificate and, when it is new or has changed, shows the fingerprint for you to confirm before the password is sent. An incomplete form gets a message instead.</p>
+        <p>If this PC is already signed in to another account, a question explains what happens: your own or a family account replaces the old sign-in, so this PC's broadcasts end and it signs out of the old account, while a guest account is added beside it. While the sign-in runs, a progress bar and a <b>Cancel</b> button appear.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>Signing in is the step that makes the exchange server usable from this PC.</dd>
+          <dt>Next</dt><dd>The status line under the buttons shows the result; a failure leaves its reason there. After a successful sign-in with your own or a family account, the <b>My broadcasts</b> window opens.</dd>
+          <dt>Undo</dt><dd><a href="#e-exchange-forget">Sign out on this device</a> signs this PC out again.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-change-password">
+      <summary><span><span class="name">Change password..</span><span class="one">Opens a window to change the account's password from this signed-in PC.</span></span></summary>
+      <div class="full">
+        <p>Available only while this PC is signed in. The window asks for the old password and the new one twice, and states the rule above the fields: at least 10 characters, with capital and small Latin letters and digits.</p>
+        <p>One request is sent at a time; a slow answer is shown as waiting and is never sent again by itself. When the password is changed, the window says so and its button turns into <b>Close</b>.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The window opens over Settings; the account's status line updates afterwards.</dd>
+          <dt>Undo</dt><dd>A changed password cannot be taken back; change it again to set another.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-diagnose">
+      <summary><span><span class="name">Check the connection</span><span class="one">Opens the Connection check window for the server in the form.</span></span></summary>
+      <div class="full">
+        <p>It runs only because you pressed it, never earlier. It looks at the server named in the form - the one you typed or imported - or at the account's own server when the form is empty, and shows what it finds step by step in the <b>Connection check</b> window.</p>
+        <p>The account's own connection lines are added only when the form names the account's server.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>For when signing in fails or the connection drops and you want to know where it stops.</dd>
+          <dt>Next</dt><dd>The window opens over Settings; close it to return.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-forget">
+      <summary><span><span class="name">Sign out on this device</span><span class="one">Signs this PC out of the account and removes it from the account's device list.</span></span></summary>
+      <div class="full">
+        <p>Asks first, naming the account; the question defaults to No. Signing out ends this PC's broadcasts and removes this device from the account's device list. Imported channels stay.</p>
+        <p>If the server cannot be told, the status line says so: the device may stay in the server's list until another device removes it, and no retry runs.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The status line says whether the server was told.</dd>
+          <dt>Undo</dt><dd>Sign in again with <a href="#e-exchange-enroll">Sign in</a> to use the account on this PC again.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-trust">
+      <summary><span><span class="name">Replace certificate pin</span><span class="one">Accepts a changed server certificate after you have compared the fingerprints.</span></span></summary>
+      <div class="full">
+        <p>Shown only while this PC is signed in and the server presents a certificate different from the one remembered. The button asks whether to trust the new certificate, showing the previous fingerprint beside the new one; the question defaults to No.</p>
+        <p>The line under the buttons shows the same two fingerprints while the choice is open. A changed certificate may be a routine renewal or a different server answering, so compare them with the ones you were given.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Declining keeps the remembered certificate and changes nothing. Accepting replaces it with the new one.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-guests">
+      <summary><img src="../mark-24.png" srcset="../mark-24.png 1x, ../mark-48.png 2x" width="24" height="24" alt=""><span><span class="name">Guest accounts</span><span class="one">Lists the guest accounts signed in on this PC, each with its own sign out button.</span></span></summary>
+      <div class="full">
+        <p>A guest account sees only what was given to it and announces nothing. This PC holds a few of them beside your own account; the window states the exact number above the list. A guest account is added when you sign in to one with <a href="#e-exchange-enroll">Sign in</a>.</p>
+        <p>Each entry has its own <b>Sign out on this device</b> button. It asks first, naming the account; this device then leaves that account's device list.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Each guest account is signed out on its own and your own account is not touched. Sign in to the guest account again to bring it back.</dd>
+        </dl>
+      </div>
+    </details>
+  </div>
+  </section>
+  <section id="broadcast">
+  <h3>Broadcasting</h3>
+  <p>Allow broadcasting from this PC and choose its sources, network access and sound quality. The controls are shown directly on this page, without a collapsible group.</p>
+  <div class="elements">
+    <details class="el" id="e-broadcast-guide">
+      <summary><span><span class="name">Media exchange</span><span class="one">Opens the live-broadcast page of the media-exchange guide in your browser.</span></span></summary>
+      <div class="full">
+        <p>Opens the guide's page about live broadcasts, in Russian or Ukrainian when the interface is in one of them and in English otherwise. The About page has a link to the guide's start page under the same name.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-allow">
+      <summary><span><span class="name">Allow this PC to broadcast</span><span class="one">The permission that must be on before this PC can broadcast anything.</span></span></summary>
+      <div class="full">
+        <p>Sending what this PC captures to the exchange server of your account takes two steps: first allow it here, then start a source yourself. Nothing is captured until both are done. It is off by default, and while it is off the rest of this group stays hidden.</p>
+        <p>While this PC is signed in to a server only as a guest, it announces nothing on that server; the link and the LAN share still work.</p>
+        <p>A broadcast starts only when a listener can reach it over the enabled local network or a connected exchange server. A local-only broadcast still has a description you can copy or save.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The other controls of the group appear and the list of microphones is read.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-start-with-app">
+      <summary><span><span class="name">Start the chosen sources when the application starts</span><span class="one">Starts the sources you chose earlier when the application starts.</span></span></summary>
+      <div class="full">
+        <p>With it on, the sources you started and have not stopped since are started again when the app starts, once the account is online. With it off, nothing starts by itself: every source is started by pressing its button.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-mic">
+      <summary><span><span class="name">Broadcast microphone</span><span class="one">Starts broadcasting the microphone chosen below.</span></span></summary>
+      <div class="full">
+        <p>Starts capturing the microphone and offers it as a live broadcast: through the exchange server when the account is connected, and on the local network when <a href="#e-broadcast-lan">Local network</a> is on. The capture begins only when you press the button. The button is unavailable while the microphone is already being broadcast.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The line below the quality options reports what happened. <b>Stop all</b> ends the broadcast.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-sound">
+      <summary><span><span class="name">Broadcast system sound</span><span class="one">Starts broadcasting the system sound of this PC.</span></span></summary>
+      <div class="full">
+        <p>Works like <a href="#e-broadcast-mic">Broadcast microphone</a>, with the sound this PC plays as the source instead of a microphone. Its channels are set by <b>System sound channels</b> below.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The line below the quality options reports what happened. <b>Stop all</b> ends the broadcast.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-stop">
+      <summary><span><span class="name">Stop all</span><span class="one">Ends every broadcast running from this PC.</span></span></summary>
+      <div class="full">
+        <p>Stops all the sources that are live. The button is available only while something is running.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The sources stop at once; start any of them again with its own button.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-mic-device">
+      <summary><span><span class="name">Microphone</span><span class="one">Chooses which microphone the microphone broadcast uses.</span></span></summary>
+      <div class="full">
+        <p><b>Windows default</b> follows whatever Windows uses as the default recording device; the other entries are the microphones Windows lists. The list is read only after broadcasting is allowed, so no capture device is touched before that.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The choice is used the next time you start the microphone.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-lan">
+      <summary><span><span class="name">Local network</span><span class="one">Lets devices on your local network listen to this PC directly.</span></span></summary>
+      <div class="full">
+        <p>When it is on, a broadcast is also offered on this PC's local-network address, on the port beside the box, so devices on the same network can listen without the exchange server. It is off by default.</p>
+        <p>Each direct listener uses this PC's upload; through the exchange server this PC sends one copy for all listeners.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>Read when a source starts: a source that is already live keeps what it started with.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-lan-port">
+      <summary><span><span class="name">Port</span><span class="one">The port the local-network share listens on.</span></span></summary>
+      <div class="full">
+        <p>A number from 1 to 65535; the default is 8768. A value outside that range is ignored and the last good port stays. It is read when a source starts.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-cap">
+      <summary><span><span class="name">Maximum listeners</span><span class="one">Caps how many listeners a broadcast takes; 0 means no limit.</span></span></summary>
+      <div class="full">
+        <p>A number from 0 to 64, where 0 means no limit. Each direct listener on the local network uses this PC's upload, while through the exchange server this PC sends one copy for all listeners. A value outside the range is ignored.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-sample-rate">
+      <summary><span><span class="name">Sample rate</span><span class="one">The sample rate of the broadcast audio: 44100 or 48000.</span></span></summary>
+      <div class="full">
+        <p>The default is 44100. This and the three other <b>Quality</b> choices - microphone channels, system sound channels and bitrate - are read when a source starts, so a source that is already live keeps the values it started with.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-mic-channels">
+      <summary><span><span class="name">Microphone channels</span><span class="one">Mono or stereo for the microphone broadcast.</span></span></summary>
+      <div class="full">
+        <p>Choose <b>Mono</b> or <b>Stereo</b>. The default is Mono.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-sound-channels">
+      <summary><span><span class="name">System sound channels</span><span class="one">Mono or stereo for the system sound broadcast.</span></span></summary>
+      <div class="full">
+        <p>Choose <b>Mono</b> or <b>Stereo</b> for the sound this PC plays.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-bitrate">
+      <summary><span><span class="name">Bitrate (kbit/s)</span><span class="one">How much data per second the broadcast uses: 96, 128, 192 or 256 kbit/s.</span></span></summary>
+      <div class="full">
+        <p>A higher bitrate sounds better and uses more of this PC's upload. The default is 128 kbit/s.</p>
       </div>
     </details>
   </div>

@@ -199,6 +199,12 @@ try {
     $s5 = Invoke-Tool $summary @('-Parent', 'SP-0001', '-RepoRoot', $fixture)
     Check ($s5.Exit -eq 0 -and $s5.Output[-1] -eq 'audit-campaign: CLOSED') "closed campaign exits 0 (got $($s5.Exit): $($s5.Output[-1]))"
     Check (($s5.Output -join "`n") -match 'findings: High 1 \| Medium 0 \| Low 0' -and ($s5.Output -join "`n") -match 'SP-0100 \(Draft\)') 'findings and produced tickets counted'
+} catch {
+    # A setup step or an audit tool threw instead of answering: nothing was judged past this point, so the run could
+    # not verify (CHECK-VERDICT 2.1, 2.5, 2.11). A check that already failed still outranks it (2.14).
+    $reason = $_.Exception.Message -replace '\s+', ' '
+    if ($failures.Count -eq 0) { "audit-tools: COULD NOT VERIFY ($reason)"; exit 2 }
+    "audit-tools: the run stopped early: $reason"
 } finally {
     Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue
 }

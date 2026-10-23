@@ -10,7 +10,8 @@ namespace StreamsPlayer.App;
 /// is the first folder of the chain that took a write when the recording started; <paramref name="Fallbacks"/> are
 /// the chain's folders after it, for a segment the folder refuses by the time it is finished (CAPTURE-OUTPUT rule 11).
 /// </summary>
-internal sealed record RecordingTarget(string Folder, string? ChannelTitle, IReadOnlyList<string> Fallbacks);
+internal sealed record RecordingTarget(string Folder, string? ChannelTitle, IReadOnlyList<string> Fallbacks,
+    CaptureKind Kind = CaptureKind.StreamVideo);
 
 /// <summary>
 /// SP-0121: one stretch of a recording the engine has stopped writing - ended by the user, by a playback re-open,
@@ -132,7 +133,7 @@ internal static class RecordingFinisher
             }
 
             // Each segment is named for its own start, in the container the engine actually wrote (CAPTURE-OUTPUT rule 3).
-            var name = CaptureFileName.For(CaptureKind.StreamVideo, segment.StartedAt, segment.Target.ChannelTitle, Path.GetExtension(file));
+            var name = CaptureFileName.For(segment.Target.Kind, segment.StartedAt, segment.Target.ChannelTitle, Path.GetExtension(file));
             var moveClock = Stopwatch.StartNew();
             var (destination, skipped) = MoveIntoFirst(file, [segment.Target.Folder, .. segment.Target.Fallbacks], name);
             log.Event("RECORD FINISH", $"engine={segment.Engine}", "fate=saved", $"path={destination}", $"skipped={skipped ?? "none"}",

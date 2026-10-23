@@ -81,3 +81,9 @@ pwsh -NoProfile -File ./msix/Assert-MsixPackage.ps1 -PackagePath <file.msix> -Ex
 
 `msix/Test-AssertMsixPackage.ps1` pins every refusal on throwaway archives (no Windows SDK needed) and runs inside
 `scripts/check.ps1` as `msix-gate`.
+
+The build script refuses a dirty tree and a HEAD off a tag, so it is the last place a manifest schema error could be
+found, not the first. `msix/Test-AppxManifest.ps1` (SP-0238) closes that gap from any tree state: it fills the template,
+stages it with a placeholder executable and the product logos, and runs the Windows SDK's own `makeappx pack` over it,
+then repeats the pack with an attribute no schema defines to prove the gate refuses one. It runs inside
+`scripts/check.ps1` as `msix-manifest` and answers `COULD NOT VERIFY` (exit 2) when the SDK is not installed.

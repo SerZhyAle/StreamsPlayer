@@ -218,7 +218,8 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     public event Action? TracksChanged;
     public event Action<Guid, BitmapSource>? SnapshotReady;
 
-    public bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling)
+    public bool Play(Uri url, uint cacheMilliseconds, bool rtspOverTcp, bool softwareDecode, StreamQualityRung? qualityCeiling,
+        bool liveBroadcast = false)
     {
         lock (_mediaGate)
         {

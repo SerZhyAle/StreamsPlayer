@@ -23,6 +23,7 @@ public partial class SettingsWindow
         ["library.playlists"] = "PlaylistPortability",
         ["library.tv"] = "TvScheduleTitle",
         ["library.exchange"] = "ExchangeTitle",
+        ["library.broadcast"] = "BroadcastTitle",
         ["playback.general"] = "SettingsPlayback",
         ["playback.video"] = "VideoBackendLabel",
         ["audio.output"] = "AudioOutputDeviceLabel",
@@ -59,7 +60,8 @@ public partial class SettingsWindow
         (1, "library.playlists", "ExportAll", "ExportListTip", "ExportAllButton"),
         (1, "library.playlists", "ExportPinned", "ExportListTip", "ExportPinnedButton"),
         (1, "library.tv", "TvScheduleAddressName", "TvScheduleHint", "TvScheduleAddressBox"),
-        (1, "library.exchange", "ExchangeTitle", "ExchangeHint", "ExchangeAddressBox"),
+        (ExchangePageIndex, "library.exchange", "ExchangeTitle", "ExchangeHint", "ExchangeLoginBox"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastAllow", "BroadcastHint", "BroadcastAllowedCheckBox"),
         (2, "playback.general", "KeepAwakeDuringPlayback", "KeepAwakeHint", "KeepAwakeCheckBox"),
         (2, "playback.general", "SystemMediaControls", "SmtcHint", "SystemMediaControlsCheckBox"),
         (2, "playback.general", "ResumePlaybackOnStartup", "ResumePlaybackHint", "ResumePlaybackCheckBox"),
@@ -69,7 +71,7 @@ public partial class SettingsWindow
         (4, "files.frames", "FrameFolderLabel", "FrameFolderHint", "FrameFolderBox"),
         (4, "files.video", "VideoRecordingFolderLabel", "VideoRecordingFolderHint", "VideoRecordingFolderBox"),
         (4, "files.audio", "AudioRecordingFolderLabel", "AudioRecordingFolderHint", "AudioRecordingFolderBox"),
-        (5, "about.diagnostics", "SendLogs", "SendLogsTip", "SendLogsButton")
+        (7, "about.diagnostics", "SendLogs", "SendLogsTip", "SendLogsButton")
     ];
 
     private void SettingsSearch_TextChanged(object sender, TextChangedEventArgs e)
@@ -200,9 +202,9 @@ public partial class SettingsWindow
         // view and gives the editor focus (WINDOWS-UI 3.4) - never firing change handlers as edits.
         SelectPage(page);
         var group = FindGroup(groupId);
-        if (group is not null)
+        if (group is Expander expander)
         {
-            group.IsExpanded = true;
+            expander.IsExpanded = true;
         }
 
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>

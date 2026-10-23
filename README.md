@@ -50,6 +50,7 @@ code or features.
 
 ## What it does
 
+- The toolbar adapts to the available width without shrinking its text: a filter icon opens search, quick selection, filters and sorting below it when they do not fit inline. Settings and Operations become icons with tooltips. Resizing keeps search and filter values. While this PC broadcasts, a red icon names the active sources in its localized tooltip.
 - Refresh the catalog only when you choose to. There are no surprise background
   catalog downloads.
 - Watch the catalog and the preview pictures arrive: both downloads show how much
@@ -88,7 +89,7 @@ code or features.
   click - press **video** to keep video and RTSP only, **audio** to keep radio
   only, **my channels** to keep only the ones you added or imported, and press
   the same button again for everything. A pressed button is lit and an
-  unpressed one is dimmed; the three stay in the title line whether the filter
+  unpressed one is dimmed; in a wide window the three stay in the toolbar whether the filter
   row is open or closed, narrow the pinned strip along with the list, and are
   still in force after a restart. They are the row's own **Media** filter, so
   the two can never disagree.
@@ -106,7 +107,9 @@ code or features.
   add stream, **Paste channel**, **Library settings**, and, set apart at the end,
   **Import channels from the internet**.
 - Keep the main window or video player independently always on top, and expand
-  video to a borderless full screen with the button or `F11` (`Esc` exits). The
+  video to a borderless full screen with the button, `F` or `F11` (`Esc` exits).
+  In the video player `M` mutes, `Ctrl+Up` and `Ctrl+Down` change the volume, and
+  `A` opens the audio track menu when the stream has more than one. The
   player's three-dot actions menu keeps its own always-on-top switch alongside
   pinning and adding the stream to an existing or new collection. In either
   windowed or full screen mode, the player's control panel disappears after four
@@ -115,8 +118,8 @@ code or features.
   to every player window and is remembered. The player is a top-level window in its own right: minimizing or
   restoring the catalog no longer takes the picture with it, while quitting the
   catalog still closes every player.
-- Switch between the list and a persisted visual grid with one header button that
-  names the mode you are switching to. The grid captures visible HTTP(S) video
+- Switch between the list and a persisted visual grid with two icon-only header buttons.
+  Their tooltips name each view and the active view is highlighted. The grid captures visible HTTP(S) video
   previews, up to four at a time, and caches the frames on disk within a 150 MB
   budget.
 - Recognise a channel the catalog gave no icon instead of reading it as a failed
@@ -129,7 +132,7 @@ code or features.
   light and the dark theme alike; where a captured preview frame exists, the
   frame is still what you see.
 - Open Settings from the gear button in the header (or from **Library settings** in the **Operations** menu)
-  to configure preferences and run maintenance actions. Six pages are listed down the side of the window,
+  to configure preferences and run maintenance actions. Eight pages are listed down the side of the window,
   each with its own coloured glyph; the page you are on carries an accent bar, and its title and a short
   description head the page. Related settings sit in named groups that you collapse one at a time, or all
   at once with the two buttons beside the search box. Each setting shows its name and a short hint with its
@@ -141,7 +144,10 @@ code or features.
   - **Playback**: keep the computer awake, show system media controls, resume playback on startup, choose the video engine (**VLC** or experimental **FlyleafLib**), and download or remove FlyleafLib components;
   - **Audio**: choose the audio output device and the channel mode (stereo, reversed stereo, left, right, or Dolby Surround);
   - **Files**: choose folders for saved frames, video recordings, and radio recordings, with quick buttons to browse, reset to default, or open the folder;
+  - **Exchange server**: connect an account, manage sign-in and check the connection;
+  - **Broadcasting**: allow broadcasting from this PC and choose sources, network access and audio quality;
   - **About**: view product details and `YY.MMDD.HHmm` version, view the MIT licence, open documentation, source, website, privacy, and author links, and generate diagnostic log bundles with **Send logs to the author**.
+  The Exchange server and Broadcasting pages show their controls directly, without collapsible groups.
   Settings apply immediately upon touch, and closing the window (or `Esc`; in the search box the first `Esc` clears the search) is the
   sole exit. Settings reopens on the page you left, with the same groups open, scrolled back to where you
   were, and at the size and position you gave it.
@@ -159,8 +165,11 @@ code or features.
   A video recording survives reconnects - each connection becomes its own file and all of
   them are reported at the end; a radio recording is named after the format the station
   really sends and follows a `.pls`/`.m3u` link to the stream, and when the station drops
-  the connection you are told at once what was saved and how long it runs. A FastMediaSorter
-  broadcast cannot be recorded (it allows only the one connection playback uses). Quitting
+  the connection you are told at once what was saved and how long it runs. In an incoming audio
+  broadcast's own window, **Record** or `R` records the connection already playing, keeping one
+  listener. Stopping playback, reconnecting or closing that window saves the current recording;
+  after reconnecting, press **Record** again. Audio stays in its received format without transcoding:
+  MP3, AAC, Ogg, Opus, FLAC or WAV. Quitting
   while recording is safe: the app waits for the file to reach the recordings folder, and
   anything it could not wait for is handed over there and announced at the next start.
 - Answer a failed stream from the failure dialog - **Retry**, **Copy report**,
@@ -244,7 +253,7 @@ code or features.
   [live broadcast page](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/live-broadcast.html)
   says who can go on air, how a broadcast travels and what works today. The same
   link is on the **About** page in Settings.
-- When the exchange server will not connect, press **Check the connection** in **Settings (Library)**, in the broadcast list, or on a broadcast that stopped. The check runs only when you ask: it looks at one step at a time, from this PC outward, stops at the first step that fails and says in the family's common words what happened and what to try - the same words the other programs of the family show. The server's address and port appear only under **Details**, and the check leaves one line of codes in the log, with no address, login or password.
+- When the exchange server will not connect, press **Check the connection** in **Settings (Exchange server)**, in the broadcast list, or on a broadcast that stopped. The check runs only when you ask: it looks at one step at a time, from this PC outward, stops at the first step that fails and says in the family's common words what happened and what to try - the same words the other programs of the family show. The server's address and port appear only under **Details**, and the check leaves one line of codes in the log, with no address, login or password.
 - Broadcasts that go through the exchange server are protected end to end: what this PC sends is encrypted here and opened only on the devices of your account, or by whoever holds the link you handed out, and what it receives is opened here. A broadcast whose exchange endpoints are not protected (an older program, or a device with no key yet) is not played through the server - it still plays on the same network - and the broadcast list or the window says so. A device signed in before protection existed keeps working but cannot take part until you remove the server from the list and add it again. The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices.
 - Delete downloaded or imported catalog streams in one confirmed action from
   **Settings → Library**. Your added channels, pinned channels, channels in
@@ -363,8 +372,8 @@ The same glyph and the same name everywhere in the portfolio - in the app, on th
 | <img src="docs/assets/glyphs/media.record.svg" width="16" height="16" alt=""> | **Record** - the radio bar, the compact panel, the video player (`R`) |
 | <img src="docs/assets/glyphs/media.sleep-timer.svg" width="16" height="16" alt=""> | **Sleep timer** - next to **Stop audio** |
 | <img src="docs/assets/glyphs/media.picture-in-picture.svg" width="16" height="16" alt=""> | The compact panel - the radio bar; the panel has its own way back to the full window |
-| <img src="docs/assets/glyphs/media.fullscreen.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/media.exit-fullscreen.svg" width="16" height="16" alt=""> | **Fullscreen** / **Exit fullscreen** - the video player (`F11`) |
-| <img src="docs/assets/glyphs/media.mute.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/media.volume.svg" width="16" height="16" alt=""> | **Mute** / **Unmute** - the video player |
+| <img src="docs/assets/glyphs/media.fullscreen.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/media.exit-fullscreen.svg" width="16" height="16" alt=""> | **Fullscreen** / **Exit fullscreen** - the video player (`F` or `F11`) |
+| <img src="docs/assets/glyphs/media.mute.svg" width="16" height="16" alt=""> <img src="docs/assets/glyphs/media.volume.svg" width="16" height="16" alt=""> | **Mute** / **Unmute** - the video player (`M`; `Ctrl+Up` and `Ctrl+Down` change the volume) |
 | <img src="docs/assets/glyphs/nav.more.svg" width="16" height="16" alt=""> | **More actions** - a channel's menu; the **Operations** menu in the header |
 | <img src="docs/assets/glyphs/app.settings.svg" width="16" height="16" alt=""> | **Settings** |
 | <img src="docs/assets/glyphs/app.help.svg" width="16" height="16" alt=""> | **Help** (`F1`) - a window with help has this button near its top-right corner; it opens that window's page in your browser, with no internet needed. The pages are written in English, Russian and Ukrainian; every other interface language opens the English page |
@@ -460,13 +469,13 @@ send it yourself - **Send logs to the author** prepares an archive and a message
 your own mail program, and never sends anything on its own. See the
 [privacy page](https://serzhyale.github.io/StreamsPlayer/privacy.html) for details.
 
-The optional Exchange source in Library settings connects to your own server over TLS. Signing in sends your login, password or pairing code, device identity, product version and receiver capabilities; this program signs in only and never creates an account. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Import a connection string, a file or a QR picture in Library settings, or paste or drop one in the main window. A connection string carries the server address and an optional certificate fingerprint, with no secret; an invitation inside it is checked and dropped, never sent or kept. Reading it only fills the form. The server's address and port are under Details in the form: check them before entering your password or pairing code; neither is kept. A supplied fingerprint must match, with no trust prompt. Without one, you approve the server fingerprint before signing in; a certificate renewed with the same key is accepted, and any other change needs your approval. Changing the account's password sends the old and the new password to your server once and keeps neither. No local agent or second program is needed. The password and pairing code are discarded. The account, tokens and certificate pins are protected for your Windows user in separate files; signing out on this device forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
+The optional Exchange source in Exchange server settings connects to your own server over TLS. Signing in sends your login, password or pairing code, device identity, product version and receiver capabilities; this program signs in only and never creates an account. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Import a connection string, a file or a QR picture in Exchange server settings, or paste or drop one in the main window. A connection string carries the server address and an optional certificate fingerprint, with no secret; an invitation inside it is checked and dropped, never sent or kept. Reading it only fills the form. The server's address and port are under Details in the form: check them before entering your password or pairing code; neither is kept. A supplied fingerprint must match, with no trust prompt. Without one, you approve the server fingerprint before signing in; a certificate renewed with the same key is accepted, and any other change needs your approval. Changing the account's password sends the old and the new password to your server once and keeps neither. No local agent or second program is needed. The password and pairing code are discarded. The account, tokens and certificate pins are protected for your Windows user in separate files; signing out on this device forgets them. Diagnostic bundles omit that file and redact account values. Exchange connections begin only after your explicit source setup.
 
-Broadcasting: the application can send the audio of this PC - a microphone you choose and the sound the PC is playing - live to the exchange server of your own account, only when you allow it in Settings and start a source yourself; it is off until then, nothing is captured while it is off, and a visible indicator with a stop is shown while a source is live. Listeners connect over your local network, if you enable it, or through your exchange server. You can limit the number of listeners. Each separately sent copy uses this PC’s upload; the exchange server can distribute one copy to many listeners. The description others receive - as a link, a file or in your account's directory - carries the addresses and the title, and no secret.
+Broadcasting: the application can send the audio of this PC - a microphone you choose and the sound the PC is playing - live to the exchange server of your own account, only when you allow it in Settings and start a source yourself; it is off until then, nothing is captured while it is off, and a visible indicator with a stop is shown while a source is live. Listeners connect over your local network, if you enable it, or through your exchange server. You can limit the number of listeners. Each separately sent copy uses this PC’s upload; the exchange server can distribute one copy to many listeners. A broadcast link or file you hand out carries the title, addresses and keys that open the broadcast. Treat it as a secret and share it only with people you choose. The account directory carries those keys in an encrypted box.
 
 **Exchange server, broadcasting and encryption.** An exchange server is private: everyone runs their own, or uses one whose owner invited them. There is no public exchange server, and no exchange server is a service of this product. The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts, sees which devices are online, and how much is sent and when. It cannot open what goes through it: folders and their files, broadcasts and the clipboard are encrypted on your device and opened only on your other devices or by the people you gave access to. To look inside, whoever runs the server would have to add a device of their own to your account, and it would appear in your list of devices. To sign in, this PC sends your login and your password or pairing code once, then its device identity, its device name (STREAMS Player, not the name of your PC), product, version, platform (Windows) and roles, its receiver capabilities and the public half of its encryption key. While the connection is on, the server sees that this device is online. When you broadcast, it receives the broadcast's title, the fact that it is audio, and the audio itself, encrypted on this PC before it leaves; the private key never leaves this PC. Broadcasting stays off until you allow it in Settings, and you start each source yourself; only if you also turn on the option to start with the application do the sources you left chosen start again when the application starts, once the account is online. A listener's device can record what it receives, and this program cannot prevent that. The camera of this PC is used for one thing only: reading a connection QR when you press "Scan with the camera" in Settings. While the scan window is open, the picture is looked at in memory to find the QR; it is never stored, sent or logged, and the camera is released the moment the window closes. Where Windows reports no camera, the button is not offered. This program signs in and never creates an account. An account is deleted in FastMediaSorter on the phone, or by asking whoever runs the server; [the exchange portal](https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/account-deletion.html) says how. Signing out on this device removes this device, not the account. See the [privacy page](https://serzhyale.github.io/StreamsPlayer/privacy.html) for the same statement in every site language.
 
-Other users’ broadcasts need no exchange account. Each description supplies its server address and optional certificate fingerprint; your own account and pin are never used for it. A broadcast protected by its own password asks for that password once, remembers it with the channel and sends it only to that broadcast’s server; a changed password is asked for again with one message, and nothing retries in the background. Any number of servers can be used over time. Up to 16 stream distribution proxies and server connection forwarders can be held open together; stopping playback releases its listener, and an idle listener closes after 30 seconds. Without a fingerprint, only a certificate this PC trusts is accepted; otherwise playback is refused with a message asking for an updated description.
+Other users’ broadcasts need no exchange account. Each description supplies its server address and optional certificate fingerprint; your own account and pin are never used for it. A broadcast protected by its own password asks for that password once, remembers it with the channel and sends it only to that broadcast’s server; a changed password is asked for again with one message, and nothing retries in the background. Any number of servers can be used over time. Up to 16 stream distribution proxies and server connection forwarders can be held open together; stopping playback releases its listener, and an idle listener closes after 30 seconds. Without a fingerprint, this PC checks the certificate. If it cannot verify it, compare the displayed fingerprint with the broadcaster before accepting it for this channel. Other channels do not inherit that trust.
 
 ## Ownership and license
 

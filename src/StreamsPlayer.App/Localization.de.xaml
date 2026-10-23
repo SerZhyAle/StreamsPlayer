@@ -44,6 +44,7 @@
     <sys:String x:Key="OperationsTip">Fensteroptionen, Vorschauen, Verlauf, Stream hinzufügen, Bibliothekseinstellungen, Kanäle aus dem Internet importieren</sys:String>
     <sys:String x:Key="AddStreamTip">Einen Stream über seine Adresse hinzufügen</sys:String>
     <sys:String x:Key="UpdateCatalogTip">Den aktuellen Katalog aus dem Internet laden</sys:String>
+    <sys:String x:Key="SearchAndFilters">Suche, Filter und Sortierung</sys:String>
     <sys:String x:Key="FiltersAndSorting">Filter und Sortierung</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">Die Filter- und Sortierzeile einblenden</sys:String>
     <sys:String x:Key="FiltersActiveTip">Die Filter- und Sortierzeile einblenden. Aktive Filter: {0}</sys:String>
@@ -712,6 +713,8 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="SettingsFiles">Dateien</sys:String>
     <sys:String x:Key="SettingsFilesDesc">Ordner für Schnappschüsse und Stream-Aufnahmen</sys:String>
     <sys:String x:Key="SettingsAbout">Über</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">Konto und Serververbindung</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Quellen, Netzwerkzugriff und Audioqualität</sys:String>
     <sys:String x:Key="SettingsAboutDesc">App-Informationen, Lizenz und Diagnose</sys:String>
     <sys:String x:Key="ThemeHint">Wählen Sie hell, dunkel oder folgen Sie dem Windows-Design.</sys:String>
     <sys:String x:Key="TileSizeHint">Legen Sie fest, wie groß die Kanalkacheln im Raster dargestellt werden.</sys:String>
@@ -772,7 +775,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="ExchangeForgotten">Auf diesem Gerät abgemeldet. Anmeldung und Zertifikats-Pin wurden vergessen.</sys:String>
     <sys:String x:Key="ExchangeCertificate">Das Serverzertifikat benötigt Ihre Zustimmung.</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">Diesem Serverzertifikat vertrauen? Bisheriger Fingerabdruck: {0} Neuer Fingerabdruck: {1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">Live-Übertragungen</sys:String>
+    <sys:String x:Key="BroadcastsTitle">Eigene Übertragungen</sys:String>
     <sys:String x:Key="BroadcastsEmpty">Dieses Konto hat derzeit keine Übertragungen; sie erscheinen hier, sobald Ihre anderen Geräte sie starten.</sys:String>
     <sys:String x:Key="BroadcastsOnline">online</sys:String>
     <sys:String x:Key="BroadcastsOffline">offline</sys:String>
@@ -976,4 +979,8 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="ExchangeDiagnosisServerLine">Server: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Code: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Es gibt noch keinen Server zum Prüfen. Importieren Sie zuerst eine Verbindungszeichenfolge oder melden Sie sich an.</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">Niemand kann diese Übertragung empfangen. Aktivieren Sie das lokale Netzwerk oder verbinden Sie sich mit Ihrem Austauschserver und versuchen Sie es erneut.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Diese geschützte Adresse wird hier nicht unterstützt. Bitten Sie den Sender um einen Link über den Austauschserver.</sys:String>
+    <sys:String x:Key="BroadcastNotListed">nicht aufgeführt</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">Dieser PC kann das Zertifikat von {0} nicht prüfen. Vergleichen Sie den Fingerabdruck mit dem Sender, bevor Sie ihm für diesen Kanal vertrauen:&#10;{1}&#10;Diesem Zertifikat vertrauen?</sys:String>
 </ResourceDictionary>

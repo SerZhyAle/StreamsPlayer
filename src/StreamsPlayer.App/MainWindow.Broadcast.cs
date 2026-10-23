@@ -54,7 +54,9 @@ public partial class MainWindow
         }
 
         var names = running.Select(SourceTitle).OrderBy(name => name, StringComparer.CurrentCulture);
-        BroadcastLiveText.Text = LocalizationService.Format("BroadcastIndicatorLive", string.Join(", ", names));
+        var description = LocalizationService.Format("BroadcastIndicatorLive", string.Join(", ", names));
+        BroadcastLiveButton.ToolTip = description;
+        System.Windows.Automation.AutomationProperties.SetName(BroadcastLiveButton, description);
         // The compact panel shows the same indicator, with the same menu behind it.
         if (_compactPanel is { } panel)
         {

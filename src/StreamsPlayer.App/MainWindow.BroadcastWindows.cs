@@ -81,6 +81,8 @@ public partial class MainWindow
                 return new BroadcastOpenResult(BroadcastOpenOutcome.Refused);
             }
 
+            channel = await ResolveBroadcastTrustAsync(channel);
+
             if (_incomingWindows.TryGetValue(channel.Id, out var existing))
             {
                 ActivateWindow(existing.Window);
@@ -148,6 +150,10 @@ public partial class MainWindow
                 }
             };
             var window = new BroadcastAudioWindow(channel, session, state.AudioVolume);
+            window.ConfigureRecording(_log, () => CaptureFolders.Chain(CaptureKind.StreamAudio,
+                CaptureFolderChoices.For(_stateCommitter?.Requested ?? _state, CaptureKind.StreamAudio)));
+            window.RecordingNotice += (key, arguments) => SetStatus(key, arguments);
+            window.Closed += (_, _) => _closedRecordingFinishes.Add(session.RecordingFinish);
             window.PlaceCascaded(_incomingWindows.Values.Count(item => item.Window is BroadcastAudioWindow) % 8);
             window.Show();
             return new IncomingWindow(window, session, null, channel, openedByLink);
@@ -162,12 +168,9 @@ public partial class MainWindow
         OpenIncomingBroadcastAsync(() => ImportExchangeBroadcastAsync(view), view.Record.Credentials, openedByLink: false);
 
     /// <summary>
-    /// The list's Play for a broadcast given to this PC as a guest. It is imported like a link, with no directory
-    /// id: a guest's broadcast is not one of the own account's, and the own directory's marking of ended rows
-    /// reads only the own account's, so a row carrying a guest broadcast's id would be marked ended by every
-    /// own-account push.
+    /// The guest's play binds the kept row to the entry whose directory listed it (item BJ).
     /// </summary>
-    internal Task<BroadcastOpenResult> OpenGuestBroadcastWindowAsync(ExchangeBroadcastView view)
+    internal Task<BroadcastOpenResult> OpenGuestBroadcastWindowAsync(ExchangeBroadcastView view, ExchangeAccount entry)
     {
         if (view.Support != ExchangeBroadcastSupport.Supported || view.Record.Descriptor is not { } descriptor)
         {
@@ -176,7 +179,7 @@ public partial class MainWindow
                     ? ExchangeFailureRows.FormatUnsupported.MessageKey : "FmsBroadcastUnsupportedMode"));
         }
 
-        return OpenIncomingBroadcastAsync(() => ImportLinkBroadcastAsync(descriptor), view.Record.Credentials, openedByLink: false);
+        return OpenIncomingBroadcastAsync(() => ImportExchangeBroadcastAsync(view, entry), view.Record.Credentials, openedByLink: false);
     }
 
     /// <summary>

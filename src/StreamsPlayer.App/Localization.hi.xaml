@@ -44,6 +44,7 @@
     <sys:String x:Key="OperationsTip">विंडो विकल्प, पूर्वावलोकन, इतिहास, स्ट्रीम जोड़ें, लाइब्रेरी सेटिंग्स, इंटरनेट से चैनल आयात करें</sys:String>
     <sys:String x:Key="AddStreamTip">पते से एक स्ट्रीम जोड़ें</sys:String>
     <sys:String x:Key="UpdateCatalogTip">इंटरनेट से नवीनतम सूची डाउनलोड करें</sys:String>
+    <sys:String x:Key="SearchAndFilters">खोज, फ़िल्टर और क्रम</sys:String>
     <sys:String x:Key="FiltersAndSorting">फ़िल्टर और क्रम</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">फ़िल्टर और क्रम की पंक्ति दिखाएँ</sys:String>
     <sys:String x:Key="FiltersActiveTip">फ़िल्टर और क्रम की पंक्ति दिखाएँ। सक्रिय फ़िल्टर: {0}</sys:String>
@@ -712,6 +713,8 @@
     <sys:String x:Key="SettingsFiles">फ़ाइलें</sys:String>
     <sys:String x:Key="SettingsFilesDesc">स्क्रीनशॉट और स्ट्रीम रिकॉर्डिंग के लिए फ़ोल्डर</sys:String>
     <sys:String x:Key="SettingsAbout">के बारे में</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">खाता और सर्वर कनेक्शन</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">स्रोत, नेटवर्क पहुँच और ऑडियो गुणवत्ता</sys:String>
     <sys:String x:Key="SettingsAboutDesc">ऐप की जानकारी, लाइसेंस और निदान</sys:String>
     <sys:String x:Key="ThemeHint">लाइट, डार्क चुनें या अपने Windows स्वरूप का पालन करें।</sys:String>
     <sys:String x:Key="TileSizeHint">ग्रिड में चैनल टाइल का आकार समायोजित करें।</sys:String>
@@ -772,7 +775,7 @@
     <sys:String x:Key="ExchangeForgotten">इस डिवाइस पर साइन आउट हो गया। साइन-इन और प्रमाणपत्र की फ़िंगरप्रिंट भुला दी गई।</sys:String>
     <sys:String x:Key="ExchangeCertificate">सर्वर प्रमाणपत्र के लिए आपकी अनुमति चाहिए।</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">इस सर्वर प्रमाणपत्र पर भरोसा करें? पिछला फ़िंगरप्रिंट: {0} नया फ़िंगरप्रिंट: {1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">लाइव प्रसारण</sys:String>
+    <sys:String x:Key="BroadcastsTitle">मेरे प्रसारण</sys:String>
     <sys:String x:Key="BroadcastsEmpty">इस खाते में अभी कोई प्रसारण नहीं है; आपके अन्य उपकरण शुरू करेंगे तो वे यहाँ दिखेंगे।</sys:String>
     <sys:String x:Key="BroadcastsOnline">ऑनलाइन</sys:String>
     <sys:String x:Key="BroadcastsOffline">ऑफ़लाइन</sys:String>
@@ -976,4 +979,8 @@
     <sys:String x:Key="ExchangeDiagnosisServerLine">सर्वर: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">कोड: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">जाँचने के लिए अभी कोई सर्वर नहीं है। पहले कनेक्शन स्ट्रिंग आयात करें या साइन इन करें।</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">कोई यह प्रसारण प्राप्त नहीं कर सकता। स्थानीय नेटवर्क चालू करें या अपने एक्सचेंज सर्वर से जुड़कर फिर कोशिश करें।</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">यह सुरक्षित प्रसारण पता यहाँ नहीं चल सकता। प्रसारक से एक्सचेंज सर्वर के ज़रिए लिंक माँगें।</sys:String>
+    <sys:String x:Key="BroadcastNotListed">सूची में नहीं</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">यह पीसी {0} के प्रमाणपत्र को सत्यापित नहीं कर सकता। इस चैनल के लिए भरोसा करने से पहले प्रसारक से फ़िंगरप्रिंट मिलाएँ:&#10;{1}&#10;इस प्रमाणपत्र पर भरोसा करें?</sys:String>
 </ResourceDictionary>

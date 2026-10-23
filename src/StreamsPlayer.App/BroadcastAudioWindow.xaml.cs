@@ -29,9 +29,14 @@ public partial class BroadcastAudioWindow : Window
         _loading = false;
         Channel = channel;
         _session.Changed += SessionChanged;
+        _recordTimer.Tick += RecordTimer_Tick;
+        _recordTimer.Start();
         Closed += (_, _) =>
         {
             _session.Changed -= SessionChanged;
+            _closed = true;
+            _recordTimer.Stop();
+            _recordTimer.Tick -= RecordTimer_Tick;
             _session.Dispose();
         };
         Refresh();
@@ -82,6 +87,15 @@ public partial class BroadcastAudioWindow : Window
                 ? LocalizationService.Format(key, IncomingBroadcastWindows.Default.Maximum)
                 : LocalizationService.Format(key, _title))
             : state;
+        var failureRow = _session.State == BroadcastLegState.Failed
+            ? ExchangeFailurePresentation.BroadcastRow(_session.LastFailureReason)
+                ?? (_session.MessageKey == IncomingBroadcastFailure.NoLongerAvailableKey ? ExchangeFailureRows.Unavailable : null) : null;
+        if (failureRow is not null)
+        {
+            StateText.Text = ExchangeFailurePresentation.Text(failureRow);
+            FailureCode.Text = LocalizationService.Format("ExchangeDiagnosisCodeLine", failureRow.Code);
+        }
+        FailureDetails.Visibility = failureRow is null ? Visibility.Collapsed : Visibility.Visible;
         // SP-0225: a leg that could not be kept offers the connection check - for the generic "no longer available"
         // line only; a refused password or a certificate that does not match already says what to do.
         DiagnoseButton.Visibility = _session is { State: BroadcastLegState.Failed, MessageKey: IncomingBroadcastFailure.NoLongerAvailableKey }
@@ -89,6 +103,7 @@ public partial class BroadcastAudioWindow : Window
         var active = _session.IsActive;
         StopButton.Visibility = active ? Visibility.Visible : Visibility.Collapsed;
         PlayButton.Visibility = active ? Visibility.Collapsed : Visibility.Visible;
+        RefreshRecording();
     }
 
     private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -120,6 +135,11 @@ public partial class BroadcastAudioWindow : Window
         {
             e.Handled = true;
             Close();
+        }
+        else if (e.Key == System.Windows.Input.Key.R && System.Windows.Input.Keyboard.Modifiers == System.Windows.Input.ModifierKeys.None)
+        {
+            e.Handled = true;
+            Record_Click(sender, e);
         }
     }
 

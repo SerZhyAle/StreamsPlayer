@@ -67,9 +67,23 @@ public sealed partial class SealedLogHygieneTests
             }
         }
 
-        Assert.Contains("PlayerWindow.Legs.cs", starters);
-        Assert.Contains("BroadcastAudioSession.cs", starters);
-        Assert.Contains("MainWindow.FastMediaSorterPlayback.cs", starters);
+        Assert.Contains("BroadcastVideoRoute.cs", starters);
+        Assert.Contains("FastMediaSorterAudioLeg.cs", starters);
+        Assert.DoesNotContain("BroadcastAudioSession.cs", starters);
+        Assert.DoesNotContain("MainWindow.FastMediaSorterPlayback.cs", starters);
+    }
+
+    [Fact]
+    public void PreviewAndVideoPlaybackOpenTheSameProtectedRoute()
+    {
+        var preview = File.ReadAllText(Path.Combine(AppSource, "VideoFrameCaptureService.cs"));
+        var coordinator = File.ReadAllText(Path.Combine(AppSource, "GridPreviewCoordinator.cs"));
+        var player = File.ReadAllText(Path.Combine(AppSource, "PlayerWindow.Legs.cs"));
+        Assert.Contains("BroadcastVideoRoute.Open(endpoint", preview, StringComparison.Ordinal);
+        Assert.Contains("BroadcastVideoRoute.Open(endpoint", player, StringComparison.Ordinal);
+        Assert.Contains("CaptureAsync(channel, captureCts.Token)", coordinator, StringComparison.Ordinal);
+        Assert.DoesNotContain("CaptureAsync(request.Url", coordinator, StringComparison.Ordinal);
+        Assert.Contains("CaptureAddressAsync(route.Address.ToString()", preview, StringComparison.Ordinal);
     }
     [Fact]
     public void CoreHasNoLogging()

@@ -18,7 +18,7 @@ public sealed partial class ExchangeDirectoryState
             || !version.TryGetInt32(out var v) || v != 1
             || ReadString(key, "kem") is not { } kem
             || !ExchangeBase64Url.TryDecode(kem, out var point)
-            || point.Length != ExchangeE2eKeyPair.PublicLength || point[0] != 0x04)
+            || !ExchangeE2eKeyPair.IsValidPublicPoint(point))
         {
             return (hasCapability, null);
         }
@@ -62,7 +62,7 @@ public static class ExchangeRecipients
     /// </summary>
     public static ExchangeSealedState Classify(ExchangeDeviceRecord device, ExchangeDeviceTrust trust)
     {
-        if (!device.HasE2eCapability || device.E2eKey is null)
+        if (!device.HasE2eCapability || device.E2eKey is null || !ExchangeE2eKeyPair.IsValidPublicPoint(device.E2eKey))
         {
             return ExchangeSealedState.E2eMissing;
         }

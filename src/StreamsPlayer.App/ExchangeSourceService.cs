@@ -74,8 +74,12 @@ internal sealed partial class ExchangeSourceService
     internal event Action<ExchangeCastOffer>? CastAccepted;
     internal event Action<ExchangeCastStop>? CastStopped;
 
-    internal ExchangeSourceService(string directory)
+    private readonly Action<string>? _diagnostic;
+    private string? _lastEnvelopeType;
+
+    internal ExchangeSourceService(string directory, Action<string>? diagnostic = null)
     {
+        _diagnostic = diagnostic;
         _store = new ExchangeAccountStore(directory);
         _trustBook = new ExchangeTrustBook(directory);
         Guests = new ExchangeGuestEntries(directory);
@@ -345,6 +349,7 @@ internal sealed partial class ExchangeSourceService
                         schemaVersion = 2, type = "hello", deviceId = Account.DeviceId,
                         deviceToken = Account.Token, productVersion = ProductInfo.Version, keepaliveSeconds = 30
                     }, false, deadline.Token).ConfigureAwait(false);
+                    _lastEnvelopeType = "hello";
                     using var welcome = await ExchangeHandshake.ReadAsync(connection.Stream, "welcome", deadline.Token).ConfigureAwait(false);
                     if (ExchangeProtocol.String(welcome.RootElement, "type") == "refused")
                     {
@@ -401,6 +406,10 @@ internal sealed partial class ExchangeSourceService
                 // A connection that was open when it failed closed with no frame after this product's own
                 // envelope (item AN); one that never opened could not be reached, or could not be protected.
                 SetStatus(ExchangeFailures.KeyOf(exception, connectionOpen: connection is not null));
+                if (connection is not null)
+                {
+                    _diagnostic?.Invoke($"EXCHANGE CLOSED code=unanswered envelope={_lastEnvelopeType ?? "unknown"}");
+                }
                 ClearDirectory();
             }
             finally
@@ -449,6 +458,7 @@ internal sealed partial class ExchangeSourceService
             try
             {
                 await ExchangeProtocol.WriteAsync(connection.Stream, envelope, true, token).ConfigureAwait(false);
+                _lastEnvelopeType = ExchangeProtocol.String(JsonSerializer.SerializeToElement(envelope, ExchangeProtocol.JsonOptions), "type");
             }
             finally
             {

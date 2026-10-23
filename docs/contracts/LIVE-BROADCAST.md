@@ -99,3 +99,15 @@ The producer offers none of that surface; omission of auth is conformant only af
 choice, and a product with no choice keeps item M. SP-0239 item 10 coordinates password defaults,
 secret-store persistence, grants/revocation and DEVICE-EXCHANGE 1.7 verifiers with SP-0237 item 9.
 Consumer behavior/schema/vectors do not change; the implementation claim remains partial 1.2.
+
+**SP-0237 corrections, 2026-10-22:** preview capture and video playback share the endpoint decision
+and owned pinning/decryption transport; audio applies the same sealed decision. No sealed address
+without its broadcast id reaches a plain player. A source with no reachable LAN or sealed exchange
+route is refused before native capture, and a LAN-only source gets its description before exchange
+announcement. Incoming video failures retain an in-window Retry and expandable contract code;
+the signed-out notice uses the contract's cause, advice and details. Flyleaf's broadcast corridor
+now uses the endpoint's live-buffer budget; the ordinary-stream corridor is retained. A protected
+LAN/tunnel leg this client cannot authenticate is refused with its own message, while the protected
+relay keeps its TLS Basic path. Producer password choices, Digest and verifiers remain coordinated
+with SP-0239 item 10; live-peer latency and joint acceptance remain outstanding. The implementation
+claim is not raised by these scoped corrections.

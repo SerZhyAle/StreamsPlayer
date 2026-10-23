@@ -139,6 +139,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         ExchangeBroadcastKeys.PersistedLookup = ExchangeLinkKeyStore.For(AppPaths.DataDirectory).Load;
         _launchRequest = launchRequest ?? new StreamLaunchRequest(StreamLaunchTargetKind.None);
         DataContext = this;
+        InitializeHeaderLayout();
         _store = new StreamCatalogStore(_dataDirectory);
         _sessionStore = new BrowsingSessionStore(_dataDirectory);
         _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
@@ -800,7 +801,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             if ((sender as MenuItem)?.Tag is ChannelRow row && row.Channel.MediaKind != MediaKind.Audio &&
                 !await RefuseUnlaunchableAsync(row.Channel))
             {
-                OpenIndependentPlayerWindow(row.Channel);
+                var trusted = await ResolveBroadcastTrustAsync(row.Channel);
+                OpenIndependentPlayerWindow(trusted);
             }
         }
         catch (Exception exception)
@@ -1000,6 +1002,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             CancelRandomStationHunt();
         }
+
+        channel = await ResolveBroadcastTrustAsync(channel, interactive: !quiet && !randomHunt);
 
         if (rememberSelection)
         {
@@ -1352,7 +1356,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             // SP-0062: a stream resumed at launch that never reached live reports itself in the status line.
             // Everything above this point - the outcome record, the session log - is identical to a click.
-            SetStatus(ExchangeBroadcastCertificateException.MessageKey(reason) ?? ExchangeBroadcastAuth.MessageKey(reason) ?? "ResumeStreamFailed");
+            SetTerminalStatus(IncomingBroadcastFailure.TerminalMessageKey(reason, null) ?? "ResumeStreamFailed");
             return;
         }
 
@@ -1368,14 +1372,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         };
         // SP-0215: the password refusals of a protected broadcast sit beside the certificate refusals -
         // a named reason with its own localized sentence, in the dialog and on the compact status line.
-        var certificateKey = ExchangeBroadcastCertificateException.MessageKey(reason) ?? ExchangeBroadcastAuth.MessageKey(reason);
-        if (certificateKey is not null)
-            message = LocalizationService.Get(certificateKey);
+        var terminalKey = IncomingBroadcastFailure.TerminalMessageKey(reason, null);
+        if (terminalKey is not null)
+            message = terminalKey == IncomingBroadcastFailure.BoundReachedKey
+                ? LocalizationService.Format(IncomingBroadcastFailure.BoundReachedKey, ExchangeBroadcastResources.MaximumForwarders)
+                : LocalizationService.Get(terminalKey);
         if (IsCompact)
         {
-            if (certificateKey is not null)
+            if (terminalKey is not null)
             {
-                SetStatus(certificateKey);
+                SetTerminalStatus(terminalKey);
                 return;
             }
             switch (fastMediaSorterFailure)
@@ -1392,6 +1398,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
 
             return;
+        }
+
+        void SetTerminalStatus(string key)
+        {
+            if (key == IncomingBroadcastFailure.BoundReachedKey)
+                SetStatus(IncomingBroadcastFailure.BoundReachedKey, ExchangeBroadcastResources.MaximumForwarders);
+            else
+                SetStatus(key);
         }
 
         var report = FailureReportFormatter.Format(new FailureReport(

@@ -44,6 +44,6 @@ function Get-TestResultSummary {
         }
     }
     $exitCode = if ($failed) { 1 } elseif ($unverified -or $skipped -gt 0) { 2 } else { 0 }
-    $verdict = switch ($exitCode) { 0 { 'PASS' } 1 { 'FAIL' } 2 { 'CANNOT VERIFY' } }
+    $verdict = switch ($exitCode) { 0 { 'PASS' } 1 { 'FAIL' } 2 { 'COULD NOT VERIFY' } }
     return [pscustomobject]@{ ExitCode = $exitCode; Verdict = $verdict; Run = $run; Skipped = $skipped }
 }

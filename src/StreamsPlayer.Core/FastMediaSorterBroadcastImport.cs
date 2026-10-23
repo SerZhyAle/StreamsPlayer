@@ -33,7 +33,8 @@ public static class FastMediaSorterBroadcastImport
         FastMediaSorterBroadcast descriptor,
         DateTimeOffset now,
         string? directoryBroadcastId = null,
-        bool addWhenMissing = true)
+        bool addWhenMissing = true,
+        string? directoryEntryIdentity = null)
     {
         ArgumentNullException.ThrowIfNull(existingChannels);
         ArgumentNullException.ThrowIfNull(descriptor);
@@ -58,8 +59,10 @@ public static class FastMediaSorterBroadcastImport
             SelectedTransport = endpoint.Transport,
             Endpoints = descriptor.Endpoints,
             Auth = descriptor.Auth,
+            CertificatePins = previous?.CertificatePins ?? new(StringComparer.Ordinal),
             TargetLatencyMs = endpoint.TargetLatencyMs ?? descriptor.TargetLatencyMs,
             DirectoryBroadcastId = origin,
+            DirectoryEntryIdentity = origin is null ? null : directoryEntryIdentity ?? previous?.DirectoryEntryIdentity,
             DirectoryEndedAt = null
         };
 
@@ -111,13 +114,15 @@ public static class FastMediaSorterBroadcastImport
         IEnumerable<StreamChannel> existingChannels,
         FastMediaSorterBroadcast descriptor,
         DateTimeOffset now,
-        string broadcastId)
+        string broadcastId,
+        string? directoryEntryIdentity = null)
     {
         var channels = existingChannels.ToList();
         var endpoint = descriptor.SelectPlaybackEndpoint();
         return FindExisting(channels, descriptor.SourceId, endpoint.Url, directoryRowsOnlyByAddress: true) is null
             ? null
-            : Apply(channels, descriptor with { Title = string.Empty }, now, broadcastId, addWhenMissing: false);
+            : Apply(channels, descriptor with { Title = string.Empty }, now, broadcastId, addWhenMissing: false,
+                directoryEntryIdentity: directoryEntryIdentity);
     }
 
     /// <summary>Whether the channel is live for playback semantics, independent of catalog provenance.</summary>

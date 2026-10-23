@@ -157,6 +157,13 @@ A lookalike on the same host, https://example.test/SiteX/other.html, is some oth
     $problems = Get-Problems
     Check (Has $problems 'does not exist') 'a missing list fails'
 }
+catch {
+    # A setup step or a subject function threw instead of answering: nothing was judged past this point, so the run could
+    # not verify (CHECK-VERDICT 2.1, 2.5, 2.11). A check that already failed still outranks it (2.14).
+    $reason = $_.Exception.Message -replace '\s+', ' '
+    if ($failures.Count -eq 0) { Write-Output "held-addresses: COULD NOT VERIFY ($reason)"; exit 2 }
+    Write-Output "held-addresses: the run stopped early: $reason"
+}
 finally {
     Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue
 }

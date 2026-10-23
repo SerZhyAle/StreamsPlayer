@@ -43,7 +43,33 @@ public sealed class VideoFrameCaptureService : IAsyncDisposable
     /// </summary>
     public bool IsPaused => _abandoned.IsPaused;
 
-    public async Task<BitmapSource?> CaptureAsync(string url, CancellationToken cancellationToken)
+    public async Task<BitmapSource?> CaptureAsync(StreamChannel channel, CancellationToken cancellationToken)
+    {
+        var attempts = channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints(channel.Url)
+            ?? [new FastMediaSorterBroadcastEndpoint(channel.Url, null, null, null, null, null, null, null, null)];
+        foreach (var endpoint in attempts)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var route = BroadcastVideoRoute.Open(endpoint, null, reason =>
+                _diagnostics?.Invoke("PREVIEW TRANSPORT", [$"reason={reason}", $"url={endpoint.Url}"]),
+                passwordProtected: channel.FastMediaSorterBroadcast?.Auth is not null,
+                verifyHttp: channel.FastMediaSorterBroadcast is not null);
+            if (route is null)
+            {
+                continue;
+            }
+
+            var frame = await CaptureAddressAsync(route.Address.ToString(), cancellationToken);
+            if (frame is not null)
+            {
+                return frame;
+            }
+        }
+
+        return null;
+    }
+
+    private async Task<BitmapSource?> CaptureAddressAsync(string url, CancellationToken cancellationToken)
     {
         Interlocked.Increment(ref _holds);
         try

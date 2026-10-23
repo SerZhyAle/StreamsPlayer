@@ -35,6 +35,8 @@
   <ItemGroup>
     <Compile Include="..\..\src\StreamsPlayer.App\StreamAudioRecorder.cs"
              Link="app-compile\StreamAudioRecorder.cs" />
+    <Compile Include="..\..\src\StreamsPlayer.App\BroadcastAudioRecorder.cs" Link="app-compile\BroadcastAudioRecorder.cs" />
+    <Compile Include="..\..\src\StreamsPlayer.App\BroadcastAudioReadStream.cs" Link="app-compile\BroadcastAudioReadStream.cs" />
     <Compile Include="..\..\src\StreamsPlayer.App\RecordingWriteProbe.cs"
              Link="app-compile\RecordingWriteProbe.cs" />
     <Compile Include="..\..\src\StreamsPlayer.App\RecordingFinisher.cs"

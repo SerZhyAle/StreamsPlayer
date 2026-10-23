@@ -14,6 +14,9 @@
       anatomy    the parts of rule 8 in order - title, purpose line, picture (until the `shot` baseline is
                  empty only the pages not on it must have one), the order, the elements, related, footer;
                  `lang` and `dir` match the folder; every picture has alt text
+      index      the index of a locale links every written page of that locale, by a relative same-folder link
+                 (DOC-EXTERNAL-QUALITY section 8 item B: a subject index that links every page, held complete);
+                 a page the index does not link fails, so a page nobody reaches cannot ship
       requests   a page makes none (rule 12): the referrer is withheld; nothing but an anchor leads to
                  another origin; no web font, script source, @import or url()
       links      every relative link and style sheet resolves; every #anchor names an id of its target; a
@@ -49,11 +52,29 @@ function Has([object] $Object, [string] $Name) {
 $mapFile = Join-Path $Root 'help/help-map.json'
 if (-not (Test-Path -LiteralPath $mapFile)) { Stop-Unverified 'no help/help-map.json' }
 if (-not (Test-Path -LiteralPath $Help)) { Stop-Unverified "no $Help - run tools/help/build-help.ps1" }
-try { $map = Get-Content -LiteralPath $mapFile -Raw -Encoding utf8 | ConvertFrom-Json -Depth 30 }
+# The two sources the generated copies beside the pages are compared with: without one there is nothing to compare against.
+$kit = Join-Path $Root 'docs/assets/sza-kit.css'
+$layer = Join-Path $Root 'help/templates/help.css'
+foreach ($source in $kit, $layer) {
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { Stop-Unverified "no $source - the source of a generated copy" }
+}
+try { $map =Get-Content -LiteralPath $mapFile -Raw -Encoding utf8 | ConvertFrom-Json -Depth 30 }
 catch { Stop-Unverified "help-map.json does not parse: $($_.Exception.Message)" }
 
 $failures = [System.Collections.Generic.List[string]]::new()
 function Fail([string] $Message) { $failures.Add($Message) }
+
+# A terminating error nothing below anticipated (an unreadable page, a failing file API) stops the run before it can judge:
+# could not verify, with a verdict line, not a stack trace and exit 1 (CHECK-VERDICT 2.1, 2.5, 2.11). Problems already
+# recorded still outrank it (2.14).
+trap {
+    $reason = $_.Exception.Message -replace '\s+', ' '
+    if ($failures.Count -eq 0) { Stop-Unverified $reason }
+    foreach ($failure in $failures) { Write-Host "  FAIL  $failure" }
+    Write-Host "help: the run stopped early: $reason"
+    Write-Host "help: FAIL ($($failures.Count) problem(s))"
+    exit 1
+}
 
 $baselineFile = Join-Path $Root 'help/help-baseline.txt'
 $baseline = if (Test-Path -LiteralPath $baselineFile) {
@@ -70,10 +91,8 @@ if ($locales -notcontains $map.sourceLocale) { Fail "pages: the source locale $(
 $rightToLeft = @('ar', 'ur')
 
 # ------------------------------------------------------------------------------------------- assets
-$kit = Join-Path $Root 'docs/assets/sza-kit.css'
 if (-not (Test-Path -LiteralPath (Join-Path $Help 'sza-kit.css'))) { Fail 'assets: sza-kit.css is not beside the pages' }
 elseif ((Get-FileHash -LiteralPath $kit).Hash -ne (Get-FileHash -LiteralPath (Join-Path $Help 'sza-kit.css')).Hash) { Fail 'assets: sza-kit.css differs from docs/assets/sza-kit.css' }
-$layer = Join-Path $Root 'help/templates/help.css'
 if (-not (Test-Path -LiteralPath (Join-Path $Help 'help.css'))) { Fail 'assets: help.css is not beside the pages' }
 elseif ((Get-FileHash -LiteralPath $layer).Hash -ne (Get-FileHash -LiteralPath (Join-Path $Help 'help.css')).Hash) { Fail 'assets: help.css differs from help/templates/help.css' }
 
@@ -156,6 +175,16 @@ foreach ($locale in $locales) {
                 if ((Split-Path $resolved -Parent) -ne (Resolve-Path -LiteralPath $folder).Path) { Fail "links: $where links $target, a page of another locale (a page stays in its own language)" }
                 if ($fragment -and $fragment -notin (Get-Ids $resolved)) { Fail "links: $where links $target, which has no such id" }
             }
+        }
+    }
+
+    # Completeness of the index: a page of the map that this locale's index does not link is a page nobody reaches.
+    $indexFile = Join-Path $folder "$($map.index).html"
+    if (Test-Path -LiteralPath $indexFile) {
+        $indexMarkup = [regex]::Replace((Get-Content -LiteralPath $indexFile -Raw -Encoding utf8), '<script>.*?</script>', '', 'Singleline')
+        $indexLinks = @([regex]::Matches($indexMarkup, 'href="([^"#/:]+)\.html(?:#[^"]*)?"') | ForEach-Object { $_.Groups[1].Value })
+        foreach ($id in $written) {
+            if ($id -notin $indexLinks) { Fail "index: $locale/$($map.index).html does not link the page $id.html" }
         }
     }
 }

@@ -46,6 +46,7 @@
     <sys:String x:Key="OperationsTip">Window options, previews, history, add stream, library settings, import channels from the internet</sys:String>
     <sys:String x:Key="AddStreamTip">Add a stream by its address</sys:String>
     <sys:String x:Key="UpdateCatalogTip">Download the latest catalog from the internet</sys:String>
+    <sys:String x:Key="SearchAndFilters">Search, filters and sorting</sys:String>
     <sys:String x:Key="FiltersAndSorting">Filters and sorting</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">Show the filter and sorting row</sys:String>
     <sys:String x:Key="FiltersActiveTip">Show the filter and sorting row. Active filters: {0}</sys:String>
@@ -728,6 +729,8 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="SettingsFiles">Files</sys:String>
     <sys:String x:Key="SettingsFilesDesc">Folders for screenshots and stream recordings</sys:String>
     <sys:String x:Key="SettingsAbout">About</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">Account and server connection</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Sources, network access and audio quality</sys:String>
     <sys:String x:Key="SettingsAboutDesc">App information, licence and diagnostics</sys:String>
     <sys:String x:Key="ThemeHint">Choose light, dark, or follow your Windows appearance setting.</sys:String>
     <sys:String x:Key="TileSizeHint">Adjust how large channel tiles appear in the grid.</sys:String>
@@ -788,7 +791,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="ExchangeForgotten">Signed out on this device. The sign-in and the certificate pin were forgotten.</sys:String>
     <sys:String x:Key="ExchangeCertificate">Server certificate needs your approval.</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">Trust this server certificate? Previous fingerprint: {0} New fingerprint: {1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">Live broadcasts</sys:String>
+    <sys:String x:Key="BroadcastsTitle">My broadcasts</sys:String>
     <sys:String x:Key="BroadcastsEmpty">This account has no broadcasts right now; they appear here as your other devices start them.</sys:String>
     <sys:String x:Key="BroadcastsOnline">online</sys:String>
     <sys:String x:Key="BroadcastsOffline">offline</sys:String>
@@ -992,4 +995,8 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="ExchangeDiagnosisServerLine">Server: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Code: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">There is no server to check yet. Import a connection string or sign in first.</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">Nothing can receive this broadcast. Enable local network access or connect to your exchange server, then try again.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">This protected broadcast address cannot be played here. Ask the broadcaster for a link through the exchange server.</sys:String>
+    <sys:String x:Key="BroadcastNotListed">not listed</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">The server {0} presents a certificate this PC cannot verify. Check this fingerprint with the broadcaster before trusting it for this channel:&#10;{1}&#10;Trust this certificate?</sys:String>
 </ResourceDictionary>

@@ -18,6 +18,17 @@
              the overlay renders left-to-right in Arabic and Urdu whatever the window declares. -->
         <Grid x:Name="ControlsOverlay" Background="#01000000" PreviewMouseDown="VideoSurface_MouseDown"
               FlowDirection="{DynamicResource UiFlowDirection}">
+        <Border x:Name="BroadcastFailurePanel" VerticalAlignment="Center" HorizontalAlignment="Center"
+                Background="#E0000000" CornerRadius="6" Padding="20" Margin="24" Visibility="Collapsed">
+            <StackPanel MaxWidth="600">
+                <TextBlock x:Name="BroadcastFailureText" Foreground="White" TextWrapping="Wrap" />
+                <Expander x:Name="BroadcastFailureDetails" Header="{DynamicResource ExchangeDiagnosisDetails}" Foreground="White" Margin="0,10,0,0">
+                    <TextBlock x:Name="BroadcastFailureCode" Foreground="White" TextWrapping="Wrap" />
+                </Expander>
+                <Button Content="{DynamicResource FailureRetry}" Style="{StaticResource PlayGlyphButton}"
+                        Click="BroadcastRetry_Click" HorizontalAlignment="Center" Margin="0,12,0,0" />
+            </StackPanel>
+        </Border>
         <Border x:Name="ControlPanel" VerticalAlignment="Bottom" Background="#B0000000" Padding="12">
             <Grid>
                 <Grid.ColumnDefinitions>

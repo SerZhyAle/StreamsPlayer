@@ -12,7 +12,11 @@
 generator; `Glyphs.xaml` and README glyph copies are generated. The map is synchronized at the
 versions above; catalog-byte/source tests do not prove every rendered control.
 BUTTONS/UI-SIZING own current button policy, including text-only answers and native system dialogs.
-SP-0231 owns remaining target/colour/semantics migration. The RU/UK More-actions exception remains.
+SP-0231 owns remaining target/colour/semantics migration. Unhide is a vocabulary meaning now (the
+owner folded it); the map holds 64 meanings, no pending and nine private entries. The More-actions
+exception remains and is wider than first recorded: the product tooltip differs from the canonical
+name in six of thirteen languages (ru, uk, fr, hi, bn, ar); no owner response exists and no string
+is renamed.
 The Settings server-relay glyph is fixed-direction and explicitly LTR.
 
 The [synchronization audit](../audits/SP-0232-contract-sync.md) records clause scope, evidence and remaining work. Own catalog registry rows remain

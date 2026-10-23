@@ -64,7 +64,7 @@ internal sealed partial class ExchangeSourceService
             }
         }
 
-        if (firstFollower)
+        if (firstFollower || !follow)
         {
             // Following resumes from this lease's own list: what the loop holds from before is not a base for a push.
             _directoryFresh = false;
@@ -80,7 +80,7 @@ internal sealed partial class ExchangeSourceService
     /// </summary>
     internal async Task<bool> WaitForDirectoryAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
     {
-        if (Directory is not null)
+        if (Directory is not null && _directoryFresh)
         {
             return true;
         }
@@ -88,7 +88,7 @@ internal sealed partial class ExchangeSourceService
         var answered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         void Observe()
         {
-            if (Directory is not null)
+            if (Directory is not null && _directoryFresh)
             {
                 answered.TrySetResult();
             }
@@ -97,7 +97,7 @@ internal sealed partial class ExchangeSourceService
         DirectoryChanged += Observe;
         try
         {
-            if (Directory is not null)
+            if (Directory is not null && _directoryFresh)
             {
                 return true;
             }

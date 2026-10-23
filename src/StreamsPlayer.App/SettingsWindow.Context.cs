@@ -68,6 +68,11 @@ public partial class SettingsWindow
     {
         PageTitleText.Text = LocalizationService.Get(PageNameKeys[_currentPageIndex]);
         PageDescText.Text = LocalizationService.Get(PageDescKeys[_currentPageIndex]);
+        ExchangePageMark.Visibility = _currentPageIndex == ExchangePageIndex ? Visibility.Visible : Visibility.Collapsed;
+        var groupCommands = _currentPageIndex is ExchangePageIndex or BroadcastPageIndex
+            ? Visibility.Collapsed : Visibility.Visible;
+        ExpandAllButton.Visibility = groupCommands;
+        CollapseAllButton.Visibility = groupCommands;
     }
 
     private FrameworkElement PageAt(int index) => index switch
@@ -76,7 +81,9 @@ public partial class SettingsWindow
         2 => PagePlayback,
         3 => PageAudio,
         4 => PageFiles,
-        5 => PageAbout,
+        ExchangePageIndex => PageExchange,
+        BroadcastPageIndex => PageBroadcast,
+        7 => PageAbout,
         _ => PageGeneral
     };
 
@@ -128,9 +135,16 @@ public partial class SettingsWindow
     private IEnumerable<Expander> VisiblePageExpanders() =>
         FindVisualDescendants<Expander>(PageAt(_currentPageIndex));
 
-    private Expander? FindGroup(string groupId) =>
-        VisiblePageExpanders().FirstOrDefault(expander =>
-            string.Equals(SettingsUiProperties.GetGroupId(expander), groupId, StringComparison.Ordinal));
+    private IEnumerable<FrameworkElement> VisiblePageGroups() => _currentPageIndex switch
+    {
+        ExchangePageIndex => [ExchangeGroup],
+        BroadcastPageIndex => [BroadcastGroup],
+        _ => VisiblePageExpanders()
+    };
+
+    private FrameworkElement? FindGroup(string groupId) =>
+        VisiblePageGroups().Concat(VisiblePageExpanders()).FirstOrDefault(group =>
+            string.Equals(SettingsUiProperties.GetGroupId(group), groupId, StringComparison.Ordinal));
 
     private static IEnumerable<T> FindVisualDescendants<T>(DependencyObject root) where T : DependencyObject
     {
@@ -150,7 +164,7 @@ public partial class SettingsWindow
         }
     }
 
-    private static string ViewportKey(int pageIndex) => $"page{pageIndex}";
+    private static string ViewportKey(int pageIndex) => $"page{PersistedPageIndices[pageIndex]}";
 
     /// <summary>
     /// The element's top as an absolute offset into the scrolled page. A bound read relative to the
@@ -163,15 +177,15 @@ public partial class SettingsWindow
     /// <summary>Records the current page's viewport as its topmost visible group and the offset into it.</summary>
     private void RememberViewport()
     {
-        foreach (var expander in VisiblePageExpanders())
+        foreach (var group in VisiblePageGroups())
         {
-            var bounds = expander.TransformToVisual(PageScroll).TransformBounds(new Rect(expander.RenderSize));
+            var bounds = group.TransformToVisual(PageScroll).TransformBounds(new Rect(group.RenderSize));
             if (bounds.Bottom <= 0)
             {
                 continue;
             }
 
-            if (SettingsUiProperties.GetGroupId(expander) is { Length: > 0 } groupId)
+            if (SettingsUiProperties.GetGroupId(group) is { Length: > 0 } groupId)
             {
                 _uiContext.Viewports[ViewportKey(_currentPageIndex)] = new SettingsViewportAnchor(groupId, Math.Max(0, -bounds.Top));
                 return;
@@ -286,7 +300,7 @@ public partial class SettingsWindow
         try
         {
             RememberViewport();
-            _uiContext = _uiContext with { LastPageIndex = _currentPageIndex };
+            _uiContext = _uiContext with { LastPageIndex = PersistedPageIndices[_currentPageIndex] };
 
             if (WindowState == WindowState.Normal)
             {

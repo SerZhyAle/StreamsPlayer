@@ -169,6 +169,7 @@ internal sealed class FastMediaSorterPlaybackConnection : IDisposable
     public int? StatusCode { get; }
     public TimeSpan ResponseElapsed { get; }
     public Stream? Stream => _stream;
+    public string? ContentType => _response?.Content.Headers.ContentType?.ToString();
     public Exception? TransportError { get; private set; }
     public bool EndOfStream { get; private set; }
 

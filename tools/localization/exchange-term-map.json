@@ -86,7 +86,11 @@
       "FmsBroadcastTitle",
       "FmsBroadcastTooLarge",
       "FmsBroadcastUnsupportedMode",
-      "FmsBroadcastUpdated"
+      "FmsBroadcastUpdated",
+      "BroadcastNoReachableEndpoint",
+      "BroadcastProtectedEndpointUnsupported",
+      "BroadcastNotListed",
+      "BroadcastTrustPrompt"
     ],
     "DEVICE-EXCHANGE 2 CW: cast to your own device": [
       "BroadcastCastAccepted",

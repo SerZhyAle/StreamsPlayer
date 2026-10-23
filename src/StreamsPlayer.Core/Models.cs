@@ -203,12 +203,19 @@ public sealed record FastMediaSorterBroadcastInfo
     public string? SelectedTransport { get; init; }
     public IReadOnlyList<FastMediaSorterBroadcastEndpoint> Endpoints { get; init; } = [];
     public FastMediaSorterBroadcastAuth? Auth { get; init; }
+    public Dictionary<string, string> CertificatePins { get; init; } = new(StringComparer.Ordinal);
     public long? TargetLatencyMs { get; init; }
 
     // SP-0201: set only on a channel the exchange directory created. The directory's one act on a row it
     // did not create is the sourceId replacement, so a row that keeps its identity from a manual entry, a
     // file or a pasted link never gains these members and is never marked ended by a record leaving.
     public string? DirectoryBroadcastId { get; init; }
+
+    /// <summary>The listing entry's identity (DEVICE-EXCHANGE AA and BJ), not its renewable device token or id.</summary>
+    public string? DirectoryEntryIdentity { get; init; }
+
+    /// <summary>The listing entry was removed; keep the row and show not listed until that identity returns.</summary>
+    public bool DirectoryEntryRemoved { get; init; }
 
     // SP-0201 requirement 4: a directory record that left the account marks its channel ended - kept, with
     // its title, its collections and its history - and a later record with the same sourceId clears it.
@@ -232,8 +239,18 @@ public sealed record FastMediaSorterBroadcastInfo
     /// playback leg walks, restarting at the top on a reconnect. The list may be empty (a descriptor
     /// with no endpoint this build plays); the caller falls back to the channel's own address.
     /// </summary>
-    public IReadOnlyList<FastMediaSorterBroadcastEndpoint> PlaybackAttemptEndpoints() =>
-        FastMediaSorterBroadcastAttempts.PlaybackAttempts(Mode, Endpoints);
+    public IReadOnlyList<FastMediaSorterBroadcastEndpoint> PlaybackAttemptEndpoints(string fallbackUrl = "")
+    {
+        var attempts = FastMediaSorterBroadcastAttempts.PlaybackAttempts(Mode, Endpoints);
+        if (attempts.Count == 0 && LaunchableAddress.IsLaunchable(fallbackUrl) && !ExchangeEndpointKinds.IsExchangeAddress(fallbackUrl))
+        {
+            attempts = [SelectPlaybackEndpoint(fallbackUrl)];
+        }
+
+        return attempts.Select(endpoint =>
+            endpoint.CertFingerprint is null && BroadcastCertificateTrust.EndpointIdentity(endpoint.Url) is { } identity
+                && CertificatePins.TryGetValue(identity, out var pin) ? endpoint with { CertFingerprint = pin } : endpoint).ToArray();
+    }
 }
 
 public sealed record StreamChannel

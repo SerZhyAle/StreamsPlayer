@@ -42,7 +42,8 @@ internal sealed record BroadcastLinkRow(string Title, string StateText)
 /// </summary>
 /// <param name="OpenState">The state of this broadcast's window when one is open, already in words.</param>
 /// <param name="IsGuest">The broadcast was given to this PC as a guest; it is played but never kept in the library.</param>
-internal sealed record BroadcastRow(ExchangeBroadcastView View, string? OpenState = null, bool IsGuest = false)
+internal sealed record BroadcastRow(ExchangeBroadcastView View, string? OpenState = null, bool IsGuest = false,
+    ExchangeAccount? ListingEntry = null)
 {
     public string Title => string.IsNullOrWhiteSpace(View.Record.Title) ? ModeLabel : View.Record.Title!;
 
@@ -144,7 +145,18 @@ public partial class BroadcastsWindow : Window
     {
         if (!Dispatcher.HasShutdownStarted)
         {
-            Dispatcher.BeginInvoke(Rebuild);
+            Dispatcher.BeginInvoke(() => HandlerBoundary.Run(nameof(SourceChanged), async () =>
+            {
+                foreach (var viewer in _viewers)
+                {
+                    if (viewer.Snapshot is { } snapshot)
+                    {
+                        await _host.ApplyGuestDirectoryAsync(viewer.Entry, snapshot);
+                    }
+                }
+
+                Rebuild();
+            }));
         }
     }
 
@@ -186,7 +198,7 @@ public partial class BroadcastsWindow : Window
         foreach (var viewer in _viewers)
         {
             accountSections++;
-            var failing = AddSection(true, viewer.Entry.Login, viewer.Entry.Host, viewer.Snapshot, viewer.StatusKey, viewer.Ended, incoming);
+            var failing = AddSection(true, viewer.Entry.Login, viewer.Entry.Host, viewer.Snapshot, viewer.StatusKey, viewer.Ended, incoming, viewer.Entry);
             needsSignIn |= failing;
             if (failing)
             {
@@ -219,7 +231,8 @@ public partial class BroadcastsWindow : Window
         ExchangeDirectorySnapshot? snapshot,
         string statusKey,
         bool ended,
-        IReadOnlyList<IncomingBroadcastEntry> incoming)
+        IReadOnlyList<IncomingBroadcastEntry> incoming,
+        ExchangeAccount? listingEntry = null)
     {
         _rows.Add(guest
             ? new BroadcastSectionHeading(LocalizationService.Format("BroadcastsGuestHeading", login, host),
@@ -257,7 +270,7 @@ public partial class BroadcastsWindow : Window
                 var open = view.Record.Descriptor?.SourceId is { } sourceId
                     ? incoming.FirstOrDefault(entry => entry.SourceId == sourceId)
                     : null;
-                _rows.Add(new BroadcastRow(view, open is null ? null : StateText(open), guest));
+                _rows.Add(new BroadcastRow(view, open is null ? null : StateText(open), guest, listingEntry));
             }
         }
 
@@ -291,7 +304,7 @@ public partial class BroadcastsWindow : Window
     private async Task PlayAsync(BroadcastRow row)
     {
         var result = row.IsGuest
-            ? await _host.OpenGuestBroadcastWindowAsync(row.View)
+            ? await _host.OpenGuestBroadcastWindowAsync(row.View, row.ListingEntry!)
             : await _host.OpenExchangeBroadcastWindowAsync(row.View);
         ShowResult(result);
     }
@@ -411,7 +424,7 @@ public partial class BroadcastsWindow : Window
     {
         try
         {
-            _host.OpenSettings(1);
+            _host.OpenSettings(SettingsWindow.ExchangePageIndex);
         }
         catch (Exception exception)
         {

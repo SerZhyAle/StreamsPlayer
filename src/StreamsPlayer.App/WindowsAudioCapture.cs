@@ -197,7 +197,7 @@ internal sealed class WindowsAudioCapture : IDisposable
                     delivered = true;
                 }
 
-                _ = capture.ReleaseBuffer();
+                _ = capture.ReleaseBuffer(frames);
             }
 
             if (!delivered && _loopback)
@@ -441,7 +441,11 @@ internal sealed class WindowsAudioCapture : IDisposable
     private interface IAudioCaptureClient
     {
         [PreserveSig] int GetBuffer(out IntPtr data, out uint frames, out uint flags, IntPtr devicePosition, IntPtr queuePosition);
-        [PreserveSig] int ReleaseBuffer();
+        // IAudioCaptureClient::ReleaseBuffer(UINT32 NumFramesRead): the frame count is a required argument.
+        // Declared without it, the call passed a stale register, Windows answered AUDCLNT_E_INVALID_SIZE, the
+        // packet stayed held and every later GetBuffer failed with AUDCLNT_E_OUT_OF_ORDER - a broadcast of
+        // pure silence after the first packet (observed, SP-0217 follow-up).
+        [PreserveSig] int ReleaseBuffer(uint framesRead);
         [PreserveSig] int GetNextPacketSize(ref uint frames);
     }
 }

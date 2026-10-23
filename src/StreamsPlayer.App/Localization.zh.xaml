@@ -44,6 +44,7 @@
     <sys:String x:Key="OperationsTip">窗口选项、预览、历史记录、添加流、媒体库设置、从互联网导入频道</sys:String>
     <sys:String x:Key="AddStreamTip">按地址添加一个流</sys:String>
     <sys:String x:Key="UpdateCatalogTip">从互联网下载最新目录</sys:String>
+    <sys:String x:Key="SearchAndFilters">搜索、筛选和排序</sys:String>
     <sys:String x:Key="FiltersAndSorting">筛选与排序</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">显示筛选与排序行</sys:String>
     <sys:String x:Key="FiltersActiveTip">显示筛选与排序行。已启用的筛选器：{0}</sys:String>
@@ -712,6 +713,8 @@
     <sys:String x:Key="SettingsFiles">文件</sys:String>
     <sys:String x:Key="SettingsFilesDesc">截图与流录制的保存文件夹</sys:String>
     <sys:String x:Key="SettingsAbout">关于</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">账户与服务器连接</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">来源、网络访问和音频质量</sys:String>
     <sys:String x:Key="SettingsAboutDesc">应用程序信息、许可证和诊断</sys:String>
     <sys:String x:Key="ThemeHint">选择浅色、深色，或跟随 Windows 外观设置。</sys:String>
     <sys:String x:Key="TileSizeHint">调整网格中频道卡片的大小。</sys:String>
@@ -772,7 +775,7 @@
     <sys:String x:Key="ExchangeForgotten">已在此设备上退出登录。登录信息和证书指纹已清除。</sys:String>
     <sys:String x:Key="ExchangeCertificate">服务器证书需要您批准。</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">是否信任此服务器证书？原指纹：{0} 新指纹：{1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">实时广播</sys:String>
+    <sys:String x:Key="BroadcastsTitle">我的广播</sys:String>
     <sys:String x:Key="BroadcastsEmpty">此账户目前没有广播；其他设备开始广播后，它们会显示在这里。</sys:String>
     <sys:String x:Key="BroadcastsOnline">在线</sys:String>
     <sys:String x:Key="BroadcastsOffline">离线</sys:String>
@@ -976,4 +979,8 @@
     <sys:String x:Key="ExchangeDiagnosisServerLine">服务器：{0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">代码：{0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">还没有可检查的服务器。请先导入连接字符串或登录。</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">没有可接收此广播的连接。请启用本地网络或连接到交换服务器，然后重试。</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">请向广播者索取通过交换服务器的链接。</sys:String>
+    <sys:String x:Key="BroadcastNotListed">未列出</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">此电脑无法验证 {0} 的证书。在此频道信任它之前，请与广播者核对此指纹：&#10;{1}&#10;是否信任此证书？</sys:String>
 </ResourceDictionary>

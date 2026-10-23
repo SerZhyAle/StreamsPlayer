@@ -70,7 +70,7 @@ public partial class SettingsWindow
         {
             // Item AT: the account ended this device's sign-in. The server and login stay in the form; the
             // person is told what to type, not that something failed.
-            ExchangeStatusText.Text += Environment.NewLine + LocalizationService.Get("ExchangeSignInAgain");
+            ExchangeStatusText.Text = ExchangeFailurePresentation.Text(ExchangeFailureRows.SignedOut);
         }
 
         if (Exchange.OwnKeyMissing)
@@ -84,6 +84,10 @@ public partial class SettingsWindow
         ExchangeFingerprintText.Text = Exchange.PresentedFingerprint is { } presented
             ? LocalizationService.Format("ExchangeCertificatePrompt", Exchange.PreviousFingerprint ?? "-", presented)
             : "";
+        var failure = ExchangeFailureRows.ByMessageKey(Exchange.EnrollmentOutcomeKey)
+            ?? ExchangeFailureRows.ByMessageKey(Exchange.StatusKey);
+        ExchangeFailureCodeText.Text = failure is null ? "" : LocalizationService.Format("ExchangeDiagnosisCodeLine", failure.Code);
+        ExchangeFailureCodeText.Visibility = failure is null ? Visibility.Collapsed : Visibility.Visible;
         ShowExchangePrompt();
         ShowGuestEntries();
         UpdateBroadcastGuestNote();

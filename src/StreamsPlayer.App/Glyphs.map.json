@@ -2,8 +2,8 @@
   "about": "SP-0113. This product's map to the portfolio icon vocabulary (ICON-SET, ICON-RENDER, ICON-EXTERNAL, consumer). Every glyph the application, its READMEs and its site draw is listed here once: a vocabulary meaning, a meaning asked for by proposal and pending, product chrome or illustration, or an external picture. Glyphs.xaml is generated from this file and assets/glyphs/ by tools/Sync-IconGlyphs.ps1; IconographyConformanceTests hold the three against each other.",
   "contracts": { "ICON-SET": "0.36", "ICON-RENDER": "0.24", "ICON-EXTERNAL": "0.12" },
   "meanings": [
-    { "id": "view.list", "name": "List view", "surfaces": [ "style:ListGlyphButton" ] },
-    { "id": "view.grid", "name": "Grid view", "surfaces": [ "style:GridGlyphButton", "SettingsWindow.xaml tab GridSettings" ] },
+    { "id": "view.list", "name": "List view", "surfaces": [ "style:ListGlyphButton", "style:SegmentedListButton" ] },
+    { "id": "view.grid", "name": "Grid view", "surfaces": [ "style:GridGlyphButton", "style:SegmentedGridButton", "SettingsWindow.xaml tab GridSettings" ] },
     { "id": "action.refresh", "name": "Refresh", "surfaces": [ "style:RefreshGlyphButton" ], "note": "Import channels from the internet: loads the shared catalog again." },
     { "id": "action.add", "name": "Add", "surfaces": [ "style:AddGlyphButton" ], "note": "Add stream, create collection, paste a channel (adds it), the Add stream dialog's default button." },
     { "id": "action.import", "name": "Import", "surfaces": [ "style:ImportGlyphButton", "style:ImportAnswerGlyphButton" ], "note": "The import-from-address dialog's affirmative answer keeps the verb's own glyph in the answer hue (WINDOWS-UI 0.4 section 11 item 4)." },
@@ -48,6 +48,7 @@
     { "id": "media.exit-picture-in-picture", "name": "Full window", "surfaces": [ "style:FullWindowGlyphOnlyButton" ], "nameKeys": [ "ExpandFromPanelName", "ExpandFromPanelTip" ] },
     { "id": "source.own", "name": "My channels", "surfaces": [ "style:QuickOwnFilterButton" ], "nameKeys": [ "QuickOwnTip" ] },
     { "id": "source.hidden", "name": "Hidden", "surfaces": [ "style:HiddenGlyphButton" ], "nameKeys": [ "ManageHiddenOpen", "ManageHiddenTip" ] },
+    { "id": "action.unhide", "name": "Unhide", "surfaces": [ "style:UnhideGlyphButton" ], "nameKeys": [ "Unhide" ] },
     { "id": "app.language", "name": "Interface language", "surfaces": [ "SettingsWindow.xaml tab Language" ] },
     { "id": "action.choose-folder", "name": "Choose folder", "surfaces": [ "style:ChooseFolderGlyphButton" ], "nameKeys": [ "FrameFolderBrowse" ], "note": "The label's '..' that says a dialog follows is the label's, not the name's (the record's note)." },
     { "id": "action.confirm", "name": "Apply", "surfaces": [ "style:ConfirmAnswerGlyphButton", "style:ConfirmGlyphButton" ], "note": "A dialog's affirmative answer in the success hue (ConfirmAnswerGlyphButton); the same check in the mono look where the acting button keeps the accent fill or the command is not a dialog answer (ConfirmGlyphButton)." },
@@ -59,16 +60,14 @@
     { "id": "system.none", "name": "Nothing", "surfaces": [ "style:NoneGlyphButton" ], "note": "No schedule for this channel: nothing is assigned." },
     { "id": "media.audio-track", "name": "Audio track", "surfaces": [ "style:PlayerOverlayAudioTracksGlyphButton" ] },
     { "id": "media.subtitles", "name": "Subtitles", "surfaces": [ "style:PlayerOverlaySubtitlesGlyphButton" ] },
-    { "id": "content.stream", "name": "Stream", "surfaces": [ "style:BroadcastsGlyphButton" ], "note": "The live broadcasts of the account's devices, received by this app." },
-    {"id": "source.exchange-server", "name": "Exchange server", "surfaces": ["MainWindow.xaml exchange server status button"], "own": "EXCHANGE-MARK 0.3 section 6: until ICON-SET folds the accepted proposal, a product shows the exchange mark's one-tone glyph in this row; own/ is svg/exchange-mark-mono.svg of that contract, path data unchanged and pinned in assets/exchange-mark/PROVENANCE.txt, where the catalog's copy still draws the two server bays"},
-    {"id": "feature.live-broadcast", "name": "Live Broadcast", "surfaces": ["style:BroadcastingGlyphButton"], "note": "Outgoing capture and its live indicator; incoming broadcasts keep content.stream. own/ expands the catalog SVG's round strokes to filled contours because the WPF geometry template paints fills; the dot, arcs and dimensions are preserved."},
+    { "id": "content.stream", "name": "Stream", "surfaces": [ "style:BroadcastsGlyphButton", "style:BroadcastsGlyphOnlyButton" ], "note": "The live broadcasts of the account's devices, received by this app." },
+    {"id": "source.exchange-server", "name": "Exchange server", "surfaces": ["style:ExchangeStatusGlyphOnlyButton"], "own": "EXCHANGE-MARK 0.3 section 6: until ICON-SET folds the accepted proposal, a product shows the exchange mark's one-tone glyph in this row; own/ is svg/exchange-mark-mono.svg of that contract, path data unchanged and pinned in assets/exchange-mark/PROVENANCE.txt, where the catalog's copy still draws the two server bays"},
+    {"id": "feature.live-broadcast", "name": "Live Broadcast", "surfaces": ["style:BroadcastingGlyphButton", "style:BroadcastLiveGlyphOnlyButton"], "note": "Outgoing capture and its live indicator; incoming broadcasts keep content.stream. own/ expands the catalog SVG's round strokes to filled contours because the WPF geometry template paints fills; the dot, arcs and dimensions are preserved."},
     {"id": "feature.server-relay", "name": "Relay through the server", "surfaces": ["SettingsWindow.xaml broadcast exchange path hint"]},
     {"id": "action.connect-device", "name": "Connect a device", "surfaces": ["style:ExchangeConnectGlyphButton"]},
     { "id": "app.theme", "name": "Theme", "site": true, "surfaces": [ "site theme switch" ] }
   ],
-  "pending": [
-    { "key": "action.unhide", "name": "Unhide", "proposal": "PROPOSAL-2026-10-11-streamsplayer-button-meanings.md item 1", "surfaces": [ "style:UnhideGlyphButton" ] }
-  ],
+  "pending": [],
   "private": [
     { "key": "Chrome.scroll-up", "reason": "scroll bar line button - a part of a standard control, which the vocabulary puts out of its scope (ICON-SET 0.22 item E.3, answering proposal question 9); this product's dark-theme template draws it, declared chrome here, never a meaning" },
     { "key": "Chrome.scroll-down", "reason": "scroll bar line button" },

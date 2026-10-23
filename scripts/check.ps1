@@ -20,6 +20,9 @@
       release-notes-test   tools/site/Test-ReleaseNotes.ps1 - the release-notes reader and the What's new renderer's own
                            fixture tests, and the repository's notes folder read through them (SP-0039)
       msix-gate     msix/Test-AssertMsixPackage.ps1 - the Store package read-back refuses what it must (SP-0190)
+      msix-manifest msix/Test-AppxManifest.ps1 - the committed manifest template packs under the Windows SDK's own
+                    makeappx, from any tree state (build-msix.ps1 refuses a dirty tree, so it cannot be the
+                    first to find a schema error) (SP-0238); COULD NOT VERIFY without the SDK
       existing-release-test scripts/Test-ExistingReleaseState.ps1 - complete publications skip rebuilding;
                             incomplete or invalid asset sets fail closed without replacement (SP-0184)
       audit-verdict-test tools/audit/Test-AuditVerdictGate.ps1 - the audit-verdict writer and gate's own
@@ -36,15 +39,18 @@
                             snapshot that fails validation never replaces the file it was aimed at
                             (SP-0212 L7)
       demo-check    tools/site/make-demo.ps1 -Check - the demo MP4, GIF and poster are all there, silent, short and within
-                    their byte caps, read without ffmpeg (SP-0039); skipped, and not counted, while docs/assets/demo
-                    holds no demo file, because nothing has been recorded yet
+                    their byte caps, read without ffmpeg (SP-0039); skipped, named above the verdict line and counted
+                    on it, while docs/assets/demo holds no demo file, because nothing has been recorded yet
+      check-verdict-scripts-test scripts/Test-CheckVerdictScripts.ps1 - the exit code and the last line of the gate
+                    scripts that answer in CHECK-VERDICT, on throwaway trees and stubbed children (SP-0239)
 
-    Exit codes (CHECK-VERDICT): 0 passed, 1 a check failed, 2 a check could not verify. A failed restore or
-    build stops the run (nothing after it can be judged); every later check runs even when an earlier one
-    fails, and the last line names all of them:
-        check: PASS (<n> checks)
-        check: FAIL (<names>)
-        check: CANNOT VERIFY (<names>)
+    Exit codes (CHECK-VERDICT): 0 passed, 1 a check failed, 2 a check could not verify. A child that answers 4
+    ("not looked at yet": a lock another run holds) is read as 2, and an exit nothing above anticipated (dotnet
+    missing from PATH, ..) as 2 as well. A failed restore or build stops the run (nothing after it can be
+    judged); every later check runs even when an earlier one fails, and the last line names all of them:
+        check: PASS (<n> checks, <m> skipped)
+        check: FAIL (<names>[; <m> skipped])
+        check: COULD NOT VERIFY (<names>[; <m> skipped])
 #>
 [CmdletBinding()]
 param(
@@ -84,6 +90,8 @@ try {
     $results['release-notes-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'msix/Test-AssertMsixPackage.ps1')
     $results['msix-gate'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'msix/Test-AppxManifest.ps1') -Configuration $Configuration
+    $results['msix-manifest'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'tools/store/Test-StoreListing.ps1')
     $results['store-listing-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'scripts/Test-ExistingReleaseState.ps1')
@@ -100,21 +108,34 @@ try {
     $results['smoke-verdict-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'tools/Test-CatalogSnapshot.ps1')
     $results['snapshot-tool-test'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'scripts/Test-CheckVerdictScripts.ps1')
+    $results['check-verdict-scripts-test'] = $LASTEXITCODE
     # Run once the files exist (SP-0039 6.4). A folder holding only some of the three is a defect and is judged, so the
-    # gate keys on "any demo file", not on all of them; the check itself answers 3 for a file of the set that is absent.
+    # gate keys on "any demo file", not on all of them; the check itself answers 1 for a file of the set that is absent.
+    $skipped = [System.Collections.Generic.List[string]]::new()
     $demoDir = Join-Path $root 'docs/assets/demo'
     if ((Test-Path -LiteralPath $demoDir -PathType Container) -and @(Get-ChildItem -LiteralPath $demoDir -File -Filter 'streamsplayer-demo*').Count -gt 0) {
         pwsh -NoProfile -File (Join-Path $root 'tools/site/make-demo.ps1') -Check
         $results['demo-check'] = $LASTEXITCODE
     }
-    else { Write-Host 'check: demo-check skipped - docs/assets/demo holds no demo file yet (SP-0039)' }
+    else { Write-Host 'check: demo-check skipped - docs/assets/demo holds no demo file yet (SP-0039)'; $skipped.Add('demo-check') }
 
-    $failed = @($results.Keys | Where-Object { $results[$_] -ne 0 -and $results[$_] -ne 2 })
-    $unverified = @($results.Keys | Where-Object { $results[$_] -eq 2 })
+    # CHECK-VERDICT 2.1 and 2.14: a child exit of 4 is "not looked at yet", not a verdict, and an aggregator that does not
+    # queue answers it as 2. Every other code but 0 and 2 stays a defect, as before (this gate has no advisory class).
+    $failed = @($results.Keys | Where-Object { $results[$_] -notin 0, 2, 4 })
+    $unverified = @($results.Keys | Where-Object { $results[$_] -in 2, 4 })
+    $skippedNote = if ($skipped.Count) { "; $($skipped.Count) skipped" } else { '' }
     foreach ($name in $results.Keys) { Write-Host ("check: {0} exit {1}" -f $name, $results[$name]) }
-    if ($failed.Count) { Write-Host "check: FAIL ($($failed -join ', '))"; exit 1 }
-    if ($unverified.Count) { Write-Host "check: CANNOT VERIFY ($($unverified -join ', '))"; exit 2 }
-    Write-Host "check: PASS ($($results.Count) checks)"
+    if ($failed.Count) { Write-Host "check: FAIL ($($failed -join ', ')$skippedNote)"; exit 1 }
+    if ($unverified.Count) { Write-Host "check: COULD NOT VERIFY ($($unverified -join ', ')$skippedNote)"; exit 2 }
+    Write-Host "check: PASS ($($results.Count) checks, $($skipped.Count) skipped)"
     exit 0
+}
+catch {
+    # An exception nothing above anticipated (dotnet or pwsh missing from PATH, ..): nothing was judged, so the run could not
+    # verify - a verdict line and exit 2, not a stack trace and exit 1 (CHECK-VERDICT 2.1, 2.5, 2.11). Every check runs in a
+    # child process and answers with an exit code, so no judged result is lost here.
+    Write-Host "check: COULD NOT VERIFY ($($_.Exception.Message -replace '\s+', ' '))"
+    exit 2
 }
 finally { Pop-Location }

@@ -44,6 +44,7 @@
     <sys:String x:Key="OperationsTip">Параметры окна, превью, журнал, добавить трансляцию, настройки библиотеки, импорт каналов из интернета</sys:String>
     <sys:String x:Key="AddStreamTip">Добавить поток по адресу</sys:String>
     <sys:String x:Key="UpdateCatalogTip">Загрузить свежий каталог из интернета</sys:String>
+    <sys:String x:Key="SearchAndFilters">Поиск, фильтры и сортировка</sys:String>
     <sys:String x:Key="FiltersAndSorting">Фильтры и сортировка</sys:String>
     <sys:String x:Key="FiltersAndSortingTip">Показать строку фильтров и сортировки</sys:String>
     <sys:String x:Key="FiltersActiveTip">Показать строку фильтров и сортировки. Активных фильтров: {0}</sys:String>
@@ -701,6 +702,8 @@
     <sys:String x:Key="SettingsFiles">Файлы</sys:String>
     <sys:String x:Key="SettingsFilesDesc">Папки для снимков кадров и записей трансляций</sys:String>
     <sys:String x:Key="SettingsAbout">О программе</sys:String>
+    <sys:String x:Key="SettingsExchangeDesc">Аккаунт и подключение к серверу</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Источники, сеть и качество звука</sys:String>
     <sys:String x:Key="SettingsAboutDesc">Сведения о приложении, лицензия и диагностика</sys:String>
     <sys:String x:Key="ThemeHint">Выберите светлую или тёмную тему, либо соответствие оформлению Windows.</sys:String>
     <sys:String x:Key="TileSizeHint">Настройте размер плиток каналов в сетке.</sys:String>
@@ -761,7 +764,7 @@
     <sys:String x:Key="ExchangeForgotten">Вы вышли на этом устройстве. Вход и закреплённый сертификат забыты.</sys:String>
     <sys:String x:Key="ExchangeCertificate">Сертификат сервера требует вашего подтверждения.</sys:String>
     <sys:String x:Key="ExchangeCertificatePrompt">Доверять этому сертификату сервера? Прежний отпечаток: {0} Новый отпечаток: {1}</sys:String>
-    <sys:String x:Key="BroadcastsTitle">Прямые трансляции</sys:String>
+    <sys:String x:Key="BroadcastsTitle">Свои трансляции</sys:String>
     <sys:String x:Key="BroadcastsEmpty">Сейчас у этой учётной записи нет трансляций; они появятся здесь, когда другие ваши устройства их запустят.</sys:String>
     <sys:String x:Key="BroadcastsOnline">в сети</sys:String>
     <sys:String x:Key="BroadcastsOffline">не в сети</sys:String>
@@ -965,4 +968,8 @@
     <sys:String x:Key="ExchangeDiagnosisServerLine">Сервер: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Код: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Пока нет сервера для проверки. Сначала импортируйте строку подключения или войдите.</sys:String>
+    <sys:String x:Key="BroadcastNoReachableEndpoint">Никто не сможет принять трансляцию. Включите доступ по локальной сети или подключитесь к серверу обмена и попробуйте снова.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Этот защищённый адрес трансляции здесь не поддерживается. Попросите автора дать ссылку через сервер обмена.</sys:String>
+    <sys:String x:Key="BroadcastNotListed">нет в списке</sys:String>
+    <sys:String x:Key="BroadcastTrustPrompt">Сервер {0} предъявил сертификат, который этот ПК не может проверить. Сверьте отпечаток с автором трансляции, прежде чем доверять ему для этого канала:&#10;{1}&#10;Доверять сертификату?</sys:String>
 </ResourceDictionary>

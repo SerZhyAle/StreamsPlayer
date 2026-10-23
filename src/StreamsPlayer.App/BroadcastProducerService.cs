@@ -98,7 +98,6 @@ internal sealed partial class BroadcastProducerService : IDisposable
         _store = new BroadcastProducerSettingsStore(dataDirectory);
         Settings = _store.LoadSync();
         _exchange = exchange;
-        _exchange.BroadcastRoleWanted = () => Settings.Allowed;
         _exchange.SessionOnline += OnSessionOnline;
         _exchange.SessionOffline += OnSessionOffline;
         _exchange.CastResult += OnCastResult;
@@ -140,6 +139,14 @@ internal sealed partial class BroadcastProducerService : IDisposable
             return false;
         }
 
+        var lanAddress = Settings.LanListening ? ChooseLanAddress() : null;
+        if (!BroadcastProducerGate.IsReachable(lanAddress, _exchange.PublicEndpoint is not null,
+            _exchange.MayBroadcast, _exchange.ServerSeals, _exchange.OwnKeyMissing, _exchange.Features))
+        {
+            Report("BroadcastNoReachableEndpoint");
+            return false;
+        }
+
         var channels = source == BroadcastSource.Microphone ? Settings.MicrophoneChannels : Settings.SystemSoundChannels;
         WindowsAacEncoder encoder;
         try
@@ -154,7 +161,6 @@ internal sealed partial class BroadcastProducerService : IDisposable
             return false;
         }
 
-        var lanAddress = Settings.LanListening ? ChooseLanAddress() : null;
         var lanServer = new BroadcastLanServer(new BroadcastLanServerOptions(
             TitleOf(source), Settings.BitrateKbps, Settings.MaxListeners,
             [ "/" + BroadcastDescriptorWriter.AudioLanPath, "/" + BroadcastDescriptorWriter.AudioLanPathAlias ],
@@ -189,6 +195,8 @@ internal sealed partial class BroadcastProducerService : IDisposable
             LanAddress = lanAddress,
             LocalPort = Settings.LanPort
         };
+        state.Plan = PlanOf(state, null, relay: false, tunnel: false, BroadcastSealMode.None);
+        state.DescriptorJson = BroadcastDescriptorWriter.Write(state.Plan);
         state.Capture.PcmReady += pcm => OnPcm(state, pcm);
         state.Capture.Failed += failure => OnCaptureFailed(state, failure);
         lanServer!.LanListenerCountChanged += count => OnLanListenerCount(state, count);
@@ -202,6 +210,11 @@ internal sealed partial class BroadcastProducerService : IDisposable
         await SaveChosenAsync(source, chosen: true).ConfigureAwait(false);
         Changed?.Invoke();
         await EstablishOnExchangeAsync(state).ConfigureAwait(false);
+        if (lanAddress is null && !state.ExchangeStarted)
+        {
+            await StopAsync(source).ConfigureAwait(false);
+            return false;
+        }
         return true;
     }
 
@@ -257,7 +270,6 @@ internal sealed partial class BroadcastProducerService : IDisposable
         _exchange.TunnelRequested -= OnTunnelRequested;
         _exchange.DirectoryChanged -= OnDirectoryChanged;
         _exchange.BeforeLeaveAsync = null;
-        _exchange.BroadcastRoleWanted = null;
     }
 
     // --- settings -----------------------------------------------------------------
@@ -270,17 +282,15 @@ internal sealed partial class BroadcastProducerService : IDisposable
     }
 
     /// <summary>
-    /// The permission of the two-step consent. Turning it on re-declares the roles on the next hello (a
-    /// role the device does not hold is never declared); turning it off never touches the receiver the
-    /// account already is - the account's own enabled flag is the account UI's, not this one's.
+    /// The permission of the two-step consent. Roles are declared at enroll, never at hello;
+    /// changing this setting does not change the roles of an already enrolled entry.
     /// </summary>
     internal async Task SetAllowedAsync(bool allowed)
     {
         await UpdateSettingsAsync(settings => settings with { Allowed = allowed }).ConfigureAwait(false);
         if (allowed && _exchange.IsActive)
         {
-            // Reconnecting re-runs hello with the role the settings now allow; the broadcasts follow the
-            // session events as on any reconnect.
+            // Re-establish the session; the server still holds the roles from enrollment.
             await _exchange.SetEnabledAsync(true).ConfigureAwait(false);
         }
     }
@@ -378,6 +388,10 @@ internal sealed partial class BroadcastProducerService : IDisposable
         }
 
         var sealing = await PrepareSealingAsync(state).ConfigureAwait(false);
+        if (sealing is null)
+        {
+            return;
+        }
         await sealing.Gate.WaitAsync().ConfigureAwait(false);
         try
         {
@@ -422,6 +436,11 @@ internal sealed partial class BroadcastProducerService : IDisposable
             state.ExchangeStarted = true;
             if (relay)
             {
+                // Every upload replacement, including a reconnect, carries a new epoch (item DL).
+                if (state.Sealing?.Sealer.Relay is { } encoder)
+                {
+                    encoder.NewEpoch();
+                }
                 StartUpload(state);
             }
         }
@@ -618,8 +637,17 @@ internal sealed partial class BroadcastProducerService : IDisposable
         // offer from the record it already holds. A receiver whose declared pairs cover none of this
         // broadcast's endpoints is never sent one - the UI shows it as unsupported, and this is the
         // wire's own gate, so the two cannot disagree.
-        if (receiver.DeviceId == _exchange.Account.DeviceId)
+        if (receiver.DeviceId == _exchange.Account.DeviceId || !state.ExchangeStarted || state.Sealing is null)
         {
+            return false;
+        }
+
+        using var lease = _exchange.AcquireDirectory(follow: false);
+        if (!await _exchange.WaitForDirectoryAsync(DirectoryWait).ConfigureAwait(false)
+            || !await RefreshSealingAsync(state, ensureWritten: true).ConfigureAwait(false)
+            || state.Sealing.Sealer.Box?.Keys.Any(key => key.To == receiver.DeviceId) != true)
+        {
+            Report("BroadcastCastUnsupported");
             return false;
         }
 

@@ -168,7 +168,7 @@ public sealed class ExchangeBroadcastKeysTests
         var tunnel = Endpoint(TunnelUrl, "TUNNEL", new ExchangeEndpointSeal(1), "http://192.0.2.1:8554/x");
 
         Assert.False(ExchangeBroadcastKeys.Decide(tunnel).Allowed);
-        ExchangeBroadcastKeys.Put("decide-1", new ExchangeBroadcastSecrets(null, "SHA256:" + new string('A', 43), null));
+        ExchangeBroadcastKeys.Put("decide-1", new ExchangeBroadcastSecrets(new byte[32], "SHA256:" + new string('A', 43), null));
         var decision = ExchangeBroadcastKeys.Decide(tunnel);
         Assert.True(decision.Allowed);
         Assert.Equal("SHA256:" + new string('A', 43), decision.TunnelPin);

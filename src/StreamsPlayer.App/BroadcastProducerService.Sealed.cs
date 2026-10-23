@@ -36,11 +36,15 @@ internal sealed partial class BroadcastProducerService
     /// Makes the keys of a broadcast and takes the lease that keeps the device list current while it runs. The list is
     /// fetched because a person started a broadcast (SP-0222 holds): the lease is the producer's own follow of it.
     /// </summary>
-    private async Task<BroadcastSealing> PrepareSealingAsync(BroadcastRunningSource state)
+    private async Task<BroadcastSealing?> PrepareSealingAsync(BroadcastRunningSource state)
     {
         var sealing = state.Sealing ??= new BroadcastSealing(state.BroadcastId, MediaTypeOf(state.Source));
         sealing.DirectoryLease ??= _exchange.AcquireDirectory(follow: true);
-        _ = await _exchange.WaitForDirectoryAsync(DirectoryWait, CancellationToken.None).ConfigureAwait(false);
+        if (!await _exchange.WaitForDirectoryAsync(DirectoryWait, CancellationToken.None).ConfigureAwait(false))
+        {
+            Report("ExchangeUnavailable");
+            return null;
+        }
         return sealing;
     }
 
@@ -53,7 +57,7 @@ internal sealed partial class BroadcastProducerService
         using var self = _exchange.OwnE2eKey();
         return self is null
             ? null
-            : sealing.Sealer.Seal(_exchange.Account.DeviceId, self, _exchange.SealRecipients());
+            : sealing.Sealer.Refresh(_exchange.Account.DeviceId, self, _exchange.SealRecipients()).Box;
     }
     /// <summary>The record of `broadcast-start` or `broadcast-update`, with the box it currently carries (item DK).</summary>
     private Task<bool> PostRecordAsync(BroadcastRunningSource state, string type, CancellationToken cancellationToken)
@@ -96,11 +100,11 @@ internal sealed partial class BroadcastProducerService
     /// and sent with `broadcast-update`. When a device is gone the sealer made the own group key anew and began a new
     /// epoch, so what the device held opens nothing from here on; the new ring then goes out by a replacement upload (item DL).
     /// </summary>
-    internal async Task RefreshSealingAsync(BroadcastRunningSource state)
+    internal async Task<bool> RefreshSealingAsync(BroadcastRunningSource state, bool ensureWritten = false)
     {
         if (state.Sealing is not { } sealing)
         {
-            return;
+            return false;
         }
 
         await sealing.Gate.WaitAsync().ConfigureAwait(false);
@@ -108,27 +112,36 @@ internal sealed partial class BroadcastProducerService
         {
             if (!state.ExchangeStarted || state.Plan is null)
             {
-                return;
+                return false;
             }
 
             using var self = _exchange.OwnE2eKey();
             if (self is null)
             {
-                return;
+                return false;
             }
 
             var refresh = sealing.Sealer.Refresh(_exchange.Account.DeviceId, self, _exchange.SealRecipients());
             if (!refresh.Changed)
             {
-                return;
+                if (!ensureWritten)
+                {
+                    return true;
+                }
+
+                // A prior write may have failed; a cast still needs the current box written first.
+                using var unchangedTimeout = new CancellationTokenSource(EndWriteTimeout);
+                return await PostRecordAsync(state, "broadcast-update", unchangedTimeout.Token).ConfigureAwait(false);
             }
 
             using var timeout = new CancellationTokenSource(EndWriteTimeout);
-            _ = await PostRecordAsync(state, "broadcast-update", timeout.Token).ConfigureAwait(false);
+            var posted = await PostRecordAsync(state, "broadcast-update", timeout.Token).ConfigureAwait(false);
             if (refresh.NewEpoch)
             {
-                await ReplaceUploadAsync(state).ConfigureAwait(false);
+                await ReplaceUploadAsync(state, rotateEpoch: false).ConfigureAwait(false);
             }
+
+            return posted;
         }
         finally
         {
@@ -140,7 +153,7 @@ internal sealed partial class BroadcastProducerService
     /// header chunk. The new upload is accepted and has written its header chunk before the old one is retired - and the
     /// old one is closed without the zero-length end, which would end the broadcast.
     /// </summary>
-    private async Task ReplaceUploadAsync(BroadcastRunningSource state)
+    private async Task ReplaceUploadAsync(BroadcastRunningSource state, bool rotateEpoch = true)
     {
         var oldChunks = state.UploadChunks;
         var oldRetire = state.UploadRetire;
@@ -150,6 +163,10 @@ internal sealed partial class BroadcastProducerService
         }
 
         state.UploadChunks = null;
+        if (rotateEpoch)
+        {
+            state.Sealing?.Sealer.Relay.NewEpoch();
+        }
         StartUpload(state);
         try
         {
@@ -217,7 +234,7 @@ internal sealed partial class BroadcastProducerService
         try
         {
             sealing.Sealer.WithdrawLink();
-            await ReplaceUploadAsync(state).ConfigureAwait(false);
+            await ReplaceUploadAsync(state, rotateEpoch: false).ConfigureAwait(false);
         }
         finally
         {

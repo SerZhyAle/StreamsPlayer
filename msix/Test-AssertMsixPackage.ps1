@@ -165,6 +165,13 @@ try {
     $r = Invoke-Assert (New-Package 'no-version-attr.msix' (New-Manifest $name $publisher $null 'SZA'))
     Check (Refuses $r 'version') 'an absent Version attribute is refused'
 }
+catch {
+    # A setup step or the assertion script threw instead of answering: nothing was judged past this point, so the run could
+    # not verify (CHECK-VERDICT 2.1, 2.5, 2.11). A check that already failed still outranks it (2.14).
+    $reason = $_.Exception.Message -replace '\s+', ' '
+    if ($failures.Count -eq 0) { Write-Output "msix-package-tests: COULD NOT VERIFY ($reason)"; exit 2 }
+    Write-Output "msix-package-tests: the run stopped early: $reason"
+}
 finally { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue }
 
 if ($failures.Count -eq 0) { Write-Output "msix-package-tests: PASS ($passed checks)"; exit 0 }

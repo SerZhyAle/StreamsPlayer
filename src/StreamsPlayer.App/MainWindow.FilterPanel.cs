@@ -33,9 +33,10 @@ public partial class MainWindow
 
     private void UpdateFilterPanelChrome()
     {
-        var visible = _state.CatalogFiltersVisible;
+        var visible = _compactHeader ? _compactFiltersExpanded : _state.CatalogFiltersVisible;
         FilterPanel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
-        FiltersButton.Visibility = visible ? Visibility.Collapsed : Visibility.Visible;
+        FiltersButton.Visibility = visible || _compactHeader ? Visibility.Collapsed : Visibility.Visible;
+        SearchTools.Visibility = !_compactHeader || _compactFiltersExpanded ? Visibility.Visible : Visibility.Collapsed;
 
         // The mark only means something while the row is hidden: with the row open the facets speak for
         // themselves.
@@ -44,7 +45,13 @@ public partial class MainWindow
         FiltersButton.ToolTip = active > 0
             ? LocalizationService.Format("FiltersActiveTip", active)
             : LocalizationService.Get("FiltersAndSortingTip");
+        var hiddenActive = ActiveFacetCount() + (string.IsNullOrWhiteSpace(SearchBox.Text) ? 0 : 1);
+        CompactFiltersButton.Tag = hiddenActive > 0 || _compactFiltersExpanded ? FiltersActiveTag : null;
+        CompactFiltersButton.ToolTip = hiddenActive > 0
+            ? LocalizationService.Format("FiltersActiveTip", hiddenActive)
+            : LocalizationService.Get("SearchAndFilters");
         UpdateQuickMediaChrome();
+        ScheduleHeaderLayout();
     }
 
     /// <summary>
@@ -106,5 +113,16 @@ public partial class MainWindow
 
     private void FiltersButton_Click(object sender, RoutedEventArgs e) => HandlerBoundary.Run(nameof(FiltersButton_Click), () => SetFilterPanelVisibleAsync(true));
 
-    private void HideFiltersButton_Click(object sender, RoutedEventArgs e) => HandlerBoundary.Run(nameof(HideFiltersButton_Click), () => SetFilterPanelVisibleAsync(false));
+    private void HideFiltersButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_compactHeader)
+        {
+            _compactFiltersExpanded = false;
+            UpdateFilterPanelChrome();
+            CompactFiltersButton.Focus();
+            return;
+        }
+
+        HandlerBoundary.Run(nameof(HideFiltersButton_Click), () => SetFilterPanelVisibleAsync(false));
+    }
 }

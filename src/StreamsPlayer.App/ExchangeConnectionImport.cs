@@ -12,6 +12,25 @@ internal static class ExchangeConnectionImport
 
     internal static ExchangeImportResult ReadText(string text) => Convert(ExchangeConnectionStringCodec.Parse(text));
 
+    internal static bool RecognizesFile(string path)
+    {
+        try
+        {
+            using var stream = File.OpenRead(path);
+            if (stream.Length > ExchangeConnectionStringCodec.MaximumFileBytes)
+            {
+                return false;
+            }
+
+            using var reader = new StreamReader(stream, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            return Recognizes(reader.ReadToEnd());
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            return false;
+        }
+    }
+
     /// <summary>
     /// A QR carries the connection string byte for byte (DEVICE-EXCHANGE 5.5), so what it holds goes through the
     /// same codec as pasted text. A picture with no code, with several, or that cannot be read each has its one

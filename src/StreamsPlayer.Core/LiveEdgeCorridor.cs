@@ -50,6 +50,13 @@ public readonly record struct LiveEdgeCorridor(TimeSpan Target, TimeSpan Floor, 
     public static readonly LiveEdgeCorridor Default =
         new(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(20));
 
+    /// <summary>A broadcast uses its per-endpoint live budget; twice the target is the engine's minimum read-ahead.</summary>
+    public static LiveEdgeCorridor ForBroadcast(uint cacheMilliseconds)
+    {
+        var target = TimeSpan.FromMilliseconds(Math.Clamp(cacheMilliseconds, 500u, 2000u));
+        return new(target, target * 0.6, target * 2);
+    }
+
     /// <summary>
     /// The fastest this corridor can drive playback: the engine's speed rule at a full buffer, which is
     /// as far behind as it can ever observe itself to be.

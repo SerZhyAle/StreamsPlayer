@@ -94,7 +94,7 @@ public sealed class ExchangeDeviceTrust
     {
         foreach (var (id, text) in stored ?? [])
         {
-            if (ExchangeBase64Url.TryDecode(text, out var point) && point.Length == ExchangeE2eKeyPair.PublicLength && point[0] == 0x04)
+            if (ExchangeBase64Url.TryDecode(text, out var point) && ExchangeE2eKeyPair.IsValidPublicPoint(point))
             {
                 book[id] = point;
             }

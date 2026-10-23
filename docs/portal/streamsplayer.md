@@ -6,7 +6,7 @@ implementation; they do not claim a published release or portal-owner acceptance
 
 ## Sign in
 
-Open **Settings**, then **Library**, then **Exchange server**. Read a connection string, a connection file,
+Open **Settings**, then **Exchange server**. Read a connection string, a connection file,
 or a QR picture from a file or the clipboard. Reading fills the form; it does not connect. Check the server,
 then enter your login and password and choose **Sign in**. This program only signs in: create an account in
 Fast Media Sorter & Organizer for Android or Fast Media Sorter & Sharing for Windows, or ask the server's host.
@@ -18,12 +18,12 @@ Enable your exchange server connection to see the account's broadcasts when you 
 only what was given to it and does not announce this PC's broadcasts. **Sign out on this device** forgets the
 local sign-in and stops this PC's broadcasts for that account. Imported channels stay. If the server cannot be
 told, the app says that this device may remain listed until it is removed elsewhere. While the connection is off,
-or no account is signed in, the main window shows neither the exchange server button nor **Live broadcasts**; turn the
+or no account is signed in, the main window shows neither the exchange server button nor **My broadcasts**; turn the
 connection on in Settings to bring them back.
 
 ## Open the broadcast list
 
-Choose **Live broadcasts** in the main window. The list shows the account's broadcasts at once, grouped by the
+Choose **My broadcasts** in the main window. The list shows the account's broadcasts at once, grouped by the
 device that makes them, and keeps itself current while it is open. There is no refresh button, and nothing is
 requested from the server while the list is closed. Pick a broadcast and choose **Play** to open it in a window
 of its own, or **Add to my channels** to keep it. Video opens in a player window and audio in a small window with

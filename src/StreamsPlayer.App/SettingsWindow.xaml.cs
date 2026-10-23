@@ -10,7 +10,7 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// SP-0188: the unified settings surface holding both values and operations across 6 topic pages,
+/// SP-0188: the unified settings surface holding both values and operations across topic pages,
 /// laid out by <c>APP-SETTINGS</c> and <c>APP-BEHAVIOUR</c>. Values apply on touch; Close is the sole exit.
 /// <para>
 /// SP-0191: the window also keeps its private navigation context (<c>WINDOWS-UI</c> section 3.3) -
@@ -23,11 +23,17 @@ namespace StreamsPlayer.App;
 /// </summary>
 public partial class SettingsWindow : Window
 {
+    internal const int ExchangePageIndex = 5;
+    internal const int BroadcastPageIndex = 6;
+
+    // Stored indices predate the two new destinations; About remains page 5 on disk.
+    private static readonly int[] PersistedPageIndices = [0, 1, 2, 3, 4, 6, 7, 5];
+
     private static readonly string[] PageNameKeys =
-        ["SettingsGeneral", "SettingsLibrary", "SettingsPlayback", "SettingsAudio", "SettingsFiles", "SettingsAbout"];
+        ["SettingsGeneral", "SettingsLibrary", "SettingsPlayback", "SettingsAudio", "SettingsFiles", "ExchangeTitle", "BroadcastTitle", "SettingsAbout"];
 
     private static readonly string[] PageDescKeys =
-        ["SettingsGeneralDesc", "SettingsLibraryDesc", "SettingsPlaybackDesc", "SettingsAudioDesc", "SettingsFilesDesc", "SettingsAboutDesc"];
+        ["SettingsGeneralDesc", "SettingsLibraryDesc", "SettingsPlaybackDesc", "SettingsAudioDesc", "SettingsFilesDesc", "SettingsExchangeDesc", "SettingsBroadcastDesc", "SettingsAboutDesc"];
 
     private readonly MainWindow _mainWindow;
     private readonly Func<ToolsAction, Window, Task> _runAction;
@@ -95,10 +101,7 @@ public partial class SettingsWindow : Window
         }
 
         _restoringContext = true;
-        var targetPageIndex = initialPageIndex
-            ?? (_uiContext.LastPageIndex >= 0 && _uiContext.LastPageIndex < PageNameKeys.Length
-                ? _uiContext.LastPageIndex
-                : 0);
+        var targetPageIndex = initialPageIndex ?? Math.Max(0, Array.IndexOf(PersistedPageIndices, _uiContext.LastPageIndex));
         foreach (var expander in AllExpanders())
         {
             if (_uiContext.Groups.TryGetValue(SettingsUiProperties.GetGroupId(expander) ?? string.Empty, out var expanded))
