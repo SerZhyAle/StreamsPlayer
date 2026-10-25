@@ -42,6 +42,10 @@ secrets/
 # empty catalog. Regenerate it with the script, never hand-edit it.
 !src/StreamsPlayer.Core/Resources/catalog-snapshot.zip
 
+# SecretClipboard.cs is source code (the helper that keeps a copied password out of the clipboard history); the
+# *secret* rule above would silently keep it out of git and break a clean checkout (found by CI on 26.1025.1927).
+!src/StreamsPlayer.App/SecretClipboard.cs
+
 # Editor-local settings - personal colour schemes and layouts, never product state.
 .vscode/
 .idea/
