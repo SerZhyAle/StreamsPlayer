@@ -1,0 +1,8 @@
+{
+  "gate": "smoke-playback",
+  "result": "PASS",
+  "version": "26.1025.1927",
+  "commit": "7f0979b26a29cad36a6be9adee08d23e3aa0c529",
+  "when": "2026-10-25T21:43:54+01:00",
+  "skipped": []
+}
