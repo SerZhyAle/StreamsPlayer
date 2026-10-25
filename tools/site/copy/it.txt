@@ -462,7 +462,7 @@ Non ha mai bisogno dei diritti di amministratore per installarsi o funzionare, n
 Non serve un account per la riproduzione normale. L’account di scambio facoltativo appartiene a un server privato - il tuo o quello di una persona che ti ha invitato -, mai a un servizio di questo prodotto. Non ci sono pubblicità, analisi, telemetria o servizi gestiti dall’autore.
 
 @@trust-never-3
-Si connette solo quando agisci e unicamente per ciò che l’azione richiede: catalogo pubblico e anteprime su GitHub, provider del flusso in riproduzione, registrazione o anteprima, dispositivo FastMediaSorter in rete locale e librerie FFmpeg opzionali se richieste in Impostazioni. La guida TV è scaricata solo dall’indirizzo inserito quando premi «Scarica guida».
+Si connette solo quando agisci e unicamente per ciò che l’azione richiede: catalogo pubblico e anteprime su GitHub, provider del flusso in riproduzione, registrazione o anteprima, dispositivo FastMediaSorter in rete locale e librerie FFmpeg opzionali se richieste in Impostazioni. La guida TV è scaricata solo dall’indirizzo inserito quando premi «Scarica guida». Solo se lo attivi, avviene anche una connessione al server di scambio che hai configurato tu e, se accedi a Google nelle Impostazioni, a Google (per gli annunci nei dati nascosti dell’app nel tuo Drive).
 @@trust-never-4
 Non scarica mai il catalogo di sua iniziativa - un aggiornamento avviene solo quando lo chiedi tu.
 

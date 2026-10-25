@@ -37,7 +37,7 @@ amendment is written in the store, not here.
 | [EXCHANGE-MARK.md](EXCHANGE-MARK.md) | `EXCHANGE-MARK` | The mark of the exchange server: the star, its two forms and the one-tone glyph (draft 0.3) | Consumer (vendored 0.3, SP-0234: `partial`, surfaces not yet walked on screen) |
 | [CONTEXT-HELP.md](CONTEXT-HELP.md) | `CONTEXT-HELP` | In-app help: F1, the `?` button, the help map and the help pages (draft 0.1) | Consumer (read 2026-10-21, SP-0230: `partial`, slice S1) |
 | [PAGE-CONTENT.md](PAGE-CONTENT.md) | `PAGE-CONTENT`, `PAGE-STYLE`, `SITE-FAMILY-MAP` | GitHub Pages Design System & Family Navigation | Consumer |
-| [REPO-STAMP.md](REPO-STAMP.md) | `REPO-STAMP`, `REPO-LAYOUT` | Repository Declarations & Canon Interface | Consumer, P/C |
+| [REPO-STAMP.md](REPO-STAMP.md) | `REPO-STAMP`, `HARNESS-PROFILE` (not bound), `REPO-LAYOUT`, `RULE-DELIVERY` | Repository Declarations & Canon Interface | Consumer, P/C |
 | [CHECK-VERDICT.md](CHECK-VERDICT.md) | `CHECK-VERDICT`, `BUILD-EVIDENCE` | Quality Scripts, Exit Codes & Release Gates | Consumer |
 | [INSTALL-TRUST.md](INSTALL-TRUST.md) | `INSTALL-TRUST` | Unsigned Installer Warning & Trust Guidance | Producer (adopted 2026-09-24, SP-0105) |
 | [DOC-QUALITY.md](DOC-QUALITY.md) | `DOC-INTERNAL-QUALITY`, `DOC-EXTERNAL-QUALITY` | Internal registry and scoped help/portal quality | Partial; read 0.10 / 0.12, SP-0232 |

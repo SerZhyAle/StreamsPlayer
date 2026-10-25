@@ -462,7 +462,7 @@ It never needs administrator rights to install or run, never adds itself to Wind
 No account is required for ordinary playback. The optional exchange account belongs to a private server - your own, or one run by someone who invited you - never to a service of this product. There is no advertising, analytics, telemetry or service operated by the author.
 
 @@trust-never-3
-It connects only when you act, and only to what that action needs: the public stream catalog and its optional preview pack on GitHub, the provider of a stream you play, record or preview, a FastMediaSorter phone or watch on your own network, and the optional FFmpeg libraries if you ask for them in Settings. A TV schedule is fetched only from an address you enter yourself, and only when you press Download schedule.
+It connects only when you act, and only to what that action needs: the public stream catalog and its optional preview pack on GitHub, the provider of a stream you play, record or preview, a FastMediaSorter phone or watch on your own network, and the optional FFmpeg libraries if you ask for them in Settings. A TV schedule is fetched only from an address you enter yourself, and only when you press Download schedule. Only if you turn them on, it also connects to the exchange server you set up yourself and, if you sign in to Google in Settings, to Google (for the announcements in your own hidden Drive application data).
 @@trust-never-4
 It never downloads the catalog on its own - a refresh happens only when you ask for it.
 

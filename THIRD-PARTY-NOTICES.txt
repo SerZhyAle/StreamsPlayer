@@ -127,6 +127,20 @@ is available at:
   https://licenses.nuget.org/MIT
 
 -----------------------------------------------------------------------
+8. Material Icons (interface glyphs, data, not code)
+-----------------------------------------------------------------------
+Copyright (c) Google LLC
+License: Apache License, Version 2.0.
+Source: https://github.com/google/material-design-icons
+Most of the interface glyphs drawn on the application's buttons and on its
+product site (the vector files under assets/glyphs, shipped as the Glyphs
+dictionary of the application and in the help pages) are paths of the Material
+Icons family, taken through the shared icon vocabulary of the publisher's
+products, some of them edited to fit; the rest are the publisher's own
+drawings. They are data, not code. The full licence text is available at:
+  https://www.apache.org/licenses/LICENSE-2.0
+
+-----------------------------------------------------------------------
 Written offer
 -----------------------------------------------------------------------
 For any of the above components, the corresponding source code may also be

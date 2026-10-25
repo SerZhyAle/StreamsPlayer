@@ -11,7 +11,7 @@
 ## Why it applies here
 
 Three of the four download channels are unsigned - the Inno per-user setup EXE, the portable ZIP, and the
-winget package built from that ZIP - so those users meet SmartScreen. `installer/StreamsPlayer.iss`
+winget package (which installs that same Inno setup EXE) - so those users meet SmartScreen. `installer/StreamsPlayer.iss`
 configures no signing tool and neither does `.github/workflows/release.yml`. Only the Store MSIX escapes
 it, because Microsoft signs it at certification.
 

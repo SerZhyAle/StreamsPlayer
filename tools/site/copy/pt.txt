@@ -462,7 +462,7 @@ Ele nunca precisa de direitos de administrador para ser instalado ou executado, 
 Nenhuma conta é necessária para a reprodução normal. A conta de troca opcional pertence a um servidor privado - o seu ou o de alguém que convidou você -, nunca a um serviço deste produto. Não há publicidade, análise, telemetria ou serviço operado pelo autor.
 
 @@trust-never-3
-Conecta-se apenas quando você age e somente para o que for necessário: catálogo público e prévias no GitHub, provedor da transmissão reproduzida, gravada ou pré-visualizada, dispositivo FastMediaSorter na rede local e bibliotecas FFmpeg opcionais se solicitadas em Configurações. O guia de TV é baixado apenas do endereço inserido quando você clica em «Baixar guia».
+Conecta-se apenas quando você age e somente para o que for necessário: catálogo público e prévias no GitHub, provedor da transmissão reproduzida, gravada ou pré-visualizada, dispositivo FastMediaSorter na rede local e bibliotecas FFmpeg opcionais se solicitadas em Configurações. O guia de TV é baixado apenas do endereço inserido quando você clica em «Baixar guia». Somente se você ativar, há também uma conexão com o servidor de troca que você mesmo configurou e, se você entrar no Google em Configurações, com o Google (para os anúncios nos dados ocultos do aplicativo no seu Drive).
 @@trust-never-4
 Ele nunca baixa o catálogo por conta própria - uma atualização só acontece quando você pede.
 
