@@ -53,3 +53,13 @@ docs/assets/wave-particles.js -text
 # its PROVENANCE.txt and by ExchangeHpkeTests, so git must leave these bytes alone.
 tests/StreamsPlayer.Core.Tests/Vectors/e2e-v1/* -text
 tests/StreamsPlayer.Core.Tests/Vectors/fmsw-234/* -text
+
+# 26.1025.1927: the exchange vector copies added since (connection string, account lifecycle, server frames and
+# records, protection, QR share files) are byte-for-byte copies of the contract catalog too, pinned by SHA-256 in
+# their PROVENANCE.txt or by the tests that read them. Without -text a Windows checkout turns the LF the catalog
+# ships into CRLF and every byte-exact test fails on a clean clone (found by CI).
+tests/StreamsPlayer.Core.Tests/Vectors/connection-string-v1.json -text
+tests/StreamsPlayer.Core.Tests/Vectors/fmsw-224/* -text
+tests/StreamsPlayer.Core.Tests/Vectors/server/* -text
+tests/StreamsPlayer.Exchange.Tests/Vectors/protection-v1.json -text
+tests/StreamsPlayer.Exchange.Tests/Vectors/qr/*.fmscfg -text
