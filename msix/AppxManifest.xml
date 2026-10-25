@@ -43,7 +43,8 @@
       </Extensions>
     </Application>
   </Applications>
-  <!-- SP-0229: the camera is used for one thing - reading a connection QR after the person presses "Scan with the camera".
+  <!-- SP-0229, SP-0223: the camera is used for two things, each only when the person starts it - reading a connection QR
+       after "Scan with the camera", and sending the chosen camera's picture as a broadcast after "Broadcast camera".
        Declared so Windows lists the app in its camera privacy settings from install, even for a full-trust package;
        the privacy statement, the Store text and the READMEs say the same (PrivacyStatementTests holds them together). -->
   <Capabilities><rescap:Capability Name="runFullTrust" /><DeviceCapability Name="webcam" /></Capabilities>

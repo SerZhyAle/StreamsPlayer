@@ -63,6 +63,55 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.1025.1927
+
+Supersedes nothing: 26.1010.0106 is prepared below. This is the package that adds broadcasting from this PC (microphone,
+system sound, a monitor, a camera), end-to-end encryption of broadcasts through the exchange server, the optional Google
+sign-in, the account's broadcast list with a window per incoming broadcast, the connection check, in-app help on F1, the
+adaptive toolbar and the .spres file association. The three blocks below are the files
+`msix/listing/release-notes/26.1025.1927.*.txt`.
+
+```text
+Version 26.1025.1927
+
+- Broadcast from this PC: a microphone, the system sound, a whole monitor or a camera, to your exchange server or over your local network. It is off until you allow it in Settings, and a visible indicator with a stop shows while a source is live. Share a link, file or QR code; you choose how its password is made.
+- Broadcasts through your exchange server are encrypted on the sending PC and opened only on your own devices or with the link.
+- Optional Google sign-in lists the broadcasts your devices announce in the hidden app data of your Drive; the media never passes through Drive.
+- Sign in to an exchange server with a login and leave it again, with guest accounts beside your own; each incoming broadcast plays in its own window, and an audio broadcast can be recorded there.
+- "Check the connection" finds the first step that fails and says what to try.
+- F1 and a Help button on every window open that window's page, offline. The toolbar adapts to the window width, and the video player answers M, Ctrl+Up, Ctrl+Down and A.
+- Double-click a .spres file saved by Fast Media Sorter to import its broadcast.
+- Deleting the downloaded catalog streams in one confirmed action keeps your own channels, pins, collections and history.
+- The built-in channel list is current (18 633 live streams as of 2026-10-20).
+```
+
+```text
+Версия 26.1025.1927
+
+- Трансляция с этого ПК: микрофон, звук системы, весь монитор или камера - на ваш сервер обмена или по локальной сети. Выключена, пока вы не разрешите это в «Настройках»; пока источник в эфире, виден индикатор с кнопкой остановки. Делитесь ссылкой, файлом или QR-кодом; способ создания пароля выбираете вы.
+- Трансляции через сервер обмена шифруются на отправляющем ПК и открываются только на ваших устройствах или по ссылке.
+- Необязательный вход через Google показывает трансляции, которые ваши устройства объявляют в скрытых данных приложения на вашем Диске; сами данные через Диск не проходят.
+- Вход на сервер обмена по логину и выход с него, рядом с вашей учётной записью - гостевые; каждая входящая трансляция идёт в своём окне, а звуковую можно записать.
+- «Проверить соединение» находит первый шаг, на котором сбой, и подсказывает, что делать.
+- F1 и кнопка «Справка» в каждом окне открывают страницу этого окна без интернета. Панель инструментов подстраивается под ширину окна, а в видеоплеере работают M, Ctrl+Up, Ctrl+Down и A.
+- Двойной щелчок по файлу .spres, сохранённому в Fast Media Sorter, импортирует его трансляцию.
+- Удаление загруженных каналов каталога одним подтверждённым действием сохраняет ваши каналы, закрепления, подборки и историю.
+- Встроенный список каналов актуален (18 633 активных потока от 20.10.2026).
+```
+
+```text
+Версія 26.1025.1927
+
+- Трансляція з цього ПК: мікрофон, звук системи, увесь монітор або камера - на ваш сервер обміну або локальною мережею. Вимкнена, доки ви не дозволите це в «Налаштуваннях»; поки джерело в ефірі, видно індикатор із кнопкою зупинки. Діліться посиланням, файлом або QR-кодом; спосіб створення пароля обираєте ви.
+- Трансляції через сервер обміну шифруються на ПК-відправнику й відкриваються лише на ваших пристроях або за посиланням.
+- Необов'язковий вхід через Google показує трансляції, які ваші пристрої оголошують у прихованих даних застосунку на вашому Диску; самі дані через Диск не проходять.
+- Вхід на сервер обміну за логіном і вихід із нього, поруч із вашим обліковим записом - гостьові; кожна вхідна трансляція йде у власному вікні, а звукову можна записати.
+- «Перевірити з'єднання» знаходить перший крок, на якому збій, і підказує, що робити.
+- F1 і кнопка «Довідка» в кожному вікні відкривають сторінку цього вікна без інтернету. Панель інструментів підлаштовується під ширину вікна, а у відеоплеєрі працюють M, Ctrl+Up, Ctrl+Down і A.
+- Подвійний клац по файлу .spres, збереженому у Fast Media Sorter, імпортує його трансляцію.
+- Видалення завантажених каналів каталогу однією підтвердженою дією зберігає ваші канали, закріплення, добірки та історію.
+- Вбудований список каналів актуальний (18 633 активні потоки від 20.10.2026).
+```
 ### Prepared for 26.1010.0106
 
 Supersedes nothing: the 26.1003.0030 tag shipped as prepared below. The Settings window that remembers its place and
