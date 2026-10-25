@@ -87,3 +87,7 @@ found, not the first. `msix/Test-AppxManifest.ps1` (SP-0238) closes that gap fro
 stages it with a placeholder executable and the product logos, and runs the Windows SDK's own `makeappx pack` over it,
 then repeats the pack with an attribute no schema defines to prove the gate refuses one. It runs inside
 `scripts/check.ps1` as `msix-manifest` and answers `COULD NOT VERIFY` (exit 2) when the SDK is not installed.
+
+## Google sign-in in the package
+
+The package must carry the Google Desktop client, or Google sign-in is unavailable in the Store build. `build-msix.ps1` loads it the way `build.ps1` does: the process values `SP_DRIVE_CLIENT_ID` and `SP_DRIVE_CLIENT_SECRET` first, then the JSON named by `-DriveClientFile` or `SP_DRIVE_CLIENT_JSON`, then `~/.fms-secrets/google-oauth/streamsplayer-desktop.json`. The values live in the environment of the build only and are restored afterwards. After the publish the script reads the client id key back out of `StreamsPlayer.dll` and fails the build when it is missing; `-AllowNoDriveClient` accepts a package without it and is for local sideload tests only, never for a package that is uploaded.

@@ -73,7 +73,10 @@ public static class BroadcastChannelImport
             // the playlist flag and the access note.
             channels[index] = row with
             {
-                Title = refreshed.Title,
+                // A nameless document builds the "Broadcast" placeholder: never let it replace a real or edited title.
+                Title = string.IsNullOrWhiteSpace(resource.ResourceName) ? row.Title : refreshed.Title,
+                // The document declares audio or video; a path reused for the other kind must route to the right player.
+                MediaKind = refreshed.MediaKind,
                 Url = refreshed.Url,
                 AlternateUrls = refreshed.AlternateUrls,
                 ResourceExpiresAt = refreshed.ResourceExpiresAt,

@@ -71,7 +71,7 @@ public static class BroadcastUrl
     /// S14-4: the most probes in flight at once. A document is read down to a few addresses, but a row persisted
     /// before that bound can still carry thousands, and every play would otherwise open that many connections.
     /// </summary>
-    public const int MaximumConcurrentProbes = 8;
+    public const int MaximumConcurrentProbes = BroadcastResourceReader.MaximumAccessPaths;
 
     /// <summary>
     /// Races the addresses and returns the first that answers with a body-bearing success (200/206): a
