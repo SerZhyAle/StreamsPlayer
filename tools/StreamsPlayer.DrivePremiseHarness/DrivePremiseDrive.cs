@@ -32,14 +32,16 @@ public sealed class DrivePremiseDrive(HttpClient client)
 
         using var request = new HttpRequestMessage(HttpMethod.Post, $"{UploadBaseUrl}?uploadType=multipart&fields=id,name,mimeType,size,modifiedTime");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        request.Content = new StringContent(body, Encoding.UTF8, $"multipart/related; boundary={boundary}");
+        request.Content = new StringContent(body, Encoding.UTF8);
+        request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse($"multipart/related; boundary={boundary}");
         using var response = await client.SendAsync(request, cancellation);
         var responseText = await response.Content.ReadAsStringAsync(cancellation);
         if (!response.IsSuccessStatusCode)
         {
             throw new InvalidOperationException($"The Drive upload failed ({(int)response.StatusCode}): {responseText}");
         }
-        return ReadFile(System.Text.Json.JsonDocument.Parse(responseText).RootElement);
+        using var document = System.Text.Json.JsonDocument.Parse(responseText);
+        return ReadFile(document.RootElement);
     }
 
     /// <summary>Lists every file of the application data folder, following Drive's pages.</summary>

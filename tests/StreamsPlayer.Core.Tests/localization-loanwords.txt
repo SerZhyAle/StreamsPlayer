@@ -176,3 +176,12 @@ fr:InterfaceSizeStandard   # "Standard" is the French word.
 it:InterfaceSizeStandard   # "Standard" is the Italian word.
 it:InputProfileLabel       # Italian interfaces keep "Input" for the way of entering commands.
 pt:SettingsGeneralInterface   # "Interface" is the Portuguese word for it.
+de:BroadcastMonitor       # "Monitor" is the German word for a display.
+de:BroadcastMonitorName   # The label starts with "Monitor", the German word for a display.
+es:BroadcastMonitor       # "Monitor" is the Spanish word for a display (RAE).
+es:BroadcastMonitorName   # The label starts with "Monitor", the Spanish word for a display.
+fr:BroadcastAudioMicrophone   # "Microphone" is the French word.
+it:BroadcastMonitor       # "Monitor" is the Italian word for a display.
+it:BroadcastMonitorName   # The label starts with "Monitor", the Italian word for a display.
+pt:BroadcastMonitor       # "Monitor" is the Portuguese word for a display.
+pt:BroadcastMonitorName   # The label starts with "Monitor", the Portuguese word for a display.

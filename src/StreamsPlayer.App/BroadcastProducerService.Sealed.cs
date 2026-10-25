@@ -24,13 +24,13 @@ internal sealed partial class BroadcastProducerService
     private BroadcastWirePlan PlanOf(BroadcastRunningSource state, string? publicEndpoint, bool relay, bool tunnel,
         BroadcastSealMode mode, string? linkGroupKey = null, string? tunnelPin = null) => new(
         state.BroadcastId, _exchange.Account.DeviceId, state.Title, state.Source,
-        state.LanAddress, state.LocalPort, null, publicEndpoint, relay, tunnel,
+        state.LanAddress, state.LocalPort, state.OpaqueToken, publicEndpoint, relay, tunnel,
         // SP-0200's owner policy pins every leaf, so the descriptor always carries the pin a receiver needs.
         _exchange.Account.Pin,
-        Settings.SampleRate,
-        state.Source == BroadcastSource.Microphone ? Settings.MicrophoneChannels : Settings.SystemSoundChannels,
-        Settings.BitrateKbps,
-        Seal: mode, LinkGroupKey: linkGroupKey, TunnelPin: tunnelPin);
+        state.SampleRate, state.Channels, state.AudioBitrate,
+        Seal: mode, LinkGroupKey: linkGroupKey, TunnelPin: tunnelPin,
+        HasAudio: state.AudioSource is not null,
+        AuthUser: state.Protected ? BroadcastLinkPassword.LinkUser : null);
 
     /// <summary>
     /// Makes the keys of a broadcast and takes the lease that keeps the device list current while it runs. The list is
@@ -55,9 +55,10 @@ internal sealed partial class BroadcastProducerService
     private ExchangeSealedBox? SealRecordBox(BroadcastRunningSource state, BroadcastSealing sealing)
     {
         using var self = _exchange.OwnE2eKey();
+        // The own pair joins every box (item DK); a re-seal that left it out would lock the account's own devices out.
         return self is null
             ? null
-            : sealing.Sealer.Refresh(_exchange.Account.DeviceId, self, _exchange.SealRecipients()).Box;
+            : sealing.Sealer.Refresh(_exchange.Account.DeviceId, self, _exchange.SealRecipients(), state.OwnPair).Box;
     }
     /// <summary>The record of `broadcast-start` or `broadcast-update`, with the box it currently carries (item DK).</summary>
     private Task<bool> PostRecordAsync(BroadcastRunningSource state, string type, CancellationToken cancellationToken)
@@ -72,7 +73,9 @@ internal sealed partial class BroadcastProducerService
             ["schemaVersion"] = 2,
             ["type"] = type,
             ["broadcast"] = BroadcastDescriptorWriter.BroadcastRecord(plan, descriptor, state.StartedAt, state.Sealing?.Sealer.Box),
-            ["maxListeners"] = state.AnnouncedMaxListeners
+            ["maxListeners"] = state.AnnouncedMaxListeners,
+            // Item DV: on every start and update, an empty list included - it is how the relay learns that nobody is asked for a pair.
+            ["verifiers"] = BroadcastVerifier.ToEnvelopeMember(state.Verifiers)
         };
         return type == "broadcast-update"
             ? _exchange.PostBroadcastUpdateAsync(envelope, cancellationToken)
@@ -121,7 +124,7 @@ internal sealed partial class BroadcastProducerService
                 return false;
             }
 
-            var refresh = sealing.Sealer.Refresh(_exchange.Account.DeviceId, self, _exchange.SealRecipients());
+            var refresh = sealing.Sealer.Refresh(_exchange.Account.DeviceId, self, _exchange.SealRecipients(), state.OwnPair);
             if (!refresh.Changed)
             {
                 if (!ensureWritten)

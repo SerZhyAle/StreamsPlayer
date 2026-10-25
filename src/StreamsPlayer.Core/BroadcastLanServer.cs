@@ -28,6 +28,9 @@ public sealed record BroadcastLanServerOptions(
 /// chunked end. The listener is bound to loopback always - the tunnel bridge and this machine reach it
 /// there - and to the chosen LAN address only while the Settings opt-in is on, so the service it
 /// bridges to is reachable from this machine unless that opt-in is.
+/// <para>SP-0223 (LIVE-BROADCAST items M and R): once <see cref="SetCredentials"/> holds a pair, both halves demand
+/// HTTP Digest - the loopback half too, because the tunnel bridges there and no address may skip the check. With no
+/// pair the server answers exactly as it did before.</para>
 /// </summary>
 /// <remarks>
 /// The cap counts the clients of the LAN listener only: a loopback client is a tunnel the exchange
@@ -45,23 +48,64 @@ public sealed class BroadcastLanServer : IAsyncDisposable
     private readonly BroadcastLanServerOptions _options;
     private readonly List<ClientSession> _clients = [];
     private readonly object _gate = new();
+    private readonly BroadcastAttemptDamper _damper;
+    private readonly CancellationTokenSource _stopping = new();
     private TcpListener? _loopbackListener;
     private TcpListener? _lanListener;
     private int _lanClients;
     private volatile bool _stopped;
+    private int _port;
 
     /// <summary>The number of LAN listeners connected - the figure the producer answers for (item M).</summary>
     public event Action<int>? LanListenerCountChanged;
 
-    public BroadcastLanServer(BroadcastLanServerOptions options) => _options = options;
+    public BroadcastLanServer(BroadcastLanServerOptions options)
+        : this(options, new BroadcastAttemptDamper())
+    {
+    }
+
+    internal BroadcastLanServer(BroadcastLanServerOptions options, BroadcastAttemptDamper damper)
+    {
+        _options = options;
+        _damper = damper;
+        Authenticator.PairsChanged += CloseListenersNoLongerAdmitted;
+    }
+
+    /// <summary>The Digest check both halves of this server answer to; empty means no authentication.</summary>
+    public BroadcastDigestAuthenticator Authenticator { get; } = new();
+
+    /// <summary>
+    /// Replaces the credential pairs this server accepts; an empty list opens it. A listener already connected
+    /// under a pair that is gone - or anonymous once a pair is set - is closed at once, the stricter reading of
+    /// item R's "a new connection with the previous password is refused": a revoked password must not keep
+    /// streaming. A listener whose own pair is unchanged keeps playing.
+    /// </summary>
+    public void SetCredentials(IReadOnlyList<ExchangeRelayCredentials> pairs) => Authenticator.SetPairs(pairs);
 
     /// <param name="lanAddress">The reachable LAN IPv4 address to serve on while the opt-in is on; null keeps the share on loopback only.</param>
     /// <exception cref="ArgumentException">A LAN address that is loopback or unspecified (producer rule 1).</exception>
     public void Start(string? lanAddress, int port)
     {
+        _port = port;
         _loopbackListener = new TcpListener(IPAddress.Loopback, port);
         _loopbackListener.Start(backlog: 8);
         _ = AcceptAsync(_loopbackListener, countsTowardCap: false);
+        SetLanAddress(lanAddress);
+    }
+
+    /// <summary>Changing the LAN opt-in closes LAN clients; loopback tunnels keep their independent connection.</summary>
+    public void SetLanAddress(string? lanAddress)
+    {
+        _lanListener?.Stop();
+        _lanListener = null;
+        lock (_gate)
+        {
+            foreach (var client in _clients.Where(client => client.CountsTowardCap))
+            {
+                client.Queue.Writer.TryComplete();
+                client.Tcp.Dispose();
+            }
+        }
         if (lanAddress is not null)
         {
             if (!IPAddress.TryParse(lanAddress, out var address) || IPAddress.IsLoopback(address) || address.Equals(IPAddress.Any))
@@ -69,14 +113,14 @@ public sealed class BroadcastLanServer : IAsyncDisposable
                 throw new ArgumentException("The LAN address must be a reachable IPv4 address.", nameof(lanAddress));
             }
 
-            _lanListener = new TcpListener(address, port);
+            _lanListener = new TcpListener(address, _port);
             _lanListener.Start(backlog: 8);
             _ = AcceptAsync(_lanListener, countsTowardCap: true);
         }
     }
 
     /// <summary>Hands one whole frame to every connected listener; a listener that has fallen behind loses its oldest frames, never the live edge.</summary>
-    public void Enqueue(ReadOnlyMemory<byte> frame)
+    public void Enqueue(ReadOnlyMemory<byte> frame, bool joinable = true)
     {
         if (_stopped)
         {
@@ -88,7 +132,14 @@ public sealed class BroadcastLanServer : IAsyncDisposable
         {
             foreach (var client in _clients)
             {
-                client.Queue.Writer.TryWrite(copy);
+                if (!client.Live || client.WaitingForKeyframe && !joinable) continue;
+                client.WaitingForKeyframe = false;
+                if (!client.Queue.Writer.TryWrite(copy) && _options.IsVideo)
+                {
+                    // Dropping a predicted frame would leave undecodable bytes until another IDR.
+                    client.Queue.Writer.TryComplete();
+                    client.Tcp.Dispose();
+                }
             }
         }
     }
@@ -102,6 +153,8 @@ public sealed class BroadcastLanServer : IAsyncDisposable
         }
 
         _stopped = true;
+        Authenticator.PairsChanged -= CloseListenersNoLongerAdmitted;
+        await _stopping.CancelAsync().ConfigureAwait(false);
         _loopbackListener?.Stop();
         _lanListener?.Stop();
         List<ClientSession> clients;
@@ -144,7 +197,7 @@ public sealed class BroadcastLanServer : IAsyncDisposable
                 return;
             }
 
-            var session = new ClientSession(tcp, countsTowardCap);
+            var session = new ClientSession(tcp, countsTowardCap, _options.IsVideo);
             lock (_gate)
             {
                 _clients.Add(session);
@@ -183,6 +236,12 @@ public sealed class BroadcastLanServer : IAsyncDisposable
     {
         using var timeout = new CancellationTokenSource(RequestReadTimeout);
         var request = await ReadRequestHeadAsync(session.Tcp, timeout.Token).ConfigureAwait(false);
+        var (admitted, grant) = await AdmitAsync(session, request).ConfigureAwait(false);
+        if (!admitted)
+        {
+            return;
+        }
+
         var path = RequestPath(request);
         if (path is null)
         {
@@ -196,7 +255,25 @@ public sealed class BroadcastLanServer : IAsyncDisposable
             return;
         }
 
-        session.Live = true;
+        // Admitted and made live under one lock: a pair swap that lands between the check above and here is seen by
+        // this test, and one that lands after is seen by CloseListenersNoLongerAdmitted, which scans the same lock.
+        bool stillAdmitted;
+        lock (_gate)
+        {
+            stillAdmitted = IsAdmitted(grant);
+            if (stillAdmitted)
+            {
+                session.Grant = grant;
+                session.Live = true;
+            }
+        }
+
+        if (!stillAdmitted)
+        {
+            await RefuseAsync(session, Authenticator.Check("GET", "", null)).ConfigureAwait(false);
+            return;
+        }
+
         if (session.CountsTowardCap)
         {
             lock (_gate)
@@ -257,6 +334,89 @@ public sealed class BroadcastLanServer : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// The Digest gate of one request. With no pair set it admits at once and the request is served as it always was;
+    /// with pairs, any request that does not prove one - a missing, wrong, unknown-user or replayed answer, a path this
+    /// broadcast does not serve, a method other than GET - gets the same 401 and the stream's bytes never leave.
+    /// </summary>
+    /// <returns>Whether to go on, and the credential that admitted the request (null when none was asked for).</returns>
+    private async Task<(bool Admitted, BroadcastAuthGrant? Grant)> AdmitAsync(ClientSession session, string? head)
+    {
+        if (!Authenticator.Required)
+        {
+            return (true, null);
+        }
+
+        var (method, target, authorization) = ReadRequestLine(head);
+        var result = Authenticator.Check(method ?? "", target ?? "", authorization);
+        if (result.Allowed)
+        {
+            _damper.RegisterSuccess(session.Source);
+            return (true, result.Grant);
+        }
+
+        if (result.CredentialsRefused)
+        {
+            try
+            {
+                await Task.Delay(_damper.RegisterFailure(session.Source), _stopping.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // The server is stopping; the peer is owed no answer.
+                return (false, null);
+            }
+        }
+
+        await RefuseAsync(session, result).ConfigureAwait(false);
+        return (false, null);
+    }
+
+    /// <summary>The same 401 for every refusal: both challenges, no body, and the connection closed.</summary>
+    private static async Task RefuseAsync(ClientSession session, AuthResult challenge)
+    {
+        using var write = new CancellationTokenSource(RequestReadTimeout);
+        await WriteSimpleResponseAsync(session.Tcp, "401 Unauthorized", close: true, write.Token, challenge.Challenge).ConfigureAwait(false);
+    }
+
+    /// <summary>True when a listener holding <paramref name="grant"/> (null: admitted while nothing was required) may keep listening.</summary>
+    private bool IsAdmitted(BroadcastAuthGrant? grant) =>
+        !Authenticator.Required || grant is not null && Authenticator.IsCurrent(grant);
+
+    private void CloseListenersNoLongerAdmitted()
+    {
+        lock (_gate)
+        {
+            foreach (var client in _clients.Where(client => client.Live && !IsAdmitted(client.Grant)))
+            {
+                client.Queue.Writer.TryComplete();
+                client.Tcp.Dispose();
+            }
+        }
+    }
+
+    /// <summary>The method, the request-target as received and the first <c>Authorization</c> value; nulls for a head that is not an HTTP request.</summary>
+    private static (string? Method, string? Target, string? Authorization) ReadRequestLine(string? head)
+    {
+        if (head is null)
+        {
+            return default;
+        }
+
+        var lines = head.Split('\n');
+        var parts = lines[0].Trim().Split(' ');
+        if (parts.Length < 2 || parts[0].Length == 0 || parts[1].Length == 0)
+        {
+            return default;
+        }
+
+        const string field = "Authorization:";
+        var authorization = lines.Skip(1)
+            .Select(line => line.Trim())
+            .FirstOrDefault(line => line.StartsWith(field, StringComparison.OrdinalIgnoreCase));
+        return (parts[0], parts[1], authorization?[field.Length..].Trim());
+    }
+
     /// <summary>The request line's path, or null when the head is not a GET of one of this broadcast's paths.</summary>
     private string? RequestPath(string? requestHead)
     {
@@ -300,9 +460,12 @@ public sealed class BroadcastLanServer : IAsyncDisposable
         return null;
     }
 
-    private static async Task WriteSimpleResponseAsync(TcpClient tcp, string status, bool close, CancellationToken cancellationToken)
+    private static async Task WriteSimpleResponseAsync(
+        TcpClient tcp, string status, bool close, CancellationToken cancellationToken, IReadOnlyList<string>? challenge = null)
     {
-        var response = "HTTP/1.1 " + status + "\r\nContent-Length: 0\r\n"
+        var response = "HTTP/1.1 " + status + "\r\n"
+            + string.Concat((challenge ?? []).Select(value => "WWW-Authenticate: " + value + "\r\n"))
+            + "Content-Length: 0\r\n"
             + (close ? "Connection: close\r\n" : "") + "\r\n";
         try
         {
@@ -314,14 +477,20 @@ public sealed class BroadcastLanServer : IAsyncDisposable
         }
     }
 
-    private sealed class ClientSession(TcpClient tcp, bool countsTowardCap)
+    private sealed class ClientSession(TcpClient tcp, bool countsTowardCap, bool video)
     {
         public TcpClient Tcp { get; } = tcp;
+
+        /// <summary>Read once at accept: the socket's remote end is not asked again after it may have been closed.</summary>
+        public IPAddress? Source { get; } = (tcp.Client.RemoteEndPoint as IPEndPoint)?.Address;
         public bool CountsTowardCap { get; } = countsTowardCap;
         public Channel<byte[]> Queue { get; } = Channel.CreateBounded<byte[]>(
-            new BoundedChannelOptions(PerListenerQueueFrames) { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true });
+            new BoundedChannelOptions(video ? 6 : PerListenerQueueFrames)
+            { FullMode = video ? BoundedChannelFullMode.Wait : BoundedChannelFullMode.DropOldest, SingleReader = true });
         public Task Session { get; set; } = Task.CompletedTask;
         public CancellationTokenSource? Cancellation { get; set; }
         public bool Live { get; set; }
+        public BroadcastAuthGrant? Grant { get; set; }
+        public bool WaitingForKeyframe { get; set; } = video;
     }
 }

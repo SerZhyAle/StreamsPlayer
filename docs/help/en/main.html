@@ -32,7 +32,7 @@
   <h2>In this order</h2>
   <ol class="order">
     <li>If the list is empty, bring channels in first: <b><a href="#e-op-import">Import channels from the internet</a></b>, <b><a href="#e-op-add">Add stream</a></b> or <b><a href="#e-op-paste">Paste channel</a></b>. The buttons of <b><a href="#e-empty-state">Empty list</a></b> do the same.</li>
-    <li>Look for a channel: type in <b><a href="#e-search">Search</a></b>, or press one of the buttons <b><a href="#e-quick-audio">Quick filter: audio only</a></b>, <b><a href="#e-quick-video">Quick filter: video only</a></b> and <b><a href="#e-quick-own">Quick filter: my channels (added or imported)</a></b>.</li>
+    <li>Look for a channel: type in <b><a href="#e-search">Search</a></b>, or press one of the buttons <b><a href="#e-quick-audio">Quick filter: audio only</a></b>, <b><a href="#e-quick-video">Quick filter: video only</a></b> and <b><a href="#e-quick-own">Quick filter: my channels and streams (saved and from devices)</a></b>.</li>
     <li>Narrow the list with <b><a href="#e-filters">Filters and sorting</a></b>: facets such as <b><a href="#e-filter-media">Media</a></b> and <b><a href="#e-filter-country">Country</a></b>, plus <b><a href="#e-sort">Sort by</a></b> and <b><a href="#e-filter-collection">Collection</a></b>. <b><a href="#e-clear-filters">Clear</a></b> takes them all off.</li>
     <li>Choose the look that suits you: <b><a href="#e-list-view">List</a></b> or <b><a href="#e-grid-view">Grid</a></b>.</li>
     <li>Start a channel with <b><a href="#e-play">Play stream</a></b> or a double-click on it. Radio plays right here, video opens in its own window, and <b><a href="#e-op-random">Random station</a></b> picks a station for you.</li>
@@ -106,7 +106,7 @@
       </div>
     </details>
     <details class="el" id="e-quick-own">
-      <summary><span><span class="name">Quick filter: my channels (added or imported)</span><span class="one">Shows only the channels you added or imported yourself.</span></span></summary>
+      <summary><span><span class="name">Quick filter: my channels and streams (saved and from devices)</span><span class="one">Shows only the channels you added or imported yourself.</span></span></summary>
       <div class="full">
         <p>The Own value of the Media filter as a button: the channels you added with <a href="#e-op-add">Add stream</a>, pasted with <a href="#e-op-paste">Paste channel</a> or imported, without the ones that came with the shared catalog. Handy when your own channels are lost among the catalog's many.</p>
         <p>In a narrow window the quick selection buttons are inside <a href="#e-search-tools">Search, filters and sorting</a>.</p>
@@ -152,11 +152,12 @@
     <details class="el" id="e-broadcasts">
       <summary><span><span class="name">My broadcasts</span><span class="one">Opens the list of live broadcasts running on your account's devices.</span></span></summary>
       <div class="full">
-        <p>Appears together with the exchange button. It opens the My broadcasts window: the broadcasts your other devices are running right now, grouped by device. From there you can play one or add it to your channels.</p>
+        <p>Appears when the exchange source is enabled or you are signed in with Google. It opens the broadcasts of your other devices, grouped by device. From here you can play one or add it to your channels.</p>
         <p>The list is a companion window: it stays open beside the others, there is only one of it, and pressing the button again brings the open one forward.</p>
         <p>A failed incoming video broadcast keeps its window and offers Retry in that window. Details shows the failure code; the message first says what happened and then what to try. Other broadcast windows keep playing.</p>
         <p>If a description gives no certificate fingerprint and this PC cannot verify the server, compare the fingerprint with the broadcaster before accepting it. Trust is kept only for that channel. Removing an exchange entry keeps its imported channels with the label not listed.</p>
         <p>This button shows only its icon; hover over it to read its name.</p>
+        <p>The broadcasts button also appears when you sign in with Google. Announcements from Drive join the same list, grouped by device and marked as coming through Google Drive; duplicates already listed by the exchange server appear once. Closing or minimizing the list stops Drive requests.</p>
         <dl class="facts">
           <dt>Next</dt><dd>The My broadcasts window opens, and this window stays usable.</dd>
         </dl>
@@ -165,8 +166,8 @@
     <details class="el" id="e-broadcast-live">
       <summary><span><span class="name">Live broadcast indicator</span><span class="one">Shows that this PC is broadcasting, and what it is broadcasting.</span></span></summary>
       <div class="full">
-        <p>Appears only while this PC is broadcasting. It shows a red broadcast icon, without a caption. Its tooltip names the active sources in your interface language, for example the PC microphone, system sound, or both.</p>
-        <p>Pressing it opens the menu for stopping, casting or sharing the active sources. It never starts a capture. Stopping the last source hides the icon.</p>
+        <p>Appears only while this PC is broadcasting. It shows a red broadcast icon, without a caption. Its tooltip names the active sources in your interface language, for example the PC microphone, the PC screen with the monitor that is live, or the PC camera with its name.</p>
+        <p>Pressing it opens the menu for stopping, casting or sharing the active sources. Share copies the link, copies its password, shows the link as a QR code for a phone, or saves the description file. It never starts a capture. Stopping the last source hides the icon.</p>
         <dl class="facts">
           <dt>Undo</dt><dd>Stop acts at once, without a question; a stopped broadcast has to be started again.</dd>
         </dl>

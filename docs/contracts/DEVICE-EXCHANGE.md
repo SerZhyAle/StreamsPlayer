@@ -6,7 +6,7 @@
 | **Version** | 1.7 read 2026-10-22 (SP-0232); prior edition 1.5 (active since 1.0 on 2026-10-15; read in full on 2026-10-21, SP-0228 - the sections below dated before that were written against the versions they name) |
 | **Home** | `Contracts/device-exchange/README.md`; the brief for this product is `CONSUMER_PROMPT_streamsplayer.md` beside it |
 | **Owner** | FastMediaSorter Android |
-| **This product's role** | **receiver** and **broadcaster** (`product` `streamsplayer-windows`, items CE and BI; the role table of section 3 has said so since 0.23). It finds a user's broadcasts through the account's exchange server (the Google Drive half is not built, SP-0202), plays them and accepts casts, and broadcasts the PC's audio to the one exchange server of its own account behind a Settings permission that is off by default (SP-0217; screen and camera are SP-0223, not built). It signs in only (`enroll`, never `register`), publishes no resource, takes no part in the clipboard, is no administration client and implements no server and no P2P. Broadcasts of other users reach it by their description, through whichever server the description names (SP-0215). |
+| **This product's role** | **receiver** and **broadcaster** (`product` `streamsplayer-windows`, items CE and BI; the role table of section 3 has said so since 0.23). It finds a user's broadcasts through the account's exchange server (and the optional Google Drive source, SP-0202; its joint broadcast runs remain open), plays them and accepts casts, and broadcasts the PC's audio to the one exchange server of its own account behind a Settings permission that is off by default (SP-0217; screen and camera are SP-0223, not built). It signs in only (`enroll`, never `register`), publishes no resource, takes no part in the clipboard, is no administration client and implements no server and no P2P. Broadcasts of other users reach it by their description, through whichever server the description names (SP-0215). |
 
 **SP-0232, 2026-10-22:** section 29 DS-DU is audited in the [synchronization audit](../audits/SP-0232-contract-sync.md). The single own-account
 model has no separate outgoing selector; announcement/online/guest transitions and the live server/state
@@ -37,6 +37,19 @@ SP-0237. Five points that only the contract's owner can settle are filed as `PRO
 rung - phase 1 (FMS_A S4213) and the final run (S4244) need the FMS_Win test server, a phone and the two networks; the rows stay `partial` for that reason.
 
 ## What this repository must do to stay conformant
+
+**SP-0202, 2026-10-25:** the Drive premise is proven by the Android-to-desktop run of FMS_W 203
+(2026-10-23) and this product's own client listing the Android probe (2026-10-25). The client registration
+and project hashes agree with FMS_W 203 section 5.5. The Google source now reads device and broadcast
+wrappers only, caches unchanged records, judges TTL on Drive's clock, and lists them alongside the exchange
+directory. It polls only in the visible, restored list window. Own audio broadcasts also announce through
+Drive, renew within TTL/3 and remove their records on end. The one scope is `drive.appdata`; refresh tokens
+use a separate Windows-user DPAPI file and sign-out requests revocation. Core owns parsing, bounded REST,
+OAuth and the writer; App owns browser interaction, protection and window lifetimes. Server media still
+requires sealing; item DO permits the announcement's outward descriptor in Drive. Local sign-in, list,
+minimize, restore, close and sign-out were observed with request counts. A real phone's broadcast playing
+and ending, and the phone listing this PC with the exchange server off, remain joint-run criteria. This
+does not advance the overall contract version or certify those joint runs.
 
 The product reads, and will implement, these parts of the home page, each as one ticket:
 
@@ -249,9 +262,21 @@ implements the `pin-v1` capability or keeps the explicit deny - one of the two, 
 (17 item AJ).
 
 **Closing owner amendment, 2026-10-22:** section 30/item DV and LIVE-BROADCAST item R were
-published concurrently with this run. No password-choice profile or verifiers member exists in the
-producer; SP-0239 item 10 coordinates them with SP-0237 item 9. An unconditional empty verifiers
-array would invent the person's choice of none and is not a safe patch. Partial 1.5 is retained.
+published concurrently with this run. At that date no password-choice profile or verifiers member
+existed in the producer; an unconditional empty verifiers array would have invented the person's
+choice of none and was not a safe patch. Partial 1.5 is retained until the joint observations of
+the next paragraph are made.
+
+**SP-0223 producer, 2026-10-25:** every `broadcast-start` and `broadcast-update` now carries an
+envelope-level `verifiers` (the member the FMS_Win server reads): one entry per pair - the account's
+own pair and the link's - with a 16-byte salt and PBKDF2-HMAC-SHA256 at 600000 iterations, and an empty
+array exactly when the person chose no password. The
+sealed box carries the own pair as `credentials` whatever the link's choice, on every re-seal. A
+change on the air is a `broadcast-update` with the new list. Captured frames recompute to the
+password the person is told (`ExchangeLoopRecoveryTests`). Credentials do not go to Drive: a Drive
+announcement carries `auth` and no pair, so a device that learns of a broadcast only through Drive
+asks for the password. Not done: a relay that checks the list, a listener that answers it, and the
+joint run of LIVE-BROADCAST section 6.
 
 **SP-0237 corrections, 2026-10-22:** directory absence now retains a device's trusted key; off-curve
 keys are excluded without aborting other recipients; a registering grant is hidden and establishes

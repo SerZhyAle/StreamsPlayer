@@ -183,6 +183,44 @@ public sealed class ExchangeDirectoryLeaseTests
         }
     }
 
+    [Fact]
+    public async Task RefreshDirectoryExplicitlyReListsAndGuardsAgainstOverlaps()
+    {
+        using var certificate = DirectoryFixtureServer.NewCertificate();
+        await using var server = new DirectoryFixtureServer(certificate);
+        using var scope = new Scope();
+        var service = scope.Service(server);
+        try
+        {
+            service.Start();
+            await DirectoryFixtureServer.UntilAsync(() => server.Seen().Contains("keepalive"), "the session never came up");
+
+            using var lease = service.AcquireDirectory(follow: true);
+            await DirectoryFixtureServer.UntilAsync(() => server.Seen().Contains("list"), "no list after the open");
+            await server.SendAsync(Directory(1, "phone", "b1"));
+            await DirectoryFixtureServer.UntilAsync(() => service.Directory is not null && service.IsDirectoryFresh, "directory not fresh");
+
+            // Explicit refresh asks for list again
+            var refreshTask = service.RefreshDirectoryAsync(TimeSpan.FromSeconds(3));
+            Assert.False(service.IsDirectoryFresh);
+
+            // Concurrent call returns immediately without error
+            var concurrentTask = service.RefreshDirectoryAsync(TimeSpan.FromSeconds(3));
+            Assert.True(await concurrentTask);
+
+            // Server responds with revision 2
+            await server.SendAsync(Directory(2, "phone", "b2"));
+            var refreshed = await refreshTask;
+            Assert.True(refreshed);
+            Assert.True(service.IsDirectoryFresh);
+            Assert.Contains("b2", service.Directory!.LiveBroadcastIds);
+        }
+        finally
+        {
+            await service.StopAsync();
+        }
+    }
+
     private static object Directory(long revision, string deviceId, params string[] broadcastIds) => new
     {
         schemaVersion = 2,

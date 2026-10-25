@@ -18,15 +18,23 @@ internal sealed class BroadcastRunningSource : IDisposable
     public required string BroadcastId { get; init; }
     public required string Title { get; init; }
     public required DateTimeOffset StartedAt { get; init; }
-    public required WindowsAacEncoder Encoder { get; init; }
-    public required WindowsAudioCapture Capture { get; init; }
+    public WindowsAacEncoder? Encoder { get; init; }
+    public WindowsAudioCapture? Capture { get; init; }
+    public WindowsVideoBroadcast? Video { get; init; }
+    public string? OpaqueToken { get; init; }
+    public BroadcastSource? AudioSource { get; init; }
+    public int SampleRate { get; init; } = 44100;
+    public int Channels { get; init; } = 1;
+    public int AudioBitrate { get; init; } = 128;
+    public long AudioTime100ns { get; set; }
+    public bool CaptureReady { get; set; }
     public required AdtsFrameStream Frames { get; init; }
     public BroadcastLanServer? LanServer { get; set; }
     public string? LanAddress { get; set; }
     public int LocalPort { get; set; }
     public string? DescriptorJson { get; set; }
     public bool ExchangeStarted { get; set; }
-    public Channel<byte[]>? UploadChunks { get; set; }
+    public Channel<BroadcastMediaChunk>? UploadChunks { get; set; }
     public Task? UploadTask { get; set; }
 
     /// <summary>SP-0226: the keys, certificate and lease of a broadcast sealed to the account's devices; null while it is not.</summary>
@@ -34,6 +42,26 @@ internal sealed class BroadcastRunningSource : IDisposable
 
     /// <summary>The plan the record and the outward description are written from, kept so an update repeats it.</summary>
     public BroadcastWirePlan? Plan { get; set; }
+
+    /// <summary>The pair of the account's own devices (item BF): made with the broadcast, sealed into its record, never shown.</summary>
+    public ExchangeRelayCredentials OwnPair { get; } = new(BroadcastLinkPassword.OwnUser, BroadcastLinkPassword.Generate());
+
+    /// <summary>The pair of the outward link (item R); null when the person chose "none".</summary>
+    public ExchangeRelayCredentials? LinkPair { get; set; }
+
+    /// <summary>True for a link pair this program generated, false for one the person set.</summary>
+    public bool LinkIsGenerated { get; set; } = true;
+
+    /// <summary>Set once the broadcast carried an exchange endpoint; it stays protected for its life (item M).</summary>
+    public bool Announced { get; set; }
+
+    /// <summary>True while every endpoint demands the pair set; false for a LAN-only broadcast and for "none".</summary>
+    public bool Protected { get; set; }
+
+    /// <summary>What the relay is told on every announcement (item DV); empty exactly when nothing is protected.</summary>
+    public IReadOnlyList<BroadcastVerifier> Verifiers { get; set; } = [];
+
+    public Dictionary<ExchangeRelayCredentials, BroadcastVerifier> VerifierCache { get; } = [];
 
     /// <summary>The figure last announced as maxListeners; every update repeats it.</summary>
     public int AnnouncedMaxListeners { get; set; }
@@ -50,8 +78,8 @@ internal sealed class BroadcastRunningSource : IDisposable
 
     public void Dispose()
     {
-        Capture.Dispose();
-        Encoder.Dispose();
+        Capture?.Dispose();
+        Encoder?.Dispose();
     }
 }
 
@@ -84,20 +112,25 @@ internal sealed partial class BroadcastProducerService : IDisposable
     private static readonly TimeSpan EndWriteTimeout = TimeSpan.FromSeconds(2);
 
     private readonly BroadcastProducerSettingsStore _store;
+    private readonly BroadcastLinkPasswordStore _passwords;
     private readonly ExchangeSourceService _exchange;
+    private readonly DriveSourceService? _drive;
     private readonly Dictionary<BroadcastSource, BroadcastRunningSource> _running = [];
     private readonly object _gate = new();
+    private readonly SemaphoreSlim _sourceOperations = new(1, 1);
     private bool _restartHandled;
 
     internal BroadcastProducerSettings Settings { get; private set; }
     internal string? OutcomeKey { get; private set; }
     internal event Action? Changed;
 
-    internal BroadcastProducerService(string dataDirectory, ExchangeSourceService exchange)
+    internal BroadcastProducerService(string dataDirectory, ExchangeSourceService exchange, DriveSourceService? drive = null)
     {
         _store = new BroadcastProducerSettingsStore(dataDirectory);
+        _passwords = new BroadcastLinkPasswordStore(dataDirectory);
         Settings = _store.LoadSync();
         _exchange = exchange;
+        _drive = drive;
         _exchange.SessionOnline += OnSessionOnline;
         _exchange.SessionOffline += OnSessionOffline;
         _exchange.CastResult += OnCastResult;
@@ -122,7 +155,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
     {
         lock (_gate)
         {
-            return BroadcastProducerGate.RefusalFor(Settings, source, _running.Keys.ToHashSet());
+            return BroadcastProducerGate.RefusalFor(Settings, source, _running.Keys.ToHashSet(), IsGuestOnly);
         }
     }
 
@@ -131,6 +164,13 @@ internal sealed partial class BroadcastProducerService : IDisposable
     /// without the server; the exchange half starts when the session is up, and follows it back.
     /// </summary>
     internal async Task<bool> StartAsync(BroadcastSource source)
+    {
+        await _sourceOperations.WaitAsync().ConfigureAwait(false);
+        try { return await StartCoreAsync(source).ConfigureAwait(false); }
+        finally { _sourceOperations.Release(); }
+    }
+
+    private async Task<bool> StartCoreAsync(BroadcastSource source)
     {
         var refusal = RefusalFor(source);
         if (refusal is not null)
@@ -147,11 +187,15 @@ internal sealed partial class BroadcastProducerService : IDisposable
             return false;
         }
 
+        if (!BroadcastSources.IsAudioOnly(source)) return await StartVideoAsync(source, lanAddress).ConfigureAwait(false);
+        var port = SourcePort(source);
+        if (port == 0) { Report("BroadcastPortTaken"); return false; }
+
         var channels = source == BroadcastSource.Microphone ? Settings.MicrophoneChannels : Settings.SystemSoundChannels;
         WindowsAacEncoder encoder;
         try
         {
-            encoder = new WindowsAacEncoder(Settings.SampleRate, channels, Settings.BitrateKbps);
+            encoder = await Task.Run(() => new WindowsAacEncoder(Settings.SampleRate, channels, Settings.BitrateKbps)).ConfigureAwait(false);
         }
         catch (InvalidOperationException)
         {
@@ -169,7 +213,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
         {
             // The loopback half is always bound - the tunnel bridge and this machine reach it there;
             // the LAN half only while the opt-in is on (constraint 4).
-            lanServer.Start(lanAddress, Settings.LanPort);
+            lanServer.Start(lanAddress, port);
         }
         catch (SocketException)
         {
@@ -187,14 +231,22 @@ internal sealed partial class BroadcastProducerService : IDisposable
             Title = TitleOf(source),
             StartedAt = DateTimeOffset.Now,
             Encoder = encoder,
+            AudioSource = source,
+            SampleRate = Settings.SampleRate,
+            Channels = channels,
+            AudioBitrate = Settings.BitrateKbps,
+            CaptureReady = true,
             Capture = new WindowsAudioCapture(source == BroadcastSource.SystemSound,
                 source == BroadcastSource.Microphone ? Settings.MicrophoneDeviceId : null,
                 Settings.SampleRate, channels),
             Frames = new AdtsFrameStream(),
             LanServer = lanServer,
             LanAddress = lanAddress,
-            LocalPort = Settings.LanPort
+            LocalPort = port
         };
+        state.LinkPair = NewLinkPair(out var generatedLink);
+        state.LinkIsGenerated = generatedLink;
+        await ApplyProtectionAsync(state).ConfigureAwait(false);
         state.Plan = PlanOf(state, null, relay: false, tunnel: false, BroadcastSealMode.None);
         state.DescriptorJson = BroadcastDescriptorWriter.Write(state.Plan);
         state.Capture.PcmReady += pcm => OnPcm(state, pcm);
@@ -206,20 +258,29 @@ internal sealed partial class BroadcastProducerService : IDisposable
             _running[source] = state;
         }
 
+        if (!Settings.Allowed || IsGuestOnly) { await StopCoreAsync(source).ConfigureAwait(false); return false; }
         state.Capture.Start();
         await SaveChosenAsync(source, chosen: true).ConfigureAwait(false);
         Changed?.Invoke();
         await EstablishOnExchangeAsync(state).ConfigureAwait(false);
         if (lanAddress is null && !state.ExchangeStarted)
         {
-            await StopAsync(source).ConfigureAwait(false);
+            await StopCoreAsync(source).ConfigureAwait(false);
             return false;
         }
+        await PublishDriveAsync().ConfigureAwait(false);
         return true;
     }
 
     /// <summary>The user's stop of one source: the broadcast ends cleanly, the choice is unmade.</summary>
     internal async Task StopAsync(BroadcastSource source)
+    {
+        await _sourceOperations.WaitAsync().ConfigureAwait(false);
+        try { await StopCoreAsync(source).ConfigureAwait(false); }
+        finally { _sourceOperations.Release(); }
+    }
+
+    private async Task StopCoreAsync(BroadcastSource source)
     {
         BroadcastRunningSource? state;
         lock (_gate)
@@ -231,6 +292,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
         }
 
         await TeardownAsync(state).ConfigureAwait(false);
+        await PublishDriveAsync().ConfigureAwait(false);
         await SaveChosenAsync(source, chosen: false).ConfigureAwait(false);
         Changed?.Invoke();
     }
@@ -240,6 +302,13 @@ internal sealed partial class BroadcastProducerService : IDisposable
     /// stream is still alive, before `bye` and `revoke`) and the quit path both call this.
     /// </summary>
     internal async Task StopAllAsync()
+    {
+        await _sourceOperations.WaitAsync().ConfigureAwait(false);
+        try { await StopAllCoreAsync().ConfigureAwait(false); }
+        finally { _sourceOperations.Release(); }
+    }
+
+    private async Task StopAllCoreAsync()
     {
         List<BroadcastRunningSource> states;
         lock (_gate)
@@ -255,6 +324,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
         {
             await TeardownAsync(state).ConfigureAwait(false);
         }
+        await PublishDriveAsync().ConfigureAwait(false);
 
         if (states.Count > 0)
         {
@@ -276,9 +346,17 @@ internal sealed partial class BroadcastProducerService : IDisposable
 
     internal async Task UpdateSettingsAsync(Func<BroadcastProducerSettings, BroadcastProducerSettings> change)
     {
-        Settings = change(Settings);
-        await _store.SaveAsync(Settings).ConfigureAwait(false);
-        Changed?.Invoke();
+        await _sourceOperations.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            var previous = Settings;
+            Settings = change(Settings);
+            await _store.SaveAsync(Settings).ConfigureAwait(false);
+            if (previous.LanPort != Settings.LanPort) await StopAllCoreAsync().ConfigureAwait(false);
+            else if (previous.LanListening != Settings.LanListening) await ReconfigureLanAsync().ConfigureAwait(false);
+            Changed?.Invoke();
+        }
+        finally { _sourceOperations.Release(); }
     }
 
     /// <summary>
@@ -288,6 +366,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
     internal async Task SetAllowedAsync(bool allowed)
     {
         await UpdateSettingsAsync(settings => settings with { Allowed = allowed }).ConfigureAwait(false);
+        if (!allowed) await StopAllAsync().ConfigureAwait(false);
         if (allowed && _exchange.IsActive)
         {
             // Re-establish the session; the server still holds the roles from enrollment.
@@ -308,7 +387,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
 
     private void OnPcm(BroadcastRunningSource state, short[] pcm)
     {
-        var encoded = state.Encoder.Encode(MemoryMarshal.AsBytes(pcm.AsSpan()).ToArray());
+        var encoded = state.Encoder!.Encode(MemoryMarshal.AsBytes(pcm.AsSpan()).ToArray());
         if (encoded.Length == 0)
         {
             return;
@@ -318,6 +397,13 @@ internal sealed partial class BroadcastProducerService : IDisposable
         var uploadBuffer = new List<byte>(UploadChunkTargetBytes * 2);
         while (state.Frames.TryReadFrame(out var frame))
         {
+            if (state.Video is not null)
+            {
+                var chunk = state.Video.Audio(frame.ToArray(), state.AudioTime100ns);
+                state.AudioTime100ns += 1024L * 10_000_000 / state.SampleRate;
+                OnVideoChunk(state, chunk);
+                continue;
+            }
             // One encoder output feeds every listener: the LAN share gets whole frames, and the relay's
             // chunk is whole frames too, so a late joiner always starts at a frame boundary.
             state.LanServer?.Enqueue(frame);
@@ -337,6 +423,9 @@ internal sealed partial class BroadcastProducerService : IDisposable
 
     /// <summary>Hands one chunk to the upload task; a queue that is full ends the upload visibly, never blocks the capture.</summary>
     private void PostUploadChunk(BroadcastRunningSource state, byte[] chunk)
+        => PostUploadChunk(state, new BroadcastMediaChunk(chunk, true));
+
+    private void PostUploadChunk(BroadcastRunningSource state, BroadcastMediaChunk chunk)
     {
         if (state.UploadChunks is not null && !state.UploadChunks.Writer.TryWrite(chunk))
         {
@@ -352,7 +441,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
         _ = StopAsync(state.Source);
     }
 
-    private static string CaptureFailureKey(BroadcastCaptureFailure failure) => failure switch
+    internal static string CaptureFailureKey(BroadcastCaptureFailure failure) => failure switch
     {
         BroadcastCaptureFailure.WindowsPermissionDenied => "BroadcastPermissionDenied",
         BroadcastCaptureFailure.DeviceInUse => "BroadcastDeviceInUse",
@@ -387,6 +476,9 @@ internal sealed partial class BroadcastProducerService : IDisposable
             return;
         }
 
+        // Item M: from the moment it carries an exchange endpoint the broadcast is protected - for the rest of its life.
+        state.Announced = relay || tunnel;
+        await ApplyProtectionAsync(state).ConfigureAwait(false);
         var sealing = await PrepareSealingAsync(state).ConfigureAwait(false);
         if (sealing is null)
         {
@@ -434,7 +526,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
             }
 
             state.ExchangeStarted = true;
-            if (relay)
+            if (relay && state.CaptureReady)
             {
                 // Every upload replacement, including a reconnect, carries a new epoch (item DL).
                 if (state.Sealing?.Sealer.Relay is { } encoder)
@@ -448,6 +540,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
         {
             sealing.Gate.Release();
         }
+        await PublishDriveAsync().ConfigureAwait(false);
     }
     /// <summary>The relay upload: a second TLS data stream - `hello`, `upload`, chunks - owned by this task.</summary>
     private void StartUpload(BroadcastRunningSource state)
@@ -457,7 +550,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
             return;
         }
 
-        var chunks = Channel.CreateBounded<byte[]>(UploadQueueChunks);
+        var chunks = Channel.CreateBounded<BroadcastMediaChunk>(state.Video is null ? UploadQueueChunks : 8);
         var retire = new CancellationTokenSource();
         var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         state.UploadChunks = chunks;
@@ -466,7 +559,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
         state.UploadTask = RunUploadAsync(state, chunks, retire.Token, ready);
     }
 
-    private async Task RunUploadAsync(BroadcastRunningSource state, Channel<byte[]> chunks, CancellationToken retire,
+    private async Task RunUploadAsync(BroadcastRunningSource state, Channel<BroadcastMediaChunk> chunks, CancellationToken retire,
         TaskCompletionSource ready)
     {
         var account = _exchange.Account;
@@ -492,7 +585,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
             {
                 // Item DL: a sealed upload declares the sealed type; the true media type travels inside the key ring.
                 schemaVersion = 2, type = "upload", broadcastId = state.BroadcastId,
-                contentType = sealing is null ? BroadcastDescriptorWriter.AudioContentType : ExchangeSealedRelayRecords.ContentType
+                contentType = sealing is null ? MediaTypeOf(state.Source) : ExchangeSealedRelayRecords.ContentType
             }, true, CancellationToken.None).ConfigureAwait(false);
             using var accepted = await ExchangeHandshake.ReadAsync(connection.Stream, "upload-accepted", CancellationToken.None).ConfigureAwait(false);
             if (ExchangeProtocol.String(accepted.RootElement, "type") == "refused")
@@ -583,6 +676,8 @@ internal sealed partial class BroadcastProducerService : IDisposable
     }
     private async Task TeardownAsync(BroadcastRunningSource state)
     {
+        if (state.Video is not null) await state.Video.DisposeAsync().ConfigureAwait(false);
+        await Task.Run(state.Dispose).ConfigureAwait(false);
         // The upload ends before the record does: the zero-length chunk closes the relay cleanly, then
         // the broadcast itself ends on the control stream.
         state.UploadChunks?.Writer.TryComplete();
@@ -599,7 +694,6 @@ internal sealed partial class BroadcastProducerService : IDisposable
             }
         }
 
-        state.Dispose();
         state.Sealing?.Dispose();
         state.Sealing = null;
         if (state.ExchangeStarted)
@@ -740,6 +834,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
     {
         BroadcastStartRefusal.NotAllowed => "BroadcastNotAllowed",
         BroadcastStartRefusal.TooManySources => "BroadcastTooManySources",
+        BroadcastStartRefusal.GuestAccount => "BroadcastGuestRefused",
         _ => "BroadcastAlreadyRunning"
     };
 
@@ -747,6 +842,8 @@ internal sealed partial class BroadcastProducerService : IDisposable
     {
         BroadcastSource.Microphone => LocalizationService.Get("BroadcastMicTitle"),
         BroadcastSource.SystemSound => LocalizationService.Get("BroadcastSystemSoundTitle"),
+        BroadcastSource.Screen => LocalizationService.Get("BroadcastScreenTitle"),
+        BroadcastSource.Camera => LocalizationService.Get("BroadcastCameraTitle"),
         _ => LocalizationService.Get("BroadcastMicTitle")
     };
 

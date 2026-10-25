@@ -20,7 +20,9 @@ public partial class MainWindow
                 entries.Add(Exchange.Account);
             }
 
-            var identities = entries.Select(entry => ExchangeAccountIdentity.Key(entry.Host, entry.Port, entry.Login)).ToArray();
+            var identities = entries.Select(entry => ExchangeAccountIdentity.Key(entry.Host, entry.Port, entry.Login)).ToList();
+            if (((App)System.Windows.Application.Current).Drive is { SignedIn: true } drive)
+                identities.Add(drive.EntryIdentity);
             await PersistAsync(state =>
             {
                 var channels = ExchangeDirectoryChannels.ReconcileEntries(state.Channels, identities);

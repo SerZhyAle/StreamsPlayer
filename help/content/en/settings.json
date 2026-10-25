@@ -628,6 +628,25 @@
             "Each entry has its own **Sign out on this device** button. It asks first, naming the account; this device then leaves that account's device list."
           ],
           "undo": "Each guest account is signed out on its own and your own account is not touched. Sign in to the guest account again to bring it back."
+        },
+        {
+          "id": "drive-sign-in",
+          "nameKey": "DriveSignIn",
+          "control": "DriveSignInButton",
+          "one": "Signs in with Google in your browser to find broadcasts announced by your own devices.",
+          "full": [
+            "Only hidden application data is used; no media passes through Drive. The broadcast list checks for changes only while it is open and not minimized. Casting is unavailable because Drive has no push. A direct connection can fail behind NAT; a broadcast with an exchange endpoint can use it without an exchange account on this PC.",
+            "When you broadcast from this PC, its announcement is written and renewed through Google Drive too, then removed when you stop. Your Google grant is protected for your Windows user."
+          ]
+        },
+        {
+          "id": "drive-sign-out",
+          "nameKey": "DriveSignOut",
+          "control": "DriveSignOutButton",
+          "one": "Forgets the Google grant on this PC and asks Google to revoke it. Imported channels stay.",
+          "full": [
+            "If Google cannot be notified, the status says so: remove the app’s access in your Google account. No background revocation retry runs."
+          ]
         }
       ]
     },
@@ -651,7 +670,7 @@
           "one": "The permission that must be on before this PC can broadcast anything.",
           "full": [
             "Sending what this PC captures to the exchange server of your account takes two steps: first allow it here, then start a source yourself. Nothing is captured until both are done. It is off by default, and while it is off the rest of this group stays hidden.",
-            "While this PC is signed in to a server only as a guest, it announces nothing on that server; the link and the LAN share still work.",
+            "While this PC is signed in to a server only as a guest, it cannot broadcast and no source is offered.",
             "A broadcast starts only when a listener can reach it over the enabled local network or a connected exchange server. A local-only broadcast still has a description you can copy or save."
           ],
           "next": "The other controls of the group appear and the list of microphones is read."
@@ -684,6 +703,26 @@
             "Works like {@broadcast-mic}, with the sound this PC plays as the source instead of a microphone. Its channels are set by **System sound channels** below."
           ],
           "next": "The line below the quality options reports what happened. **Stop all** ends the broadcast."
+        },
+        {
+          "id": "broadcast-screen",
+          "nameKey": "BroadcastScreenStart",
+          "control": "BroadcastScreenButton",
+          "one": "Starts broadcasting the whole monitor chosen below.",
+          "full": [
+            "Captures the chosen monitor and offers it as a live broadcast the way {@broadcast-mic} does; the sound it carries is set by **Sound with the screen**. Everything on that monitor is sent, including notifications and passwords, and content that Windows protects may come out blank. The capture begins only when you press the button, and the button is not shown on a PC whose Windows has no H.264 encoder."
+          ],
+          "next": "The indicator in the main window names the monitor that is live. **Stop all** ends the broadcast."
+        },
+        {
+          "id": "broadcast-camera",
+          "nameKey": "BroadcastCameraStart",
+          "control": "BroadcastCameraButton",
+          "one": "Starts broadcasting the camera chosen below.",
+          "full": [
+            "Captures the chosen camera and offers it as a live broadcast the way {@broadcast-mic} does; the sound it carries is set by **Sound with the camera**. If Windows denies the camera to this application, or another program holds it, the broadcast does not start and a message says which. The button is not shown on a PC whose Windows has no H.264 encoder."
+          ],
+          "next": "The indicator in the main window names the camera that is live. **Stop all** ends the broadcast."
         },
         {
           "id": "broadcast-stop",
@@ -768,6 +807,80 @@
           "one": "How much data per second the broadcast uses: 96, 128, 192 or 256 kbit/s.",
           "full": [
             "A higher bitrate sounds better and uses more of this PC's upload. The default is 128 kbit/s."
+          ]
+        },
+        {
+          "id": "broadcast-monitor",
+          "nameKey": "BroadcastMonitor",
+          "control": "BroadcastMonitorBox",
+          "one": "The monitor that the screen broadcast sends.",
+          "full": [
+            "A whole monitor is sent, never a part of it or one window. The picture is scaled down to at most 1280 by 720 and keeps the monitor's proportions."
+          ]
+        },
+        {
+          "id": "broadcast-screen-audio",
+          "nameKey": "BroadcastScreenAudio",
+          "control": "BroadcastScreenAudioBox",
+          "one": "The one sound that travels with the screen: none, the microphone or the system sound.",
+          "full": [
+            "The sound is part of the same broadcast, so a listener hears it with the picture. On a Windows that can leave this application's own sound out, a broadcast you play here is never sent on; on an older Windows the note under the options says what happens."
+          ]
+        },
+        {
+          "id": "broadcast-camera-device",
+          "nameKey": "BroadcastCamera",
+          "control": "BroadcastCameraBox",
+          "one": "The camera that the camera broadcast sends.",
+          "full": [
+            "Only one camera is sent. A camera that another program is using cannot be started until that program lets it go."
+          ]
+        },
+        {
+          "id": "broadcast-camera-audio",
+          "nameKey": "BroadcastCameraAudio",
+          "control": "BroadcastCameraAudioBox",
+          "one": "The one sound that travels with the camera: none, the microphone or the system sound.",
+          "full": [
+            "Works like {@broadcast-screen-audio}, for the camera broadcast."
+          ]
+        },
+        {
+          "id": "broadcast-link-password",
+          "nameKey": "BroadcastLinkPassword",
+          "control": "BroadcastLinkChoiceBox",
+          "one": "How the password of the link you give to other people is made.",
+          "full": [
+            "The link, the file and the QR code of a broadcast open it for anyone who also knows its password; the password is never inside them, so you tell it separately. **Made for each broadcast** creates a new random password every time a broadcast starts, **Set by me** keeps the one you type, and **No password** lets anyone who gets the link watch and listen. Your other devices signed in to the account's exchange server receive the password by themselves.",
+            "Changing the choice or the password while a broadcast is live takes effect at once: the previous password is refused for every new connection, and a listener on this PC's local-network share who used it is disconnected."
+          ],
+          "next": "Open the live indicator, then **Share**, to copy the password or show the QR code."
+        },
+        {
+          "id": "broadcast-link-custom",
+          "nameKey": "BroadcastLinkPasswordField",
+          "control": "BroadcastLinkPasswordBox",
+          "one": "The password you choose for the link: 1 to 64 characters, no control characters.",
+          "full": [
+            "Any text of that length is accepted; a short one is guessed quickly. It is kept only in the Windows secret store of your account, never in the settings file, a backup or a log, and the field is cleared after saving."
+          ]
+        },
+        {
+          "id": "broadcast-link-save",
+          "nameKey": "BroadcastLinkPasswordSave",
+          "control": "BroadcastLinkSaveButton",
+          "one": "Saves the typed password and uses it from now on.",
+          "full": [
+            "The password applies to the next broadcast and to any broadcast that is live."
+          ]
+        },
+        {
+          "id": "broadcast-link-renew",
+          "nameKey": "BroadcastLinkRenew",
+          "control": "BroadcastLinkRenewButton",
+          "one": "Makes a new random password for the broadcasts that are live.",
+          "full": [
+            "The previous password stops working at once. The button is available only while a broadcast is live and the password is made for each broadcast."
           ]
         }
       ]

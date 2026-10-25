@@ -136,11 +136,12 @@
       "control": "BroadcastsButton",
       "one": "Opens the list of live broadcasts running on your account's devices.",
       "full": [
-        "Appears together with the exchange button. It opens the My broadcasts window: the broadcasts your other devices are running right now, grouped by device. From there you can play one or add it to your channels.",
+        "Appears when the exchange source is enabled or you are signed in with Google. It opens the broadcasts of your other devices, grouped by device. From here you can play one or add it to your channels.",
         "The list is a companion window: it stays open beside the others, there is only one of it, and pressing the button again brings the open one forward.",
         "A failed incoming video broadcast keeps its window and offers Retry in that window. Details shows the failure code; the message first says what happened and then what to try. Other broadcast windows keep playing.",
         "If a description gives no certificate fingerprint and this PC cannot verify the server, compare the fingerprint with the broadcaster before accepting it. Trust is kept only for that channel. Removing an exchange entry keeps its imported channels with the label not listed.",
-        "This button shows only its icon; hover over it to read its name."
+        "This button shows only its icon; hover over it to read its name.",
+        "The broadcasts button also appears when you sign in with Google. Announcements from Drive join the same list, grouped by device and marked as coming through Google Drive; duplicates already listed by the exchange server appear once. Closing or minimizing the list stops Drive requests."
       ],
       "next": "The My broadcasts window opens, and this window stays usable."
     },
@@ -150,8 +151,8 @@
       "control": "BroadcastLiveButton",
       "one": "Shows that this PC is broadcasting, and what it is broadcasting.",
       "full": [
-        "Appears only while this PC is broadcasting. It shows a red broadcast icon, without a caption. Its tooltip names the active sources in your interface language, for example the PC microphone, system sound, or both.",
-        "Pressing it opens the menu for stopping, casting or sharing the active sources. It never starts a capture. Stopping the last source hides the icon."
+        "Appears only while this PC is broadcasting. It shows a red broadcast icon, without a caption. Its tooltip names the active sources in your interface language, for example the PC microphone, the PC screen with the monitor that is live, or the PC camera with its name.",
+        "Pressing it opens the menu for stopping, casting or sharing the active sources. Share copies the link, copies its password, shows the link as a QR code for a phone, or saves the description file. It never starts a capture. Stopping the last source hides the icon."
       ],
       "undo": "Stop acts at once, without a question; a stopped broadcast has to be started again."
     },

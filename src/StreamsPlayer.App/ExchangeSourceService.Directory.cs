@@ -20,6 +20,9 @@ internal sealed partial class ExchangeSourceService
     // it would present a stale directory as the current one (the revision gap rule cannot see the difference
     // when nothing changed while it was closed).
     private volatile bool _directoryFresh;
+    private int _refreshing;
+
+    internal bool IsDirectoryFresh => _directoryFresh;
 
     private bool HoldsDirectory
     {
@@ -112,6 +115,30 @@ internal sealed partial class ExchangeSourceService
         finally
         {
             DirectoryChanged -= Observe;
+        }
+    }
+
+    /// <summary>
+    /// SP-0233 requirement 5: explicitly refreshes the account directory on demand.
+    /// Re-requests the directory list and waits for the directory frame or timeout.
+    /// Protects against overlapping refreshes using an atomic gate.
+    /// </summary>
+    internal async Task<bool> RefreshDirectoryAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+    {
+        if (Interlocked.CompareExchange(ref _refreshing, 1, 0) != 0)
+        {
+            return true;
+        }
+
+        try
+        {
+            _directoryFresh = false;
+            RequestList();
+            return await WaitForDirectoryAsync(timeout, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _refreshing, 0);
         }
     }
 

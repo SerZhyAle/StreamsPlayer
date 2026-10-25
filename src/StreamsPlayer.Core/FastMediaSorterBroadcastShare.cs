@@ -30,8 +30,9 @@ public static class FastMediaSorterBroadcastShare
 
     /// <summary>
     /// Section 4.3's next form, the one this product's own reader opens directly: the URL-encoded
-    /// `FMSBCAST1:` descriptor behind the importer's scheme. It carries no secret - a descriptor is
-    /// addresses and names only - so it is safe to place on the clipboard.
+    /// `FMSBCAST1:` descriptor behind the importer's scheme. Never the password (item M), but the outward
+    /// description of a sealed broadcast does hold the link's key (item Q): whoever has this text opens
+    /// the broadcast with its password, so the person hands it over, and nothing logs or stores it.
     /// </summary>
     public static string Link(string descriptorJson) =>
         "fmsbcast://import?payload=" + Uri.EscapeDataString(BarcodeText(descriptorJson));

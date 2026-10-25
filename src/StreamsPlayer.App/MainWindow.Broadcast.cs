@@ -53,7 +53,7 @@ public partial class MainWindow
             return;
         }
 
-        var names = running.Select(SourceTitle).OrderBy(name => name, StringComparer.CurrentCulture);
+        var names = running.Select(Broadcast.SourceTitle).OrderBy(name => name, StringComparer.CurrentCulture);
         var description = LocalizationService.Format("BroadcastIndicatorLive", string.Join(", ", names));
         BroadcastLiveButton.ToolTip = description;
         System.Windows.Automation.AutomationProperties.SetName(BroadcastLiveButton, description);
@@ -68,6 +68,8 @@ public partial class MainWindow
     {
         BroadcastSource.Microphone => LocalizationService.Get("BroadcastMicTitle"),
         BroadcastSource.SystemSound => LocalizationService.Get("BroadcastSystemSoundTitle"),
+        BroadcastSource.Screen => LocalizationService.Get("BroadcastScreenTitle"),
+        BroadcastSource.Camera => LocalizationService.Get("BroadcastCameraTitle"),
         _ => LocalizationService.Get("BroadcastMicTitle")
     };
 

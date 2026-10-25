@@ -10,7 +10,10 @@ public enum BroadcastStartRefusal
     TooManySources,
 
     /// <summary>The source is already live.</summary>
-    AlreadyRunning
+    AlreadyRunning,
+
+    /// <summary>SP-0221: this PC is on a server only as a guest, and a guest account never produces (item AO).</summary>
+    GuestAccount
 }
 
 /// <summary>
@@ -29,11 +32,17 @@ public static class BroadcastProducerGate
             && (features.Contains("relay") || features.Contains("tunnel"));
 
     public static BroadcastStartRefusal? RefusalFor(BroadcastProducerSettings settings, BroadcastSource source,
-        IReadOnlyCollection<BroadcastSource> running)
+        IReadOnlyCollection<BroadcastSource> running, bool guestOnly = false)
     {
         if (!settings.Allowed)
         {
             return BroadcastStartRefusal.NotAllowed;
+        }
+
+        if (guestOnly)
+        {
+            // SP-0223 requirement 4: no source is offered to a guest session, so none is started behind the UI either.
+            return BroadcastStartRefusal.GuestAccount;
         }
 
         if (running.Contains(source))

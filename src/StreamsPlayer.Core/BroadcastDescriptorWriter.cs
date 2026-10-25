@@ -49,10 +49,15 @@ public sealed record BroadcastWirePlan(
     /// <summary>The link's group key (base64url), written into an outward RELAY endpoint; a secret.</summary>
     string? LinkGroupKey = null,
     /// <summary>The inner tunnel leaf's SHA256: pin, written into an outward TUNNEL endpoint.</summary>
-    string? TunnelPin = null)
+    string? TunnelPin = null,
+    bool? HasAudio = null,
+    /// <summary>LIVE-BROADCAST item M: the user an outsider answers the password challenge with; null writes no `auth` (item R: the person chose none, or a LAN-only broadcast).</summary>
+    string? AuthUser = null)
 {
     public string SourceId => BroadcastSources.SourceId(DeviceId, Source);
-    public string Mode => BroadcastSources.Mode(Source);
+    public string Mode => !IsVideo ? FastMediaSorterBroadcastDescriptor.AudioOnlyMode
+        : (HasAudio ?? Source == BroadcastSource.Camera) ? FastMediaSorterBroadcastDescriptor.VideoAudioMode
+        : FastMediaSorterBroadcastDescriptor.VideoOnlyMode;
     public bool IsVideo => !BroadcastSources.IsAudioOnly(Source);
 }
 
@@ -148,6 +153,15 @@ public static class BroadcastDescriptorWriter
                 writer.WriteString("sourceId", plan.SourceId);
                 writer.WriteBoolean("isLive", true);
                 writer.WriteNumber("targetLatencyMs", plan.IsVideo ? LanVideoTargetLatencyMs : LanAudioTargetLatencyMs);
+                if (plan.AuthUser is { Length: > 0 } authUser)
+                {
+                    // A marker with a user name and no secret: the password never travels in a description (item M).
+                    writer.WriteStartObject("auth");
+                    writer.WriteString("scheme", ExchangeBroadcastAuth.SupportedScheme);
+                    writer.WriteString("user", authUser);
+                    writer.WriteEndObject();
+                }
+
                 writer.WriteStartArray("endpoints");
                 if (lanUrl is not null)
                 {
@@ -245,14 +259,15 @@ public static class BroadcastDescriptorWriter
         if (plan.IsVideo)
         {
             writer.WriteString("videoCodec", "h264");
+            writer.WriteNumber("keyframeIntervalMs", 2000);
             writer.WriteNumber("bitrate", plan.VideoBitrateKbps.GetValueOrDefault(2000) * 1000);
         }
-        else
+        if (plan.Mode != FastMediaSorterBroadcastDescriptor.VideoOnlyMode)
         {
             writer.WriteString("audioCodec", "aac");
             writer.WriteNumber("sampleRate", plan.SampleRate);
             writer.WriteNumber("channels", plan.Channels);
-            writer.WriteNumber("bitrate", plan.BitrateKbps * 1000);
+            if (!plan.IsVideo) writer.WriteNumber("bitrate", plan.BitrateKbps * 1000);
         }
 
         if (certFingerprint is not null)

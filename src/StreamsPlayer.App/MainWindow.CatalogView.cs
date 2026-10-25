@@ -165,9 +165,23 @@ public partial class MainWindow
         // pinned and unpinned, and the Count over the unhidden universe for the channel count - falls out
         // of this loop.
         var channels = _state.Channels;
+        var ownAccountIdentity = Exchange.HasAccount
+            ? ExchangeAccountIdentity.Key(Exchange.Account.Host, Exchange.Account.Port, Exchange.Account.Login)
+            : null;
+        var announcedSavedIds = media == OwnFilterValue
+            ? MyStreamsMatch.CollectAnnouncedSavedChannelIds(Exchange.Directory, channels, ownAccountIdentity)
+            : null;
+
         for (var index = 0; index < channels.Count; index++)
         {
             var channel = channels[index];
+            if (media == OwnFilterValue && announcedSavedIds is not null && announcedSavedIds.Contains(channel.Id))
+            {
+                // SP-0233: one broadcast, one choice. This saved channel is currently announced by an online
+                // device and presented in the device section, so omit it from the standalone saved channels section.
+                continue;
+            }
+
             if (IsHiddenBySet(hiddenIdentities, channel))
             {
                 continue;
@@ -268,8 +282,14 @@ public partial class MainWindow
         PinnedRows.ReplaceAll(_pinnedRowBuffer);
         Rows.ReplaceAll(_rowBuffer);
         RebuildGridRows();
+        UpdateMyStreamsLifecycle(media == OwnFilterValue);
 
         var totalShown = PinnedRows.Count + Rows.Count;
+        if (media == OwnFilterValue)
+        {
+            totalShown += MyStreamsBroadcastCount;
+        }
+
         EmptyPanel.Visibility = totalShown == 0 ? Visibility.Visible : Visibility.Collapsed;
         StreamsList.Visibility = Rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         NotifySectionState();

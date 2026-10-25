@@ -13,6 +13,7 @@ public partial class SettingsWindow
 
     private void InitializeExchange()
     {
+        InitializeDrive();
         ExchangeAddressBox.Text = Exchange.Account.Host;
         ExchangePortBox.Text = Exchange.Account.Port == 0 ? "" : Exchange.Account.Port.ToString(System.Globalization.CultureInfo.InvariantCulture);
         ExchangeLoginBox.Text = Exchange.Account.Login;

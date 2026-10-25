@@ -61,6 +61,7 @@ public partial class SettingsWindow
         (1, "library.playlists", "ExportPinned", "ExportListTip", "ExportPinnedButton"),
         (1, "library.tv", "TvScheduleAddressName", "TvScheduleHint", "TvScheduleAddressBox"),
         (ExchangePageIndex, "library.exchange", "ExchangeTitle", "ExchangeHint", "ExchangeLoginBox"),
+        (ExchangePageIndex, "library.exchange", "DriveSignIn", "DriveHint", "DriveSignInButton"),
         (BroadcastPageIndex, "library.broadcast", "BroadcastAllow", "BroadcastHint", "BroadcastAllowedCheckBox"),
         (2, "playback.general", "KeepAwakeDuringPlayback", "KeepAwakeHint", "KeepAwakeCheckBox"),
         (2, "playback.general", "SystemMediaControls", "SmtcHint", "SystemMediaControlsCheckBox"),

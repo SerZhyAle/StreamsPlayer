@@ -9,6 +9,7 @@ public partial class MainWindow
 
     internal void InitializeExchangeStatus(ExchangeSourceService source)
     {
+        var drive = ((App)Application.Current).Drive;
         void Refresh()
         {
             ApplyExchangeEntryBindings();
@@ -17,7 +18,7 @@ public partial class MainWindow
             // in Settings > Exchange server, which is where a device without an active account is told why (SP-0201).
             var visibility = source.IsActive ? Visibility.Visible : Visibility.Collapsed;
             ExchangeSourceStatusButton.Visibility = visibility;
-            BroadcastsButton.Visibility = visibility;
+            BroadcastsButton.Visibility = source.IsActive || drive.SignedIn ? Visibility.Visible : Visibility.Collapsed;
             ExchangeSourceStatusButton.SetResourceReference(System.Windows.Automation.AutomationProperties.HelpTextProperty, source.StatusKey);
             ExchangeSourceStatusText.SetResourceReference(System.Windows.Controls.TextBlock.TextProperty, source.StatusKey);
             if (source.SignedOutNotice)
@@ -56,6 +57,7 @@ public partial class MainWindow
         }
 
         source.Changed += Changed;
+        drive.Changed += Changed;
         source.DirectoryChanged += DirectoryChanged;
         source.CastPromptRequested += PromptCastOfferAsync;
         source.CastAccepted += PlayCastOffer;
@@ -63,6 +65,7 @@ public partial class MainWindow
         Closed += (_, _) =>
         {
             source.Changed -= Changed;
+            drive.Changed -= Changed;
             source.DirectoryChanged -= DirectoryChanged;
             source.CastPromptRequested -= PromptCastOfferAsync;
             source.CastAccepted -= PlayCastOffer;
@@ -129,13 +132,14 @@ public partial class MainWindow
             }
 
             var broadcasts = snapshot.Groups.SelectMany(group => group.Broadcasts).ToList();
+            var knownLive = DriveDirectory.Merge(snapshot, ((App)Application.Current).Drive.Directory)!;
             var entryIdentity = ExchangeAccountIdentity.Key(Exchange.Account.Host, Exchange.Account.Port, Exchange.Account.Login);
             var changed = false;
             await PersistAsync(state =>
             {
                 var refreshed = ExchangeDirectoryChannels.RefreshStored(state.Channels, broadcasts, DateTimeOffset.UtcNow, entryIdentity);
                 var ended = ExchangeDirectoryChannels.MarkEnded(
-                    refreshed, snapshot.LiveSourceIds, snapshot.LiveBroadcastIds, DateTimeOffset.UtcNow, entryIdentity);
+                    refreshed, knownLive.LiveSourceIds, knownLive.LiveBroadcastIds, DateTimeOffset.UtcNow, entryIdentity);
                 var byId = ended.ToDictionary(row => row.Id);
                 var channels = refreshed
                     .Select(channel => byId.TryGetValue(channel.Id, out var marked) ? marked : channel)

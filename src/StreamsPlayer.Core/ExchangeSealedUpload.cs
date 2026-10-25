@@ -14,21 +14,37 @@ public static class ExchangeSealedUpload
     /// <param name="formatHeader">PAT and PMT for MPEG-TS; empty for ADTS.</param>
     /// <param name="chunks">The media chunks: whole ADTS frames, or MPEG-TS from an IDR access unit - each joinable.</param>
     /// <param name="headerWritten">Raised once the header chunk is on the stream (a replacement upload waits for it).</param>
+    public static Task WriteAsync(
+        Stream stream, ExchangeSealedRelayEncoder? relay, ReadOnlyMemory<byte> formatHeader,
+        IAsyncEnumerable<byte[]> chunks, Action? headerWritten, CancellationToken cancellationToken) =>
+        WriteAsync(stream, relay, formatHeader, AudioChunks(chunks), headerWritten, cancellationToken);
+
     public static async Task WriteAsync(
         Stream stream, ExchangeSealedRelayEncoder? relay, ReadOnlyMemory<byte> formatHeader,
-        IAsyncEnumerable<byte[]> chunks, Action? headerWritten, CancellationToken cancellationToken)
+        IAsyncEnumerable<BroadcastMediaChunk> chunks, Action? headerWritten, CancellationToken cancellationToken)
     {
         if (relay is not null)
         {
             await ExchangeUploadChunks.WriteAsync(stream, ExchangeUploadChunks.Header, relay.HeaderChunk(formatHeader.Span),
                 cancellationToken).ConfigureAwait(false);
         }
+        else if (!formatHeader.IsEmpty)
+        {
+            await ExchangeUploadChunks.WriteAsync(stream, ExchangeUploadChunks.Header, formatHeader,
+                cancellationToken).ConfigureAwait(false);
+        }
 
         headerWritten?.Invoke();
         await foreach (var chunk in chunks.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
-            var payload = relay is null ? chunk : relay.SealChunk(ExchangeUploadChunks.Joinable, chunk);
-            await ExchangeUploadChunks.WriteAsync(stream, ExchangeUploadChunks.Joinable, payload, cancellationToken).ConfigureAwait(false);
+            var flags = chunk.Joinable ? ExchangeUploadChunks.Joinable : (byte)0;
+            var payload = relay is null ? chunk.Payload : relay.SealChunk(flags, chunk.Payload);
+            await ExchangeUploadChunks.WriteAsync(stream, flags, payload, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    private static async IAsyncEnumerable<BroadcastMediaChunk> AudioChunks(IAsyncEnumerable<byte[]> chunks)
+    {
+        await foreach (var chunk in chunks.ConfigureAwait(false)) yield return new(chunk, true);
     }
 }

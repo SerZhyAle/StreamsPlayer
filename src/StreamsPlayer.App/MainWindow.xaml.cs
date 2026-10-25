@@ -190,6 +190,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         Deactivated += MainWindow_Deactivated;
         Closing += MainWindow_Closing; // SP-0062: freeze the resume record before shutdown tears playback down
         Closed += MainWindow_Closed;
+        Closed += (_, _) => UpdateMyStreamsLifecycle(false);
         // SP-0125: the loader is static and outlives this window, so the subscription is dropped on close.
         FaviconTileLoader.AtlasReady += FaviconTileLoader_AtlasReady;
         Closed += (_, _) => FaviconTileLoader.AtlasReady -= FaviconTileLoader_AtlasReady;
@@ -1805,6 +1806,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             _exchangeDirectoryPending = false;
             ApplyExchangeDirectory();
         }
+        if (!busy && _pendingDriveDirectory is not null)
+            HandlerBoundary.Run(nameof(ApplyPendingDriveDirectoryAsync), ApplyPendingDriveDirectoryAsync);
     }
 
 }

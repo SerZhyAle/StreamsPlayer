@@ -10,7 +10,7 @@ Open **Settings**, then **Exchange server**. Read a connection string, a connect
 or a QR picture from a file or the clipboard. Reading fills the form; it does not connect. Check the server,
 then enter your login and password and choose **Sign in**. This program only signs in: create an account in
 Fast Media Sorter & Organizer for Android or Fast Media Sorter & Sharing for Windows, or ask the server's host.
-The server address and port are under **Details**. Camera QR scanning is a separate, parked feature.
+The server address and port are under **Details**. Where Windows reports a camera, **Scan with the camera** reads the connection QR from the camera instead; the picture is looked at in memory and is never stored, sent or logged.
 
 ## Receive through your account
 
@@ -36,11 +36,7 @@ broadcast link as private.
 
 ## Broadcast from this PC
 
-In **Settings**, **Library**, **Broadcasting**, allow this PC to broadcast and start the microphone or system
-sound. Nothing is captured until you allow broadcasting and start a source. The live indicator offers a stop,
-sharing a link or a description file, and a cast to your own device. Use the exchange server of your own account,
-or enable local-network listening explicitly. You can limit listeners. Screen and camera capture belong to
-SP-0223 and are not described as available here.
+Open **Settings**, then **Broadcasting**, allow this PC to broadcast, and start a source with **Broadcast microphone**, **Broadcast system sound**, **Broadcast screen** (one whole monitor you choose) or **Broadcast camera** (a camera you choose). The screen and the camera can each carry one sound, the microphone or the system sound, in the same broadcast. Video is H.264 up to 1280x720 at 30 frames per second, about 2 Mbit/s, made with Windows' own encoder. Nothing is captured until you allow broadcasting and start a source. The screen broadcast sends everything on the chosen monitor, including notifications and passwords; content that Windows protects may come out blank. The live indicator names each source, including the monitor or camera that is live, and offers a stop, a cast to your own device, and the **Share** menu: **Copy link**, **Copy password**, **Show QR code** (the link as a QR code for a phone to scan) and **Save description file**. Use the exchange server of your own account, or enable local-network listening explicitly. A PC signed in to a server only as a guest does not broadcast. You can limit listeners: each listener on the local network and each tunnel uses this PC's upload, and through the server's relay this PC sends one copy for all listeners. The link, the file and the QR code never contain the password. Under **Link password** choose **Made for each broadcast** (the default), **Set by me** (1 to 64 characters, kept only in the Windows secret store of your Windows account) or **No password**, and then anyone who gets the link can watch and listen. A change on the air revokes the previous password at once.
 
 ## If a connection does not work
 

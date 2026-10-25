@@ -95,10 +95,39 @@ decision and the loopback pin proxy against a real self-signed TLS fixture, and
 `BroadcastLiveCacheTests` covers the per-endpoint buffer.
 
 **Closing owner amendment, 2026-10-22:** item R offers generated/set/none outward-password choices.
-The producer offers none of that surface; omission of auth is conformant only after explicit none
-choice, and a product with no choice keeps item M. SP-0239 item 10 coordinates password defaults,
-secret-store persistence, grants/revocation and DEVICE-EXCHANGE 1.7 verifiers with SP-0237 item 9.
-Consumer behavior/schema/vectors do not change; the implementation claim remains partial 1.2.
+At that date the producer offered none of that surface; omission of auth is conformant only after
+explicit none choice, and a product with no choice keeps item M. Consumer behavior/schema/vectors do
+not change. The producer side is built by SP-0223 (next paragraph); the implementation claim remains
+partial 1.2 until its joint observations are made.
+
+**SP-0223 producer, 2026-10-25:** the producer now broadcasts four sources - microphone, system sound,
+one whole monitor and one camera - the last two as MPEG-TS with H.264 Constrained Baseline and AAC-LC
+(item C), the opaque path segment on the LAN video address (item H), an IDR at most every 2 s (item I)
+and PAT/PMT repeated at most every 250 ms. The password of the outward link is the person's choice
+(item R): a random one for each broadcast (default), one the person sets (1 to 64 code points, no
+control characters, kept only under the Windows secret store), or none. A broadcast that carries a
+RELAY or TUNNEL endpoint is protected for its life: its description carries `auth` (`password-v1`,
+user `listener`, no secret), and the loopback and LAN servers - which a tunnel bridges to - demand
+Digest (RFC 7616, SHA-256 offered first and MD5 beside it). A LAN-only broadcast stays the secret link
+of item M; "none" removes `auth` and the demand. A change of the choice or of the password on the air
+is refused to every new connection and closes LAN listeners that held the removed pair. On a Windows
+build that supports process loopback (20348 and later) this application's own output is left out of the
+system sound; on an older one the full mix is captured and Settings says so (the older path is exercised
+only through a stub of the OS check, no real older Windows was available). Evidence: measured encoder
+paths, packetizer and format tests, Digest known answers of RFC 7616 and a hand-written independent
+client, the producer's `broadcast-update` frames captured with their `verifiers`, a QR of the link read
+by OpenCV, and a run of the real application (screen and camera started and stopped through the
+indicator, the LAN stream decoded by ffprobe and ffmpeg). Not done: sections 6 rungs 4 and 5 against a
+real phone, FMS_Win and a second PC, the Basic check of the relay and the Digest check by a real
+consumer, and a denied Windows camera permission observed in the shipping UI.
+
+**SP-0243, 2026-10-25:** the screen is read through DXGI desktop duplication and scaled to the stream's
+size by the graphics card, where the monitor allows it (a rotated or HDR desktop, and any failure of that
+path, keep the device-context read), and the capture loop schedules each frame from when it was started.
+The shipping application's LAN stream measured, with ffprobe: 30.1 frames per second on a 3840x2160
+monitor (10.2 through the device context), on a 1920x1080 monitor on the second graphics adapter and on
+a 1280x1024 one, and 30.1 with the camera (29.4 before); on an animated 4K monitor 198 of 212 frames
+were distinct.
 
 **SP-0237 corrections, 2026-10-22:** preview capture and video playback share the endpoint decision
 and owned pinning/decryption transport; audio applies the same sealed decision. No sealed address

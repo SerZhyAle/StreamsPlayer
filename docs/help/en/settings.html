@@ -575,6 +575,19 @@
         </dl>
       </div>
     </details>
+    <details class="el" id="e-drive-sign-in">
+      <summary><span><span class="name">Sign in with Google</span><span class="one">Signs in with Google in your browser to find broadcasts announced by your own devices.</span></span></summary>
+      <div class="full">
+        <p>Only hidden application data is used; no media passes through Drive. The broadcast list checks for changes only while it is open and not minimized. Casting is unavailable because Drive has no push. A direct connection can fail behind NAT; a broadcast with an exchange endpoint can use it without an exchange account on this PC.</p>
+        <p>When you broadcast from this PC, its announcement is written and renewed through Google Drive too, then removed when you stop. Your Google grant is protected for your Windows user.</p>
+      </div>
+    </details>
+    <details class="el" id="e-drive-sign-out">
+      <summary><span><span class="name">Sign out of Google</span><span class="one">Forgets the Google grant on this PC and asks Google to revoke it. Imported channels stay.</span></span></summary>
+      <div class="full">
+        <p>If Google cannot be notified, the status says so: remove the app’s access in your Google account. No background revocation retry runs.</p>
+      </div>
+    </details>
   </div>
   </section>
   <section id="broadcast">
@@ -591,7 +604,7 @@
       <summary><span><span class="name">Allow this PC to broadcast</span><span class="one">The permission that must be on before this PC can broadcast anything.</span></span></summary>
       <div class="full">
         <p>Sending what this PC captures to the exchange server of your account takes two steps: first allow it here, then start a source yourself. Nothing is captured until both are done. It is off by default, and while it is off the rest of this group stays hidden.</p>
-        <p>While this PC is signed in to a server only as a guest, it announces nothing on that server; the link and the LAN share still work.</p>
+        <p>While this PC is signed in to a server only as a guest, it cannot broadcast and no source is offered.</p>
         <p>A broadcast starts only when a listener can reach it over the enabled local network or a connected exchange server. A local-only broadcast still has a description you can copy or save.</p>
         <dl class="facts">
           <dt>Next</dt><dd>The other controls of the group appear and the list of microphones is read.</dd>
@@ -619,6 +632,24 @@
         <p>Works like <a href="#e-broadcast-mic">Broadcast microphone</a>, with the sound this PC plays as the source instead of a microphone. Its channels are set by <b>System sound channels</b> below.</p>
         <dl class="facts">
           <dt>Next</dt><dd>The line below the quality options reports what happened. <b>Stop all</b> ends the broadcast.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-screen">
+      <summary><span><span class="name">Broadcast screen</span><span class="one">Starts broadcasting the whole monitor chosen below.</span></span></summary>
+      <div class="full">
+        <p>Captures the chosen monitor and offers it as a live broadcast the way <a href="#e-broadcast-mic">Broadcast microphone</a> does; the sound it carries is set by <b>Sound with the screen</b>. Everything on that monitor is sent, including notifications and passwords, and content that Windows protects may come out blank. The capture begins only when you press the button, and the button is not shown on a PC whose Windows has no H.264 encoder.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The indicator in the main window names the monitor that is live. <b>Stop all</b> ends the broadcast.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-camera">
+      <summary><span><span class="name">Broadcast camera</span><span class="one">Starts broadcasting the camera chosen below.</span></span></summary>
+      <div class="full">
+        <p>Captures the chosen camera and offers it as a live broadcast the way <a href="#e-broadcast-mic">Broadcast microphone</a> does; the sound it carries is set by <b>Sound with the camera</b>. If Windows denies the camera to this application, or another program holds it, the broadcast does not start and a message says which. The button is not shown on a PC whose Windows has no H.264 encoder.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The indicator in the main window names the camera that is live. <b>Stop all</b> ends the broadcast.</dd>
         </dl>
       </div>
     </details>
@@ -684,6 +715,58 @@
       <summary><span><span class="name">Bitrate (kbit/s)</span><span class="one">How much data per second the broadcast uses: 96, 128, 192 or 256 kbit/s.</span></span></summary>
       <div class="full">
         <p>A higher bitrate sounds better and uses more of this PC's upload. The default is 128 kbit/s.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-monitor">
+      <summary><span><span class="name">Monitor</span><span class="one">The monitor that the screen broadcast sends.</span></span></summary>
+      <div class="full">
+        <p>A whole monitor is sent, never a part of it or one window. The picture is scaled down to at most 1280 by 720 and keeps the monitor's proportions.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-screen-audio">
+      <summary><span><span class="name">Sound with the screen</span><span class="one">The one sound that travels with the screen: none, the microphone or the system sound.</span></span></summary>
+      <div class="full">
+        <p>The sound is part of the same broadcast, so a listener hears it with the picture. On a Windows that can leave this application's own sound out, a broadcast you play here is never sent on; on an older Windows the note under the options says what happens.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-camera-device">
+      <summary><span><span class="name">Camera</span><span class="one">The camera that the camera broadcast sends.</span></span></summary>
+      <div class="full">
+        <p>Only one camera is sent. A camera that another program is using cannot be started until that program lets it go.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-camera-audio">
+      <summary><span><span class="name">Sound with the camera</span><span class="one">The one sound that travels with the camera: none, the microphone or the system sound.</span></span></summary>
+      <div class="full">
+        <p>Works like <a href="#e-broadcast-screen-audio">Sound with the screen</a>, for the camera broadcast.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-link-password">
+      <summary><span><span class="name">Link password</span><span class="one">How the password of the link you give to other people is made.</span></span></summary>
+      <div class="full">
+        <p>The link, the file and the QR code of a broadcast open it for anyone who also knows its password; the password is never inside them, so you tell it separately. <b>Made for each broadcast</b> creates a new random password every time a broadcast starts, <b>Set by me</b> keeps the one you type, and <b>No password</b> lets anyone who gets the link watch and listen. Your other devices signed in to the account's exchange server receive the password by themselves.</p>
+        <p>Changing the choice or the password while a broadcast is live takes effect at once: the previous password is refused for every new connection, and a listener on this PC's local-network share who used it is disconnected.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>Open the live indicator, then <b>Share</b>, to copy the password or show the QR code.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-link-custom">
+      <summary><span><span class="name">Password for the link</span><span class="one">The password you choose for the link: 1 to 64 characters, no control characters.</span></span></summary>
+      <div class="full">
+        <p>Any text of that length is accepted; a short one is guessed quickly. It is kept only in the Windows secret store of your account, never in the settings file, a backup or a log, and the field is cleared after saving.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-link-save">
+      <summary><span><span class="name">Save password</span><span class="one">Saves the typed password and uses it from now on.</span></span></summary>
+      <div class="full">
+        <p>The password applies to the next broadcast and to any broadcast that is live.</p>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-link-renew">
+      <summary><span><span class="name">New password</span><span class="one">Makes a new random password for the broadcasts that are live.</span></span></summary>
+      <div class="full">
+        <p>The previous password stops working at once. The button is available only while a broadcast is live and the password is made for each broadcast.</p>
       </div>
     </details>
   </div>

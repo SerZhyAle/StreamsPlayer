@@ -11,7 +11,7 @@ public static partial class DiagnosticValueRedactor
     [GeneratedRegex(@"(?i)((?:proxy-)?authorization\s*[:=]\s*)[^\r\n|]+", RegexOptions.CultureInvariant, 100)]
     private static partial Regex AuthorizationHeaders();
 
-    [GeneratedRegex("(?i)(?<![A-Za-z0-9_])(\"?(?:accessPin|pin|password|apiKey|api_key|client_secret|refresh_token|encryptionSalt|salt|authorization)\"?\\s*[:=]\\s*)(?:\"(?:\\\\.|[^\"\\\\])*\"|[^\\s|,;}]+)", RegexOptions.CultureInvariant, 100)]
+    [GeneratedRegex("(?i)(?<![A-Za-z0-9_])(\"?(?:accessPin|pin|password|apiKey|api_key|client_secret|client_id|refresh_token|RefreshToken|access_token|AccessToken|code_verifier|encryptionSalt|salt|authorization)\"?\\s*[:=]\\s*)(?:\"(?:\\\\.|[^\"\\\\])*\"|[^\\s|,;}]+)", RegexOptions.CultureInvariant, 100)]
     private static partial Regex StructuredSecrets();
 
     public static string Redact(string text)

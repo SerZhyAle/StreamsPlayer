@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
@@ -32,9 +33,10 @@ internal sealed record WindowsAudioDevice(string Id, string Name);
 /// </summary>
 /// <remarks>
 /// The loopback capture is polled, not event-driven: a loopback stream of a silent render device never
-/// signals its event, so a poll is the one shape that works on every machine. Silence is emitted in its
-/// place so the broadcast keeps its real-time rate (producer rule 5.1: bytes arrive at the real-time
-/// rate, no backlog burst).
+/// signals its event, so a poll is the one shape that works on every machine. Silence fills what the wall
+/// clock says is owed, so the broadcast keeps its real-time rate (producer rule 5.1: no backlog burst).
+/// Where Windows has it, the system sound is the process loopback without this application's own output
+/// (SP-0223 requirement 8), read the same way.
 /// </remarks>
 [SupportedOSPlatform("windows10.0.19041.0")]
 internal sealed class WindowsAudioCapture : IDisposable
@@ -62,6 +64,13 @@ internal sealed class WindowsAudioCapture : IDisposable
     private readonly int _channels;
     private readonly Thread _thread;
     private volatile bool _stopping;
+    private volatile bool _ownOutputExcluded;
+
+    /// <summary>SP-0223: this Windows build can leave the application's own output out of the system sound; asks the OS version only.</summary>
+    internal static bool OwnOutputExclusionAvailable => WindowsProcessLoopback.IsSupported;
+
+    /// <summary>True only while the process-loopback path is the one capturing; settled before the first <see cref="PcmReady"/>.</summary>
+    internal bool OwnOutputExcluded => _ownOutputExcluded;
 
     /// <summary>PCM 16-bit frames, on the capture thread; the buffer is valid only for the call.</summary>
     internal event Action<short[]>? PcmReady;
@@ -97,57 +106,15 @@ internal sealed class WindowsAudioCapture : IDisposable
         IAudioClient? audioClient = null;
         try
         {
-            var device = _loopback ? OpenDefaultRenderEndpoint() : OpenCaptureEndpoint(_deviceId);
-            if (device is null)
+            IAudioCaptureClient? capture = null;
+            audioClient = _loopback && OwnOutputExclusionAvailable ? OpenOwnOutputExcluded(out capture) : null;
+            // Settled before the first PcmReady, so whoever reads it after the first frame reads the truth.
+            _ownOutputExcluded = audioClient is not null;
+            audioClient ??= OpenEndpointClient(out capture);
+            if (audioClient is not null && capture is not null)
             {
-                Failed?.Invoke(BroadcastCaptureFailure.DeviceMissing);
-                return;
-            }
-
-            try
-            {
-                var clientInterfaceId = IidAudioClient;
-                var activateResult = device.Activate(ref clientInterfaceId, ClsctxInprocServer, IntPtr.Zero,
-                    out object clientObject);
-                if (activateResult != 0)
-                {
-                    Failed?.Invoke(FailureOf(activateResult));
-                    return;
-                }
-
-                audioClient = (IAudioClient)clientObject;
-                var format = WAVEFORMATEX.Pcm16(_sampleRate, _channels);
-                var bufferDuration = 20 * HundredNanosecondsPerMillisecond;
-                var flags = StreamFlagsAutoConvertPcm | StreamFlagsSrcDefaultQuality | (_loopback ? StreamFlagsLoopback : 0);
-                var initializeResult = audioClient.Initialize(SharedMode, flags, bufferDuration, 0, ref format, IntPtr.Zero);
-                if (initializeResult != 0)
-                {
-                    Failed?.Invoke(FailureOf(initializeResult));
-                    return;
-                }
-
-                var captureInterfaceId = IidAudioCaptureClient;
-                var getServiceResult = audioClient.GetService(ref captureInterfaceId, out object captureObject);
-                if (getServiceResult != 0)
-                {
-                    Failed?.Invoke(FailureOf(getServiceResult));
-                    return;
-                }
-
-                var capture = (IAudioCaptureClient)captureObject;
-                var startResult = audioClient.Start();
-                if (startResult != 0)
-                {
-                    Failed?.Invoke(FailureOf(startResult));
-                    return;
-                }
-
                 CaptureLoop(capture);
                 _ = audioClient.Stop();
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(device);
             }
         }
         catch (Exception exception)
@@ -157,6 +124,7 @@ internal sealed class WindowsAudioCapture : IDisposable
         }
         finally
         {
+            _ownOutputExcluded = false;
             if (audioClient is not null)
             {
                 Marshal.ReleaseComObject(audioClient);
@@ -164,14 +132,91 @@ internal sealed class WindowsAudioCapture : IDisposable
         }
     }
 
+    /// <summary>
+    /// The system sound without this application's own tree, or null when this Windows will not give it. Any
+    /// failure falls back to the full mix, whose own path reports its own failures.
+    /// </summary>
+    private IAudioClient? OpenOwnOutputExcluded(out IAudioCaptureClient? capture)
+    {
+        capture = null;
+        return WindowsProcessLoopback.ActivateExcludingOwnProcessTree(IidAudioClient, out var clientObject) == 0
+            && clientObject is not null
+                ? InitializeAndStart((IAudioClient)clientObject,
+                    StreamFlagsLoopback | StreamFlagsAutoConvertPcm | StreamFlagsSrcDefaultQuality, out capture, out _)
+                : null;
+    }
+
+    /// <summary>The ordinary path: the chosen capture endpoint, or the default render endpoint's loopback.</summary>
+    private IAudioClient? OpenEndpointClient(out IAudioCaptureClient? capture)
+    {
+        capture = null;
+        var device = _loopback ? OpenDefaultRenderEndpoint() : OpenCaptureEndpoint(_deviceId);
+        if (device is null)
+        {
+            Failed?.Invoke(BroadcastCaptureFailure.DeviceMissing);
+            return null;
+        }
+
+        try
+        {
+            var clientInterfaceId = IidAudioClient;
+            var result = device.Activate(ref clientInterfaceId, ClsctxInprocServer, IntPtr.Zero, out object clientObject);
+            if (result == 0)
+            {
+                var flags = StreamFlagsAutoConvertPcm | StreamFlagsSrcDefaultQuality | (_loopback ? StreamFlagsLoopback : 0);
+                var started = InitializeAndStart((IAudioClient)clientObject, flags, out capture, out result);
+                if (started is not null)
+                {
+                    return started;
+                }
+            }
+
+            Failed?.Invoke(FailureOf(result));
+            return null;
+        }
+        finally
+        {
+            Marshal.ReleaseComObject(device);
+        }
+    }
+
+    /// <summary>Initializes and starts the client; on any failure releases it and reports the HRESULT.</summary>
+    private IAudioClient? InitializeAndStart(IAudioClient client, int flags, out IAudioCaptureClient? capture, out int result)
+    {
+        capture = null;
+        var format = WAVEFORMATEX.Pcm16(_sampleRate, _channels);
+        result = client.Initialize(SharedMode, flags, 20 * HundredNanosecondsPerMillisecond, 0, ref format, IntPtr.Zero);
+        if (result == 0)
+        {
+            var captureInterfaceId = IidAudioCaptureClient;
+            result = client.GetService(ref captureInterfaceId, out object captureObject);
+            if (result == 0)
+            {
+                capture = (IAudioCaptureClient)captureObject;
+                result = client.Start();
+            }
+        }
+
+        if (result == 0)
+        {
+            return client;
+        }
+
+        Marshal.ReleaseComObject(client);
+        return null;
+    }
+
     private void CaptureLoop(IAudioCaptureClient capture)
     {
-        // One poll slice of silence, so a loopback that has nothing to send keeps the real-time rate.
-        var silence = new short[Math.Max(1, _sampleRate * _channels * PollMilliseconds / 1000)];
+        // Silence is owed by the wall clock, not one slice per empty poll: empty polls next to polls that find
+        // two packets would otherwise add up to more (or less) than real time.
+        var maxBurst = _sampleRate / 4L;
+        var pollFrames = _sampleRate * PollMilliseconds / 1000L;
+        var clock = Stopwatch.StartNew();
+        long emitted = 0;
         while (!_stopping)
         {
             Thread.Sleep(PollMilliseconds);
-            var delivered = false;
             var nextPacket = 0u;
             while (capture.GetNextPacketSize(ref nextPacket) == 0 && nextPacket > 0)
             {
@@ -194,15 +239,23 @@ internal sealed class WindowsAudioCapture : IDisposable
                     }
 
                     PcmReady?.Invoke(samples);
-                    delivered = true;
+                    emitted += frames;
                 }
 
                 _ = capture.ReleaseBuffer(frames);
             }
 
-            if (!delivered && _loopback)
+            if (_loopback)
             {
-                PcmReady?.Invoke(silence);
+                // A stall longer than one burst is forgiven and a lead longer than one is not banked: a suspended
+                // machine never allocates minutes of silence, and data that ran ahead never leaves a gap unfilled.
+                var due = (long)(clock.Elapsed.TotalSeconds * _sampleRate);
+                emitted = Math.Clamp(emitted, due - maxBurst, due + maxBurst);
+                if (due - emitted >= pollFrames)
+                {
+                    PcmReady?.Invoke(new short[(due - emitted) * _channels]);
+                    emitted = due;
+                }
             }
         }
     }

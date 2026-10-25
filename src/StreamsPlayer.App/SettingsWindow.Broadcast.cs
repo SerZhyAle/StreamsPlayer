@@ -19,6 +19,8 @@ public partial class SettingsWindow
     private void InitializeBroadcasting()
     {
         PopulateBroadcastQuality();
+        PopulateBroadcastLink();
+        PopulateBroadcastVideo();
         Broadcast.Changed += BroadcastChanged;
         Closed += (_, _) => Broadcast.Changed -= BroadcastChanged;
         ShowBroadcasting();
@@ -71,8 +73,10 @@ public partial class SettingsWindow
     private void ShowBroadcasting()
     {
         _showingBroadcast = true;
+        var guestOnly = Broadcast.IsGuestOnly;
         BroadcastAllowedCheckBox.IsChecked = Broadcast.Settings.Allowed;
-        BroadcastControls.Visibility = Broadcast.Settings.Allowed ? Visibility.Visible : Visibility.Collapsed;
+        // SP-0223 requirement 4: a guest session is offered no source at all, so nothing below the permission shows.
+        BroadcastControls.Visibility = Broadcast.Settings.Allowed && !guestOnly ? Visibility.Visible : Visibility.Collapsed;
         BroadcastStartWithAppCheckBox.IsChecked = Broadcast.Settings.StartWithApplication;
         BroadcastLanCheckBox.IsChecked = Broadcast.Settings.LanListening;
         BroadcastLanPortBox.Text = Broadcast.Settings.LanPort.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -91,21 +95,17 @@ public partial class SettingsWindow
         BroadcastSoundButton.IsEnabled = running.Count < BroadcastSources.MaximumSimultaneous
             && !running.Contains(BroadcastSource.SystemSound);
         BroadcastStopButton.IsEnabled = running.Count > 0;
+        ShowBroadcastVideoState(running, guestOnly);
+        ShowBroadcastLinkState(running);
         BroadcastStatusText.Text = Broadcast.OutcomeKey is { } key ? LocalizationService.Get(key) : "";
         _showingBroadcast = false;
     }
 
     /// <summary>
-    /// A PC that is on a server only as a guest announces nothing there (item AO); the link and the LAN share are
-    /// unaffected, so the controls stay and the note says what the server will not see.
+    /// A PC that is on a server only as a guest never produces (item AO, SP-0221); the note says why no source is offered.
     /// </summary>
-    private void UpdateBroadcastGuestNote()
-    {
-        var exchange = Exchange;
-        var guestOnly = exchange.Account.Guest
-            || (exchange.Account.Token is null && exchange.Guests.Entries.Count > 0);
-        BroadcastGuestNoteText.Visibility = guestOnly ? Visibility.Visible : Visibility.Collapsed;
-    }
+    private void UpdateBroadcastGuestNote() =>
+        BroadcastGuestNoteText.Visibility = Broadcast.IsGuestOnly ? Visibility.Visible : Visibility.Collapsed;
 
     private void BroadcastAllowed_Click(object sender, RoutedEventArgs e)
     {
@@ -120,6 +120,7 @@ public partial class SettingsWindow
                 if (Broadcast.Settings.Allowed)
                 {
                     PopulateBroadcastMicrophones();
+                    PopulateBroadcastVideo();
                 }
         });
     }

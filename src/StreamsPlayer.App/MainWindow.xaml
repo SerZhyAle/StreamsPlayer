@@ -330,6 +330,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid.Resources>
@@ -1058,7 +1059,96 @@
                         </DataTemplate>
                 </Grid.Resources>
 
-                <Button Grid.Row="0" Style="{StaticResource SectionHeaderButtonStyle}"
+                <!-- SP-0233: unified My streams personal view - device broadcasts first -->
+                <StackPanel x:Name="DeviceBroadcastsSection" Grid.Row="0" Margin="3,0,3,8"
+                            Visibility="{Binding DeviceBroadcastsVisibility}">
+                    <!-- Section Header -->
+                    <DockPanel Margin="4,2,4,4" LastChildFill="False">
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Viewbox Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0" FlowDirection="LeftToRight"><Path Data="{StaticResource Icon.content.stream}" Fill="{DynamicResource TextBrush}" /></Viewbox>
+                            <TextBlock Text="{DynamicResource MyStreamsDeviceBroadcastsTitle}" FontWeight="Bold" FontSize="14"
+                                       Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" />
+                            <TextBlock x:Name="MyStreamsStatusText" Margin="10,0,0,0" Opacity="0.7" VerticalAlignment="Center" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button x:Name="MyStreamsRetryButton" Style="{StaticResource RefreshGlyphButton}"
+                                    Content="{DynamicResource MyStreamsRetry}" Click="MyStreamsRetryButton_Click"
+                                    Visibility="Collapsed" Margin="0,0,6,0" Padding="10,4" />
+                            <Button x:Name="MyStreamsRefreshButton" Style="{StaticResource RefreshGlyphButton}"
+                                    Content="{DynamicResource MyStreamsRefresh}" Click="MyStreamsRefreshButton_Click"
+                                    ToolTip="{DynamicResource MyStreamsRefresh}" AutomationProperties.Name="{DynamicResource MyStreamsRefresh}"
+                                    Padding="10,4" />
+                        </StackPanel>
+                    </DockPanel>
+
+                    <!-- Unconfigured server notice -->
+                    <Border x:Name="MyStreamsNoServerPanel" Background="{DynamicResource SectionBrush}" CornerRadius="6" Padding="12,8" Margin="0,2,0,4" Visibility="Collapsed">
+                        <DockPanel LastChildFill="False">
+                            <TextBlock Text="{DynamicResource MyStreamsNoServer}" VerticalAlignment="Center" Opacity="0.8" TextWrapping="Wrap" />
+                            <Button DockPanel.Dock="Right" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource MyStreamsConnectServer}"
+                                    Click="MyStreamsConnectServer_Click" Margin="12,0,0,0" VerticalAlignment="Center" Padding="10,4" />
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Empty / No matches notice -->
+                    <Border x:Name="MyStreamsEmptyPanel" Background="{DynamicResource SectionBrush}" CornerRadius="6" Padding="12,8" Margin="0,2,0,4" Visibility="Collapsed">
+                        <TextBlock x:Name="MyStreamsEmptyText" Opacity="0.8" TextWrapping="Wrap" />
+                    </Border>
+
+                    <!-- Device groups list -->
+                    <ItemsControl x:Name="MyStreamsGroupsControl" ItemsSource="{Binding MyStreamsGroups}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:MyStreamsDeviceGroupModel}">
+                                <Border Background="{DynamicResource SectionBrush}" CornerRadius="6" Margin="0,0,0,6" Padding="10,6">
+                                    <StackPanel>
+                                        <!-- Device header -->
+                                        <DockPanel Margin="0,0,0,4">
+                                            <TextBlock Text="{Binding DeviceName}" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding PresenceText}" Opacity="0.65" FontSize="12" Margin="10,0,0,0" VerticalAlignment="Center" />
+                                        </DockPanel>
+                                        <!-- Broadcasts list -->
+                                        <ItemsControl ItemsSource="{Binding Broadcasts}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type local:MyStreamsBroadcastItemModel}">
+                                                    <Grid Margin="0,3">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel VerticalAlignment="Center">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                                                <Border Background="{DynamicResource CardSelectedBrush}" CornerRadius="3" Padding="4,1" Margin="8,0,0,0"
+                                                                        Visibility="{Binding SavedBadgeVisibility}" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{DynamicResource MyStreamsSaved}" Foreground="{DynamicResource TextBrush}" FontSize="10" FontWeight="SemiBold" />
+                                                                </Border>
+                                                            </StackPanel>
+                                                            <TextBlock Text="{Binding Detail}" Opacity="0.65" FontSize="12" TextWrapping="Wrap" Margin="0,1,0,0" />
+                                                        </StackPanel>
+                                                        <WrapPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                                            <Button Style="{StaticResource PlayGlyphButton}" Content="{Binding PlayCaption}"
+                                                                    Tag="{Binding}" Click="MyStreamsPlay_Click"
+                                                                    Visibility="{Binding PlayVisibility}"
+                                                                    AutomationProperties.Name="{Binding PlayName}"
+                                                                    Margin="0,0,6,0" Padding="12,4" />
+                                                            <Button Style="{StaticResource AddGlyphButton}" Content="{DynamicResource BroadcastsKeep}"
+                                                                    Tag="{Binding}" Click="MyStreamsKeep_Click"
+                                                                    Visibility="{Binding KeepVisibility}"
+                                                                    AutomationProperties.Name="{Binding KeepName}"
+                                                                    Padding="12,4" />
+                                                        </WrapPanel>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <Button Grid.Row="1" Style="{StaticResource SectionHeaderButtonStyle}"
                         Visibility="{Binding PinnedHeaderVisibility}" Click="PinnedHeader_Click"
                         AutomationProperties.Name="{DynamicResource PinnedSectionHeader}"
                         ToolTip="{DynamicResource CollapseSectionTip}">
@@ -1105,7 +1195,7 @@
 
                 <!-- Tile mode: the same chunked-rows shape as the main list, so pinned and unpinned
                      tiles line up on the same column grid. -->
-                <ListView Grid.Row="1" x:Name="PinnedGridList" ItemsSource="{Binding PinnedGridRows}"
+                <ListView Grid.Row="2" x:Name="PinnedGridList" ItemsSource="{Binding PinnedGridRows}"
                           Visibility="{Binding PinnedGridVisibility}" BorderThickness="0"
                           ItemContainerStyle="{StaticResource CatalogItemContainerStyle}"
                           Margin="3,0,3,4" Focusable="False"
@@ -1137,7 +1227,7 @@
 
                 <!-- List mode: a fixed-height sideways strip. CanContentScroll must stay True or the
                      panel falls back to a plain scrolling surface and virtualizes nothing at all. -->
-                <ListView Grid.Row="1" x:Name="PinnedStripList" ItemsSource="{Binding PinnedRows}"
+                <ListView Grid.Row="2" x:Name="PinnedStripList" ItemsSource="{Binding PinnedRows}"
                           Visibility="{Binding PinnedStripVisibility}" BorderThickness="0"
                           ItemContainerStyle="{StaticResource CatalogItemContainerStyle}"
                           Margin="3,0,3,4" Focusable="False"
@@ -1160,7 +1250,7 @@
                     </ListView.ItemTemplate>
                 </ListView>
 
-                <Button Grid.Row="2" Style="{StaticResource SectionHeaderButtonStyle}"
+                <Button Grid.Row="3" x:Name="MainHeaderButton" Style="{StaticResource SectionHeaderButtonStyle}"
                         Visibility="{Binding MainHeaderVisibility}" Click="MainHeader_Click"
                         AutomationProperties.Name="{DynamicResource MainSectionHeader}"
                         ToolTip="{DynamicResource CollapseSectionTip}">
@@ -1194,12 +1284,12 @@
                             </Path>
                         </Grid>
                         </Viewbox>
-                        <TextBlock Text="{DynamicResource MainSectionHeader}" FontWeight="SemiBold"
+                        <TextBlock x:Name="MainHeaderText" Text="{DynamicResource MainSectionHeader}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                 </Button>
 
-                <Grid Grid.Row="3" Visibility="{Binding MainContentVisibility}">
+                <Grid Grid.Row="4" Visibility="{Binding MainContentVisibility}">
                     <!-- SP-0067: ScrollUnit="Pixel" - the panel stays a virtualizing stack panel and
                          stays virtualized, only the granularity changes. Scrolling by item moved a whole
                          grid row per wheel notch, which in tile mode is a jump of a full tile height. -->

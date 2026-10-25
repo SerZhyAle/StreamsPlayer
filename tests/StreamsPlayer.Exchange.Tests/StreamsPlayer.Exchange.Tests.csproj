@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -11,6 +12,9 @@
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
     <PackageReference Include="ZXing.Net" Version="0.16.10" />
+    <!-- SP-0243: WindowsScreenCapture is compiled here, and it reads the desktop through these (the App's own references). -->
+    <PackageReference Include="Vortice.Direct3D11" Version="3.7.6-beta" />
+    <PackageReference Include="Vortice.DXGI" Version="3.7.6-beta" />
     <Using Include="Xunit" />
     <ProjectReference Include="../../src/StreamsPlayer.Core/StreamsPlayer.Core.csproj" />
     <!-- Compile Windows-only seams as sources, on the Core tests' existing transport-seam pattern. -->
@@ -42,9 +46,22 @@
     <Compile Include="../../src/StreamsPlayer.App/BroadcastVideoRoute.cs" Link="BroadcastVideoRoute.cs" />
     <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.cs" Link="BroadcastProducerService.cs" />
     <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.Sealed.cs" Link="BroadcastProducerService.Sealed.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.Drive.cs" Link="BroadcastProducerService.Drive.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.Video.cs" Link="BroadcastProducerService.Video.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.Link.cs" Link="BroadcastProducerService.Link.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/BroadcastLinkPasswordStore.cs" Link="BroadcastLinkPasswordStore.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/BroadcastQrCode.cs" Link="BroadcastQrCode.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/Drive*.cs" Link="%(Filename)%(Extension)" />
     <Compile Include="../../src/StreamsPlayer.App/BroadcastSealing.cs" Link="BroadcastSealing.cs" />
     <Compile Include="../../src/StreamsPlayer.App/WindowsAudioCapture.cs" Link="WindowsAudioCapture.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/WindowsProcessLoopback.cs" Link="WindowsProcessLoopback.cs" />
     <Compile Include="../../src/StreamsPlayer.App/WindowsAacEncoder.cs" Link="WindowsAacEncoder.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/MediaFoundationNative.cs" Link="MediaFoundationNative.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/WindowsH264Encoder.cs" Link="WindowsH264Encoder.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/WindowsCameraCapture.cs" Link="WindowsCameraCapture.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/WindowsScreenCapture.cs" Link="WindowsScreenCapture.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/WindowsDesktopDuplication.cs" Link="WindowsDesktopDuplication.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/WindowsVideoBroadcast.cs" Link="WindowsVideoBroadcast.cs" />
     <Compile Include="../../src/StreamsPlayer.App/LocalizationService.cs" Link="LocalizationService.cs" />
     <!-- SP-0239 P4 (CAPTURE-OUTPUT rule 16): the frame writer and its folder seam. Both need only Core and WPF imaging. -->
     <Compile Include="../../src/StreamsPlayer.App/CapturedFrameWriter.cs" Link="CapturedFrameWriter.cs" />

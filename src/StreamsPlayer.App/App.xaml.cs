@@ -18,6 +18,7 @@ public partial class App : Application
     private static readonly TimeSpan CloseWorkDeadline = TimeSpan.FromSeconds(4);
 
     internal ExchangeSourceService Exchange { get; private set; } = null!;
+    internal DriveSourceService Drive { get; private set; } = null!;
 
     /// <summary>SP-0217: this PC's own live broadcasts, behind the Settings permission. Null only before OnStartup.</summary>
     internal BroadcastProducerService Broadcast { get; private set; } = null!;
@@ -83,7 +84,8 @@ public partial class App : Application
         _activationListener.Start();
 
         Exchange = new ExchangeSourceService(AppPaths.DataDirectory, line => _log.Information(line));
-        Broadcast = new BroadcastProducerService(AppPaths.DataDirectory, Exchange);
+        Drive = new DriveSourceService(AppPaths.DataDirectory);
+        Broadcast = new BroadcastProducerService(AppPaths.DataDirectory, Exchange, Drive);
         Exchange.Start();
 
         var window = new MainWindow(_log, StreamLaunchRequest.Parse(e.Args));
@@ -209,6 +211,12 @@ public partial class App : Application
         if (Exchange is not null)
         {
             WaitPumping(Exchange.StopAsync(), TimeSpan.FromSeconds(2));
+        }
+
+        if (Drive is not null)
+        {
+            WaitPumping(Drive.StopAsync(), TimeSpan.FromSeconds(2));
+            Drive.Dispose();
         }
 
         if (_activationListener is not null)

@@ -25,7 +25,7 @@ public partial class MainWindow
     public bool MainSectionCollapsed { get; private set; }
 
     public bool HasPinned => PinnedRows.Count > 0;
-    private bool IsCatalogEmpty => PinnedRows.Count == 0 && Rows.Count == 0;
+    private bool IsCatalogEmpty => PinnedRows.Count == 0 && Rows.Count == 0 && (!IsMyStreamsActive || MyStreamsBroadcastCount == 0);
 
     public Visibility PinnedHeaderVisibility => HasPinned ? Visibility.Visible : Visibility.Collapsed;
     public Visibility PinnedContentVisibility =>

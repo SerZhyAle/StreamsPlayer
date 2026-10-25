@@ -160,6 +160,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
       - name: Publish portable package
         if: steps.existing.outputs.complete != 'true'
+        env:
+          SP_DRIVE_CLIENT_ID: ${{ secrets.SP_DRIVE_CLIENT_ID }}
+          SP_DRIVE_CLIENT_SECRET: ${{ secrets.SP_DRIVE_CLIENT_SECRET }}
         run: |
           $v = $env:RELEASE_VERSION
           dotnet publish src/StreamsPlayer.App/StreamsPlayer.App.csproj -c Release -r win-x64 --self-contained true "-p:Version=$v" "-p:AssemblyVersion=$v" "-p:FileVersion=$v" "-p:InformationalVersion=$v" -o stage/StreamsPlayer

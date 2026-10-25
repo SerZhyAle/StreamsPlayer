@@ -85,6 +85,7 @@ public sealed class ExchangeBroadcastSealer : IDisposable
     /// the own group key is made anew and a new epoch begins, so what that device holds opens nothing from here on
     /// (item DL); the caller sends the box first and then replaces the upload with the new ring.
     /// </summary>
+    /// <param name="credentials">The broadcaster's own pair (item BF); it joins the box's payload every time the box is made, so a re-seal never drops it.</param>
     public ExchangeSealRefresh Refresh(
         string senderDeviceId, ExchangeE2eKeyPair sender, IReadOnlyList<ExchangeSealedRecipient> recipients,
         ExchangeRelayCredentials? credentials = null)

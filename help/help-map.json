@@ -47,6 +47,8 @@
       "reason": "The message gives the contract's cause and next step, with an expandable details code and one Close answer; it needs no separate procedure." },
     { "id": "broadcast-password", "name": "Broadcast password", "nameKey": "BroadcastPasswordTitle", "form": "none", "class": "BroadcastPasswordWindow",
       "reason": "A one-question prompt for one password: its own text is the whole explanation (CONTEXT-HELP rule 4)." },
+    { "id": "broadcast-qr", "name": "Broadcast QR code", "nameKey": "BroadcastQrTitle", "form": "none", "class": "BroadcastQrWindow",
+      "reason": "One picture and one sentence under it, with a Close answer; the sentence is the whole explanation, and the link and its password are explained in the Broadcasting section of Settings (CONTEXT-HELP rule 4)." },
     { "id": "log-archive-ready", "name": "Send logs to the author", "nameKey": "SendLogs", "form": "none", "class": "LogArchiveReadyWindow",
       "reason": "A confirmation that the log archive is ready, with its two answers named on their buttons; its text is the whole explanation (CONTEXT-HELP rule 4)." },
     { "id": "playback-failure", "name": "Stream unavailable", "nameKey": "StreamUnavailableTitle", "form": "none", "class": "PlaybackFailureDialog",

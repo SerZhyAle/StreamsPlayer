@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <AssemblyMetadata Include="SP_DRIVE_CLIENT_ID" Value="$(SP_DRIVE_CLIENT_ID)" Condition="'$(SP_DRIVE_CLIENT_ID)' != ''" />
+    <AssemblyMetadata Include="SP_DRIVE_CLIENT_SECRET" Value="$(SP_DRIVE_CLIENT_SECRET)" Condition="'$(SP_DRIVE_CLIENT_SECRET)' != ''" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\StreamsPlayer.Core\StreamsPlayer.Core.csproj" />
   </ItemGroup>
 
@@ -41,6 +46,14 @@
   <ItemGroup>
     <PackageReference Include="FlyleafLib" Version="3.10.4" />
     <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="8.0.1" />
+  </ItemGroup>
+
+  <!-- SP-0243: the screen broadcast reads the desktop through DXGI duplication and Direct3D 11 and scales it on the GPU.
+       FlyleafLib already brings both at this very version; naming them keeps the screen source from resting on a
+       transitive reference. No new binary ships. -->
+  <ItemGroup>
+    <PackageReference Include="Vortice.Direct3D11" Version="3.7.6-beta" />
+    <PackageReference Include="Vortice.DXGI" Version="3.7.6-beta" />
   </ItemGroup>
 
   <!-- Ship one LibVLC native tree, not three. VideoLAN.LibVLC.Windows.targets keys its three

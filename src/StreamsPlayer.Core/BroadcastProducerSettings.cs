@@ -27,6 +27,33 @@ public sealed record BroadcastProducerSettings
     /// <summary>The microphone the user chose; null is the Windows default capture device.</summary>
     public string? MicrophoneDeviceId { get; init; }
 
+    public string? MonitorDeviceId { get; init; }
+    public string? CameraDeviceId { get; init; }
+    public string ScreenAudioSource { get; init; } = "none";
+    public string CameraAudioSource { get; init; } = "none";
+
+    /// <summary>
+    /// LIVE-BROADCAST item R: how the outward link's password is made - "generated" (the default, and what an
+    /// installation that recorded no choice gets), "custom" or "none". A custom password is never here: it lives only in
+    /// the platform secret store, so a restored settings file carries the choice and not the secret.
+    /// </summary>
+    public string LinkChoice { get; init; } = "generated";
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public BroadcastLinkChoice Choice => LinkChoice switch
+    {
+        "custom" => BroadcastLinkChoice.Custom,
+        "none" => BroadcastLinkChoice.None,
+        _ => BroadcastLinkChoice.Generated
+    };
+
+    public static string LinkChoiceName(BroadcastLinkChoice choice) => choice switch
+    {
+        BroadcastLinkChoice.Custom => "custom",
+        BroadcastLinkChoice.None => "none",
+        _ => "generated"
+    };
+
     public int SampleRate { get; init; } = 44100;
 
     /// <summary>Open question 4: the microphone keeps the contract's mono default, the system sound is stereo; both changeable.</summary>
@@ -127,6 +154,11 @@ public sealed class BroadcastProducerSettingsStore
             .ToArray();
         return settings with
         {
+            ScreenAudioSource = AudioSource(settings.ScreenAudioSource),
+            CameraAudioSource = AudioSource(settings.CameraAudioSource),
+            LinkChoice = settings.LinkChoice is "custom" or "none" ? settings.LinkChoice : "generated",
+            MonitorDeviceId = string.IsNullOrWhiteSpace(settings.MonitorDeviceId) ? null : settings.MonitorDeviceId,
+            CameraDeviceId = string.IsNullOrWhiteSpace(settings.CameraDeviceId) ? null : settings.CameraDeviceId,
             LanPort = settings.LanPort is >= 1 and <= 65535 ? settings.LanPort : 8768,
             SampleRate = settings.SampleRate is 44100 or 48000 or 32000 or 24000 or 22050 or 16000 ? settings.SampleRate : 44100,
             MicrophoneChannels = settings.MicrophoneChannels is 1 or 2 ? settings.MicrophoneChannels : 1,
@@ -137,4 +169,6 @@ public sealed class BroadcastProducerSettingsStore
             RestartSources = restart
         };
     }
+
+    private static string AudioSource(string? source) => source is "mic" or "system-audio" ? source : "none";
 }

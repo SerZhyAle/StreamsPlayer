@@ -27,7 +27,7 @@ amendment is written in the store, not here.
 | [DIAGNOSTIC-REPORT.md](DIAGNOSTIC-REPORT.md) | `DIAGNOSTIC-REPORT` | Diagnostic Bundle, Environment Summary & Redaction | **Owner**, P/C |
 | [STREAM-BANK.md](STREAM-BANK.md) | `STREAM-BANK` | Published Stream Catalog ZIP & Artwork Atlas | Consumer |
 | [LIVE-BROADCAST.md](LIVE-BROADCAST.md) | `LIVE-BROADCAST` | Live Stream Descriptor & Direct Response Playback | Consumer, and producer of audio (read at 1.3 on 2026-10-22, SP-0232; implementation partial 1.2, SP-0228: `partial`; item I for RTSP first picture measured on a real phone 2026-10-15, inside budget, steady state is the owner's remaining observation, SP-0208; no handshake of section 6 has been run against a live phone since) |
-| [DEVICE-EXCHANGE.md](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | Device Exchange: a user's devices finding broadcasts through a server account or Google Drive | Receiver and broadcaster, no resources, sign-in only (read at 1.7 on 2026-10-22, SP-0232; implementation partial 1.5, SP-0228: `partial` - no joint run has happened and the Drive half, SP-0202, is not built; the dated exceptions and the follow-up SP-0237 are in the pointer and the registry rows) |
+| [DEVICE-EXCHANGE.md](DEVICE-EXCHANGE.md) | `DEVICE-EXCHANGE` | Device Exchange: a user's devices finding broadcasts through a server account or Google Drive | Receiver and broadcaster, no resources, sign-in only (read at 1.7 on 2026-10-22, SP-0232; implementation partial 1.5, SP-0228: `partial` - no joint run has happened and the Drive joint runs, SP-0202, remain open; the dated exceptions and the follow-up SP-0237 are in the pointer and the registry rows) |
 | [WAVE-PARTICLES.md](WAVE-PARTICLES.md) | `WAVE-PARTICLES` | "Particles and Lines" Animated Backdrop Simulation | Consumer |
 | [MEDIA-CLASSIFICATION.md](MEDIA-CLASSIFICATION.md) | `MEDIA-CLASSIFICATION` | Primary-category classification versus stream routing | Primary boundary absent; old claim withdrawn, SP-0232 |
 | [UPDATE-MANIFEST.md](UPDATE-MANIFEST.md) | `UPDATE-MANIFEST` | Non-Store App Update Feed & Integrity Check | Read 0.12; not bound, no update client (SP-0232) |
@@ -47,6 +47,7 @@ amendment is written in the store, not here.
 | [SITE-STRUCTURE.md](SITE-STRUCTURE.md) | `SITE-STRUCTURE` | Product Site Page Set, Reach, Addresses & Locales (0.3, partial) | Consumer, page tier (opted in 2026-10-06, SP-0192) |
 | [SITE-EXPERIENCE.md](SITE-EXPERIENCE.md) | `SITE-EXPERIENCE` | Product Site Look, Behaviour & Reach (0.4, partial) | Consumer, page tier (opted in 2026-10-06, SP-0192) |
 | [SITE-REPRESENTATION.md](SITE-REPRESENTATION.md) | `SITE-REPRESENTATION` | Product Site Facts, Editions & Trust Claims (draft 0.1) | Consumer, page tier (opted in 2026-10-06, SP-0192) |
+| [TEST-LAB.md](TEST-LAB.md) | `TEST-LAB` | The test lab: equipment, test practice and the proof a result carries (draft 0.1) | Reporter (inventory filed 2026-10-25, SP-0242) |
 | [WINDOWS-STORE.md](WINDOWS-STORE.md) | `WINDOWS-STORE` | Microsoft Store Package, Listing Import File & Listing Content | **Owner**, P; partial 0.2 local listing/package evidence; fresh live import is SP-0239 |
 
 Five of these are **owned here** (`APP-BEHAVIOUR`, `APP-STYLE`, `USER-PLAYLIST`, `DIAGNOSTIC-REPORT`, `WINDOWS-STORE`). That changes what a disagreement means: for a contract this product only

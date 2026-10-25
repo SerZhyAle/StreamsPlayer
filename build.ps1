@@ -13,7 +13,9 @@ param(
     [ValidateSet('win-x64', 'win-arm64')]
     [string] $Runtime = 'win-x64',
 
-    [string] $OutputPath = ''
+    [string] $OutputPath = '',
+
+    [string] $DriveClientFile = ''
 )
 
 Set-StrictMode -Version Latest
@@ -83,7 +85,28 @@ if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
 }
 
 Push-Location $PSScriptRoot
+$previousDriveClientId = [Environment]::GetEnvironmentVariable('SP_DRIVE_CLIENT_ID', 'Process')
+$previousDriveClientSecret = [Environment]::GetEnvironmentVariable('SP_DRIVE_CLIENT_SECRET', 'Process')
 try {
+    if ([string]::IsNullOrWhiteSpace($previousDriveClientId)) {
+        if (-not $DriveClientFile) {
+            $DriveClientFile = if ($env:SP_DRIVE_CLIENT_JSON) { $env:SP_DRIVE_CLIENT_JSON }
+                else { Join-Path ([Environment]::GetFolderPath('UserProfile')) '.fms-secrets/google-oauth/streamsplayer-desktop.json' }
+        }
+        if (Test-Path -LiteralPath $DriveClientFile -PathType Leaf) {
+            try {
+                $driveClient = Get-Content -LiteralPath $DriveClientFile -Raw | ConvertFrom-Json
+                if ([string]::IsNullOrWhiteSpace($driveClient.installed.client_id)) { throw 'Missing desktop client.' }
+                $env:SP_DRIVE_CLIENT_ID = $driveClient.installed.client_id
+                $env:SP_DRIVE_CLIENT_SECRET = $driveClient.installed.client_secret
+                Write-Host 'Google Drive OAuth: configured from the local desktop-client file.'
+            }
+            catch { throw 'Could not read the Google Desktop OAuth client file. Its contents were not logged.' }
+        }
+        elseif ($PSBoundParameters.ContainsKey('DriveClientFile') -or $env:SP_DRIVE_CLIENT_JSON) {
+            throw 'The Google Desktop OAuth client file does not exist.'
+        }
+    }
     $sdkVersion = (& dotnet --version).Trim()
     if ($LASTEXITCODE -ne 0) {
         throw 'Could not determine the .NET SDK version.'
@@ -242,5 +265,7 @@ try {
     }
 }
 finally {
+    [Environment]::SetEnvironmentVariable('SP_DRIVE_CLIENT_ID', $previousDriveClientId, 'Process')
+    [Environment]::SetEnvironmentVariable('SP_DRIVE_CLIENT_SECRET', $previousDriveClientSecret, 'Process')
     Pop-Location
 }

@@ -20,6 +20,8 @@ if (args.Length == 0)
 
         --label names the client this run acts as (for example "desktop-A"); --evidence overrides the
         default evidence directory temp/SP-0202. The access token is held in memory only.
+        Set SP_DRIVE_CLIENT_ID and SP_DRIVE_CLIENT_SECRET in this process's environment instead of passing
+        credentials on the command line. Evidence records the client's SHA-256, never the client id or secret.
         """);
     return 0;
 }
@@ -27,7 +29,9 @@ if (args.Length == 0)
 var command = args[0];
 var options = ParseOptions(args.Skip(1));
 var evidenceDirectory = options.GetValueOrDefault("evidence") ?? DrivePremiseEvidence.DefaultDirectory;
-var clientId = options.GetValueOrDefault("client-id") ?? throw new ArgumentException("Every command needs --client-id.");
+var clientId = options.GetValueOrDefault("client-id") ?? Environment.GetEnvironmentVariable("SP_DRIVE_CLIENT_ID")
+    ?? throw new ArgumentException("Set SP_DRIVE_CLIENT_ID or pass --client-id.");
+var clientSecret = Environment.GetEnvironmentVariable("SP_DRIVE_CLIENT_SECRET");
 var label = options.GetValueOrDefault("label") ?? "unnamed-client";
 
 using var client = new HttpClient();
@@ -60,7 +64,7 @@ catch (Exception exception)
     {
         Command = command,
         Label = label,
-        ClientId = clientId,
+        ClientIdSha256 = DrivePremiseEvidence.HashIdentifier(clientId),
         Verdict = verdict,
         ErrorType = exception.GetType().Name,
     });
@@ -75,7 +79,7 @@ static Dictionary<string, string?> ParseOptions(IEnumerable<string> words)
     {
         if (pending is null)
         {
-            pending = word;
+            pending = word.TrimStart('-');
             options[pending] = null;
         }
         else
@@ -89,7 +93,7 @@ static Dictionary<string, string?> ParseOptions(IEnumerable<string> words)
 
 async Task WriteProbeAsync(DrivePremiseDrive drive, string clientId, string label, string evidenceDirectory)
 {
-    var accessToken = await DrivePremiseOAuth.SignInAsync(client, clientId, CancellationToken.None);
+    var accessToken = await DrivePremiseOAuth.SignInAsync(client, clientId, CancellationToken.None, clientSecret);
     var broadcastId = DrivePremiseProbe.NewBroadcastId();
     var fileName = DrivePremiseProbe.FileNameFor(broadcastId);
     var writtenAt = DateTimeOffset.UtcNow;
@@ -105,7 +109,7 @@ async Task WriteProbeAsync(DrivePremiseDrive drive, string clientId, string labe
     {
         Command = "write",
         Label = label,
-        ClientId = clientId,
+        ClientIdSha256 = DrivePremiseEvidence.HashIdentifier(clientId),
         ProbeFileName = fileName,
         DriveFileId = created.Id,
         DriveModifiedTime = created.ModifiedTime,
@@ -117,7 +121,7 @@ async Task WriteProbeAsync(DrivePremiseDrive drive, string clientId, string labe
 
 async Task ListAppDataAsync(DrivePremiseDrive drive, string clientId, string label, Dictionary<string, string?> options, string evidenceDirectory)
 {
-    var accessToken = await DrivePremiseOAuth.SignInAsync(client, clientId, CancellationToken.None);
+    var accessToken = await DrivePremiseOAuth.SignInAsync(client, clientId, CancellationToken.None, clientSecret);
     var files = await drive.ListAppDataAsync(accessToken, CancellationToken.None);
 
     Console.WriteLine();
@@ -163,7 +167,7 @@ async Task ListAppDataAsync(DrivePremiseDrive drive, string clientId, string lab
     {
         Command = "list",
         Label = label,
-        ClientId = clientId,
+        ClientIdSha256 = DrivePremiseEvidence.HashIdentifier(clientId),
         ListedFiles = files.Select(file => new { file.Id, file.Name, file.Size, file.ModifiedTime }).ToArray(),
         ExpectedFiles = expected.Distinct().ToArray(),
         Verdicts = verdicts.ToArray(),
@@ -196,9 +200,9 @@ async Task ReadAndReportWrapperAsync(DrivePremiseDrive drive, string accessToken
 async Task DeleteProbeAsync(DrivePremiseDrive drive, string clientId, Dictionary<string, string?> options, string evidenceDirectory)
 {
     var fileId = options.GetValueOrDefault("file-id") ?? throw new ArgumentException("delete needs --file-id.");
-    var accessToken = await DrivePremiseOAuth.SignInAsync(client, clientId, CancellationToken.None);
+    var accessToken = await DrivePremiseOAuth.SignInAsync(client, clientId, CancellationToken.None, clientSecret);
     await drive.DeleteAsync(accessToken, fileId, CancellationToken.None);
     var verdict = DrivePremiseEvidence.Verdict("deleted", "deleted");
     Console.WriteLine(verdict);
-    DrivePremiseEvidence.Append(evidenceDirectory, new { Command = "delete", ClientId = clientId, DriveFileId = fileId, Verdict = verdict });
+    DrivePremiseEvidence.Append(evidenceDirectory, new { Command = "delete", ClientIdSha256 = DrivePremiseEvidence.HashIdentifier(clientId), DriveFileId = fileId, Verdict = verdict });
 }

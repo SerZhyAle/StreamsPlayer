@@ -22,8 +22,8 @@ public static class DrivePremiseOAuth
 
     /// <summary>Signs the run in with the given Desktop-app client and returns an access token for the one scope.</summary>
     /// <exception cref="InvalidOperationException">the user closed the browser, the redirect echoed the wrong
-    /// <c>state</c>, or Google answered with an error body - the message carries that answer verbatim.</exception>
-    public static async Task<string> SignInAsync(HttpClient client, string clientId, CancellationToken cancellation)
+    /// <c>state</c>, or Google refused the token exchange. Response bodies are never reported.</exception>
+    public static async Task<string> SignInAsync(HttpClient client, string clientId, CancellationToken cancellation, string? clientSecret = null)
     {
         var verifier = DrivePremisePkce.NewVerifier();
         var state = DrivePremisePkce.NewState();
@@ -33,14 +33,14 @@ public static class DrivePremiseOAuth
 
         Console.WriteLine();
         Console.WriteLine("Opening the system browser for the Google sign-in...");
-        Console.WriteLine(authorizationUrl);
         try
         {
             Process.Start(new ProcessStartInfo(authorizationUrl) { UseShellExecute = true });
         }
-        catch (Exception exception)
+        catch (System.ComponentModel.Win32Exception)
         {
-            Console.WriteLine($"Could not launch a browser automatically ({exception.GetType().Name}); open the address above by hand.");
+            listener.Close();
+            throw new InvalidOperationException("Could not open the system browser for sign-in.");
         }
 
         string authorizationCode;
@@ -53,7 +53,7 @@ public static class DrivePremiseOAuth
             listener.Close();
         }
 
-        return await ExchangeTokenAsync(client, clientId, redirectUri, verifier, authorizationCode, cancellation);
+        return await ExchangeTokenAsync(client, clientId, redirectUri, verifier, authorizationCode, cancellation, clientSecret);
     }
 
     private static string BuildAuthorizationUrl(string clientId, string redirectUri, string state, string codeChallenge)
@@ -118,8 +118,7 @@ public static class DrivePremiseOAuth
 
             if (query["error"] is { Length: > 0 } error)
             {
-                throw new InvalidOperationException($"Google answered the sign-in with an error: {error}" +
-                    (query["error_description"] is { Length: > 0 } description ? $" ({description})" : ""));
+                throw new InvalidOperationException("Google did not authorize the sign-in.");
             }
             if (query["state"] != expectedState)
             {
@@ -132,27 +131,32 @@ public static class DrivePremiseOAuth
         }
     }
 
-    private static async Task<string> ExchangeTokenAsync(HttpClient client, string clientId, string redirectUri, string verifier, string authorizationCode, CancellationToken cancellation)
+    internal static async Task<string> ExchangeTokenAsync(HttpClient client, string clientId, string redirectUri, string verifier, string authorizationCode, CancellationToken cancellation, string? clientSecret = null)
     {
-        using var body = new FormUrlEncodedContent(new Dictionary<string, string>
+        var fields = new Dictionary<string, string>
         {
             ["client_id"] = clientId,
             ["code"] = authorizationCode,
             ["code_verifier"] = verifier,
             ["grant_type"] = "authorization_code",
             ["redirect_uri"] = redirectUri,
-        });
+        };
+        if (!string.IsNullOrWhiteSpace(clientSecret))
+        {
+            fields["client_secret"] = clientSecret;
+        }
+        using var body = new FormUrlEncodedContent(fields);
         using var response = await client.PostAsync(TokenEndpoint, body, cancellation);
         var responseText = await response.Content.ReadAsStringAsync(cancellation);
         if (!response.IsSuccessStatusCode)
         {
-            throw new InvalidOperationException($"The token exchange failed ({(int)response.StatusCode}): {responseText}");
+            throw new InvalidOperationException($"The token exchange failed ({(int)response.StatusCode}).");
         }
         using var document = System.Text.Json.JsonDocument.Parse(responseText);
         if (document.RootElement.TryGetProperty("access_token", out var token) && token.ValueKind == System.Text.Json.JsonValueKind.String)
         {
             return token.GetString()!;
         }
-        throw new InvalidOperationException($"The token answer carried no access_token: {responseText}");
+        throw new InvalidOperationException("The token answer carried no access_token.");
     }
 }

@@ -1,5 +1,7 @@
 using System.IO;
 using System.Text.Json;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace StreamsPlayer.DrivePremiseHarness;
 
@@ -18,6 +20,8 @@ public static class DrivePremiseEvidence
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     public static string Verdict(string expected, string actual) => $"expected: {expected} | actual: {actual}";
+
+    public static string HashIdentifier(string identifier) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identifier)));
 
     public static void SaveProbeMarker(string directory, ProbeMarker marker)
     {

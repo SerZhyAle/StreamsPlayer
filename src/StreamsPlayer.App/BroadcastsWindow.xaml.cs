@@ -43,19 +43,22 @@ internal sealed record BroadcastLinkRow(string Title, string StateText)
 /// <param name="OpenState">The state of this broadcast's window when one is open, already in words.</param>
 /// <param name="IsGuest">The broadcast was given to this PC as a guest; it is played but never kept in the library.</param>
 internal sealed record BroadcastRow(ExchangeBroadcastView View, string? OpenState = null, bool IsGuest = false,
-    ExchangeAccount? ListingEntry = null)
+    ExchangeAccount? ListingEntry = null, bool IsDrive = false)
 {
     public string Title => string.IsNullOrWhiteSpace(View.Record.Title) ? ModeLabel : View.Record.Title!;
 
-    public string Detail => View.Support switch
+    public string Detail => (View.Support switch
     {
         ExchangeBroadcastSupport.Unsupported => LocalizationService.Get("BroadcastsUnsupportedReason"),
         ExchangeBroadcastSupport.UnsupportedSchema => LocalizationService.Get(ExchangeFailureRows.FormatUnsupported.MessageKey),
         // SP-0226 / item DP: not protected end to end, so not played through the server - said, never hidden.
         ExchangeBroadcastSupport.Unsealed => LocalizationService.Get("BroadcastsUnsealedReason"),
         _ when SealedState != ExchangeSealedState.None => LocalizationService.Get(SealedState.MessageKey()),
+        _ when IsDrive && OpenState == LocalizationService.Get("BroadcastsStateFailed")
+            && View.Record.Descriptor is { } descriptor
+            && !descriptor.Endpoints.Any(endpoint => ExchangeEndpointKinds.IsExchangeAddress(endpoint.Url)) => LocalizationService.Get("DriveUnreachable"),
         _ => OpenState is null ? ModeLabel : $"{ModeLabel}, {OpenState}"
-    };
+    }) + (IsDrive ? " - " + LocalizationService.Get("DriveTitle") : "");
 
     /// <summary>SP-0226: why this sealed broadcast's box could not be opened on this device (item DR), or none.</summary>
     private ExchangeSealedState SealedState => ExchangeBroadcastKeys.FailureOf(View.Record.BroadcastId);
@@ -110,6 +113,7 @@ public partial class BroadcastsWindow : Window
         InitializeComponent();
         _host = host;
         _source = source;
+        InitializeDriveView();
         BroadcastList.ItemsSource = _rows;
         _source.DirectoryChanged += SourceChanged;
         _host.IncomingBroadcastsChanged += Rebuild;
@@ -184,12 +188,14 @@ public partial class BroadcastsWindow : Window
         // SP-0225: the connection check looks at the first entry that cannot list, with that entry's own status line.
         _diagnosis = null;
 
-        if (account.Token is not null)
+        if (account.Token is not null || Drive.SignedIn)
         {
             accountSections++;
-            var failing = AddSection(account.Guest, account.Login, account.Host, _source.Directory, _source.StatusKey, false, incoming);
+            var failing = AddSection(account.Guest, account.Token is null ? "" : account.Login, account.Host,
+                DriveDirectory.Merge(_source.Directory, Drive.Directory),
+                account.Token is null ? Drive.StatusKey : _source.StatusKey, false, incoming);
             needsSignIn |= failing;
-            if (failing)
+            if (failing && account.Token is not null)
             {
                 _diagnosis ??= ExchangeDiagnosisRequest.ForStatus(_source.EnrollmentOutcomeKey, _source.StatusKey, account.Host, account.Port);
             }
@@ -217,7 +223,9 @@ public partial class BroadcastsWindow : Window
         }
 
         // Nobody is signed in: the exchange's own status line says why there is no list, and the next step is one click.
-        StatusText.Text = accountSections == 0 ? LocalizationService.Get(_source.StatusKey) : string.Empty;
+        StatusText.Text = accountSections == 0
+            ? LocalizationService.Get(Drive.Available && Drive.StatusKey != "DriveSignedOut" ? Drive.StatusKey : _source.StatusKey)
+            : string.Empty;
         StatusText.Visibility = accountSections == 0 ? Visibility.Visible : Visibility.Collapsed;
         SettingsButton.Visibility = accountSections == 0 || needsSignIn ? Visibility.Visible : Visibility.Collapsed;
         DiagnoseButton.Visibility = _diagnosis is null ? Visibility.Collapsed : Visibility.Visible;
@@ -237,7 +245,15 @@ public partial class BroadcastsWindow : Window
         _rows.Add(guest
             ? new BroadcastSectionHeading(LocalizationService.Format("BroadcastsGuestHeading", login, host),
                 LocalizationService.Get("BroadcastsGuestNote"))
-            : new BroadcastSectionHeading(LocalizationService.Format("BroadcastsAccountHeading", login, host), null));
+            : new BroadcastSectionHeading(string.IsNullOrEmpty(login) ? LocalizationService.Get("DriveTitle")
+                : Drive.SignedIn ? LocalizationService.Get("BroadcastsTitle")
+                : LocalizationService.Format("BroadcastsAccountHeading", login, host), null));
+        if (!guest && Drive.SignedIn)
+        {
+            _rows.Add(new BroadcastSectionNote(LocalizationService.Get("DriveNoCast")));
+            if (Drive.StatusKey is "DriveReadFailed" or "DrivePublishFailed")
+                _rows.Add(new BroadcastSectionNote(LocalizationService.Get(Drive.StatusKey)));
+        }
         if (snapshot is null)
         {
             // A missing snapshot is the connection being off, between connections or refused - not an empty
@@ -258,7 +274,7 @@ public partial class BroadcastsWindow : Window
         {
             var presence = LocalizationService.Get(group.IsOnline ? "BroadcastsOnline" : "BroadcastsOffline");
             // SP-0226 / items DG and DR: a device this program will not seal to says why, beside its name.
-            if (!guest && snapshot.Devices?.FirstOrDefault(device => device.DeviceId == group.DeviceId) is { } listed
+            if (!guest && !IsDriveDevice(group.DeviceId) && snapshot.Devices?.FirstOrDefault(device => device.DeviceId == group.DeviceId) is { } listed
                 && _source.StateOfDevice(listed) is var deviceState and not ExchangeSealedState.None)
             {
                 presence += " - " + LocalizationService.Get(deviceState.MessageKey());
@@ -270,7 +286,7 @@ public partial class BroadcastsWindow : Window
                 var open = view.Record.Descriptor?.SourceId is { } sourceId
                     ? incoming.FirstOrDefault(entry => entry.SourceId == sourceId)
                     : null;
-                _rows.Add(new BroadcastRow(view, open is null ? null : StateText(open), guest, listingEntry));
+                _rows.Add(new BroadcastRow(view, open is null ? null : StateText(open), guest, listingEntry, IsDriveView(view)));
             }
         }
 
@@ -303,7 +319,7 @@ public partial class BroadcastsWindow : Window
 
     private async Task PlayAsync(BroadcastRow row)
     {
-        var result = row.IsGuest
+        var result = row.IsDrive ? await _host.OpenDriveBroadcastWindowAsync(row.View) : row.IsGuest
             ? await _host.OpenGuestBroadcastWindowAsync(row.View, row.ListingEntry!)
             : await _host.OpenExchangeBroadcastWindowAsync(row.View);
         ShowResult(result);
@@ -362,7 +378,8 @@ public partial class BroadcastsWindow : Window
         {
             if ((sender as FrameworkElement)?.Tag is BroadcastRow row)
             {
-                await _host.KeepExchangeBroadcastAsync(row.View);
+                if (row.IsDrive) await _host.KeepDriveBroadcastAsync(row.View);
+                else await _host.KeepExchangeBroadcastAsync(row.View);
             }
         }
         catch (Exception exception)
