@@ -11,6 +11,13 @@ internal sealed class BroadcastAudioReadStream(Stream inner, string? contentType
     private readonly string _directory = stagingDirectory ?? RecordingStaging.NewInstanceDirectory(CaptureKind.StreamAudio);
     private BroadcastAudioRecorder? _recorder;
     private bool _ended;
+    private long _bytesRead;
+
+    /// <summary>
+    /// S6-2: the bytes the decoder has pulled from the response so far - the one monotonic total the stall watchdog needs
+    /// (<see cref="AudioStallDetector"/>). Read from another thread than the decoder's, hence the interlocked total.
+    /// </summary>
+    internal long BytesRead => Interlocked.Read(ref _bytesRead);
 
     internal bool CanRecord { get { lock (_gate) return !_ended && _framer.Ready; } }
     internal bool IsRecordingWriting { get { lock (_gate) return _recorder is { Completion.IsCompleted: false }; } }
@@ -59,6 +66,7 @@ internal sealed class BroadcastAudioReadStream(Stream inner, string? contentType
         try
         {
             var read = inner.Read(buffer[..Math.Min(buffer.Length, 64 * 1024)]);
+            Interlocked.Add(ref _bytesRead, read);
             Observe(buffer[..read], end: read == 0 && buffer.Length > 0);
             return read;
         }
@@ -74,6 +82,7 @@ internal sealed class BroadcastAudioReadStream(Stream inner, string? contentType
         try
         {
             var read = await inner.ReadAsync(buffer[..Math.Min(buffer.Length, 64 * 1024)], cancellationToken).ConfigureAwait(false);
+            Interlocked.Add(ref _bytesRead, read);
             Observe(buffer.Span[..read], end: read == 0 && buffer.Length > 0);
             return read;
         }

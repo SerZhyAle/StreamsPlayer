@@ -31,8 +31,11 @@ internal sealed partial class DriveSourceService
             IReadOnlyList<DriveAnnouncement> outgoing;
             lock (_outgoingGate) outgoing = _outgoing;
             if (_account is not null && _publisher is not null)
+            {
+                using var deadline = DeadlineFor(cancellation);
                 await _publisher.SynchronizeAsync(_account.DeviceId, outgoing, DateTimeOffset.UtcNow,
-                    _publicationClock.Elapsed, cancellation).ConfigureAwait(false);
+                    _publicationClock.Elapsed, deadline.Token).ConfigureAwait(false);
+            }
             _publicationDelay.After(true, 0);
             _publishAfter = TimeSpan.Zero;
             if (_publicationFailed)
@@ -62,11 +65,29 @@ internal sealed partial class DriveSourceService
             {
                 bool requested;
                 lock (_outgoingGate) requested = _publicationRequested;
-                if (requested)
-                    await PublishCurrentAsync(_lifetime.Token, scheduled: true).ConfigureAwait(false);
+                if (!requested)
+                    continue;
+                // S2-3: this loop is the only thing that renews the 90 s announcement; one escaped exception used to
+                // fault the task for the rest of the process, unlogged. Only the shutdown cancellation may end it.
+                try { await PublishCurrentAsync(_lifetime.Token, scheduled: true).ConfigureAwait(false); }
+                catch (Exception exception) when (exception is not OperationCanceledException || !_lifetime.IsCancellationRequested)
+                { RecordPublicationFault(exception); }
             }
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+    }
+
+    private void RecordPublicationFault(Exception exception)
+    {
+        // The type name is the whole record: a message or stack can carry a URL, an id or a token.
+        HandlerBoundary.Record("DRIVE PUBLICATION FAULT | type=" + exception.GetType().Name);
+        if (_account is not null)
+        {
+            _publicationFailed = true;
+            StatusKey = "DrivePublishFailed";
+        }
+        _publishAfter = _publicationClock.Elapsed + _publicationDelay.After(false, Random.Shared.NextDouble());
+        Changed?.Invoke();
     }
 
     internal async Task StopAsync()

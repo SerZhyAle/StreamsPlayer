@@ -38,7 +38,15 @@ internal sealed class DriveAccountStore(string directory)
         finally { CryptographicOperations.ZeroMemory(clear); }
         Directory.CreateDirectory(directory);
         var temporary = _path + ".new";
-        await File.WriteAllBytesAsync(temporary, protectedBytes, cancellation).ConfigureAwait(false);
+        // S2-6: the grant must be on disk before the rename publishes it, as ExchangeAccountStore.Save does; a
+        // power loss between an unflushed write and the move could otherwise leave a zero-length account file.
+        await using (var file = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None,
+                         4096, FileOptions.WriteThrough | FileOptions.Asynchronous))
+        {
+            await file.WriteAsync(protectedBytes, cancellation).ConfigureAwait(false);
+            file.Flush(flushToDisk: true);
+        }
+
         File.Move(temporary, _path, overwrite: true);
     }
 

@@ -19,6 +19,9 @@ public sealed class ExchangeSealedRelayEncoder : IDisposable
     private readonly Dictionary<string, byte[]> _groupKeys = [];
     private byte[] _epochKey;
     private long _records;
+    // S13-1: set under _gate by Dispose. The zeroed epoch key is a valid all-zero AES key, so once disposed every sealing
+    // member must refuse rather than seal under it (a chunk sealed under a public key is readable by the server).
+    private bool _disposed;
 
     public ExchangeSealedRelayEncoder(string broadcastId, string mediaType)
     {
@@ -55,6 +58,12 @@ public sealed class ExchangeSealedRelayEncoder : IDisposable
         var key = RandomNumberGenerator.GetBytes(ExchangeSealedRelayRecords.GroupKeyLength);
         lock (_gate)
         {
+            if (_disposed)
+            {
+                CryptographicOperations.ZeroMemory(key);
+                throw new ObjectDisposedException(nameof(ExchangeSealedRelayEncoder));
+            }
+
             Replace(purpose, key);
         }
 
@@ -80,6 +89,7 @@ public sealed class ExchangeSealedRelayEncoder : IDisposable
 
         lock (_gate)
         {
+            ThrowIfDisposed();
             Replace(purpose, key.ToArray());
         }
     }
@@ -119,6 +129,7 @@ public sealed class ExchangeSealedRelayEncoder : IDisposable
     {
         lock (_gate)
         {
+            ThrowIfDisposed();
             CryptographicOperations.ZeroMemory(_epochKey);
             _epochKey = RandomNumberGenerator.GetBytes(ExchangeSealedRelayRecords.EpochKeyLength);
             _records = 0;
@@ -134,6 +145,7 @@ public sealed class ExchangeSealedRelayEncoder : IDisposable
     {
         lock (_gate)
         {
+            ThrowIfDisposed();
             if (_groupKeys.Count == 0)
             {
                 throw new InvalidOperationException("A key ring needs at least one group key.");
@@ -164,6 +176,7 @@ public sealed class ExchangeSealedRelayEncoder : IDisposable
 
     private byte[] Seal(byte flag, ReadOnlySpan<byte> media)
     {
+        ThrowIfDisposed();
         if (_records >= MaximumRecordsPerEpoch)
         {
             throw new InvalidOperationException("The epoch key has sealed its last record; open a new epoch.");
@@ -187,10 +200,14 @@ public sealed class ExchangeSealedRelayEncoder : IDisposable
         _groupKeys[purpose] = key;
     }
 
+    // Called with _gate held, so the flag Dispose sets is seen by every sealing call that starts after it.
+    private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(_disposed, this);
+
     public void Dispose()
     {
         lock (_gate)
         {
+            _disposed = true;
             foreach (var key in _groupKeys.Values)
             {
                 CryptographicOperations.ZeroMemory(key);

@@ -89,7 +89,8 @@ internal sealed class WindowsCameraCapture : IDisposable
                 Check(buffer!.Lock(out var data, out _, out var length));
                 try
                 {
-                    if (length != Width * Height * 3 / 2) throw new InvalidDataException("Unexpected camera frame layout.");
+                    // S8-4: IOException, not InvalidDataException (a SystemException the worker's catch did not list).
+                    if (length != Width * Height * 3 / 2) throw new IOException("Unexpected camera frame layout.");
                     var pixels = new byte[length];
                     Marshal.Copy(data, pixels, 0, length);
                     return pixels;

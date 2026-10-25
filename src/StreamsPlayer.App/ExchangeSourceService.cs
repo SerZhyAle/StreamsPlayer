@@ -272,6 +272,8 @@ internal sealed partial class ExchangeSourceService
         try
         {
             await StopLoopAsync().ConfigureAwait(false);
+            // S7-6: keys a cast task or a guest viewer trusted since the last directory are written before the process ends.
+            _trustBook.SaveIfDirty();
         }
         finally
         {
@@ -851,9 +853,22 @@ internal sealed partial class ExchangeSourceService
             // A password changed elsewhere (item AT) ends the sign-in and nothing else: the entry keeps its
             // server, login, pin, device id and attachments, and only the token is gone, so the person types the
             // new password and the same device enrolls again. A removed or unknown device starts over.
-            var cleared = reason == "signed-out"
-                ? Account with { Token = null, SignedOut = true }
-                : Account with { Token = null, Enabled = false, DeviceId = ExchangeProtocol.NewDeviceId(), SignedOut = false };
+            ExchangeAccount cleared;
+            if (reason == "signed-out")
+            {
+                cleared = Account with { Token = null, SignedOut = true };
+            }
+            else
+            {
+                // S7-8: the old id is gone for good, so the keys seen under it go with it (item DG).
+                _trustBook.Forget(Account.DeviceId);
+                // S7-9: a new id gets a new pair (item DF). Only clearing the old one would not do: the entry keeps its
+                // host, so the next enrollment would take the new id for a known one and send no key at all.
+                using var freshKey = ExchangeE2eKeyPair.Generate();
+                cleared = (Account with { Token = null, Enabled = false, DeviceId = ExchangeProtocol.NewDeviceId(), SignedOut = false })
+                    .WithE2eKey(freshKey);
+            }
+
             Account = cleared;
             SignedOutNotice = reason == "signed-out";
             try

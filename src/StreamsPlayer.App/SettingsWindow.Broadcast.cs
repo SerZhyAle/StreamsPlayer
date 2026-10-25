@@ -63,11 +63,21 @@ public partial class SettingsWindow
             }
         }
 
+        var index = previous is null ? 0
+            : items.FindIndex(choice => choice is BroadcastMicrophoneChoice { Id: { } id } && id == previous);
         _showingBroadcast = true;
         BroadcastMicDeviceBox.ItemsSource = items;
-        BroadcastMicDeviceBox.SelectedIndex = previous is null ? 0
-            : Math.Max(0, items.FindIndex(choice => choice is BroadcastMicrophoneChoice { Id: { } id } && id == previous));
+        BroadcastMicDeviceBox.SelectedIndex = Math.Max(0, index);
         _showingBroadcast = false;
+        if (previous is not null && index < 0 && items.Count > 1)
+        {
+            // S15-3: the stored microphone is gone, and the list shows the Windows default in its place. Say so in the settings
+            // too, through the path a pick takes (a null id is the default), or Start would still resolve the stale id. Only
+            // when devices were really listed, so a failed enumeration never erases the person's choice; a change that finds
+            // another value already stored leaves it alone.
+            HandlerBoundary.Run(nameof(PopulateBroadcastMicrophones), () => Broadcast.UpdateSettingsAsync(settings =>
+                settings.MicrophoneDeviceId == previous ? settings with { MicrophoneDeviceId = null } : settings));
+        }
     }
 
     private void ShowBroadcasting()
@@ -132,11 +142,14 @@ public partial class SettingsWindow
             return;
         }
 
+        // S15-2: the change delegate may run off the UI thread, after the producer's semaphore wait, and after
+        // ShowBroadcasting has reset the box; the control is read here, on the UI thread, and only the value is captured.
+        var startWithApplication = BroadcastStartWithAppCheckBox.IsChecked == true;
         HandlerBoundary.Run(nameof(BroadcastStartWithApp_Click), async () =>
         {
                 await Broadcast.UpdateSettingsAsync(settings => settings with
                 {
-                    StartWithApplication = BroadcastStartWithAppCheckBox.IsChecked == true
+                    StartWithApplication = startWithApplication
                 });
         });
     }
@@ -148,11 +161,13 @@ public partial class SettingsWindow
             return;
         }
 
+        // S15-2: read on the UI thread, as in BroadcastStartWithApp_Click.
+        var lanListening = BroadcastLanCheckBox.IsChecked == true;
         HandlerBoundary.Run(nameof(BroadcastLan_Click), async () =>
         {
                 await Broadcast.UpdateSettingsAsync(settings => settings with
                 {
-                    LanListening = BroadcastLanCheckBox.IsChecked == true
+                    LanListening = lanListening
                 });
         });
     }

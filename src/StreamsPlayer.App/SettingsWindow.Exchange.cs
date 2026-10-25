@@ -231,7 +231,10 @@ public partial class SettingsWindow
             return;
         }
 
-        await RunExchangeActionAsync(() => Exchange.SetAutoAcceptCastsAsync(ExchangeAutoAcceptCastsCheckBox.IsChecked == true));
+        // S15-1: read the box before RunExchangeActionAsync - its first ShowExchange() resets IsChecked to the stored value,
+        // so reading it inside the delegate would save the old value again.
+        var autoAccept = ExchangeAutoAcceptCastsCheckBox.IsChecked == true;
+        await RunExchangeActionAsync(() => Exchange.SetAutoAcceptCastsAsync(autoAccept));
     }
 
     private async Task ExchangeEnrollAsync()

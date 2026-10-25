@@ -22,6 +22,13 @@ internal static class ExchangeTunnelBridge
     internal static readonly TimeSpan IdleTimeout = TimeSpan.FromMinutes(10);
 
     /// <summary>
+    /// S7-1: the whole set-up of one tunnel - the data stream, hello, welcome and the inner TLS accept - gets the same fifteen
+    /// seconds every other exchange connection gets, so a stalled server or a listener that never finishes the handshake
+    /// cannot hold one of the sixteen per-broadcast slots until the control session ends. The pump that follows is not bound by it.
+    /// </summary>
+    internal static readonly TimeSpan SetupDeadline = TimeSpan.FromSeconds(15);
+
+    /// <summary>
     /// SP-0226 / item DM: the attached stream is answered with a TLS server (<paramref name="inner"/>, the certificate made
     /// for this broadcast) before anything is bridged, so what the exchange server relays is TLS records and nothing
     /// else. A listener that does not accept the leaf hangs up, and the tunnel simply ends.
@@ -32,15 +39,18 @@ internal static class ExchangeTunnelBridge
         try
         {
             var account = exchange.Account;
+            // S7-1: set-up is bound by its own deadline on top of the session token; the pump below gets the session token only.
+            using var setup = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            setup.CancelAfter(SetupDeadline);
             using var connection = await ExchangeTlsConnection
-                .OpenAsync(account.Host, account.Port, account.Pin, cancellationToken, account.PinKey)
+                .OpenAsync(account.Host, account.Port, account.Pin, setup.Token, account.PinKey)
                 .ConfigureAwait(false);
             await ExchangeProtocol.WriteAsync(connection.Stream, new
             {
                 schemaVersion = 2, type = "hello", deviceId = account.DeviceId, deviceToken = account.Token,
                 productVersion = ProductInfo.Version, keepaliveSeconds = 30
-            }, false, cancellationToken).ConfigureAwait(false);
-            using var welcome = await ExchangeHandshake.ReadAsync(connection.Stream, "welcome", cancellationToken).ConfigureAwait(false);
+            }, false, setup.Token).ConfigureAwait(false);
+            using var welcome = await ExchangeHandshake.ReadAsync(connection.Stream, "welcome", setup.Token).ConfigureAwait(false);
             if (ExchangeProtocol.String(welcome.RootElement, "type") == "refused")
             {
                 return;
@@ -49,9 +59,10 @@ internal static class ExchangeTunnelBridge
             await ExchangeProtocol.WriteAsync(connection.Stream, new
             {
                 schemaVersion = 2, type = "attach", tunnelId = tunnel.TunnelId
-            }, true, cancellationToken).ConfigureAwait(false);
+            }, true, setup.Token).ConfigureAwait(false);
 
-            await using var remote = await inner.AcceptAsync(connection.Stream, cancellationToken).ConfigureAwait(false);
+            await using var remote = await inner.AcceptAsync(connection.Stream, setup.Token).ConfigureAwait(false);
+            setup.CancelAfter(Timeout.InfiniteTimeSpan); // set-up is done; the idle timeout owns the bridge from here
             using var local = new TcpClient();
             await local.ConnectAsync(IPAddress.Loopback, localPort, cancellationToken).ConfigureAwait(false);
             await PumpAsync(remote, local.GetStream(), IdleTimeout, cancellationToken).ConfigureAwait(false);
@@ -99,6 +110,7 @@ internal static class ExchangeTunnelBridge
         }
     }
 
-    private static bool IsConnectionFailure(Exception exception) => exception is IOException or SocketException
-        or OperationCanceledException or ObjectDisposedException or System.Security.Authentication.AuthenticationException;
+    // S7-2: the exchange loop's own classification, so a malformed welcome (InvalidDataException, JsonException from
+    // ExchangeHandshake.ReadAsync) ends this fire-and-forget bridge like any other dead connection instead of faulting unobserved.
+    private static bool IsConnectionFailure(Exception exception) => ExchangeSourceService.IsConnectionFailure(exception);
 }

@@ -185,6 +185,7 @@ public sealed class BroadcastLanServer : IAsyncDisposable
 
     private async Task AcceptAsync(TcpListener listener, bool countsTowardCap)
     {
+        var failures = 0;
         while (!_stopped)
         {
             TcpClient tcp;
@@ -192,11 +193,30 @@ public sealed class BroadcastLanServer : IAsyncDisposable
             {
                 tcp = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
             }
-            catch (Exception exception) when (exception is SocketException or ObjectDisposedException)
+            catch (Exception exception) when (_stopped || IsListenerClosed(exception))
             {
                 return;
             }
+            catch (SocketException)
+            {
+                // S14-2: a reset or abort while queued in the backlog ends that connection, not the listener;
+                // only a repeat is delayed, so a persistent fault cannot spin.
+                if (++failures > 1)
+                {
+                    try
+                    {
+                        await Task.Delay(Math.Min(failures, 20) * 25, _stopping.Token).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                }
 
+                continue;
+            }
+
+            failures = 0;
             var session = new ClientSession(tcp, countsTowardCap, _options.IsVideo);
             lock (_gate)
             {
@@ -207,6 +227,11 @@ public sealed class BroadcastLanServer : IAsyncDisposable
             _ = ObserveAsync(session);
         }
     }
+
+    /// <summary>True when the listener itself is gone: not listening or disposed (an <see cref="InvalidOperationException"/>), or its accept aborted.</summary>
+    private static bool IsListenerClosed(Exception exception) =>
+        exception is InvalidOperationException
+            or SocketException { SocketErrorCode: SocketError.OperationAborted or SocketError.Interrupted };
 
     private async Task ObserveAsync(ClientSession session)
     {

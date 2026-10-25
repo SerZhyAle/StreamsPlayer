@@ -68,10 +68,17 @@ public static class BroadcastUrl
     public static readonly TimeSpan RaceDeadline = TimeSpan.FromSeconds(3);
 
     /// <summary>
-    /// Races every address in parallel and returns the first that answers with a body-bearing success
-    /// (200/206): a <c>HEAD</c>, falling back to a one-byte <c>Range</c> <c>GET</c> for the servers that
-    /// dislike <c>HEAD</c>. Null when nothing answered within <paramref name="deadline"/> - the caller
-    /// owns the sentence for that case.
+    /// S14-4: the most probes in flight at once. A document is read down to a few addresses, but a row persisted
+    /// before that bound can still carry thousands, and every play would otherwise open that many connections.
+    /// </summary>
+    public const int MaximumConcurrentProbes = 8;
+
+    /// <summary>
+    /// Races the addresses and returns the first that answers with a body-bearing success (200/206): a
+    /// <c>HEAD</c>, falling back to a one-byte <c>Range</c> <c>GET</c> for the servers that dislike
+    /// <c>HEAD</c>. Up to <see cref="MaximumConcurrentProbes"/> are probed in parallel, in order; each one
+    /// that fails frees its place for the next address. Null when nothing answered within
+    /// <paramref name="deadline"/> - the caller owns the sentence for that case.
     /// </summary>
     /// <remarks>
     /// Never trusts the order: the first answer wins, whichever address produced it. The gateway of the
@@ -93,7 +100,13 @@ public static class BroadcastUrl
         using var race = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         race.CancelAfter(deadline ?? RaceDeadline);
 
-        var attempts = urls.Select(url => ProbeAsync(client, url, race.Token)).ToList();
+        var attempts = new List<Task<string?>>(Math.Min(urls.Count, MaximumConcurrentProbes));
+        var next = 0;
+        while (next < urls.Count && attempts.Count < MaximumConcurrentProbes)
+        {
+            attempts.Add(ProbeAsync(client, urls[next++], race.Token));
+        }
+
         while (attempts.Count > 0)
         {
             var answered = await Task.WhenAny(attempts).ConfigureAwait(false);
@@ -108,6 +121,11 @@ public static class BroadcastUrl
             if (race.IsCancellationRequested)
             {
                 return null;
+            }
+
+            if (next < urls.Count)
+            {
+                attempts.Add(ProbeAsync(client, urls[next++], race.Token));
             }
         }
 

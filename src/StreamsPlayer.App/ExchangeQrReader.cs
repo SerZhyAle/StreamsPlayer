@@ -113,7 +113,10 @@ internal static class ExchangeQrReader
                 }
 
                 using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-                var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                // S7-4: BitmapCacheOption.OnLoad decoded the whole frame before ToPixels could apply MaximumPixels, so a small
+                // high-ratio PNG could expand to gigabytes first. None reads only the header here; ToPixels checks
+                // PixelWidth x PixelHeight against the cap and the pixels are decoded (from this still-open stream) only within it.
+                var decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.None);
                 if (decoder.Frames.Count == 0)
                 {
                     return new ExchangeQrOutcome(ExchangeQrOutcomeKind.Unreadable);

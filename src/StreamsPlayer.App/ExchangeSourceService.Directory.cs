@@ -152,6 +152,9 @@ internal sealed partial class ExchangeSourceService
         foreach (var entry in Guests.Entries)
         {
             var viewer = new ExchangeGuestDirectoryViewer(entry, reportFault, _trustBook.For(entry.DeviceId));
+            // S7-6: only the own session saves the book (ObserveDirectoryKeys), so a guest-only user would lose the keys a
+            // viewer trusted. The viewer publishes after it opens a record's box; the save writes only when a trust is dirty.
+            viewer.Changed += _trustBook.SaveIfDirty;
             viewers.Add(viewer);
             viewer.Start();
         }

@@ -104,9 +104,9 @@ internal sealed class WindowsAudioCapture : IDisposable
     private void Run()
     {
         IAudioClient? audioClient = null;
+        IAudioCaptureClient? capture = null;
         try
         {
-            IAudioCaptureClient? capture = null;
             audioClient = _loopback && OwnOutputExclusionAvailable ? OpenOwnOutputExcluded(out capture) : null;
             // Settled before the first PcmReady, so whoever reads it after the first frame reads the truth.
             _ownOutputExcluded = audioClient is not null;
@@ -125,6 +125,12 @@ internal sealed class WindowsAudioCapture : IDisposable
         finally
         {
             _ownOutputExcluded = false;
+            // S8-3: the capture client came from GetService and was never released.
+            if (capture is not null)
+            {
+                Marshal.ReleaseComObject(capture);
+            }
+
             if (audioClient is not null)
             {
                 Marshal.ReleaseComObject(audioClient);
@@ -202,6 +208,13 @@ internal sealed class WindowsAudioCapture : IDisposable
             return client;
         }
 
+        // S8-3: on this failed path nobody else owns the capture client, and the caller may overwrite its variable.
+        if (capture is not null)
+        {
+            Marshal.ReleaseComObject(capture);
+            capture = null;
+        }
+
         Marshal.ReleaseComObject(client);
         return null;
     }
@@ -218,9 +231,17 @@ internal sealed class WindowsAudioCapture : IDisposable
         {
             Thread.Sleep(PollMilliseconds);
             var nextPacket = 0u;
-            while (capture.GetNextPacketSize(ref nextPacket) == 0 && nextPacket > 0)
+            int packetResult;
+            while ((packetResult = capture.GetNextPacketSize(ref nextPacket)) == 0 && nextPacket > 0)
             {
                 var bufferResult = capture.GetBuffer(out IntPtr data, out uint frames, out uint flags, IntPtr.Zero, IntPtr.Zero);
+                // S8-2: a failing HRESULT (AUDCLNT_E_DEVICE_INVALIDATED and the like) ends the capture through Run's catch,
+                // which raises Failed; a success code such as AUDCLNT_S_BUFFER_EMPTY stays an ordinary empty poll.
+                if (bufferResult < 0)
+                {
+                    throw new COMException("The audio capture client failed.", bufferResult);
+                }
+
                 if (bufferResult != 0)
                 {
                     break;
@@ -243,6 +264,11 @@ internal sealed class WindowsAudioCapture : IDisposable
                 }
 
                 _ = capture.ReleaseBuffer(frames);
+            }
+
+            if (packetResult < 0)
+            {
+                throw new COMException("The audio capture client failed.", packetResult);
             }
 
             if (_loopback)
@@ -308,9 +334,10 @@ internal sealed class WindowsAudioCapture : IDisposable
     {
         var devices = new List<WindowsAudioDevice>();
         var enumerator = CreateEnumerator();
+        IMMDeviceCollection? collection = null;
         try
         {
-            if (enumerator.EnumAudioEndpoints(EDataFlowCapture, DeviceStateActive, out IMMDeviceCollection? collection) != 0
+            if (enumerator.EnumAudioEndpoints(EDataFlowCapture, DeviceStateActive, out collection) != 0
                 || collection is null || collection.GetCount(out uint count) != 0)
             {
                 return devices;
@@ -343,6 +370,12 @@ internal sealed class WindowsAudioCapture : IDisposable
         }
         finally
         {
+            // S8-3: the collection was never released.
+            if (collection is not null)
+            {
+                Marshal.ReleaseComObject(collection);
+            }
+
             Marshal.ReleaseComObject(enumerator);
         }
     }

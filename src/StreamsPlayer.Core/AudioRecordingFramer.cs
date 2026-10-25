@@ -9,7 +9,22 @@ namespace StreamsPlayer.Core;
 public sealed class AudioRecordingFramer(string? contentType)
 {
     public const int MaximumHeaderBytes = 1024 * 1024;
+
+    // S14-1: the longest FLAC frame the end scan will follow (a streamable-subset frame tops out near
+    // 16384 samples x 8 channels x 4 bytes = 512 KiB) and the scan steps one Push may spend. A sync that
+    // reaches the first without a valid end is skipped, so one corrupt frame costs that frame rather than
+    // the whole session; a Push that spends the second is hostile input and is refused.
+    private const int MaximumFlacFrameBytes = MaximumHeaderBytes * 3 / 4;
+    private const int MaximumScanStepsPerPush = MaximumHeaderBytes * 2;
+    private const int NeedMoreBytes = 0;
+    private const int NotAFrame = -1;
+    private const int WorkCapExceeded = -2;
+
+    private static readonly ushort[] FlacCrc16Table = BuildFlacCrc16Table();
+
     private byte[] _pending = [];
+    private int _flacScan;
+    private ushort _flacCrc;
     private readonly List<byte[]> _oggHeaders = [];
     private byte[] _header = [];
     private int _oggPackets;
@@ -170,6 +185,7 @@ public sealed class AudioRecordingFramer(string? contentType)
     {
         var output = new List<byte[]>();
         var offset = 0;
+        var budget = MaximumScanStepsPerPush;
         while (offset + 7 <= _pending.Length)
         {
             var frame = _pending.AsSpan(offset);
@@ -179,10 +195,10 @@ public sealed class AudioRecordingFramer(string? contentType)
                 var header = FlacFrameHeader(frame);
                 if (header == 0) break;
                 if (header < 0) { offset++; continue; }
-                size = header;
-                while (size + 6 <= frame.Length &&
-                    (FlacFrameHeader(frame[size..]) <= 0 || !ValidFlacFrame(frame[..size]))) size++;
-                if (size + 6 > frame.Length) break;
+                size = FlacFrameEnd(frame, header, ref budget);
+                if (size == WorkCapExceeded) return Refuse();
+                if (size == NotAFrame) { offset++; continue; }
+                if (size == NeedMoreBytes) break;
             }
             else if (Extension == RecordedAudioFormat.Aac)
             {
@@ -237,15 +253,56 @@ public sealed class AudioRecordingFramer(string? contentType)
         return crc == frame[crcAt] ? crcAt + 1 : -1;
     }
 
-    private static bool ValidFlacFrame(ReadOnlySpan<byte> frame)
+    // The frame ends where the CRC-16 of everything so far is zero and a valid header follows. The CRC runs
+    // forward one byte per step and the position survives a Push (_flacScan, _flacCrc), so a frame is folded
+    // once however its bytes arrive. Only a scan that ran out of bytes leaves state behind, and it does so for
+    // the frame that AudioFrames keeps at the front of _pending.
+    // Returns the frame size, NeedMoreBytes, NotAFrame (no end within MaximumFlacFrameBytes) or WorkCapExceeded.
+    private int FlacFrameEnd(ReadOnlySpan<byte> frame, int headerLength, ref int budget)
     {
-        ushort crc = 0;
-        foreach (var value in frame)
+        var size = _flacScan;
+        var crc = _flacCrc;
+        if (size == 0)
         {
-            crc ^= (ushort)(value << 8);
-            for (var bit = 0; bit < 8; bit++) crc = (ushort)((crc & 0x8000) != 0 ? (crc << 1) ^ 0x8005 : crc << 1);
+            size = headerLength;
+            crc = 0;
+            foreach (var value in frame[..headerLength]) crc = NextFlacCrc16(crc, value);
+            budget -= headerLength;
         }
-        return crc == 0;
+
+        while (size + 6 <= frame.Length)
+        {
+            if (crc == 0)
+            {
+                var next = FlacFrameHeader(frame[size..]);
+                if (next > 0) { _flacScan = 0; return size; }
+                if (next == 0) break;
+            }
+
+            if (size >= MaximumFlacFrameBytes) { _flacScan = 0; return NotAFrame; }
+            if (--budget < 0) return WorkCapExceeded;
+            crc = NextFlacCrc16(crc, frame[size++]);
+        }
+
+        _flacScan = size;
+        _flacCrc = crc;
+        return NeedMoreBytes;
+    }
+
+    // CRC-16 of a FLAC frame: polynomial 0x8005, zero start, no reflection, no final xor.
+    private static ushort NextFlacCrc16(ushort crc, byte value) =>
+        (ushort)((crc << 8) ^ FlacCrc16Table[(crc >> 8) ^ value]);
+
+    private static ushort[] BuildFlacCrc16Table()
+    {
+        var table = new ushort[256];
+        for (var index = 0; index < table.Length; index++)
+        {
+            var crc = (ushort)(index << 8);
+            for (var bit = 0; bit < 8; bit++) crc = (ushort)((crc & 0x8000) != 0 ? (crc << 1) ^ 0x8005 : crc << 1);
+            table[index] = crc;
+        }
+        return table;
     }
 
     private IReadOnlyList<byte[]> OggPages()

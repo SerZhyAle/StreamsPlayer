@@ -42,7 +42,10 @@ internal sealed partial class DriveSourceService : IDisposable
         if (_oauth is not null)
         {
             try { _account = _store.Load(_clientHash); }
-            catch (Exception exception) when (exception is IOException or CryptographicException or JsonException)
+            // S2-1: the store throws InvalidDataException for an oversize file and a locked or foreign-ACL file
+            // raises UnauthorizedAccessException; either escaping this constructor ends the process at every launch.
+            catch (Exception exception) when (exception is IOException or CryptographicException or JsonException
+                or InvalidDataException or UnauthorizedAccessException)
             { StatusKey = "DriveStorageFailed"; }
         }
         ResetPublisher();
@@ -128,10 +131,17 @@ internal sealed partial class DriveSourceService : IDisposable
             try
             {
                 if (_publisher is not null)
-                    await _publisher.SynchronizeAsync(account.DeviceId, [], DateTimeOffset.UtcNow, TimeSpan.Zero, cancellation);
+                {
+                    using var deadline = DeadlineFor(cancellation);
+                    await _publisher.SynchronizeAsync(account.DeviceId, [], DateTimeOffset.UtcNow, TimeSpan.Zero, deadline.Token);
+                }
             }
             catch (Exception exception) when (IsFailure(exception)) { revoked = false; }
-            try { await _oauth!.RevokeAsync(account.RefreshToken, cancellation); }
+            try
+            {
+                using var deadline = DeadlineFor(cancellation);
+                await _oauth!.RevokeAsync(account.RefreshToken, deadline.Token);
+            }
             catch (Exception exception) when (IsFailure(exception)) { revoked = false; }
             _store.Forget();
             _account = null;
@@ -153,7 +163,8 @@ internal sealed partial class DriveSourceService : IDisposable
         {
             if (_account is null)
                 return false;
-            Directory = await _directory.PollAsync(_account.DeviceId, cancellation);
+            using var deadline = DeadlineFor(cancellation);
+            Directory = await _directory.PollAsync(_account.DeviceId, deadline.Token);
             StatusKey = _publicationFailed ? "DrivePublishFailed" : "DriveConnected";
             return true;
         }
@@ -174,9 +185,26 @@ internal sealed partial class DriveSourceService : IDisposable
         }
     }
 
+    // S2-2: InvalidDataException is the failure type this service and Core's DriveOAuth/DriveRestClient throw for a
+    // refused or malformed answer; ArgumentException (an invalid outgoing record) and UnauthorizedAccessException
+    // (the protected store) are failures of the same kind. Each handler then sets its own failure status.
     internal static bool IsFailure(Exception exception) => exception is IOException or HttpRequestException
         or OperationCanceledException or JsonException or CryptographicException or InvalidOperationException
-        or System.ComponentModel.Win32Exception;
+        or System.ComponentModel.Win32Exception or InvalidDataException or ArgumentException
+        or UnauthorizedAccessException;
+
+    // S2-4: HttpClient.Timeout ends at the response headers, while body reads and the token refresh run under the
+    // caller's token. Every call that holds _operations therefore gets its own deadline; its expiry cancels only
+    // this linked token, so the handlers' `!cancellation.IsCancellationRequested` filters read it as a failure
+    // (DrivePublishFailed / DriveReadFailed) and not as a user cancellation.
+    private static readonly TimeSpan OperationDeadline = TimeSpan.FromSeconds(30);
+
+    private static CancellationTokenSource DeadlineFor(CancellationToken cancellation)
+    {
+        var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+        linked.CancelAfter(OperationDeadline);
+        return linked;
+    }
 
     private void ForgetFailedGrant()
     {

@@ -78,6 +78,9 @@ AppMutex={#AppMutexName}
 ; The Restart Manager stays as the second line of defence for files held by some other process.
 CloseApplications=yes
 RestartApplications=no
+; S1-5: the [Registry] section below registers the .spres file association; this tells the shell to refresh
+; its association cache when Setup and Uninstall finish, so the icon and the open verb appear without a logoff.
+ChangesAssociations=yes
 
 [Languages]
 ; The Inno-shipped wizard languages that overlap the product's own shipped set. The product ships
@@ -131,7 +134,7 @@ Name: "{autodesktop}\STREAMS Player"; Filename: "{app}\StreamsPlayer.exe"; Tasks
 Root: HKCU; Subkey: "Software\Classes\.spres"; ValueType: string; ValueName: ""; ValueData: "StreamsPlayer.spres"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Classes\StreamsPlayer.spres"; ValueType: string; ValueName: ""; ValueData: "Streams Player broadcast resource"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\StreamsPlayer.spres\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\StreamsPlayer.exe,0"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\StreamsPlayer.spres\shell\open\command"; ValueType: string; ValueName: ""; ValueData: "\"{app}\StreamsPlayer.exe\" \"%1\""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\StreamsPlayer.spres\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\StreamsPlayer.exe"" ""%1"""; Flags: uninsdeletekey
 
 [Run]
 Filename: "{app}\StreamsPlayer.exe"; Description: "{cm:LaunchProgram,STREAMS Player}"; Flags: nowait postinstall skipifsilent

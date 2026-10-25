@@ -19,6 +19,7 @@ internal sealed class WindowsVideoBroadcast : IAsyncDisposable
     private WindowsCameraCapture? _camera;
     private readonly Thread _thread;
     private bool _launched;
+    private static readonly TimeSpan FinishTimeout = TimeSpan.FromSeconds(5);
     private readonly Stopwatch _clock = new();
     internal long CurrentTime100ns => _clock.Elapsed.Ticks;
 
@@ -89,8 +90,7 @@ internal sealed class WindowsVideoBroadcast : IAsyncDisposable
                 }
             }
         }
-        catch (Exception exception) when (exception is COMException or InvalidOperationException
-            or IOException or Win32Exception or ArgumentException)
+        catch (Exception exception) when (IsCaptureFailure(exception))
         {
             if (!_stop.IsCancellationRequested)
             {
@@ -107,10 +107,19 @@ internal sealed class WindowsVideoBroadcast : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Every failure the capture and encoder callees raise (S17-1). The worker and the start-up path in
+    /// <c>BroadcastProducerService</c> share this one list, so neither can let an exception reach the unhandled-exception handler.
+    /// </summary>
+    internal static bool IsCaptureFailure(Exception exception) =>
+        exception is COMException or InvalidOperationException or IOException or Win32Exception or ArgumentException
+            or UnauthorizedAccessException or InvalidDataException;
+
     internal static BroadcastCaptureFailure Failure(Exception exception) => exception.HResult switch
     {
         unchecked((int)0x80070005) => BroadcastCaptureFailure.WindowsPermissionDenied,
         unchecked((int)0xc00d3704) => BroadcastCaptureFailure.DeviceInUse,
+        _ when exception is UnauthorizedAccessException => BroadcastCaptureFailure.WindowsPermissionDenied,
         _ when exception is InvalidOperationException => BroadcastCaptureFailure.DeviceMissing,
         _ => BroadcastCaptureFailure.Unknown
     };
@@ -121,7 +130,16 @@ internal sealed class WindowsVideoBroadcast : IAsyncDisposable
         if (_launched)
         {
             await Task.Run(() => { lock (_gate) _camera?.Shutdown(); }).ConfigureAwait(false);
-            await _finished.Task.ConfigureAwait(false);
+            try { await _finished.Task.WaitAsync(FinishTimeout).ConfigureAwait(false); }
+            catch (TimeoutException)
+            {
+                // S17-2: the worker is held inside a native call. It finishes its own cleanup when the call returns; this
+                // side lets go without waiting, and leaves _stop undisposed because the worker still reads it. The
+                // events are cleared so a chunk or failure produced late never reaches an owner already torn down.
+                ChunkReady = null;
+                Failed = null;
+                return;
+            }
         }
         _stop.Dispose();
     }

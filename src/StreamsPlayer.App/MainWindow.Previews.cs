@@ -154,6 +154,13 @@ public partial class MainWindow
         }
 
         await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded);
+        // S9-2: the gate again - a deactivation or a close during the yield found no session to stop, so
+        // starting one now would leave it running against an inactive or closing window.
+        if (_shuttingDown || !_windowActive || !IsGridMode || _openPlayerWindows > 0 || _playingAudio is not null)
+        {
+            return;
+        }
+
         await _previewCoordinator.StartAsync();
     }
 

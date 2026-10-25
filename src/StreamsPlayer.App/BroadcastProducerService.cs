@@ -111,6 +111,9 @@ internal sealed partial class BroadcastProducerService : IDisposable
     private static readonly TimeSpan StartAnswerTimeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan EndWriteTimeout = TimeSpan.FromSeconds(2);
 
+    /// <summary>S5-1: the relay upload's connect and hello/upload handshake, the same 15 s the exchange's own handshakes get.</summary>
+    private static readonly TimeSpan UploadHandshakeTimeout = TimeSpan.FromSeconds(15);
+
     private readonly BroadcastProducerSettingsStore _store;
     private readonly BroadcastLinkPasswordStore _passwords;
     private readonly ExchangeSourceService _exchange;
@@ -484,6 +487,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
         {
             return;
         }
+        var accepted = false;
         await sealing.Gate.WaitAsync().ConfigureAwait(false);
         try
         {
@@ -526,6 +530,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
             }
 
             state.ExchangeStarted = true;
+            accepted = true;
             if (relay && state.CaptureReady)
             {
                 // Every upload replacement, including a reconnect, carries a new epoch (item DL).
@@ -538,6 +543,11 @@ internal sealed partial class BroadcastProducerService : IDisposable
         }
         finally
         {
+            // S5-5: a start the server did not take must not leave RELAY or TUNNEL endpoints in the copied link, the QR or the Drive record.
+            if (!accepted)
+            {
+                RebuildPlan(state);
+            }
             sealing.Gate.Release();
         }
         await PublishDriveAsync().ConfigureAwait(false);
@@ -564,17 +574,22 @@ internal sealed partial class BroadcastProducerService : IDisposable
     {
         var account = _exchange.Account;
         var sealing = state.Sealing;
+        // S5-1: connect and both handshake reads end on the retire token or this deadline, so a relay that accepts the
+        // connection and stays silent cannot hold the task and its TLS stream after the broadcast is stopped. The body
+        // below runs on the retire token alone.
+        using var handshake = CancellationTokenSource.CreateLinkedTokenSource(retire);
+        handshake.CancelAfter(UploadHandshakeTimeout);
         try
         {
             using var connection = await ExchangeTlsConnection
-                .OpenAsync(account.Host, account.Port, account.Pin, CancellationToken.None, account.PinKey)
+                .OpenAsync(account.Host, account.Port, account.Pin, handshake.Token, account.PinKey)
                 .ConfigureAwait(false);
             await ExchangeProtocol.WriteAsync(connection.Stream, new
             {
                 schemaVersion = 2, type = "hello", deviceId = account.DeviceId, deviceToken = account.Token,
                 productVersion = ProductInfo.Version, keepaliveSeconds = 30
-            }, false, CancellationToken.None).ConfigureAwait(false);
-            using var welcome = await ExchangeHandshake.ReadAsync(connection.Stream, "welcome", CancellationToken.None).ConfigureAwait(false);
+            }, false, handshake.Token).ConfigureAwait(false);
+            using var welcome = await ExchangeHandshake.ReadAsync(connection.Stream, "welcome", handshake.Token).ConfigureAwait(false);
             if (ExchangeProtocol.String(welcome.RootElement, "type") == "refused")
             {
                 Report(ExchangeProtocol.RefusalKey(ExchangeProtocol.String(welcome.RootElement, "reason")));
@@ -586,8 +601,8 @@ internal sealed partial class BroadcastProducerService : IDisposable
                 // Item DL: a sealed upload declares the sealed type; the true media type travels inside the key ring.
                 schemaVersion = 2, type = "upload", broadcastId = state.BroadcastId,
                 contentType = sealing is null ? MediaTypeOf(state.Source) : ExchangeSealedRelayRecords.ContentType
-            }, true, CancellationToken.None).ConfigureAwait(false);
-            using var accepted = await ExchangeHandshake.ReadAsync(connection.Stream, "upload-accepted", CancellationToken.None).ConfigureAwait(false);
+            }, true, handshake.Token).ConfigureAwait(false);
+            using var accepted = await ExchangeHandshake.ReadAsync(connection.Stream, "upload-accepted", handshake.Token).ConfigureAwait(false);
             if (ExchangeProtocol.String(accepted.RootElement, "type") == "refused")
             {
                 Report(ExchangeProtocol.RefusalKey(ExchangeProtocol.String(accepted.RootElement, "reason")));
@@ -601,11 +616,16 @@ internal sealed partial class BroadcastProducerService : IDisposable
                 chunks.Reader.ReadAllAsync(CancellationToken.None), () => ready.TrySetResult(), retire).ConfigureAwait(false);
 
             // The clean end of 7.6: a length of zero.
-            await ExchangeUploadChunks.WriteEndAsync(connection.Stream, CancellationToken.None).ConfigureAwait(false);
+            await ExchangeUploadChunks.WriteEndAsync(connection.Stream, retire).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (retire.IsCancellationRequested)
         {
             // A replacement upload took over (item N): this stream just closes, with no end that would end the broadcast.
+        }
+        catch (ObjectDisposedException) when (retire.IsCancellationRequested)
+        {
+            // S13: teardown retired this upload and zeroed the sealer under the pump, which now refuses to seal. Nothing
+            // unsealed was written; the stream just closes, like a retired upload, with no end and no relay-lost message.
         }
         catch (Exception exception) when (IsConnectionFailure(exception))
         {
@@ -621,16 +641,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
     private void OnSessionOnline()
     {
         // Item H: publish again after every welcome - same ids, so the record is replaced, not doubled.
-        List<BroadcastRunningSource> states;
-        lock (_gate)
-        {
-            states = [.. _running.Values];
-        }
-
-        foreach (var state in states)
-        {
-            _ = EstablishOnExchangeAsync(state);
-        }
+        _ = EstablishRunningAsync();
 
         if (!_restartHandled)
         {
@@ -642,6 +653,33 @@ internal sealed partial class BroadcastProducerService : IDisposable
                 _ = StartAsync(source);
             }
         }
+    }
+
+    /// <summary>
+    /// S5-2: the session-online establish runs under the same lock as start and stop, and reads _running only once it
+    /// holds it, so it cannot re-create the sealing lease, the certificate and an upload for a source Stop or StopAll
+    /// just ended, nor race the start path's own establish (a source that start already established is skipped).
+    /// </summary>
+    private async Task EstablishRunningAsync()
+    {
+        await _sourceOperations.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            List<BroadcastRunningSource> states;
+            lock (_gate)
+            {
+                states = [.. _running.Values];
+            }
+
+            foreach (var state in states)
+            {
+                if (!state.ExchangeStarted)
+                {
+                    await EstablishOnExchangeAsync(state).ConfigureAwait(false);
+                }
+            }
+        }
+        finally { _sourceOperations.Release(); }
     }
 
     private void OnSessionOffline()
@@ -670,9 +708,15 @@ internal sealed partial class BroadcastProducerService : IDisposable
         }
 
         state.AnnouncedMaxListeners = Math.Max(0, Settings.MaxListeners - lanListeners);
+        _ = PostLanListenerCountAsync(state);
+    }
+
+    /// <summary>S5-4: the post owns its timeout source for as long as it is pending, so the 2 s limit can fire; the next count repeats a lost update.</summary>
+    private async Task PostLanListenerCountAsync(BroadcastRunningSource state)
+    {
         using var timeout = new CancellationTokenSource(EndWriteTimeout);
         // The update repeats the record whole, box included: a record without it would read as unsealed (item DK).
-        _ = PostRecordAsync(state, "broadcast-update", timeout.Token);
+        _ = await PostRecordAsync(state, "broadcast-update", timeout.Token).ConfigureAwait(false);
     }
     private async Task TeardownAsync(BroadcastRunningSource state)
     {
@@ -694,6 +738,8 @@ internal sealed partial class BroadcastProducerService : IDisposable
             }
         }
 
+        // S5-1: whatever is left of the upload (a relay silent in the handshake, a stuck write) ends now, before the sealer is zeroed.
+        state.UploadRetire?.Cancel();
         state.Sealing?.Dispose();
         state.Sealing = null;
         if (state.ExchangeStarted)

@@ -25,8 +25,14 @@ public partial class MainWindow
     private async Task<StreamChannel?> ImportDriveBroadcastAsync(ExchangeBroadcastView view)
     {
         var drive = ((App)Application.Current).Drive;
-        if (_busy || !drive.SignedIn || view.Support != ExchangeBroadcastSupport.Supported || view.Record.Descriptor is not { } descriptor)
+        if (!drive.SignedIn || view.Support != ExchangeBroadcastSupport.Supported || view.Record.Descriptor is not { } descriptor)
             return null;
+        if (_busy)
+        {
+            // S12-4: said, as the Exchange and Link imports say it, not a silent null.
+            SetStatus("FmsBroadcastBusy");
+            return null;
+        }
         RememberLinkKeys(descriptor);
         var identity = drive.EntryIdentity;
         FastMediaSorterBroadcastApplyResult? applied = null;

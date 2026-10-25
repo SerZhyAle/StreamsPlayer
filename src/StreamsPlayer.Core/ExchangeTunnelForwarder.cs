@@ -150,6 +150,7 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
     private async Task HandleConnectionAsync(TcpClient client, CancellationToken cancellationToken)
     {
         Stream? exchangeStream = null;
+        Stream? tunnelTlsStream = null; // S13-3: the inner TLS stream of a sealed tunnel, released with the connection
         try
         {
             ConnectAttempts++;
@@ -195,10 +196,11 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
             Stream innerStream = exchangeStream;
             if (_tunnelPin is not null)
             {
-                innerStream = await ExchangeTunnelTls.ConnectAsync(exchangeStream, _tunnelPin, connect.Token).ConfigureAwait(false);
+                tunnelTlsStream = await ExchangeTunnelTls.ConnectAsync(exchangeStream, _tunnelPin, connect.Token).ConfigureAwait(false);
+                innerStream = tunnelTlsStream;
                 lock (_lock)
                 {
-                    _activeResources.Add(innerStream);
+                    _activeResources.Add(tunnelTlsStream);
                 }
             }
 
@@ -208,8 +210,11 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
             var backward = SpliceCopyAsync(innerStream, clientStream, cancellationToken);
             await Task.WhenAny(forward, backward).ConfigureAwait(false);
         }
+        // S13-2: ExchangeProtocol.ReadAsync raises InvalidDataException for a connect answer that is not a protocol frame
+        // (bad length, not an object); without it here the task faulted unobserved and Refused was never raised.
         catch (Exception exception) when (exception is IOException or SocketException or AuthenticationException
-                                          or OperationCanceledException or ObjectDisposedException or System.Text.Json.JsonException)
+                                          or OperationCanceledException or ObjectDisposedException or System.Text.Json.JsonException
+                                          or InvalidDataException)
         {
             if (!_disposed && !cancellationToken.IsCancellationRequested)
             {
@@ -230,9 +235,15 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
                 {
                     _activeResources.Remove(exchangeStream);
                 }
+
+                if (tunnelTlsStream is not null)
+                {
+                    _activeResources.Remove(tunnelTlsStream);
+                }
             }
 
             client.Dispose();
+            tunnelTlsStream?.Dispose();
             exchangeStream?.Dispose();
         }
     }

@@ -12,7 +12,19 @@ public partial class MainWindow
         if (e.Key != Key.V || Keyboard.Modifiers != ModifierKeys.Control) return;
         try
         {
-            var text = Clipboard.ContainsText() ? Clipboard.GetText() : "";
+            string text;
+            try
+            {
+                text = Clipboard.ContainsText() ? Clipboard.GetText() : "";
+            }
+            catch (OutOfMemoryException)
+            {
+                // S12-9: a malformed clipboard payload reaches a read as OutOfMemoryException, not as a COM error
+                // (MainWindow.ChannelShare.cs). This handler sees every Ctrl+V in the window, the search box
+                // included, so that is "no usable text" and left to the focused control - never the end of the process.
+                text = "";
+            }
+
             if (!ExchangeConnectionImport.Recognizes(text))
             {
                 // A screenshot of the QR is on the clipboard as an image. It is recognised by what it holds, like

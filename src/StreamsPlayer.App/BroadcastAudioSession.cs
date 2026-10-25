@@ -26,11 +26,16 @@ internal sealed partial class BroadcastAudioSession : IDisposable
     private readonly Action<string, string[]>? _log;
     private readonly string? _outputDevice;
     private readonly AudioChannelMode _channelMode;
+    // S6-2: the radio watchdog's poll cadence (MainWindow.AudioStallWatchdog) - fine against the 15 s bound, cheap against a poll.
+    private static readonly TimeSpan StallPollInterval = TimeSpan.FromSeconds(2);
+    private const string StallReason = "stall";
     private readonly object _gate = new();
     private LivePlaybackRecoveryPolicy _policy = new();
     private CancellationTokenSource? _sessionCancellation;
     private FastMediaSorterAudioLeg? _playback;
     private Stopwatch? _legPlayed;
+    // S6-2: one timer per leg that went live, guarded by _gate; StopLegLocked disposes it, so it never outlives its leg.
+    private System.Threading.Timer? _stallTimer;
     private int _generation;
     private int _volume;
     private bool _needsPasswordAgain;
@@ -218,6 +223,11 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             }
 
             _legPlayed = Stopwatch.StartNew();
+            // S6-2: a second Playing for the same leg keeps its watch (and the silence it has already counted).
+            if (_stallTimer is null && _sessionCancellation is { } cancellation && e.ReadInputBytes is { } readBytes)
+            {
+                WatchForStallLocked((FastMediaSorterAudioLeg)sender!, _generation, readBytes, cancellation.Token);
+            }
         }
 
         SetState(BroadcastLegState.Playing, null);
@@ -225,6 +235,7 @@ internal sealed partial class BroadcastAudioSession : IDisposable
 
     private void Playback_Ended(object? sender, FastMediaSorterAudioPlaybackEventArgs e)
     {
+        int generation;
         CancellationToken token;
         lock (_gate)
         {
@@ -233,12 +244,13 @@ internal sealed partial class BroadcastAudioSession : IDisposable
                 return;
             }
 
+            generation = _generation;
             token = _sessionCancellation.Token;
         }
 
         // A phone's chunked body ending cleanly and a watch closing its socket both land here. Both mean the
         // device may have stopped, so the bounded budget decides, then names the stop.
-        Recover(token, "end_reached", endReached: true, e.StatusCode);
+        Recover((FastMediaSorterAudioLeg)sender!, generation, token, "end_reached", endReached: true, e.StatusCode);
     }
 
     private void Playback_Failed(object? sender, FastMediaSorterAudioPlaybackEventArgs e)
@@ -260,7 +272,8 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             e.TransportError?.GetType().Name ?? "decoder_error", e.StatusCode);
     }
 
-    private void HandleFailure(FastMediaSorterAudioLeg playback, int generation, CancellationToken token, string reason, int? status)
+    private void HandleFailure(FastMediaSorterAudioLeg playback, int generation, CancellationToken token, string reason, int? status,
+        bool stall = false)
     {
         if (!IsCurrent(playback, generation) || token.IsCancellationRequested)
         {
@@ -284,24 +297,34 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             return;
         }
 
-        Recover(token, reason, endReached: false, status);
+        Recover(playback, generation, token, reason, endReached: false, status, stall);
     }
 
-    private void Recover(CancellationToken token, string reason, bool endReached, int? status)
+    private void Recover(FastMediaSorterAudioLeg playback, int generation, CancellationToken token, string reason, bool endReached,
+        int? status, bool stall = false)
     {
         TimeSpan played;
         RecoveryDecision decision;
         lock (_gate)
         {
-            if (token.IsCancellationRequested || _disposed)
+            // S6-3: the pre-checks of the callers run outside this lock, so two signals for one interruption (a relay
+            // failure and the end of the body) can both pass them. The first to get here replaces the leg; the second finds
+            // it no longer current and must neither spend the budget again nor schedule a second reconnect.
+            if (token.IsCancellationRequested || _disposed || !IsCurrent(playback, generation))
             {
                 return;
             }
 
             played = _legPlayed?.Elapsed ?? TimeSpan.Zero;
+            if (stall)
+            {
+                // S6-2: the silence is not playing, or a leg that stalled at 20 s would earn its budget back at 35 s.
+                played = played > AudioStallDetector.StallAfter ? played - AudioStallDetector.StallAfter : TimeSpan.Zero;
+            }
+
             StopLegLocked();
             _policy.NotifyLegPlayed(played);
-            decision = _policy.Decide(new PlaybackFailureSignal(reason, HttpStatusCode: status, EndReached: endReached));
+            decision = _policy.Decide(new PlaybackFailureSignal(reason, HttpStatusCode: status, EndReached: endReached, Stall: stall));
         }
 
         _log?.Invoke("FMS AUDIO RECOVER", [$"trigger={decision.Trigger}", $"action={decision.Kind}",
@@ -348,8 +371,56 @@ internal sealed partial class BroadcastAudioSession : IDisposable
         }
     }
 
+    /// <summary>
+    /// S6-2: after Playing nothing else watches the byte flow, and a direct HTTP leg has no read deadline, so a half-open
+    /// connection would show Playing in silence for good. The decoder's byte total is sampled and fed to Core's
+    /// <see cref="AudioStallDetector"/> (SP-0169's rule, the radio's); a flow that stays still for its bound enters the same
+    /// recovery a failure enters, as a stall. Called under <c>_gate</c>.
+    /// </summary>
+    private void WatchForStallLocked(FastMediaSorterAudioLeg playback, int generation, Func<long?> readBytes, CancellationToken token)
+    {
+        var detector = new AudioStallDetector();
+        var clock = Stopwatch.GetTimestamp();
+        System.Threading.Timer? timer = null;
+        timer = new System.Threading.Timer(_ =>
+        {
+            bool stalled;
+            lock (_gate)
+            {
+                // The leg ended, was replaced or the session stopped: StopLegLocked has disposed this timer, nothing is left to watch.
+                if (!ReferenceEquals(_stallTimer, timer))
+                {
+                    return;
+                }
+
+                // Null: the leg's response is gone (stopped underneath us); whoever stopped it owns the state.
+                if (readBytes() is not { } bytesRead)
+                {
+                    DisposeStallTimerLocked();
+                    return;
+                }
+
+                stalled = detector.Observe(Stopwatch.GetElapsedTime(clock), bytesRead);
+            }
+
+            if (stalled)
+            {
+                HandleFailure(playback, generation, token, StallReason, null, stall: true);
+            }
+        }, null, StallPollInterval, StallPollInterval);
+        _stallTimer = timer;
+    }
+
+    private void DisposeStallTimerLocked()
+    {
+        _stallTimer?.Dispose();
+        _stallTimer = null;
+    }
+
     private void StopLegLocked()
     {
+        // Every exit path of a leg (stop, dispose, replacement, recovery, end) passes here, so the watch dies with the leg.
+        DisposeStallTimerLocked();
         EndRecordingLocked();
         _generation++;
         var playback = _playback;

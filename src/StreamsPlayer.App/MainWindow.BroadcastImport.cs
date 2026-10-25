@@ -17,6 +17,9 @@ public partial class MainWindow
     /// same ceiling the URL import applies to a downloaded playlist.</summary>
     private const long MaximumPlaylistBodyBytes = 2 * 1024 * 1024;
 
+    /// <summary>S12-3: the wall clock of one playlist fetch, head and body together - the old client timeout's 30 seconds.</summary>
+    private static readonly TimeSpan PlaylistFetchDeadline = TimeSpan.FromSeconds(30);
+
     private async Task ImportBroadcastResourceFileAsync(string path, Window owner, bool playAfterImport = false)
     {
         string text;
@@ -74,29 +77,44 @@ public partial class MainWindow
 
         // One row per broadcast: the resource path is the de-duplication key, so a re-imported
         // refreshed document updates the row instead of adding a second one.
-        var applied = BroadcastChannelImport.Apply(_state.Channels, resource, DateTimeOffset.UtcNow);
-        var channels = applied.Channels;
-        var channel = applied.Channel;
-        if (applied.Added)
+        // S12-2: applied to the state the commit hands in, as the sibling imports do - a list built from
+        // _state outside the commit would write back over a pin, a play outcome or a directory mark that
+        // was committed (or still in flight) in between.
+        StreamChannel? imported = null;
+        var added = false;
+        if (!await TryPersistAsync(state =>
+            {
+                var result = BroadcastChannelImport.Apply(state.Channels, resource, DateTimeOffset.UtcNow);
+                var rows = result.Channels;
+                var placed = result.Channel;
+                if (result.Added)
+                {
+                    // An added row takes its place at the end of the list, like every other import.
+                    var nextOrder = state.Channels.Count == 0 ? 0 : state.Channels.Max(row => row.SortIndex) + 1;
+                    placed = placed with { SortIndex = nextOrder };
+                    rows = rows.Select(row => ReferenceEquals(row, result.Channel) ? placed : row).ToList();
+                }
+
+                imported = placed;
+                added = result.Added;
+                return state with { Channels = [.. rows] };
+            }))
         {
-            // An added row takes its place at the end of the list, like every other import.
-            var nextOrder = _state.Channels.Count == 0 ? 0 : _state.Channels.Max(row => row.SortIndex) + 1;
-            channel = channel with { SortIndex = nextOrder };
-            channels = channels.Select(row => ReferenceEquals(row, applied.Channel) ? channel : row).ToList();
+            return;
         }
 
-        if (!await TryPersistAsync(state => state with { Channels = [.. channels] }))
+        if (imported is not { } channel)
         {
             return;
         }
 
         _log.Event("RESOURCE IMPORT APPLY",
-            $"added={applied.Added}",
+            $"added={added}",
             $"playlist={channel.IsPlaylistResource}",
             $"addresses={1 + (channel.AlternateUrls?.Count ?? 0)}");
         PopulateFacets();
         ApplyFilter();
-        SetStatus(applied.Added ? "BroadcastResourceAdded" : "BroadcastResourceUpdated", channel.Title);
+        SetStatus(added ? "BroadcastResourceAdded" : "BroadcastResourceUpdated", channel.Title);
         await RevealChannelAsync(channel.Id);
         if (playAfterImport)
         {
@@ -155,37 +173,23 @@ public partial class MainWindow
     {
         try
         {
-            using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            // S12-3: HttpClient.Timeout covers only the response head (SP-0129), so a gateway that stalls
+            // after its headers held this play flow open with no progress and no cancel. The head gets the
+            // helper's bound, the body a silence bound, and the whole fetch one wall-clock deadline; any
+            // expiry ends as the same null a failed fetch returns.
+            using var deadline = new CancellationTokenSource(PlaylistFetchDeadline);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using var response = await HttpDownload.SendForHeadersAsync(
+                _httpClient, request, M3uImportService.DefaultHeaderTimeout, deadline.Token);
             if (!response.IsSuccessStatusCode)
             {
                 _log.Event("PLAYLIST FETCH", $"status={(int)response.StatusCode}", $"url={url}");
                 return null;
             }
 
-            if (response.Content.Headers.ContentLength is > MaximumPlaylistBodyBytes)
-            {
-                _log.Event("PLAYLIST FETCH", "reason=too_large", $"url={url}");
-                return null;
-            }
-
-            await using var stream = await response.Content.ReadAsStreamAsync();
-            using var bounded = new MemoryStream();
-            var buffer = new byte[16 * 1024];
-            long total = 0;
-            int read;
-            while ((read = await stream.ReadAsync(buffer)) > 0)
-            {
-                total += read;
-                if (total > MaximumPlaylistBodyBytes)
-                {
-                    _log.Event("PLAYLIST FETCH", "reason=too_large", $"url={url}");
-                    return null;
-                }
-
-                bounded.Write(buffer, 0, read);
-            }
-
-            var body = Encoding.UTF8.GetString(bounded.ToArray());
+            var bytes = await HttpDownload.ReadAllBytesAsync(
+                response, progress: null, MaximumPlaylistBodyBytes, M3uImportService.DefaultIdleTimeout, deadline.Token);
+            var body = Encoding.UTF8.GetString(bytes);
             // Analyze (not Parse) keeps the intent of the import contract: the items are played, not
             // stored - every entry is already this broadcast's own item.
             var preview = await Task.Run(() => M3uPlaylistParser.Analyze(body, new HashSet<string>(StringComparer.Ordinal)));
@@ -193,7 +197,14 @@ public partial class MainWindow
                 ? preview.NewEntries.Select(entry => entry.Url).ToArray()
                 : null;
         }
-        catch (Exception exception) when (exception is HttpRequestException or IOException or TaskCanceledException)
+        catch (InvalidDataException)
+        {
+            // HttpDownload refuses a body above the ceiling, declared or actual.
+            _log.Event("PLAYLIST FETCH", "reason=too_large", $"url={url}");
+            return null;
+        }
+        catch (Exception exception) when (exception is HttpRequestException or IOException
+                                              or OperationCanceledException or TimeoutException)
         {
             _log.Event("PLAYLIST FETCH", $"reason={exception.GetType().Name}", $"url={url}");
             return null;

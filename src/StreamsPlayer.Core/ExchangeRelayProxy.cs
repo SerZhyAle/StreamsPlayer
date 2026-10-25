@@ -36,6 +36,9 @@ public sealed partial class ExchangeRelayProxy : IDisposable
     private readonly List<IDisposable> _activeResources = [];
     private int _claimed;
     private bool _disposed;
+    // S13-5: set once any response head is written to the player; the claim resets it. The single-connection rule means
+    // only one connection is ever being handled, so one flag is enough.
+    private volatile bool _playerHeadSent;
     public static readonly TimeSpan IdleTimeout = ExchangeBroadcastResources.IdleTimeout;
     private readonly Timer _idleTimer;
     private readonly IDisposable _lease;
@@ -152,6 +155,7 @@ public sealed partial class ExchangeRelayProxy : IDisposable
 
                 _claimed++;
                 claimed = true;
+                _playerHeadSent = false; // a 404 given to an earlier stray connection is not this connection's head
             }
 
             ConnectAttempts++;
@@ -220,7 +224,9 @@ public sealed partial class ExchangeRelayProxy : IDisposable
                 _ => exception.GetType().Name
             };
             Failed?.Invoke(LastFailure);
-            if (claimed)
+            // S13-5: a 502 after the 200 head and some media would land inside the body as stray text; once the head is
+            // out the connection just closes.
+            if (claimed && !_playerHeadSent)
             {
                 await WriteClientHeadAsync(client, "HTTP/1.0 502 Bad Gateway\r\nConnection: close\r\n\r\n").ConfigureAwait(false);
             }
@@ -386,8 +392,9 @@ public sealed partial class ExchangeRelayProxy : IDisposable
         return builder.ToString();
     }
 
-    private static async Task WriteClientHeadAsync(TcpClient client, string head)
+    private async Task WriteClientHeadAsync(TcpClient client, string head)
     {
+        _playerHeadSent = true; // before the write: a head that went out in part is still a head
         try
         {
             var stream = client.GetStream();

@@ -34,6 +34,8 @@ public partial class PlayerWindow
         _recovering = false;
         DropRememberedCeilingOnMiss();
         _broadcastCredentials?.ResolveForRetry(_channel.Id);
+        // S10-2: connecting again, by hand - the tracker would otherwise stay on Unavailable for the whole retry (as in the dialog's Retry).
+        NotifyInterrupted(PlaybackInterruptionKind.Connecting);
         await RetryAfterFailureAsync();
     });
 

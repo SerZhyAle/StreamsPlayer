@@ -164,6 +164,14 @@ jobs:
           SP_DRIVE_CLIENT_ID: ${{ secrets.SP_DRIVE_CLIENT_ID }}
           SP_DRIVE_CLIENT_SECRET: ${{ secrets.SP_DRIVE_CLIENT_SECRET }}
         run: |
+          # S1-2: MSBuild embeds the Google Drive OAuth client only when both values are non-empty, and an empty
+          # secret would still publish cleanly - the zip and the installer would ship with Google sign-in silently
+          # unavailable. Fail here, naming the secret, never its value.
+          foreach ($driveSetting in 'SP_DRIVE_CLIENT_ID', 'SP_DRIVE_CLIENT_SECRET') {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($driveSetting))) {
+              throw "The $driveSetting repository secret is empty. A release without the Google Drive OAuth client ships with Google sign-in unavailable."
+            }
+          }
           $v = $env:RELEASE_VERSION
           dotnet publish src/StreamsPlayer.App/StreamsPlayer.App.csproj -c Release -r win-x64 --self-contained true "-p:Version=$v" "-p:AssemblyVersion=$v" "-p:FileVersion=$v" "-p:InformationalVersion=$v" -o stage/StreamsPlayer
           if ($LASTEXITCODE -ne 0) { throw "Publish failed (exit $LASTEXITCODE)." }

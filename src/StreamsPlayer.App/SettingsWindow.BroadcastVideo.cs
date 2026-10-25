@@ -58,25 +58,44 @@ public partial class SettingsWindow
     private void FillMonitorChoices(IReadOnlyList<WindowsMonitor> monitors)
     {
         var chosen = Broadcast.Settings.MonitorDeviceId;
+        var index = monitors.ToList().FindIndex(monitor => monitor.Id == chosen);
         _showingBroadcast = true;
         BroadcastMonitorBox.ItemsSource = monitors.Count == 0
             ? new[] { new VideoDeviceChoice(null, LocalizationService.Get("BroadcastNoDevices")) }
             : monitors.Select(monitor => new VideoDeviceChoice(monitor.Id, monitor.Name)).ToArray();
-        BroadcastMonitorBox.SelectedIndex = Math.Max(0, monitors.ToList().FindIndex(monitor => monitor.Id == chosen));
+        BroadcastMonitorBox.SelectedIndex = Math.Max(0, index);
         BroadcastMonitorBox.IsEnabled = monitors.Count > 0;
         _showingBroadcast = false;
+        if (chosen is not null && index < 0 && monitors.Count > 0)
+        {
+            // S15-3: the stored monitor is gone and the list shows the first one in its place, with no selection change to
+            // say so (and none to re-pick when one monitor is left). Store what is shown, through the path a pick takes, so
+            // Start resolves the same monitor; the guard on the stored value leaves a newer pick alone. An empty list is a
+            // failed or empty enumeration and keeps the stored id.
+            var shown = monitors[0].Id;
+            HandlerBoundary.Run(nameof(FillMonitorChoices), () => Broadcast.UpdateSettingsAsync(settings =>
+                settings.MonitorDeviceId == chosen ? settings with { MonitorDeviceId = shown } : settings));
+        }
     }
 
     private void FillCameraChoices(IReadOnlyList<WindowsCameraDevice> cameras)
     {
         var chosen = Broadcast.Settings.CameraDeviceId;
+        var index = cameras.ToList().FindIndex(camera => camera.Id == chosen);
         _showingBroadcast = true;
         BroadcastCameraBox.ItemsSource = cameras.Count == 0
             ? new[] { new VideoDeviceChoice(null, LocalizationService.Get("BroadcastNoDevices")) }
             : cameras.Select(camera => new VideoDeviceChoice(camera.Id, string.IsNullOrWhiteSpace(camera.Name) ? camera.Id : camera.Name)).ToArray();
-        BroadcastCameraBox.SelectedIndex = Math.Max(0, cameras.ToList().FindIndex(camera => camera.Id == chosen));
+        BroadcastCameraBox.SelectedIndex = Math.Max(0, index);
         BroadcastCameraBox.IsEnabled = cameras.Count > 0;
         _showingBroadcast = false;
+        if (chosen is not null && index < 0 && cameras.Count > 0)
+        {
+            // S15-3: as for the monitor - store the camera the list shows in place of the one that is gone.
+            var shown = cameras[0].Id;
+            HandlerBoundary.Run(nameof(FillCameraChoices), () => Broadcast.UpdateSettingsAsync(settings =>
+                settings.CameraDeviceId == chosen ? settings with { CameraDeviceId = shown } : settings));
+        }
     }
 
     private void FillCompanionChoices()

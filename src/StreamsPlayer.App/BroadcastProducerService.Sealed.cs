@@ -84,6 +84,18 @@ internal sealed partial class BroadcastProducerService
 
     // --- recipients change ----------------------------------------------------------
 
+    /// <summary>
+    /// S13: whether the broadcast is still the one in the running table. Stop and StopAll take a state out of the table before
+    /// they zero its sealer, so a state that is gone is being torn down and its sealing work has nothing left to do.
+    /// </summary>
+    private bool IsRunning(BroadcastRunningSource state)
+    {
+        lock (_gate)
+        {
+            return _running.TryGetValue(state.Source, out var current) && ReferenceEquals(current, state);
+        }
+    }
+
     private void OnDirectoryChanged()
     {
         List<BroadcastRunningSource> states;
@@ -94,6 +106,7 @@ internal sealed partial class BroadcastProducerService
 
         foreach (var state in states)
         {
+            // S13: a refresh that loses the race to teardown ends inside RefreshSealingAsync, so this task never faults unobserved.
             _ = RefreshSealingAsync(state);
         }
     }
@@ -113,7 +126,8 @@ internal sealed partial class BroadcastProducerService
         await sealing.Gate.WaitAsync().ConfigureAwait(false);
         try
         {
-            if (!state.ExchangeStarted || state.Plan is null)
+            // S13: a teardown that took the gate first has zeroed the sealer; a state that left the table seals nothing and posts nothing.
+            if (!state.ExchangeStarted || state.Plan is null || !IsRunning(state))
             {
                 return false;
             }
@@ -146,6 +160,13 @@ internal sealed partial class BroadcastProducerService
 
             return posted;
         }
+        catch (InvalidOperationException) when (!IsRunning(state))
+        {
+            // S13: teardown zeroed the sealer under this refresh. The sealer now refuses to seal (ObjectDisposedException, or
+            // InvalidOperationException once its keys are gone) rather than sealing under a zeroed key; nothing was written
+            // unsealed. The broadcast is over, so this is a normal end - not retried, and never an unobserved task fault.
+            return false;
+        }
         finally
         {
             sealing.Gate.Release();
@@ -160,7 +181,8 @@ internal sealed partial class BroadcastProducerService
     {
         var oldChunks = state.UploadChunks;
         var oldRetire = state.UploadRetire;
-        if (oldChunks is null)
+        // S13: a broadcast that is being torn down gets no replacement upload; it would read a sealer that is zeroed or already gone.
+        if (oldChunks is null || !IsRunning(state))
         {
             return;
         }

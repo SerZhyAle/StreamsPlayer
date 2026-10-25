@@ -23,26 +23,59 @@ public sealed record ExchangeDeviceTrustData(
 /// owner's devices, per `grantId` (item DJ). First sight trusts; a different key afterwards is
 /// <see cref="ExchangeKeyObservation.KeyChanged"/> and never replaces the trusted one - only forgetting the
 /// device (its removal from the account, which also drops the kept key) lets a new key in. Pure state: the
-/// application decides where it is stored.
+/// application decides where it is stored. S7-5: the object is shared by guest-viewer threads, cast tasks, the UI and
+/// the book's save, so one private lock guards both dictionaries and the dirty flag.
 /// </summary>
 public sealed class ExchangeDeviceTrust
 {
+    private readonly object _lock = new();
     private readonly Dictionary<string, byte[]> _devices = new(StringComparer.Ordinal);
     private readonly Dictionary<string, byte[]> _grants = new(StringComparer.Ordinal);
+    private bool _isDirty;
 
     /// <summary>Whether anything changed since the last <see cref="ToData"/>; the store saves only then.</summary>
-    public bool IsDirty { get; private set; }
+    public bool IsDirty
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _isDirty;
+            }
+        }
+    }
 
     public ExchangeKeyObservation ObserveDevice(string deviceId, ReadOnlySpan<byte> point) => Observe(_devices, deviceId, point);
 
     public ExchangeKeyObservation ObserveGrant(string grantId, ReadOnlySpan<byte> point) => Observe(_grants, grantId, point);
 
-    public byte[]? TrustedDevice(string deviceId) => _devices.TryGetValue(deviceId, out var point) ? point : null;
+    public byte[]? TrustedDevice(string deviceId)
+    {
+        lock (_lock)
+        {
+            return _devices.TryGetValue(deviceId, out var point) ? point : null;
+        }
+    }
 
-    /// <summary>The ids of every device whose key is held.</summary>
-    public IReadOnlyCollection<string> DeviceIds => _devices.Keys;
+    /// <summary>The ids of every device whose key is held, as a snapshot: a later change does not alter it.</summary>
+    public IReadOnlyCollection<string> DeviceIds
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _devices.Keys.ToArray();
+            }
+        }
+    }
 
-    public byte[]? TrustedGrant(string grantId) => _grants.TryGetValue(grantId, out var point) ? point : null;
+    public byte[]? TrustedGrant(string grantId)
+    {
+        lock (_lock)
+        {
+            return _grants.TryGetValue(grantId, out var point) ? point : null;
+        }
+    }
 
     /// <summary>Drops the kept key of a device that left the account (`revoke`); true when there was one.</summary>
     public bool ForgetDevice(string deviceId) => Forget(_devices, deviceId);
@@ -52,10 +85,13 @@ public sealed class ExchangeDeviceTrust
 
     public ExchangeDeviceTrustData ToData()
     {
-        IsDirty = false;
-        return new ExchangeDeviceTrustData(
-            _devices.ToDictionary(pair => pair.Key, pair => ExchangeBase64Url.Encode(pair.Value), StringComparer.Ordinal),
-            _grants.ToDictionary(pair => pair.Key, pair => ExchangeBase64Url.Encode(pair.Value), StringComparer.Ordinal));
+        lock (_lock)
+        {
+            _isDirty = false;
+            return new ExchangeDeviceTrustData(
+                _devices.ToDictionary(pair => pair.Key, pair => ExchangeBase64Url.Encode(pair.Value), StringComparer.Ordinal),
+                _grants.ToDictionary(pair => pair.Key, pair => ExchangeBase64Url.Encode(pair.Value), StringComparer.Ordinal));
+        }
     }
 
     /// <summary>Rebuilds the trust from its stored shape; an entry that is not a P-256 point is dropped, never trusted blindly.</summary>
@@ -69,25 +105,31 @@ public sealed class ExchangeDeviceTrust
 
     private ExchangeKeyObservation Observe(Dictionary<string, byte[]> book, string id, ReadOnlySpan<byte> point)
     {
-        if (!book.TryGetValue(id, out var kept))
+        lock (_lock)
         {
-            book[id] = point.ToArray();
-            IsDirty = true;
-            return ExchangeKeyObservation.NewlyTrusted;
-        }
+            if (!book.TryGetValue(id, out var kept))
+            {
+                book[id] = point.ToArray();
+                _isDirty = true;
+                return ExchangeKeyObservation.NewlyTrusted;
+            }
 
-        return CryptographicOperations.FixedTimeEquals(kept, point) ? ExchangeKeyObservation.Trusted : ExchangeKeyObservation.KeyChanged;
+            return CryptographicOperations.FixedTimeEquals(kept, point) ? ExchangeKeyObservation.Trusted : ExchangeKeyObservation.KeyChanged;
+        }
     }
 
     private bool Forget(Dictionary<string, byte[]> book, string id)
     {
-        if (!book.Remove(id))
+        lock (_lock)
         {
-            return false;
-        }
+            if (!book.Remove(id))
+            {
+                return false;
+            }
 
-        IsDirty = true;
-        return true;
+            _isDirty = true;
+            return true;
+        }
     }
 
     private static void Load(Dictionary<string, byte[]> book, Dictionary<string, string>? stored)

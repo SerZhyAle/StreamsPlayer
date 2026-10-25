@@ -154,6 +154,8 @@ internal sealed class WindowsScreenCapture : IDisposable
         if (_bitmap != IntPtr.Zero) _ = DeleteObject(_bitmap);
         if (_memory != IntPtr.Zero) _ = DeleteDC(_memory);
         if (_desktop != IntPtr.Zero) _ = ReleaseDC(IntPtr.Zero, _desktop);
+        // S8-7: OpenDeviceContext disposes on failure and the owner disposes again; a second pass must find nothing to release.
+        _previous = _bitmap = _memory = _desktop = _pixels = IntPtr.Zero;
     }
 
     [StructLayout(LayoutKind.Sequential)] private struct Rect { public int Left, Top, Right, Bottom; }

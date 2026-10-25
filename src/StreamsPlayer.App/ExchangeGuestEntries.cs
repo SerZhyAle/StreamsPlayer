@@ -20,6 +20,10 @@ internal sealed class ExchangeGuestEntries
     private readonly string _path;
     private ExchangeAccount[] _entries = [];
 
+    // S2-5: the file exists but could not be read just now (a sharing violation, a locked folder). That is not
+    // an empty list: writing from it would destroy every stored guest token and key, which are single-use.
+    private bool _loadFailed;
+
     internal ExchangeGuestEntries(string directory)
     {
         _directory = directory;
@@ -27,7 +31,10 @@ internal sealed class ExchangeGuestEntries
         _entries = Load();
     }
 
-    /// <summary>True when the file existed but could not be read (another Windows user's, or damaged): the entries are gone.</summary>
+    /// <summary>
+    /// True when the file existed but could not be decrypted or parsed (another Windows user's, or damaged): the entries
+    /// are gone. A read that only failed on the disk just now is not this; the file is kept and not written over.
+    /// </summary>
     internal bool ProtectionFailed { get; private set; }
 
     internal IReadOnlyList<ExchangeAccount> Entries => _entries;
@@ -39,6 +46,7 @@ internal sealed class ExchangeGuestEntries
     /// <summary>Adds the entry, or replaces the one with the same identity (a re-sign-in rotates the token, same device id).</summary>
     internal void Upsert(ExchangeAccount entry)
     {
+        RequireReadable();
         var existing = Find(entry.Host, entry.Port, entry.Login);
         if (existing is null && IsFull)
         {
@@ -52,6 +60,7 @@ internal sealed class ExchangeGuestEntries
 
     internal bool Remove(string host, int port, string login)
     {
+        RequireReadable();
         var existing = Find(host, port, login);
         if (existing is null)
         {
@@ -64,8 +73,28 @@ internal sealed class ExchangeGuestEntries
         return true;
     }
 
+    /// <summary>
+    /// S2-5: a mutation never writes from a list that was not read. After a transient read failure the file is read again
+    /// first; if it still cannot be read the write is refused as a failed write is (an <see cref="IOException"/>), so the
+    /// stored entries survive until a later read succeeds.
+    /// </summary>
+    private void RequireReadable()
+    {
+        if (!_loadFailed)
+        {
+            return;
+        }
+
+        _entries = Load();
+        if (_loadFailed)
+        {
+            throw new IOException("The guest entries could not be read, so they are not overwritten.");
+        }
+    }
+
     private ExchangeAccount[] Load()
     {
+        _loadFailed = false;
         if (!File.Exists(_path))
         {
             return [];
@@ -86,11 +115,17 @@ internal sealed class ExchangeGuestEntries
                 .Select(group => group.First()).Take(ExchangeEntryLimits.MaximumGuestEntries).ToArray();
             return entries;
         }
-        catch (Exception exception) when (exception is CryptographicException or JsonException or IOException
-            or UnauthorizedAccessException)
+        catch (Exception exception) when (exception is CryptographicException or JsonException)
         {
             // An entry whose token belongs to another Windows user is not ours to rotate; the file is dropped.
             ProtectionFailed = true;
+            return [];
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // S2-5: not readable now is not undecryptable. The file is left as it is, and nothing is written over it
+            // until a later read succeeds (RequireReadable).
+            _loadFailed = true;
             return [];
         }
         finally

@@ -43,8 +43,9 @@ public static class BroadcastChannelImport
 
     /// <summary>
     /// Applies <paramref name="resource"/> to <paramref name="existing"/>: a row whose
-    /// <see cref="StreamChannel.ResourceKey"/> matches the resource's path is REPLACED (same id, so
-    /// pins, collections and history reattach by themselves); anything else ADDS one row at the end.
+    /// <see cref="StreamChannel.ResourceKey"/> matches the resource's path is UPDATED in place (same id, so
+    /// pins, collections and history reattach by themselves, and the user's title and metadata stay; only the
+    /// addresses, lifetime, playlist flag and access note follow the document); anything else ADDS one row at the end.
     /// The sort index of an added row is the caller's to set - this returns the row with 0.
     /// </summary>
     public static BroadcastChannelApplyResult Apply(
@@ -65,17 +66,19 @@ public static class BroadcastChannelImport
                 continue;
             }
 
-            // Same identity, fresh facts: the id, the origin and the user's pin survive; the addresses
-            // and the lifetime follow the document. AddedAt is the row's own history and stays.
-            channels[index] = refreshed with
+            // S14-3: start from the row, not from the document. The row is the user's (an edit does not make
+            // an Imported row Manual, so nothing else protects it): its category, topic, language, country,
+            // homepage, format, pin, history and origin all stay. Only what the document owns follows it: the
+            // name (a re-import is the person asking for the refreshed document), the addresses, the lifetime,
+            // the playlist flag and the access note.
+            channels[index] = row with
             {
-                Id = row.Id,
-                SortIndex = row.SortIndex,
-                Pinned = row.Pinned,
-                AddedAt = row.AddedAt,
-                LastPlayedAt = row.LastPlayedAt,
-                LastPlayOutcome = row.LastPlayOutcome,
-                LastPlayOutcomeAt = row.LastPlayOutcomeAt
+                Title = refreshed.Title,
+                Url = refreshed.Url,
+                AlternateUrls = refreshed.AlternateUrls,
+                ResourceExpiresAt = refreshed.ResourceExpiresAt,
+                IsPlaylistResource = refreshed.IsPlaylistResource,
+                ResourceAccessNote = refreshed.ResourceAccessNote
             };
             return new BroadcastChannelApplyResult(channels, channels[index], Added: false);
         }

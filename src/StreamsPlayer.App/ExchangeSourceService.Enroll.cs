@@ -397,6 +397,8 @@ internal sealed partial class ExchangeSourceService
 
             var told = held.Token is not null && await RevokeOfflineAccountAsync(held).ConfigureAwait(false);
             Guests.Remove(held.Host, held.Port, held.Login);
+            // S7-8: the entry is gone, so the keys it had seen go with it (item DG), as on leaving the own account.
+            _trustBook.Forget(held.DeviceId);
             GuestOutcomeKey = told ? "ExchangeGuestSignedOut" : "ExchangeGuestSignedOutOffline";
             Changed?.Invoke();
         }

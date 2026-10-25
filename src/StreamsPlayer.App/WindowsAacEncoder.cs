@@ -233,25 +233,27 @@ internal sealed class WindowsAacEncoder : IDisposable
             return false;
         }
 
-        var result = transform.ProcessOutput(0, 1, ref output, out _);
-        if (output.Events != IntPtr.Zero)
-        {
-            Marshal.Release(output.Events);
-        }
-
-        if (result == MfTransformStreamChange)
-        {
-            // The encoder chose its final type after the first input; adopt it and ask again.
-            return AdoptCurrentOutputType(transform);
-        }
-
-        if (result != 0 || output.Sample is null)
-        {
-            return false;
-        }
-
+        // S8-1: the output sample is created for every call, so every return after this point releases it - the
+        // stream-change and need-more-input returns leaked a 16 KiB sample each (about 100 a second while broadcasting).
         try
         {
+            var result = transform.ProcessOutput(0, 1, ref output, out _);
+            if (output.Events != IntPtr.Zero)
+            {
+                Marshal.Release(output.Events);
+            }
+
+            if (result == MfTransformStreamChange)
+            {
+                // The encoder chose its final type after the first input; adopt it and ask again.
+                return AdoptCurrentOutputType(transform);
+            }
+
+            if (result != 0 || output.Sample is null)
+            {
+                return false;
+            }
+
             if (output.Sample.ConvertToContiguousBuffer(out IMFMediaBuffer? buffer) != 0 || buffer is null)
             {
                 return false;
@@ -276,7 +278,10 @@ internal sealed class WindowsAacEncoder : IDisposable
         }
         finally
         {
-            Marshal.ReleaseComObject(output.Sample);
+            if (output.Sample is not null)
+            {
+                Marshal.ReleaseComObject(output.Sample);
+            }
         }
     }
 

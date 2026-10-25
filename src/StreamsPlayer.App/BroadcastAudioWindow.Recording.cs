@@ -71,6 +71,9 @@ public partial class BroadcastAudioWindow
         var recording = _session.IsRecording;
         RecordButton.IsEnabled = !_recordBusy && !_session.IsRecordingFinishing && _recordLog is not null &&
             (recording || _session.CanRecord);
+        // S6-4: the button is disabled exactly when its tooltip (RecordUnsupportedFormat) explains why, and a disabled
+        // control shows none unless asked to - the same call PlayerWindow.UpdateRecordingUi makes.
+        System.Windows.Controls.ToolTipService.SetShowOnDisabled(RecordButton, true);
         RecordButton.Style = (Style)FindResource(recording ? "StopRecordGlyphOnlyButton" : "RecordGlyphOnlyButton");
         RecordButton.SetResourceReference(ToolTipProperty, recording ? "StopRecordTip" :
             _session.State == BroadcastLegState.Playing && !_session.CanRecord ? "RecordUnsupportedFormat" : "RecordTip");

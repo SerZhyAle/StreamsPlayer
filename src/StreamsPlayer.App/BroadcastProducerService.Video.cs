@@ -1,7 +1,4 @@
-using System.ComponentModel;
-using System.IO;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
@@ -99,9 +96,10 @@ internal sealed partial class BroadcastProducerService
         }
         // The device is opened before anything is announced: a refused Windows permission or a device another program
         // holds then ends here, with a message, and the account's directory never lists a broadcast with no picture.
+        // S17-1: the worker hands its exception to StartAsync, so the filter covers all of IsCaptureFailure (permission refusals too).
         try { await video.StartAsync().ConfigureAwait(false); }
-        catch (Exception exception) when (exception is COMException or InvalidOperationException or IOException
-            or Win32Exception or ArgumentException or TimeoutException or OperationCanceledException)
+        catch (Exception exception) when (exception is TimeoutException or OperationCanceledException
+            || WindowsVideoBroadcast.IsCaptureFailure(exception))
         {
             await StopCoreAsync(source).ConfigureAwait(false);
             Report(CaptureFailureKey(WindowsVideoBroadcast.Failure(exception)));

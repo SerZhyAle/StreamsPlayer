@@ -19,6 +19,9 @@ public sealed class UiProfileStore
     private const string TemporaryFileExtension = ".tmp";
 
     private readonly string _path;
+    // S18-1: every save writes the one shared temp path with FileShare.None, so two overlapping saves made the later
+    // one fail and left the earlier choice on disk. The gate queues them in call order; the last profile wins.
+    private readonly SemaphoreSlim _saveGate = new(1, 1);
     private volatile bool _unreadable;
     private readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -61,6 +64,19 @@ public sealed class UiProfileStore
     /// the file could not be read.
     /// </summary>
     public async Task<bool> SaveAsync(UiProfile profile, CancellationToken cancellationToken = default)
+    {
+        await _saveGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await SaveCoreAsync(profile, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _saveGate.Release();
+        }
+    }
+
+    private async Task<bool> SaveCoreAsync(UiProfile profile, CancellationToken cancellationToken)
     {
         if (_unreadable)
         {

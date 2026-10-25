@@ -50,7 +50,8 @@ public partial class PlayerWindow
         // SP-0096/SP-0208: the new media restarts the engine's counters, so the freeze baseline, the
         // open budget and the attempt clock all start over with this endpoint's rules.
         _freeze.Reset();
-        _openBudget = new PlaybackOpenBudget(AttemptSlice(endpoint, hasSuccessor: true));
+        // S10-1: the last endpoint of the list has no successor to hand over to, so it keeps the full slice (as BeginLeg does for index 0).
+        _openBudget = new PlaybackOpenBudget(AttemptSlice(endpoint, hasSuccessor: _attemptIndex + 1 < _attemptPlan.Count));
         _attemptClock.Restart();
         _firstByteLogged = false;
         _buffering = false;

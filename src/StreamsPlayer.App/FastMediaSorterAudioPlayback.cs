@@ -35,7 +35,7 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
     private StreamMediaInput? _input;
     private FastMediaSorterPlaybackConnection? _connection;
     private BroadcastAudioReadStream? _recordingInput;
-    private bool _disposed;
+    private volatile bool _disposed; // S7-3: read by StartAsync's continuation on a pool thread while Dispose sets it on another
     // SP-0165 (shared rule with StandardAudioPlayback): engines abandoned to stops that never returned are counted,
     // and past the cap the feature pauses for the rest of the session. A leg is a new instance on every reconnect,
     // so the count lives on the type: a per-instance budget could never pass one engine.
@@ -163,6 +163,15 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
                 return new FastMediaSorterAudioOpenResult(connection.StatusCode, connection.ResponseElapsed, error, Cancelled: false);
             }
 
+            // S7-3: Dispose can run on another thread after the _disposed check above and before the player existed, and
+            // then finds nothing to stop. What this call just built is ours to take down, or it keeps sounding with nobody
+            // left to stop it. _disposed is set before Dispose's own StopPlayback, so one of the two always sees the player.
+            if (_disposed)
+            {
+                StopPlayback();
+                return new FastMediaSorterAudioOpenResult(null, connection.ResponseElapsed, null, Cancelled: true);
+            }
+
             return new FastMediaSorterAudioOpenResult(connection.StatusCode, connection.ResponseElapsed, null, Cancelled: false);
         }
         catch (Exception ex)
@@ -233,7 +242,12 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
     }
 
     private void Player_Playing(object? sender, EventArgs e) =>
-        Playing?.Invoke(this, new FastMediaSorterAudioPlaybackEventArgs(ResponseStatusCode, _openStopwatch.Elapsed, _connection?.TransportError));
+        Playing?.Invoke(this, new FastMediaSorterAudioPlaybackEventArgs(ResponseStatusCode, _openStopwatch.Elapsed, _connection?.TransportError, ReadInputBytes));
+
+    // S6-2: the bytes the decoder has read from this leg's response, or null once the leg is stopped - the reader the
+    // broadcast window's stall watchdog polls. It rides on the Playing event because the leg between the two exposes no
+    // such member; a watcher that gets null has nothing left to watch.
+    private long? ReadInputBytes() => _recordingInput?.BytesRead;
 
     private void Player_EndReached(object? sender, EventArgs e) =>
         Ended?.Invoke(this, new FastMediaSorterAudioPlaybackEventArgs(ResponseStatusCode, _openStopwatch.Elapsed, _connection?.TransportError));
@@ -330,9 +344,13 @@ internal sealed record FastMediaSorterAudioOpenResult(
     public bool Started => !Cancelled && Error is null && StatusCode is >= 200 and < 300;
 }
 
-internal sealed class FastMediaSorterAudioPlaybackEventArgs(int? statusCode, TimeSpan openToPlaying, Exception? transportError) : EventArgs
+internal sealed class FastMediaSorterAudioPlaybackEventArgs(
+    int? statusCode, TimeSpan openToPlaying, Exception? transportError, Func<long?>? readInputBytes = null) : EventArgs
 {
     public int? StatusCode { get; } = statusCode;
     public TimeSpan OpenToPlaying { get; } = openToPlaying;
     public Exception? TransportError { get; } = transportError;
+
+    /// <summary>S6-2: reads the bytes the decoder has pulled from the response so far (null once the leg is stopped); only the Playing event carries it.</summary>
+    public Func<long?>? ReadInputBytes { get; } = readInputBytes;
 }

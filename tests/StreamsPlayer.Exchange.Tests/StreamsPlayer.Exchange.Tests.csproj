@@ -42,6 +42,7 @@
     <Compile Include="../../src/StreamsPlayer.App/ExchangeGuestDirectoryViewer.cs" Link="ExchangeGuestDirectoryViewer.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ProductInfo.cs" Link="ProductInfo.cs" />
     <Compile Include="../../src/StreamsPlayer.App/CurrentLog.cs" Link="CurrentLog.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/HandlerBoundary.cs" Link="HandlerBoundary.cs" />
     <Compile Include="../../src/StreamsPlayer.App/FastMediaSorterPlaybackTransport.cs" Link="FastMediaSorterPlaybackTransport.cs" />
     <Compile Include="../../src/StreamsPlayer.App/BroadcastVideoRoute.cs" Link="BroadcastVideoRoute.cs" />
     <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.cs" Link="BroadcastProducerService.cs" />

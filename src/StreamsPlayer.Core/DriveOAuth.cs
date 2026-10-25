@@ -38,8 +38,12 @@ public sealed class DriveOAuth(HttpClient client, string clientId, string? clien
 
     public async Task RevokeAsync(string token, CancellationToken cancellation)
     {
-        using var body = new FormUrlEncodedContent(new Dictionary<string, string> { ["token"] = token });
-        using var response = await client.PostAsync("https://oauth2.googleapis.com/revoke", body, cancellation).ConfigureAwait(false);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://oauth2.googleapis.com/revoke")
+        {
+            Content = new FormUrlEncodedContent(new Dictionary<string, string> { ["token"] = token })
+        };
+        // S16-4: headers only; the answer's body is never needed here and is dropped with the response.
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
             throw new DriveRequestException((int)response.StatusCode);
     }
@@ -49,8 +53,12 @@ public sealed class DriveOAuth(HttpClient client, string clientId, string? clien
         fields["client_id"] = clientId;
         if (!string.IsNullOrEmpty(clientSecret))
             fields["client_secret"] = clientSecret;
-        using var body = new FormUrlEncodedContent(fields);
-        using var response = await client.PostAsync("https://oauth2.googleapis.com/token", body, cancellation).ConfigureAwait(false);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://oauth2.googleapis.com/token")
+        {
+            Content = new FormUrlEncodedContent(fields)
+        };
+        // S16-4: headers only, so the body is read solely through ReadBoundedAsync and never buffered past its limit.
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellation).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
             throw new DriveRequestException((int)response.StatusCode);
         var bytes = await DriveRestClient.ReadBoundedAsync(response.Content, 65536, cancellation).ConfigureAwait(false)

@@ -43,7 +43,7 @@ internal sealed class ExchangeLinkKeyStore
     {
         lock (Gate)
         {
-            if (!Read().TryGetValue(broadcastId, out var stored))
+            if (Read() is not { } keys || !keys.TryGetValue(broadcastId, out var stored))
             {
                 return null;
             }
@@ -62,7 +62,14 @@ internal sealed class ExchangeLinkKeyStore
     {
         lock (Gate)
         {
-            var entries = new Dictionary<string, StoredKeys>(Read(), StringComparer.Ordinal)
+            // S7-11: a file that exists but could not be read just now is not an empty store. Writing from an empty copy
+            // would drop the keys of every other imported link, so these keys stay in memory for this run instead.
+            if (Read() is not { } existing)
+            {
+                return;
+            }
+
+            var entries = new Dictionary<string, StoredKeys>(existing, StringComparer.Ordinal)
             {
                 [broadcastId] = new StoredKeys(secrets.RelayKey is null ? null : ExchangeBase64Url.Encode(secrets.RelayKey), secrets.TunnelPin)
             };
@@ -75,7 +82,8 @@ internal sealed class ExchangeLinkKeyStore
         }
     }
 
-    private Dictionary<string, StoredKeys> Read()
+    /// <summary>The stored keys; empty when there is no usable file, and null when the file could not be read right now.</summary>
+    private Dictionary<string, StoredKeys>? Read()
     {
         byte[]? clear = null;
         try
@@ -88,9 +96,14 @@ internal sealed class ExchangeLinkKeyStore
             clear = ProtectedData.Unprotect(File.ReadAllBytes(_path), null, DataProtectionScope.CurrentUser);
             return JsonSerializer.Deserialize<Dictionary<string, StoredKeys>>(clear, ExchangeProtocol.JsonOptions) ?? [];
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or CryptographicException or JsonException)
+        catch (Exception exception) when (exception is CryptographicException or JsonException)
         {
+            // Damaged, or another Windows user's: nothing in it can be recovered, so a fresh store is correct.
             return [];
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return null;
         }
         finally
         {

@@ -25,8 +25,19 @@ public static class ExchangeSealedUpload
     {
         if (relay is not null)
         {
-            await ExchangeUploadChunks.WriteAsync(stream, ExchangeUploadChunks.Header, relay.HeaderChunk(formatHeader.Span),
-                cancellationToken).ConfigureAwait(false);
+            // S13-1: a disposed sealer means teardown raced this upload; it ends here, with nothing written for the
+            // chunk that could not be sealed.
+            byte[] ring;
+            try
+            {
+                ring = relay.HeaderChunk(formatHeader.Span);
+            }
+            catch (ObjectDisposedException)
+            {
+                return;
+            }
+
+            await ExchangeUploadChunks.WriteAsync(stream, ExchangeUploadChunks.Header, ring, cancellationToken).ConfigureAwait(false);
         }
         else if (!formatHeader.IsEmpty)
         {
@@ -38,7 +49,19 @@ public static class ExchangeSealedUpload
         await foreach (var chunk in chunks.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             var flags = chunk.Joinable ? ExchangeUploadChunks.Joinable : (byte)0;
-            var payload = relay is null ? chunk.Payload : relay.SealChunk(flags, chunk.Payload);
+            var payload = chunk.Payload;
+            if (relay is not null)
+            {
+                try
+                {
+                    payload = relay.SealChunk(flags, chunk.Payload);
+                }
+                catch (ObjectDisposedException)
+                {
+                    return; // S13-1: the sealer is gone; the unsealed chunk is dropped, never written
+                }
+            }
+
             await ExchangeUploadChunks.WriteAsync(stream, flags, payload, cancellationToken).ConfigureAwait(false);
         }
     }

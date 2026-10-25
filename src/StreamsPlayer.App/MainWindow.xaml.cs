@@ -1451,7 +1451,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 return;
             }
 
-            if (_state.AudioVolume == volume && _pendingAudioVolume is null)
+            // S11-4: the requested state, not the committed one - a move back to the old value mid-save must count.
+            if ((_stateCommitter?.Requested ?? _state).AudioVolume == volume && _pendingAudioVolume is null)
             {
                 return;
             }

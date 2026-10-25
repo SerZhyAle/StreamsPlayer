@@ -111,6 +111,8 @@ internal static class BroadcastLiveMenuBuilder
             if (!eligible)
             {
                 item.ToolTip = LocalizationService.Get("BroadcastCastUnsupported");
+                // S6-6: a disabled item shows no tooltip unless it is asked to, and this one is the explanation.
+                ToolTipService.SetShowOnDisabled(item, true);
             }
 
             var captured = receiver;
@@ -122,6 +124,7 @@ internal static class BroadcastLiveMenuBuilder
         {
             cast.IsEnabled = false;
             cast.ToolTip = LocalizationService.Get("BroadcastCastNoReceivers");
+            ToolTipService.SetShowOnDisabled(cast, true); // S6-6
         }
 
         return cast;
@@ -153,6 +156,7 @@ internal static class BroadcastLiveMenuBuilder
         {
             password.IsEnabled = false;
             password.ToolTip = LocalizationService.Get("BroadcastLinkNoneWarning");
+            ToolTipService.SetShowOnDisabled(password, true); // S6-6
         }
 
         password.Click += (_, _) =>
@@ -215,13 +219,8 @@ internal static class BroadcastLiveMenuBuilder
     private static void RunSafely(string name, Window owner, Func<Task> action)
     {
         _ = owner;
-        try
-        {
-            _ = action();
-        }
-        catch (Exception exception)
-        {
-            HandlerBoundary.Report(name, exception);
-        }
+        // S6-5: the boundary awaits the task, so a fault in StopAsync/CastAsync is logged and reported once. The old
+        // `_ = action()` caught only a synchronous throw and dropped the task, and with it every later fault.
+        HandlerBoundary.Run(name, action);
     }
 }

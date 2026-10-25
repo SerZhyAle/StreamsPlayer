@@ -58,7 +58,8 @@ public partial class MainWindow
             return null;
         }
 
-        var dialog = new BroadcastPasswordWindow(channel.Title) { Owner = this };
+        // S12-1: DialogOwner, not this - in the compact panel the catalog is hidden and a prompt owned by it has no home (SP-0182).
+        var dialog = new BroadcastPasswordWindow(channel.Title) { Owner = DialogOwner };
         if (dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.Password))
         {
             BroadcastPasswords.Save(channel.Id, dialog.Password);

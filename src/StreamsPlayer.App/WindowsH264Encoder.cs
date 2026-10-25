@@ -135,7 +135,13 @@ internal sealed class WindowsH264Encoder : IDisposable
         Check(type.SetGUID(ref key, ref value));
     }
 
-    internal static void Check(int result) => Marshal.ThrowExceptionForHR(result);
+    // S8-5: always a COMException carrying the raw HRESULT. Marshal.ThrowExceptionForHR turned E_ACCESSDENIED into an
+    // UnauthorizedAccessException (and others into ArgumentException and the like), which the capture catches did not
+    // list, so a refused permission escaped the worker instead of reaching Failure() and its permission message.
+    internal static void Check(int result)
+    {
+        if (result < 0) throw new COMException("A Media Foundation call failed.", result);
+    }
 
     private void SetCodec(string name, object value)
     {

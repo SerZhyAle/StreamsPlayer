@@ -123,6 +123,7 @@ internal sealed partial class BroadcastProducerService
                 states = [.. _running.Values];
             }
 
+            var relayTold = true;
             foreach (var state in states)
             {
                 var keepGenerated = !renew && Settings.Choice == BroadcastLinkChoice.Generated
@@ -138,14 +139,15 @@ internal sealed partial class BroadcastProducerService
                 if (state.ExchangeStarted)
                 {
                     using var timeout = new CancellationTokenSource(EndWriteTimeout);
-                    await PostRecordAsync(state, "broadcast-update", timeout.Token).ConfigureAwait(false);
+                    // S5-3: the previous password keeps working on the relay until it is told; never report it revoked when it was not.
+                    relayTold &= await PostRecordAsync(state, "broadcast-update", timeout.Token).ConfigureAwait(false);
                 }
             }
 
             if (states.Count > 0)
             {
                 await PublishDriveAsync().ConfigureAwait(false);
-                Report("BroadcastLinkChanged");
+                Report(relayTold ? "BroadcastLinkChanged" : "ExchangeUnavailable");
             }
         }
         finally { _sourceOperations.Release(); }

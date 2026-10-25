@@ -135,7 +135,7 @@ internal static class RecordingFinisher
             // Each segment is named for its own start, in the container the engine actually wrote (CAPTURE-OUTPUT rule 3).
             var name = CaptureFileName.For(segment.Target.Kind, segment.StartedAt, segment.Target.ChannelTitle, Path.GetExtension(file));
             var moveClock = Stopwatch.StartNew();
-            var (destination, skipped) = MoveIntoFirst(file, [segment.Target.Folder, .. segment.Target.Fallbacks], name);
+            var (destination, skipped) = MoveIntoFirst(file, [segment.Target.Folder, .. segment.Target.Fallbacks], name, log);
             log.Event("RECORD FINISH", $"engine={segment.Engine}", "fate=saved", $"path={destination}", $"skipped={skipped ?? "none"}",
                 $"wait_ms={clock.ElapsedMilliseconds - moveClock.ElapsedMilliseconds}", $"move_ms={moveClock.ElapsedMilliseconds}");
             return new SegmentResult(SegmentFate.Saved, destination, segment.Length, Skipped: skipped);
@@ -152,7 +152,8 @@ internal static class RecordingFinisher
     /// returning the destination and, when that is not the first folder, the first folder - the one the user is
     /// told was refused. When every folder refuses, the last refusal is thrown and the file stays where it was.
     /// </summary>
-    internal static (string Destination, string? Skipped) MoveIntoFirst(string file, IReadOnlyList<string> folders, string fileName)
+    internal static (string Destination, string? Skipped) MoveIntoFirst(string file, IReadOnlyList<string> folders, string fileName,
+        CurrentLog? log = null)
     {
         ExceptionDispatchInfo? last = null;
         for (var index = 0; index < folders.Count; index++)
@@ -160,7 +161,7 @@ internal static class RecordingFinisher
             try
             {
                 Directory.CreateDirectory(folders[index]);
-                return (MoveIntoFolder(file, folders[index], fileName), index == 0 ? null : folders[0]);
+                return (MoveIntoFolder(file, folders[index], fileName, log), index == 0 ? null : folders[0]);
             }
             catch (Exception exception) when (CaptureFolders.IsFolderRefusal(exception) && File.Exists(file))
             {
@@ -178,7 +179,7 @@ internal static class RecordingFinisher
     /// destination only ever appears whole - a process killed mid-copy leaves the partial beside where the
     /// recording was headed, and the source where it was (SP-0164). Returns the destination.
     /// </summary>
-    private static string MoveIntoFolder(string file, string folder, string fileName)
+    private static string MoveIntoFolder(string file, string folder, string fileName, CurrentLog? log)
     {
         for (var attempt = 1; ; attempt++)
         {
@@ -212,6 +213,9 @@ internal static class RecordingFinisher
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
+                // S10-4: the recording is safe at its destination; only the staged original stays. Said in the log (type only,
+                // no path) so a duplicate filed by the next launch's hand-over has a visible cause.
+                log?.Event("RECORD FINISH", "delete_source=failed", $"type={exception.GetType().Name}");
             }
 
             return destination;

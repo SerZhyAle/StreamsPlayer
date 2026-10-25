@@ -1,3 +1,4 @@
+#requires -Version 7.0
 <#
 .SYNOPSIS
   Build a Store-ready full-trust MSIX for StreamsPlayer.
@@ -17,6 +18,13 @@
   exactly at a vYY.MMDD.HHmm tag, and the version comes from that tag - the
   script refuses a dirty tree and refuses a HEAD off the tag, because the
   Store once shipped a version no tag carries (26.0806.2225).
+
+  S1-3: the Google Drive OAuth client is embedded at publish time, the way build.ps1 does it - process
+  SP_DRIVE_CLIENT_ID / SP_DRIVE_CLIENT_SECRET first, otherwise the Desktop client JSON from
+  ~/.fms-secrets/google-oauth/streamsplayer-desktop.json, -DriveClientFile or SP_DRIVE_CLIENT_JSON. The values
+  live in the process environment only for the publish and are never printed. The published StreamsPlayer.dll
+  is then read back; a build that carries no client fails unless -AllowNoDriveClient is passed (local test
+  packages only - the Store package must offer Google sign-in).
 #>
 # Defaults are the PERMANENT reserved Partner Center identity for Store ID 9NBTD5SXB8TB.
 # Do not change them; every Store update must ship these exact three values. See msix/README.md.
@@ -28,7 +36,11 @@ param(
     [switch] $SelfSign,
     # A one-off package under another identity. The read-back then judges against the three values above and
     # says the package is not Store-valid; without this switch the reserved identity is the only one accepted.
-    [switch] $TestIdentity
+    [switch] $TestIdentity,
+    # S1-3: the Desktop OAuth client JSON; the same fallbacks as build.ps1 apply when it is not given.
+    [string] $DriveClientFile = '',
+    # S1-3: accept a package that carries no Google Drive client. For local test packages, never the Store upload.
+    [switch] $AllowNoDriveClient
 )
 
 $ErrorActionPreference = 'Stop'
@@ -96,15 +108,61 @@ $makeappx = Find-SdkTool 'makeappx.exe'
 if ($SelfSign) { $signtool = Find-SdkTool 'signtool.exe' }
 
 if (Test-Path -LiteralPath $publish) { Remove-Item -LiteralPath $publish -Recurse -Force }
+# S1-3: the Google Drive OAuth client reaches the assembly only through these two process variables (the project
+# embeds them as AssemblyMetadata), and only build.ps1 and release.yml used to supply them - so a Store package built
+# from a plain shell carried no Google sign-in. The load below mirrors build.ps1; the previous values come back in
+# the finally, and nothing here prints a value.
+$previousDriveClientId = [Environment]::GetEnvironmentVariable('SP_DRIVE_CLIENT_ID', 'Process')
+$previousDriveClientSecret = [Environment]::GetEnvironmentVariable('SP_DRIVE_CLIENT_SECRET', 'Process')
 Push-Location $root
 try {
+    if ([string]::IsNullOrWhiteSpace($previousDriveClientId)) {
+        if (-not $DriveClientFile) {
+            $DriveClientFile = if ($env:SP_DRIVE_CLIENT_JSON) { $env:SP_DRIVE_CLIENT_JSON }
+                else { Join-Path ([Environment]::GetFolderPath('UserProfile')) '.fms-secrets/google-oauth/streamsplayer-desktop.json' }
+        }
+        if (Test-Path -LiteralPath $DriveClientFile -PathType Leaf) {
+            try {
+                $driveClient = Get-Content -LiteralPath $DriveClientFile -Raw | ConvertFrom-Json
+                if ([string]::IsNullOrWhiteSpace($driveClient.installed.client_id)) { throw 'Missing desktop client.' }
+                $env:SP_DRIVE_CLIENT_ID = $driveClient.installed.client_id
+                $env:SP_DRIVE_CLIENT_SECRET = $driveClient.installed.client_secret
+                Write-Host 'Google Drive OAuth: configured from the local desktop-client file.'
+            }
+            catch { throw 'Could not read the Google Desktop OAuth client file. Its contents were not logged.' }
+        }
+        elseif ($PSBoundParameters.ContainsKey('DriveClientFile') -or $env:SP_DRIVE_CLIENT_JSON) {
+            throw 'The Google Desktop OAuth client file does not exist.'
+        }
+    }
     dotnet publish .\src\StreamsPlayer.App\StreamsPlayer.App.csproj -c Release -r win-x64 --self-contained true --nologo `
         -o $publish `
         -p:Version=$appVersion -p:AssemblyVersion=$appVersion -p:FileVersion=$appVersion -p:InformationalVersion=$appVersion
     if ($LASTEXITCODE -ne 0) { throw "Publish failed (exit $LASTEXITCODE)." }
 }
-finally { Pop-Location }
+finally {
+    [Environment]::SetEnvironmentVariable('SP_DRIVE_CLIENT_ID', $previousDriveClientId, 'Process')
+    [Environment]::SetEnvironmentVariable('SP_DRIVE_CLIENT_SECRET', $previousDriveClientSecret, 'Process')
+    Pop-Location
+}
 if (-not (Test-Path -LiteralPath (Join-Path $publish 'StreamsPlayer.exe'))) { throw "Published StreamsPlayer.exe not found in $publish." }
+
+# S1-3: read the embedded client back out of the published assembly. AssemblyMetadata("SP_DRIVE_CLIENT_ID", <value>) is stored
+# as a UTF-8 custom-attribute blob, so its key is plain ASCII bytes in the file; the same name used as a code string
+# literal (DriveSourceService reads it) lives in the UTF-16 user-string heap, which an ASCII search cannot match - the
+# search therefore finds the embedded metadata and nothing else. Latin1 maps every byte to one char, so the search is a
+# byte search.
+$publishedAssembly = Join-Path $publish 'StreamsPlayer.dll'
+if (-not (Test-Path -LiteralPath $publishedAssembly -PathType Leaf)) { throw "Published StreamsPlayer.dll not found in $publish." }
+$assemblyText = [System.Text.Encoding]::Latin1.GetString([System.IO.File]::ReadAllBytes($publishedAssembly))
+if (-not $assemblyText.Contains('SP_DRIVE_CLIENT_ID', [System.StringComparison]::Ordinal)) {
+    if ($AllowNoDriveClient) {
+        Write-Warning 'The published StreamsPlayer.dll carries no Google Drive OAuth client - Google sign-in is unavailable in this package (-AllowNoDriveClient). Never upload it.'
+    }
+    else {
+        throw 'The published StreamsPlayer.dll carries no Google Drive OAuth client, so the package would ship with Google sign-in unavailable. Set SP_DRIVE_CLIENT_ID and SP_DRIVE_CLIENT_SECRET, or pass -DriveClientFile (default ~/.fms-secrets/google-oauth/streamsplayer-desktop.json); -AllowNoDriveClient accepts a local test package without one.'
+    }
+}
 
 # SP-0156 (T-10): the Store package carries the same pinned-natives evidence as every other channel -
 # the native tree present and byte-identical to the package the project pins, not merely present.
@@ -159,10 +217,17 @@ if ($SelfSign) {
 # not Store-valid is never left in dist\ for an upload to pick up.
 $assertArguments = @{ PackagePath = $package; ExpectedVersion = $msixVersion; SelfSigned = $SelfSign.IsPresent }
 if ($TestIdentity) { $assertArguments += @{ TestIdentity = $true; IdentityName = $IdentityName; Publisher = $Publisher; PublisherDisplayName = $PublisherDisplayName } }
-& (Join-Path $msix 'Assert-MsixPackage.ps1') @assertArguments
-if ($LASTEXITCODE -ne 0) {
+# S1-4: a throw out of the assertion script (not only a non-zero exit) must remove the package too, or an
+# unvalidated .msix would stay in dist\.
+$readBackFailure = $null
+try {
+    & (Join-Path $msix 'Assert-MsixPackage.ps1') @assertArguments
+    if ($LASTEXITCODE -ne 0) { $readBackFailure = "exit $LASTEXITCODE" }
+}
+catch { $readBackFailure = "it threw: $($_.Exception.Message)" }
+if ($readBackFailure) {
     Remove-Item -LiteralPath $package -Force -ErrorAction SilentlyContinue
-    throw "The packed archive failed the Store read-back (exit $LASTEXITCODE); $package was removed. A different identity needs -TestIdentity."
+    throw "The packed archive failed the Store read-back ($readBackFailure); $package was removed. A different identity needs -TestIdentity."
 }
 
 if ($SelfSign) {

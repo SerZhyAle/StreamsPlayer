@@ -28,6 +28,18 @@ public static class BroadcastResourceReader
     /// </summary>
     public const int MaximumDocumentBytes = 1024 * 1024;
 
+    /// <summary>
+    /// S14-4: the access paths kept from one document, in its order; later usable entries are dropped. They become the
+    /// addresses a play races, and a producer lists a handful (lan, ipv6 and port-forward per adapter), not thousands.
+    /// </summary>
+    public const int MaximumAccessPaths = 16;
+
+    /// <summary>S14-4: the longest <c>resourceName</c> kept; it becomes the channel title and is persisted with it.</summary>
+    public const int MaximumResourceNameLength = 256;
+
+    /// <summary>S14-4: the longest <c>accessNote</c> kept; a localized one-line hint, persisted with the channel.</summary>
+    public const int MaximumAccessNoteLength = 1024;
+
     /// <summary>Reads one document from text (plain JSON or the compressed QR form).</summary>
     public static BroadcastResourceRead Read(string? text)
     {
@@ -219,8 +231,8 @@ public static class BroadcastResourceReader
             }
         }
 
-        var itemName = StringOrEmpty(root, "resourceName");
-        var note = StringOrEmpty(root, "accessNote");
+        var itemName = TextBoundary.Truncate(StringOrEmpty(root, "resourceName"), MaximumResourceNameLength);
+        var note = TextBoundary.Truncate(StringOrEmpty(root, "accessNote"), MaximumAccessNoteLength);
 
         return new BroadcastResourceRead(BroadcastResourceStatus.Ok, new BroadcastResource(
             schemaVersion,
@@ -240,7 +252,8 @@ public static class BroadcastResourceReader
 
     /// <summary>
     /// The usable access paths, in the document's order. Unknown <c>kind</c> entries are skipped - that
-    /// is the additive channel for v2 - and so is any entry without a host or with an impossible port.
+    /// is the additive channel for v2 - and so is any entry without a host or with an impossible port. At most
+    /// <see cref="MaximumAccessPaths"/> are kept (S14-4).
     /// </summary>
     private static IReadOnlyList<BroadcastAccessPath> ReadAccessPaths(JsonElement root)
     {
@@ -287,6 +300,10 @@ public static class BroadcastResourceReader
             }
 
             paths.Add(new BroadcastAccessPath(kind, hostElement.GetString()!, port));
+            if (paths.Count >= MaximumAccessPaths)
+            {
+                break;
+            }
         }
 
         return paths;

@@ -131,8 +131,13 @@ public partial class MainWindow
         {
             // One message (below); the stored password the relay refused is the broadcaster's old
             // one, so it is forgotten here and the next explicit play or Retry is the one new prompt.
-            ForgetBroadcastPassword(channel.Id);
-            _playingBroadcastCredentials = null;
+            // S12-10: only a password refusal forgets it - an unsupported endpoint says nothing about the password.
+            if (IncomingBroadcastFailure.IsPasswordRefusal(reason))
+            {
+                ForgetBroadcastPassword(channel.Id);
+                _playingBroadcastCredentials = null;
+            }
+
             await FailAudioTerminallyAsync(channel, reason);
             return;
         }
