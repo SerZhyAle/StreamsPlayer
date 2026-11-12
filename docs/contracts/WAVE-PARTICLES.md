@@ -51,3 +51,7 @@ The reference implementation and the rung 2 byte identity are held by `tools/sit
 `DWM_CLOAKED_SHELL`, the process's GPU engine utilization drops from ~0.3 % to exactly 0.00 for the whole cloaked phase, and
 both motion and utilization resume on return, with the stream alive throughout. Rule 9's open question was closed the same
 day by the owner's ruling recorded above. SP-0210 is Implemented; the evidence is in the ticket.
+
+**Update, 2026-10-26 (SP-0247).** The owner's 2026-10-11 ruling on rule 9 is filed in the catalog as a proposal to the
+contract's owner (`animated-backdrop/PROPOSAL-2026-10-26-own-switch-off-removes-backdrop.md`); the registry exception stays
+until the owner accepts or rejects it.

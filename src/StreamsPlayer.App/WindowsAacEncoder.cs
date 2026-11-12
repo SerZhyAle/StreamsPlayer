@@ -262,14 +262,22 @@ internal sealed class WindowsAacEncoder : IDisposable
             try
             {
                 _ = buffer.Lock(out IntPtr data, out _, out int length);
-                if (length == 0)
+                try
                 {
-                    return false;
-                }
+                    if (length == 0)
+                    {
+                        return false;
+                    }
 
-                frame = new byte[length];
-                Marshal.Copy(data, frame, 0, (int)length);
-                return true;
+                    frame = new byte[length];
+                    Marshal.Copy(data, frame, 0, (int)length);
+                    return true;
+                }
+                finally
+                {
+                    // SP-0246 X-1: buffer must be unlocked after read.
+                    _ = buffer.Unlock();
+                }
             }
             finally
             {

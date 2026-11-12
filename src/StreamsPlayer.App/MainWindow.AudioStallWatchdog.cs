@@ -83,4 +83,56 @@ public partial class MainWindow
         _standardAudioPlayback.StopPlayback();
         await RecoverAudioAsync(row.Channel, "stall", stall: true);
     }
+
+    // SP-0246 X-2: stall watchdog for the main window's broadcast audio route.
+    private void WatchForFastMediaSorterAudioStall(FastMediaSorterAudioLeg playback, int generation, Func<long?> readBytes)
+    {
+        StopWatchingAudioStall();
+        var detector = new AudioStallDetector();
+        var clock = Stopwatch.GetTimestamp();
+        var timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = AudioStallPollInterval };
+        timer.Tick += (_, _) => HandlerBoundary.Run(nameof(WatchForFastMediaSorterAudioStall), async () =>
+        {
+            if (!ReferenceEquals(_audioStallTimer, timer))
+            {
+                timer.Stop();
+                return;
+            }
+
+            if (!IsCurrentFastMediaSorterPlayback(playback, generation) || readBytes() is not { } bytesRead)
+            {
+                StopWatchingAudioStall();
+                return;
+            }
+
+            if (detector.Observe(Stopwatch.GetElapsedTime(clock), bytesRead))
+            {
+                await HandleFastMediaSorterAudioStallAsync(playback, generation, bytesRead);
+            }
+        });
+        _audioStallTimer = timer;
+        timer.Start();
+    }
+
+    private async Task HandleFastMediaSorterAudioStallAsync(FastMediaSorterAudioLeg playback, int generation, long bytesRead)
+    {
+        StopWatchingAudioStall();
+        if (!IsCurrentFastMediaSorterPlayback(playback, generation) || _playingAudio is not { } row)
+        {
+            return;
+        }
+
+        _log.Event("FMS AUDIO STALL",
+            $"silent_ms={AudioStallDetector.StallAfter.TotalMilliseconds:F0}",
+            $"read_bytes={bytesRead}",
+            $"url={row.Channel.Url}");
+        if (YieldToRandomStationHunt(row.Channel, "stall"))
+        {
+            return;
+        }
+
+        _audioLegSilence = AudioStallDetector.StallAfter;
+        StopFastMediaSorterAudioPlayback();
+        await RecoverAudioAsync(row.Channel, "stall", stall: true, fastMediaSorterFailure: FastMediaSorterPlaybackFailureKind.Recoverable);
+    }
 }

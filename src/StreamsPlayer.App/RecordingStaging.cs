@@ -66,7 +66,8 @@ internal static class RecordingStaging
 
         var moved = 0;
         var stranded = 0;
-        var targetFolder = chain[0];
+        // SP-0246 S10-6: collect every distinct folder recordings were moved into, not only the last.
+        var targetFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var file in SafeEnumerateFiles(root).Where(file => !IsOwnedByThisProcess(Path.GetFullPath(file))))
         {
             try
@@ -81,8 +82,12 @@ internal static class RecordingStaging
                 var name = CaptureFileName.For(
                     audio ? CaptureKind.StreamAudio : CaptureKind.StreamVideo,
                     new DateTimeOffset(File.GetCreationTime(file)), null, Path.GetExtension(file));
-                var (destination, skipped) = RecordingFinisher.MoveIntoFirst(file, audio ? audioChain ?? chain : chain, name);
-                targetFolder = Path.GetDirectoryName(destination) ?? targetFolder;
+                // SP-0246 S10-4: pass log so source-delete failures are recorded.
+                var (destination, skipped) = RecordingFinisher.MoveIntoFirst(file, audio ? audioChain ?? chain : chain, name, log: log);
+                if (Path.GetDirectoryName(destination) is { } dir)
+                {
+                    targetFolders.Add(dir);
+                }
                 log.Event("RECORD RECOVERED", $"from={file}", $"to={destination}", $"skipped={skipped ?? "none"}");
                 moved++;
             }
@@ -94,6 +99,7 @@ internal static class RecordingStaging
         }
 
         RemoveEmptyDirectories(root); // never a directory an engine of this process owns - it may be about to write
+        var targetFolder = targetFolders.Count > 0 ? string.Join(", ", targetFolders) : chain[0];
         return new StagingHandOver(moved, stranded, targetFolder, root);
     });
 

@@ -56,7 +56,7 @@ public partial class CompactPanelWindow : Window
     public event EventHandler? OverflowRequested;
 
     /// <summary>SP-0217: raised when the live-broadcast indicator is clicked; the main window owns the menu.</summary>
-    public event EventHandler? BroadcastMenuRequested;
+    public event EventHandler? BroadcastRequested;
 
     public event EventHandler<double>? VolumeChanged;
 
@@ -224,7 +224,7 @@ public partial class CompactPanelWindow : Window
 
     private void OverflowButton_Click(object sender, RoutedEventArgs e) => OverflowRequested?.Invoke(this, EventArgs.Empty);
 
-    private void BroadcastButton_Click(object sender, RoutedEventArgs e) => BroadcastMenuRequested?.Invoke(this, EventArgs.Empty);
+    private void BroadcastButton_Click(object sender, RoutedEventArgs e) => BroadcastRequested?.Invoke(this, EventArgs.Empty);
     private void MinimizeButton_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
     // The same close the system caption used to perform: MainWindow reads a close it did not start

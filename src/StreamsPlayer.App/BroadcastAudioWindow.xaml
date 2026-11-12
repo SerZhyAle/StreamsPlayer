@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
         <TextBlock x:Name="TitleText" FontWeight="SemiBold" TextWrapping="Wrap" />
         <StackPanel Grid.Row="1" Margin="0,4,0,0">
-            <TextBlock x:Name="StateText" Opacity="0.7" TextWrapping="Wrap" />
+            <TextBlock x:Name="StateText" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" />
             <Expander x:Name="FailureDetails" Header="{DynamicResource ExchangeDiagnosisDetails}" Visibility="Collapsed" Margin="0,8,0,0">
                 <TextBlock x:Name="FailureCode" TextWrapping="Wrap" />
             </Expander>

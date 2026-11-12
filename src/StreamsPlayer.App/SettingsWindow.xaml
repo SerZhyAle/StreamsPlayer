@@ -835,6 +835,22 @@
                                         <TextBlock x:Name="ExchangeStatusText" TextWrapping="Wrap" />
                                     </DockPanel>
                                     <TextBlock x:Name="ExchangeFingerprintText" TextWrapping="Wrap" FlowDirection="LeftToRight" Margin="0,8,0,0" />
+                                    <!-- SP-0260 / DEVICE-EXCHANGE items EO, ER: the settings STANDARD. The actions show only while the
+                                         session is up and its server lists `settings`; each asks before it sends. -->
+                                    <StackPanel x:Name="ExchangeSettingsPanel" Margin="0,16,0,0" Visibility="Collapsed">
+                                        <TextBlock Text="{DynamicResource ExchangeSettingsTitle}" FontWeight="SemiBold" Margin="0,0,0,6" />
+                                        <TextBlock Text="{DynamicResource ExchangeSettingsHint}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                        <WrapPanel x:Name="ExchangeSettingsGroupsPanel">
+                                            <CheckBox x:Name="ExchangeSettingsAppearanceCheckBox" local:HelpAnchor.Id="e-exchange-settings-groups" Content="{DynamicResource ExchangeSettingsGroupAppearance}" IsChecked="True" Margin="0,0,16,8" />
+                                            <CheckBox x:Name="ExchangeSettingsPlaybackCheckBox" local:HelpAnchor.Id="e-exchange-settings-groups" Content="{DynamicResource ExchangeSettingsGroupPlayback}" IsChecked="True" Margin="0,0,16,8" />
+                                            <CheckBox x:Name="ExchangeSettingsInterfaceCheckBox" local:HelpAnchor.Id="e-exchange-settings-groups" Content="{DynamicResource ExchangeSettingsGroupInterface}" IsChecked="True" Margin="0,0,16,8" />
+                                        </WrapPanel>
+                                        <WrapPanel x:Name="ExchangeSettingsActionsPanel">
+                                            <Button x:Name="ExchangeSettingsSaveButton" local:HelpAnchor.Id="e-exchange-settings-save" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource ExchangeSettingsSave}" Click="ExchangeSettingsSave_Click" Margin="0,0,8,8" />
+                                            <Button x:Name="ExchangeSettingsReadButton" local:HelpAnchor.Id="e-exchange-settings-read" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource ExchangeSettingsRead}" Click="ExchangeSettingsRead_Click" Margin="0,0,8,8" />
+                                        </WrapPanel>
+                                        <TextBlock x:Name="ExchangeSettingsStatusText" TextWrapping="Wrap" />
+                                    </StackPanel>
                                     <StackPanel x:Name="DriveSettingsPanel" Margin="0,16,0,12">
                                         <TextBlock Text="{DynamicResource DriveTitle}" FontWeight="SemiBold" Margin="0,0,0,6" />
                                         <TextBlock Text="{DynamicResource DriveHint}" TextWrapping="Wrap" Margin="0,0,0,8" />
@@ -885,13 +901,11 @@
                                     <StackPanel x:Name="BroadcastControls" Visibility="Collapsed">
                                         <CheckBox x:Name="BroadcastStartWithAppCheckBox" local:HelpAnchor.Id="e-broadcast-start-with-app" Content="{DynamicResource BroadcastStartWithApp}"
                                                   Checked="BroadcastStartWithApp_Click" Unchecked="BroadcastStartWithApp_Click" Margin="0,0,0,8" />
-                                        <WrapPanel Margin="0,0,0,8">
-                                            <Button x:Name="BroadcastMicButton" local:HelpAnchor.Id="e-broadcast-mic" Style="{StaticResource BroadcastingGlyphButton}" Content="{DynamicResource BroadcastMicStart}" Click="BroadcastMicStart_Click" Margin="0,0,8,8" AutomationProperties.Name="{DynamicResource BroadcastMicStart}" />
-                                            <Button x:Name="BroadcastSoundButton" local:HelpAnchor.Id="e-broadcast-sound" Style="{StaticResource BroadcastingGlyphButton}" Content="{DynamicResource BroadcastSoundStart}" Click="BroadcastSoundStart_Click" Margin="0,0,8,8" AutomationProperties.Name="{DynamicResource BroadcastSoundStart}" />
-                                            <Button x:Name="BroadcastScreenButton" local:HelpAnchor.Id="e-broadcast-screen" Style="{StaticResource BroadcastingGlyphButton}" Content="{DynamicResource BroadcastScreenStart}" Click="BroadcastScreenStart_Click" Margin="0,0,8,8" AutomationProperties.Name="{DynamicResource BroadcastScreenStart}" />
-                                            <Button x:Name="BroadcastCameraButton" local:HelpAnchor.Id="e-broadcast-camera" Style="{StaticResource BroadcastingGlyphButton}" Content="{DynamicResource BroadcastCameraStart}" Click="BroadcastCameraStart_Click" Margin="0,0,8,8" AutomationProperties.Name="{DynamicResource BroadcastCameraStart}" />
-                                            <Button x:Name="BroadcastStopButton" local:HelpAnchor.Id="e-broadcast-stop" Style="{StaticResource RemoveGlyphButton}" Content="{DynamicResource BroadcastStopAll}" Click="BroadcastStopAll_Click" Margin="0,0,8,8" AutomationProperties.Name="{DynamicResource BroadcastStopAll}" />
-                                        </WrapPanel>
+                                        <!-- SP-0252: a broadcast is started and watched in its own window; Settings keeps the permission, the network,
+                                             the quality and the link password. -->
+                                        <Button x:Name="BroadcastOpenWindowButton" local:HelpAnchor.Id="e-broadcast-window" Style="{StaticResource BroadcastingGlyphButton}"
+                                                Content="{DynamicResource BroadcastOpenWindow}" Click="BroadcastOpenWindow_Click"
+                                                HorizontalAlignment="Left" Margin="0,0,0,8" AutomationProperties.Name="{DynamicResource BroadcastOpenWindow}" />
                                         <Grid Margin="0,0,0,8">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
@@ -901,24 +915,20 @@
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />
-                                                <RowDefinition Height="Auto" />
                                             </Grid.RowDefinitions>
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{DynamicResource BroadcastMicDevice}" VerticalAlignment="Center" Margin="0,0,8,8" />
-                                            <ComboBox x:Name="BroadcastMicDeviceBox" local:HelpAnchor.Id="e-broadcast-mic-device" Grid.Row="0" Grid.Column="1" SelectionChanged="BroadcastMicDevice_Changed" Margin="0,0,0,8"
-                                                      AutomationProperties.Name="{DynamicResource BroadcastMicDevice}" />
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{DynamicResource BroadcastLanListening}" VerticalAlignment="Center" Margin="0,0,8,8" />
-                                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{DynamicResource BroadcastLanListening}" VerticalAlignment="Center" Margin="0,0,8,8" />
+                                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
                                                 <CheckBox x:Name="BroadcastLanCheckBox" local:HelpAnchor.Id="e-broadcast-lan" Checked="BroadcastLan_Click" Unchecked="BroadcastLan_Click" VerticalAlignment="Center" />
                                                 <TextBlock x:Name="BroadcastLanPortLabel" Text="{DynamicResource BroadcastLanPort}" VerticalAlignment="Center" Margin="12,0,8,0" />
-                                                <TextBox x:Name="BroadcastLanPortBox" local:HelpAnchor.Id="e-broadcast-lan-port" Width="70" TextChanged="BroadcastLanPort_TextChanged" AutomationProperties.Name="{DynamicResource BroadcastLanPort}" />
+                                                <TextBox x:Name="BroadcastLanPortBox" local:HelpAnchor.Id="e-broadcast-lan-port" Width="70" LostFocus="BroadcastLanPort_LostFocus" KeyDown="BroadcastLanPort_KeyDown" AutomationProperties.Name="{DynamicResource BroadcastLanPort}" />
                                             </StackPanel>
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{DynamicResource BroadcastCap}" VerticalAlignment="Top" Margin="0,0,8,8" />
-                                            <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,8">
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{DynamicResource BroadcastCap}" VerticalAlignment="Top" Margin="0,0,8,8" />
+                                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,8">
                                                 <TextBox x:Name="BroadcastCapBox" local:HelpAnchor.Id="e-broadcast-cap" Width="70" TextChanged="BroadcastCap_TextChanged" AutomationProperties.Name="{DynamicResource BroadcastCap}" />
                                                 <TextBlock Text="{DynamicResource BroadcastCapHint}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
                                             </StackPanel>
-                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="{DynamicResource BroadcastQuality}" VerticalAlignment="Center" Margin="0,0,8,8" />
-                                            <WrapPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,8">
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{DynamicResource BroadcastQuality}" VerticalAlignment="Center" Margin="0,0,8,8" />
+                                            <WrapPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,8">
                                                 <TextBlock Text="{DynamicResource BroadcastSampleRate}" VerticalAlignment="Center" Margin="0,0,8,0" />
                                                 <ComboBox x:Name="BroadcastSampleRateBox" local:HelpAnchor.Id="e-broadcast-sample-rate" Width="90" SelectionChanged="BroadcastQuality_Changed" AutomationProperties.Name="{DynamicResource BroadcastSampleRate}" Margin="0,0,12,0" />
                                                 <TextBlock Text="{DynamicResource BroadcastMicChannels}" VerticalAlignment="Center" Margin="0,0,8,0" />
@@ -929,36 +939,6 @@
                                                 <ComboBox x:Name="BroadcastBitrateBox" local:HelpAnchor.Id="e-broadcast-bitrate" Width="90" SelectionChanged="BroadcastQuality_Changed" AutomationProperties.Name="{DynamicResource BroadcastBitrate}" />
                                             </WrapPanel>
                                         </Grid>
-                                        <!-- SP-0223: the screen and camera sources. Hidden, with the reason, where Windows' H.264 encoder is absent. -->
-                                        <StackPanel x:Name="BroadcastVideoGroup" Margin="0,0,0,8">
-                                            <TextBlock x:Name="BroadcastVideoUnavailableText" Text="{DynamicResource BroadcastVideoUnavailable}" TextWrapping="Wrap" Visibility="Collapsed" Margin="0,0,0,8" />
-                                            <Grid x:Name="BroadcastVideoGrid">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                </Grid.RowDefinitions>
-                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{DynamicResource BroadcastMonitor}" VerticalAlignment="Center" Margin="0,0,8,8" />
-                                                <ComboBox x:Name="BroadcastMonitorBox" local:HelpAnchor.Id="e-broadcast-monitor" Grid.Row="0" Grid.Column="1" SelectionChanged="BroadcastMonitor_Changed" Margin="0,0,0,8"
-                                                          AutomationProperties.Name="{DynamicResource BroadcastMonitor}" />
-                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{DynamicResource BroadcastScreenAudio}" VerticalAlignment="Center" Margin="0,0,8,8" />
-                                                <ComboBox x:Name="BroadcastScreenAudioBox" local:HelpAnchor.Id="e-broadcast-screen-audio" Grid.Row="1" Grid.Column="1" SelectionChanged="BroadcastVideoAudio_Changed" Margin="0,0,0,8"
-                                                          AutomationProperties.Name="{DynamicResource BroadcastScreenAudio}" />
-                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="{DynamicResource BroadcastCamera}" VerticalAlignment="Center" Margin="0,0,8,8" />
-                                                <ComboBox x:Name="BroadcastCameraBox" local:HelpAnchor.Id="e-broadcast-camera-device" Grid.Row="2" Grid.Column="1" SelectionChanged="BroadcastCamera_Changed" Margin="0,0,0,8"
-                                                          AutomationProperties.Name="{DynamicResource BroadcastCamera}" />
-                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="{DynamicResource BroadcastCameraAudio}" VerticalAlignment="Center" Margin="0,0,8,8" />
-                                                <ComboBox x:Name="BroadcastCameraAudioBox" local:HelpAnchor.Id="e-broadcast-camera-audio" Grid.Row="3" Grid.Column="1" SelectionChanged="BroadcastVideoAudio_Changed" Margin="0,0,0,8"
-                                                          AutomationProperties.Name="{DynamicResource BroadcastCameraAudio}" />
-                                            </Grid>
-                                            <TextBlock x:Name="BroadcastScreenPrivacyText" Text="{DynamicResource BroadcastScreenPrivacy}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                        </StackPanel>
-                                        <TextBlock x:Name="BroadcastOwnOutputText" Text="{DynamicResource BroadcastOwnOutputRisk}" TextWrapping="Wrap" Visibility="Collapsed" Margin="0,0,0,8" />
                                         <!-- LIVE-BROADCAST item R: the outward link's password is the person's choice. -->
                                         <Grid Margin="0,0,0,8">
                                             <Grid.ColumnDefinitions>
@@ -979,11 +959,11 @@
                                                         AutomationProperties.Name="{DynamicResource BroadcastLinkPasswordSave}" />
                                             </StackPanel>
                                         </Grid>
+                                        <TextBlock x:Name="BroadcastLinkStatusText" TextWrapping="Wrap" Visibility="Collapsed" Margin="0,0,0,8" />
                                         <Button x:Name="BroadcastLinkRenewButton" local:HelpAnchor.Id="e-broadcast-link-renew" Style="{StaticResource BroadcastingGlyphButton}" Content="{DynamicResource BroadcastLinkRenew}" Click="BroadcastLinkRenew_Click"
                                                 HorizontalAlignment="Left" Margin="0,0,0,8" AutomationProperties.Name="{DynamicResource BroadcastLinkRenew}" />
                                         <TextBlock x:Name="BroadcastLinkNoneText" Text="{DynamicResource BroadcastLinkNoneWarning}" TextWrapping="Wrap" Visibility="Collapsed" Margin="0,0,0,8" />
                                         <TextBlock Text="{DynamicResource BroadcastLinkHint}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                        <TextBlock x:Name="BroadcastStatusText" TextWrapping="Wrap" Margin="0,0,0,8" />
                                     </StackPanel>
                                 </StackPanel>
                             </StackPanel>

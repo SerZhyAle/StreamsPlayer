@@ -193,7 +193,8 @@ $procedure
 ### Phase 1 - Pre-scan
 
 - [ ] 1.1 Baseline green. Verify: ``pwsh -NoProfile -File ./build.ps1 -Test -Deploy:`$false`` exits 0 on the tree
-  being audited; record ``expected: exit 0 | actual: ..``. A campaign-wide baseline run on the same tree counts.
+  being audited; record ``expected: exit 0 | actual: ..``. Release tier (SP-0256): the campaign-wide baseline run
+  recorded on the umbrella ticket for the same tree is the evidence; a slice does not run it again.
 - [ ] 1.2 Known findings and signals reviewed. Verify: ``research/slice.md`` has its "Known findings" section and
   each audited file's signal counts.
 

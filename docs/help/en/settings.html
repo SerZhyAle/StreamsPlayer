@@ -575,11 +575,40 @@
         </dl>
       </div>
     </details>
+    <details class="el" id="e-exchange-settings-groups">
+      <summary><span><span class="name">Exchange settings (STANDARD profile)</span><span class="one">Chooses which settings Save as STANDARD and Read STANDARD act on: Appearance, Playback, Interface.</span></span></summary>
+      <div class="full">
+        <p><b>Appearance</b> is the theme, the tile size, the list or grid view, the animated background, hiding adult content, always on top and keeping the player controls visible. <b>Playback</b> is the volumes, mute, the audio channels, keeping the PC awake, the media keys, the video engine and updating previews. <b>Interface</b> is the interface language.</p>
+        <p>Folders, the audio output device, window positions, listening history, passwords and keys are never part of any group: they stay on this PC. The group section appears while this PC is signed in to a server that keeps settings.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-settings-save">
+      <summary><span><span class="name">Save as STANDARD</span><span class="one">Saves the chosen groups on your exchange server as the STANDARD of this program.</span></span></summary>
+      <div class="full">
+        <p>Asks first and names the groups. The STANDARD on the server is replaced as a whole: a group you did not choose leaves it. The operator of the server can read the saved settings.</p>
+        <p>If the server does not answer, it is not known whether the settings were saved; saving again is safe.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The line below the buttons shows when the STANDARD was saved.</dd>
+          <dt>Undo</dt><dd>Save again with the settings you want to keep there.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-settings-read">
+      <summary><span><span class="name">Read STANDARD</span><span class="one">Reads the STANDARD from your exchange server and applies the chosen groups on this PC.</span></span></summary>
+      <div class="full">
+        <p>Asks first and names the groups whose settings on this PC will be replaced. Nothing is changed until the whole answer is understood; a damaged or newer format changes nothing.</p>
+        <p>It happens once: later changes stay on this PC and are never sent by themselves. Nothing is read when the program starts or connects.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The settings act at once, and the other pages of Settings show the new values.</dd>
+          <dt>Undo</dt><dd>Change any setting back by hand; it stays on this PC.</dd>
+        </dl>
+      </div>
+    </details>
     <details class="el" id="e-drive-sign-in">
       <summary><span><span class="name">Sign in with Google</span><span class="one">Signs in with Google in your browser to find broadcasts announced by your own devices.</span></span></summary>
       <div class="full">
         <p>Only hidden application data is used; no media passes through Drive. The broadcast list checks for changes only while it is open and not minimized. Casting is unavailable because Drive has no push. A direct connection can fail behind NAT; a broadcast with an exchange endpoint can use it without an exchange account on this PC.</p>
-        <p>When you broadcast from this PC, its announcement is written and renewed through Google Drive too, then removed when you stop. Your Google grant is protected for your Windows user.</p>
+        <p>When you broadcast from this PC, its announcement is written and renewed via Google Drive too, then removed when you stop. Your Google grant is protected for your Windows user.</p>
       </div>
     </details>
     <details class="el" id="e-drive-sign-out">
@@ -592,7 +621,7 @@
   </section>
   <section id="broadcast">
   <h3>Broadcasting</h3>
-  <p>Allow broadcasting from this PC and choose its sources, network access and sound quality. The controls are shown directly on this page, without a collapsible group.</p>
+  <p>Allow broadcasting from this PC and set its network access, quality and link password. Starting, watching, sharing and stopping a source happens in the Broadcast window, which the button on this page opens. The page shows no per-source controls and no result of a start: the window shows each source's state and, for a refused start, the reason.</p>
   <div class="elements">
     <details class="el" id="e-broadcast-guide">
       <summary><span><span class="name">Media exchange</span><span class="one">Opens the live-broadcast page of the media-exchange guide in your browser.</span></span></summary>
@@ -605,9 +634,9 @@
       <div class="full">
         <p>Sending what this PC captures to the exchange server of your account takes two steps: first allow it here, then start a source yourself. Nothing is captured until both are done. It is off by default, and while it is off the rest of this group stays hidden.</p>
         <p>While this PC is signed in to a server only as a guest, it cannot broadcast and no source is offered.</p>
-        <p>A broadcast starts only when a listener can reach it over the enabled local network or a connected exchange server. A local-only broadcast still has a description you can copy or save.</p>
+        <p>A broadcast starts only when a viewer or listener can reach it over the enabled local network or a connected exchange server. A local-only broadcast still has a description you can copy or save.</p>
         <dl class="facts">
-          <dt>Next</dt><dd>The other controls of the group appear and the list of microphones is read.</dd>
+          <dt>Next</dt><dd>The other controls of the group appear.</dd>
         </dl>
       </div>
     </details>
@@ -617,65 +646,21 @@
         <p>With it on, the sources you started and have not stopped since are started again when the app starts, once the account is online. With it off, nothing starts by itself: every source is started by pressing its button.</p>
       </div>
     </details>
-    <details class="el" id="e-broadcast-mic">
-      <summary><span><span class="name">Broadcast microphone</span><span class="one">Starts broadcasting the microphone chosen below.</span></span></summary>
+    <details class="el" id="e-broadcast-window">
+      <summary><span><span class="name">Open the Broadcast window</span><span class="one">Closes Settings and opens the Broadcast window, where a source is started.</span></span></summary>
       <div class="full">
-        <p>Starts capturing the microphone and offers it as a live broadcast: through the exchange server when the account is connected, and on the local network when <a href="#e-broadcast-lan">Local network</a> is on. The capture begins only when you press the button. The button is unavailable while the microphone is already being broadcast.</p>
+        <p>The Broadcast window has a card for the screen, the camera, the microphone and the system sound. Start, Cancel, Stop, Share and Cast are on the cards, and a live card shows where its source went. Closing the window does not stop a broadcast.</p>
+        <p>Settings is a modal window, so it closes first and the Broadcast window opens when it is gone.</p>
         <dl class="facts">
-          <dt>Next</dt><dd>The line below the quality options reports what happened. <b>Stop all</b> ends the broadcast.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-sound">
-      <summary><span><span class="name">Broadcast system sound</span><span class="one">Starts broadcasting the system sound of this PC.</span></span></summary>
-      <div class="full">
-        <p>Works like <a href="#e-broadcast-mic">Broadcast microphone</a>, with the sound this PC plays as the source instead of a microphone. Its channels are set by <b>System sound channels</b> below.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The line below the quality options reports what happened. <b>Stop all</b> ends the broadcast.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-screen">
-      <summary><span><span class="name">Broadcast screen</span><span class="one">Starts broadcasting the whole monitor chosen below.</span></span></summary>
-      <div class="full">
-        <p>Captures the chosen monitor and offers it as a live broadcast the way <a href="#e-broadcast-mic">Broadcast microphone</a> does; the sound it carries is set by <b>Sound with the screen</b>. Everything on that monitor is sent, including notifications and passwords, and content that Windows protects may come out blank. The capture begins only when you press the button, and the button is not shown on a PC whose Windows has no H.264 encoder.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The indicator in the main window names the monitor that is live. <b>Stop all</b> ends the broadcast.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-camera">
-      <summary><span><span class="name">Broadcast camera</span><span class="one">Starts broadcasting the camera chosen below.</span></span></summary>
-      <div class="full">
-        <p>Captures the chosen camera and offers it as a live broadcast the way <a href="#e-broadcast-mic">Broadcast microphone</a> does; the sound it carries is set by <b>Sound with the camera</b>. If Windows denies the camera to this application, or another program holds it, the broadcast does not start and a message says which. The button is not shown on a PC whose Windows has no H.264 encoder.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The indicator in the main window names the camera that is live. <b>Stop all</b> ends the broadcast.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-stop">
-      <summary><span><span class="name">Stop all</span><span class="one">Ends every broadcast running from this PC.</span></span></summary>
-      <div class="full">
-        <p>Stops all the sources that are live. The button is available only while something is running.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The sources stop at once; start any of them again with its own button.</dd>
-        </dl>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-mic-device">
-      <summary><span><span class="name">Microphone</span><span class="one">Chooses which microphone the microphone broadcast uses.</span></span></summary>
-      <div class="full">
-        <p><b>Windows default</b> follows whatever Windows uses as the default recording device; the other entries are the microphones Windows lists. The list is read only after broadcasting is allowed, so no capture device is touched before that.</p>
-        <dl class="facts">
-          <dt>Next</dt><dd>The choice is used the next time you start the microphone.</dd>
+          <dt>Next</dt><dd>Settings closes and the Broadcast window opens.</dd>
         </dl>
       </div>
     </details>
     <details class="el" id="e-broadcast-lan">
-      <summary><span><span class="name">Local network</span><span class="one">Lets devices on your local network listen to this PC directly.</span></span></summary>
+      <summary><span><span class="name">Local network</span><span class="one">Lets devices on your local network receive this PC's broadcast directly.</span></span></summary>
       <div class="full">
-        <p>When it is on, a broadcast is also offered on this PC's local-network address, on the port beside the box, so devices on the same network can listen without the exchange server. It is off by default.</p>
-        <p>Each direct listener uses this PC's upload; through the exchange server this PC sends one copy for all listeners.</p>
+        <p>When it is on, a broadcast is also offered on this PC's local-network address, on the port beside the box, so devices on the same network can receive it without the exchange server. It is off by default.</p>
+        <p>Each direct viewer or listener uses this PC's upload; through the exchange server this PC sends one copy for all of them.</p>
         <dl class="facts">
           <dt>Next</dt><dd>Read when a source starts: a source that is already live keeps what it started with.</dd>
         </dl>
@@ -684,13 +669,13 @@
     <details class="el" id="e-broadcast-lan-port">
       <summary><span><span class="name">Port</span><span class="one">The port the local-network share listens on.</span></span></summary>
       <div class="full">
-        <p>A number from 1 to 65535; the default is 8768. A value outside that range is ignored and the last good port stays. It is read when a source starts.</p>
+        <p>A number from 1 to 65535; the default is 8768. The change applies when you leave the field and stops any running broadcasts; start them again to use the new port. A value outside that range is ignored and the last good port stays.</p>
       </div>
     </details>
     <details class="el" id="e-broadcast-cap">
-      <summary><span><span class="name">Maximum listeners</span><span class="one">Caps how many listeners a broadcast takes; 0 means no limit.</span></span></summary>
+      <summary><span><span class="name">Maximum viewers and listeners</span><span class="one">Caps how many viewers and listeners a broadcast takes; 0 means no limit.</span></span></summary>
       <div class="full">
-        <p>A number from 0 to 64, where 0 means no limit. Each direct listener on the local network uses this PC's upload, while through the exchange server this PC sends one copy for all listeners. A value outside the range is ignored.</p>
+        <p>A number from 0 to 64, where 0 means no limit. Each direct viewer or listener on the local network uses this PC's upload, while through the exchange server this PC sends one copy for all of them. A value outside the range is ignored.</p>
       </div>
     </details>
     <details class="el" id="e-broadcast-sample-rate">
@@ -717,37 +702,13 @@
         <p>A higher bitrate sounds better and uses more of this PC's upload. The default is 128 kbit/s.</p>
       </div>
     </details>
-    <details class="el" id="e-broadcast-monitor">
-      <summary><span><span class="name">Monitor</span><span class="one">The monitor that the screen broadcast sends.</span></span></summary>
-      <div class="full">
-        <p>A whole monitor is sent, never a part of it or one window. The picture is scaled down to at most 1280 by 720 and keeps the monitor's proportions.</p>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-screen-audio">
-      <summary><span><span class="name">Sound with the screen</span><span class="one">The one sound that travels with the screen: none, the microphone or the system sound.</span></span></summary>
-      <div class="full">
-        <p>The sound is part of the same broadcast, so a listener hears it with the picture. On a Windows that can leave this application's own sound out, a broadcast you play here is never sent on; on an older Windows the note under the options says what happens.</p>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-camera-device">
-      <summary><span><span class="name">Camera</span><span class="one">The camera that the camera broadcast sends.</span></span></summary>
-      <div class="full">
-        <p>Only one camera is sent. A camera that another program is using cannot be started until that program lets it go.</p>
-      </div>
-    </details>
-    <details class="el" id="e-broadcast-camera-audio">
-      <summary><span><span class="name">Sound with the camera</span><span class="one">The one sound that travels with the camera: none, the microphone or the system sound.</span></span></summary>
-      <div class="full">
-        <p>Works like <a href="#e-broadcast-screen-audio">Sound with the screen</a>, for the camera broadcast.</p>
-      </div>
-    </details>
     <details class="el" id="e-broadcast-link-password">
       <summary><span><span class="name">Link password</span><span class="one">How the password of the link you give to other people is made.</span></span></summary>
       <div class="full">
         <p>The link, the file and the QR code of a broadcast open it for anyone who also knows its password; the password is never inside them, so you tell it separately. <b>Made for each broadcast</b> creates a new random password every time a broadcast starts, <b>Set by me</b> keeps the one you type, and <b>No password</b> lets anyone who gets the link watch and listen. Your other devices signed in to the account's exchange server receive the password by themselves.</p>
-        <p>Changing the choice or the password while a broadcast is live takes effect at once: the previous password is refused for every new connection, and a listener on this PC's local-network share who used it is disconnected.</p>
+        <p>Changing the choice or the password while a broadcast is live takes effect at once: the previous password is refused for every new connection, and a viewer or listener on this PC's local-network share who used it is disconnected.</p>
         <dl class="facts">
-          <dt>Next</dt><dd>Open the live indicator, then <b>Share</b>, to copy the password or show the QR code.</dd>
+          <dt>Next</dt><dd>Open the Broadcast window, then <b>Share</b> on the source's card, to copy the password or show the QR code.</dd>
         </dl>
       </div>
     </details>
@@ -836,6 +797,8 @@
   <ul class="related">
     <li><a href="main.html"><b>STREAMS Player</b><span class="pill">Window</span><small>The main window, where the changes you make here show up.</small></a></li>
     <li><a href="first-run.html"><b>Where should the channel list come from?</b><span class="pill">Window</span><small>The question about the channel list asked on the first start; the built-in list here is the same answer.</small></a></li>
+    <li><a href="broadcasts.html"><b>My broadcasts</b><span class="pill">Window</span><small>The live broadcasts list, which opens after a successful sign-in here.</small></a></li>
+    <li><a href="exchange-diagnosis.html"><b>Connection check</b><span class="pill">Window</span><small>The window that Check the connection opens.</small></a></li>
     <li><a href="https://serzhyale.github.io/StreamsPlayer/index.html#use"><b>How to use</b><span class="pill gold">Site</span><small>The whole task, from the first start to your own playlists.</small></a></li>
     <li><a href="https://serzhyale.github.io/StreamsPlayer/support.html"><b>Support</b><span class="pill gold">Site</span><small>How to report a problem and what to send.</small></a></li>
     <li><a href="https://serzhyale.github.io/StreamsPlayer/privacy.html"><b>Privacy</b><span class="pill gold">Site</span><small>What stays on your computer and what goes over the network.</small></a></li>

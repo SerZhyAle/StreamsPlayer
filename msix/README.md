@@ -13,9 +13,15 @@ It requires the Windows SDK tools `makeappx.exe` and (for `-SelfSign`)
 ## Reserved Partner Center identity (permanent)
 
 The product is reserved in Partner Center. These values are permanent for this
-product and must be supplied on every update; `build-msix.ps1` already defaults
-to the three identity values, so a plain `./msix/build-msix.ps1` produces a
-correctly-identified Store package.
+product and must be supplied on every update. They are pinned in one machine-readable
+file, `msix/identity.json` (`IdentityName`, `Publisher`, `PublisherDisplayName`, `StoreId`,
+`PackageFamilyName`, `IarcRatingId`), which `build-msix.ps1` reads through `MsixIdentity.ps1`, so a
+plain `./msix/build-msix.ps1` produces a correctly-identified Store package. A run that finds no
+`identity.json` stops before it builds. The file holds no account identifier and no credential.
+`msix/Test-MsixIdentity.ps1` (fast, in `scripts/check-fast.ps1`) proves the file agrees with the table below and
+with the read-back's own constants. The release flow's read-only Store preflight
+(`scripts/Invoke-StorePreflight.ps1`, release checklist item 4b) reads the Store ID from the same file and stops
+before it talks to the Store when the file or its `StoreId` is missing.
 
 | Field | Value |
 | --- | --- |
@@ -28,7 +34,7 @@ correctly-identified Store package.
 | Store deep link | `ms-windows-store://pdp/?ProductId=9NBTD5SXB8TB` |
 | Web Store URL (after live) | `https://apps.microsoft.com/detail/9NBTD5SXB8TB` |
 
-A one-off package under another identity needs `-TestIdentity` together with the three values; the read-back then judges against them, and the package is reported as not Store-valid:
+A one-off package under another identity needs `-TestIdentity` together with the three values (they override the file's values for that run); the read-back then judges against them, and the package is reported as not Store-valid:
 
 ```powershell
 .\msix\build-msix.ps1 -TestIdentity `

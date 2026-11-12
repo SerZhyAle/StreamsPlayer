@@ -62,7 +62,10 @@ internal sealed partial class ExchangeSourceService
             bool written;
             try
             {
-                written = await PostControlEnvelopeAsync(change, cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                // Once queued, delivery owns the arrays and the answer slot until the writer answers.
+                // Cancellation only ends the subsequent wait for the server, after serialization is over.
+                written = await PostControlEnvelopeAsync(change, CancellationToken.None).ConfigureAwait(false);
             }
             catch
             {

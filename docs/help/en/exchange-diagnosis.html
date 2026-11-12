@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Help - Connection check</title>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <nav class="help-crumbs" aria-label="Breadcrumb">
+    <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Connection check</span>
+  </nav>
+  <header class="hero">
+    <p class="kicker">Window help</p>
+    <h1>Connection check</h1>
+    <p class="lead">Finds out, step by step, why the connection to your exchange server does not work, and says what to try. It runs only because you pressed a button that opens it - <b>Check the connection</b> in My broadcasts, in the window of a broadcast, or on the Exchange server page of Settings - and it stops at the first step that does not pass. It changes no setting. Closing the window, with <kbd>Esc</kbd> too, also ends a check that is still running.</p>
+  </header>
+
+  <h2>In this order</h2>
+  <ol class="order">
+    <li>Read <a href="#e-happened">What happened</a>: it is the line of the screen you came from, so you know what is being checked.</li>
+    <li>Wait while the bar and &quot;Checking..&quot; show: the check goes through its steps in order and stops at the first one that does not pass.</li>
+    <li>Do what <a href="#e-try">What to try</a> says. If every step this PC can check passes, it offers the first step that cannot be checked from here.</li>
+    <li>If that did not help, press <b><a href="#e-next">Next thing to try</a></b> to see the next suggestion, as long as the button is shown.</li>
+    <li>After each change, press <b><a href="#e-again">Check again</a></b> to run the whole check from the start.</li>
+    <li>Open <b><a href="#e-details">Details</a></b> to see the server that was checked, the failure code and every step with how it came out.</li>
+  </ol>
+
+  <h2>The elements</h2>
+  <div class="elements">
+    <details class="el" id="e-happened">
+      <summary><span><span class="name">What happened</span><span class="one">Says in a sentence what the screen you came from was showing.</span></span></summary>
+      <div class="full">
+        <p>The line is the one that screen showed; for a broadcast that is no longer available it names the broadcast. It is shown at once, before the check has finished.</p>
+        <p>Two other cases change what the window shows. When the server is already connected there is nothing to check, so the window shows that line and nothing else. When no server is known, the line says that there is no server to check and asks you to import a connection string or sign in first.</p>
+      </div>
+    </details>
+    <details class="el" id="e-try">
+      <summary><span><span class="name">What to try</span><span class="one">The first thing worth doing about the step that did not pass.</span></span></summary>
+      <div class="full">
+        <p>The check stops at the first step that does not pass and shows the advice for that step here. If every step this PC can look at passes, the first step that cannot be checked from this PC is offered instead.</p>
+        <p>This part appears only after the check has finished, and only when there is a step to suggest.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>It turns the result into one thing to do, instead of a list to read.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-details">
+      <summary><span><span class="name">Details</span><span class="one">Opens the part that holds the address that was checked, the failure code and the steps.</span></span></summary>
+      <div class="full">
+        <p>The part is closed when the window opens. Inside are the line that starts with &quot;Server:&quot;, with the address and port that were checked, the line that starts with &quot;Code:&quot;, with the code of the failure, and the list of steps. It is not shown when there was nothing to check.</p>
+      </div>
+    </details>
+    <details class="el" id="e-steps">
+      <summary><span><span class="name">Steps</span><span class="one">Lists every step with how it came out.</span></span></summary>
+      <div class="full">
+        <p>The list is inside the details. Each line reads a state, a hyphen and the advice of that step. The states are &quot;Passed&quot;, &quot;Did not pass&quot;, &quot;Cannot be checked from this PC&quot; and &quot;Not reached&quot;. The check stops at the first step that does not pass, so the steps after it read &quot;Not reached&quot;.</p>
+        <p>A step that does not belong to this connection is left out of the list. A step marked &quot;Cannot be checked from this PC&quot; is one that only the other end or the network can show; it is offered to you to try, not judged.</p>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-guide">
+      <summary><span><span class="name">Media exchange</span><span class="one">Opens the guide to exchanging media between your devices.</span></span></summary>
+      <div class="full">
+        <p>Opens a web page about exchanging media between your devices in your browser; the application stays open. The guide is on the internet, so it needs a connection. It comes in English, Russian and Ukrainian, and every other language opens the English one.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The guide opens in your browser. Nothing in the application changes.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-next">
+      <summary><span><span class="name">Next thing to try</span><span class="one">Shows the next suggestion.</span></span></summary>
+      <div class="full">
+        <p>Replaces the text under &quot;What to try&quot; with the next step that is still left to try, and goes on down the list each time you press it. When no step is left, the button is no longer shown. It is also hidden while the check runs and when there is no suggestion.</p>
+        <p>There is no way back one step; <b>Check again</b> starts over and shows the first suggestion again.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>For when the first suggestion did not help.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-again">
+      <summary><span><span class="name">Check again</span><span class="one">Runs the whole check again.</span></span></summary>
+      <div class="full">
+        <p>Starts the check from the first step and replaces the result. The button is unavailable while a check runs.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>To see whether what you changed made a difference.</dd>
+          <dt>Next</dt><dd>The bar and &quot;Checking..&quot; show while the check runs, then the new result replaces the old one.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-help">
+      <summary><span><span class="name">Help</span><span class="one">Opens this page when you press <kbd>F1</kbd>.</span></span></summary>
+      <div class="full">
+        <p>Pressing <kbd>F1</kbd> in this window opens the page of the window you are in, in your web browser; the application stays open.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The page opens in your browser. Nothing in the application changes.</dd>
+          <dt>Shortcut</dt><dd><kbd>F1</kbd> works from anywhere in the window.</dd>
+        </dl>
+      </div>
+    </details>
+  </div>
+
+  <h2>Related</h2>
+  <ul class="related">
+    <li><a href="broadcasts.html"><b>My broadcasts</b><span class="pill">Window</span><small>The list that offers Check the connection when part of it cannot be read.</small></a></li>
+    <li><a href="broadcast-audio.html"><b>Live broadcast, audio</b><span class="pill">Window</span><small>The window of an audio broadcast, which can offer Check the connection after a failure.</small></a></li>
+    <li><a href="settings.html"><b>STREAMS Player settings</b><span class="pill">Window</span><small>The Exchange server page, which has its own Check the connection button.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/index.html#use"><b>How to use</b><span class="pill gold">Site</span><small>The whole task, from the first start to your own playlists.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Written against STREAMS Player 26.1021, 2026-10-21.</span>
+    <a href="index.html">Help index</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/support.html">Ask a question or report a problem</a>
+  </footer>
+
+</main>
+<script>
+/* Progressive enhancement only: the page is complete without it. */
+(function () {
+  function openHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === 'DETAILS') { el.open = true; }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+})();
+</script>
+</body>
+</html>

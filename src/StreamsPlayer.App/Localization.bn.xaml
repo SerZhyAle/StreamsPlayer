@@ -630,6 +630,8 @@
     <sys:String x:Key="BroadcastResourceAdded">সম্প্রচার যোগ করা হয়েছে: {0}</sys:String>
     <sys:String x:Key="BroadcastResourceUpdated">সম্প্রচার আপডেট করা হয়েছে: {0}</sys:String>
     <sys:String x:Key="BroadcastNoLongerAvailable">{0} সম্প্রচারটি আর উপলব্ধ নেই।</sys:String>
+    <sys:String x:Key="BroadcastEnded">সম্প্রচার শেষ হয়েছে।</sys:String>
+    <sys:String x:Key="BroadcastReconnect">আবার সংযোগ করুন</sys:String>
     <sys:String x:Key="BroadcastPlaylistPosition">{0} - আইটেম {1} / {2}</sys:String>
     <sys:String x:Key="FmsBroadcastConfirm">এই সরাসরি সম্প্রচার আমদানি করবেন?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
     <sys:String x:Key="FmsBroadcastAdded">সরাসরি সম্প্রচার আমদানি করা হয়েছে: {0}।</sys:String>
@@ -638,7 +640,7 @@
     <sys:String x:Key="FmsBroadcastInvalid">এটি বৈধ FastMediaSorter সম্প্রচার বর্ণনা নয়। আপনার তালিকা বদলানো হয়নি।</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">এই সম্প্রচার বর্ণনা 64 KiB-এর বেশি। আপনার তালিকা বদলানো হয়নি।</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer আরেকটি কাজে ব্যস্ত। কাজটি শেষ হলে সম্প্রচারটি আবার ইমপোর্ট করুন। আপনার তালিকা বদলানো হয়নি।</sys:String>
-    <sys:String x:Key="FmsBroadcastListenerLimit">{0}-এ শ্রোতার সর্বোচ্চ সংখ্যা ইতিমধ্যে পূর্ণ। অন্য কোনো শ্রোতা সংযোগ বিচ্ছিন্ন করলে আবার চেষ্টা করুন।</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0}-এ দর্শক ও শ্রোতার সর্বোচ্চ সংখ্যা ইতিমধ্যে পূর্ণ। অন্য কেউ সংযোগ বিচ্ছিন্ন করলে আবার চেষ্টা করুন।</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} সম্প্রচার বন্ধ করেছে অথবা এই নেটওয়ার্কে আর পৌঁছানো যাচ্ছে না।</sys:String>
     <!-- SP-0098 portable stream catalog import -->
     <sys:String x:Key="StreamCatalogSettings">স্ট্রিম ক্যাটালগ</sys:String>
@@ -714,7 +716,7 @@
     <sys:String x:Key="SettingsFilesDesc">স্ক্রিনশট ও স্ট্রিম রেকর্ডিংয়ের ফোল্ডার</sys:String>
     <sys:String x:Key="SettingsAbout">সম্পর্কে</sys:String>
     <sys:String x:Key="SettingsExchangeDesc">অ্যাকাউন্ট এবং সার্ভার সংযোগ</sys:String>
-    <sys:String x:Key="SettingsBroadcastDesc">উৎস, নেটওয়ার্ক অ্যাক্সেস এবং অডিওর মান</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">অনুমতি, নেটওয়ার্ক অ্যাক্সেস এবং মান</sys:String>
     <sys:String x:Key="SettingsAboutDesc">অ্যাপের তথ্য, লাইসেন্স ও ডায়াগনস্টিকস</sys:String>
     <sys:String x:Key="ThemeHint">হালকা, গাঢ় বেছে নিন বা আপনার Windows রূপ অনুসরণ করুন।</sys:String>
     <sys:String x:Key="TileSizeHint">গ্রিডে চ্যানেলের টাইল কত বড় দেখাবে তা সমন্বয় করুন।</sys:String>
@@ -805,7 +807,7 @@
     <sys:String x:Key="BroadcastsPlayNamed">{0} চালান</sys:String>
     <sys:String x:Key="BroadcastsKeepNamed">{0} আমার চ্যানেলগুলিতে যোগ করুন</sys:String>
     <sys:String x:Key="EndedLabel">শেষ</sys:String>
-    <sys:String x:Key="BroadcastCapabilityWarning">এই ঠিকানায় সম্প্রচারের গোপনীয়তা আছে: যার কাছে এটি আছে, সে শুনতে পারবে। তবুও দিতে চান?</sys:String>
+    <sys:String x:Key="BroadcastCapabilityWarning">এই ঠিকানায় সম্প্রচারের গোপনীয়তা আছে: যার কাছে এটি আছে, সে দেখতে ও শুনতে পারবে। তবুও দিতে চান?</sys:String>
     <sys:String x:Key="ExchangeAutoAcceptCasts">আমার ডিভাইসগুলি থেকে স্বয়ংক্রিয়ভাবে কাস্ট গ্রহণ করুন</sys:String>
     <sys:String x:Key="ExchangeCastTitle">কাস্টের অনুরোধ</sys:String>
     <sys:String x:Key="ExchangeCastOfferPrompt">{1}-এ {0} এই ডিভাইসে কাস্ট করতে চায়। গ্রহণ করবেন?</sys:String>
@@ -833,7 +835,7 @@
     <sys:String x:Key="ExchangeStringFileFilter">ফাইল থেকে আমদানি (*.fmsexch)|*.fmsexch|*.*|*.*</sys:String>
     <!-- SP-0217: broadcasting this PC devices through the device exchange. -->
     <sys:String x:Key="BroadcastTitle">লাইভ ব্রডকাস্ট</sys:String>
-    <sys:String x:Key="BroadcastHint">এই পিসি যা ধারণ করে তা আপনার অ্যাকাউন্টের এক্সচেঞ্জ সার্ভারে পাঠায়। আপনি এখানে অনুমতি না দেওয়া পর্যন্ত এবং একটি উৎস না চালু করা পর্যন্ত কিছুই ধারণ করা হয় না।</sys:String>
+    <sys:String x:Key="BroadcastHint">এই পিসি যা ধারণ করে তা আপনার অ্যাকাউন্টের এক্সচেঞ্জ সার্ভারে এবং, “স্থানীয় নেটওয়ার্ক” বিকল্প চালু থাকলে, আপনার স্থানীয় নেটওয়ার্কে পাঠায়। আপনি এখানে অনুমতি না দেওয়া পর্যন্ত এবং একটি উৎস না চালু করা পর্যন্ত কিছুই ধারণ করা হয় না।</sys:String>
     <sys:String x:Key="BroadcastAllow">এই পিসিকে সম্প্রচারের অনুমতি দিন</sys:String>
     <sys:String x:Key="BroadcastStartWithApp">অ্যাপ্লিকেশন চালু হলে নির্বাচিত উৎসগুলি চালু করুন</sys:String>
     <sys:String x:Key="BroadcastMicStart">মাইক্রোফোন সম্প্রচার করুন</sys:String>
@@ -843,8 +845,8 @@
     <sys:String x:Key="BroadcastDefaultDevice">Windows-এর ডিফল্ট</sys:String>
     <sys:String x:Key="BroadcastLanListening">স্থানীয় নেটওয়ার্ক</sys:String>
     <sys:String x:Key="BroadcastLanPort">পোর্ট</sys:String>
-    <sys:String x:Key="BroadcastCap">সর্বাধিক শ্রোতা</sys:String>
-    <sys:String x:Key="BroadcastCapHint">0 মানে কোনো সীমা নেই। সরাসরি যুক্ত প্রতিটি শ্রোতার জন্য এই পিসি থেকে ডেটা পাঠানো হয়। এক্সচেঞ্জ সার্ভারের মাধ্যমে এই পিসি সব শ্রোতার জন্য একটি কপি পাঠায়।</sys:String>
+    <sys:String x:Key="BroadcastCap">সর্বাধিক দর্শক ও শ্রোতা</sys:String>
+    <sys:String x:Key="BroadcastCapHint">0 মানে কোনো সীমা নেই। সরাসরি যুক্ত প্রতিটি দর্শক বা শ্রোতার জন্য এই পিসি থেকে ডেটা পাঠানো হয়। এক্সচেঞ্জ সার্ভারের মাধ্যমে এই পিসি সবার জন্য একটি কপি পাঠায়।</sys:String>
     <sys:String x:Key="BroadcastQuality">গুণমান</sys:String>
     <sys:String x:Key="BroadcastSampleRate">স্যাম্পল রেট</sys:String>
     <sys:String x:Key="BroadcastMicChannels">মাইক্রোফোন চ্যানেল</sys:String>
@@ -868,14 +870,17 @@
     <sys:String x:Key="BroadcastAudioMicrophone">মাইক্রোফোন</sys:String>
     <sys:String x:Key="BroadcastAudioSystem">সিস্টেম শব্দ</sys:String>
     <sys:String x:Key="BroadcastNoDevices">কিছু পাওয়া যায়নি</sys:String>
-    <sys:String x:Key="BroadcastScreenPrivacy">স্ক্রিন সম্প্রচার বেছে নেওয়া পুরো মনিটর পাঠায়, তাতে দেখানো বিজ্ঞপ্তি ও পাসওয়ার্ডসহ। Windows যে কনটেন্ট সুরক্ষিত রাখে তা ফাঁকা আসতে পারে। সম্প্রচার চলাকালীন সূচক মনিটরের নাম দেখায়।</sys:String>
+    <sys:String x:Key="BroadcastScreenPrivacy">স্ক্রিন সম্প্রচার বেছে নেওয়া পুরো মনিটর পাঠায়, তাতে দেখানো বিজ্ঞপ্তি ও পাসওয়ার্ডসহ। Windows যে কনটেন্ট সুরক্ষিত রাখে তা ফাঁকা আসতে পারে। সম্প্রচার চলাকালীন কার্ড মনিটরের নাম দেখায়।</sys:String>
     <sys:String x:Key="BroadcastVideoUnavailable">এই পিসিতে Windows ভিডিও এনকোডার (H.264) চালু হয় না, তাই স্ক্রিন ও ক্যামেরা দেওয়া হয় না। মাইক্রোফোন ও সিস্টেম শব্দ এর ওপর নির্ভর করে না।</sys:String>
     <sys:String x:Key="BroadcastOwnOutputRisk">Windows-এর এই সংস্করণে সিস্টেম শব্দে এই অ্যাপের নিজের শব্দও থাকে, তাই এখানে চালানো সম্প্রচার আবার পাঠানো হবে। সিস্টেম শব্দ চালু থাকা অবস্থায় সম্প্রচার অন্য ডিভাইসে শুনুন।</sys:String>
     <sys:String x:Key="BroadcastLinkPassword">লিঙ্কের পাসওয়ার্ড</sys:String>
+    <sys:String x:Key="BroadcastConfirmStopAll">এতে এখন চলা সব লাইভ ব্রডকাস্ট বন্ধ হবে এবং তাদের দর্শক ও শ্রোতারা বিচ্ছিন্ন হবেন। চালিয়ে যাবেন?</sys:String>
+    <sys:String x:Key="BroadcastConfirmLanOff">স্থানীয় নেটওয়ার্কে যাঁরা দেখছেন বা শুনছেন তাঁরা সবাই বিচ্ছিন্ন হবেন, আর যে ব্রডকাস্ট এক্সচেঞ্জ সার্ভারেও নেই সেটি বন্ধ হবে। চালিয়ে যাবেন?</sys:String>
+    <sys:String x:Key="BroadcastConfirmRevokeLink">লিঙ্কের বর্তমান পাসওয়ার্ড সঙ্গে সঙ্গে অকেজো হবে, আর যাঁরা এটি দিয়ে দেখছেন বা শুনছেন তাঁরা সবাই বিচ্ছিন্ন হবেন। চালিয়ে যাবেন?</sys:String>
     <sys:String x:Key="BroadcastLinkGenerated">প্রতিটি সম্প্রচারের জন্য নতুন</sys:String>
     <sys:String x:Key="BroadcastLinkCustom">আমি ঠিক করি</sys:String>
     <sys:String x:Key="BroadcastLinkNone">পাসওয়ার্ড ছাড়া</sys:String>
-    <sys:String x:Key="BroadcastLinkHint">অন্যদের যে লিঙ্ক, ফাইল ও QR কোড দেন, সেগুলোর ক্ষেত্রে এটি প্রযোজ্য। পাসওয়ার্ড কখনও এগুলোর ভেতরে থাকে না - আলাদাভাবে জানান; সম্প্রচার সূচকের «শেয়ার» মেনু থেকে কপি করতে পারেন। আপনার ঠিক করা পাসওয়ার্ড শুধু আপনার অ্যাকাউন্টের Windows গোপন তথ্যের ভাণ্ডারে রাখা হয়।</sys:String>
+    <sys:String x:Key="BroadcastLinkHint">অন্যদের যে লিঙ্ক, ফাইল ও QR কোড দেন, সেগুলোর ক্ষেত্রে এটি প্রযোজ্য। পাসওয়ার্ড কখনও এগুলোর ভেতরে থাকে না - আলাদাভাবে জানান; সম্প্রচার উইন্ডোর «শেয়ার» মেনু থেকে কপি করতে পারেন। আপনার ঠিক করা পাসওয়ার্ড শুধু আপনার অ্যাকাউন্টের Windows গোপন তথ্যের ভাণ্ডারে রাখা হয়।</sys:String>
     <sys:String x:Key="BroadcastLinkNoneWarning">পাসওয়ার্ড না থাকলে যে-ই লিঙ্ক পাবে সে-ই দেখতে ও শুনতে পারবে।</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordField">লিঙ্কের জন্য পাসওয়ার্ড</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordSave">পাসওয়ার্ড সংরক্ষণ করুন</sys:String>
@@ -902,7 +907,7 @@
     <sys:String x:Key="BroadcastNotAllowed">আগে সেটিংসে সম্প্রচারের অনুমতি দিন।</sys:String>
     <sys:String x:Key="BroadcastTooManySources">একসঙ্গে অনেক সম্প্রচার।</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">এই উৎস আগেই লাইভ।</sys:String>
-    <sys:String x:Key="BroadcastEncoderMissing">Windows-এর অডিও এনকোডার এই পিসিতে নেই, তাই উৎসগুলি দেওয়া হয় না।</sys:String>
+    <sys:String x:Key="BroadcastEncoderMissing">Windows-এর অডিও এনকোডার এই পিসিতে নেই, তাই শব্দসহ সম্প্রচার শুরু করা যায় না। শব্দ ছাড়া স্ক্রিন বা ক্যামেরার সম্প্রচার এতে প্রভাবিত হয় না।</sys:String>
     <sys:String x:Key="BroadcastPortTaken">LAN পোর্ট ব্যস্ত। সেটিংসে অন্যটি বেছে নিন।</sys:String>
     <sys:String x:Key="BroadcastPermissionDenied">Windows এই অ্যাপকে মাইক্রোফোন বা ক্যামেরা ব্যবহার করতে দেয়নি। Windows-এর গোপনীয়তা সেটিংসে অনুমতি দিয়ে আবার শুরু করুন।</sys:String>
     <sys:String x:Key="BroadcastDeviceInUse">ডিভাইস অন্য প্রোগ্রামের দখলে। বন্ধ করে আবার চালু করুন।</sys:String>
@@ -1014,7 +1019,7 @@
     <sys:String x:Key="ExchangeDiagnosisCodeLine">কোড: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">যাচাই করার মতো কোনো সার্ভার এখনও নেই। আগে একটি সংযোগ স্ট্রিং আমদানি করুন বা সাইন ইন করুন।</sys:String>
     <sys:String x:Key="BroadcastNoReachableEndpoint">কেউ এই সম্প্রচার গ্রহণ করতে পারবে না। স্থানীয় নেটওয়ার্ক চালু করুন বা এক্সচেঞ্জ সার্ভারে সংযোগ করে আবার চেষ্টা করুন।</sys:String>
-    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">এই সুরক্ষিত ঠিকানা এখানে চালানো যায় না। সম্প্রচারকারীর কাছে এক্সচেঞ্জ সার্ভারের মাধ্যমে লিঙ্ক চান।</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">স্থানীয় নেটওয়ার্ক বা এক্সচেঞ্জ সার্ভারের মাধ্যমে সম্প্রচারকারীর সঙ্গে সরাসরি সংযোগে এমন পাসওয়ার্ড যাচাই দরকার যা এই প্লেয়ার সমর্থন করে না। এক্সচেঞ্জ সার্ভার থেকে বিতরণ করা সম্প্রচার চান।</sys:String>
     <sys:String x:Key="BroadcastNotListed">তালিকায় নেই</sys:String>
     <sys:String x:Key="BroadcastTrustPrompt">এই পিসি {0}-এর শংসাপত্র যাচাই করতে পারে না। এই চ্যানেলের জন্য বিশ্বাস করার আগে সম্প্রচারকারীর সঙ্গে ফিঙ্গারপ্রিন্ট মিলিয়ে নিন:&#10;{1}&#10;এই শংসাপত্র বিশ্বাস করবেন?</sys:String>
     <sys:String x:Key="DriveTitle">Google Drive-এর মাধ্যমে</sys:String>
@@ -1022,7 +1027,6 @@
     <sys:String x:Key="DriveSignIn">Google দিয়ে সাইন ইন</sys:String>
     <sys:String x:Key="DriveSignOut">Google থেকে সাইন আউট</sys:String>
     <sys:String x:Key="DriveNoCast">Google Drive-এ পুশ বিজ্ঞপ্তি নেই, তাই কোনো ডিভাইসে সম্প্রচার পাঠানো যায় না।</sys:String>
-    <sys:String x:Key="DriveUnavailable">এই সংস্করণে Google সাইন-ইন উপলব্ধ নয়।</sys:String>
     <sys:String x:Key="DriveSignedOut">Google-এ সাইন ইন করা নেই।</sys:String>
     <sys:String x:Key="DriveSigningIn">ব্রাউজারে Google সাইন-ইন সম্পূর্ণ করুন।</sys:String>
     <sys:String x:Key="DriveConnected">Google Drive-এর সঙ্গে সংযুক্ত।</sys:String>
@@ -1049,4 +1053,46 @@
     <sys:String x:Key="MyStreamsWatch">দেখুন</sys:String>
     <sys:String x:Key="MyStreamsListen">শুনুন</sys:String>
     <sys:String x:Key="MyStreamsSaved">সংরক্ষিত</sys:String>
+    <!-- Broadcast start verdict and publication details. -->
+    <sys:String x:Key="BroadcastStarting">সম্প্রচার শুরু হচ্ছে…</sys:String>
+    <sys:String x:Key="BroadcastStartFailed">সম্প্রচার শুরু হয়নি। {0} নির্বাচিত ডিভাইস ও সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</sys:String>
+    <sys:String x:Key="BroadcastStopped">সম্প্রচার বন্ধ হয়েছে।</sys:String>
+    <sys:String x:Key="BroadcastAnnounced">{0}-এ অ্যাকাউন্টের {1}টি ডিভাইসের জন্য ঘোষণা করা হয়েছে।</sys:String>
+    <sys:String x:Key="BroadcastNoRecipients">সতর্কতা: অ্যাকাউন্টের অন্য কোনো ডিভাইস এটি খুলতে পারবে না। গ্রহণকারী ডিভাইসে সাইন ইন করুন, এনক্রিপ্ট করা সম্প্রচার চালানো যায় কি না পরীক্ষা করে আবার শুরু করুন।</sys:String>
+    <sys:String x:Key="BroadcastNotAnnounced">এক্সচেঞ্জ সার্ভারে ঘোষণা করা হয়নি। ঘোষণা করতে অ্যাকাউন্ট সংযুক্ত করুন।</sys:String>
+    <sys:String x:Key="BroadcastLanAddress">স্থানীয় নেটওয়ার্কের ঠিকানা: {0}।</sys:String>
+    <sys:String x:Key="BroadcastUnnamedDevice">নামহীন ডিভাইস</sys:String>
+    <sys:String x:Key="BroadcastShowRecipients">প্রাপক ডিভাইসগুলি দেখান</sys:String>
+    <sys:String x:Key="BroadcastWindowTitle">সম্প্রচার</sys:String>
+    <sys:String x:Key="BroadcastButtonIdle">সম্প্রচার: কিছুই লাইভ নয়</sys:String>
+    <sys:String x:Key="BroadcastButtonServerWarning">এক্সচেঞ্জ সার্ভারে পৌঁছানো যাচ্ছে না, তাই সার্ভার ফেরা পর্যন্ত অ্যাকাউন্টের ডিভাইসগুলো এই সম্প্রচার দেখতে পাবে না।</sys:String>
+    <sys:String x:Key="BroadcastStateOff">বন্ধ</sys:String>
+    <sys:String x:Key="BroadcastStateLiveSince">{0} থেকে লাইভ।</sys:String>
+    <sys:String x:Key="BroadcastStateStopping">সম্প্রচার বন্ধ হচ্ছে..</sys:String>
+    <sys:String x:Key="BroadcastWhereDrive">Google Drive-এর মাধ্যমে ঘোষণা করা হয়েছে।</sys:String>
+    <sys:String x:Key="BroadcastReceivers">সরাসরি এই পিসির সঙ্গে যুক্ত: {0}।</sys:String>
+    <sys:String x:Key="BroadcastOpenSettings">সেটিংস..</sys:String>
+    <sys:String x:Key="BroadcastOpenWindow">সম্প্রচারের উইন্ডো খুলুন</sys:String>
+    <sys:String x:Key="BroadcastStopShort">বন্ধ করুন</sys:String>
+    <sys:String x:Key="BroadcastLinkChoiceLine">লিঙ্কের পাসওয়ার্ড: {0}। এটি সেটিংসে বদলানো যায়।</sys:String>
+    <sys:String x:Key="ExchangeSettingsTitle">সেটিংস বিনিময় (STANDARD প্রোফাইল)</sys:String>
+    <sys:String x:Key="ExchangeSettingsHint">আপনার চেহারা, প্লেব্যাক ও ইন্টারফেসের সেটিংস আপনার এক্সচেঞ্জ সার্ভারে STANDARD হিসেবে রাখুন এবং অন্য পিসিতে পড়ুন। আপনি বোতাম না চাপা পর্যন্ত কিছুই পাঠানো বা পড়া হয় না, এবং পরের পরিবর্তনগুলো এই পিসিতেই থাকে। ফোল্ডার, অডিও ডিভাইস, উইন্ডোর অবস্থান, পাসওয়ার্ড ও কী কখনও এটি ছেড়ে যায় না। সার্ভারের পরিচালক সংরক্ষিত সেটিংস পড়তে পারেন।</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupAppearance">চেহারা</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupPlayback">প্লেব্যাক</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupInterface">ইন্টারফেস</sys:String>
+    <sys:String x:Key="ExchangeSettingsSave">STANDARD হিসেবে সংরক্ষণ করুন</sys:String>
+    <sys:String x:Key="ExchangeSettingsRead">STANDARD পড়ুন</sys:String>
+    <sys:String x:Key="ExchangeSettingsUnavailable">STANDARD সংরক্ষণ ও পড়া তখনই কাজ করে যখন এই পিসি এমন একটি সার্ভারে যুক্ত থাকে যা সেটিংস রাখে।</sys:String>
+    <sys:String x:Key="ExchangeSettingsChooseGroup">অন্তত একটি গ্রুপ বেছে নিন।</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveConfirm">এই গ্রুপগুলো সার্ভারে STANDARD হিসেবে সংরক্ষণ করবেন: {0}? সেখানে রাখা STANDARD প্রতিস্থাপিত হবে, এবং যে গ্রুপ বেছে নেওয়া হয়নি সেটি তা থেকে বাদ যাবে।</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadConfirm">সার্ভার থেকে STANDARD পড়ে এই গ্রুপগুলো প্রয়োগ করবেন: {0}? এই পিসিতে তাদের সেটিংস প্রতিস্থাপিত হবে।</sys:String>
+    <sys:String x:Key="ExchangeSettingsSavedAt">STANDARD হিসেবে সংরক্ষিত: {0}।</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadAt">{0}-এ সংরক্ষিত STANDARD পড়া ও প্রয়োগ করা হয়েছে।</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveUnknown">সার্ভার উত্তর দেয়নি, তাই সেটিংস সংরক্ষিত হয়েছে কি না জানা নেই। আবার সংরক্ষণ করা নিরাপদ।</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadDamaged">সার্ভারের সেটিংস ক্ষতিগ্রস্ত। কিছুই পরিবর্তন করা হয়নি।</sys:String>
+    <sys:String x:Key="ExchangeSettingsBusy">সেটিংস বিনিময় ইতিমধ্যে চলছে। এটি শেষ হওয়া পর্যন্ত অপেক্ষা করুন।</sys:String>
+    <sys:String x:Key="ExchangeSettingsNotFound">সার্ভারে এই প্রোগ্রামের জন্য এখনও কোনো মানক সেটিংস সংরক্ষিত নেই। আগে সেগুলো সংরক্ষণ করুন।</sys:String>
+    <sys:String x:Key="ExchangeSettingsInvalidPayload">সার্ভার এই সেটিংস গ্রহণ করেনি: সেগুলো ক্ষতিগ্রস্ত বা খুব বড়।</sys:String>
+    <sys:String x:Key="ExchangeSettingsAppIdMismatch">এই সার্ভার এই অ্যাকাউন্টের জন্য এই প্রোগ্রামের সেটিংস রাখে না।</sys:String>
+    <sys:String x:Key="ExchangeSettingsVersionIncompatible">সার্ভার সেটিংস ফরম্যাটের এই সংস্করণ সমর্থন করে না।</sys:String>
 </ResourceDictionary>

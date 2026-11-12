@@ -88,13 +88,15 @@ public partial class MainWindow
         panel.RecordRequested += CompactPanel_RecordRequested;
         panel.SleepTimerRequested += CompactPanel_SleepTimerRequested;
         panel.OverflowRequested += CompactPanel_OverflowRequested;
-        panel.BroadcastMenuRequested += CompactPanel_BroadcastMenuRequested;
+        panel.BroadcastRequested += CompactPanel_BroadcastRequested;
         panel.VolumeChanged += CompactPanel_VolumeChanged;
         panel.Moved += CompactPanel_Moved;
         panel.MoveFinished += CompactPanel_MoveFinished;
         panel.Closed += CompactPanel_Closed;
         panel.ShowTopmost(_compactPanelTopmost);
         _compactPanel = panel;
+        // The strip opens with the live source already on the air: its own indicator follows the producer, not an event.
+        RefreshBroadcastIndicator();
 
         // Placed twice on purpose. Before Show the panel has no window handle and therefore no DPI of
         // its own, so this first pass borrows the catalog's - right on a single-scale desktop, and close
@@ -245,6 +247,9 @@ public partial class MainWindow
 
     private void CompactPanel_RandomRequested(object? sender, EventArgs e) => HandlerBoundary.Run(nameof(CompactPanel_RandomRequested), () => StartRandomStationHuntAsync());
 
+    /// <summary>SP-0252: the strip's live indicator opens the same broadcast window as the header button.</summary>
+    private void CompactPanel_BroadcastRequested(object? sender, EventArgs e) => OpenBroadcastWindow(sender as Window);
+
     /// <summary>
     /// SP-0182: the strip's overflow menu - the catalog cards' menu, built now for the station playing now.
     /// </summary>
@@ -255,26 +260,6 @@ public partial class MainWindow
     /// out of the catalog's current view. With no station the menu still opens, holding only the
     /// always-on-top entry, so that capability never becomes unreachable.
     /// </remarks>
-    private async void CompactPanel_BroadcastMenuRequested(object? sender, EventArgs e)
-    {
-        // SP-0217: the compact panel's indicator opens the same live-broadcast menu, built for what is
-        // live now, anchored on the panel's own button. SP-0222: its receivers are asked for on open.
-        try
-        {
-            if (sender is CompactPanelWindow panel)
-            {
-                var menu = await BroadcastLiveMenuBuilder.BuildAsync(Broadcast, Exchange, panel);
-                panel.BroadcastAnchor.ContextMenu = menu;
-                menu.PlacementTarget = panel.BroadcastAnchor;
-                menu.IsOpen = true;
-            }
-        }
-        catch (Exception exception)
-        {
-            HandlerBoundary.Report(nameof(CompactPanel_BroadcastMenuRequested), exception);
-        }
-    }
-
     private void CompactPanel_OverflowRequested(object? sender, EventArgs e)
     {
         if (_compactPanel is not { } panel)

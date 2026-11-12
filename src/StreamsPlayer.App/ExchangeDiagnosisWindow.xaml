@@ -6,22 +6,22 @@
         WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBackground}">
     <StackPanel Margin="18">
         <!-- Two parts, in this order (DEVICE-EXCHANGE item DA): what happened, then what to try. -->
-        <TextBlock Text="{DynamicResource ExchangeDiagnosisHappened}" FontWeight="SemiBold" Opacity="0.7" />
+        <TextBlock Text="{DynamicResource ExchangeDiagnosisHappened}" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}" />
         <TextBlock x:Name="HappenedText" TextWrapping="Wrap" Margin="0,2,0,12" />
         <StackPanel x:Name="TryPanel" Visibility="Collapsed">
-            <TextBlock Text="{DynamicResource ExchangeDiagnosisTry}" FontWeight="SemiBold" Opacity="0.7" />
+            <TextBlock Text="{DynamicResource ExchangeDiagnosisTry}" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}" />
             <TextBlock x:Name="TryText" TextWrapping="Wrap" Margin="0,2,0,12" />
         </StackPanel>
         <ProgressBar x:Name="RunningBar" IsIndeterminate="True" Height="4" Margin="0,0,0,8"
                      AutomationProperties.Name="{DynamicResource ExchangeDiagnosisRunning}" />
-        <TextBlock x:Name="RunningText" Text="{DynamicResource ExchangeDiagnosisRunning}" Opacity="0.7" Margin="0,0,0,8" />
+        <TextBlock x:Name="RunningText" Text="{DynamicResource ExchangeDiagnosisRunning}" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,8" />
         <!-- The plumbing stays behind this control: the address, the code and the steps with their states. -->
         <Expander x:Name="DetailsExpander" Header="{DynamicResource ExchangeDiagnosisDetails}" Margin="0,4,0,0"
                   AutomationProperties.Name="{DynamicResource ExchangeDiagnosisDetails}">
             <StackPanel Margin="0,6,0,0">
                 <TextBlock x:Name="ServerText" TextWrapping="Wrap" FlowDirection="LeftToRight" />
                 <TextBlock x:Name="CodeText" TextWrapping="Wrap" FlowDirection="LeftToRight" Margin="0,2,0,8" />
-                <TextBlock x:Name="StepsHeading" Text="{DynamicResource ExchangeDiagnosisSteps}" FontWeight="SemiBold" Opacity="0.7" />
+                <TextBlock x:Name="StepsHeading" Text="{DynamicResource ExchangeDiagnosisSteps}" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}" />
                 <ItemsControl x:Name="StepList" Margin="0,2,0,0" Focusable="False"
                               AutomationProperties.Name="{DynamicResource ExchangeDiagnosisSteps}" />
             </StackPanel>

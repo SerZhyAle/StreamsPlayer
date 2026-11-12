@@ -5,9 +5,13 @@ name: Release
 # was dispatched from.
 #
 # SP-0156: a release ships only a gated payload. Before anything is built the workflow requires a completed,
-# green CI run (documentation and site-sync gates included) for the tagged commit, and a committed playback
+# green CI run (the fast tier) for the tagged commit, and a committed playback
 # smoke verdict and a committed code-audit verdict (SP-0180) for exactly the tagged version; the published payload must carry the pinned natives; and an
 # already published asset is never replaced with different bytes.
+#
+# SP-0256: CI on push carries only the checks of 5 s or less. Everything slower that CI used to run - the build,
+# the test suite, the test-verdict and Store listing fixtures, the documentation gate and the site-sync check -
+# runs here, against the tag's own tree, before anything is published.
 
 on:
   push:
@@ -31,11 +35,20 @@ jobs:
   resolve:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions: {}
+    permissions:
+      contents: read
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
       version: ${{ steps.tag.outputs.version }}
     steps:
+      # SP-0247 (PACKAGE-VERSIONING P3): the derivation lives in scripts/ReleaseVersion.ps1, where
+      # scripts/Test-ReleaseVersion.ps1 holds it to fixed instants. Only that file is read, from the workflow's own
+      # ref - the commit this workflow file came from - so the tag is not used before it is validated.
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/ReleaseVersion.ps1
+          sparse-checkout-cone-mode: false
       - name: Resolve and validate tag
         id: tag
         shell: pwsh
@@ -50,9 +63,8 @@ jobs:
           } else {
             throw "Release must be triggered by a tag push or a manual run naming a tag (ref type '$env:GITHUB_REF_TYPE')."
           }
-          if ($tag -cnotmatch '^v\d{2}\.\d{4}\.\d{4}$') { throw 'Tag must use vYY.MMDD.HHmm.' }
-          $version = $tag.Substring(1)
-          [DateTime]::ParseExact($version, 'yy.MMdd.HHmm', [Globalization.CultureInfo]::InvariantCulture) | Out-Null
+          . ./scripts/ReleaseVersion.ps1
+          $version = ConvertFrom-ReleaseTag -Tag $tag
           "tag=$tag" | Out-File $env:GITHUB_OUTPUT -Append
           "version=$version" | Out-File $env:GITHUB_OUTPUT -Append
 
@@ -87,8 +99,9 @@ jobs:
           git merge-base --is-ancestor $tagged refs/remotes/origin/main
           if ($LASTEXITCODE -ne 0) { throw "Tagged commit $tagged is not reachable from main." }
           Write-Host "Releasing $env:RELEASE_TAG at $tagged (on main)."
-      # SP-0156: the release waits for the gates that judge the commit. CI carries the documentation gate and
-      # the site-sync check, so one green CI run for exactly the tagged commit is the proof.
+      # SP-0156: the release waits for the gates that judge the commit. Since SP-0256 CI carries the fast tier
+      # (scripts/check-fast.ps1); the documentation gate, the site-sync check and the slower fixtures run below,
+      # on this checkout of the tag.
       - name: Require green CI for the tagged commit
         env:
           GH_TOKEN: ${{ github.token }}
@@ -138,6 +151,13 @@ jobs:
         run: |
           pwsh -NoProfile -File ./scripts/Get-ExistingReleaseState.ps1 -Version $env:RELEASE_VERSION -Tag $env:RELEASE_TAG -Repository $env:GITHUB_REPOSITORY
           if ($LASTEXITCODE -ne 0) { throw 'Existing release inspection failed.' }
+      # DOC-INTERNAL-QUALITY (SP-0140): registry and reverse coverage, links and anchors, assets, house style,
+      # offline safety. Exit 0 pass, 1 finding, 2 could not verify (CHECK-VERDICT). Candidate-bound since SP-0256.
+      - name: Documentation gate
+        if: steps.existing.outputs.complete != 'true'
+        run: |
+          pwsh -NoProfile -File scripts/check-docs.ps1
+          if ($LASTEXITCODE -ne 0) { throw "The documentation gate did not pass (exit $LASTEXITCODE)." }
       - uses: actions/setup-dotnet@v6
         if: steps.existing.outputs.complete != 'true'
         with:
@@ -158,6 +178,23 @@ jobs:
         run: |
           pwsh -NoProfile -File scripts/test.ps1 -Configuration Release -NoBuild
           if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }
+      # SP-0256: the three checks below ran in push CI until it was cut to the fast tier; they judge the tag here.
+      - name: Test verdict fixtures
+        if: steps.existing.outputs.complete != 'true'
+        run: |
+          pwsh -NoProfile -File scripts/Test-TestResultSummary.ps1
+          if ($LASTEXITCODE -ne 0) { throw "The test-verdict fixtures failed (exit $LASTEXITCODE)." }
+      - name: Store listing fixtures
+        if: steps.existing.outputs.complete != 'true'
+        run: |
+          pwsh -NoProfile -File tools/store/Test-StoreListing.ps1
+          if ($LASTEXITCODE -ne 0) { throw "The Store listing fixtures failed (exit $LASTEXITCODE)." }
+      # Rule 4: the generated site under docs/ matches its copy decks. Reads the Core assembly built above.
+      - name: Site sync check
+        if: steps.existing.outputs.complete != 'true'
+        run: |
+          pwsh -NoProfile -File tools/site/build-site.ps1 -Check
+          if ($LASTEXITCODE -ne 0) { throw "The site-sync check did not pass (exit $LASTEXITCODE)." }
       - name: Publish portable package
         if: steps.existing.outputs.complete != 'true'
         env:
@@ -181,6 +218,13 @@ jobs:
           Compress-Archive -Path stage/StreamsPlayer/* -DestinationPath "dist/$name" -Force
           $hash = (Get-FileHash "dist/$name" -Algorithm SHA256).Hash
           "$hash  $name" | Out-File "dist/$name.sha256" -Encoding ascii
+      # SP-0247 (PACKAGE-VERSIONING P5, W4): the version is read back out of the staged exe and out of the exe
+      # inside the zip just built, never taken from the -p:Version this job passed.
+      - name: Read the version back from the staged exe and the zip
+        if: steps.existing.outputs.complete != 'true'
+        run: |
+          pwsh -NoProfile -File ./scripts/Assert-ReleaseArtifactVersion.ps1 -Version $env:RELEASE_VERSION -ExePath stage/StreamsPlayer/StreamsPlayer.exe -ZipPath "dist/StreamsPlayer-$env:RELEASE_VERSION-windows-x64.zip"
+          if ($LASTEXITCODE -ne 0) { throw "The version read back from the staged exe or the zip is not $env:RELEASE_VERSION (exit $LASTEXITCODE)." }
       # SP-0212 (L2): the structural catalog-snapshot checks (size ceiling, entry order, non-empty)
       # ran only through the printed checklist before; this runner now refuses a broken artifact itself.
       # -Offline: the freshness comparison needs the network and stays with the owner's own -Check.
@@ -215,6 +259,11 @@ jobs:
           if (-not (Test-Path "dist/$name")) { throw "Installer not produced at dist/$name" }
           $hash = (Get-FileHash "dist/$name" -Algorithm SHA256).Hash
           "$hash  $name" | Out-File "dist/$name.sha256" -Encoding ascii
+      - name: Read the version back from the setup EXE
+        if: steps.existing.outputs.complete != 'true'
+        run: |
+          pwsh -NoProfile -File ./scripts/Assert-ReleaseArtifactVersion.ps1 -Version $env:RELEASE_VERSION -SetupPath "dist/StreamsPlayer-$env:RELEASE_VERSION-windows-x64-setup.exe"
+          if ($LASTEXITCODE -ne 0) { throw "The version read back from the setup EXE is not $env:RELEASE_VERSION (exit $LASTEXITCODE)." }
       # A complete existing release was skipped before the build. Check again for a publication that
       # appeared during this run; never remove or replace assets, including a partial publication.
       - name: Guard assets already published for this tag

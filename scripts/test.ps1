@@ -9,12 +9,16 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 . "$PSScriptRoot/TestResultSummary.ps1"
-if (-not $ResultsDirectory) { $ResultsDirectory = Join-Path $root ('temp/scratch/tests-' + [guid]::NewGuid().ToString('N')) }
+$defaultResults = -not $ResultsDirectory
+if ($defaultResults) { $ResultsDirectory = Join-Path $root ('temp/scratch/tests-' + [guid]::NewGuid().ToString('N')) }
 Push-Location $root
 try {
     # A fresh directory prevents stale TRX files from turning a missing suite into evidence.
     if (Test-Path -LiteralPath $ResultsDirectory) { throw 'The results directory must be new.' }
     New-Item -ItemType Directory -Path $ResultsDirectory -Force | Out-Null
+    # SP-0246 S3-1: each default run leaves a tests-<guid> folder. Only the default location is pruned - a
+    # caller-chosen -ResultsDirectory is the caller's to clean.
+    if ($defaultResults) { Remove-StaleTestResults -Scratch (Join-Path $root 'temp/scratch') -Current $ResultsDirectory | Out-Null }
     $projects = @(& dotnet sln StreamsPlayer.sln list | Where-Object { $_ -match '\.csproj$' })
     if ($LASTEXITCODE -ne 0) { throw 'Cannot enumerate solution projects.' }
     $expected = @($projects | Where-Object { [System.IO.File]::ReadAllText((Join-Path $root $_)) -match 'Microsoft.NET.Test.Sdk' }).Count

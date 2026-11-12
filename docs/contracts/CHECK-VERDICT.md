@@ -10,7 +10,7 @@
 
 `scripts/test.ps1` reads fresh TRX counters through `TestResultSummary.ps1`: zero/missing/malformed
 suites and skips cannot yield PASS; failures take precedence. Its writer emits canonical run/skipped
-counts. Build, check, CI and release test entry points use it. `Test-TestResultSummary.ps1` exercises
+counts. Build, check and release test entry points use it (push CI runs no tests since SP-0256). `Test-TestResultSummary.ps1` exercises
 negative cases. `scripts/check.ps1` aggregates checks, not test counts. The gate scripts print the
 contract word `COULD NOT VERIFY` and exit `2` when a prerequisite throws (`Test-CheckVerdictScripts.ps1`
 pins this). Still open as owner decisions: the first-failure stop at restore/build, the `Assert-*`

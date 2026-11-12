@@ -1,27 +1,26 @@
+using System.Globalization;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Automation;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// SP-0217's indicator in the main window: always visible while any source is live, naming the live
-/// sources, with a stop for each on its menu. The producer's own events drive it; nothing here starts
-/// or captures anything.
+/// SP-0252: the header's one broadcast control. It opens the broadcast window, and its look follows the producer's own
+/// events - neutral while nothing is live, red with the number of live sources while anything is, and a warning mark
+/// while the exchange server is unreachable and a broadcast needs it. Nothing here starts or captures anything.
 /// </summary>
 public partial class MainWindow
 {
     private BroadcastProducerService Broadcast => ((App)Application.Current).Broadcast;
 
+    // One broadcast window: a second open brings the first forward (APP-BEHAVIOUR rule 1, as the incoming list does).
+    private BroadcastWindow? _broadcastWindow;
+
     internal void InitializeBroadcastIndicator()
     {
         Broadcast.Changed += BroadcastProducerChanged;
-        Exchange.DirectoryChanged += BroadcastDirectoryForMenu;
-        Closed += (_, _) =>
-        {
-            Broadcast.Changed -= BroadcastProducerChanged;
-            Exchange.DirectoryChanged -= BroadcastDirectoryForMenu;
-        };
+        Closed += (_, _) => Broadcast.Changed -= BroadcastProducerChanged;
         RefreshBroadcastIndicator();
     }
 
@@ -33,34 +32,42 @@ public partial class MainWindow
         }
     }
 
-    private void BroadcastDirectoryForMenu()
-    {
-        // The cast menu reads the account's receivers; a directory change while it is open is rare, and
-        // the indicator line itself does not depend on it.
-    }
-
     private void RefreshBroadcastIndicator()
     {
         var running = Broadcast.Running;
-        BroadcastLiveButton.Visibility = running.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        if (_compactPanel is { } closed)
-        {
-            closed.BroadcastAnchor.Visibility = running.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        }
+        var live = running.Count > 0;
+        var warning = Broadcast.ServerNeededButUnreachable;
 
-        if (running.Count == 0)
+        BroadcastButton.Tag = live ? running.Count.ToString(CultureInfo.CurrentCulture) : string.Empty;
+        BroadcastWarningMark.Visibility = warning ? Visibility.Visible : Visibility.Collapsed;
+        if (!live)
         {
+            // Idle, the name and the tooltip are the dictionary's own, so they follow the language without a refresh
+            // (this runs before the saved language is applied at start-up).
+            BroadcastButton.ClearValue(System.Windows.Controls.Control.ForegroundProperty);
+            BroadcastButton.SetResourceReference(FrameworkElement.ToolTipProperty, "BroadcastButtonIdle");
+            BroadcastButton.SetResourceReference(AutomationProperties.NameProperty, "BroadcastWindowTitle");
+            AutomationProperties.SetHelpText(BroadcastButton, string.Empty);
+            if (_compactPanel is { } idlePanel)
+            {
+                idlePanel.BroadcastAnchor.Visibility = Visibility.Collapsed;
+            }
+
             return;
         }
 
-        var names = running.Select(Broadcast.SourceTitle).OrderBy(name => name, StringComparer.CurrentCulture);
-        var description = LocalizationService.Format("BroadcastIndicatorLive", string.Join(", ", names));
-        BroadcastLiveButton.ToolTip = description;
-        System.Windows.Automation.AutomationProperties.SetName(BroadcastLiveButton, description);
-        // The compact panel shows the same indicator, with the same menu behind it.
+        var titles = running.Select(Broadcast.SourceTitle).OrderBy(title => title, StringComparer.CurrentCulture);
+        var name = LocalizationService.Format("BroadcastIndicatorLive", string.Join(", ", titles));
+        BroadcastButton.SetResourceReference(System.Windows.Controls.Control.ForegroundProperty, "DangerBrush");
+        BroadcastButton.ToolTip = warning ? name + Environment.NewLine + LocalizationService.Get("BroadcastButtonServerWarning") : name;
+        // The accessible name carries the state too: colour and a number alone say nothing to a screen reader.
+        AutomationProperties.SetName(BroadcastButton, name);
+        AutomationProperties.SetHelpText(BroadcastButton, warning ? LocalizationService.Get("BroadcastButtonServerWarning") : string.Empty);
         if (_compactPanel is { } panel)
         {
+            // The compact panel keeps a small indicator of its own while anything is live; it opens the same window.
             panel.BroadcastAnchor.Visibility = Visibility.Visible;
+            panel.BroadcastAnchor.ToolTip = name;
         }
     }
 
@@ -73,21 +80,27 @@ public partial class MainWindow
         _ => LocalizationService.Get("BroadcastMicTitle")
     };
 
-    private async void BroadcastLiveButton_Click(object sender, RoutedEventArgs e)
+    private void BroadcastButton_Click(object sender, RoutedEventArgs e) => OpenBroadcastWindow();
+
+    /// <summary>Opens the broadcast window, or brings the open one forward; closing it never stops a broadcast.</summary>
+    internal void OpenBroadcastWindow(Window? owner = null)
     {
         try
         {
-            // The menu is rebuilt on each open: the live set, the receivers and their support verdicts are
-            // what is true now, not what was true when the indicator was last refreshed. SP-0222: the
-            // receivers are asked for here, once, because the directory is not held while nobody looks.
-            var menu = await BroadcastLiveMenuBuilder.BuildAsync(Broadcast, Exchange, this);
-            BroadcastLiveButton.ContextMenu = menu;
-            menu.PlacementTarget = BroadcastLiveButton;
-            menu.IsOpen = true;
+            if (_broadcastWindow is { } open)
+            {
+                ActivateWindow(open);
+                return;
+            }
+
+            var window = new BroadcastWindow(this) { Owner = owner ?? DialogOwner };
+            _broadcastWindow = window;
+            window.Closed += (_, _) => _broadcastWindow = null;
+            window.Show();
         }
         catch (Exception exception)
         {
-            HandlerBoundary.Report(nameof(BroadcastLiveButton_Click), exception);
+            HandlerBoundary.Report(nameof(OpenBroadcastWindow), exception);
         }
     }
 }

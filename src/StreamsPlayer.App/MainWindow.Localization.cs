@@ -97,12 +97,18 @@ public partial class MainWindow
                 return;
             }
 
-            Debug.Assert(value is not DispatcherObject,
-                "A catalog mutation captured a WPF object; capture its values before queuing the commit.");
+            if (value is DispatcherObject)
+            {
+                throw new InvalidOperationException(
+                    "A catalog mutation captured a WPF object; capture its values before queuing the commit.");
+            }
             var target = value is Delegate callback ? callback.Target : value;
-            Debug.Assert(target is not DispatcherObject,
-                "A catalog mutation targets a WPF object; capture its values before queuing the commit.");
-            if (target is null || target is DispatcherObject)
+            if (target is DispatcherObject)
+            {
+                throw new InvalidOperationException(
+                    "A catalog mutation targets a WPF object; capture its values before queuing the commit.");
+            }
+            if (target is null)
             {
                 return;
             }
@@ -194,6 +200,22 @@ public partial class MainWindow
         foreach (var player in Application.Current.Windows.OfType<PlayerWindow>())
         {
             player.RefreshLocalization();
+        }
+
+        // The same holds for the broadcast companions: their rows and state lines are formatted in code (SP-0247).
+        foreach (var broadcasts in Application.Current.Windows.OfType<BroadcastsWindow>())
+        {
+            broadcasts.RefreshLocalization();
+        }
+
+        foreach (var broadcastWindow in Application.Current.Windows.OfType<BroadcastWindow>())
+        {
+            broadcastWindow.RefreshLocalization();
+        }
+
+        foreach (var audio in Application.Current.Windows.OfType<BroadcastAudioWindow>())
+        {
+            audio.RefreshLocalization();
         }
 
         ApplyFilter();

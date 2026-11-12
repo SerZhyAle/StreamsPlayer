@@ -74,7 +74,11 @@ public partial class MainWindow
             var refreshed = ExchangeDirectoryChannels.RefreshStored(managed,
                 driveViews, DateTimeOffset.UtcNow, identity);
             var knownLive = DriveDirectory.Merge(server, snapshot)!;
-            var ended = ExchangeDirectoryChannels.MarkEnded(refreshed, knownLive.LiveSourceIds,
+            // A missing server snapshot says nothing about the lifetime of account-bound rows.
+            var endable = server is null
+                ? refreshed.Where(channel => channel.FastMediaSorterBroadcast?.DirectoryEntryIdentity == identity).ToList()
+                : refreshed;
+            var ended = ExchangeDirectoryChannels.MarkEnded(endable, knownLive.LiveSourceIds,
                 knownLive.LiveBroadcastIds, DateTimeOffset.UtcNow).ToDictionary(channel => channel.Id);
             var updated = refreshed.Select(channel => ended.GetValueOrDefault(channel.Id, channel)).ToDictionary(channel => channel.Id);
             var channels = state.Channels.Select(channel => updated.GetValueOrDefault(channel.Id, channel)).ToList();

@@ -195,6 +195,7 @@
           <p>The installer, the portable ZIP and the winget package of STREAMS Player are not code-signed. A code-signing certificate costs hundreds of dollars a year, and for a free app with no income we chose not to buy one for now. That is a decision, not an oversight - and for an unsigned file, a warning is exactly what Windows should show.</p>
           <p>SmartScreen also weighs reputation: the more people run the same file without trouble, the sooner Windows recognizes it and the warning stops. Every release is a new file that starts from zero, which is why the warning can come back after an update and why it fades as a release is used.</p>
           <p>The Microsoft Store version is signed by Microsoft and does not show this screen. Every GitHub release also publishes a .sha256 file beside each download: run <code dir="ltr">Get-FileHash -Algorithm SHA256 &lt;file&gt;</code> in PowerShell on the file you downloaded, and the result should match the value in that file.</p>
+          <p>Signing would not silence every warning. Antivirus programs also judge what an app does, and STREAMS Player does things such checks watch: it reads the clipboard when you paste or import a connection, and it captures your screen, camera, microphone or the sound of your PC when you start a broadcast. It does each only when you ask, never in the background - but a cautious antivirus may still flag it, signed or not.</p>
         </section>
 
         <section class="privacy-section" id="trust-click" aria-labelledby="trust-click-title">
@@ -205,6 +206,7 @@
             <li>Check that the file name is the STREAMS Player file you downloaded, then click Run anyway.</li>
           </ol>
           <p>That is all - the installer, or the app from the ZIP, starts normally. You never need to switch SmartScreen off or disable your antivirus, and the app itself never needs administrator rights.</p>
+          <p>If you use the portable ZIP, first unpack it into a folder you will keep - for example a new folder in Documents - and start the app from there. Do not start it from inside the ZIP or from a temporary folder: Windows trusts a program less when it starts from such a place, so the warning is more likely to come back.</p>
 
           <h3>“Do you want to allow this app from an unknown publisher to make changes to your device?”</h3>
           <p>You should not normally see this prompt. By default the installer installs for you alone, into <code dir="ltr">%LOCALAPPDATA%\Programs\StreamsPlayer</code>, and needs no administrator rights for that. If it asks how to install, choose Install for me only (recommended).</p>
@@ -215,6 +217,7 @@
             <li>registering it with Windows as an installed app, so it can be removed later.</li>
           </ul>
           <p>One action removes all three together: Settings &gt; Apps &gt; Installed apps (Apps &amp; features on Windows 10) &gt; STREAMS Player &gt; Uninstall. If you would rather not give administrator rights, click No and run the installer again with Install for me only.</p>
+          <p>Whichever way you install, the installer also sets .spres files - a broadcast saved by Fast Media Sorter - to open in STREAMS Player. That setting is written for your account only, needs no administrator rights, and Uninstall removes it together with the app; the Microsoft Store version declares the same file type in its package.</p>
 
           <h3>If your antivirus holds the file back</h3>
           <p>Some antivirus programs are cautious with new, unsigned files. If yours quarantines STREAMS Player, restore it and add an exception for its folder only - <code dir="ltr">%LOCALAPPDATA%\Programs\StreamsPlayer</code> for the installer, or the folder you unpacked the ZIP into. An exception for that one folder is all it takes, and you can remove it at any time; do not turn your antivirus off.</p>
@@ -225,7 +228,7 @@
           <ul class="trust-list">
             <li>It never needs administrator rights to install or run, never adds itself to Windows startup, and installs no background service.</li>
             <li>No account is required for ordinary playback. The optional exchange account belongs to a private server - your own, or one run by someone who invited you - never to a service of this product. There is no advertising, analytics, telemetry or service operated by the author.</li>
-            <li>It connects only when you act, and only to what that action needs: the public stream catalog and its optional preview pack on GitHub, the provider of a stream you play, record or preview, a FastMediaSorter phone or watch on your own network, and the optional FFmpeg libraries if you ask for them in Settings. A TV schedule is fetched only from an address you enter yourself, and only when you press Download schedule. Only if you turn them on, it also connects to the exchange server you set up yourself and, if you sign in to Google in Settings, to Google (for the announcements in your own hidden Drive application data).</li>
+            <li>It connects only when you act, and only to what that action needs: the public stream catalog and its optional preview pack on GitHub, the provider of a stream you play, record or preview, a phone or watch running Fast Media Sorter &amp; Organizer for Android on your own network, and the optional FFmpeg libraries if you ask for them in Settings. A TV schedule is fetched only from an address you enter yourself, and only when you press Download schedule. Only if you turn them on, it also connects to the exchange server you set up yourself and, if you sign in to Google in Settings, to Google (for the announcements in your own hidden Drive application data).</li>
             <li>It never downloads the catalog on its own - a refresh happens only when you ask for it.</li>
             <li>It never sends your data or logs anywhere by itself. Send logs to the author on the About page in Settings only prepares an archive and a message in your own mail program; nothing leaves until you press Send there.</li>
             <li>Uninstalling it never deletes your channels, pins or history - they stay in <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code> until you remove that folder yourself.</li>

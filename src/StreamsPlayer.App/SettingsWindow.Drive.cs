@@ -22,10 +22,13 @@ public partial class SettingsWindow
 
     private void ShowDrive()
     {
+        // APP-BEHAVIOUR rule 11: a build without a Google client cannot sign in at all, so the block is not offered
+        // rather than shown disabled with an apology (SP-0247).
+        DriveSettingsPanel.Visibility = Drive.Available ? Visibility.Visible : Visibility.Collapsed;
         DriveSignInButton.IsEnabled = Drive.Available && !Drive.SignedIn && _driveSignIn is null;
         DriveSignOutButton.IsEnabled = Drive.SignedIn && _driveSignIn is null;
         DriveCancelButton.Visibility = _driveSignIn is null ? Visibility.Collapsed : Visibility.Visible;
-        DriveStatusText.Text = LocalizationService.Get(Drive.Available ? Drive.StatusKey : "DriveUnavailable");
+        DriveStatusText.Text = LocalizationService.Get(Drive.StatusKey);
     }
 
     private void DriveSignIn_Click(object sender, RoutedEventArgs e) => HandlerBoundary.Run(nameof(DriveSignIn_Click), async () =>

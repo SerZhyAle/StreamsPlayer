@@ -1,0 +1,279 @@
+{
+  "summary": "Watch a video or RTSP channel, steer its sound and tracks, and keep a frame or a recording of it.",
+  "lead": "This window plays one video or RTSP channel. The picture fills the window, and a control panel lies over its bottom edge: the sound controls at the left end, the channel's name and state in the middle, and the buttons for tracks, capture, recording, full screen and more actions at the right end. The panel hides four seconds after you last used it and comes back with a click on the picture, and captions written over the picture say why it is dark. Keys cover the common actions, and [[F1]] opens this page. The engine that draws the picture, VLC or FlyleafLib, is chosen under **Video and RTSP playback engine** on the **Playback** page of Settings, and a change applies to the next window you open.",
+  "order": [
+    "Start a video or RTSP channel in the main window; it opens in this window.",
+    "Read {@status} in the {@panel} while the channel connects. If the picture is dark, {@notice} says why.",
+    "Click the picture to bring the panel back whenever it has hidden, or keep it on screen with **{@pin}**.",
+    "Set the sound with **{@volume}** and **{@mute}**, and choose another sound or subtitle track with **{@audio-tracks}** and **{@subtitles}** when the stream offers them.",
+    "Fill the screen with **{@fullscreen}**, [[F]] or a double-click on the picture; [[Esc]] brings the window back.",
+    "Keep something: **{@save-frame}** writes the picture on screen to a file, and **{@record}** records the stream.",
+    "End with **{@close}**; the playback stops with the window."
+  ],
+  "elements": [
+    {
+      "id": "panel",
+      "name": "Control panel",
+      "one": "The bar over the bottom of the picture that holds the buttons; it hides itself after four seconds.",
+      "full": [
+        "The panel appears when the window opens and again each time you click the picture, press one of the player keys or open one of its menus. Four seconds after the last of these it hides and leaves the whole picture free. An open menu holds the countdown, and every click in the window starts it afresh.",
+        "Click anywhere on the picture to bring a hidden panel back, or press **{@pin}** to keep it on screen.",
+        "Hiding the panel changes nothing else: the sound, a recording and the captions over the picture go on as they were."
+      ],
+      "tip": "The channel's name, {@status} and {@signal} are part of the panel and hide with it; {@notice}, {@rec-badge} and {@toast} do not."
+    },
+    {
+      "id": "mute",
+      "nameKey": "Mute",
+      "one": "Switches the video sound off and on.",
+      "full": [
+        "Pressing it silences the video, and the button then reads **Unmute**; pressing it again brings the sound back at the level the volume slider shows. The state is saved together with the volume, so the next video window opens the same way."
+      ],
+      "shortcut": "[[M]] does the same from anywhere in the window."
+    },
+    {
+      "id": "volume",
+      "nameKey": "VolumeName",
+      "one": "Sets the video volume from 0 to 100.",
+      "full": [
+        "A click anywhere on the slider jumps straight to that level instead of stepping towards it. Moving the slider while the sound is muted switches the sound back on. The level is applied at once and saved when the slider settles, so the next video window opens at it."
+      ],
+      "shortcut": "[[Ctrl+↑]] raises the volume by 10 and [[Ctrl+↓]] lowers it by 10; holding the keys repeats the step.",
+      "tip": "When the sound is muted and the slider is at the top, [[Ctrl+↑]] switches the sound back on."
+    },
+    {
+      "id": "title",
+      "name": "Channel name",
+      "one": "Shows the name of the channel; a playlist adds the number of the item that plays.",
+      "full": [
+        "The name sits in the middle of the control panel and is also in the title bar of the window, so the taskbar button says what is playing. A channel that is a playlist adds the item that plays and the total, as in \"item 2 of 5\", and moves on to the next item when one ends."
+      ]
+    },
+    {
+      "id": "on-air",
+      "name": "What is on air",
+      "one": "Names what the stream announces as on air.",
+      "full": [
+        "When the stream sends the name of what is on the air, the line under the channel's name reads \"On air:\" followed by that text. A stream that announces nothing leaves the panel as it was, with no empty line. The line is cleared when the player gives up on the stream."
+      ]
+    },
+    {
+      "id": "schedule",
+      "name": "TV programme now and next",
+      "one": "Shows the programme on now and the one after it, from your TV schedule.",
+      "full": [
+        "Two lines under the channel's name: \"Now\" with the start and end time and the title of the programme, and \"Next\" with the start time and the title. They appear only for a channel that is matched to a TV schedule loaded in Settings, on the **Library** page; a line is left out when the schedule has no programme for it. Times are shown in your local time, and the lines are refreshed every 30 seconds, so a new download, a removal or a changed match reaches a window that is already open."
+      ],
+      "tip": "{@on-air} comes from the stream itself, not from your schedule; the two answer different questions and either may be absent."
+    },
+    {
+      "id": "status",
+      "name": "Status line",
+      "one": "Says what the player is doing: buffering, playing live, reconnecting or giving up.",
+      "full": [
+        "Reads \"Buffering..\" with a percentage while the buffer fills, \"Playing live\" with a number of seconds once the picture runs, \"Reconnecting..\" with the number of the attempt and of the attempts allowed while the player reopens the stream, and \"Stream unavailable\" after the player gives up.",
+        "The number of seconds is the buffer the player keeps, so the picture runs about that far behind the source; a source that works in segments adds its own delay on top. After a reconnect the number is smaller, because a reopened stream gets a smaller buffer."
+      ],
+      "tip": "When the picture is dark and the panel is hidden, {@notice} says why."
+    },
+    {
+      "id": "signal",
+      "nameKey": "SignalHealthName",
+      "one": "A thin bar that shows how full the buffer is and, by its colour, how steady the signal is.",
+      "full": [
+        "The length of the fill is the buffer, from empty to full. The colour is the signal: grey while the player connects, green when the stream arrives cleanly, yellow when it is unstable and red when there is no signal, for instance while the player reconnects a stream that had been playing.",
+        "Point at the bar to read the same in words: \"Signal is good\", \"Signal is unstable\", \"No signal\" or \"Connecting..\"."
+      ],
+      "tip": "The colour is not the only sign; the tooltip says the state in words."
+    },
+    {
+      "id": "audio-tracks",
+      "nameKey": "AudioTracks",
+      "one": "Opens the list of audio tracks when the stream has more than one.",
+      "full": [
+        "The button is there only when the stream offers more than one audio track. The menu lists the tracks by name, or by number when a track has no name; the one in use carries a check mark, and choosing another switches to it at once."
+      ],
+      "shortcut": "[[A]] opens the same menu when the button is there; otherwise the key does nothing."
+    },
+    {
+      "id": "subtitles",
+      "nameKey": "SubtitleTracks",
+      "one": "Opens the list of subtitle tracks when the stream has more than one.",
+      "full": [
+        "Works like {@audio-tracks}, for subtitles: the button is there only when the stream offers more than one subtitle track, the menu lists them with the one in use checked, and choosing another switches to it at once."
+      ]
+    },
+    {
+      "id": "save-frame",
+      "nameKey": "SaveFrame",
+      "one": "Saves the picture on screen as a file and as the icon of this channel.",
+      "full": [
+        "One press does two things: the current frame is written to a picture file at the resolution of the stream itself, and the same frame becomes the icon of this channel in the main window.",
+        "The file goes to the folder set as **Frames folder** on the **Files** page of Settings. If that folder cannot be written, the app uses a fallback folder, and the message names both."
+      ],
+      "why": "To keep a moment of the video and to choose the picture the channel shows in the main window.",
+      "next": "{@toast} names the saved file, or says that the frame could not be saved.",
+      "tip": "Before the first picture appears, the button does nothing and says nothing."
+    },
+    {
+      "id": "record",
+      "nameKey": "Record",
+      "one": "Records the live stream into a file; press it again to stop.",
+      "full": [
+        "Pressing it starts saving the stream to a file in the folder set as **Video recordings folder** on the **Files** page of Settings. While it records, the button reads **Stop recording** and {@rec-badge} shows the elapsed time. A recording belongs to the channel, not to one connection: when the player reconnects, the part so far is closed and the next part starts when the picture is back, so a long recording can end up as several files.",
+        "When the recording ends, {@toast} names the saved file, or the number of parts and their folder. If the folder cannot be written, the recording goes to a fallback folder and the message says which. If the playback stops for good, the recording ends with it and the message starts with \"Recording ended with playback.\" Closing the window ends the recording too.",
+        "Before the first picture appears, pressing the button does nothing. The button is greyed out, and its tooltip gives the reason, when this version of the video engine cannot record."
+      ],
+      "shortcut": "[[R]] starts and stops the recording from anywhere in the window.",
+      "undo": "**Stop recording**, or [[R]], closes the file and saves it; while the file is finished the message reads \"Saving recording..\"."
+    },
+    {
+      "id": "pin",
+      "nameKey": "PlayerPinControlsName",
+      "one": "Keeps the control panel on screen instead of hiding it after four seconds.",
+      "full": [
+        "While the panel is pinned it stays over the bottom of the picture and the countdown does not run. The icon of the button changes with the state; its tooltip and accessible name stay the same.",
+        "The choice applies to every video window, including the ones opened after the change, and is kept for the next start of the app."
+      ],
+      "undo": "Press it again, and the panel hides after four seconds of inactivity as before.",
+      "tip": "This pin is about the panel. To pin the channel itself in the main window, use **Pin** in the menu of {@actions}."
+    },
+    {
+      "id": "fullscreen",
+      "nameKey": "Fullscreen",
+      "one": "Makes the window fill the screen; the same button then leaves full screen.",
+      "full": [
+        "In full screen the window loses its frame and is maximized, and the button reads **Exit fullscreen**. A double-click on the picture does the same as the button; a double-click on the control panel does not. A channel opened with **Open fullscreen** in the main window starts in full screen. The control panel hides and returns as usual."
+      ],
+      "shortcut": "[[F]] or [[F11]] switches full screen on and off from anywhere in the window.",
+      "undo": "[[Esc]] leaves full screen. Outside full screen it does nothing, so it never closes the window by accident."
+    },
+    {
+      "id": "actions",
+      "nameKey": "PlayerActionsName",
+      "one": "Opens a menu of the actions that have no button of their own.",
+      "full": [
+        "The menu opens upward from the button and holds, in this order: {@always-on-top}, {@pin-channel}, {@about-channel}, {@collections} and {@new-collection}. The control panel stays on screen while the menu is open."
+      ]
+    },
+    {
+      "id": "always-on-top",
+      "name": "Always on top",
+      "one": "Keeps the video windows above all other windows.",
+      "full": [
+        "The entry names what a click does: while the window is not on top it reads **Always on top - ON**, and while it is on top it reads **Always on top - OFF**. The choice applies to every video window and is kept for the next start of the app."
+      ],
+      "undo": "Choose the entry again."
+    },
+    {
+      "id": "pin-channel",
+      "nameKey": "MenuPin",
+      "one": "Pins this channel in the main window, or unpins it.",
+      "full": [
+        "The entry reads **Pin** for a channel that is not pinned and **Unpin** for one that is. It does what the pin on the channel's card in the main window does: the channel goes into the pinned section there. This is the pin of the channel; the button that keeps the control panel on screen is {@pin}."
+      ],
+      "undo": "Choose **Unpin**, and the channel goes back to the list. Pinning deletes nothing."
+    },
+    {
+      "id": "about-channel",
+      "nameKey": "MenuAboutChannel",
+      "one": "Opens the About the channel window for this channel.",
+      "full": [
+        "Shows what the app knows about the channel, with the details the running stream reports. It uses the connection that is already playing and opens no new one."
+      ]
+    },
+    {
+      "id": "collections",
+      "nameKey": "CollectionMenu",
+      "one": "Puts this channel into your collections, or takes it out.",
+      "full": [
+        "The submenu lists your collections, each with a check mark when this channel is in it. Choosing one adds the channel to it or takes the channel out. When you have no collections, the submenu holds a greyed-out line that says so; make the first one with {@new-collection}."
+      ]
+    },
+    {
+      "id": "new-collection",
+      "nameKey": "PlayerAddNewCollection",
+      "one": "Makes a new collection that holds this channel.",
+      "full": [
+        "The row has a text field: type a name and press [[Enter]]. The collection is made with this channel in it. A name that is empty or already used is refused with a message. While you type in the field, the player keys are ignored."
+      ]
+    },
+    {
+      "id": "close",
+      "nameKey": "Close",
+      "one": "Closes the video window and stops the stream.",
+      "full": [
+        "Closing the window ends the playback and releases the video engine; a recording that is running is ended and finished in the background. The window remembers its place and size for this channel and opens there next time. A window closed in full screen leaves the remembered place as it was."
+      ]
+    },
+    {
+      "id": "notice",
+      "name": "Caption over the picture",
+      "one": "Says why the picture is dark; it stays on screen when the control panel hides.",
+      "full": [
+        "When the picture is missing for more than a moment, a caption appears in the top left corner of the window: \"Connecting..\" while the channel opens, \"Signal lost - searching..\" when a stream that was playing stops delivering, \"Reconnecting..\" with the attempt and the number allowed, such as 2/3, while the player reopens the stream, \"Switching quality..\" when the player itself reopens the stream at another quality, and \"Stream unavailable\" after it gives up. A gap too short to name stays silent, and the caption goes away the moment the picture is back."
+      ]
+    },
+    {
+      "id": "failure",
+      "nameKey": "StreamUnavailableTitle",
+      "one": "The message window that opens when the player gives up on a channel.",
+      "full": [
+        "For every channel except a live video broadcast (see {@broadcast-failure}), a window titled **Stream unavailable** opens over the player. It names the cause and offers answers on labelled buttons: **Retry**, **Copy report**, **Hide** (for a catalog channel) or **Delete** (for one of your own), and **Keep**.",
+        "**Retry** starts again with a fresh set of attempts. **Copy report** copies the failure report. **Hide** or **Delete** takes the channel out of the list as in the main window, and closes this window. **Keep** leaves the channel in the list, and {@notice} goes on saying that the stream is unavailable."
+      ],
+      "undo": "After **Keep**, close this window and start the channel again from the main window to try once more."
+    },
+    {
+      "id": "broadcast-failure",
+      "name": "Failure panel",
+      "one": "For a live video broadcast, the failure is shown as a panel in the middle of the picture.",
+      "full": [
+        "A channel that is a live video broadcast gets this panel instead of the message window. It says what happened and what to try, and it has a button that tries again: **Retry**, or **Reconnect** when the message says that the broadcast has ended. In a failure message the panel also holds **Details**, which opens to a failure code. When the message can only say that the broadcast is unavailable and a server to check is known, the panel also holds **Check the connection**: it opens the Connection check window in front of the player, and the check runs only because you pressed it.",
+        "The window stays open. The panel disappears when you press **Retry** or **Reconnect**."
+      ],
+      "next": "The caption reads \"Connecting..\" while the player opens the stream again."
+    },
+    {
+      "id": "rec-badge",
+      "name": "Recording badge",
+      "one": "Shows that a recording is on and for how long; it stays visible when the panel hides.",
+      "full": [
+        "A small badge with a red dot, REC and the elapsed time appears in the top right corner of the picture while a recording is on. It does not hide with the control panel.",
+        "The badge is dimmed while no part is being written, for instance between a dropped connection and the return of the picture, so it never claims a recording that is not happening."
+      ]
+    },
+    {
+      "id": "toast",
+      "name": "Message over the picture",
+      "one": "A short message in the middle of the picture reports what a capture or a recording did.",
+      "full": [
+        "It fades in, holds for a moment and fades out, and clicks pass through it. It reports results such as \"Frame saved:\" with the file name, \"Recording saved:\" with the file name, a folder that could not be written and the one used instead, \"Could not save the frame\" and \"Could not start recording\". A message that names a folder or a file stays a little longer."
+      ]
+    },
+    {
+      "id": "keys",
+      "name": "Keyboard",
+      "one": "The keys that work in the video window.",
+      "full": [
+        "[[M]] mutes and unmutes; [[Ctrl+↑]] and [[Ctrl+↓]] raise and lower the volume by 10; [[A]] opens the audio track menu; [[F]] and [[F11]] switch full screen on and off; [[Esc]] leaves full screen; [[R]] starts and stops the recording; [[F1]] opens this page. Each of these keys, except [[F1]], also brings the control panel back, so you see what the key did.",
+        "The letter keys and [[F11]] work on their own: with Ctrl, Shift, Alt or the Windows key held they do nothing, and holding one down does not repeat its action. Only the volume keys take Ctrl, and only Ctrl; holding them repeats the step. [[Space]] and [[Enter]] stay with the button that has the focus.",
+        "The keys act on the window only when nothing else wants them: they do nothing while you type in the field for a new collection or while a menu of the control panel is open."
+      ]
+    },
+    {
+      "id": "help",
+      "nameKey": "HelpName",
+      "one": "Opens this page.",
+      "full": [
+        "Pressing [[F1]] in this window opens the page of the window you are in, in your web browser; the application stays open."
+      ],
+      "next": "The page opens in your browser. Nothing in the application changes."
+    }
+  ],
+  "related": [
+    { "help": "main", "note": "The main window, which opens this one for video and RTSP channels." },
+    { "help": "settings", "note": "Where the video engine, the sound device, the folders for frames and video recordings and the TV schedule are set." },
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." }
+  ]
+}

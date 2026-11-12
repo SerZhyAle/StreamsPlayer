@@ -141,7 +141,7 @@ public partial class MainWindow
         {
             var state = _stateCommitter?.Requested ?? _state;
             var session = new BroadcastAudioSession(channel, credentials, state.AudioVolume, state.AudioOutputDevice,
-                state.AudioChannelMode, (tag, fields) => _log.Event(tag, fields));
+                state.AudioChannelMode, (tag, fields) => _log.Event(tag, fields), ((App)Application.Current).BroadcastEnd);
             session.Changed += () =>
             {
                 if (!Dispatcher.HasShutdownStarted)

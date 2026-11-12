@@ -27,6 +27,7 @@ $ErrorActionPreference = 'Stop'
 
 $measure = Join-Path $PSScriptRoot 'Measure-CaptureTimes.ps1'
 $run = 0
+$setupError = $false
 $skipped = [System.Collections.Generic.List[string]]::new()
 $failures = [System.Collections.Generic.List[string]]::new()
 
@@ -216,9 +217,15 @@ try {
         Write-Host "FAIL: no file given - exit $($none.Exit), last line '$($none.Last)'"
     }
 }
+catch {
+    # SP-0246 S3-3: a setup failure is not a PASS or a FAIL of the cases; it gets the verdict line a caller reads.
+    Write-Host "test-measure-capture-times: $($_.Exception.Message)"
+    $script:setupError = $true
+}
 finally {
     Remove-Item -LiteralPath $folder -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 if ($failures.Count -gt 0) { Finish 'FAIL' 1 }
+if ($setupError) { Finish 'COULD NOT VERIFY' 2 }
 Finish 'PASS' 0

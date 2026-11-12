@@ -1,5 +1,5 @@
 {
-  "$comment": "SP-0198 (SITE-REPRESENTATION rules 1 to 3). The facts the site copy states, each with the file a program reads it from, and the surfaces that must list the pillars of POSITIONING.md in its order. tools/site/SiteFacts.ps1 renders the language count and the minimum Windows into the copy decks and checks the rest; build-site.ps1 -Check runs it. A pattern's first capture group is the value.",
+  "$comment": "SP-0198 (SITE-REPRESENTATION rules 1 to 3). The facts the site copy states, each with the file a program reads it from, and the surfaces that must list the pillars of POSITIONING.md in its order. tools/site/SiteFacts.ps1 renders the language count and the minimum Windows into the copy decks and checks the rest, including (SP-0247) the language count typed in the README, Store listing and winget prose; build-site.ps1 -Check runs it. A pattern's first capture group is the value.",
 
   "positioning": {
     "source": "POSITIONING.md",
@@ -40,5 +40,61 @@
   "renderedKeys": {
     "languages": ["fact-langs", "cap-yours-4"],
     "windows": ["hero-eyebrow", "fact-windows"]
+  },
+
+  "languageCount": {
+    "$comment": "SP-0247 (SITE-REPRESENTATION rule 3). Surfaces that are not rendered from a copy deck type the interface language count in their own prose. Each statement is a file, its locale and a pattern whose one capture group is the count; every match must equal the InterfaceLanguages count, as a digit or as a number word listed below for that locale, and a pattern that stops matching fails. A new count needs its words added here and the prose changed; nothing else.",
+    "numberWords": {
+      "en": { "thirteen": 13 },
+      "ru": { "тринадцати": 13, "тринадцатью": 13, "тринадцать": 13 },
+      "uk": { "тринадцятьма": 13, "тринадцять": 13 },
+      "de": { "dreizehn": 13 },
+      "it": { "tredici": 13 },
+      "es": { "trece": 13 },
+      "fr": { "treize": 13 },
+      "pt": { "treze": 13 },
+      "zh": { "十三": 13 },
+      "hi": { "तेरह": 13 },
+      "bn": { "তেরো": 13 },
+      "ar": { "ثلاث عشرة": 13 },
+      "ur": { "تیرہ": 13 }
+    },
+    "surfaces": [
+      { "path": "README.md", "locale": "en", "pattern": "; (\\S+) languages, endonyms only" },
+      { "path": "README.md", "locale": "en", "pattern": "interface between (\\S+) languages" },
+      { "path": "README.ru.md", "locale": "ru", "pattern": "; (\\S+) языков, только самоназвания" },
+      { "path": "README.ru.md", "locale": "ru", "pattern": "интерфейс между (\\S+) языками" },
+      { "path": "README.uk.md", "locale": "uk", "pattern": "; (\\S+) мов, лише самоназви" },
+      { "path": "README.uk.md", "locale": "uk", "pattern": "інтерфейс між (\\S+) мовами" },
+      { "path": "winget/templates/SerZhyAle.StreamsPlayer.locale.en-US.yaml", "locale": "en", "pattern": "available in (\\S+) languages" },
+      { "path": "winget/templates/SerZhyAle.StreamsPlayer.locale.ru-RU.yaml", "locale": "ru", "pattern": "доступен на (\\S+) языках" },
+      { "path": "winget/templates/SerZhyAle.StreamsPlayer.locale.uk-UA.yaml", "locale": "uk", "pattern": "доступний (\\S+) мовами" },
+      { "path": "msix/listing/en-us.txt", "locale": "en", "pattern": "available in (\\S+) languages" },
+      { "path": "msix/listing/en-us.txt", "locale": "en", "pattern": "(?m)^(\\S+) interface languages" },
+      { "path": "msix/listing/ru.txt", "locale": "ru", "pattern": "доступен на (\\S+) языках" },
+      { "path": "msix/listing/ru.txt", "locale": "ru", "pattern": "(?m)^(\\S+) языков интерфейса" },
+      { "path": "msix/listing/uk.txt", "locale": "uk", "pattern": "доступний (\\S+) мовами" },
+      { "path": "msix/listing/uk.txt", "locale": "uk", "pattern": "(?m)^(\\S+) мов інтерфейсу" },
+      { "path": "msix/listing/de.txt", "locale": "de", "pattern": "gibt es in (\\S+) Sprachen" },
+      { "path": "msix/listing/de.txt", "locale": "de", "pattern": "(?m)^(\\S+) Oberflächensprachen" },
+      { "path": "msix/listing/it.txt", "locale": "it", "pattern": "disponibile in (\\S+) lingue" },
+      { "path": "msix/listing/it.txt", "locale": "it", "pattern": "(?m)^(\\S+) lingue dell'interfaccia" },
+      { "path": "msix/listing/es.txt", "locale": "es", "pattern": "disponible en (\\S+) idiomas" },
+      { "path": "msix/listing/es.txt", "locale": "es", "pattern": "(?m)^(\\S+) idiomas de interfaz" },
+      { "path": "msix/listing/fr.txt", "locale": "fr", "pattern": "disponible en (\\S+) langues" },
+      { "path": "msix/listing/fr.txt", "locale": "fr", "pattern": "(?m)^(\\S+) langues d'interface" },
+      { "path": "msix/listing/pt-br.txt", "locale": "pt", "pattern": "disponível em (\\S+) idiomas" },
+      { "path": "msix/listing/pt-br.txt", "locale": "pt", "pattern": "(?m)^(\\S+) idiomas de interface" },
+      { "path": "msix/listing/zh-hans.txt", "locale": "zh", "pattern": "完整界面提供(\\S+?)种语言" },
+      { "path": "msix/listing/zh-hans.txt", "locale": "zh", "pattern": "(?m)^(\\S+?)种界面语言" },
+      { "path": "msix/listing/hi.txt", "locale": "hi", "pattern": "(\\S+) भाषाओं में उपलब्ध" },
+      { "path": "msix/listing/hi.txt", "locale": "hi", "pattern": "(?m)^(\\S+) \\S+ भाषाएँ," },
+      { "path": "msix/listing/bn.txt", "locale": "bn", "pattern": "(\\S+?)টি ভাষায়" },
+      { "path": "msix/listing/bn.txt", "locale": "bn", "pattern": "(?m)^(\\S+?)টি \\S+ ভাষা," },
+      { "path": "msix/listing/ar.txt", "locale": "ar", "pattern": "متاحة ب(.+?) لغة" },
+      { "path": "msix/listing/ar.txt", "locale": "ar", "pattern": "(?m)^(.+?) لغة واجهة" },
+      { "path": "msix/listing/ur.txt", "locale": "ur", "pattern": "(\\S+) زبانوں میں دستیاب" },
+      { "path": "msix/listing/ur.txt", "locale": "ur", "pattern": "(?m)^(\\S+) \\S+ زبانیں،" }
+    ]
   }
 }

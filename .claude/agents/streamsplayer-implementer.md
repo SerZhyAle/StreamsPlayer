@@ -16,4 +16,4 @@ Read `AGENTS.md`, the relevant `PLAN/SP-NNNN` ticket, the affected code, and its
 - File-size budget ~500 lines; back up any file over that to `temp/<ticket>/` before a large edit. No writes to the repo root.
 
 ## After editing
-Run the step's narrowest meaningful validation (compile > targeted test > full run) and report evidence as `expected: X | actual: Y`. Anti-slop rules: `docs/agent/CODE_QUALITY.md`.
+Run the step's narrowest meaningful validation and report evidence as `expected: X | actual: Y`. Between releases that is static inspection, `scripts/check-fast.ps1` and a direct call of what changed - no build, no test run, nothing above 5 s unless the owner names it; a skipped rung is a `RELEASE` item (`docs/agent/VALIDATION.md`). Anti-slop rules: `docs/agent/CODE_QUALITY.md`.

@@ -1,15 +1,15 @@
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
 /// <summary>
 /// SP-0217's Settings surface: the permission (off by default), the start-with-application setting,
-/// the LAN listening opt-in and port, the microphone device, the quality settings, the listener cap -
-/// and the explicit start of each source. Nothing here starts a capture on its own: every start is a
-/// click, and the two-step consent is what the permission gates.
+/// the LAN listening opt-in and port, the quality settings, the listener cap and the link password.
+/// SP-0252: starting, watching and stopping a source moved to the broadcast window, which this page links to.
+/// Nothing here starts a capture: the two-step consent is what the permission gates, and every start is a click there.
 /// </summary>
 public partial class SettingsWindow
 {
@@ -20,7 +20,6 @@ public partial class SettingsWindow
     {
         PopulateBroadcastQuality();
         PopulateBroadcastLink();
-        PopulateBroadcastVideo();
         Broadcast.Changed += BroadcastChanged;
         Closed += (_, _) => Broadcast.Changed -= BroadcastChanged;
         ShowBroadcasting();
@@ -36,6 +35,7 @@ public partial class SettingsWindow
 
     private void PopulateBroadcastQuality()
     {
+        _showingBroadcast = true;
         BroadcastSampleRateBox.ItemsSource = new[] { "44100", "48000" };
         BroadcastMicChannelsBox.ItemsSource = new[]
         {
@@ -46,38 +46,7 @@ public partial class SettingsWindow
             LocalizationService.Get("BroadcastMono"), LocalizationService.Get("BroadcastStereo")
         };
         BroadcastBitrateBox.ItemsSource = new[] { "96", "128", "192", "256" };
-        PopulateBroadcastMicrophones();
-    }
-
-    private void PopulateBroadcastMicrophones()
-    {
-        // With broadcasting not allowed no capture API is ever called (constraint 7): the device list
-        // is read only for the Settings choice, and only once the permission is on.
-        var previous = Broadcast.Settings.MicrophoneDeviceId;
-        var items = new List<object> { new BroadcastMicrophoneChoice(null, LocalizationService.Get("BroadcastDefaultDevice")) };
-        if (Broadcast.Settings.Allowed)
-        {
-            foreach (var device in WindowsAudioCapture.ListCaptureDevices())
-            {
-                items.Add(new BroadcastMicrophoneChoice(device.Id, string.IsNullOrWhiteSpace(device.Name) ? device.Id : device.Name));
-            }
-        }
-
-        var index = previous is null ? 0
-            : items.FindIndex(choice => choice is BroadcastMicrophoneChoice { Id: { } id } && id == previous);
-        _showingBroadcast = true;
-        BroadcastMicDeviceBox.ItemsSource = items;
-        BroadcastMicDeviceBox.SelectedIndex = Math.Max(0, index);
         _showingBroadcast = false;
-        if (previous is not null && index < 0 && items.Count > 1)
-        {
-            // S15-3: the stored microphone is gone, and the list shows the Windows default in its place. Say so in the settings
-            // too, through the path a pick takes (a null id is the default), or Start would still resolve the stale id. Only
-            // when devices were really listed, so a failed enumeration never erases the person's choice; a change that finds
-            // another value already stored leaves it alone.
-            HandlerBoundary.Run(nameof(PopulateBroadcastMicrophones), () => Broadcast.UpdateSettingsAsync(settings =>
-                settings.MicrophoneDeviceId == previous ? settings with { MicrophoneDeviceId = null } : settings));
-        }
     }
 
     private void ShowBroadcasting()
@@ -99,15 +68,7 @@ public partial class SettingsWindow
             ? Broadcast.Settings.BitrateKbps.ToString(System.Globalization.CultureInfo.InvariantCulture)
             : "128";
         UpdateBroadcastGuestNote();
-        var running = Broadcast.Running;
-        BroadcastMicButton.IsEnabled = running.Count < BroadcastSources.MaximumSimultaneous
-            && !running.Contains(BroadcastSource.Microphone);
-        BroadcastSoundButton.IsEnabled = running.Count < BroadcastSources.MaximumSimultaneous
-            && !running.Contains(BroadcastSource.SystemSound);
-        BroadcastStopButton.IsEnabled = running.Count > 0;
-        ShowBroadcastVideoState(running, guestOnly);
-        ShowBroadcastLinkState(running);
-        BroadcastStatusText.Text = Broadcast.OutcomeKey is { } key ? LocalizationService.Get(key) : "";
+        ShowBroadcastLinkState(Broadcast.Running);
         _showingBroadcast = false;
     }
 
@@ -117,6 +78,16 @@ public partial class SettingsWindow
     private void UpdateBroadcastGuestNote() =>
         BroadcastGuestNoteText.Visibility = Broadcast.IsGuestOnly ? Visibility.Visible : Visibility.Collapsed;
 
+    /// <summary>
+    /// APP-BEHAVIOUR rule 5 and APP-SETTINGS section 9 (SP-0247): a value control whose change ends a broadcast on
+    /// the air, disconnects its listeners or revokes the link password asks first, with No as the default answer.
+    /// With nothing on the air the change costs nothing and is applied at once, like every other value here.
+    /// </summary>
+    private bool ConfirmLiveBroadcastChange(string promptKey) =>
+        Broadcast.Running.Count == 0
+        || MessageBox.Show(this, LocalizationService.Get(promptKey), LocalizationService.Get("BroadcastTitle"),
+            MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes;
+
     private void BroadcastAllowed_Click(object sender, RoutedEventArgs e)
     {
         if (_showingBroadcast)
@@ -124,14 +95,15 @@ public partial class SettingsWindow
             return;
         }
 
+        if (BroadcastAllowedCheckBox.IsChecked != true && !ConfirmLiveBroadcastChange("BroadcastConfirmStopAll"))
+        {
+            ShowBroadcasting();
+            return;
+        }
+
         HandlerBoundary.Run(nameof(BroadcastAllowed_Click), async () =>
         {
                 await Broadcast.SetAllowedAsync(BroadcastAllowedCheckBox.IsChecked == true);
-                if (Broadcast.Settings.Allowed)
-                {
-                    PopulateBroadcastMicrophones();
-                    PopulateBroadcastVideo();
-                }
         });
     }
 
@@ -163,6 +135,12 @@ public partial class SettingsWindow
 
         // S15-2: read on the UI thread, as in BroadcastStartWithApp_Click.
         var lanListening = BroadcastLanCheckBox.IsChecked == true;
+        if (!lanListening && !ConfirmLiveBroadcastChange("BroadcastConfirmLanOff"))
+        {
+            ShowBroadcasting();
+            return;
+        }
+
         HandlerBoundary.Run(nameof(BroadcastLan_Click), async () =>
         {
                 await Broadcast.UpdateSettingsAsync(settings => settings with
@@ -172,14 +150,36 @@ public partial class SettingsWindow
         });
     }
 
-    private void BroadcastLanPort_TextChanged(object sender, TextChangedEventArgs e)
+    private void BroadcastLanPort_LostFocus(object sender, RoutedEventArgs e) => CommitBroadcastLanPort();
+
+    private void BroadcastLanPort_KeyDown(object sender, KeyEventArgs e)
     {
-        if (_showingBroadcast || !int.TryParse(BroadcastLanPortBox.Text, out var port) || port is < 1 or > 65535)
+        if (e.Key == Key.Enter)
+        {
+            CommitBroadcastLanPort();
+        }
+    }
+
+    /// <summary>
+    /// SP-0246 S15-5: a new port stops the broadcasts that are running, so it is applied when the edit is finished and not
+    /// on every keystroke: focus leaves the box, Enter, or the window closes with the box still focused (closing from the
+    /// title bar moves no focus, so LostFocus alone would drop the edit).
+    /// </summary>
+    internal void CommitBroadcastLanPort()
+    {
+        if (_showingBroadcast || !int.TryParse(BroadcastLanPortBox.Text, out var port) || port is < 1 or > 65535
+            || port == Broadcast.Settings.LanPort)
         {
             return;
         }
 
-        HandlerBoundary.Run(nameof(BroadcastLanPort_TextChanged), async () =>
+        if (!ConfirmLiveBroadcastChange("BroadcastConfirmStopAll"))
+        {
+            ShowBroadcasting();
+            return;
+        }
+
+        HandlerBoundary.Run(nameof(CommitBroadcastLanPort), async () =>
         {
                 await Broadcast.UpdateSettingsAsync(settings => settings with { LanPort = port });
         });
@@ -195,19 +195,6 @@ public partial class SettingsWindow
         HandlerBoundary.Run(nameof(BroadcastCap_TextChanged), async () =>
         {
                 await Broadcast.UpdateSettingsAsync(settings => settings with { MaxListeners = cap });
-        });
-    }
-
-    private void BroadcastMicDevice_Changed(object sender, SelectionChangedEventArgs e)
-    {
-        if (_showingBroadcast || BroadcastMicDeviceBox.SelectedItem is not BroadcastMicrophoneChoice choice)
-        {
-            return;
-        }
-
-        HandlerBoundary.Run(nameof(BroadcastMicDevice_Changed), async () =>
-        {
-                await Broadcast.UpdateSettingsAsync(settings => settings with { MicrophoneDeviceId = choice.Id });
         });
     }
 
@@ -234,33 +221,5 @@ public partial class SettingsWindow
         });
     }
 
-    private void BroadcastMicStart_Click(object sender, RoutedEventArgs e)
-    {
-        HandlerBoundary.Run(nameof(BroadcastMicStart_Click), async () =>
-        {
-                await Broadcast.StartAsync(BroadcastSource.Microphone);
-        });
-    }
-
-    private void BroadcastSoundStart_Click(object sender, RoutedEventArgs e)
-    {
-        HandlerBoundary.Run(nameof(BroadcastSoundStart_Click), async () =>
-        {
-                await Broadcast.StartAsync(BroadcastSource.SystemSound);
-        });
-    }
-
-    private void BroadcastStopAll_Click(object sender, RoutedEventArgs e)
-    {
-        HandlerBoundary.Run(nameof(BroadcastStopAll_Click), async () =>
-        {
-                await Broadcast.StopAllAsync();
-        });
-    }
-}
-
-/// <summary>One microphone of the Settings choice; a null id is the Windows default.</summary>
-internal sealed record BroadcastMicrophoneChoice(string? Id, string Name)
-{
-    public override string ToString() => Name;
+    private void BroadcastOpenWindow_Click(object sender, RoutedEventArgs e) => _mainWindow.RequestBroadcastWindowAfterSettings(this);
 }

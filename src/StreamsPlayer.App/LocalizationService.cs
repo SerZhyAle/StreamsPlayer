@@ -10,24 +10,36 @@ public static class LocalizationService
 
     public static AppLanguage CurrentLanguage { get; private set; } = AppLanguage.English;
 
+    /// <summary>
+    /// The chosen language's dictionary, merged above the source one; null while the source language
+    /// itself is chosen.
+    /// </summary>
+    private static ResourceDictionary? _overlay;
+
+    /// <remarks>
+    /// <c>APP-BEHAVIOUR</c> rule 7 (0.11 ladder): a missing translation renders the source-language string,
+    /// then the key. The source dictionary - English, the one every key is authored in and the parity
+    /// reference - therefore stays merged for the life of the process, and the chosen language is laid over
+    /// it, so a key the overlay lacks resolves to English in XAML and in <see cref="Get"/> alike. Replacing
+    /// the one dictionary, as this did before SP-0247, left a key missing from the chosen language with
+    /// nothing beneath it.
+    /// </remarks>
     public static void Apply(AppLanguage language)
     {
-        var application = Application.Current;
-        var dictionaries = application.Resources.MergedDictionaries;
-        var current = dictionaries.FirstOrDefault(dictionary =>
-            dictionary.Source?.OriginalString.Contains(DictionaryPrefix, StringComparison.OrdinalIgnoreCase) == true);
-        var entry = InterfaceLanguages.For(language);
-        var replacement = new ResourceDictionary
+        var dictionaries = Application.Current.Resources.MergedDictionaries;
+        var source = SourceDictionary(dictionaries);
+        if (_overlay is not null)
         {
-            Source = new Uri($"{DictionaryPrefix}{entry.DictionaryCode}.xaml", UriKind.Relative)
-        };
-        if (current is null)
-        {
-            dictionaries.Insert(0, replacement);
+            dictionaries.Remove(_overlay);
+            _overlay = null;
         }
-        else
+
+        var entry = InterfaceLanguages.For(language);
+        if (entry.Language != InterfaceLanguages.Fallback)
         {
-            dictionaries[dictionaries.IndexOf(current)] = replacement;
+            _overlay = Dictionary(entry.DictionaryCode);
+            // A later merged dictionary wins a lookup, so the overlay sits directly above the source.
+            dictionaries.Insert(dictionaries.IndexOf(source) + 1, _overlay);
         }
 
         CurrentLanguage = language;
@@ -39,6 +51,26 @@ public static class LocalizationService
         CultureInfo.CurrentUICulture = culture;
         CultureInfo.DefaultThreadCurrentUICulture = culture;
     }
+
+    private static ResourceDictionary SourceDictionary(IList<ResourceDictionary> dictionaries)
+    {
+        var sourceCode = InterfaceLanguages.For(InterfaceLanguages.Fallback).DictionaryCode;
+        var source = dictionaries.FirstOrDefault(dictionary =>
+            dictionary.Source?.OriginalString.EndsWith(FileName(sourceCode), StringComparison.OrdinalIgnoreCase) == true);
+        if (source is not null)
+        {
+            return source;
+        }
+
+        source = Dictionary(sourceCode);
+        dictionaries.Insert(0, source);
+        return source;
+    }
+
+    private static string FileName(string dictionaryCode) => $"{DictionaryPrefix}{dictionaryCode}.xaml";
+
+    private static ResourceDictionary Dictionary(string dictionaryCode) =>
+        new() { Source = new Uri(FileName(dictionaryCode), UriKind.Relative) };
 
     /// <summary>
     /// The interface culture, with dates pinned to the Gregorian calendar.
@@ -87,7 +119,8 @@ public static class LocalizationService
     /// <c>async void</c> event handler and none of them filters <see cref="FormatException"/> - a string
     /// that gained a placeholder its call site does not supply used to end the process. The gate in
     /// <c>LocalizedCallSiteTests</c> is what stops that being written; this is what it costs if one
-    /// escapes. Composes with <see cref="Get"/>'s own degradation: an unknown key renders as the key name.
+    /// escapes. Composes with <see cref="Get"/>'s own degradation: a key the chosen language lacks renders in
+    /// English, and a key no dictionary holds renders as the key name.
     /// </summary>
     public static string Format(string key, params object?[] arguments) =>
         LocalizedFormat.Apply(CultureInfo.CurrentUICulture, Get(key), arguments);

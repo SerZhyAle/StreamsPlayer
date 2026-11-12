@@ -14,8 +14,8 @@
       offline    rule 7 - no http:// reference, no embedded script, iframe, remote stylesheet/font or remote
                           image in a source document.
 
-    Rule 4 (generated documentation in sync) is tools/site/build-site.ps1 -Check; scripts/check.ps1 and CI run
-    both.
+    Rule 4 (generated documentation in sync) is tools/site/build-site.ps1 -Check; scripts/check.ps1, release.yml
+    and pages.yml run both. Push CI runs this gate only, through scripts/check-fast.ps1 (SP-0256).
 
     The portal contribution (docs/portal/*.md, the exchange guide sections handed to the shared media exchange portal)
     is also judged against DOC-EXTERNAL-QUALITY, SP-0239 P5:
@@ -156,7 +156,7 @@ foreach ($document in $documents) {
     if ($owners.Count -eq 0) {
         Add-Finding 'coverage' $document "not declared in $registryName (add an entry, or an ignore entry with a reason)"
     } elseif ($declared.Count -gt 1) {
-        Add-Finding 'coverage' $document "declared by $($declared.Count) entries ($(($declared.Where) -join ', ')) - one home per document"
+        Add-Finding 'coverage' $document "declared by $($declared.Count) entries ($(($declared | ForEach-Object Where) -join ', ')) - one home per document"
     } elseif ($declared.Count -eq 1 -and $declared[0].Role -eq 'source' -and $document -match '\.md$') {
         $sources.Add($document)
     }

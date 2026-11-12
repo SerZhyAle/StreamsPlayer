@@ -510,6 +510,14 @@ code {
   font-size: 0.94rem;
 }
 
+/* SP-0259 (PAGE-STYLE 3.10): the release the download links point at - version, date, checksum and the
+   durable releases page - rendered at build time from tools/site/release-manifest.json. */
+.release-facts {
+  margin: 0.75rem 0 1.5rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -1,0 +1,13 @@
+Application settings standard conformance vectors, DEVICE-EXCHANGE 1.12 items EN to ER, vendored for SP-0260.
+
+source:  Contracts/device-exchange/vectors/settings-standard-v1/ (rung 1 evidence of shape, written by the canon session)
+copied:  byte for byte on 2026-11-12 from the contract store; never edited here
+files (sha256):
+  84e4c3a4a3adbee35d8ba4d761e21e64eec32602fe016c20481a86fee49131c6 *01-save-standard-request.json
+  0a04b696a08d95da55d5010c50a16881de8a06af1c5bf4769032291c84830054 *02-save-standard-response.json
+  0144d219c45cc7078448ddcf5cb934a792c2c7695ffe9e8eae6e8c55c2adf9ed *03-get-standard-request.json
+  17d21f895b6dacdb296d4ff830de78f195f8cdca3cec060fd8236794e19a882d *04-get-standard-payload-response.json
+  55fe8fa1945f5fbb8a67d00dad1fd67c6d32939d2747479769bf395cbde9abd6 *05-refused-not-found.json
+  dcd5d13764a817b6d496cc64388b9673cc4e81057c7ad175470c5f1f3d393123 *06-refused-incompatible.json
+  60136bf6f6741aae7826b1c9118e4130613b9b59556c448cb7d18c57c6c37b7d *07-local-exclusion-manifest.json
+This is test data, not a second source: the catalog wins, and a change is made there and copied here.

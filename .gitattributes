@@ -63,3 +63,5 @@ tests/StreamsPlayer.Core.Tests/Vectors/fmsw-224/* -text
 tests/StreamsPlayer.Core.Tests/Vectors/server/* -text
 tests/StreamsPlayer.Exchange.Tests/Vectors/protection-v1.json -text
 tests/StreamsPlayer.Exchange.Tests/Vectors/qr/*.fmscfg -text
+# SP-0247: the USER-PLAYLIST conformance vectors, pinned by SHA-256 in their PROVENANCE.txt and by M3uPlaylistVectorTests.
+tests/StreamsPlayer.Core.Tests/Vectors/user-playlist/* -text

@@ -36,6 +36,7 @@ public partial class MainWindow
         // too, and nothing owns them.
         CloseIncomingBroadcastWindows();
         _broadcastsWindow?.Close();
+        _broadcastWindow?.Close();
         // SP-0080: the compact panel is a top-level window of this application's making, so it goes the
         // same way, while the catalog is still open.
         CloseCompactPanel();

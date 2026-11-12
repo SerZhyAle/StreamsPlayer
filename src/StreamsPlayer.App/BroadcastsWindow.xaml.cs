@@ -174,6 +174,12 @@ public partial class BroadcastsWindow : Window
         }
     }
 
+    /// <summary>
+    /// APP-SETTINGS rule 5: the rows' text is formatted in code, so a live language switch has nothing to follow
+    /// and the list is rebuilt in the new language (SP-0247).
+    /// </summary>
+    internal void RefreshLocalization() => Rebuild();
+
     private static string StateSignature(IReadOnlyList<IncomingBroadcastEntry> incoming) =>
         string.Join('|', incoming.Select(entry => $"{entry.ChannelId}:{entry.State}:{entry.MessageKey}"));
 

@@ -10,23 +10,23 @@
         <DataTemplate DataType="{x:Type app:BroadcastSectionHeading}">
             <StackPanel Margin="0,16,0,4">
                 <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="Bold" TextWrapping="Wrap" />
-                <TextBlock Text="{Binding Note}" Opacity="0.7" TextWrapping="Wrap" Margin="0,2,0,0"
+                <TextBlock Text="{Binding Note}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0"
                            Visibility="{Binding NoteVisibility}" />
             </StackPanel>
         </DataTemplate>
         <DataTemplate DataType="{x:Type app:BroadcastSectionNote}">
-            <TextBlock Text="{Binding Text}" Opacity="0.7" TextWrapping="Wrap" Margin="0,4" />
+            <TextBlock Text="{Binding Text}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,4" />
         </DataTemplate>
         <DataTemplate DataType="{x:Type app:BroadcastDeviceHeading}">
             <StackPanel Margin="0,14,0,2" Orientation="Horizontal">
                 <TextBlock Text="{Binding DeviceName}" FontWeight="SemiBold" />
-                <TextBlock Text="{Binding PresenceText}" Opacity="0.65" Margin="10,0,0,0" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding PresenceText}" Foreground="{DynamicResource MutedBrush}" Margin="10,0,0,0" VerticalAlignment="Center" />
             </StackPanel>
         </DataTemplate>
         <DataTemplate DataType="{x:Type app:BroadcastLinkRow}">
             <StackPanel Margin="0,4">
                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                <TextBlock Text="{Binding StateText}" Opacity="0.65" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding StateText}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" />
             </StackPanel>
         </DataTemplate>
         <DataTemplate DataType="{x:Type app:BroadcastRow}">
@@ -37,7 +37,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                    <TextBlock Text="{Binding Detail}" Opacity="0.65" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Detail}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" />
                 </StackPanel>
                 <WrapPanel Grid.Column="1" Visibility="{Binding ActionsVisibility}" VerticalAlignment="Center" Margin="10,0,0,0">
                     <Button Style="{StaticResource PlayGlyphButton}" Content="{DynamicResource BroadcastsPlay}" Tag="{Binding}" Click="Play_Click"
@@ -73,7 +73,7 @@
                         </Style>
                     </app:ExchangeMarkIcon.Style>
                 </app:ExchangeMarkIcon>
-                <TextBlock x:Name="StatusText" Opacity="0.7" TextWrapping="Wrap" />
+                <TextBlock x:Name="StatusText" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" />
             </DockPanel>
             <WrapPanel Margin="0,8,0,0">
                 <Button x:Name="SettingsButton" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource BroadcastsOpenSettings}"

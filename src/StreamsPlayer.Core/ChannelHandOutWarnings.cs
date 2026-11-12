@@ -60,6 +60,21 @@ public static class ChannelHandOutWarnings
     }
 
     /// <summary>
+    /// SP-0246 S14-6: the single-row hand-out. A broadcast-resource row keeps its token in
+    /// <see cref="StreamChannel.ResourceKey"/>, which <see cref="KeysFor(string)"/> cannot see from the address
+    /// alone, so the row gets the same credential confirmation the export gate gives it.
+    /// </summary>
+    public static IReadOnlyList<string> KeysForRow(StreamChannel row)
+    {
+        var keys = KeysFor(row.Url).ToList();
+        if (row.ResourceKey is { Length: > 0 } && !keys.Contains(CredentialKey))
+        {
+            keys.Insert(0, CredentialKey);
+        }
+
+        return keys;
+    }
+    /// <summary>
     /// 196 section 6.4: the export gate for whole ROWS. A broadcast-resource row carries its token in
     /// the URL path, which <see cref="CatalogUrlIdentity.HasCredentials"/> does not see - there is no
     /// <c>user:pass@</c> - so a row with a <see cref="StreamChannel.ResourceKey"/> is a secret-bearing

@@ -50,15 +50,18 @@
           </div>
           <!-- The installer is the primary action, and it is first because it was not here at all:
                the only route to a download sat in the Distribution grid at 90% of the page height, so a
-               visitor who did not scroll to the bottom never found one. site.js rewrites this href to the
-               exact -windows-x64-setup.exe of the current release; the static href reaches the release
-               page, which is a working answer rather than a dead link when that fetch fails. -->
+               visitor who did not scroll to the bottom never found one. SP-0259 (PAGE-STYLE 3.10): its href
+               is the exact -windows-x64-setup.exe of the release named in tools/site/release-manifest.json,
+               rendered at build time, so it works with scripts off and no request to api.github.com; the
+               line below names that version, its date and its checksum, with the durable releases page
+               beside it. -->
           <div class="button-group">
-            <a class="button button-primary" id="dl-setup-hero" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">{{t.hero-download}}</a>
+            <a class="button button-primary" id="dl-setup-hero" href="{{release.setup}}">{{t.hero-download}}</a>
             <a class="button button-gold" href="#use">{{t.hero-cta-use}}</a>
             <a class="button button-ghost" href="https://github.com/SerZhyAle/StreamsPlayer">{{t.hero-source}}</a>
             <a class="button button-ghost" href="#distribution">{{t.hero-status}}</a>
           </div>
+          <p class="release-facts">{{t.release-facts}} · <a href="{{release.setupSha256}}" dir="ltr">SHA-256</a> · <a href="{{release.all}}">{{t.whatsnew-earlier-link}}</a></p>
         </div>
 
         <aside class="status-card" aria-labelledby="status-title">
@@ -108,6 +111,7 @@
               <li>{{t.cap-play-4}}</li>
               <li>{{t.cap-play-5}}</li>
               <li>{{t.cap-play-6}}</li>
+              <li>{{t.cap-play-7}}</li>
             </ul>
           </article>
           <article class="card cap">
@@ -119,6 +123,7 @@
               <li>{{t.cap-window-4}}</li>
               <li>{{t.cap-window-5}}</li>
               <li>{{t.cap-window-6}}</li>
+              <li>{{t.cap-window-7}}</li>
             </ul>
           </article>
           <article class="card cap">
@@ -139,6 +144,7 @@
               <li>{{t.cap-yours-5}}</li>
               <li>{{t.cap-yours-6}}</li>
               <li>{{t.cap-yours-7}}</li>
+              <li>{{t.cap-yours-8}}</li>
             </ul>
           </article>
           <article class="card cap">
@@ -160,7 +166,6 @@
             <div>
               <h3>{{t.use-1-title}}</h3>
               <p>{{t.use-1-text}}</p>
-              <pre dir="ltr"><code>./build.ps1 -Run</code></pre>
             </div>
           </li>
           <li class="step">
@@ -206,11 +211,11 @@
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>{{t.distribution-title}}</span></h2>
         <p class="section-description">{{t.distribution-description}}</p>
         <div class="distribution-grid">
-          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+          <a class="channel" id="dl-setup" href="{{release.setup}}">
             <span class="channel-mark">EXE</span>
             <div><strong>{{t.channel-setup}}</strong><span class="pill">{{t.status-available}}</span></div>
           </a>
-          <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+          <a class="channel" href="{{release.zip}}">
             <span class="channel-mark">ZIP</span>
             <div><strong>{{t.channel-github}}</strong><span class="pill">{{t.status-available}}</span></div>
           </a>
@@ -223,6 +228,7 @@
             <div><strong>{{t.channel-winget}}</strong><span class="pill">{{t.status-available}}</span></div>
           </a>
         </div>
+        <p class="release-facts">{{t.release-facts}} · SHA-256: <a href="{{release.setupSha256}}" dir="ltr">EXE</a>, <a href="{{release.zipSha256}}" dir="ltr">ZIP</a> · <a href="{{release.all}}">{{t.whatsnew-earlier-link}}</a></p>
         <p class="section-description">{{t.channel-setup-note}}</p>
         <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
              the download is, not only from the footer. SP-0039: so is what changed, which a reader deciding

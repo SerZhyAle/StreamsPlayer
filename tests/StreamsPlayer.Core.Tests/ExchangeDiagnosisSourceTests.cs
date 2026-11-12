@@ -36,8 +36,8 @@ public sealed class ExchangeDiagnosisSourceTests
             }
         }
 
-        // The three doors: Settings, the list window, a failed broadcast's window.
-        Assert.Equal(3, openers.Count);
+        // The four doors: Settings, the list window, a failed audio broadcast's window, a failed video broadcast's window.
+        Assert.Equal(4, openers.Count);
     }
 
     [Fact]

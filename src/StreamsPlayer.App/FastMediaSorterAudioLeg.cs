@@ -14,6 +14,7 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
     private readonly Action<string, string[]>? _log;
     private ExchangeTunnelForwarder? _forwarder;
     private ExchangeRelayProxy? _relayProxy;
+    private BroadcastDigestProxy? _digestProxy;
     private bool _streaming;
     private bool _disposed;
 
@@ -81,12 +82,19 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
         get { lock (_gate) return !_disposed && _playback.CanRecord; }
     }
 
+    /// <param name="endWatch">
+    /// SP-0250: when a window reads the end of its broadcast, the watch that says which answers end it. The walk stops at
+    /// the first endpoint that answers one - a reconnect is not spent on the rest once the broadcast is known to be over -
+    /// and that answer is the result's reason. Null keeps every endpoint's turn, as the main window's route does.
+    /// </param>
     internal async Task<FastMediaSorterAudioLegResult> OpenAsync(
         StreamChannel channel, int volume, ExchangeRelayCredentials? credentials,
-        CancellationToken cancellationToken, int leg, bool reconnecting)
+        CancellationToken cancellationToken, int leg, bool reconnecting, BroadcastEndWatch? endWatch = null)
     {
         // Even a local refusal must arrive after the client has published its session and resume record.
         await Task.Yield();
+        if (channel.FastMediaSorterBroadcast is { } descriptor)
+            _log?.Invoke("BROADCAST DESCRIPTOR", BroadcastOpenDiagnostics.Fields(descriptor));
         var listed = channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints(channel.Url);
         var attempts = listed is { Count: > 0 }
             ? listed
@@ -99,6 +107,7 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
             if (IsCancelled(cancellationToken)) return Cancelled();
             var endpoint = attempts[index];
             var decision = ExchangeBroadcastKeys.Decide(endpoint);
+            var endpointCredentials = decision.Credentials ?? credentials;
             if (!decision.Allowed)
             {
                 reason = decision.Reason;
@@ -106,11 +115,11 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
                 continue;
             }
 
-            if (channel.FastMediaSorterBroadcast?.Auth is not null && decision.RelayOptions(endpoint.Url) is null)
+            if (channel.FastMediaSorterBroadcast?.Auth is not null && credentials is null && decision.Credentials is null)
             {
-                reason = ExchangeBroadcastAuth.UnsupportedEndpointReason;
+                reason = ExchangeBroadcastAuth.PasswordRequiredReason;
                 LogAttempt(index, endpoint, reason);
-                continue;
+                break;
             }
 
             Uri? address = null;
@@ -123,8 +132,12 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
                     if (endpoint.Inner is { Length: > 0 } inner &&
                         ExchangeTunnelUrl.TryParse(endpoint.Url, out var tunnelUrl))
                     {
-                        _forwarder = ExchangeTunnelForwarder.Start(tunnelUrl, inner, endpoint.CertFingerprint, tunnelPin: decision.TunnelPin);
-                        LaunchableAddress.TryParseHttp(_forwarder.LoopbackUrl, out address);
+                        _forwarder = ExchangeTunnelForwarder.Start(tunnelUrl, inner, endpoint.CertFingerprint, tunnelPin: decision.TunnelPin,
+                            admitPeer: LoopbackPeerOwner.IsThisProcess);
+                        ListenerBindLog.Loopback("audio-tunnel", _forwarder.BoundPort);
+                        var localUrl = channel.FastMediaSorterBroadcast?.Auth is not null
+                            ? StartDigestProxy(inner, _forwarder.LoopbackUrl, endpointCredentials!, null) : _forwarder.LoopbackUrl;
+                        LaunchableAddress.TryParseHttp(localUrl, out address);
                     }
                     else if (decision.RelayOptions(endpoint.Url) is { } sealedRelay)
                     {
@@ -132,11 +145,15 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
                             credentials: decision.Credentials ?? credentials, sealedRelay: sealedRelay);
                         _relayProxy = proxy;
                         proxy.Failed += failure => RelayProxyFailed(proxy, failure);
+                        ListenerBindLog.Loopback("audio-relay", proxy.BoundPort);
                         LaunchableAddress.TryParseHttp(proxy.LoopbackUrl, out address);
                     }
                     else
                     {
-                        LaunchableAddress.TryParseHttp(endpoint.Url, out address);
+                        var localUrl = channel.FastMediaSorterBroadcast?.Auth is not null
+                            && endpoint.Transport?.Equals("RELAY", StringComparison.OrdinalIgnoreCase) != true
+                            ? StartDigestProxy(endpoint.Url, null, endpointCredentials!, endpoint.CertFingerprint) : endpoint.Url;
+                        LaunchableAddress.TryParseHttp(localUrl, out address);
                     }
                 }
             }
@@ -171,7 +188,7 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
                 relayCredentials = _relayProxy is null && endpoint.Transport?.Equals("RELAY", StringComparison.OrdinalIgnoreCase) == true
                     ? credentials : null;
                 opening = _playback.StartAsync(address, volume, cancellationToken, connectTimeout,
-                    _relayProxy is null ? endpoint.CertFingerprint : null, relayCredentials);
+                    _relayProxy is null && _digestProxy is null ? endpoint.CertFingerprint : null, relayCredentials);
             }
 
             result = await opening.ConfigureAwait(false);
@@ -185,7 +202,7 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
                 }
                 else
                 {
-                    reason = _forwarder?.LastRefusalReason ?? _relayProxy?.LastFailure
+                    reason = _forwarder?.LastRefusalReason ?? _relayProxy?.LastFailure ?? _digestProxy?.LastFailure
                         ?? (result.Error is ExchangeBroadcastCertificateException certificate ? certificate.Reason
                             : result.Error?.GetType().Name ?? "refused");
                     if (result.StatusCode == 401 && channel.FastMediaSorterBroadcast?.Auth is { } auth &&
@@ -198,8 +215,20 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
             }
 
             if (playedAt >= 0) break;
+            // The relay's and the tunnel's answers are already reasons; a LAN attempt's are its status or its refused connection.
+            var answer = BroadcastEndAnswers.FromReason(reason);
+            if (answer == BroadcastEndAnswer.None && !ExchangeEndpointKinds.IsExchangeEndpoint(endpoint))
+            {
+                answer = BroadcastEndAnswers.FromLanHttp(result.StatusCode, result.Error);
+                if (BroadcastEndAnswers.ReasonOf(answer) is { } lanReason)
+                {
+                    reason = lanReason;
+                }
+            }
+
             LogAttempt(index, endpoint, reason);
             ReleaseTransports();
+            if (IncomingBroadcastFailure.IsPasswordRefusal(reason) || endWatch?.WouldEnd(answer) == true) break;
         }
 
         _log?.Invoke("FMS AUDIO RESPONSE", [$"leg={leg}", $"reconnecting={reconnecting}", $"attempt={playedAt}",
@@ -221,6 +250,23 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
 
     private static FastMediaSorterAudioLegResult Cancelled() => new(false, true, "cancelled", null);
 
+    private string StartDigestProxy(string target, string? connect, ExchangeRelayCredentials credentials, string? pin)
+    {
+        var proxy = BroadcastDigestProxy.Start(target, credentials, connect, pin, LoopbackPeerOwner.IsThisProcess,
+            connectTimeout: connect is null ? null : TimeSpan.FromSeconds(15));
+        _digestProxy = proxy;
+        proxy.Failed += failure =>
+        {
+            lock (_gate)
+            {
+                if (_disposed || !_streaming || !ReferenceEquals(_digestProxy, proxy)) return;
+            }
+            RelayFailed?.Invoke(failure);
+        };
+        ListenerBindLog.Loopback("audio-digest", proxy.BoundPort);
+        return proxy.LoopbackUrl;
+    }
+
     private void RelayProxyFailed(ExchangeRelayProxy proxy, string failure)
     {
         lock (_gate)
@@ -238,14 +284,18 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
     {
         ExchangeTunnelForwarder? forwarder;
         ExchangeRelayProxy? proxy;
+        BroadcastDigestProxy? digest;
         lock (_gate)
         {
             forwarder = _forwarder;
             _forwarder = null;
             proxy = _relayProxy;
             _relayProxy = null;
+            digest = _digestProxy;
+            _digestProxy = null;
             _streaming = false;
         }
+        digest?.Dispose();
         forwarder?.Dispose();
         proxy?.Dispose();
     }

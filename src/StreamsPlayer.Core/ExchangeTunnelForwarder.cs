@@ -28,6 +28,7 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
     private readonly string? _tunnelPin;
     private readonly int _maxConnections;
     private readonly Func<string, int, string?, CancellationToken, Task<Stream>> _streamConnector;
+    private readonly Func<IPEndPoint, int, bool>? _admitPeer;
     private readonly CancellationTokenSource _cts = new();
     private readonly List<IDisposable> _activeResources = [];
     private readonly object _lock = new();
@@ -44,6 +45,9 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
     public int ConnectedCount { get; private set; }
     public int ConnectAttempts { get; private set; }
 
+    /// <summary>How many connectors the peer admission turned away. Not a <see cref="Refused"/>: the listener is not at fault and must see no failure.</summary>
+    public int RejectedPeers { get; private set; }
+
     public event Action<string>? Refused;
 
     private ExchangeTunnelForwarder(
@@ -53,9 +57,11 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
         int maxConnections,
         Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector,
         string? tunnelPin,
+        Func<IPEndPoint, int, bool>? admitPeer,
         IDisposable lease)
     {
         _lease = lease;
+        _admitPeer = admitPeer;
         _tunnelPin = tunnelPin;
         _tunnelUrl = tunnelUrl;
         _innerUrl = innerUrl;
@@ -70,20 +76,26 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
         _idleTimer = new Timer(_ => Dispose(), null, IdleTimeout, Timeout.InfiniteTimeSpan);
     }
 
+    /// <param name="admitPeer">
+    /// SP-0246 S13-4: asked once per accepted connection with the connector's endpoint and this listener's port; false drops
+    /// the connection before anything is opened toward the exchange. Null admits every local connector. The loopback
+    /// port is reachable by every process on the machine, so a host that can tell its own player from a stranger says so here.
+    /// </param>
     public static ExchangeTunnelForwarder Start(
         string fmsxUrl,
         string innerUrl,
         string? certFingerprint = null,
         int maxConnections = DefaultMaxConnections,
         Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector = null,
-        string? tunnelPin = null)
+        string? tunnelPin = null,
+        Func<IPEndPoint, int, bool>? admitPeer = null)
     {
         if (!ExchangeTunnelUrl.TryParse(fmsxUrl, out var tunnelUrl))
         {
             throw new ArgumentException("Invalid fmsx tunnel URL.", nameof(fmsxUrl));
         }
 
-        return Start(tunnelUrl, innerUrl, certFingerprint, maxConnections, streamConnector, tunnelPin);
+        return Start(tunnelUrl, innerUrl, certFingerprint, maxConnections, streamConnector, tunnelPin, admitPeer);
     }
 
     public static ExchangeTunnelForwarder Start(
@@ -92,10 +104,11 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
         string? certFingerprint = null,
         int maxConnections = DefaultMaxConnections,
         Func<string, int, string?, CancellationToken, Task<Stream>>? streamConnector = null,
-        string? tunnelPin = null)
+        string? tunnelPin = null,
+        Func<IPEndPoint, int, bool>? admitPeer = null)
     {
         var forwarder = ExchangeBroadcastResources.Start(lease =>
-            new ExchangeTunnelForwarder(tunnelUrl, innerUrl, certFingerprint, maxConnections, streamConnector, tunnelPin, lease));
+            new ExchangeTunnelForwarder(tunnelUrl, innerUrl, certFingerprint, maxConnections, streamConnector, tunnelPin, admitPeer, lease));
         forwarder.StartAcceptLoop();
         return forwarder;
     }
@@ -110,6 +123,17 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
                 while (!token.IsCancellationRequested)
                 {
                     var client = await _listener.AcceptTcpClientAsync(token).ConfigureAwait(false);
+                    if (!IsAdmitted(client))
+                    {
+                        lock (_lock)
+                        {
+                            RejectedPeers++;
+                        }
+
+                        client.Dispose();
+                        continue;
+                    }
+
                     lock (_lock)
                     {
                         if (_disposed || token.IsCancellationRequested)
@@ -145,6 +169,24 @@ public sealed class ExchangeTunnelForwarder : IAsyncDisposable, IDisposable
                 // Listener closed.
             }
         });
+    }
+
+    private bool IsAdmitted(TcpClient client)
+    {
+        if (_admitPeer is null)
+        {
+            return true;
+        }
+
+        try
+        {
+            return client.Client.RemoteEndPoint is IPEndPoint peer && _admitPeer(peer, BoundPort);
+        }
+        catch (Exception exception) when (exception is SocketException or ObjectDisposedException or InvalidOperationException)
+        {
+            // A connector that is already gone, or an admission that could not decide: nothing is opened for it.
+            return false;
+        }
     }
 
     private async Task HandleConnectionAsync(TcpClient client, CancellationToken cancellationToken)

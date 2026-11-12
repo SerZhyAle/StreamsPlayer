@@ -60,6 +60,15 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+# SP-0246 S3-4: -Check answers in the closed verdict set. Outside -Check the trap only falls through, so the original
+# error is reported as it always was; a bare `throw` here would replace its message with "ScriptHalted".
+trap {
+    if ($Check) {
+        Write-Host "catalog-snapshot: $($_.Exception.Message)"
+        Write-Host 'catalog-snapshot: COULD NOT VERIFY'
+        exit 2
+    }
+}
 
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -82,12 +91,15 @@ function Get-CoreContract {
     $service = $assembly.GetType('StreamsPlayer.Core.StreamCatalogService', $true)
     $snapshot = $assembly.GetType('StreamsPlayer.Core.BundledCatalogSnapshot', $true)
     $retry = $assembly.GetType('StreamsPlayer.Core.PublishWindowRetry', $true)
+    $reader = $assembly.GetType('StreamsPlayer.Core.StreamBankReader', $true)
 
     return [pscustomobject]@{
         CatalogUrl          = [string] $service.GetField('CatalogUrl').GetRawConstantValue()
         MaximumArchiveBytes = [long] $service.GetField('MaximumArchiveBytes').GetRawConstantValue()
         RetryDelays         = @($retry.GetProperty('Default').GetValue($null).Delays)
         MaximumBytes        = [int] $snapshot.GetField('MaximumSnapshotBytes').GetRawConstantValue()
+        MaximumCsvBytes     = [int] $reader.GetField('MaximumCsvBytes').GetRawConstantValue()
+        MaximumAtlasBytes   = [int] $reader.GetField('MaximumAtlasBytes').GetRawConstantValue()
     }
 }
 
@@ -175,19 +187,31 @@ function Get-PublishedBank {
 }
 
 function Read-ZipEntryBytes {
-    param([System.IO.Compression.ZipArchive] $Archive, [string] $Name)
+    # SP-0246 S3-5: the archive ceiling bounds the compressed bytes only; an entry may inflate far past it.
+    param([System.IO.Compression.ZipArchive] $Archive, [string] $Name, [long] $MaximumEntryBytes = 1048576)
 
     $entry = $Archive.Entries | Where-Object { $_.FullName -like "*$Name" } | Select-Object -First 1
     if (-not $entry) { return $null }
+    if ($entry.Length -gt $MaximumEntryBytes) {
+        throw "Zip entry '$($entry.FullName)' declares $($entry.Length) bytes, over the $MaximumEntryBytes-byte inflate ceiling."
+    }
 
     $stream = $entry.Open()
+    $buffer = [System.IO.MemoryStream]::new()
     try {
-        $buffer = New-Object System.IO.MemoryStream
-        $stream.CopyTo($buffer)
+        # The declared length is the writer's claim; the read itself is what must be bounded.
+        $chunk = [byte[]]::new(81920)
+        while (($read = $stream.Read($chunk, 0, $chunk.Length)) -gt 0) {
+            if ($buffer.Length + $read -gt $MaximumEntryBytes) {
+                throw "Zip entry '$($entry.FullName)' inflated past the $MaximumEntryBytes-byte ceiling; read stopped."
+            }
+            $buffer.Write($chunk, 0, $read)
+        }
         # The leading comma keeps PowerShell from unrolling the byte array into the pipeline.
         return , $buffer.ToArray()
     }
     finally {
+        $buffer.Dispose()
         $stream.Dispose()
     }
 }
@@ -397,6 +421,8 @@ function Test-Snapshot {
     param(
         [string] $Path,
         [int] $MaximumBytes,
+        # SP-0246 S3-5: the ceiling streams.csv may inflate to; the bank reader's own, so a snapshot it would read is a snapshot this reads.
+        [long] $MaximumCsvBytes,
         # The published bank's Last-Modified. $null skips the comparison and $SkipReason then says why.
         [object] $PublishedDate,
         [string] $SkipReason
@@ -439,7 +465,7 @@ function Test-Snapshot {
                 }
             }
 
-            $rows = Measure-CsvChannels -Csv ([System.Text.Encoding]::UTF8.GetString((Read-ZipEntryBytes -Archive $archive -Name 'streams.csv')))
+            $rows = Measure-CsvChannels -Csv ([System.Text.Encoding]::UTF8.GetString((Read-ZipEntryBytes -Archive $archive -Name 'streams.csv' -MaximumEntryBytes $MaximumCsvBytes)))
             # SP-0184 (S2-4): a snapshot with no channels is structurally valid and useless - the first-run window
             # would offer nothing - so the check fails it rather than reporting "OK, 0 channels".
             if ($rows -le 0) { throw 'The catalog snapshot holds no channels: streams.csv has no record with both a name and a url.' }
@@ -462,10 +488,31 @@ if ($Check) {
     $publishedDate = $null
     $skipReason = $null
     if ($Offline) { $skipReason = '-Offline was passed' }
-    else { $publishedDate = Get-PublishedBankDate -Url $contract.CatalogUrl }
+    else {
+        # SP-0246 S3-4: nothing was inspected when the comparison cannot run, which is not a verdict on the snapshot.
+        try { $publishedDate = Get-PublishedBankDate -Url $contract.CatalogUrl }
+        catch {
+            Write-Host "catalog-snapshot: $($_.Exception.Message)"
+            Write-Host 'catalog-snapshot: COULD NOT VERIFY'
+            exit 2
+        }
+    }
 
-    Test-Snapshot -Path $artifactPath -MaximumBytes $contract.MaximumBytes `
-                  -PublishedDate $publishedDate -SkipReason $skipReason
+    if (-not (Test-Path -LiteralPath $artifactPath -PathType Leaf)) {
+        Write-Host "No catalog snapshot at $artifactPath. Run this script without -Check to generate it."
+        Write-Host 'catalog-snapshot: COULD NOT VERIFY'
+        exit 2
+    }
+    try {
+        Test-Snapshot -Path $artifactPath -MaximumBytes $contract.MaximumBytes -MaximumCsvBytes $contract.MaximumCsvBytes `
+                      -PublishedDate $publishedDate -SkipReason $skipReason
+    }
+    catch {
+        Write-Host "catalog-snapshot: $($_.Exception.Message)"
+        Write-Host 'catalog-snapshot: FAIL'
+        exit 1
+    }
+    Write-Host 'catalog-snapshot: PASS'
     exit 0
 }
 
@@ -497,9 +544,9 @@ $bankStream = New-Object System.IO.MemoryStream(, $bankBytes)
 try {
     $bank = New-Object System.IO.Compression.ZipArchive($bankStream, [System.IO.Compression.ZipArchiveMode]::Read)
     try {
-        $csvBytes = Read-ZipEntryBytes -Archive $bank -Name 'streams.csv'
+        $csvBytes = Read-ZipEntryBytes -Archive $bank -Name 'streams.csv' -MaximumEntryBytes $contract.MaximumCsvBytes
         if (-not $csvBytes) { throw 'The bank contains no streams.csv.' }
-        $atlas = Read-ZipEntryBytes -Archive $bank -Name 'favicon-atlas.png'
+        $atlas = Read-ZipEntryBytes -Archive $bank -Name 'favicon-atlas.png' -MaximumEntryBytes $contract.MaximumAtlasBytes
     }
     finally { $bank.Dispose() }
 }
@@ -545,7 +592,7 @@ $staged = Write-SnapshotZip -Path $target -Csv $csv -Atlas $atlas -Metadata $met
 # SP-0212 (L7): it runs BEFORE the move. A snapshot that fails validation must not be left over the tracked
 # artifact - that invalid file is the one a later -Check would read and the one that would ship.
 try {
-    Test-Snapshot -Path $staged -MaximumBytes $contract.MaximumBytes -PublishedDate $sourceDate
+    Test-Snapshot -Path $staged -MaximumBytes $contract.MaximumBytes -MaximumCsvBytes $contract.MaximumCsvBytes -PublishedDate $sourceDate
 }
 catch {
     Remove-Item -LiteralPath $staged -Force -ErrorAction SilentlyContinue

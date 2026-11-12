@@ -88,6 +88,9 @@ Sin telemetría
 @@hero-download
 Descargar (.exe)
 
+@@release-facts
+Versión [[version]] del [[releasedate]]
+
 @@hero-cta-use
 Cómo usarlo
 
@@ -167,7 +170,10 @@ Búfer de directo de unos 15 segundos, y el vídeo se asienta en la calidad que 
 Graba el vídeo en directo o la radio que estás reproduciendo directamente en un archivo, sin interrumpir la reproducción: el vídeo va a la carpeta Recordings de Vídeos, la radio a la carpeta Recordings de Música o a las carpetas que elijas.
 
 @@cap-play-6
-Escucha una emisión de audio o vídeo en directo desde un teléfono o un reloj con FastMediaSorter: por tu red local o a través del relé de tu servidor de intercambio cuando la emisión lo ofrezca.
+Escucha una emisión de audio o vídeo en directo desde un teléfono o un reloj con Fast Media Sorter & Organizer for Android: por tu red local o a través de tu servidor de intercambio cuando la emisión lo ofrezca.
+
+@@cap-play-7
+Transmite la pantalla, una cámara, el micrófono o el sonido de este PC desde la ventana «Transmisión» - cada fuente tiene su propia tarjeta, y la compartes como enlace, código QR o archivo. La transmisión está desactivada hasta que la permitas en Ajustes.
 
 @@cap-window-title
 Ver a tu manera
@@ -189,6 +195,9 @@ Cuando la imagen se detiene, el reproductor dice por qué sobre el vídeo - y vu
 
 @@cap-window-6
 Reduce el catálogo a un panel pequeño sin barra de título mientras suena la radio - arriba la emisora y la pista, y debajo el volumen, el temporizador de apagado, la emisora anterior y la siguiente, una emisora aleatoria, «Grabar» y los botones propios del panel: siempre visible, volver y minimizar.
+
+@@cap-window-7
+Pulsa F1 en una ventana para abrir en tu navegador la ayuda sin conexión - la página de esa ventana, o el índice - escrita en inglés, ruso y ucraniano. En el reproductor de vídeo, M silencia, Ctrl+Up y Ctrl+Down cambian el volumen, y A abre las pistas de audio.
 
 @@cap-grid-title
 Cuadrícula visual
@@ -226,6 +235,9 @@ Un historial privado «Reproducidos recientemente» de tus últimos 100 canales,
 @@cap-yours-7
 Importa canales desde un archivo M3U o la URL de una lista de reproducción, con una vista previa antes de añadir nada, y exporta a M3U tus propios canales o los fijados.
 
+@@cap-yours-8
+Inicia sesión en un servidor de intercambio propio: la ventana «Mis emisiones» muestra lo que emiten tus otros dispositivos, cada emisión se reproduce en su propia ventana y «Comprobar la conexión» indica el primer paso que falla. El inicio de sesión con Google para encontrar emisiones es opcional, y los medios nunca pasan por Drive.
+
 @@cap-local-title
 Local por diseño
 
@@ -242,28 +254,28 @@ El catálogo se actualiza solo cuando tú lo decides.
 Cómo usarlo
 
 @@use-description
-Ábrelo y elige un canal - eso es todo. Instálalo con el ejecutable de instalación, desde Microsoft Store, con winget o como ZIP portable - o ejecútalo desde el código fuente; también puedes lanzar una transmisión directamente desde la línea de comandos.
+Instálalo, ábrelo y elige un canal - eso es todo. Usa el ejecutable de instalación, Microsoft Store, winget o el ZIP portable; no hace falta cuenta. También puedes añadir una transmisión por su dirección o lanzarla directamente desde la línea de comandos.
 
 @@use-1-title
-Ejecutarlo desde el código fuente
+Instalarlo
 
 @@use-1-text
-Con el .NET 10 SDK instalado, restaura, compila y lanza la aplicación desde la raíz del repositorio.
+Consíguelo en Microsoft Store, instálalo con [[command]], ejecuta el instalador de la última versión o descomprime el ZIP portable e inicia StreamsPlayer.exe. No hace falta cuenta ni registro.
 
 @@use-2-title
-Elegir y reproducir
+Elegir, reproducir o recibir una transmisión
 
 @@use-2-text
 Explora el catálogo, filtra o busca y luego selecciona un canal. La radio empieza en la ventana principal; el vídeo y RTSP se abren en la ventana del reproductor. Un inicio normal no reproduce nada; activa «Reanudar la reproducción al iniciar» en los [[glyph:app.settings]] ajustes y el inicio recupera lo que estaba sonando en el último cierre.
 
-En el visor de 64 bits, haz clic derecho en un vídeo, un archivo de audio o su carpeta y elige la transmisión. Share Manager exporta un archivo .spres, un código QR o un enlace rápido para StreamsPlayer. Una carpeta se convierte en un canal con una lista fija; Actualizar sustituye la lista y Revocar desactiva el enlace. El gateway HTTP tiene un interruptor propio, desactivado por defecto. Cada token permite solo leer una transmisión, normalmente durante 24 horas. HTTP no está cifrado: comparte el documento de forma privada y activa internet solo si lo necesitas.
+Las transmisiones de tus propios archivos vienen de Fast Media Sorter & Sharing for Windows y su visor de 64 bits. En el visor de 64 bits, haz clic derecho en un vídeo, un archivo de audio o su carpeta y elige la transmisión. Share Manager exporta un archivo .spres, un código QR o un enlace rápido para StreamsPlayer. Una carpeta se convierte en un canal con una lista fija; Actualizar sustituye la lista y Revocar desactiva el enlace. El gateway HTTP tiene un interruptor propio, desactivado por defecto. Cada token permite solo leer una transmisión, normalmente durante 24 horas. HTTP no está cifrado: comparte el documento de forma privada y activa internet solo si lo necesitas.
 
 
 @@use-3-title
 Abrir cualquier URL directamente
 
 @@use-3-text
-Reproduce una transmisión sin tocar el catálogo.
+Pulsa «Añadir transmisión» e introduce la dirección de cualquier transmisión - radio por internet, M3U8 o RTSP; se reproduce sin el catálogo. El comando de abajo abre una directamente.
 
 @@use-4-title
 Guardar un canal en un acceso directo
@@ -280,7 +292,7 @@ Abra Ajustes desde el botón de engranaje en el encabezado (o desde la entrada �
 Intercambia medios entre tus dispositivos
 
 @@use-6-text
-STREAMS Player es el reproductor de Windows para las emisiones en directo de un teléfono o un reloj con FastMediaSorter. El portal de intercambio de medios explica las tres formas de conectar tus dispositivos - la red doméstica, el servidor de intercambio y la emisión en directo -, qué programa hace qué en un teléfono, un reloj, un televisor, unas gafas de realidad virtual y un PC, y qué funciona hoy.
+STREAMS Player es el reproductor de Windows para las emisiones en directo de un teléfono o un reloj con Fast Media Sorter & Organizer for Android. El portal de intercambio de medios explica las tres formas de conectar tus dispositivos - la red doméstica, el servidor de intercambio y la emisión en directo -, qué programa hace qué en un teléfono, un reloj, un televisor, unas gafas de realidad virtual y un PC, y qué funciona hoy.
 
 @@use-6-link
 Abrir el portal de intercambio de medios (en inglés)
@@ -322,7 +334,7 @@ No se requiere cuenta para la reproducción habitual. La cuenta de intercambio o
 Acceso a la red
 
 @@privacy-network
-La aplicación se conecta solo mediante su acción y solo al lugar que dicha acción necesita: el catálogo público de transmisiones y el paquete de vistas previas opcional de GitHub al importar el catálogo o aceptar el paquete; el proveedor de una transmisión que reproduce, graba o consulta en «Acerca del canal», o cuya vista previa se actualiza en modo cuadrícula; un teléfono o reloj FastMediaSorter en su red local; y, solo si los solicita en Configuración en la página Reproducción, las bibliotecas FFmpeg opcionales para el motor experimental FlyleafLib (BtbN/FFmpeg-Builds). Cada solicitud va directamente a ese destino y está sujeta a sus políticas; ninguna pasa por un servicio del autor. La guía de TV se descarga solo desde la dirección que usted ingresa en Configuración en la página Biblioteca, una vez al presionar «Descargar guía», y nunca en segundo plano. La fuente de intercambio opcional en los ajustes de biblioteca se conecta a tu servidor mediante TLS. Envía usuario y contraseña o código de vinculación una vez para el registro, y después identidad del dispositivo, versión del producto, capacidades de recepción y token. Mantiene una conexión de control con mensajes de actividad y reconexiones mientras esté activada; desactivarla cierra la conexión. Importa una cadena de conexión o un archivo en los ajustes de biblioteca, o pégalo o arrástralo a la ventana principal. Contiene la dirección del servidor y una huella opcional, sin secretos. Leerlo solo rellena el formulario. Comprueba la dirección antes de escribir la contraseña o el código en cada registro; no se guardan. La huella indicada debe coincidir, sin preguntar. Sin ella, confirma la huella antes del registro; los cambios posteriores requieren aprobación. No hace falta un agente local ni otro programa.  Cuando una emisión se reproduce a través del relé de su servidor de intercambio con un certificado fijado, ese único flujo pasa por un proxy local temporal en 127.0.0.1 que existe solo mientras la emisión se reproduce y solo es accesible desde este dispositivo. Transmisión: la aplicación puede enviar en directo cuatro fuentes de este PC - un micrófono que usted elige, el sonido que el PC reproduce, un monitor entero que usted elige y una cámara que usted elige, y la pantalla y la cámara pueden llevar cada una un sonido (el micrófono o el sonido del sistema) en la misma transmisión - al servidor de intercambio de su propia cuenta o por su red local, solo cuando lo permite en la configuración e inicia usted mismo cada fuente; hasta entonces está apagado, no se captura nada mientras esté apagado, y mientras una fuente está en directo se muestra un indicador visible con un botón de detención que nombra el monitor o la cámara que está en directo. El vídeo es H.264 de hasta 1280x720 a 30 fotogramas por segundo, unos 2 Mbit/s, hecho con el codificador del propio Windows; no se añade ningún componente. Se envía todo lo que hay en el monitor elegido, incluidas las notificaciones y las contraseñas, y el contenido que Windows protege puede salir en blanco. Un PC que ha iniciado sesión en un servidor solo como invitado no transmite. Los oyentes se conectan por la red local, si la activa, o por el servidor de intercambio. Puede limitar su número. Cada oyente de la red local y cada túnel usa la subida de este PC; a través del relé del servidor, este PC envía una copia para todos los oyentes. El enlace, el archivo o el código QR de la transmisión que usted entrega lleva el título, las direcciones y las claves que abren la transmisión, y nunca la contraseña. En la configuración elige cómo se crea la contraseña: aleatoria para cada transmisión (la predeterminada), una que usted fija (de 1 a 64 caracteres, guardada solo en el almacén de secretos de Windows de su cuenta de Windows) o ninguna, y entonces cualquiera que reciba el enlace puede ver y escuchar. Un cambio durante la transmisión revoca de inmediato la contraseña anterior. El menú «Compartir» del indicador en directo copia el enlace, copia la contraseña, muestra el enlace como código QR para escanearlo con un teléfono y guarda el archivo de descripción. Trate el enlace como un secreto y compártalo solo con las personas que elija. El directorio de la cuenta lleva esas claves en una caja cifrada.
+La aplicación se conecta solo mediante su acción y solo al lugar que dicha acción necesita: el catálogo público de transmisiones y el paquete de vistas previas opcional de GitHub al importar el catálogo o aceptar el paquete; el proveedor de una transmisión que reproduce, graba o consulta en «Acerca del canal», o cuya vista previa se actualiza en modo cuadrícula; un teléfono o reloj con Fast Media Sorter & Organizer for Android en su red local; y, solo si los solicita en Configuración en la página Reproducción, las bibliotecas FFmpeg opcionales para el motor FlyleafLib (BtbN/FFmpeg-Builds). Cada solicitud va directamente a ese destino y está sujeta a sus políticas; ninguna pasa por un servicio del autor. La guía de TV se descarga solo desde la dirección que usted ingresa en Configuración en la página Biblioteca, una vez al presionar «Descargar guía», y nunca en segundo plano. La fuente de intercambio opcional en los ajustes del servidor de intercambio se conecta a tu servidor mediante TLS. Envía usuario y contraseña o código de vinculación una vez para el registro, y después identidad del dispositivo, versión del producto, capacidades de recepción y token. Mantiene una conexión de control con mensajes de actividad y reconexiones mientras esté activada; desactivarla cierra la conexión. Importa una cadena de conexión o un archivo en los ajustes del servidor de intercambio, o pégalo o arrástralo a la ventana principal. Contiene la dirección del servidor y una huella opcional, sin secretos. Leerlo solo rellena el formulario. Comprueba la dirección antes de escribir la contraseña o el código en cada registro; no se guardan. La huella indicada debe coincidir, sin preguntar. Sin ella, confirma la huella antes del registro; los cambios posteriores requieren aprobación. No hace falta un agente local ni otro programa.  Cuando una emisión se reproduce a través de su servidor de intercambio con un certificado fijado, ese único flujo pasa por un proxy local temporal en 127.0.0.1 que existe solo mientras la emisión se reproduce y solo es accesible desde este dispositivo. Transmisión: la aplicación puede enviar en directo cuatro fuentes de este PC - un micrófono que usted elige, el sonido que el PC reproduce, un monitor entero que usted elige y una cámara que usted elige, y la pantalla y la cámara pueden llevar cada una un sonido (el micrófono o el sonido del sistema) en la misma transmisión - al servidor de intercambio de su propia cuenta o por su red local, solo cuando lo permite en la configuración e inicia usted mismo cada fuente; hasta entonces está apagado, no se captura nada mientras esté apagado, y el botón «Transmisión» de la ventana principal se pone rojo mientras una fuente está en directo, y la ventana «Transmisión», con un botón de detención para cada fuente, nombra el monitor o la cámara que está en directo. El vídeo es H.264 de hasta 1280x720 a 30 fotogramas por segundo, unos 2 Mbit/s, hecho con el codificador del propio Windows; no se añade ningún componente. Se envía todo lo que hay en el monitor elegido, incluidas las notificaciones y las contraseñas, y el contenido que Windows protege puede salir en blanco. Un PC que ha iniciado sesión en un servidor solo como invitado no transmite. Los oyentes se conectan por la red local, si la activa, o por el servidor de intercambio. Puede limitar su número. Cada oyente conectado directamente usa la subida de este PC; a través del servidor de intercambio, este PC envía una copia para todos los oyentes. El enlace, el archivo o el código QR de la transmisión que usted entrega lleva el título, las direcciones y las claves que abren la transmisión, y nunca la contraseña. En la configuración elige cómo se crea la contraseña: aleatoria para cada transmisión (la predeterminada), una que usted fija (de 1 a 64 caracteres, guardada solo en el almacén de secretos de Windows de su cuenta de Windows) o ninguna, y entonces cualquiera que reciba el enlace puede ver y escuchar. Un cambio durante la transmisión revoca de inmediato la contraseña anterior. El menú «Compartir» de la ventana «Transmisión» copia el enlace, copia la contraseña, muestra el enlace como código QR para escanearlo con un teléfono y guarda el archivo de descripción. Trate el enlace como un secreto y compártalo solo con las personas que elija. El directorio de la cuenta lleva esas claves en una caja cifrada.
 
 En el visor de 64 bits, haz clic derecho en un vídeo, un archivo de audio o su carpeta y elige la transmisión. Share Manager exporta un archivo .spres, un código QR o un enlace rápido para StreamsPlayer. Una carpeta se convierte en un canal con una lista fija; Actualizar sustituye la lista y Revocar desactiva el enlace. El gateway HTTP tiene un interruptor propio, desactivado por defecto. Cada token permite solo leer una transmisión, normalmente durante 24 horas. HTTP no está cifrado: comparte el documento de forma privada y activa internet solo si lo necesitas.
 
@@ -340,13 +352,13 @@ El servidor de intercambio conecta sus dispositivos, por lo que conoce los nombr
 Para iniciar sesión, este PC envía una sola vez tu usuario y tu contraseña o código de emparejamiento, y después la identidad del dispositivo, su nombre (STREAMS Player, no el nombre de tu PC), el producto, la versión y la plataforma (Windows), los roles, las capacidades de recepción y la mitad pública de su clave de cifrado. Mientras la conexión está activa, el servidor ve que este dispositivo está en línea. Cuando transmites, recibe el título de la emisión (en la pantalla y la cámara nombra el monitor o la cámara), que es audio o vídeo y el propio audio o vídeo, cifrado en este PC antes de salir; la clave privada nunca sale de este PC.
 
 @@privacy-exchange-broadcast
-La transmisión puede enviar cuatro fuentes de este PC: un micrófono que eliges, el sonido que reproduce el PC, un monitor entero que eliges y una cámara que eliges; la pantalla y la cámara pueden llevar cada una un sonido, el micrófono o el sonido del sistema, en la misma transmisión. El vídeo es H.264 de hasta 1280x720 a 30 fotogramas por segundo, unos 2 Mbit/s, hecho con el codificador del propio Windows; no se añade ningún componente. Está desactivada hasta que la permitas en Configuración, no se capta nada mientras esté desactivada y tú inicias cada fuente; mientras una fuente está en directo se muestra un indicador visible con un botón de parada que nombra el monitor o la cámara que está en directo. Se envía todo lo que hay en el monitor elegido, incluidas las notificaciones y las contraseñas, y el contenido que Windows protege puede salir en blanco. Un PC que ha iniciado sesión en un servidor solo como invitado no transmite. Cada oyente de la red local y cada túnel usa la subida de este PC; a través del relé del servidor, este PC envía una copia para todos los oyentes. El enlace, el archivo y el código QR que entregas a alguien ajeno a la cuenta nunca contienen la contraseña. Tú eliges cómo se crea: aleatoria para cada transmisión (la predeterminada), una que fijas tú (de 1 a 64 caracteres, guardada solo en el almacén de secretos de Windows de tu cuenta de Windows) o ninguna, y entonces cualquiera que reciba el enlace puede ver y escuchar. Un cambio durante la transmisión revoca de inmediato la contraseña anterior. El menú «Compartir» del indicador en directo copia el enlace y la contraseña, muestra el enlace como código QR para escanearlo con un teléfono y guarda el archivo de descripción. Solo si además activas la opción de iniciar con la aplicación, las fuentes que dejaste elegidas vuelven a iniciarse al abrir la aplicación, cuando la cuenta está en línea. El dispositivo de un oyente puede grabar lo que recibe, y este programa no puede impedirlo.
+La transmisión puede enviar cuatro fuentes de este PC: un micrófono que eliges, el sonido que reproduce el PC, un monitor entero que eliges y una cámara que eliges; la pantalla y la cámara pueden llevar cada una un sonido, el micrófono o el sonido del sistema, en la misma transmisión. El vídeo es H.264 de hasta 1280x720 a 30 fotogramas por segundo, unos 2 Mbit/s, hecho con el codificador del propio Windows; no se añade ningún componente. Está desactivada hasta que la permitas en Configuración, no se capta nada mientras esté desactivada y tú inicias cada fuente; el botón «Transmisión» de la ventana principal se pone rojo mientras una fuente está en directo, y la ventana «Transmisión», con un botón de parada para cada fuente, nombra el monitor o la cámara que está en directo. Se envía todo lo que hay en el monitor elegido, incluidas las notificaciones y las contraseñas, y el contenido que Windows protege puede salir en blanco. Un PC que ha iniciado sesión en un servidor solo como invitado no transmite. Cada oyente conectado directamente usa la subida de este PC; a través del servidor de intercambio, este PC envía una copia para todos los oyentes. El enlace, el archivo y el código QR que entregas a alguien ajeno a la cuenta nunca contienen la contraseña. Tú eliges cómo se crea: aleatoria para cada transmisión (la predeterminada), una que fijas tú (de 1 a 64 caracteres, guardada solo en el almacén de secretos de Windows de tu cuenta de Windows) o ninguna, y entonces cualquiera que reciba el enlace puede ver y escuchar. Un cambio durante la transmisión revoca de inmediato la contraseña anterior. El menú «Compartir» de la ventana «Transmisión» copia el enlace y la contraseña, muestra el enlace como código QR para escanearlo con un teléfono y guarda el archivo de descripción. Solo si además activas la opción de iniciar con la aplicación, las fuentes que dejaste elegidas vuelven a iniciarse al abrir la aplicación, cuando la cuenta está en línea. El dispositivo de un oyente puede grabar lo que recibe, y este programa no puede impedirlo.
 
 @@privacy-exchange-camera
-La cámara de este PC se usa de dos maneras, cada una para una sola cosa. La primera: leer un QR de conexión cuando pulsa «Escanear con la cámara» en la configuración. Mientras la ventana de escaneo está abierta, la imagen solo se examina en memoria para encontrar el QR; nunca se guarda, se envía ni se registra, y la cámara se libera en cuanto se cierra la ventana. Si Windows no informa de ninguna cámara, ese botón no se ofrece. La segunda: enviar la imagen de la cámara que elija como una transmisión, y solo cuando usted mismo la inicia con «Transmitir la cámara» en la configuración: la imagen se codifica entonces en este PC y se envía como esa transmisión, y la cámara se libera cuando la transmisión se detiene.
+La cámara de este PC se usa de dos maneras, cada una para una sola cosa. La primera: leer un QR de conexión cuando pulsa «Escanear con la cámara» en la configuración. Mientras la ventana de escaneo está abierta, la imagen solo se examina en memoria para encontrar el QR; nunca se guarda, se envía ni se registra, y la cámara se libera en cuanto se cierra la ventana. Si Windows no informa de ninguna cámara, ese botón no se ofrece. La segunda: enviar la imagen de la cámara que elija como una transmisión, y solo cuando usted mismo la inicia con «Transmitir la cámara» en la tarjeta de la cámara de la ventana «Transmisión»: la imagen se codifica entonces en este PC y se envía como esa transmisión, y la cámara se libera cuando la transmisión se detiene.
 
 @@privacy-exchange-account
-Este programa inicia sesión y nunca crea una cuenta. Una cuenta se elimina en FastMediaSorter en el teléfono, o pidiéndoselo a quien gestiona el servidor; el portal de intercambio explica cómo. Cerrar sesión en este dispositivo quita este dispositivo, no la cuenta.
+Este programa inicia sesión y nunca crea una cuenta. Una cuenta se elimina en Fast Media Sorter & Organizer for Android, o pidiéndoselo a quien gestiona el servidor; el portal de intercambio explica cómo. Cerrar sesión en este dispositivo quita este dispositivo, no la cuenta.
 
 @@privacy-exchange-portal
 Cómo eliminar una cuenta
@@ -355,7 +367,7 @@ Cómo eliminar una cuenta
 Este sitio web
 
 @@privacy-site
-Esta sección trata del sitio web, no de la aplicación. Cada página carga sus tipografías desde Google Fonts: su navegador solicita una hoja de estilos a fonts.googleapis.com y los archivos de fuente a fonts.gstatic.com, de modo que Google recibe su dirección IP, los datos de su navegador y la dirección de la página que está leyendo. La página principal también consulta una vez api.github.com para conocer la última versión, de modo que el botón del instalador apunte al archivo actual; GitHub recibe su dirección IP y los datos de su navegador. Las páginas en sí las sirve GitHub Pages (serzhyale.github.io). El sitio no tiene analítica, publicidad ni seguimiento, no establece cookies y solo guarda en el almacenamiento local de su navegador su elección de tema e idioma. Cada uno de estos servicios se rige por su propia política; ninguno lo gestiona el autor.
+Esta sección trata del sitio web, no de la aplicación. Cada página carga sus tipografías desde Google Fonts: su navegador solicita una hoja de estilos a fonts.googleapis.com y los archivos de fuente a fonts.gstatic.com, de modo que Google recibe su dirección IP, los datos de su navegador y la dirección de la página que está leyendo. Las páginas en sí las sirve GitHub Pages (serzhyale.github.io). El sitio no tiene analítica, publicidad ni seguimiento, no establece cookies y solo guarda en el almacenamiento local de su navegador su elección de tema e idioma. Cada uno de estos servicios se rige por su propia política; ninguno lo gestiona el autor.
 @@privacy-local-title
 Datos locales
 
@@ -462,7 +474,7 @@ Nunca necesita permisos de administrador para instalarse ni para ejecutarse, nun
 No se requiere cuenta para la reproducción habitual. La cuenta de intercambio opcional pertenece a un servidor privado - el tuyo o el de alguien que te invitó -, nunca a un servicio de este producto. No hay publicidad, analítica, telemetría ni servicio gestionado por el autor.
 
 @@trust-never-3
-Se conecta solo cuando usted actúa y solo para lo necesario: el catálogo público y vistas previas en GitHub, el proveedor de la transmisión que reproduce, graba o previsualiza, un dispositivo FastMediaSorter en su red y las bibliotecas opcionales de FFmpeg si las solicita en Configuración. La guía de TV se obtiene solo de la dirección que usted ingrese al presionar «Descargar guía». Solo si lo activa, también hay conexión con el servidor de intercambio que usted mismo configuró y, si inicia sesión en Google en Ajustes, con Google (para los anuncios de los datos ocultos de la aplicación en su Drive).
+Se conecta solo cuando usted actúa y solo para lo necesario: el catálogo público y vistas previas en GitHub, el proveedor de la transmisión que reproduce, graba o previsualiza, un dispositivo con Fast Media Sorter & Organizer for Android en su red y las bibliotecas opcionales de FFmpeg si las solicita en Configuración. La guía de TV se obtiene solo de la dirección que usted ingrese al presionar «Descargar guía». Solo si lo activa, también hay conexión con el servidor de intercambio que usted mismo configuró y, si inicia sesión en Google en Ajustes, con Google (para los anuncios de los datos ocultos de la aplicación en su Drive).
 @@trust-never-4
 Nunca descarga el catálogo por su cuenta - una actualización ocurre solo cuando tú la pides.
 
@@ -599,3 +611,12 @@ Esta página se ha traducido automáticamente y no la ha revisado un hablante na
 
 @@privacy-drive
 El inicio de sesión con Google es opcional y solo solicita drive.appdata. Google recibe solicitudes de inicio y API en accounts.google.com, oauth2.googleapis.com y www.googleapis.com. Solo se leen nombres de dispositivos (fmsx-device-*) y anuncios de emisiones (fmsx-broadcast-*) en los datos ocultos de la aplicación. Este PC escribe y renueva sus anuncios al emitir y los elimina al terminar; los medios nunca pasan por Drive. La lista solo se consulta con su ventana abierta y no minimizada. El token de actualización está protegido para su usuario de Windows. Al salir se elimina y se pide a Google revocar el acceso; se informa de cualquier fallo. Los anuncios quedan en su cuenta Google sin cifrado de extremo a extremo adicional.
+
+@@trust-why-4
+Firmar no eliminaría todos los avisos. Los antivirus también juzgan lo que hace una aplicación, y STREAMS Player hace cosas que esas comprobaciones vigilan: lee el portapapeles cuando pegas o importas una conexión, y captura la pantalla, la cámara, el micrófono o el sonido del PC cuando inicias una difusión. Cada cosa ocurre solo cuando tú lo pides, nunca en segundo plano, pero un antivirus prudente puede marcarlo igualmente, con firma o sin ella.
+
+@@trust-zip
+Si usas el ZIP portátil, descomprímelo primero en una carpeta que vayas a conservar - por ejemplo, una carpeta nueva en Documentos - y abre la aplicación desde allí. No la abras desde dentro del ZIP ni desde una carpeta temporal: Windows confía menos en un programa que se inicia desde un sitio así, y es más probable que el aviso vuelva.
+
+@@trust-admin-4
+Sea cual sea la forma de instalación, el instalador también asocia los archivos .spres - transmisiones guardadas por Fast Media Sorter - con STREAMS Player. Ese ajuste se escribe solo para tu cuenta, no necesita permisos de administrador y Desinstalar lo quita junto con la aplicación; la versión de Microsoft Store declara el mismo tipo de archivo en su paquete.

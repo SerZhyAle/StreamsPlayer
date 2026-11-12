@@ -9,7 +9,8 @@
     throwaway tree first, so every case is deterministic and none touches the repository; check.ps1 runs against stub
     children and a stub `dotnet`, so no build or test run is started.
 
-      the nine fixture runners (try/finally, no catch before SP-0239)
+      the fixture runners (nine with try/finally and no catch before SP-0239, and the two SP-0247 release-version
+                        runners written to the same shape)
                         a throw inside the run could not be verified: exit 2, `COULD NOT VERIFY (..)`; a check that
                         already failed outranks it: exit 1 and the FAIL line. The throw is injected into a copy
       test.ps1          a results directory that already exists could not be judged: exit 2, `COULD NOT VERIFY`
@@ -94,7 +95,7 @@ try {
     $r = Invoke-Script (Join-Path $repo 'scripts/test.ps1') @('-ResultsDirectory', $existing)
     Expect $r 2 '^tests: COULD NOT VERIFY run=0 skipped=0$' 'test.ps1: a results directory that is not new could not be verified'
 
-    # --- the nine fixture runners: a throw inside the try body -------------------------------------------------------
+    # --- the fixture runners: a throw inside the try body -------------------------------------------------------
     # Each runner is copied with `$PSScriptRoot` redirected to its own folder and a throw injected as the first statement
     # of its try block, so the catch is reached without breaking the runner's real inputs. Nothing was judged: exit 2 and
     # the could-not-verify word; with a check already failed: exit 1 and the FAIL line, which outranks it (rule 2.14).
@@ -106,8 +107,12 @@ try {
         @{ Path = 'tools/site/Test-SiteDiscovery.ps1'; Subject = 'site-discovery' }
         @{ Path = 'tools/site/Test-SiteFacts.ps1'; Subject = 'site-facts' }
         @{ Path = 'msix/Test-AssertMsixPackage.ps1'; Subject = 'msix-package-tests' }
+        @{ Path = 'msix/Test-MsixIdentity.ps1'; Subject = 'msix-identity' }
+        @{ Path = 'scripts/Test-StorePreflightCall.ps1'; Subject = 'store-preflight-call' }
         @{ Path = 'tools/audit/Test-AuditTools.ps1'; Subject = 'audit-tools' }
         @{ Path = 'tools/audit/Test-AuditVerdictGate.ps1'; Subject = 'audit-verdict-gate' }
+        @{ Path = 'scripts/Test-ReleaseVersion.ps1'; Subject = 'release-version-tests' }
+        @{ Path = 'scripts/Test-ReleaseArtifactVersion.ps1'; Subject = 'release-artifact-version-tests' }
     )
     $tryOpen = [regex]::new('(?m)^try \{[ \t]*\r?$')
     foreach ($runner in $runners) {
@@ -129,6 +134,22 @@ try {
     }
     Remove-Item Env:SP0239_PROBE_ROOT -ErrorAction SilentlyContinue
 
+    $env:SP0239_PROBE_ROOT = Join-Path $repo 'scripts'
+    $source = [System.IO.File]::ReadAllText((Join-Path $repo 'scripts/Test-MeasureCaptureTimes.ps1')).Replace('$PSScriptRoot', '$env:SP0239_PROBE_ROOT')
+    foreach ($variant in 'plain', 'earlier-failure') {
+        $inject = if ($variant -eq 'plain') { "throw 'synthetic setup failure'" }
+            else { "`$failures.Add('synthetic earlier failure'); throw 'synthetic setup failure'" }
+        $probe = Join-Path $work "measure-$variant.ps1"
+        Write-File $probe ($tryOpen.Replace($source, "try {`n    $inject", 1))
+        $r = Invoke-Script $probe
+        if ($variant -eq 'plain') {
+            Expect $r 2 '^test-measure-capture-times: COULD NOT VERIFY run=0 skipped=0$' 'capture-time fixture setup failure has a verdict'
+        } else {
+            Expect $r 1 '^test-measure-capture-times: FAIL run=0 skipped=0$' 'capture-time fixture preserves an earlier failure verdict'
+        }
+    }
+    Remove-Item Env:SP0239_PROBE_ROOT -ErrorAction SilentlyContinue
+
     # --- scripts/check-docs.ps1 --------------------------------------------------------------------------------------
     function New-DocsTree([string] $Name) {
         $tree = Join-Path $work $Name
@@ -143,6 +164,13 @@ try {
     }
     $tree = New-DocsTree 'docs-clean'
     Expect (Invoke-Script (Join-Path $tree 'scripts/check-docs.ps1')) 0 '^docs-quality: PASS \(' 'check-docs.ps1: a clean tree passes'
+
+    $tree = New-DocsTree 'docs-duplicate'
+    $registry = Join-Path $tree 'DOCUMENT_REGISTRY.jsonl'
+    [System.IO.File]::AppendAllText($registry, "`n" + [System.IO.File]::ReadAllText($registry))
+    $r = Invoke-Script (Join-Path $tree 'scripts/check-docs.ps1')
+    Expect $r 1 '^docs-quality: FAIL \(' 'duplicate registry ownership fails'
+    Check ($r.Text -match 'DOCUMENT_REGISTRY.jsonl:1, DOCUMENT_REGISTRY.jsonl:2' -and $r.Text -notmatch 'Where\(') 'duplicate ownership names the registry rows, not a Where method signature'
 
     $tree = New-DocsTree 'docs-finding'
     Write-File (Join-Path $tree 'extra.md') "# Undeclared`n"

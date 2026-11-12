@@ -50,7 +50,10 @@ internal sealed partial class DriveSourceService
             if (exception is DriveRequestException { StatusCode: 400 or 401 })
                 ForgetFailedGrant();
             else { _publicationFailed = true; StatusKey = "DrivePublishFailed"; }
-            _publishAfter = _publicationClock.Elapsed + _publicationDelay.After(false, Random.Shared.NextDouble());
+            HandlerBoundary.Record("DRIVE PUBLICATION FAILED | type=" + exception.GetType().Name);
+            // An invalid outgoing record cannot heal on a timer. A new explicit update may replace it.
+            _publishAfter = exception is ArgumentException ? TimeSpan.MaxValue
+                : _publicationClock.Elapsed + _publicationDelay.After(false, Random.Shared.NextDouble());
             Changed?.Invoke();
         }
         finally { _operations.Release(); }

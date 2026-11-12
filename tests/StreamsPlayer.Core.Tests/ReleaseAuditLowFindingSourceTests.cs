@@ -132,8 +132,9 @@ public sealed class ReleaseAuditLowFindingSourceTests
     [Fact]
     public void AMediaKeyNeverPlaysAHiddenOrRetiredChannel()
     {
-        var body = Body(Source("MainWindow.SystemMedia.cs"), @"private bool IsAudioNavEntryAvailable\(int index\)");
+        var body = Body(Source("MainWindow.SystemMedia.cs"), @"private bool IsAudioNavEntryAvailable\(int index, HashSet<string> hiddenIdentities\)");
         Assert.Contains("IsHiddenBySet(", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildHiddenIdentitySet()", body, StringComparison.Ordinal);
         Assert.Contains("RetiredAt", body, StringComparison.Ordinal);
     }
 

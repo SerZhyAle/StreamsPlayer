@@ -47,3 +47,36 @@ function Get-TestResultSummary {
     $verdict = switch ($exitCode) { 0 { 'PASS' } 1 { 'FAIL' } 2 { 'COULD NOT VERIFY' } }
     return [pscustomobject]@{ ExitCode = $exitCode; Verdict = $verdict; Run = $run; Skipped = $skipped }
 }
+
+# SP-0246 S3-1: every default scripts/test.ps1 run leaves a tests-<guid> folder of TRX files under temp/scratch. A folder is
+# removed only when it is older than -MaxAgeDays AND not among the -Keep newest, so a recent run stays readable. Only a
+# real directory named exactly tests-<32 hex> is touched (never a link, never another name), and never -Current.
+# Returns the names it removed.
+function Remove-StaleTestResults {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)] [string] $Scratch,
+        [string] $Current = '',
+        [int] $Keep = 4,
+        [int] $MaxAgeDays = 7
+    )
+
+    if (-not (Test-Path -LiteralPath $Scratch -PathType Container)) { return @() }
+    $scratchFull = [System.IO.Path]::GetFullPath($Scratch).TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+    $currentFull = if ($Current) { [System.IO.Path]::GetFullPath($Current).TrimEnd('\', '/') } else { '' }
+    $cutoff = [datetime]::UtcNow.AddDays(-$MaxAgeDays)
+    $removed = [System.Collections.Generic.List[string]]::new()
+    $candidates = @(Get-ChildItem -LiteralPath $Scratch -Directory -Filter 'tests-*' |
+        Where-Object { $_.Name -match '^tests-[0-9a-f]{32}$' -and -not $_.LinkType } |
+        Sort-Object LastWriteTimeUtc -Descending | Select-Object -Skip $Keep |
+        Where-Object { $_.LastWriteTimeUtc -lt $cutoff })
+    foreach ($candidate in $candidates) {
+        $target = [System.IO.Path]::GetFullPath($candidate.FullName).TrimEnd('\', '/')
+        if (-not $target.StartsWith($scratchFull, [System.StringComparison]::OrdinalIgnoreCase)) { continue }
+        if ($currentFull -and $target -ieq $currentFull) { continue }
+        Remove-Item -LiteralPath $target -Recurse -Force -ErrorAction SilentlyContinue
+        $removed.Add($candidate.Name)
+    }
+
+    return $removed.ToArray()
+}

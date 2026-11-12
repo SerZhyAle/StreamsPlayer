@@ -630,6 +630,8 @@
     <sys:String x:Key="BroadcastResourceAdded">已添加广播：{0}</sys:String>
     <sys:String x:Key="BroadcastResourceUpdated">已更新广播：{0}</sys:String>
     <sys:String x:Key="BroadcastNoLongerAvailable">广播 {0} 已不再可用。</sys:String>
+    <sys:String x:Key="BroadcastEnded">广播已结束。</sys:String>
+    <sys:String x:Key="BroadcastReconnect">重新连接</sys:String>
     <sys:String x:Key="BroadcastPlaylistPosition">{0} - 第 {1} 项，共 {2} 项</sys:String>
     <sys:String x:Key="FmsBroadcastConfirm">要导入这场直播吗？&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
     <sys:String x:Key="FmsBroadcastAdded">已导入直播：{0}。</sys:String>
@@ -638,7 +640,7 @@
     <sys:String x:Key="FmsBroadcastInvalid">这不是有效的 FastMediaSorter 直播描述。您的列表未更改。</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">此直播描述大于 64 KiB。您的列表未更改。</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer 正在执行另一项操作。请在操作完成后再次导入此直播。您的列表未更改。</sys:String>
-    <sys:String x:Key="FmsBroadcastListenerLimit">{0} 的收听人数已达上限。请在其他收听者断开后重试。</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0} 的观众和听众人数已达上限。请在其他人断开后重试。</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} 已停止直播，或在此网络中无法访问。</sys:String>
     <!-- SP-0098 portable stream catalog import -->
     <sys:String x:Key="StreamCatalogSettings">流媒体目录</sys:String>
@@ -714,7 +716,7 @@
     <sys:String x:Key="SettingsFilesDesc">截图与流录制的保存文件夹</sys:String>
     <sys:String x:Key="SettingsAbout">关于</sys:String>
     <sys:String x:Key="SettingsExchangeDesc">账户与服务器连接</sys:String>
-    <sys:String x:Key="SettingsBroadcastDesc">来源、网络访问和音频质量</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">权限、网络访问和质量</sys:String>
     <sys:String x:Key="SettingsAboutDesc">应用程序信息、许可证和诊断</sys:String>
     <sys:String x:Key="ThemeHint">选择浅色、深色，或跟随 Windows 外观设置。</sys:String>
     <sys:String x:Key="TileSizeHint">调整网格中频道卡片的大小。</sys:String>
@@ -805,7 +807,7 @@
     <sys:String x:Key="BroadcastsPlayNamed">播放 {0}</sys:String>
     <sys:String x:Key="BroadcastsKeepNamed">将 {0} 添加到我的频道</sys:String>
     <sys:String x:Key="EndedLabel">已结束</sys:String>
-    <sys:String x:Key="BroadcastCapabilityWarning">此地址包含广播的密钥：持有它的人都能收听。仍要交出吗？</sys:String>
+    <sys:String x:Key="BroadcastCapabilityWarning">此地址包含广播的密钥：持有它的人都能观看和收听。仍要交出吗？</sys:String>
     <sys:String x:Key="ExchangeAutoAcceptCasts">自动接受来自我的设备的投射</sys:String>
     <sys:String x:Key="ExchangeCastTitle">投射请求</sys:String>
     <sys:String x:Key="ExchangeCastOfferPrompt">{1} 上的 {0} 想要投射到此设备。是否接受？</sys:String>
@@ -833,7 +835,7 @@
     <sys:String x:Key="ExchangeStringFileFilter">从文件导入 (*.fmsexch)|*.fmsexch|*.*|*.*</sys:String>
     <!-- SP-0217: broadcasting this PC devices through the device exchange. -->
     <sys:String x:Key="BroadcastTitle">直播</sys:String>
-    <sys:String x:Key="BroadcastHint">将此电脑采集的声音发送到您账户的交换服务器。在您此处允许并启动某个源之前，不会采集任何内容。</sys:String>
+    <sys:String x:Key="BroadcastHint">将此电脑采集的内容发送到您账户的交换服务器；若已开启“局域网”选项，也会发送到局域网。在您此处允许并启动某个源之前，不会采集任何内容。</sys:String>
     <sys:String x:Key="BroadcastAllow">允许此电脑广播</sys:String>
     <sys:String x:Key="BroadcastStartWithApp">应用程序启动时启动所选的源</sys:String>
     <sys:String x:Key="BroadcastMicStart">广播麦克风</sys:String>
@@ -843,8 +845,8 @@
     <sys:String x:Key="BroadcastDefaultDevice">Windows 默认</sys:String>
     <sys:String x:Key="BroadcastLanListening">局域网</sys:String>
     <sys:String x:Key="BroadcastLanPort">端口</sys:String>
-    <sys:String x:Key="BroadcastCap">最多收听者</sys:String>
-    <sys:String x:Key="BroadcastCapHint">0 表示不限制。每位直接连接的听众都会占用此电脑的上传带宽。通过交换服务器，此电脑只需为所有听众发送一份数据。</sys:String>
+    <sys:String x:Key="BroadcastCap">最多观众和听众</sys:String>
+    <sys:String x:Key="BroadcastCapHint">0 表示不限制。每位直接连接的观众或听众都会占用此电脑的上传带宽。通过交换服务器，此电脑只需为所有人发送一份数据。</sys:String>
     <sys:String x:Key="BroadcastQuality">质量</sys:String>
     <sys:String x:Key="BroadcastSampleRate">采样率</sys:String>
     <sys:String x:Key="BroadcastMicChannels">麦克风声道</sys:String>
@@ -868,14 +870,17 @@
     <sys:String x:Key="BroadcastAudioMicrophone">麦克风</sys:String>
     <sys:String x:Key="BroadcastAudioSystem">系统声音</sys:String>
     <sys:String x:Key="BroadcastNoDevices">未找到</sys:String>
-    <sys:String x:Key="BroadcastScreenPrivacy">屏幕广播会发送所选的整个显示器，包括其上显示的通知和密码。受 Windows 保护的内容可能显示为空白。广播期间，指示器会显示该显示器的名称。</sys:String>
+    <sys:String x:Key="BroadcastScreenPrivacy">屏幕广播会发送所选的整个显示器，包括其上显示的通知和密码。受 Windows 保护的内容可能显示为空白。广播期间，卡片会显示该显示器的名称。</sys:String>
     <sys:String x:Key="BroadcastVideoUnavailable">此电脑上的 Windows 视频编码器（H.264）无法启动，因此不提供屏幕和摄像头。麦克风和系统声音不依赖它。</sys:String>
     <sys:String x:Key="BroadcastOwnOutputRisk">在此版本的 Windows 中，系统声音也包含本应用自身的声音，因此在这里播放的广播会被再次发送。系统声音广播期间，请在其他设备上收听广播。</sys:String>
     <sys:String x:Key="BroadcastLinkPassword">链接密码</sys:String>
+    <sys:String x:Key="BroadcastConfirmStopAll">这会结束当前正在进行的所有直播，并断开其观众和听众。继续吗？</sys:String>
+    <sys:String x:Key="BroadcastConfirmLanOff">局域网中正在观看或收听的所有人都会断开，未同时通过交换服务器进行的直播会结束。继续吗？</sys:String>
+    <sys:String x:Key="BroadcastConfirmRevokeLink">当前的链接密码会立即失效，使用它观看或收听的所有人都会断开。继续吗？</sys:String>
     <sys:String x:Key="BroadcastLinkGenerated">每次广播新生成</sys:String>
     <sys:String x:Key="BroadcastLinkCustom">由我设置</sys:String>
     <sys:String x:Key="BroadcastLinkNone">无密码</sys:String>
-    <sys:String x:Key="BroadcastLinkHint">适用于您交给其他人的链接、文件和二维码。密码从不包含在其中 - 请另行告知；可在广播指示器的“分享”菜单中复制。您设置的密码只保存在您账户的 Windows 机密存储中。</sys:String>
+    <sys:String x:Key="BroadcastLinkHint">适用于您交给其他人的链接、文件和二维码。密码从不包含在其中 - 请另行告知；可在广播窗口的“分享”菜单中复制。您设置的密码只保存在您账户的 Windows 机密存储中。</sys:String>
     <sys:String x:Key="BroadcastLinkNoneWarning">没有密码时，任何拿到链接的人都可以观看和收听。</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordField">链接的密码</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordSave">保存密码</sys:String>
@@ -902,7 +907,7 @@
     <sys:String x:Key="BroadcastNotAllowed">请先在设置中允许广播。</sys:String>
     <sys:String x:Key="BroadcastTooManySources">同时广播太多。</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">此源已在直播。</sys:String>
-    <sys:String x:Key="BroadcastEncoderMissing">此电脑上没有 Windows 音频编码器，因此不提供广播源。</sys:String>
+    <sys:String x:Key="BroadcastEncoderMissing">此电脑上没有 Windows 音频编码器，因此无法启动带声音的广播。不带声音的屏幕或摄像头广播不受影响。</sys:String>
     <sys:String x:Key="BroadcastPortTaken">局域网端口被占用。请在设置中选择其他端口。</sys:String>
     <sys:String x:Key="BroadcastPermissionDenied">Windows 拒绝了此应用使用麦克风或摄像头。请在 Windows 隐私设置中允许后重新开始。</sys:String>
     <sys:String x:Key="BroadcastDeviceInUse">设备被其他程序占用。请关闭后重新开始。</sys:String>
@@ -1014,7 +1019,7 @@
     <sys:String x:Key="ExchangeDiagnosisCodeLine">代码：{0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">还没有可检查的服务器。请先导入连接字符串或登录。</sys:String>
     <sys:String x:Key="BroadcastNoReachableEndpoint">没有可接收此广播的连接。请启用本地网络或连接到交换服务器，然后重试。</sys:String>
-    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">请向广播者索取通过交换服务器的链接。</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">通过局域网或交换服务器直连广播者时，需要此播放器不支持的密码验证方式。请索取由交换服务器分发的直播。</sys:String>
     <sys:String x:Key="BroadcastNotListed">未列出</sys:String>
     <sys:String x:Key="BroadcastTrustPrompt">此电脑无法验证 {0} 的证书。在此频道信任它之前，请与广播者核对此指纹：&#10;{1}&#10;是否信任此证书？</sys:String>
     <sys:String x:Key="DriveTitle">通过 Google Drive</sys:String>
@@ -1022,7 +1027,6 @@
     <sys:String x:Key="DriveSignIn">使用 Google 登录</sys:String>
     <sys:String x:Key="DriveSignOut">退出 Google</sys:String>
     <sys:String x:Key="DriveNoCast">Google Drive 不支持推送通知，因此无法向设备推送广播。</sys:String>
-    <sys:String x:Key="DriveUnavailable">此版本不支持 Google 登录。</sys:String>
     <sys:String x:Key="DriveSignedOut">尚未登录 Google。</sys:String>
     <sys:String x:Key="DriveSigningIn">请在浏览器中完成 Google 登录。</sys:String>
     <sys:String x:Key="DriveConnected">已连接到 Google Drive。</sys:String>
@@ -1049,4 +1053,46 @@
     <sys:String x:Key="MyStreamsWatch">观看</sys:String>
     <sys:String x:Key="MyStreamsListen">收听</sys:String>
     <sys:String x:Key="MyStreamsSaved">已保存</sys:String>
+    <!-- Broadcast start verdict and publication details. -->
+    <sys:String x:Key="BroadcastStarting">正在启动广播…</sys:String>
+    <sys:String x:Key="BroadcastStartFailed">广播未启动。{0} 请检查所选设备和连接，然后重试。</sys:String>
+    <sys:String x:Key="BroadcastStopped">广播已停止。</sys:String>
+    <sys:String x:Key="BroadcastAnnounced">已在 {0} 上向此账户的 {1} 台设备发布广播。</sys:String>
+    <sys:String x:Key="BroadcastNoRecipients">警告：此账户的其他设备均无法打开此广播。请在接收设备上登录，确认其支持加密广播，然后重新启动。</sys:String>
+    <sys:String x:Key="BroadcastNotAnnounced">尚未在交换服务器上发布。请连接账户以发布广播。</sys:String>
+    <sys:String x:Key="BroadcastLanAddress">局域网地址：{0}。</sys:String>
+    <sys:String x:Key="BroadcastUnnamedDevice">未命名设备</sys:String>
+    <sys:String x:Key="BroadcastShowRecipients">显示接收设备</sys:String>
+    <sys:String x:Key="BroadcastWindowTitle">广播</sys:String>
+    <sys:String x:Key="BroadcastButtonIdle">广播：当前没有直播</sys:String>
+    <sys:String x:Key="BroadcastButtonServerWarning">无法连接到交换服务器，在其恢复之前，账户的设备看不到此广播。</sys:String>
+    <sys:String x:Key="BroadcastStateOff">未开启</sys:String>
+    <sys:String x:Key="BroadcastStateLiveSince">自 {0} 起直播。</sys:String>
+    <sys:String x:Key="BroadcastStateStopping">正在停止广播..</sys:String>
+    <sys:String x:Key="BroadcastWhereDrive">已通过 Google Drive 发布。</sys:String>
+    <sys:String x:Key="BroadcastReceivers">直接连接到此电脑的数量：{0}。</sys:String>
+    <sys:String x:Key="BroadcastOpenSettings">设置..</sys:String>
+    <sys:String x:Key="BroadcastOpenWindow">打开广播窗口</sys:String>
+    <sys:String x:Key="BroadcastStopShort">停止</sys:String>
+    <sys:String x:Key="BroadcastLinkChoiceLine">链接密码：{0}。可在设置中更改。</sys:String>
+    <sys:String x:Key="ExchangeSettingsTitle">交换设置（STANDARD 配置）</sys:String>
+    <sys:String x:Key="ExchangeSettingsHint">将外观、播放和界面设置作为 STANDARD 保存在你的交换服务器上，并在另一台电脑上读取。在你按下按钮之前，不会发送或读取任何内容，之后的更改只保留在这台电脑上。文件夹、音频设备、窗口位置、密码和密钥永远不会离开这台电脑。服务器的运营者可以读取已保存的设置。</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupAppearance">外观</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupPlayback">播放</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupInterface">界面</sys:String>
+    <sys:String x:Key="ExchangeSettingsSave">保存为 STANDARD</sys:String>
+    <sys:String x:Key="ExchangeSettingsRead">读取 STANDARD</sys:String>
+    <sys:String x:Key="ExchangeSettingsUnavailable">只有当这台电脑登录到保存设置的服务器时，才能保存和读取 STANDARD。</sys:String>
+    <sys:String x:Key="ExchangeSettingsChooseGroup">请至少选择一个组。</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveConfirm">将这些组作为 STANDARD 保存到服务器：{0}？服务器上保存的 STANDARD 将被替换，未选择的组将从中移除。</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadConfirm">从服务器读取 STANDARD 并应用这些组：{0}？它们在这台电脑上的设置将被替换。</sys:String>
+    <sys:String x:Key="ExchangeSettingsSavedAt">已保存为 STANDARD：{0}。</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadAt">已读取并应用保存于 {0} 的 STANDARD。</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveUnknown">服务器没有回应，因此不知道设置是否已保存。再次保存是安全的。</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadDamaged">服务器上的设置已损坏。没有做任何更改。</sys:String>
+    <sys:String x:Key="ExchangeSettingsBusy">设置交换已在进行中。请等待其完成。</sys:String>
+    <sys:String x:Key="ExchangeSettingsNotFound">服务器上还没有为此程序保存标准设置。请先保存。</sys:String>
+    <sys:String x:Key="ExchangeSettingsInvalidPayload">服务器没有接受这些设置：它们已损坏或过大。</sys:String>
+    <sys:String x:Key="ExchangeSettingsAppIdMismatch">此服务器不为此账户保存此程序的设置。</sys:String>
+    <sys:String x:Key="ExchangeSettingsVersionIncompatible">服务器不支持此版本的设置格式。</sys:String>
 </ResourceDictionary>

@@ -9,13 +9,15 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 Push-Location $root
 try {
-    # check.ps1 reports its verdict through the exit code (0 PASS, 1 FAIL, 2 COULD NOT VERIFY) rather than by
-    # throwing, so it has to be read here, before the next native command overwrites $LASTEXITCODE (SP-0157).
-    & .\scripts\check.ps1
+    # SP-0256: a commit between releases runs the fast tier only (canon TESTING_AND_QA section 2); the full build
+    # and the release-parity gate scripts/check.ps1 run at the release. check-fast.ps1 reports its verdict through
+    # the exit code (0 PASS, 1 FAIL, 2 COULD NOT VERIFY) rather than by throwing, so it has to be read here, before
+    # the next native command overwrites $LASTEXITCODE (SP-0157).
+    & .\scripts\check-fast.ps1
     $checkExit = $LASTEXITCODE
     if ($checkExit -ne 0) {
         $verdict = switch ($checkExit) { 1 { 'FAIL' } 2 { 'COULD NOT VERIFY' } default { 'UNKNOWN' } }
-        throw "Release-parity check did not pass: $verdict (exit $checkExit). Nothing was staged or committed."
+        throw "Fast check did not pass: $verdict (exit $checkExit). Nothing was staged or committed."
     }
     git add --all
     if ($LASTEXITCODE -ne 0) { throw "Staging failed (exit $LASTEXITCODE)." }

@@ -241,9 +241,11 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             // The previous wrapper is still disposed after Play rather than before it, because the player
             // may be reading from it until the new one takes effect.
             var previous = _media;
-            var next = new Media(_libVlc, url);
+            Media? next = null;
             try
             {
+                // SP-0246 S4-1: Media created inside try so RaiseInterrupted(endedSegment) runs even if constructor throws.
+                next = new Media(_libVlc, url);
                 next.AddOption($":network-caching={cacheMilliseconds}");
                 next.AddOption($":live-caching={cacheMilliseconds}");
                 _recording.PrepareLeg(next, leg);
@@ -284,7 +286,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
                 // file the engine has not yet let go of.
                 RaiseInterrupted(endedSegment);
                 // Reached with the field still naming `previous` only when Play threw past the assignment.
-                if (!ReferenceEquals(_media, next))
+                if (next is not null && !ReferenceEquals(_media, next))
                 {
                     next.Dispose();
                 }

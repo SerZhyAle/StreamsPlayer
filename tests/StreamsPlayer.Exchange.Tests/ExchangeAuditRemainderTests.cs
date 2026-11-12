@@ -111,15 +111,26 @@ public sealed partial class ExchangeLoopRecoveryTests
     }
 
     [Fact]
-    public void AProtectedLanVideoIsRefusedWithItsOwnReason()
+    public void AProtectedLanVideoUsesAnOwnedLocalDigestRoute()
     {
         var endpoint = new FastMediaSorterBroadcastEndpoint("http://192.168.1.2/live.ts", "HTTP", "VIDEO_ONLY", null, null, null, null, true, 1000);
         string? failure = null;
 
         using var route = BroadcastVideoRoute.Open(endpoint, new("u", "p"), reason => failure = reason, passwordProtected: true);
 
+        Assert.NotNull(route);
+        Assert.Equal("127.0.0.1", route.Address.Host);
+        Assert.Null(failure);
+    }
+
+    [Fact]
+    public void AProtectedLanVideoWithoutCredentialsIsRefusedBeforeOpeningAnyListener()
+    {
+        var endpoint = new FastMediaSorterBroadcastEndpoint("rtsp://192.168.1.2/live", "RTSP", "VIDEO_ONLY", null, null, null, null, true, 1000);
+        string? failure = null;
+        using var route = BroadcastVideoRoute.Open(endpoint, null, reason => failure = reason, passwordProtected: true);
         Assert.Null(route);
-        Assert.Equal(ExchangeBroadcastAuth.UnsupportedEndpointReason, failure);
+        Assert.Equal(ExchangeBroadcastAuth.PasswordRequiredReason, failure);
     }
 
     [Fact]

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Help - Live broadcast, audio</title>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <nav class="help-crumbs" aria-label="Breadcrumb">
+    <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Live broadcast, audio</span>
+  </nav>
+  <header class="hero">
+    <p class="kicker">Window help</p>
+    <h1>Live broadcast, audio</h1>
+    <p class="lead">Each incoming audio broadcast has this small window to itself. It shows the broadcast's title and state, has its own volume, and lets you stop the broadcast, record it and listen again. The window is titled with the broadcast's own title, so every broadcast window reads differently, but they all look like this. Several can be open together, beside the main window and beside one another. Closing a window, with <kbd>Esc</kbd> or the close box or <b>Close</b>, stops that broadcast and nothing else.</p>
+  </header>
+
+  <h2>In this order</h2>
+  <ol class="order">
+    <li>Read <a href="#e-state">State line</a> under the title: it shows whether the broadcast is connecting, playing, reconnecting, ended, failed or stopped.</li>
+    <li>Set the level with <b><a href="#e-volume">Audio volume</a></b>, or tick <b><a href="#e-mute">Mute</a></b>. Both change this broadcast only.</li>
+    <li>While the state is playing, press <b><a href="#e-record">Record</a></b> to save what you hear to a file; press it again to stop and save.</li>
+    <li>Press <b><a href="#e-stop">Stop</a></b> to stop listening. When the window is not listening, <b><a href="#e-reconnect">Reconnect</a></b> takes its place so that you can listen again.</li>
+    <li>If the broadcast failed, open <b><a href="#e-details">Details</a></b> to read the failure code. If <b><a href="#e-diagnose">Check the connection</a></b> is offered, press it to check the connection.</li>
+    <li>Close the window when you are done: that ends the listening to this broadcast and nothing else.</li>
+  </ol>
+
+  <h2>The elements</h2>
+  <div class="elements">
+    <details class="el" id="e-state">
+      <summary><span><span class="name">State line</span><span class="one">Says what this broadcast is doing, or why it is not.</span></span></summary>
+      <div class="full">
+        <p>The line under the title shows the state - connecting, playing, reconnecting, ended, failed or stopped - and, for some conditions, a message beside it. When the state is ended, the line is the sentence &quot;The broadcast has ended.&quot; When the broadcast failed, the line gives the message for the failure: it says what happened, and where there is something to try, that follows on the next line.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>Depending on the state, the buttons below change: <b>Stop</b> while the window is listening, <b>Reconnect</b> or <b>Play</b> when it is not.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-details">
+      <summary><span><span class="name">Details</span><span class="one">Shows the code of a failure.</span></span></summary>
+      <div class="full">
+        <p>Appears under the state line only when the broadcast failed for a reason that has a code. Expand it to read the line that starts with &quot;Code:&quot;. The code is the short name of the failure.</p>
+      </div>
+    </details>
+    <details class="el" id="e-volume">
+      <summary><span><span class="name">Audio volume</span><span class="one">Sets the volume of this broadcast only.</span></span></summary>
+      <div class="full">
+        <p>The slider starts at the audio volume the main window is set to. Moving it changes this broadcast and nothing else: the volume of the main window, the other broadcasts and the saved setting stay as they are, and the level is not kept after this window closes.</p>
+        <p>A click on the slider jumps straight to that level.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>To balance a broadcast against the station playing in the main window or against other broadcasts.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-mute">
+      <summary><span><span class="name">Mute</span><span class="one">Silences this broadcast without moving the slider.</span></span></summary>
+      <div class="full">
+        <p>While it is ticked, this broadcast plays at zero. The slider keeps its position, so clearing the tick returns to the same level. It affects this broadcast only.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Clear the tick.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-record">
+      <summary><span><span class="name">Record</span><span class="one">Saves what this broadcast plays to a file.</span></span></summary>
+      <div class="full">
+        <p>The button shows only an icon; hover over it to read its name. Recording starts only while the state is playing. While it records, the button becomes <b>Stop recording</b>, and the line under the slider counts the length of the recording.</p>
+        <p>When the format of the broadcast cannot be recorded, the button is unavailable and its tooltip says &quot;This station's stream format cannot be recorded&quot;.</p>
+        <p>Press the button again to end the recording and save the file: the line says that it is saving, then names the file and its length. Recordings go to the radio recordings folder, which is set on the Files page of Settings and is the Recordings folder in Music when none is chosen. If a folder cannot be written, the line says so and the recording goes to another folder; if writing fails, the recording stops and the line says it could not write to that folder. If nothing was recorded, the line says so.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>To keep a broadcast you want to hear again.</dd>
+          <dt>Undo</dt><dd>A saved recording is a file in the folder; delete it there if you do not want it.</dd>
+          <dt>Shortcut</dt><dd><kbd>R</kbd> does the same from anywhere in the window.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-reconnect">
+      <summary><span><span class="name">Reconnect</span><span class="one">Listens to the broadcast again.</span></span></summary>
+      <div class="full">
+        <p>Shown while the window is not listening: after <b>Stop</b>, after the broadcast has ended, and after a failure. When the state is ended it reads <b>Reconnect</b>; in the other cases it reads <b>Play</b>.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The state line shows how the new attempt goes.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-diagnose">
+      <summary><span><span class="name">Check the connection</span><span class="one">Opens the connection check for a broadcast that could not be kept.</span></span></summary>
+      <div class="full">
+        <p>Shown when the broadcast failed in a way the window can only describe as unavailable, and a server to check is known. A failure that already says what to do, such as a refused password or a certificate that does not match, does not offer it.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The Connection check window opens in front of this one, with the first line naming the broadcast; this window waits until you close it.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-stop">
+      <summary><span><span class="name">Stop</span><span class="one">Stops listening to this broadcast.</span></span></summary>
+      <div class="full">
+        <p>Shown while the window is connecting, playing or reconnecting. The window stays open with the state stopped, and <b>Play</b> takes the place of this button.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Press <b>Play</b> to listen again.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-help">
+      <summary><span><span class="name">Help</span><span class="one">Opens this page when you press <kbd>F1</kbd>.</span></span></summary>
+      <div class="full">
+        <p>Pressing <kbd>F1</kbd> in this window opens the page of the window you are in, in your web browser; the application stays open.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The page opens in your browser. Nothing in the application changes.</dd>
+          <dt>Shortcut</dt><dd><kbd>F1</kbd> works from anywhere in the window.</dd>
+        </dl>
+      </div>
+    </details>
+  </div>
+
+  <h2>Related</h2>
+  <ul class="related">
+    <li><a href="broadcasts.html"><b>My broadcasts</b><span class="pill">Window</span><small>The list where Play opens a broadcast in a window like this one.</small></a></li>
+    <li><a href="exchange-diagnosis.html"><b>Connection check</b><span class="pill">Window</span><small>The connection check that Check the connection opens.</small></a></li>
+    <li><a href="settings.html"><b>STREAMS Player settings</b><span class="pill">Window</span><small>Where the radio recordings folder is chosen.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/index.html#use"><b>How to use</b><span class="pill gold">Site</span><small>The whole task, from the first start to your own playlists.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Written against STREAMS Player 26.1021, 2026-10-21.</span>
+    <a href="index.html">Help index</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/support.html">Ask a question or report a problem</a>
+  </footer>
+
+</main>
+<script>
+/* Progressive enhancement only: the page is complete without it. */
+(function () {
+  function openHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === 'DETAILS') { el.open = true; }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+})();
+</script>
+</body>
+</html>

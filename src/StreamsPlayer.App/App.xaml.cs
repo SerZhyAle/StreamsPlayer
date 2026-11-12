@@ -23,6 +23,9 @@ public partial class App : Application
     /// <summary>SP-0217: this PC's own live broadcasts, behind the Settings permission. Null only before OnStartup.</summary>
     internal BroadcastProducerService Broadcast { get; private set; } = null!;
 
+    /// <summary>SP-0250: keeps the directory followed while a window plays a broadcast that came through an exchange server.</summary>
+    internal BroadcastEndFollower BroadcastEnd { get; private set; } = null!;
+
     private CurrentLog? _log;
     private SingleInstanceLock? _instanceLock;
     private ActivationPipeListener? _activationListener;
@@ -31,6 +34,16 @@ public partial class App : Application
     private bool _sessionEnding;
     private int _terminating;
     private int _exitCompleted;
+    private Stopwatch? _closeClock;
+
+    private TimeSpan RemainingCloseTime
+    {
+        get
+        {
+            var remaining = CloseWorkDeadline - (_closeClock?.Elapsed ?? TimeSpan.Zero);
+            return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+        }
+    }
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -86,6 +99,7 @@ public partial class App : Application
         Exchange = new ExchangeSourceService(AppPaths.DataDirectory, line => _log.Information(line));
         Drive = new DriveSourceService(AppPaths.DataDirectory);
         Broadcast = new BroadcastProducerService(AppPaths.DataDirectory, Exchange, Drive);
+        BroadcastEnd = new BroadcastEndFollower(Exchange, Dispatcher);
         Exchange.Start();
 
         var window = new MainWindow(_log, StreamLaunchRequest.Parse(e.Args));
@@ -107,10 +121,11 @@ public partial class App : Application
     /// </summary>
     private async Task EndAfterCloseWorkAsync(MainWindow window)
     {
+        _closeClock ??= Stopwatch.StartNew();
         _mainWindowClosed = true;
         try
         {
-            if (await Task.WhenAny(window.CloseWork, Task.Delay(CloseWorkDeadline)) != window.CloseWork)
+            if (await Task.WhenAny(window.CloseWork, Task.Delay(RemainingCloseTime)) != window.CloseWork)
             {
                 _log?.Event("SHUTDOWN DEADLINE", "path=quit", $"after_ms={CloseWorkDeadline.TotalMilliseconds:F0}");
             }
@@ -145,13 +160,14 @@ public partial class App : Application
         }
 
         _sessionEnding = true;
+        _closeClock ??= Stopwatch.StartNew();
         _log?.Event("SESSION ENDING", $"reason={e.ReasonSessionEnding}");
         if (!_mainWindowClosed)
         {
             window.Close();
         }
 
-        if (!WaitPumping(window.CloseWork, CloseWorkDeadline))
+        if (!WaitPumping(window.CloseWork, RemainingCloseTime))
         {
             _log?.Event("SHUTDOWN DEADLINE", "path=session_end", $"after_ms={CloseWorkDeadline.TotalMilliseconds:F0}");
         }
@@ -165,7 +181,7 @@ public partial class App : Application
     /// </summary>
     private static bool WaitPumping(Task work, TimeSpan deadline)
     {
-        if (!work.IsCompleted)
+        if (!work.IsCompleted && deadline > TimeSpan.Zero)
         {
             var frame = new DispatcherFrame();
             // Setting Continue from another thread wakes the frame; the continuation runs on the pool for that reason.
@@ -201,21 +217,22 @@ public partial class App : Application
             return;
         }
 
+        _closeClock ??= Stopwatch.StartNew();
         // SP-0217 constraint 6: the broadcasts end before the account says goodbye - `broadcast-end`
         // precedes `bye`, on the control stream that is still alive at this point.
         if (Broadcast is not null)
         {
-            WaitPumping(Broadcast.StopAllAsync(), TimeSpan.FromSeconds(4));
+            WaitPumping(Broadcast.StopAllAsync(BroadcastStopCause.ApplicationExit), RemainingCloseTime);
         }
 
         if (Exchange is not null)
         {
-            WaitPumping(Exchange.StopAsync(), TimeSpan.FromSeconds(2));
+            WaitPumping(Exchange.StopAsync(), RemainingCloseTime);
         }
 
         if (Drive is not null)
         {
-            WaitPumping(Drive.StopAsync(), TimeSpan.FromSeconds(2));
+            WaitPumping(Drive.StopAsync(), RemainingCloseTime);
             Drive.Dispose();
         }
 

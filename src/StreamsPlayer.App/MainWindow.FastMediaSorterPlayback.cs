@@ -81,6 +81,11 @@ public partial class MainWindow
                 $"open_to_playing_ms={e.OpenToPlaying.TotalMilliseconds:F0}",
                 $"buffer_ms={FastMediaSorterAudioPlayback.BufferTargetMilliseconds}",
                 $"url={_playingAudio?.Channel.Url ?? "n/a"}");
+            // SP-0246 X-2: watch for stall in the broadcast audio route.
+            if (e.ReadInputBytes is { } readBytes)
+            {
+                WatchForFastMediaSorterAudioStall(playback, _fastMediaSorterAudioGeneration, readBytes);
+            }
             await HandleAudioOpenedAsync();
         })), DispatcherPriority.Normal);
     }
@@ -164,6 +169,7 @@ public partial class MainWindow
 
     private void StopFastMediaSorterAudioPlayback()
     {
+        StopWatchingAudioStall();
         _fastMediaSorterAudioGeneration++;
         var playback = _fastMediaSorterAudioPlayback;
         _fastMediaSorterAudioPlayback = null;
@@ -178,6 +184,11 @@ public partial class MainWindow
 
     private bool IsCurrentFastMediaSorterPlayback(FastMediaSorterAudioLeg playback) =>
         ReferenceEquals(_fastMediaSorterAudioPlayback, playback) && _playingAudio is not null;
+
+    private bool IsCurrentFastMediaSorterPlayback(FastMediaSorterAudioLeg playback, int generation) =>
+        generation == _fastMediaSorterAudioGeneration &&
+        ReferenceEquals(_fastMediaSorterAudioPlayback, playback) &&
+        _playingAudio is not null;
 
     private bool IsCurrentFastMediaSorterPlayback(FastMediaSorterAudioLeg playback, int generation, StreamChannel channel) =>
         generation == _fastMediaSorterAudioGeneration &&

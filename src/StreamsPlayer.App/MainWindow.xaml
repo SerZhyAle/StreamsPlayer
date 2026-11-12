@@ -77,15 +77,35 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="ExchangeStatusGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
-            <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.source.exchange-server}" />
-        </Style>
         <Style x:Key="BroadcastsGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
             <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.content.stream}" />
         </Style>
-        <Style x:Key="BroadcastLiveGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+        <!-- SP-0252: the one broadcast control of the header. Idle it is the glyph alone in the text colour; while any
+             source is live the code paints it in the danger role and the Tag carries the number of live sources, which
+             the template draws beside the glyph - so the state is told by colour, by a number and by the tooltip. -->
+        <Style x:Key="BroadcastHeaderGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
             <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.feature.live-broadcast}" />
-            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+            <Setter Property="Tag" Value="" />
+            <Setter Property="ContentTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Viewbox Width="16" Height="16" VerticalAlignment="Center" FlowDirection="LeftToRight">
+                                <Path Data="{Binding (local:Glyph.Geometry), RelativeSource={RelativeSource AncestorType=Button}}" Width="24" Height="24"
+                                      Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                            </Viewbox>
+                            <TextBlock x:Name="LiveCount" Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}"
+                                       Margin="5,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"
+                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                        </StackPanel>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=Button}}" Value="">
+                                <Setter TargetName="LiveCount" Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <!-- SP-0102: Segmented mode buttons with active state highlight -->
         <Style x:Key="SegmentedListButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
@@ -174,30 +194,25 @@
                                 ToolTip="{DynamicResource GridTip}" AutomationProperties.Name="{DynamicResource GridName}" />
                     </StackPanel>
                 </Border>
-                <Button IsVisibleChanged="HeaderAction_IsVisibleChanged" x:Name="ExchangeSourceStatusButton" local:HelpAnchor.Id="e-exchange" Style="{StaticResource ExchangeStatusGlyphOnlyButton}"
-                        Content="{DynamicResource ExchangeTitle}"
-                        AutomationProperties.Name="{DynamicResource ExchangeTitle}"
-                        Click="ExchangeSourceStatus_Click" Visibility="Collapsed" Margin="0,0,8,0">
-                    <Button.ToolTip>
-                        <StackPanel>
-                            <TextBlock Text="{DynamicResource ExchangeTitle}" />
-                            <TextBlock x:Name="ExchangeSourceStatusText" />
-                        </StackPanel>
-                    </Button.ToolTip>
-                </Button>
+                <!-- SP-0252: the Broadcast control opens the broadcast window and takes over the exchange-server status
+                     button and the live indicator. Always shown: with nothing to broadcast the window says why. The
+                     warning mark is drawn over it only while the server is unreachable and a broadcast needs it. -->
+                <Grid Margin="0,0,8,0">
+                    <Button x:Name="BroadcastButton" local:HelpAnchor.Id="e-broadcast" Style="{StaticResource BroadcastHeaderGlyphButton}"
+                            Content="{DynamicResource BroadcastWindowTitle}" ToolTip="{DynamicResource BroadcastButtonIdle}"
+                            AutomationProperties.Name="{DynamicResource BroadcastWindowTitle}" Click="BroadcastButton_Click" />
+                    <Border x:Name="BroadcastWarningMark" Visibility="Collapsed" IsHitTestVisible="False" Width="12" Height="12" CornerRadius="6"
+                            HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,2,0" Background="{DynamicResource WarningBrush}">
+                        <TextBlock Text="!" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SurfaceBrush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
                 <!-- SP-0201: the account's live broadcasts, grouped by device. Shown once the device is
                      enrolled; the account section is where a device without an account is told why. -->
                 <Button IsVisibleChanged="HeaderAction_IsVisibleChanged" x:Name="BroadcastsButton" local:HelpAnchor.Id="e-broadcasts" Style="{StaticResource BroadcastsGlyphOnlyButton}"
                         Content="{DynamicResource BroadcastsTitle}" ToolTip="{DynamicResource BroadcastsTitle}"
                         AutomationProperties.Name="{DynamicResource BroadcastsTitle}"
                         Click="BroadcastsButton_Click" Visibility="Collapsed" Margin="0,0,8,0" />
-                <!-- SP-0217: the always-visible live-broadcast indicator - shown only while one of this
-                     PC's sources is live; its menu names each source and offers its stop, its cast
-                     targets and its hand-off channels. -->
-                <Button x:Name="BroadcastLiveButton" local:HelpAnchor.Id="e-broadcast-live" Style="{StaticResource BroadcastLiveGlyphOnlyButton}"
-                        Content="{DynamicResource BroadcastIndicatorName}" Click="BroadcastLiveButton_Click"
-                        IsVisibleChanged="HeaderAction_IsVisibleChanged" Visibility="Collapsed" Margin="0,0,8,0"
-                        AutomationProperties.Name="{DynamicResource BroadcastIndicatorName}" />
                 <Button x:Name="SettingsButton" local:HelpAnchor.Id="e-settings" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource Settings}" Click="SettingsButton_Click"
                         ToolTip="{DynamicResource SettingsTip}" AutomationProperties.Name="{DynamicResource SettingsName}" />
                 <!-- SP-0050: the rare and the mode-conditional actions live here. The menu is rebuilt on
@@ -1148,10 +1163,19 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <Button Grid.Row="1" Style="{StaticResource SectionHeaderButtonStyle}"
+                <Button Grid.Row="1"
                         Visibility="{Binding PinnedHeaderVisibility}" Click="PinnedHeader_Click"
-                        AutomationProperties.Name="{DynamicResource PinnedSectionHeader}"
-                        ToolTip="{DynamicResource CollapseSectionTip}">
+                        AutomationProperties.Name="{DynamicResource PinnedSectionHeader}">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SectionHeaderButtonStyle}">
+                            <Setter Property="ToolTip" Value="{DynamicResource CollapseSectionTip}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding PinnedSectionCollapsed}" Value="True">
+                                    <Setter Property="ToolTip" Value="{DynamicResource ExpandSectionTip}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <StackPanel Orientation="Horizontal">
                         <!-- SP-0113: nav.collapse while open, nav.expand while collapsed - the action a click takes. -->
                         <Viewbox Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0" FlowDirection="LeftToRight">
@@ -1250,10 +1274,19 @@
                     </ListView.ItemTemplate>
                 </ListView>
 
-                <Button Grid.Row="3" x:Name="MainHeaderButton" Style="{StaticResource SectionHeaderButtonStyle}"
+                <Button Grid.Row="3" x:Name="MainHeaderButton"
                         Visibility="{Binding MainHeaderVisibility}" Click="MainHeader_Click"
-                        AutomationProperties.Name="{DynamicResource MainSectionHeader}"
-                        ToolTip="{DynamicResource CollapseSectionTip}">
+                        AutomationProperties.Name="{DynamicResource MainSectionHeader}">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SectionHeaderButtonStyle}">
+                            <Setter Property="ToolTip" Value="{DynamicResource CollapseSectionTip}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding MainSectionCollapsed}" Value="True">
+                                    <Setter Property="ToolTip" Value="{DynamicResource ExpandSectionTip}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
                     <StackPanel Orientation="Horizontal">
                         <!-- SP-0113: nav.collapse while open, nav.expand while collapsed - the action a click takes. -->
                         <Viewbox Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0" FlowDirection="LeftToRight">

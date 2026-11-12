@@ -5,10 +5,10 @@ namespace StreamsPlayer.App;
 
 internal sealed partial class BroadcastProducerService
 {
-    private Task PublishDriveAsync()
+    private async Task PublishDriveAsync()
     {
         if (_drive is null)
-            return Task.CompletedTask;
+            return;
         List<DriveAnnouncement> announcements = [];
         lock (_gate)
         {
@@ -25,6 +25,9 @@ internal sealed partial class BroadcastProducerService
                 }));
             }
         }
-        return _drive.UpdateBroadcastsAsync(announcements);
+        if (!_drive.SignedIn) return;
+        await _drive.UpdateBroadcastsAsync(announcements).ConfigureAwait(false);
+        _diagnostic("BROADCAST | step=drive-publication | records=" + announcements.Count
+            + " | code=" + _drive.StatusKey);
     }
 }

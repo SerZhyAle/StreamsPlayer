@@ -619,6 +619,8 @@
     <sys:String x:Key="BroadcastResourceAdded">Трансляция добавлена: {0}</sys:String>
     <sys:String x:Key="BroadcastResourceUpdated">Трансляция обновлена: {0}</sys:String>
     <sys:String x:Key="BroadcastNoLongerAvailable">Трансляция {0} больше недоступна.</sys:String>
+    <sys:String x:Key="BroadcastEnded">Трансляция закончилась.</sys:String>
+    <sys:String x:Key="BroadcastReconnect">Переподключиться</sys:String>
     <sys:String x:Key="BroadcastPlaylistPosition">{0} - элемент {1} из {2}</sys:String>
     <sys:String x:Key="FmsBroadcastConfirm">Импортировать эту прямую трансляцию?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
     <sys:String x:Key="FmsBroadcastAdded">Прямая трансляция импортирована: {0}.</sys:String>
@@ -627,7 +629,7 @@
     <sys:String x:Key="FmsBroadcastInvalid">Это некорректное описание трансляции FastMediaSorter. Ваш список не изменён.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">Описание трансляции больше 64 КиБ. Ваш список не изменён.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer занят другой операцией. Импортируйте трансляцию ещё раз, когда операция завершится. Ваш список не изменён.</sys:String>
-    <sys:String x:Key="FmsBroadcastListenerLimit">На устройстве «{0}» уже достигнуто максимальное число слушателей. Повторите, когда кто-нибудь отключится.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">На устройстве «{0}» уже достигнуто максимальное число зрителей и слушателей. Повторите, когда кто-нибудь отключится.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">Устройство «{0}» перестало вещать или больше недоступно в этой сети.</sys:String>
     <!-- SP-0098 portable stream catalog import -->
     <sys:String x:Key="StreamCatalogSettings">Каталог трансляций</sys:String>
@@ -703,7 +705,7 @@
     <sys:String x:Key="SettingsFilesDesc">Папки для снимков кадров и записей трансляций</sys:String>
     <sys:String x:Key="SettingsAbout">О программе</sys:String>
     <sys:String x:Key="SettingsExchangeDesc">Аккаунт и подключение к серверу</sys:String>
-    <sys:String x:Key="SettingsBroadcastDesc">Источники, сеть и качество звука</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Разрешение, сеть и качество</sys:String>
     <sys:String x:Key="SettingsAboutDesc">Сведения о приложении, лицензия и диагностика</sys:String>
     <sys:String x:Key="ThemeHint">Выберите светлую или тёмную тему, либо соответствие оформлению Windows.</sys:String>
     <sys:String x:Key="TileSizeHint">Настройте размер плиток каналов в сетке.</sys:String>
@@ -768,7 +770,7 @@
     <sys:String x:Key="BroadcastsEmpty">Сейчас у этой учётной записи нет трансляций; они появятся здесь, когда другие ваши устройства их запустят.</sys:String>
     <sys:String x:Key="BroadcastsOnline">в сети</sys:String>
     <sys:String x:Key="BroadcastsOffline">не в сети</sys:String>
-    <sys:String x:Key="BroadcastsPlay">Слушать</sys:String>
+    <sys:String x:Key="BroadcastsPlay">Воспроизвести</sys:String>
     <sys:String x:Key="BroadcastsKeep">Добавить в мои каналы</sys:String>
     <sys:String x:Key="BroadcastsUnsupportedReason">Не удаётся воспроизвести трансляцию по этим адресам. Попросите автора трансляции дать другую ссылку.</sys:String>
     <sys:String x:Key="BroadcastsUnsealedReason">Эта трансляция не защищена, поэтому через сервер она не воспроизводится.</sys:String>
@@ -791,10 +793,10 @@
     <sys:String x:Key="BroadcastsStateFailed">сбой</sys:String>
     <sys:String x:Key="BroadcastsBoundReached">Уже открыто трансляций: {0} - это предел для этого ПК. Закройте одну, чтобы открыть другую.</sys:String>
     <sys:String x:Key="BroadcastsOpenSettings">Открыть настройки входа</sys:String>
-    <sys:String x:Key="BroadcastsPlayNamed">Слушать: {0}</sys:String>
+    <sys:String x:Key="BroadcastsPlayNamed">Воспроизвести: {0}</sys:String>
     <sys:String x:Key="BroadcastsKeepNamed">Добавить в мои каналы: {0}</sys:String>
     <sys:String x:Key="EndedLabel">Завершена</sys:String>
-    <sys:String x:Key="BroadcastCapabilityWarning">Этот адрес содержит секрет трансляции: любой, у кого он есть, сможет слушать. Всё равно передать его?</sys:String>
+    <sys:String x:Key="BroadcastCapabilityWarning">Этот адрес содержит секрет трансляции: любой, у кого он есть, сможет смотреть и слушать. Всё равно передать его?</sys:String>
     <sys:String x:Key="ExchangeAutoAcceptCasts">Автоматически принимать трансляции с моих устройств</sys:String>
     <sys:String x:Key="ExchangeCastTitle">Запрос трансляции</sys:String>
     <sys:String x:Key="ExchangeCastOfferPrompt">{0} на {1} хочет транслировать на это устройство. Принять?</sys:String>
@@ -822,7 +824,7 @@
     <sys:String x:Key="ExchangeStringFileFilter">Импорт из файла (*.fmsexch)|*.fmsexch|*.*|*.*</sys:String>
     <!-- SP-0217: broadcasting this PC devices through the device exchange. -->
     <sys:String x:Key="BroadcastTitle">Вещание</sys:String>
-    <sys:String x:Key="BroadcastHint">Отправляет звук с этого ПК на сервер обмена вашей учётной записи. Ничего не записывается, пока вы не разрешите это здесь и не запустите источник.</sys:String>
+    <sys:String x:Key="BroadcastHint">Отправляет то, что захватывает этот ПК, на сервер обмена вашей учётной записи и, если включён параметр «Локальная сеть», в вашу локальную сеть. Ничего не записывается, пока вы не разрешите это здесь и не запустите источник.</sys:String>
     <sys:String x:Key="BroadcastAllow">Разрешить трансляцию с этого ПК</sys:String>
     <sys:String x:Key="BroadcastStartWithApp">Запускать выбранные источники при запуске приложения</sys:String>
     <sys:String x:Key="BroadcastMicStart">Транслировать микрофон</sys:String>
@@ -832,8 +834,8 @@
     <sys:String x:Key="BroadcastDefaultDevice">По умолчанию Windows</sys:String>
     <sys:String x:Key="BroadcastLanListening">Локальная сеть</sys:String>
     <sys:String x:Key="BroadcastLanPort">Порт</sys:String>
-    <sys:String x:Key="BroadcastCap">Максимум слушателей</sys:String>
-    <sys:String x:Key="BroadcastCapHint">0 - без ограничения. Каждый слушатель с прямым подключением расходует исходящий трафик этого ПК. Через сервер обмена этот ПК отправляет одну копию для всех слушателей.</sys:String>
+    <sys:String x:Key="BroadcastCap">Максимум зрителей и слушателей</sys:String>
+    <sys:String x:Key="BroadcastCapHint">0 - без ограничения. Каждый зритель или слушатель с прямым подключением расходует исходящий трафик этого ПК. Через сервер обмена этот ПК отправляет одну копию для всех.</sys:String>
     <sys:String x:Key="BroadcastQuality">Качество</sys:String>
     <sys:String x:Key="BroadcastSampleRate">Частота дискретизации</sys:String>
     <sys:String x:Key="BroadcastMicChannels">Каналы микрофона</sys:String>
@@ -857,14 +859,17 @@
     <sys:String x:Key="BroadcastAudioMicrophone">Микрофон</sys:String>
     <sys:String x:Key="BroadcastAudioSystem">Системный звук</sys:String>
     <sys:String x:Key="BroadcastNoDevices">Не найдено</sys:String>
-    <sys:String x:Key="BroadcastScreenPrivacy">Трансляция экрана отправляет весь выбранный монитор, включая уведомления и пароли, которые на нём показаны. Содержимое, защищённое Windows, может оказаться чёрным. Пока трансляция идёт, индикатор называет этот монитор.</sys:String>
+    <sys:String x:Key="BroadcastScreenPrivacy">Трансляция экрана отправляет весь выбранный монитор, включая уведомления и пароли, которые на нём показаны. Содержимое, защищённое Windows, может оказаться чёрным. Пока трансляция идёт, карточка называет этот монитор.</sys:String>
     <sys:String x:Key="BroadcastVideoUnavailable">Видеокодировщик Windows (H.264) не запускается на этом ПК, поэтому экран и камера не предлагаются. Микрофон и системный звук от него не зависят.</sys:String>
     <sys:String x:Key="BroadcastOwnOutputRisk">В этой версии Windows в системном звуке слышен и звук самого приложения, поэтому трансляция, которую вы воспроизводите здесь, отправлялась бы дальше. Пока идёт системный звук, слушайте трансляции на другом устройстве.</sys:String>
     <sys:String x:Key="BroadcastLinkPassword">Пароль ссылки</sys:String>
+    <sys:String x:Key="BroadcastConfirmStopAll">Все идущие сейчас трансляции будут остановлены, а их зрители и слушатели отключены. Продолжить?</sys:String>
+    <sys:String x:Key="BroadcastConfirmLanOff">Все, кто смотрит или слушает в локальной сети, будут отключены, а трансляция, которая идёт не через сервер обмена, остановится. Продолжить?</sys:String>
+    <sys:String x:Key="BroadcastConfirmRevokeLink">Текущий пароль ссылки сразу перестанет работать, и все, кто смотрит или слушает с ним, будут отключены. Продолжить?</sys:String>
     <sys:String x:Key="BroadcastLinkGenerated">Новый для каждой трансляции</sys:String>
     <sys:String x:Key="BroadcastLinkCustom">Задаю я</sys:String>
     <sys:String x:Key="BroadcastLinkNone">Без пароля</sys:String>
-    <sys:String x:Key="BroadcastLinkHint">Относится к ссылке, файлу и QR-коду, которые вы даёте другим людям. Пароля в них нет - сообщайте его отдельно; скопировать его можно в меню «Поделиться» индикатора трансляции. Заданный вами пароль хранится только в хранилище секретов Windows вашей учётной записи.</sys:String>
+    <sys:String x:Key="BroadcastLinkHint">Относится к ссылке, файлу и QR-коду, которые вы даёте другим людям. Пароля в них нет - сообщайте его отдельно; скопировать его можно в меню «Поделиться» окна трансляции. Заданный вами пароль хранится только в хранилище секретов Windows вашей учётной записи.</sys:String>
     <sys:String x:Key="BroadcastLinkNoneWarning">Без пароля смотреть и слушать может каждый, кто получил ссылку.</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordField">Пароль для ссылки</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordSave">Сохранить пароль</sys:String>
@@ -891,12 +896,12 @@
     <sys:String x:Key="BroadcastNotAllowed">Сначала разрешите трансляцию в настройках.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">Слишком много трансляций одновременно.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">Этот источник уже в эфире.</sys:String>
-    <sys:String x:Key="BroadcastEncoderMissing">Аудиокодировщик Windows недоступен на этом ПК, поэтому источники трансляции не предлагаются.</sys:String>
+    <sys:String x:Key="BroadcastEncoderMissing">Аудиокодировщик Windows недоступен на этом ПК, поэтому трансляция со звуком не запустится. Трансляция экрана или камеры без звука не затронута.</sys:String>
     <sys:String x:Key="BroadcastPortTaken">Порт локальной сети занят. Выберите другой в настройках.</sys:String>
     <sys:String x:Key="BroadcastPermissionDenied">Windows запретил приложению доступ к микрофону или камере. Разрешите его в параметрах конфиденциальности Windows и запустите снова.</sys:String>
     <sys:String x:Key="BroadcastDeviceInUse">Устройство занято другой программой. Закройте её и запустите снова.</sys:String>
     <sys:String x:Key="BroadcastDeviceMissing">Устройство отсутствует или не существует.</sys:String>
-    <sys:String x:Key="BroadcastCaptureFailed">Захват звука неожиданно завершился. Трансляция остановлена.</sys:String>
+    <sys:String x:Key="BroadcastCaptureFailed">Захват неожиданно завершился. Трансляция остановлена.</sys:String>
     <sys:String x:Key="BroadcastRelayLost">Соединение для этой трансляции потеряно. Оно вернётся, когда учётная запись переподключится.</sys:String>
     <sys:String x:Key="BroadcastCastAccepted">Отправка принята.</sys:String>
     <sys:String x:Key="BroadcastCastDeclined">Другое устройство не приняло cast.</sys:String>
@@ -1003,7 +1008,7 @@
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Код: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Пока нет сервера для проверки. Сначала импортируйте строку подключения или войдите.</sys:String>
     <sys:String x:Key="BroadcastNoReachableEndpoint">Никто не сможет принять трансляцию. Включите доступ по локальной сети или подключитесь к серверу обмена и попробуйте снова.</sys:String>
-    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Этот защищённый адрес трансляции здесь не поддерживается. Попросите автора дать ссылку через сервер обмена.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Прямое соединение с отправителем, в локальной сети или через сервер обмена, требует способ проверки пароля, который этот проигрыватель не поддерживает. Попросите трансляцию, которую раздаёт сервер обмена.</sys:String>
     <sys:String x:Key="BroadcastNotListed">нет в списке</sys:String>
     <sys:String x:Key="BroadcastTrustPrompt">Сервер {0} предъявил сертификат, который этот ПК не может проверить. Сверьте отпечаток с автором трансляции, прежде чем доверять ему для этого канала:&#10;{1}&#10;Доверять сертификату?</sys:String>
     <sys:String x:Key="DriveTitle">Через Google Drive</sys:String>
@@ -1011,7 +1016,6 @@
     <sys:String x:Key="DriveSignIn">Войти через Google</sys:String>
     <sys:String x:Key="DriveSignOut">Выйти из Google</sys:String>
     <sys:String x:Key="DriveNoCast">Через Google Drive нельзя направить трансляцию на устройство: здесь нет мгновенных уведомлений.</sys:String>
-    <sys:String x:Key="DriveUnavailable">Вход Google недоступен в этой сборке.</sys:String>
     <sys:String x:Key="DriveSignedOut">Вход Google не выполнен.</sys:String>
     <sys:String x:Key="DriveSigningIn">Завершите вход Google в браузере.</sys:String>
     <sys:String x:Key="DriveConnected">Подключено к Google Drive.</sys:String>
@@ -1038,4 +1042,46 @@
     <sys:String x:Key="MyStreamsWatch">Смотреть</sys:String>
     <sys:String x:Key="MyStreamsListen">Слушать</sys:String>
     <sys:String x:Key="MyStreamsSaved">Сохранено</sys:String>
+    <!-- Broadcast start verdict and publication details. -->
+    <sys:String x:Key="BroadcastStarting">Запуск трансляции…</sys:String>
+    <sys:String x:Key="BroadcastStartFailed">Трансляция не запущена. {0} Проверьте выбранное устройство и соединение, затем повторите попытку.</sys:String>
+    <sys:String x:Key="BroadcastStopped">Трансляция остановлена.</sys:String>
+    <sys:String x:Key="BroadcastAnnounced">Объявлено на сервере {0} для устройств аккаунта: {1}.</sys:String>
+    <sys:String x:Key="BroadcastNoRecipients">Внимание: ни одно другое устройство аккаунта не может открыть трансляцию. Войдите на принимающем устройстве и проверьте поддержку зашифрованных трансляций, затем запустите снова.</sys:String>
+    <sys:String x:Key="BroadcastNotAnnounced">Не объявлено на сервере обмена. Подключите аккаунт, чтобы объявить трансляцию.</sys:String>
+    <sys:String x:Key="BroadcastLanAddress">Адрес в локальной сети: {0}.</sys:String>
+    <sys:String x:Key="BroadcastUnnamedDevice">Устройство без имени</sys:String>
+    <sys:String x:Key="BroadcastShowRecipients">Показать устройства-получатели</sys:String>
+    <sys:String x:Key="BroadcastWindowTitle">Трансляция</sys:String>
+    <sys:String x:Key="BroadcastButtonIdle">Трансляция: ничего не идёт</sys:String>
+    <sys:String x:Key="BroadcastButtonServerWarning">Сервер обмена недоступен, поэтому устройства учётной записи не увидят эту трансляцию, пока он не вернётся.</sys:String>
+    <sys:String x:Key="BroadcastStateOff">Выключено</sys:String>
+    <sys:String x:Key="BroadcastStateLiveSince">В эфире с {0}.</sys:String>
+    <sys:String x:Key="BroadcastStateStopping">Остановка трансляции..</sys:String>
+    <sys:String x:Key="BroadcastWhereDrive">Объявлено через Google Drive.</sys:String>
+    <sys:String x:Key="BroadcastReceivers">Напрямую подключено к этому ПК: {0}.</sys:String>
+    <sys:String x:Key="BroadcastOpenSettings">Настройки..</sys:String>
+    <sys:String x:Key="BroadcastOpenWindow">Открыть окно трансляции</sys:String>
+    <sys:String x:Key="BroadcastStopShort">Остановить</sys:String>
+    <sys:String x:Key="BroadcastLinkChoiceLine">Пароль ссылки: {0}. Меняется в настройках.</sys:String>
+    <sys:String x:Key="ExchangeSettingsTitle">Обмен настройками (профиль STANDARD)</sys:String>
+    <sys:String x:Key="ExchangeSettingsHint">Храните настройки внешнего вида, воспроизведения и интерфейса на своём сервере обмена как STANDARD и читайте их на другом ПК. Ничего не отправляется и не читается, пока вы не нажмёте кнопку, а дальнейшие изменения остаются на этом ПК. Папки, аудиоустройства, положения окон, пароли и ключи никогда его не покидают. Оператор сервера может прочитать сохранённые настройки.</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupAppearance">Внешний вид</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupPlayback">Воспроизведение</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupInterface">Интерфейс</sys:String>
+    <sys:String x:Key="ExchangeSettingsSave">Сохранить как STANDARD</sys:String>
+    <sys:String x:Key="ExchangeSettingsRead">Прочитать STANDARD</sys:String>
+    <sys:String x:Key="ExchangeSettingsUnavailable">Сохранение и чтение STANDARD работают, пока этот ПК подключён к серверу, который хранит настройки.</sys:String>
+    <sys:String x:Key="ExchangeSettingsChooseGroup">Выберите хотя бы одну группу.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveConfirm">Сохранить эти группы на сервере как STANDARD: {0}? Сохранённый там STANDARD будет заменён, а невыбранная группа из него уйдёт.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadConfirm">Прочитать STANDARD с сервера и применить эти группы: {0}? Их настройки на этом ПК будут заменены.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSavedAt">Сохранено как STANDARD: {0}.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadAt">STANDARD, сохранённый {0}, прочитан и применён.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveUnknown">Сервер не ответил, поэтому неизвестно, сохранены ли настройки. Сохранить ещё раз безопасно.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadDamaged">Настройки на сервере повреждены. Ничего не изменено.</sys:String>
+    <sys:String x:Key="ExchangeSettingsBusy">Обмен настройками уже идёт. Дождитесь его окончания.</sys:String>
+    <sys:String x:Key="ExchangeSettingsNotFound">На сервере пока не сохранены стандартные настройки для этой программы. Сначала сохраните их.</sys:String>
+    <sys:String x:Key="ExchangeSettingsInvalidPayload">Сервер не принял эти настройки: они повреждены или слишком велики.</sys:String>
+    <sys:String x:Key="ExchangeSettingsAppIdMismatch">Этот сервер не хранит настройки этой программы для этого аккаунта.</sys:String>
+    <sys:String x:Key="ExchangeSettingsVersionIncompatible">Сервер не поддерживает эту версию формата настроек.</sys:String>
 </ResourceDictionary>

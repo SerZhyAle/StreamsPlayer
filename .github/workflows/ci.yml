@@ -1,5 +1,10 @@
 name: CI
 
+# SP-0256: between releases only the fast tier runs - the checks measured at 5 s or less (canon TESTING_AND_QA
+# section 2). No restore, no build, no test suite here: the full build, the suite and every slower check run
+# against the tag's own tree in release.yml, and the site's documentation and site-sync gates run in pages.yml
+# on the commit it deploys. The fast list and its measured times are in scripts/check-fast.ps1 and AGENTS.md.
+
 on:
   push:
     branches: [main]
@@ -14,41 +19,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-test:
+  fast-checks:
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.0.x
-      - name: Cache NuGet packages
-        uses: actions/cache@v6
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.sln') }}
-          restore-keys: ${{ runner.os }}-nuget-
-      - name: Restore
-        run: dotnet restore StreamsPlayer.sln
-      - name: Build
-        id: build
-        run: dotnet build StreamsPlayer.sln -c Release --no-restore
-      - name: Test
-        run: pwsh -NoProfile -File scripts/test.ps1 -Configuration Release -NoBuild
-      - name: Test verdict fixtures
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        run: pwsh -NoProfile -File scripts/Test-TestResultSummary.ps1
-      - name: Store listing fixtures
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        run: pwsh -NoProfile -File tools/store/Test-StoreListing.ps1
-      # DOC-INTERNAL-QUALITY (SP-0140): registry and reverse coverage, links and anchors, assets, house style,
-      # offline safety. Exit 0 pass, 1 finding, 2 could not verify (CHECK-VERDICT).
-      - name: Documentation gate
-        if: ${{ !cancelled() }}
+      # Exit 0 pass, 1 finding, 2 could not verify (CHECK-VERDICT); the last line names every failed check.
+      - name: Fast checks
         shell: pwsh
-        run: pwsh -NoProfile -File scripts/check-docs.ps1
-      # Rule 4: the generated site under docs/ matches its copy decks. Reads the Core assembly built above.
-      - name: Site sync check
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        shell: pwsh
-        run: pwsh -NoProfile -File tools/site/build-site.ps1 -Check
+        run: pwsh -NoProfile -File scripts/check-fast.ps1

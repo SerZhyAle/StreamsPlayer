@@ -265,6 +265,34 @@ already been spent staring at black, so every extra attempt costs another twenty
 thing being fixed. Its backoff is a flat half second rather than the transient ladder, for the same
 reason: the waiting has already happened.
 
+### A broadcast that ended is not a lost connection - SP-0250
+
+A FastMediaSorter broadcast stopped on purpose ends its streams exactly as a dropped network does, so the
+bounded recovery above used to reconnect twice over every endpoint after nothing was left to connect to. The
+rules that tell the two apart are `LIVE-BROADCAST` items T and U and `DEVICE-EXCHANGE` items DX and DY; the
+reading of them is `BroadcastEndWatch` in Core, fed by `PlayerWindow` (video) and `BroadcastAudioSession`
+(audio broadcast windows). The main window's single-station audio route and a Drive-listed broadcast keep the
+bounded reconnect alone.
+
+- **The directory.** While a window plays a broadcast that came through an exchange server, the account's
+  control stream stays subscribed (`BroadcastEndFollower`: the follow lease of the broadcast list, or one
+  read-only guest session). A removal does not stop a stream that still delivers - the producer may have lost
+  the server and still serve the LAN - and is read at the moment the stream stops. A removal that arrives while
+  the stream is stopped or being recovered ends the broadcast at once. A lost control stream is unknown, never a
+  removal; the full list after it is what a removal is read from.
+- **The reconnect's answer.** A relay `410` and a tunnel `refused {reason:"ended"}` end the broadcast whenever
+  they come. A relay `404` and the LAN answers - a refused connection, a `404` or a `410` to an RTSP `DESCRIBE`
+  or an HTTP `GET` (`BroadcastLanProbe`, because the engine reports all three as one error) - end it only for
+  a broadcast this window had played; before that a `404` is "not started" (item S). A relay `503` is an upload
+  stall, and a reset, a timeout or no answer is a lost connection: all three keep the bounded recovery.
+  A tunnel `unavailable` is no end.
+- **The ended state** is a state of the window that played it: "The broadcast has ended." with Reconnect, no
+  further attempt, no other broadcast substituted, and the same state in the account list row. Reconnect is the
+  one way out; it also follows the directory again.
+- **A producer lost for longer than the server's window** reads as ended (item U accepts this limit). A process
+  killed by the system is a lost connection, and nothing here can change that. LibVLC 3.0 reports an RTCP BYE
+  only as an ordinary end of stream, so `bye` is a named cause that nothing raises today.
+
 ### The connectivity gate - SP-0041
 
 Before the ladder is spent on a **fresh open failure** - the one case where the status probe already
@@ -523,6 +551,7 @@ look the same in an archive.
 | `AUDIO FAIL` | `reason=encountered_error\|play_rejected\|<exception type>`, `cause=` - the engine's own error lines for this connection, or the exception's text, or `none` when it said nothing (SP-0189) |
 | `AUDIO STALL` | `silent_ms=`, `read_bytes=` - a radio connection that stayed open but read no bytes for that long (SP-0169); followed by `AUDIO RECOVER trigger=Stall` |
 | `PLAYBACK RECOVER` | `trigger=`, `action=`, `attempt=`, budget, delay |
+| `PLAYBACK END` | `cause=directory\|relay-410\|relay-404-after-play\|tunnel-ended\|lan-refused\|lan-404\|lan-410\|budget-exhausted`, `kind=video\|audio` - a broadcast ended and the window stopped trying (SP-0250); the lost-connection case writes no such line, only `PLAYBACK RECOVER` |
 | `PLAYBACK QUALITY` | `action=recall\|ladder\|down\|up\|hold\|memory\|rendition`, `from=`, `to=`, `ceiling=`, `starvations=`, `memory=`, `within=`, `leg=` |
 | `PLAYBACK CLOSE` / `SESSION` | `legs=`, `reconnects=`, `stalls=`, `outcome=` |
 | `STATS` | every 2 s: `in_kbps`, `disp_fps`, `lost_pics`, `corrupted`, `discont` |
@@ -566,6 +595,8 @@ Core (platform-neutral, all unit-tested)
   LivePlaybackRecoveryPolicy.cs  §4  reconnect or give up, and after how long
   PlaybackRecoveryClassifier.cs  §4  engine event -> RecoveryTrigger
   PlaybackFailureSignal.cs           the input record
+  BroadcastEnd.cs                §4  an ended broadcast or a lost connection - the watch, the causes, the answers (SP-0250)
+  BroadcastLanProbe.cs           §4  what a producer's LAN address answers to the reconnect (SP-0250)
   EngineFailureTrail.cs          §4  what the engine said about a failed open - the AUDIO FAIL cause (SP-0189)
   SignalHealthMonitor.cs         §6  green / yellow / red
   PlaybackInterruption.cs        §6  what the caption says, and when it may appear
@@ -580,6 +611,9 @@ App (forwards observations, applies answers, owns all I/O)
   PlayerWindow.xaml.cs           the six observations, StartMedia, RecoverAsync
   PlayerWindow.Health.cs         §6  paints the stripe
   PlayerWindow.Notice.cs         §6  paints the caption over the video
+  PlayerWindow.BroadcastEnd.cs   §4  the video window's reading of an ended broadcast (SP-0250)
+  BroadcastAudioSession.cs       §4  the audio broadcast window's own recovery and the same reading
+  BroadcastEndFollower.cs        §4  keeps the account's directory followed while a broadcast plays
   PlayerWindow.Quality.cs        §5  feeds the governor, logs it, re-opens
   StreamQualityLadderProbe.cs    §5  fetches the master playlist (5 s deadline)
   StreamReachabilityProbe.cs     §4  is it the channel or the network - the SP-0041 gate
@@ -635,6 +669,7 @@ App (forwards observations, applies answers, owns all I/O)
 | `SP-0079` | shorter reconnect budget | **Implemented** |
 | `SP-0096` | a stream that never opens is given up on | **Implemented** - the run-and-observe phase is not done |
 | `DONE/SP-0189` | a radio failure keeps its cause and is not judged final by its wrapper | **Implemented** |
+| `SP-0250` | a broadcast that ended is shown as ended, not reconnected to | **In Progress** - the joint run with a real phone is not done |
 
 Three of those headers disagree with the folder they sit in. Status comes from the header, never from the
 path - recorded here so the disagreement is visible rather than inherited.

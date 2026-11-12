@@ -24,6 +24,10 @@ internal sealed class ExchangeGuestEntries
     // an empty list: writing from it would destroy every stored guest token and key, which are single-use.
     private bool _loadFailed;
 
+    // SP-0246 R2-4: when the current run of failed reads began. A file that stays unreadable would otherwise refuse
+    // every guest sign-in for as long as it stays that way; after the grace it is set aside (kept, not deleted).
+    private long? _unreadableSince;
+
     internal ExchangeGuestEntries(string directory)
     {
         _directory = directory;
@@ -31,9 +35,16 @@ internal sealed class ExchangeGuestEntries
         _entries = Load();
     }
 
+    /// <summary>How long a file may stay unreadable before a mutation sets it aside; settable so a test need not wait for it.</summary>
+    internal TimeSpan UnreadableGrace { get; init; } = TimeSpan.FromMinutes(1);
+
+    /// <summary>The name an unreadable file is kept under once it has been set aside.</summary>
+    internal string SetAsidePath => _path + ".unreadable";
+
     /// <summary>
-    /// True when the file existed but could not be decrypted or parsed (another Windows user's, or damaged): the entries
-    /// are gone. A read that only failed on the disk just now is not this; the file is kept and not written over.
+    /// True when the file existed but could not be decrypted or parsed (another Windows user's, or damaged), or stayed
+    /// unreadable past <see cref="UnreadableGrace"/> and was set aside: the entries are gone. A read that only failed on
+    /// the disk just now is not this; the file is kept and not written over.
     /// </summary>
     internal bool ProtectionFailed { get; private set; }
 
@@ -76,7 +87,8 @@ internal sealed class ExchangeGuestEntries
     /// <summary>
     /// S2-5: a mutation never writes from a list that was not read. After a transient read failure the file is read again
     /// first; if it still cannot be read the write is refused as a failed write is (an <see cref="IOException"/>), so the
-    /// stored entries survive until a later read succeeds.
+    /// stored entries survive until a later read succeeds. R2-4: a read that keeps failing for <see cref="UnreadableGrace"/>
+    /// is not a passing lock: the file is moved aside, so the entries it held are gone but the person can sign in again.
     /// </summary>
     private void RequireReadable()
     {
@@ -88,8 +100,33 @@ internal sealed class ExchangeGuestEntries
         _entries = Load();
         if (_loadFailed)
         {
+            if (_unreadableSince is { } since
+                && Environment.TickCount64 - since >= UnreadableGrace.TotalMilliseconds
+                && SetAside())
+            {
+                return;
+            }
+
             throw new IOException("The guest entries could not be read, so they are not overwritten.");
         }
+    }
+
+    private bool SetAside()
+    {
+        try
+        {
+            File.Move(_path, SetAsidePath, overwrite: true);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return false; // Not even renamable: the file stays where it is, and so does the refusal.
+        }
+
+        _entries = [];
+        _loadFailed = false;
+        _unreadableSince = null;
+        ProtectionFailed = true;
+        return true;
     }
 
     private ExchangeAccount[] Load()
@@ -97,6 +134,7 @@ internal sealed class ExchangeGuestEntries
         _loadFailed = false;
         if (!File.Exists(_path))
         {
+            _unreadableSince = null;
             return [];
         }
 
@@ -113,19 +151,22 @@ internal sealed class ExchangeGuestEntries
             var entries = (document.Entries ?? []).Where(Plausible)
                 .GroupBy(entry => (ExchangeAccountIdentity.NormalizeHost(entry.Host), entry.Port, entry.Login.ToLowerInvariant()))
                 .Select(group => group.First()).Take(ExchangeEntryLimits.MaximumGuestEntries).ToArray();
+            _unreadableSince = null;
             return entries;
         }
         catch (Exception exception) when (exception is CryptographicException or JsonException)
         {
             // An entry whose token belongs to another Windows user is not ours to rotate; the file is dropped.
             ProtectionFailed = true;
+            _unreadableSince = null;
             return [];
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             // S2-5: not readable now is not undecryptable. The file is left as it is, and nothing is written over it
-            // until a later read succeeds (RequireReadable).
+            // until a later read succeeds (RequireReadable) or, R2-4, the failure has outlasted the grace.
             _loadFailed = true;
+            _unreadableSince ??= Environment.TickCount64;
             return [];
         }
         finally

@@ -127,6 +127,13 @@ function Get-Name([object] $Item, [hashtable] $Dictionary, [string] $Where) {
     throw "$Where has neither a nameKey nor a name"
 }
 
+# A window whose title is the content's own (the map row carries a `reason` and no nameKey) takes its name in each
+# language from the copy file's `name`; every other surface keeps resolving through the dictionary.
+function Get-SurfaceName([object] $Surface, [object] $Copy, [hashtable] $Dictionary, [string] $Where) {
+    if (-not (Has $Surface 'nameKey') -and $null -ne $Copy -and (Has $Copy 'name')) { return [string] $Copy.name }
+    return Get-Name $Surface $Dictionary $Where
+}
+
 function Get-SiteAddress([string] $Locale, [string] $Page) {
     $folder = if ($Locale -eq 'en') { '' } else { "$Locale/" }
     return "$BaseUrl$folder$Page"
@@ -243,7 +250,7 @@ function Format-Entry([object] $Item, [object] $Chrome, [hashtable] $Dictionary,
 
 function New-Page([string] $Locale, [object] $Surface, [object] $Copy, [object] $Chrome, [hashtable] $Dictionary) {
     $page = "$Locale/$($Surface.help).json"
-    $title = Get-Name $Surface $Dictionary "$page surface"
+    $title = Get-SurfaceName $Surface $Copy $Dictionary "$page surface"
     $groups = if (Has $Copy 'groups') { @($Copy.groups) } else { @([pscustomobject]@{ elements = @($Copy.elements) }) }
 
     $names = @{}
@@ -337,7 +344,7 @@ function New-Index([string] $Locale, [object] $Chrome, [hashtable] $Dictionary, 
     $lines.Add("  <h2>$(Format-Text $Chrome.indexWindowsHeading)</h2>")
     $lines.Add('  <ul class="related">')
     foreach ($surface in $pageSurfaces) {
-        $label = Format-Text (Get-Name $surface $Dictionary "index surface '$($surface.id)'")
+        $label = Format-Text (Get-SurfaceName $surface $Copies[$surface.help] $Dictionary "index surface '$($surface.id)'")
         $summary = Format-Text ([string] $Copies[$surface.help].summary)
         $lines.Add("    <li><a href=`"$($surface.help).html`"><b>$label</b><span class=`"pill`">$(Format-Text $Chrome.pillWindow)</span><small>$summary</small></a></li>")
     }

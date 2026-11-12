@@ -75,6 +75,26 @@ public sealed class DriveSourceServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task AnInvalidPublicationWaitsForANewExplicitUpdate()
+    {
+        using var handler = new Handler();
+        using var source = new DriveSourceService(_directory, handler, "client", "secret",
+            (_, _) => Task.FromResult(new DriveTokens("access", "refresh", 3600)));
+        await source.SignInAsync(default);
+        var same = Announcement();
+        await source.UpdateBroadcastsAsync([same, same]);
+        Assert.Equal("DrivePublishFailed", source.StatusKey);
+        Assert.Empty(handler.Writes);
+        Assert.Equal(TimeSpan.MaxValue, typeof(DriveSourceService)
+            .GetField("_publishAfter", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .GetValue(source));
+        await source.UpdateBroadcastsAsync([same]);
+        Assert.Equal("DriveConnected", source.StatusKey);
+        Assert.Equal(2, handler.Writes.Count);
+        await source.StopAsync();
+    }
+
+    [Fact]
     public async Task DirectorySuccessDoesNotHidePublicationFailureAndRecoveryClearsIt()
     {
         using var handler = new Handler { RefuseWrites = true };

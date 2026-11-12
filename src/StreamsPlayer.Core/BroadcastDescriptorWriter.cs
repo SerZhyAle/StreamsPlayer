@@ -147,7 +147,8 @@ public static class BroadcastDescriptorWriter
                 writer.WriteNumber("schemaVersion", FastMediaSorterBroadcastDescriptor.SupportedSchemaVersion);
                 // Top level: the first endpoint a legacy consumer can play as a plain address - the LAN
                 // shape, else the relay listen, a plain HTTPS stream for any player.
-                writer.WriteString("url", lanUrl ?? RelayUrl(plan) ?? TunnelUrl(plan));
+                // SP-0246 S14-5: RelayUrl and TunnelUrl never answer null, so the flags choose; a tunnel-only plan would otherwise carry a relay address no endpoint lists.
+                writer.WriteString("url", lanUrl ?? (plan.Relay ? RelayUrl(plan) : plan.Tunnel ? TunnelUrl(plan) : string.Empty));
                 writer.WriteString("mode", plan.Mode);
                 writer.WriteString("title", plan.Title);
                 writer.WriteString("sourceId", plan.SourceId);

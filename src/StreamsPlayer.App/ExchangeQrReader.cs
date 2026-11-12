@@ -58,7 +58,8 @@ internal static class ExchangeQrReader
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            // The decoder's own failure on a damaged picture; its message is private input.
+            // The decoder's own failure on a damaged picture; its message is private input, so only the type is logged.
+            HandlerBoundary.Record("EXCHANGE QR FAULT | type=" + exception.GetType().Name);
             return new ExchangeQrOutcome(ExchangeQrOutcomeKind.Unreadable);
         }
     }

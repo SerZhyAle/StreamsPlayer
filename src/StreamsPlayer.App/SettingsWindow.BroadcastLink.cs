@@ -15,6 +15,10 @@ public partial class SettingsWindow
     private static readonly BroadcastLinkChoice[] LinkChoices =
         [BroadcastLinkChoice.Generated, BroadcastLinkChoice.Custom, BroadcastLinkChoice.None];
 
+    // The one sentence under the link password: a rejected password the person typed, or the producer's word that the
+    // password changed. SP-0252 moved the status line of the page to the broadcast window, so this is all that stays.
+    private string? _linkNoticeKey;
+
     private void PopulateBroadcastLink()
     {
         _showingBroadcast = true;
@@ -35,6 +39,9 @@ public partial class SettingsWindow
         BroadcastLinkNoneText.Visibility = choice == BroadcastLinkChoice.None ? Visibility.Visible : Visibility.Collapsed;
         BroadcastLinkRenewButton.Visibility = choice == BroadcastLinkChoice.Generated ? Visibility.Visible : Visibility.Collapsed;
         BroadcastLinkRenewButton.IsEnabled = running.Count > 0;
+        var notice = _linkNoticeKey ?? (Broadcast.OutcomeKey == "BroadcastLinkChanged" ? Broadcast.OutcomeKey : null);
+        BroadcastLinkStatusText.Text = notice is null ? string.Empty : LocalizationService.Get(notice);
+        BroadcastLinkStatusText.Visibility = notice is null ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void BroadcastLinkChoice_Changed(object sender, SelectionChangedEventArgs e)
@@ -44,7 +51,19 @@ public partial class SettingsWindow
             return;
         }
 
+        _linkNoticeKey = null;
         var choice = LinkChoices[BroadcastLinkChoiceBox.SelectedIndex];
+        if (choice == Broadcast.Settings.Choice)
+        {
+            return;
+        }
+
+        if (!ConfirmLiveBroadcastChange("BroadcastConfirmRevokeLink"))
+        {
+            ShowBroadcasting();
+            return;
+        }
+
         HandlerBoundary.Run(nameof(BroadcastLinkChoice_Changed), async () =>
         {
             await Broadcast.SetLinkChoiceAsync(choice, customPassword: null);
@@ -57,10 +76,17 @@ public partial class SettingsWindow
         var typed = BroadcastLinkPasswordBox.Password;
         if (!BroadcastLinkPassword.IsAcceptable(typed))
         {
-            BroadcastStatusText.Text = LocalizationService.Get("BroadcastLinkPasswordInvalid");
+            _linkNoticeKey = "BroadcastLinkPasswordInvalid";
+            ShowBroadcasting();
             return;
         }
 
+        if (!ConfirmLiveBroadcastChange("BroadcastConfirmRevokeLink"))
+        {
+            return;
+        }
+
+        _linkNoticeKey = null;
         HandlerBoundary.Run(nameof(BroadcastLinkSave_Click), async () =>
         {
             await Broadcast.SetLinkChoiceAsync(BroadcastLinkChoice.Custom, typed);
@@ -69,6 +95,11 @@ public partial class SettingsWindow
         });
     }
 
-    private void BroadcastLinkRenew_Click(object sender, RoutedEventArgs e) =>
-        HandlerBoundary.Run(nameof(BroadcastLinkRenew_Click), () => Broadcast.RenewLinkPasswordAsync());
+    private void BroadcastLinkRenew_Click(object sender, RoutedEventArgs e)
+    {
+        if (ConfirmLiveBroadcastChange("BroadcastConfirmRevokeLink"))
+        {
+            HandlerBoundary.Run(nameof(BroadcastLinkRenew_Click), () => Broadcast.RenewLinkPasswordAsync());
+        }
+    }
 }

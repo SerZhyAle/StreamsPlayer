@@ -101,6 +101,8 @@ function Get-JsonLd {
             'operatingSystem'     = 'Windows'
             # A durable address - the newest release, whichever it is - never a versioned asset.
             'downloadUrl'         = "$repository/releases/latest"
+            # SP-0259: the store page installs it signed and updates it; the same address the landing links.
+            'installUrl'          = 'https://apps.microsoft.com/detail/9NBTD5SXB8TB'
             'releaseNotes'        = $related['whatsnew']
             'softwareHelp'        = [ordered]@{ '@type' = 'CreativeWork'; 'url' = $related['support'] }
             'isAccessibleForFree' = $true

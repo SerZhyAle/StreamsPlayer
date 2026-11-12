@@ -4,6 +4,16 @@ namespace StreamsPlayer.App;
 
 public partial class MainWindow
 {
+    private readonly Dictionary<string, (ExchangeAccount Entry, ExchangeDirectorySnapshot Snapshot)> _pendingGuestDirectories = [];
+
+    private async Task ApplyPendingGuestDirectoriesAsync()
+    {
+        var pending = _pendingGuestDirectories.Values.ToArray();
+        _pendingGuestDirectories.Clear();
+        foreach (var (entry, snapshot) in pending)
+            await ApplyGuestDirectoryAsync(entry, snapshot);
+    }
+
     private async void ApplyExchangeEntryBindings()
     {
         try
@@ -38,12 +48,17 @@ public partial class MainWindow
 
     internal async Task ApplyGuestDirectoryAsync(ExchangeAccount entry, ExchangeDirectorySnapshot snapshot)
     {
-        if (_busy || Exchange.Guests.Find(entry.Host, entry.Port, entry.Login) is null)
+        if (Exchange.Guests.Find(entry.Host, entry.Port, entry.Login) is null)
         {
             return;
         }
 
         var identity = ExchangeAccountIdentity.Key(entry.Host, entry.Port, entry.Login);
+        if (_busy)
+        {
+            _pendingGuestDirectories[identity] = (entry, snapshot);
+            return;
+        }
         await PersistAsync(state =>
         {
             var refreshed = ExchangeDirectoryChannels.RefreshStored(state.Channels,

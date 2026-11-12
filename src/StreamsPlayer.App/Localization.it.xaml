@@ -630,6 +630,8 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="BroadcastResourceAdded">Trasmissione aggiunta: {0}</sys:String>
     <sys:String x:Key="BroadcastResourceUpdated">Trasmissione aggiornata: {0}</sys:String>
     <sys:String x:Key="BroadcastNoLongerAvailable">La trasmissione {0} non è più disponibile.</sys:String>
+    <sys:String x:Key="BroadcastEnded">La trasmissione è terminata.</sys:String>
+    <sys:String x:Key="BroadcastReconnect">Riconnetti</sys:String>
     <sys:String x:Key="BroadcastPlaylistPosition">{0} - elemento {1} di {2}</sys:String>
     <sys:String x:Key="FmsBroadcastConfirm">Importare questa trasmissione in diretta?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
     <sys:String x:Key="FmsBroadcastAdded">Trasmissione in diretta importata: {0}.</sys:String>
@@ -638,7 +640,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="FmsBroadcastInvalid">Questa non è una descrizione valida di trasmissione FastMediaSorter. L'elenco non è cambiato.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">Questa descrizione di trasmissione supera 64 KiB. L'elenco non è cambiato.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer è occupato con un'altra operazione. Importa di nuovo la trasmissione quando l'operazione è terminata. L'elenco non è cambiato.</sys:String>
-    <sys:String x:Key="FmsBroadcastListenerLimit">{0} ha già il numero massimo di ascoltatori. Riprova quando un altro ascoltatore si disconnette.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0} ha già il numero massimo di spettatori e ascoltatori. Riprova quando un altro si disconnette.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} ha smesso di trasmettere o non è più raggiungibile su questa rete.</sys:String>
     <!-- SP-0098 portable stream catalog import -->
     <sys:String x:Key="StreamCatalogSettings">Catalogo streaming</sys:String>
@@ -714,7 +716,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="SettingsFilesDesc">Cartelle per fotogrammi e registrazioni dei flussi</sys:String>
     <sys:String x:Key="SettingsAbout">Informazioni</sys:String>
     <sys:String x:Key="SettingsExchangeDesc">Account e connessione al server</sys:String>
-    <sys:String x:Key="SettingsBroadcastDesc">Sorgenti, accesso alla rete e qualità audio</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Autorizzazione, accesso alla rete e qualità</sys:String>
     <sys:String x:Key="SettingsAboutDesc">Informazioni sull'applicazione, licenza e diagnostica</sys:String>
     <sys:String x:Key="ThemeHint">Scegli chiaro, scuro o segui l'aspetto di Windows.</sys:String>
     <sys:String x:Key="TileSizeHint">Regola le dimensioni delle schede dei canali nella griglia.</sys:String>
@@ -779,7 +781,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="BroadcastsEmpty">Questo account non ha trasmissioni al momento; appariranno qui quando gli altri tuoi dispositivi le avvieranno.</sys:String>
     <sys:String x:Key="BroadcastsOnline">in linea</sys:String>
     <sys:String x:Key="BroadcastsOffline">fuori linea</sys:String>
-    <sys:String x:Key="BroadcastsPlay">Ascolta</sys:String>
+    <sys:String x:Key="BroadcastsPlay">Riproduci</sys:String>
     <sys:String x:Key="BroadcastsKeep">Aggiungi ai miei canali</sys:String>
     <sys:String x:Key="BroadcastsUnsupportedReason">Gli indirizzi di questa trasmissione non possono essere riprodotti. Chiedi un altro link a chi trasmette.</sys:String>
     <sys:String x:Key="BroadcastsUnsealedReason">Questa trasmissione non è protetta, quindi non viene riprodotta tramite il server.</sys:String>
@@ -802,10 +804,10 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="BroadcastsStateFailed">non riuscito</sys:String>
     <sys:String x:Key="BroadcastsBoundReached">Ci sono già {0} trasmissioni aperte, il massimo che questo PC gestisce insieme. Chiudine una per aprirne un’altra.</sys:String>
     <sys:String x:Key="BroadcastsOpenSettings">Apri le impostazioni di accesso</sys:String>
-    <sys:String x:Key="BroadcastsPlayNamed">Ascolta {0}</sys:String>
+    <sys:String x:Key="BroadcastsPlayNamed">Riproduci {0}</sys:String>
     <sys:String x:Key="BroadcastsKeepNamed">Aggiungi {0} ai miei canali</sys:String>
     <sys:String x:Key="EndedLabel">Conclusa</sys:String>
-    <sys:String x:Key="BroadcastCapabilityWarning">Questo indirizzo contiene il segreto della trasmissione: chiunque lo abbia può ascoltare. Consegnarlo comunque?</sys:String>
+    <sys:String x:Key="BroadcastCapabilityWarning">Questo indirizzo contiene il segreto della trasmissione: chiunque lo abbia può guardare e ascoltare. Consegnarlo comunque?</sys:String>
     <sys:String x:Key="ExchangeAutoAcceptCasts">Accetta automaticamente trasmissioni dai miei dispositivi</sys:String>
     <sys:String x:Key="ExchangeCastTitle">Richiesta di trasmissione</sys:String>
     <sys:String x:Key="ExchangeCastOfferPrompt">{0} su {1} vuole trasmettere a questo dispositivo. Accettare?</sys:String>
@@ -833,7 +835,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="ExchangeStringFileFilter">Importa da file (*.fmsexch)|*.fmsexch|*.*|*.*</sys:String>
     <!-- SP-0217: broadcasting this PC devices through the device exchange. -->
     <sys:String x:Key="BroadcastTitle">Trasmissione dal vivo</sys:String>
-    <sys:String x:Key="BroadcastHint">Invia ciò che questo PC registra al server di scambio del proprio account. Nulla viene registrato finché non lo si consente qui e non si avvia una sorgente.</sys:String>
+    <sys:String x:Key="BroadcastHint">Invia ciò che questo PC registra al server di scambio del proprio account e, se l'opzione «Rete locale» è attiva, alla rete locale. Nulla viene registrato finché non lo si consente qui e non si avvia una sorgente.</sys:String>
     <sys:String x:Key="BroadcastAllow">Consenti a questo PC di trasmettere</sys:String>
     <sys:String x:Key="BroadcastStartWithApp">Avvia le sorgenti scelte all'avvio dell'applicazione</sys:String>
     <sys:String x:Key="BroadcastMicStart">Trasmetti il microfono</sys:String>
@@ -843,8 +845,8 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="BroadcastDefaultDevice">Predefinito di Windows</sys:String>
     <sys:String x:Key="BroadcastLanListening">Rete locale</sys:String>
     <sys:String x:Key="BroadcastLanPort">Porta</sys:String>
-    <sys:String x:Key="BroadcastCap">Ascoltatori massimi</sys:String>
-    <sys:String x:Key="BroadcastCapHint">0 significa nessun limite. Ogni ascoltatore collegato direttamente usa il traffico in uscita di questo PC. Tramite il server di scambio, questo PC invia una copia per tutti gli ascoltatori.</sys:String>
+    <sys:String x:Key="BroadcastCap">Spettatori e ascoltatori massimi</sys:String>
+    <sys:String x:Key="BroadcastCapHint">0 significa nessun limite. Ogni spettatore o ascoltatore collegato direttamente usa il traffico in uscita di questo PC. Tramite il server di scambio, questo PC invia una copia per tutti.</sys:String>
     <sys:String x:Key="BroadcastQuality">Qualità</sys:String>
     <sys:String x:Key="BroadcastSampleRate">Frequenza di campionamento</sys:String>
     <sys:String x:Key="BroadcastMicChannels">Canali del microfono</sys:String>
@@ -868,14 +870,17 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="BroadcastAudioMicrophone">Microfono</sys:String>
     <sys:String x:Key="BroadcastAudioSystem">Audio di sistema</sys:String>
     <sys:String x:Key="BroadcastNoDevices">Nessuno trovato</sys:String>
-    <sys:String x:Key="BroadcastScreenPrivacy">La trasmissione dello schermo invia l’intero monitor scelto, comprese le notifiche e le password che vi compaiono. I contenuti protetti da Windows possono risultare vuoti. Finché è in diretta, l’indicatore indica il nome del monitor.</sys:String>
+    <sys:String x:Key="BroadcastScreenPrivacy">La trasmissione dello schermo invia l’intero monitor scelto, comprese le notifiche e le password che vi compaiono. I contenuti protetti da Windows possono risultare vuoti. Finché è in diretta, la scheda indica il nome del monitor.</sys:String>
     <sys:String x:Key="BroadcastVideoUnavailable">Il codificatore video di Windows (H.264) non si avvia su questo PC, quindi schermo e fotocamera non vengono proposti. Il microfono e l’audio di sistema non ne dipendono.</sys:String>
     <sys:String x:Key="BroadcastOwnOutputRisk">In questa versione di Windows l’audio di sistema contiene anche l’audio di questa applicazione, quindi una trasmissione riprodotta qui verrebbe inviata di nuovo. Ascolta le trasmissioni su un altro dispositivo finché l’audio di sistema è in diretta.</sys:String>
     <sys:String x:Key="BroadcastLinkPassword">Password del collegamento</sys:String>
+    <sys:String x:Key="BroadcastConfirmStopAll">Tutte le trasmissioni in corso si fermano e i loro spettatori e ascoltatori vengono disconnessi. Continuare?</sys:String>
+    <sys:String x:Key="BroadcastConfirmLanOff">Chi guarda o ascolta nella rete locale viene disconnesso, e una trasmissione che non passa anche dal server di scambio si ferma. Continuare?</sys:String>
+    <sys:String x:Key="BroadcastConfirmRevokeLink">La password attuale del collegamento smette subito di funzionare, e chi guarda o ascolta con essa viene disconnesso. Continuare?</sys:String>
     <sys:String x:Key="BroadcastLinkGenerated">Nuova per ogni trasmissione</sys:String>
     <sys:String x:Key="BroadcastLinkCustom">La imposto io</sys:String>
     <sys:String x:Key="BroadcastLinkNone">Nessuna password</sys:String>
-    <sys:String x:Key="BroadcastLinkHint">Vale per il collegamento, il file e il codice QR che dai ad altre persone. La password non è mai al loro interno: comunicala a parte; puoi copiarla dal menu «Condividi» dell’indicatore in diretta. Una password che imposti viene conservata solo nell’archivio dei segreti di Windows del tuo account.</sys:String>
+    <sys:String x:Key="BroadcastLinkHint">Vale per il collegamento, il file e il codice QR che dai ad altre persone. La password non è mai al loro interno: comunicala a parte; puoi copiarla dal menu «Condividi» della finestra di trasmissione. Una password che imposti viene conservata solo nell’archivio dei segreti di Windows del tuo account.</sys:String>
     <sys:String x:Key="BroadcastLinkNoneWarning">Senza password, chiunque riceva il collegamento può guardare e ascoltare.</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordField">Password per il collegamento</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordSave">Salva la password</sys:String>
@@ -902,7 +907,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="BroadcastNotAllowed">Consentire prima la trasmissione nelle impostazioni.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">Troppe trasmissioni contemporaneamente.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">Questa sorgente è già in diretta.</sys:String>
-    <sys:String x:Key="BroadcastEncoderMissing">Il codificatore audio di Windows non è disponibile su questo PC, quindi le sorgenti non sono offerte.</sys:String>
+    <sys:String x:Key="BroadcastEncoderMissing">Il codificatore audio di Windows non è disponibile su questo PC, quindi una trasmissione con audio non può partire. Una trasmissione dello schermo o della fotocamera senza audio non è interessata.</sys:String>
     <sys:String x:Key="BroadcastPortTaken">La porta LAN è occupata. Sceglierne un’altra nelle impostazioni.</sys:String>
     <sys:String x:Key="BroadcastPermissionDenied">Windows ha negato il microfono o la fotocamera a questa applicazione. Consentilo nelle impostazioni di privacy di Windows e riavvia.</sys:String>
     <sys:String x:Key="BroadcastDeviceInUse">Il dispositivo è occupato da un altro programma. Chiuderlo e riprovare.</sys:String>
@@ -1014,7 +1019,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Codice: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Non c'è ancora nessun server da controllare. Importa prima una stringa di connessione o accedi.</sys:String>
     <sys:String x:Key="BroadcastNoReachableEndpoint">Nessuno può ricevere questa trasmissione. Abilita la rete locale o connettiti al server di scambio e riprova.</sys:String>
-    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Questo indirizzo protetto non può essere riprodotto qui. Chiedi a chi trasmette un collegamento tramite il server di scambio.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">La connessione diretta a chi trasmette, sulla rete locale o tramite il server di scambio, richiede una verifica della password non supportata da questo lettore. Chiedi una trasmissione distribuita dal server di scambio.</sys:String>
     <sys:String x:Key="BroadcastNotListed">non in elenco</sys:String>
     <sys:String x:Key="BroadcastTrustPrompt">Questo PC non può verificare il certificato di {0}. Confronta l’impronta con chi trasmette prima di considerarla attendibile per questo canale:&#10;{1}&#10;Considerare attendibile il certificato?</sys:String>
     <sys:String x:Key="DriveTitle">Tramite Google Drive</sys:String>
@@ -1022,7 +1027,6 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="DriveSignIn">Accedi con Google</sys:String>
     <sys:String x:Key="DriveSignOut">Esci da Google</sys:String>
     <sys:String x:Key="DriveNoCast">Non è possibile inviare una trasmissione a un dispositivo tramite Google Drive perché non dispone di notifiche push.</sys:String>
-    <sys:String x:Key="DriveUnavailable">L’accesso Google non è disponibile in questa versione.</sys:String>
     <sys:String x:Key="DriveSignedOut">Accesso Google non effettuato.</sys:String>
     <sys:String x:Key="DriveSigningIn">Completa l’accesso Google nel browser.</sys:String>
     <sys:String x:Key="DriveConnected">Connesso a Google Drive.</sys:String>
@@ -1049,4 +1053,46 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="MyStreamsWatch">Guarda</sys:String>
     <sys:String x:Key="MyStreamsListen">Ascolta</sys:String>
     <sys:String x:Key="MyStreamsSaved">Salvato</sys:String>
+    <!-- Broadcast start verdict and publication details. -->
+    <sys:String x:Key="BroadcastStarting">Avvio della trasmissione…</sys:String>
+    <sys:String x:Key="BroadcastStartFailed">La trasmissione non è stata avviata. {0} Controlla il dispositivo selezionato e la connessione, poi riprova.</sys:String>
+    <sys:String x:Key="BroadcastStopped">Trasmissione interrotta.</sys:String>
+    <sys:String x:Key="BroadcastAnnounced">Annunciata su {0} a {1} dispositivi dell’account.</sys:String>
+    <sys:String x:Key="BroadcastNoRecipients">Attenzione: nessun altro dispositivo dell’account può aprirla. Accedi sul dispositivo ricevente, verifica il supporto per le trasmissioni crittografate e riavvia.</sys:String>
+    <sys:String x:Key="BroadcastNotAnnounced">Non annunciata sul server di scambio. Collega l’account per annunciarla.</sys:String>
+    <sys:String x:Key="BroadcastLanAddress">Indirizzo nella rete locale: {0}.</sys:String>
+    <sys:String x:Key="BroadcastUnnamedDevice">Dispositivo senza nome</sys:String>
+    <sys:String x:Key="BroadcastShowRecipients">Mostra dispositivi destinatari</sys:String>
+    <sys:String x:Key="BroadcastWindowTitle">Trasmissione</sys:String>
+    <sys:String x:Key="BroadcastButtonIdle">Trasmissione: niente in diretta</sys:String>
+    <sys:String x:Key="BroadcastButtonServerWarning">Il server di scambio non è raggiungibile, quindi i dispositivi dell’account non vedranno questa trasmissione finché non torna.</sys:String>
+    <sys:String x:Key="BroadcastStateOff">Spenta</sys:String>
+    <sys:String x:Key="BroadcastStateLiveSince">In diretta da {0}.</sys:String>
+    <sys:String x:Key="BroadcastStateStopping">Interruzione della trasmissione..</sys:String>
+    <sys:String x:Key="BroadcastWhereDrive">Annunciata tramite Google Drive.</sys:String>
+    <sys:String x:Key="BroadcastReceivers">Collegati direttamente a questo PC: {0}.</sys:String>
+    <sys:String x:Key="BroadcastOpenSettings">Impostazioni..</sys:String>
+    <sys:String x:Key="BroadcastOpenWindow">Apri la finestra di trasmissione</sys:String>
+    <sys:String x:Key="BroadcastStopShort">Ferma</sys:String>
+    <sys:String x:Key="BroadcastLinkChoiceLine">Password del collegamento: {0}. Si cambia nelle Impostazioni.</sys:String>
+    <sys:String x:Key="ExchangeSettingsTitle">Scambio impostazioni (profilo STANDARD)</sys:String>
+    <sys:String x:Key="ExchangeSettingsHint">Conserva le impostazioni di aspetto, riproduzione e interfaccia sul tuo server di scambio come STANDARD e leggile su un altro PC. Nulla viene inviato o letto finché non premi un pulsante, e le modifiche successive restano su questo PC. Cartelle, dispositivi audio, posizioni delle finestre, password e chiavi non lo lasciano mai. L'operatore del server può leggere le impostazioni salvate.</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupAppearance">Aspetto</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupPlayback">Riproduzione</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupInterface">Interfaccia</sys:String>
+    <sys:String x:Key="ExchangeSettingsSave">Salva come STANDARD</sys:String>
+    <sys:String x:Key="ExchangeSettingsRead">Leggi STANDARD</sys:String>
+    <sys:String x:Key="ExchangeSettingsUnavailable">Il salvataggio e la lettura dello STANDARD funzionano mentre questo PC è connesso a un server che conserva le impostazioni.</sys:String>
+    <sys:String x:Key="ExchangeSettingsChooseGroup">Scegli almeno un gruppo.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveConfirm">Salvare questi gruppi sul server come STANDARD: {0}? Lo STANDARD salvato lì viene sostituito e un gruppo non scelto ne esce.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadConfirm">Leggere lo STANDARD dal server e applicare questi gruppi: {0}? Le loro impostazioni su questo PC saranno sostituite.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSavedAt">Salvato come STANDARD: {0}.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadAt">Lo STANDARD salvato il {0} è stato letto e applicato.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveUnknown">Il server non ha risposto, quindi non si sa se le impostazioni siano state salvate. Salvare di nuovo è sicuro.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadDamaged">Le impostazioni sul server sono danneggiate. Non è stato cambiato nulla.</sys:String>
+    <sys:String x:Key="ExchangeSettingsBusy">È già in corso uno scambio di impostazioni. Attendi che finisca.</sys:String>
+    <sys:String x:Key="ExchangeSettingsNotFound">Sul server non sono ancora salvate impostazioni standard per questo programma. Salvale prima.</sys:String>
+    <sys:String x:Key="ExchangeSettingsInvalidPayload">Il server non ha accettato queste impostazioni: sono danneggiate o troppo grandi.</sys:String>
+    <sys:String x:Key="ExchangeSettingsAppIdMismatch">Questo server non conserva le impostazioni di questo programma per questo account.</sys:String>
+    <sys:String x:Key="ExchangeSettingsVersionIncompatible">Il server non supporta questa versione del formato delle impostazioni.</sys:String>
 </ResourceDictionary>

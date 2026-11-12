@@ -5,6 +5,9 @@ namespace StreamsPlayer.Core;
 
 public static partial class DiagnosticValueRedactor
 {
+    /// <summary>What a redactor answers for text it could not sanitize in time.</summary>
+    internal const string RedactedToken = "[REDACTED]";
+
     [GeneratedRegex(@"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z0-9 ]*PRIVATE KEY-----|$)", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, 100)]
     private static partial Regex PrivateKeyBlocks();
 
@@ -25,7 +28,7 @@ public static partial class DiagnosticValueRedactor
         catch (RegexMatchTimeoutException)
         {
             // DIAGNOSTIC-REPORT section 8 C permits dropping a value that cannot be sanitized safely.
-            return "[REDACTED]";
+            return RedactedToken;
         }
     }
 

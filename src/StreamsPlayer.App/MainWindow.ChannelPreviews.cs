@@ -181,9 +181,12 @@ public partial class MainWindow
         // about - the honest end of the operation is now its result line.
         if (!result.CodecUnavailable)
         {
-            await PersistAsync(state => state with { ChannelPreviewArtworkStamp = artwork.Stamp });
+            await PersistPreviewArtworkStampAsync(artwork.Stamp);
         }
 
         return result;
     }
+
+    private Task PersistPreviewArtworkStampAsync(string stamp) =>
+        PersistAsync(state => state with { ChannelPreviewArtworkStamp = stamp });
 }

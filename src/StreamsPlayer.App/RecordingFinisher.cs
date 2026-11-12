@@ -261,7 +261,10 @@ internal static class RecordingFinisher
             {
                 try
                 {
-                    if (now - new FileInfo(partial).LastWriteTimeUtc < StalePartialAge)
+                    var info = new FileInfo(partial);
+                    // SP-0246 S10-5: File.Copy preserves the source's LastWriteTime, so aging by LastWriteTime
+                    // would judge the partial by the source recording's age rather than when the partial was created.
+                    if (now - info.CreationTimeUtc < StalePartialAge)
                     {
                         continue;
                     }

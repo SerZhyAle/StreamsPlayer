@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Help - Broadcast</title>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <nav class="help-crumbs" aria-label="Breadcrumb">
+    <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>Broadcast</span>
+  </nav>
+  <header class="hero">
+    <p class="kicker">Window help</p>
+    <h1>Broadcast</h1>
+    <p class="lead">Start, watch, share and stop what this PC broadcasts: the screen, the camera, the microphone and the system sound. Each source has its own card and starts and stops on its own, so any number of them can be live at once. The top line shows the state of the exchange server, and below it the link-password choice the next broadcast will use. If broadcasting is off, or this PC is signed in to a server only as a guest, the window says so and links to the Broadcasting page of Settings. Closing this window, with <kbd>Esc</kbd> too, does not stop a broadcast: the Broadcast button in the main window stays red while anything is live and opens this window again.</p>
+  </header>
+
+  <h2>In this order</h2>
+  <ol class="order">
+    <li>If the window says broadcasting is off, press <b><a href="#e-settings">Settings..</a></b> and allow it on the Broadcasting page.</li>
+    <li>On the card of what you want to send, choose the device if the card offers a choice.</li>
+    <li>Press the start button of the card and wait for it to read live. <b>Cancel</b> ends a start that is still waiting.</li>
+    <li>Read on the card where it went: the local network address, Google Drive.</li>
+    <li>Hand it out with <a href="#e-share">Share</a> or send it to one of your own devices.</li>
+    <li>Press <b>Stop</b> on the card, or <b><a href="#e-stop-all">Stop all</a></b>, to end it.</li>
+  </ol>
+
+  <h2>The elements</h2>
+  <div class="elements">
+    <details class="el" id="e-server">
+      <summary><img src="../mark-24.png" srcset="../mark-24.png 1x, ../mark-48.png 2x" width="24" height="24" alt=""><span><span class="name">Exchange server</span><span class="one">Shows how the connection to your exchange server is doing; opens its settings.</span></span></summary>
+      <div class="full">
+        <p>The line beside this icon says whether this PC is connected to the exchange server of your account. A broadcast announced on the server reaches your other devices only while the connection is up. When the server cannot be reached and a broadcast needs it, the line says so, and the Broadcast button in the main window carries a small warning mark.</p>
+        <p>Pressing the icon opens the Exchange server page in Settings, where the account is set up.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>Settings opens on the Exchange server page, on top of this window.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-screen">
+      <summary><span><span class="name">PC screen</span><span class="one">Broadcasts one whole monitor, with or without a sound.</span></span></summary>
+      <div class="full">
+        <p>Choose the monitor and the one sound that travels with the screen: none, the microphone or the system sound. The choices are read when the broadcast starts, so they are unavailable while it is live. The whole monitor is sent, including notifications and passwords, and content that Windows protects may come out blank.</p>
+        <p>The card is not shown on a PC whose Windows has no H.264 encoder; the window says so instead.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>To show what is on this PC to your phone or another PC.</dd>
+          <dt>Next</dt><dd>The card reads starting, then live since the time it went on the air. A refused start shows its reason on the card and leaves the source off.</dd>
+          <dt>Undo</dt><dd>Press <b>Stop</b> on the card.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-camera">
+      <summary><span><span class="name">PC camera</span><span class="one">Broadcasts one camera, with or without a sound.</span></span></summary>
+      <div class="full">
+        <p>Choose the camera and the one sound that travels with it, as for the screen. If Windows denies the camera to this application, or another program holds it, the broadcast does not start and the card says which.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The card reads starting, then live since the time it went on the air.</dd>
+          <dt>Undo</dt><dd>Press <b>Stop</b> on the card.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-microphone">
+      <summary><span><span class="name">PC microphone</span><span class="one">Broadcasts the microphone you choose.</span></span></summary>
+      <div class="full">
+        <p><b>Windows default</b> follows whatever Windows uses as the default recording device; the other entries are the microphones Windows lists. The list is read only after broadcasting is allowed, so no capture device is touched before that. Mono or stereo, the sample rate and the bitrate are set in Settings.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The card reads starting, then live since the time it went on the air.</dd>
+          <dt>Undo</dt><dd>Press <b>Stop</b> on the card.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-system-sound">
+      <summary><span><span class="name">PC system sound</span><span class="one">Broadcasts the sound this PC plays.</span></span></summary>
+      <div class="full">
+        <p>Works like the microphone, with the sound this PC plays as the source. On a Windows that cannot leave this application's own sound out, the card says that a broadcast you play here would be sent on again.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The card reads starting, then live since the time it went on the air.</dd>
+          <dt>Undo</dt><dd>Press <b>Stop</b> on the card.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-share">
+      <summary><span><span class="name">Share</span><span class="one">Hands a live source to other people or devices, and says where it went.</span></span></summary>
+      <div class="full">
+        <p>A live card shows where its source went: the local network address when <b>Local network</b> is on in Settings, Google Drive when it is used, and how many receivers are connected directly to this PC.</p>
+        <p><b>Share</b> copies the link, copies its password, shows the link as a QR code for a phone, or saves the description file. The password is never inside the link; with the choice <b>No password</b> there is nothing to copy. <b>Cast to your own device</b> offers the source to one of your devices that is online and can play it; the device asks first. <b>Show addressed devices</b> names the devices the announcement was sealed to. It is the list of addressed devices, not of people watching.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Nothing here changes the broadcast. Changing the link password in Settings stops the previous one at once.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-stop-all">
+      <summary><span><span class="name">Stop all</span><span class="one">Ends every broadcast running from this PC.</span></span></summary>
+      <div class="full">
+        <p>Stops all the sources that are live; each card goes back to off. The button is available only while something is running. A single source is stopped with <b>Stop</b> on its own card.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The sources stop at once and the Broadcast button in the main window returns to its normal colour. Start any of them again from its card.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-settings">
+      <summary><span><span class="name">Settings..</span><span class="one">Opens the Broadcasting page of Settings.</span></span></summary>
+      <div class="full">
+        <p>Broadcasting stays a setting in one place: the permission, starting the chosen sources with the application, the local network and its port, the listener cap, the quality and the link password. This window shows the current link-password choice and links there.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>Settings opens on the Broadcasting page, on top of this window.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-help">
+      <summary><span><span class="name">Help</span><span class="one">Opens this page.</span></span></summary>
+      <div class="full">
+        <p>Every window that has help carries this button near its top-right corner. It opens the page of the window you are in, in your web browser; the application stays open.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The page opens in your browser. Nothing in the application changes.</dd>
+          <dt>Shortcut</dt><dd><kbd>F1</kbd> does the same from anywhere in the window.</dd>
+        </dl>
+      </div>
+    </details>
+  </div>
+
+  <h2>Related</h2>
+  <ul class="related">
+    <li><a href="main.html"><b>STREAMS Player</b><span class="pill">Window</span><small>The main window, whose Broadcast button opens this one.</small></a></li>
+    <li><a href="settings.html"><b>STREAMS Player settings</b><span class="pill">Window</span><small>Where broadcasting is allowed and its network, quality and link password are set.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/index.html#use"><b>How to use</b><span class="pill gold">Site</span><small>The whole task, from the first start to your own playlists.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Written against STREAMS Player 26.1021, 2026-10-21.</span>
+    <a href="index.html">Help index</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/support.html">Ask a question or report a problem</a>
+  </footer>
+
+</main>
+<script>
+/* Progressive enhancement only: the page is complete without it. */
+(function () {
+  function openHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === 'DETAILS') { el.open = true; }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+})();
+</script>
+</body>
+</html>

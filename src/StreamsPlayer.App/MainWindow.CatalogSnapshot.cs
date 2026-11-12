@@ -156,15 +156,7 @@ public partial class MainWindow
         try
         {
             var outcome = CatalogSnapshotService.Prepare(BundledCatalogSnapshot.Read());
-            CatalogSnapshotApplyResult? result = null;
-            var commit = await CommitStateAsync(
-                state => (result = outcome.Apply(state)).State,
-                (state, cancellationToken) => _store.SaveAsync(
-                    state,
-                    outcome.Snapshot.Bank.FaviconAtlas,
-                    outcome.ReplacesAtlas,
-                    AtlasSlot.Snapshot,
-                    cancellationToken));
+            var (commit, result) = await CommitCatalogSnapshotAsync(outcome);
             if (result is null || !commit.Saved)
             {
                 throw commit.Failure ?? new IOException("Catalog snapshot was not saved.");
@@ -200,6 +192,18 @@ public partial class MainWindow
             _applyingCatalogSnapshot = false;
             SetBusy(false);
         }
+    }
+
+    private async Task<(CatalogStateCommitResult Commit, CatalogSnapshotApplyResult? Result)> CommitCatalogSnapshotAsync(
+        CatalogSnapshotOutcome outcome)
+    {
+        var store = _store;
+        CatalogSnapshotApplyResult? result = null;
+        var commit = await CommitStateAsync(
+            state => (result = outcome.Apply(state)).State,
+            (state, cancellationToken) => store.SaveAsync(
+                state, outcome.Snapshot.Bank.FaviconAtlas, outcome.ReplacesAtlas, AtlasSlot.Snapshot, cancellationToken));
+        return (commit, result);
     }
 
     /// <summary>

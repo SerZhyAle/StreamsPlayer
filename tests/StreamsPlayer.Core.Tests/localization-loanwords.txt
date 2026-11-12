@@ -121,6 +121,7 @@ fr:AudioTracks      # "Audio" heads the French label too, matching "piste audio"
 fr:MediaKindAuto    # "Auto" is the usual French abbreviation for automatique.
 fr:VersionLabel     # "Version" is French.
 fr:LicenceLabel     # "Licence" is French.
+fr:DriveTitle       # SP-0224: "Via Google Drive" - "via" is the French preposition too, and the English term of DEVICE-EXCHANGE CW is "via Google Drive".
 fr:FieldType        # "Type" is French.
 fr:FieldFormat      # "Format" is French.
 fr:SleepTimerMinutes # "minutes" is the same word in French; only the placeholder precedes it.
@@ -176,6 +177,8 @@ fr:InterfaceSizeStandard   # "Standard" is the French word.
 it:InterfaceSizeStandard   # "Standard" is the Italian word.
 it:InputProfileLabel       # Italian interfaces keep "Input" for the way of entering commands.
 pt:SettingsGeneralInterface   # "Interface" is the Portuguese word for it.
+fr:ExchangeSettingsGroupInterface   # SP-0260: "Interface" is the French word for it.
+pt:ExchangeSettingsGroupInterface   # SP-0260: "Interface" is the Portuguese word for it.
 de:BroadcastMonitor       # "Monitor" is the German word for a display.
 de:BroadcastMonitorName   # The label starts with "Monitor", the German word for a display.
 es:BroadcastMonitor       # "Monitor" is the Spanish word for a display (RAE).

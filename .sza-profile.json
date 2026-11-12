@@ -1,0 +1,44 @@
+{
+  "$comment": "Project profile for the canon-shipped harness (tools/harness in the sza plugin). Only what differs from the canon defaults is written here. StreamsPlayer numbers its tickets SP-0001 (declared in AGENTS.md); the hand-kept tickets before SP-0255 are registered as spent ids in PLAN/spec-catalog-burned-ids.jsonl and are not in the ledger. The harness queue is PLAN/PQ_QUEUE.md; PLAN/RELEASE_QUEUE.md stays the owner's own table and no tool writes it. Run harness scripts through the plugin, never by copying them.",
+  "version": "1",
+  "projectName": "StreamsPlayer",
+  "envPrefix": "SZA",
+  "paths": {
+    "specArchiveDir": "PLAN/DONE",
+    "releaseQueue": "PLAN/PQ_QUEUE.md"
+  },
+  "grammar": {
+    "ticketIdPattern": "^SP-\\d{4}$",
+    "specFilePattern": "^PLAN/(DONE/)?SP-\\d{4}_(?!spec_)"
+  },
+  "probes": {
+    "enabled": false
+  },
+  "locks": {
+    "pathRules": [
+      {
+        "pattern": "^PLAN/",
+        "domain": null
+      },
+      {
+        "pattern": "^(src|tests)/",
+        "domain": "Code.Main"
+      },
+      {
+        "pattern": "^(build\\.ps1|run\\.ps1|Directory\\.Build\\.props|StreamsPlayer\\.sln)$",
+        "domain": "Code.Main"
+      },
+      {
+        "pattern": "^(scripts|tools|docs|help|installer|manifests|msix|winget|assets|release-verdicts|memory|artifacts|\\.claude|\\.codex|\\.agents|\\.github|\\.vscode)/",
+        "domain": "Code.Scripts"
+      },
+      {
+        "pattern": "^[^/]+$",
+        "domain": "Code.Scripts"
+      }
+    ]
+  },
+  "commands": {
+    "statusCommands": {}
+  }
+}

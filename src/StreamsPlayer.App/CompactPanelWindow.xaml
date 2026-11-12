@@ -161,8 +161,8 @@
                  button is the catalog cards' menu for the station playing now; always-on-top is an entry in it. -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
                 <!-- SP-0217: the compact panel's live-broadcast indicator - shown while any of this
-                     PC's sources is live; the main window fills its menu (a stop for each source). -->
-                <Button x:Name="BroadcastButton" Style="{StaticResource MoreGlyphButton}"
+                     PC's sources is live; SP-0252: it opens the broadcast window. -->
+                <Button x:Name="BroadcastButton" Style="{StaticResource BroadcastGlyphOnlyButton}"
                         Margin="4,0,0,0" Padding="9,7" Click="BroadcastButton_Click" Visibility="Collapsed"
                         ToolTip="{DynamicResource BroadcastIndicatorName}"
                         AutomationProperties.Name="{DynamicResource BroadcastIndicatorName}" />

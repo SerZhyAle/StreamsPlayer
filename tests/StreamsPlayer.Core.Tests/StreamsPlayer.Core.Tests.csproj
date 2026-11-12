@@ -151,6 +151,18 @@
     list that fails a Store search term also holds a forbidden term out of a winget tag. Test DATA on the
     same terms as above - the files are never loaded, and nothing here references a project.
   -->
+  <!--
+    SP-0224: the Store listing texts and the portal contribution say the same exchange words as the interface, so
+    ExchangeDocumentVocabularyTests reads them as text (the README, the site decks and store-listing.md are linked
+    above). forbidden-terms.txt is already linked below under its own folder. Never loaded, no project reference.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\msix\listing\*.txt" Exclude="..\..\msix\listing\forbidden-terms.txt"
+             Link="listing-copy\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\portal\*.md" Link="portal\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\msix\listing\release-notes\*.txt" Link="release-notes\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <Content Include="..\..\winget\templates\*.locale.*.yaml"
              Link="winget-templates\%(Filename)%(Extension)"
@@ -188,10 +200,11 @@
   <!--
     SP-0156: the release and Pages workflows, read as text, so the gates that decide what ships - the smoke
     verdict, green CI, the pinned natives, the never-replaced published assets and the site's wait for CI -
-    are held in place by the same suite CI always runs. A workflow cannot be unit-tested; its gates can be.
+    are held in place by the same suite the release runs. A workflow cannot be unit-tested; its gates can be.
+    SP-0256: ci.yml too, so push CI cannot regain a build or a slow check unnoticed.
   -->
   <ItemGroup>
-    <Content Include="..\..\.github\workflows\release.yml;..\..\.github\workflows\pages.yml"
+    <Content Include="..\..\.github\workflows\release.yml;..\..\.github\workflows\pages.yml;..\..\.github\workflows\ci.yml"
              Link="workflows\%(Filename)%(Extension)"
              CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
@@ -246,6 +259,10 @@
          transcripts (items AO to AZ, 0.28). Replayed as evidence; no joint replay is claimed by this product. -->
     <Content Include="Vectors\server\*" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Vectors\fmsw-224\frames-v2.json;Vectors\fmsw-224\VENDORED.txt" CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0247: the USER-PLAYLIST conformance vectors (section 4, section 9). -->
+    <Content Include="Vectors\user-playlist\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0260: the settings standard samples (DEVICE-EXCHANGE 1.12 items EN to ER). -->
+    <Content Include="Vectors\settings-standard-v1\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

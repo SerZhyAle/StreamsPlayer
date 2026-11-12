@@ -30,6 +30,10 @@
     not-found page and the release-notes reader live in SiteDecks.ps1, SiteDiscovery.ps1, SiteNotFound.ps1 and
     ReleaseNotes.ps1 (SP-0039). What's new is rendered from msix/listing/release-notes, so a notes file added there
     changes docs/ and the site check goes stale until this script is re-run.
+
+    The release the landing's download buttons link - version, date, versioned assets and their .sha256 sidecars - is
+    rendered from tools/site/release-manifest.json (ReleaseManifest.ps1, SP-0259, PAGE-STYLE 3.10): a deck carries
+    [[version]] and [[releasedate]], a template {{release.*}}, and no page asks api.github.com at run time.
 #>
 [CmdletBinding()]
 param(
@@ -62,6 +66,7 @@ trap {
 . "$PSScriptRoot/SiteDiscovery.ps1"
 . "$PSScriptRoot/SiteNotFound.ps1"
 . "$PSScriptRoot/ReleaseNotes.ps1"
+. "$PSScriptRoot/ReleaseManifest.ps1"
 
 $root = Get-RepositoryRoot
 $copyDirectory = Join-Path $root 'tools/site/copy'
@@ -230,6 +235,14 @@ $siteFacts = Get-SiteFactValue -Root $root -LanguageCount $languages.Count
 $inlineMarkup['[[languages]]'] = [string] $siteFacts.Languages
 $inlineMarkup['[[windows]]'] = $siteFacts.Windows
 
+# The recorded release notes (ReleaseNotes.ps1), read once: What's new renders them per language code, and the
+# release manifest must name one of their versions. A malformed notes file or manifest fails the build here,
+# before any page is written - an unpopulated release fact never reaches docs/.
+$releaseNotes = @(Get-SiteReleaseNote -Root $root)
+$release = Get-SiteReleaseManifest -Root $root -ReleaseNotes $releaseNotes
+$inlineMarkup['[[version]]'] = '<span dir="ltr">{0}</span>' -f $release.Version
+$inlineMarkup['[[releasedate]]'] = '<time datetime="{0}" dir="ltr">{0}</time>' -f $release.Date
+
 $decks = [ordered]@{}
 $problems = [System.Collections.Generic.List[string]]::new()
 
@@ -274,9 +287,6 @@ foreach ($name in 'head', 'switcher', 'languagerow', 'footer') {
 $written = [System.Collections.Generic.List[string]]::new()
 $stale = [System.Collections.Generic.List[string]]::new()
 
-# The recorded release notes (ReleaseNotes.ps1), read once and rendered once per language code: a malformed notes
-# file fails the build here, before any page is written.
-$releaseNotes = @(Get-SiteReleaseNote -Root $root)
 $releaseNotesHtml = @{}
 
 function Save-Generated {
@@ -410,6 +420,11 @@ foreach ($language in $languages) {
             '{{page.title}}'          = ConvertTo-HtmlText $deck.Values["title-$($page.Name)"]
             '{{page.description}}'    = ConvertTo-HtmlText $deck.Values["description-$($page.Name)"]
             '{{page.verification}}'   = $verification
+            '{{release.setup}}'       = $release.SetupUrl
+            '{{release.setupSha256}}' = $release.SetupSha256Url
+            '{{release.zip}}'         = $release.ZipUrl
+            '{{release.zipSha256}}'   = $release.ZipSha256Url
+            '{{release.all}}'         = $release.ReleasesUrl
             '{{page.ogImage}}'        = "${BaseUrl}assets/og-card.png"
             '{{page.jsonLd}}'         = Get-JsonLd -Page $page -Pages $pages -Deck $deck -Language $language -Canonical $canonical -BaseUrl $BaseUrl -ScreenshotDirectory (Join-Path $outputDirectory 'assets/screens')
         }
@@ -475,10 +490,11 @@ if ($Check) {
     $heldProblems = @(Get-HeldAddressProblem -Root $root -BaseUrl $BaseUrl -GeneratedFile $generatedFiles)
 
     # SP-0198 (SITE-REPRESENTATION rules 1 to 3): the facts the copy states agree with their sources, and the
-    # surfaces list the pillars of POSITIONING.md in its order.
+    # surfaces list the pillars of POSITIONING.md in its order. SP-0247: the language count the README, Store listing
+    # and winget prose type by hand agrees with the registry.
     $deckValues = [ordered]@{}
     foreach ($code in $decks.Keys) { $deckValues[$code] = $decks[$code].Values }
-    $factProblems = @(Get-SiteFactProblem -Root $root -Deck $deckValues)
+    $factProblems = @(Get-SiteFactProblem -Root $root -Deck $deckValues -LanguageCount $languages.Count)
 
     if ($stale.Count) {
         Write-Host "Stale generated files:" -ForegroundColor Red
@@ -499,7 +515,7 @@ if ($Check) {
     if ($defects.Count) { Write-Host "site-sync: FAIL ($($defects -join '; '))"; exit 1 }
     Write-Host "docs/ is up to date." -ForegroundColor Green
     Write-Host ("Held addresses: {0} listed, all resolve." -f (@((Get-Content -LiteralPath (Join-Path $root 'tools/site/held-addresses.json') -Raw | ConvertFrom-Json).addresses).Count)) -ForegroundColor Green
-    Write-Host ("Site facts: {0} languages, {1} - rendered from their sources; channels and pillars hold on every surface." -f $siteFacts.Languages, $siteFacts.Windows) -ForegroundColor Green
+    Write-Host ("Site facts: {0} languages, {1} - rendered from their sources; the typed language counts, channels and pillars hold on every surface." -f $siteFacts.Languages, $siteFacts.Windows) -ForegroundColor Green
     Write-Host "site-sync: PASS ($($languages.Count) languages x $($pages.Count) pages in sync; held addresses and site facts hold)"
     exit 0
 }

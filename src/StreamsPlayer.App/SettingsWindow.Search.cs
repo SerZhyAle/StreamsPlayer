@@ -23,6 +23,7 @@ public partial class SettingsWindow
         ["library.playlists"] = "PlaylistPortability",
         ["library.tv"] = "TvScheduleTitle",
         ["library.exchange"] = "ExchangeTitle",
+        ["library.exchange.details"] = "ExchangeDetails",
         ["library.broadcast"] = "BroadcastTitle",
         ["playback.general"] = "SettingsPlayback",
         ["playback.video"] = "VideoBackendLabel",
@@ -61,8 +62,36 @@ public partial class SettingsWindow
         (1, "library.playlists", "ExportPinned", "ExportListTip", "ExportPinnedButton"),
         (1, "library.tv", "TvScheduleAddressName", "TvScheduleHint", "TvScheduleAddressBox"),
         (ExchangePageIndex, "library.exchange", "ExchangeTitle", "ExchangeHint", "ExchangeLoginBox"),
+        // SP-0247 (APP-SETTINGS rule 11): every setting and operation of the Exchange and Broadcasting pages.
+        (ExchangePageIndex, "library.exchange", "ExchangeImportString", "ExchangeHint", "ExchangeImportStringButton"),
+        (ExchangePageIndex, "library.exchange", "ExchangeImportFile", "ExchangeHint", "ExchangeImportFileButton"),
+        (ExchangePageIndex, "library.exchange", "ExchangeImportQrFile", "ExchangeHint", "ExchangeImportQrFileButton"),
+        (ExchangePageIndex, "library.exchange", "ExchangeImportQrClipboard", "ExchangeHint", "ExchangeImportQrClipboardButton"),
+        (ExchangePageIndex, "library.exchange", "ExchangeImportCamera", "ExchangeHint", "ExchangeImportCameraButton"),
+        (ExchangePageIndex, "library.exchange.details", "ExchangeAddress", "ExchangeHint", "ExchangeAddressBox"),
+        (ExchangePageIndex, "library.exchange.details", "ExchangePort", "ExchangeHint", "ExchangePortBox"),
+        (ExchangePageIndex, "library.exchange", "ExchangeLogin", "ExchangeHint", "ExchangeLoginBox"),
+        (ExchangePageIndex, "library.exchange", "ExchangePassword", "ExchangeHint", "ExchangeMethodBox"),
+        (ExchangePageIndex, "library.exchange", "ExchangeEnabled", "ExchangeHint", "ExchangeEnabledCheckBox"),
+        (ExchangePageIndex, "library.exchange", "ExchangeAutoAcceptCasts", "ExchangeHint", "ExchangeAutoAcceptCastsCheckBox"),
+        (ExchangePageIndex, "library.exchange", "ExchangeEnroll", "ExchangeHint", "ExchangeEnrollButton"),
+        (ExchangePageIndex, "library.exchange", "ExchangeChangePassword", "ExchangeHint", "ExchangeChangePasswordButton"),
+        (ExchangePageIndex, "library.exchange", "ExchangeDiagnose", "ExchangeHint", "ExchangeDiagnoseButton"),
+        (ExchangePageIndex, "library.exchange", "ExchangeForget", "ExchangeHint", "ExchangeForgetButton"),
+        (ExchangePageIndex, "library.exchange", "ExchangeTrust", "ExchangeHint", "ExchangeTrustButton"),
         (ExchangePageIndex, "library.exchange", "DriveSignIn", "DriveHint", "DriveSignInButton"),
         (BroadcastPageIndex, "library.broadcast", "BroadcastAllow", "BroadcastHint", "BroadcastAllowedCheckBox"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastStartWithApp", "BroadcastHint", "BroadcastStartWithAppCheckBox"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastOpenWindow", "BroadcastHint", "BroadcastOpenWindowButton"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastLanListening", "BroadcastHint", "BroadcastLanCheckBox"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastLanPort", "BroadcastHint", "BroadcastLanPortBox"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastCap", "BroadcastCapHint", "BroadcastCapBox"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastSampleRate", "BroadcastQuality", "BroadcastSampleRateBox"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastMicChannels", "BroadcastQuality", "BroadcastMicChannelsBox"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastSoundChannels", "BroadcastQuality", "BroadcastSoundChannelsBox"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastBitrate", "BroadcastQuality", "BroadcastBitrateBox"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastLinkPassword", "BroadcastLinkHint", "BroadcastLinkChoiceBox"),
+        (BroadcastPageIndex, "library.broadcast", "BroadcastLinkRenew", "BroadcastLinkHint", "BroadcastLinkRenewButton"),
         (2, "playback.general", "KeepAwakeDuringPlayback", "KeepAwakeHint", "KeepAwakeCheckBox"),
         (2, "playback.general", "SystemMediaControls", "SmtcHint", "SystemMediaControlsCheckBox"),
         (2, "playback.general", "ResumePlaybackOnStartup", "ResumePlaybackHint", "ResumePlaybackCheckBox"),
@@ -89,7 +118,7 @@ public partial class SettingsWindow
         {
             // A setting this installation does not show (the bundled snapshot's command when the
             // build carries none) is not offered: a result must lead somewhere.
-            if (PageAt(page).FindName(targetName) is not FrameworkElement { Visibility: Visibility.Visible })
+            if (PageAt(page).FindName(targetName) is not FrameworkElement target || !ShownOnPage(PageAt(page), target))
             {
                 continue;
             }
@@ -131,6 +160,25 @@ public partial class SettingsWindow
         }
 
         SearchResultsPopup.IsOpen = true;
+    }
+
+    /// <summary>
+    /// Whether the page shows the element once it is selected: the element and every container between it and the
+    /// page are visible. A setting inside a collapsed panel - the broadcast controls while broadcasting is not
+    /// allowed, the Google block in a build without a client - is not offered, since a result must lead somewhere.
+    /// A collapsed expander does not count against it: activation expands the group.
+    /// </summary>
+    private static bool ShownOnPage(FrameworkElement page, FrameworkElement element)
+    {
+        for (DependencyObject? node = element; node is not null && !ReferenceEquals(node, page); node = LogicalTreeHelper.GetParent(node))
+        {
+            if (node is UIElement { Visibility: not Visibility.Visible })
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private ListBoxItem? FirstActiveResult() =>

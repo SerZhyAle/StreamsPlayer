@@ -43,30 +43,59 @@ public sealed record ExchangeEndpointDecision(
 /// </summary>
 public static class ExchangeBroadcastKeys
 {
-    private static readonly ConcurrentDictionary<string, ExchangeBroadcastSecrets> Held = new(StringComparer.Ordinal);
-    private static readonly ConcurrentDictionary<string, ExchangeSealedState> Failed = new(StringComparer.Ordinal);
+    /// <summary>
+    /// SP-0246 S16-5: how many broadcast ids each map remembers. Every id a directory ever listed used to stay for the
+    /// life of the process; past this many the entry written longest ago goes. A live broadcast is written again with
+    /// every directory frame that carries its box, so the ones dropped are the long-dead; a link's keys also sit in
+    /// <see cref="PersistedLookup"/>, which answers for them after they leave the map.
+    /// </summary>
+    internal const int MaximumRemembered = 512;
+
+    // The order is a write counter, not a clock: eviction needs "written longest ago", and two writes in one tick must differ.
+    private static long _writes;
+    private static readonly ConcurrentDictionary<string, (ExchangeBroadcastSecrets Secrets, long Order)> Held = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, (ExchangeSealedState State, long Order)> Failed = new(StringComparer.Ordinal);
 
     /// <summary>The application's secret store for the keys of a link a person imported; null in a process that has none.</summary>
     public static Func<string, ExchangeBroadcastSecrets?>? PersistedLookup { get; set; }
 
+    /// <summary>How many ids hold keys and how many hold a failed state; for the bound's test.</summary>
+    internal static (int Held, int Failed) Counts => (Held.Count, Failed.Count);
+
     public static void Put(string broadcastId, ExchangeBroadcastSecrets secrets)
     {
-        Held[broadcastId] = secrets;
+        Held[broadcastId] = (secrets, Interlocked.Increment(ref _writes));
         Failed.TryRemove(broadcastId, out _);
+        Trim(Held);
     }
 
     public static void Fail(string broadcastId, ExchangeSealedState state)
     {
         Held.TryRemove(broadcastId, out _);
-        Failed[broadcastId] = state;
+        Failed[broadcastId] = (state, Interlocked.Increment(ref _writes));
+        Trim(Failed);
+    }
+
+    private static void Trim<TValue>(ConcurrentDictionary<string, (TValue Value, long Order)> map)
+    {
+        while (map.Count > MaximumRemembered)
+        {
+            var oldest = map.MinBy(pair => pair.Value.Order);
+            if (oldest.Key is null)
+            {
+                return;
+            }
+
+            map.TryRemove(oldest.Key, out _);
+        }
     }
 
     public static ExchangeBroadcastSecrets? Find(string broadcastId) =>
-        Held.TryGetValue(broadcastId, out var secrets) ? secrets : PersistedLookup?.Invoke(broadcastId);
+        Held.TryGetValue(broadcastId, out var held) ? held.Secrets : PersistedLookup?.Invoke(broadcastId);
 
     /// <summary>The state a record's box ended in when it could not be opened; none while it has not been tried or opened.</summary>
     public static ExchangeSealedState FailureOf(string broadcastId) =>
-        Failed.TryGetValue(broadcastId, out var state) ? state : ExchangeSealedState.None;
+        Failed.TryGetValue(broadcastId, out var failed) ? failed.State : ExchangeSealedState.None;
 
     /// <summary>
     /// A sealed link the person imported: its endpoints carry the group key (RELAY) and the pin (TUNNEL) that open the
@@ -89,7 +118,7 @@ public static class ExchangeBroadcastKeys
                 continue;
             }
 
-            var held = Held.TryGetValue(id, out var existing) ? existing : null;
+            var held = Held.TryGetValue(id, out var existing) ? existing.Secrets : null;
             var merged = new ExchangeBroadcastSecrets(relayKey ?? held?.RelayKey, pin ?? held?.TunnelPin, held?.Credentials);
             Put(id, merged);
             persist?.Invoke(id, merged);

@@ -11,6 +11,14 @@ public static class IncomingBroadcastFailure
     /// <summary>"This broadcast is no longer available" - the verdict of a recovery budget that is spent.</summary>
     public const string NoLongerAvailableKey = "BroadcastNoLongerAvailable";
 
+    /// <summary>
+    /// SP-0250: "The broadcast has ended." - the state a window shows when the broadcast ended deliberately
+    /// (<c>LIVE-BROADCAST</c> item T), with an explicit Reconnect. The words are the row of <c>DEVICE-EXCHANGE</c> item DY.
+    /// They sit under a key of their own, not in <c>ExchangeFailureRows</c>, until the catalog's table of item CZ carries the
+    /// row: the vendored table is exported from it and holds no row this product invents.
+    /// </summary>
+    public const string EndedKey = "BroadcastEnded";
+
     /// <summary>"N broadcasts are open, the most this PC holds at once" - formatted with <see cref="IncomingBroadcastWindows.Maximum"/>.</summary>
     public const string BoundReachedKey = "BroadcastsBoundReached";
 

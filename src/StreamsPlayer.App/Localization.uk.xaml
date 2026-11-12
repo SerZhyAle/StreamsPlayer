@@ -630,6 +630,8 @@
     <sys:String x:Key="BroadcastResourceAdded">Трансляцію додано: {0}</sys:String>
     <sys:String x:Key="BroadcastResourceUpdated">Трансляцію оновлено: {0}</sys:String>
     <sys:String x:Key="BroadcastNoLongerAvailable">Трансляція {0} більше недоступна.</sys:String>
+    <sys:String x:Key="BroadcastEnded">Трансляція закінчилася.</sys:String>
+    <sys:String x:Key="BroadcastReconnect">Перепідключитися</sys:String>
     <sys:String x:Key="BroadcastPlaylistPosition">{0} - елемент {1} з {2}</sys:String>
     <sys:String x:Key="FmsBroadcastConfirm">Імпортувати цю пряму трансляцію?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
     <sys:String x:Key="FmsBroadcastAdded">Пряму трансляцію імпортовано: {0}.</sys:String>
@@ -638,7 +640,7 @@
     <sys:String x:Key="FmsBroadcastInvalid">Це некоректний опис трансляції FastMediaSorter. Ваш список не змінено.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">Опис трансляції більший за 64 КіБ. Ваш список не змінено.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer зайнятий іншою операцією. Імпортуйте трансляцію ще раз, коли операція завершиться. Ваш список не змінено.</sys:String>
-    <sys:String x:Key="FmsBroadcastListenerLimit">На пристрої «{0}» уже досягнуто максимальної кількості слухачів. Спробуйте знову, коли хтось від'єднається.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">На пристрої «{0}» уже досягнуто максимальної кількості глядачів і слухачів. Спробуйте знову, коли хтось від'єднається.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">Пристрій «{0}» припинив трансляцію або більше недоступний у цій мережі.</sys:String>
     <!-- SP-0098 portable stream catalog import -->
     <sys:String x:Key="StreamCatalogSettings">Каталог трансляцій</sys:String>
@@ -714,7 +716,7 @@
     <sys:String x:Key="SettingsFilesDesc">Папки для знімків кадрів і записів потоків</sys:String>
     <sys:String x:Key="SettingsAbout">Про програму</sys:String>
     <sys:String x:Key="SettingsExchangeDesc">Обліковий запис і підключення до сервера</sys:String>
-    <sys:String x:Key="SettingsBroadcastDesc">Джерела, мережа та якість звуку</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Дозвіл, мережа та якість</sys:String>
     <sys:String x:Key="SettingsAboutDesc">Відомості про застосунок, ліцензія та діагностика</sys:String>
     <sys:String x:Key="ThemeHint">Оберіть світлу або темну тему, або відповідність оформленню Windows.</sys:String>
     <sys:String x:Key="TileSizeHint">Налаштуйте розмір плиток каналів у сітці.</sys:String>
@@ -779,7 +781,7 @@
     <sys:String x:Key="BroadcastsEmpty">Зараз цей обліковий запис не має трансляцій; вони з’являться тут, коли інші ваші пристрої їх запустять.</sys:String>
     <sys:String x:Key="BroadcastsOnline">у мережі</sys:String>
     <sys:String x:Key="BroadcastsOffline">поза мережею</sys:String>
-    <sys:String x:Key="BroadcastsPlay">Слухати</sys:String>
+    <sys:String x:Key="BroadcastsPlay">Відтворити</sys:String>
     <sys:String x:Key="BroadcastsKeep">Додати до моїх каналів</sys:String>
     <sys:String x:Key="BroadcastsUnsupportedReason">Не вдається відтворити трансляцію за цими адресами. Попросіть автора трансляції надати інше посилання.</sys:String>
     <sys:String x:Key="BroadcastsUnsealedReason">Ця трансляція не захищена, тому через сервер вона не відтворюється.</sys:String>
@@ -802,10 +804,10 @@
     <sys:String x:Key="BroadcastsStateFailed">збій</sys:String>
     <sys:String x:Key="BroadcastsBoundReached">Уже відкрито трансляцій: {0} - це межа для цього ПК. Закрийте одну, щоб відкрити іншу.</sys:String>
     <sys:String x:Key="BroadcastsOpenSettings">Відкрити налаштування входу</sys:String>
-    <sys:String x:Key="BroadcastsPlayNamed">Слухати: {0}</sys:String>
+    <sys:String x:Key="BroadcastsPlayNamed">Відтворити: {0}</sys:String>
     <sys:String x:Key="BroadcastsKeepNamed">Додати до моїх каналів: {0}</sys:String>
     <sys:String x:Key="EndedLabel">Завершена</sys:String>
-    <sys:String x:Key="BroadcastCapabilityWarning">Ця адреса містить секрет трансляції: будь-хто, хто її має, зможе слухати. Усе одно передати її?</sys:String>
+    <sys:String x:Key="BroadcastCapabilityWarning">Ця адреса містить секрет трансляції: будь-хто, хто її має, зможе дивитися й слухати. Усе одно передати її?</sys:String>
     <sys:String x:Key="ExchangeAutoAcceptCasts">Автоматично приймати трансляції з моїх пристроїв</sys:String>
     <sys:String x:Key="ExchangeCastTitle">Запит трансляції</sys:String>
     <sys:String x:Key="ExchangeCastOfferPrompt">{0} на {1} хоче транслювати на цей пристрій. Прийняти?</sys:String>
@@ -833,7 +835,7 @@
     <sys:String x:Key="ExchangeStringFileFilter">Імпорт із файлу (*.fmsexch)|*.fmsexch|*.*|*.*</sys:String>
     <!-- SP-0217: broadcasting this PC devices through the device exchange. -->
     <sys:String x:Key="BroadcastTitle">Мовлення</sys:String>
-    <sys:String x:Key="BroadcastHint">Надсилає звук із цього ПК на сервер обміну вашого облікового запису. Нічого не записується, доки ви не дозволите це тут і не запустите джерело.</sys:String>
+    <sys:String x:Key="BroadcastHint">Надсилає те, що захоплює цей ПК, на сервер обміну вашого облікового запису і, якщо ввімкнено параметр «Локальна мережа», у вашу локальну мережу. Нічого не записується, доки ви не дозволите це тут і не запустите джерело.</sys:String>
     <sys:String x:Key="BroadcastAllow">Дозволити трансляцію з цього ПК</sys:String>
     <sys:String x:Key="BroadcastStartWithApp">Запускати вибрані джерела під час запуску програми</sys:String>
     <sys:String x:Key="BroadcastMicStart">Транслювати мікрофон</sys:String>
@@ -843,8 +845,8 @@
     <sys:String x:Key="BroadcastDefaultDevice">Типово для Windows</sys:String>
     <sys:String x:Key="BroadcastLanListening">Локальна мережа</sys:String>
     <sys:String x:Key="BroadcastLanPort">Порт</sys:String>
-    <sys:String x:Key="BroadcastCap">Максимум слухачів</sys:String>
-    <sys:String x:Key="BroadcastCapHint">0 - без обмеження. Кожен слухач із прямим підключенням використовує вихідний трафік цього ПК. Через сервер обміну цей ПК надсилає одну копію для всіх слухачів.</sys:String>
+    <sys:String x:Key="BroadcastCap">Максимум глядачів і слухачів</sys:String>
+    <sys:String x:Key="BroadcastCapHint">0 - без обмеження. Кожен глядач або слухач із прямим підключенням використовує вихідний трафік цього ПК. Через сервер обміну цей ПК надсилає одну копію для всіх.</sys:String>
     <sys:String x:Key="BroadcastQuality">Якість</sys:String>
     <sys:String x:Key="BroadcastSampleRate">Частота дискретизації</sys:String>
     <sys:String x:Key="BroadcastMicChannels">Канали мікрофона</sys:String>
@@ -868,14 +870,17 @@
     <sys:String x:Key="BroadcastAudioMicrophone">Мікрофон</sys:String>
     <sys:String x:Key="BroadcastAudioSystem">Системний звук</sys:String>
     <sys:String x:Key="BroadcastNoDevices">Не знайдено</sys:String>
-    <sys:String x:Key="BroadcastScreenPrivacy">Трансляція екрана надсилає весь вибраний монітор, зокрема сповіщення й паролі, що на ньому показані. Вміст, захищений Windows, може вийти чорним. Поки трансляція йде, індикатор називає цей монітор.</sys:String>
+    <sys:String x:Key="BroadcastScreenPrivacy">Трансляція екрана надсилає весь вибраний монітор, зокрема сповіщення й паролі, що на ньому показані. Вміст, захищений Windows, може вийти чорним. Поки трансляція йде, картка називає цей монітор.</sys:String>
     <sys:String x:Key="BroadcastVideoUnavailable">Відеокодувальник Windows (H.264) не запускається на цьому ПК, тому екран і камера не пропонуються. Мікрофон і системний звук від нього не залежать.</sys:String>
     <sys:String x:Key="BroadcastOwnOutputRisk">У цій версії Windows у системному звуці є й звук самого застосунку, тому трансляція, яку ви відтворюєте тут, надсилалася б далі. Поки йде системний звук, слухайте трансляції на іншому пристрої.</sys:String>
     <sys:String x:Key="BroadcastLinkPassword">Пароль посилання</sys:String>
+    <sys:String x:Key="BroadcastConfirmStopAll">Усі трансляції, що зараз тривають, буде зупинено, а їхніх глядачів і слухачів відключено. Продовжити?</sys:String>
+    <sys:String x:Key="BroadcastConfirmLanOff">Усіх, хто дивиться чи слухає в локальній мережі, буде відключено, а трансляція, що йде не через сервер обміну, зупиниться. Продовжити?</sys:String>
+    <sys:String x:Key="BroadcastConfirmRevokeLink">Поточний пароль посилання одразу перестане діяти, і всіх, хто дивиться чи слухає з ним, буде відключено. Продовжити?</sys:String>
     <sys:String x:Key="BroadcastLinkGenerated">Новий для кожної трансляції</sys:String>
     <sys:String x:Key="BroadcastLinkCustom">Задаю я</sys:String>
     <sys:String x:Key="BroadcastLinkNone">Без пароля</sys:String>
-    <sys:String x:Key="BroadcastLinkHint">Стосується посилання, файлу й QR-коду, які ви даєте іншим людям. Пароля в них немає - повідомляйте його окремо; скопіювати його можна в меню «Поділитися» індикатора трансляції. Заданий вами пароль зберігається лише в сховищі секретів Windows вашого облікового запису.</sys:String>
+    <sys:String x:Key="BroadcastLinkHint">Стосується посилання, файлу й QR-коду, які ви даєте іншим людям. Пароля в них немає - повідомляйте його окремо; скопіювати його можна в меню «Поділитися» вікна трансляції. Заданий вами пароль зберігається лише в сховищі секретів Windows вашого облікового запису.</sys:String>
     <sys:String x:Key="BroadcastLinkNoneWarning">Без пароля дивитися й слухати може кожен, хто отримав посилання.</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordField">Пароль для посилання</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordSave">Зберегти пароль</sys:String>
@@ -902,12 +907,12 @@
     <sys:String x:Key="BroadcastNotAllowed">Спочатку дозвольте трансляцію в налаштуваннях.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">Занадто багато трансляцій одночасно.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">Це джерело вже в ефірі.</sys:String>
-    <sys:String x:Key="BroadcastEncoderMissing">Аудіокодувальник Windows недоступний на цьому ПК, тому джерела трансляції не пропонуються.</sys:String>
+    <sys:String x:Key="BroadcastEncoderMissing">Аудіокодувальник Windows недоступний на цьому ПК, тому трансляція зі звуком не запуститься. Трансляції екрана чи камери без звуку це не стосується.</sys:String>
     <sys:String x:Key="BroadcastPortTaken">Порт локальної мережі зайнятий. Виберіть інший у налаштуваннях.</sys:String>
     <sys:String x:Key="BroadcastPermissionDenied">Windows заборонив програмі доступ до мікрофона чи камери. Дозвольте його в параметрах конфіденційності Windows і запустіть знову.</sys:String>
     <sys:String x:Key="BroadcastDeviceInUse">Пристрій зайнятий іншою програмою. Закрийте її та запустіть знову.</sys:String>
     <sys:String x:Key="BroadcastDeviceMissing">Пристрій відсутній або не існує.</sys:String>
-    <sys:String x:Key="BroadcastCaptureFailed">Захват звуку неочікувано завершився. Трансляцію зупинено.</sys:String>
+    <sys:String x:Key="BroadcastCaptureFailed">Захоплення неочікувано завершилося. Трансляцію зупинено.</sys:String>
     <sys:String x:Key="BroadcastRelayLost">З’єднання для цієї трансляції втрачено. Воно повернеться, коли обліковий запис перепідключиться.</sys:String>
     <sys:String x:Key="BroadcastCastAccepted">Надсилання прийнято.</sys:String>
     <sys:String x:Key="BroadcastCastDeclined">Інший пристрій не прийняв cast.</sys:String>
@@ -1014,7 +1019,7 @@
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Код: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Поки немає сервера для перевірки. Спочатку імпортуйте рядок підключення або увійдіть.</sys:String>
     <sys:String x:Key="BroadcastNoReachableEndpoint">Ніхто не зможе прийняти трансляцію. Увімкніть доступ у локальній мережі або підключіться до сервера обміну та спробуйте ще раз.</sys:String>
-    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Ця захищена адреса трансляції тут не підтримується. Попросіть автора надати посилання через сервер обміну.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Пряме з’єднання з автором, у локальній мережі або через сервер обміну, потребує способу перевірки пароля, який цей програвач не підтримує. Попросіть трансляцію, яку роздає сервер обміну.</sys:String>
     <sys:String x:Key="BroadcastNotListed">немає у списку</sys:String>
     <sys:String x:Key="BroadcastTrustPrompt">Сервер {0} надав сертифікат, який цей ПК не може перевірити. Звірте відбиток з автором трансляції, перш ніж довіряти йому для цього каналу:&#10;{1}&#10;Довіряти сертифікату?</sys:String>
     <sys:String x:Key="DriveTitle">Через Google Drive</sys:String>
@@ -1022,7 +1027,6 @@
     <sys:String x:Key="DriveSignIn">Увійти через Google</sys:String>
     <sys:String x:Key="DriveSignOut">Вийти з Google</sys:String>
     <sys:String x:Key="DriveNoCast">Через Google Drive не можна спрямувати трансляцію на пристрій: тут немає миттєвих сповіщень.</sys:String>
-    <sys:String x:Key="DriveUnavailable">Вхід Google недоступний у цій збірці.</sys:String>
     <sys:String x:Key="DriveSignedOut">Вхід Google не виконано.</sys:String>
     <sys:String x:Key="DriveSigningIn">Завершіть вхід Google у браузері.</sys:String>
     <sys:String x:Key="DriveConnected">Підключено до Google Drive.</sys:String>
@@ -1049,4 +1053,46 @@
     <sys:String x:Key="MyStreamsWatch">Дивитися</sys:String>
     <sys:String x:Key="MyStreamsListen">Слухати</sys:String>
     <sys:String x:Key="MyStreamsSaved">Збережено</sys:String>
+    <!-- Broadcast start verdict and publication details. -->
+    <sys:String x:Key="BroadcastStarting">Запуск трансляції…</sys:String>
+    <sys:String x:Key="BroadcastStartFailed">Трансляцію не запущено. {0} Перевірте вибраний пристрій і з’єднання, потім повторіть спробу.</sys:String>
+    <sys:String x:Key="BroadcastStopped">Трансляцію зупинено.</sys:String>
+    <sys:String x:Key="BroadcastAnnounced">Оголошено на сервері {0} для пристроїв облікового запису: {1}.</sys:String>
+    <sys:String x:Key="BroadcastNoRecipients">Увага: жоден інший пристрій облікового запису не може відкрити трансляцію. Увійдіть на пристрої-отримувачі та перевірте підтримку зашифрованих трансляцій, потім запустіть знову.</sys:String>
+    <sys:String x:Key="BroadcastNotAnnounced">Не оголошено на сервері обміну. Підключіть обліковий запис, щоб оголосити трансляцію.</sys:String>
+    <sys:String x:Key="BroadcastLanAddress">Адреса в локальній мережі: {0}.</sys:String>
+    <sys:String x:Key="BroadcastUnnamedDevice">Пристрій без імені</sys:String>
+    <sys:String x:Key="BroadcastShowRecipients">Показати пристрої-отримувачі</sys:String>
+    <sys:String x:Key="BroadcastWindowTitle">Трансляція</sys:String>
+    <sys:String x:Key="BroadcastButtonIdle">Трансляція: нічого не йде</sys:String>
+    <sys:String x:Key="BroadcastButtonServerWarning">Сервер обміну недоступний, тому пристрої облікового запису не побачать цю трансляцію, поки він не повернеться.</sys:String>
+    <sys:String x:Key="BroadcastStateOff">Вимкнено</sys:String>
+    <sys:String x:Key="BroadcastStateLiveSince">В ефірі з {0}.</sys:String>
+    <sys:String x:Key="BroadcastStateStopping">Зупинка трансляції..</sys:String>
+    <sys:String x:Key="BroadcastWhereDrive">Оголошено через Google Drive.</sys:String>
+    <sys:String x:Key="BroadcastReceivers">Напряму підключено до цього ПК: {0}.</sys:String>
+    <sys:String x:Key="BroadcastOpenSettings">Налаштування..</sys:String>
+    <sys:String x:Key="BroadcastOpenWindow">Відкрити вікно трансляції</sys:String>
+    <sys:String x:Key="BroadcastStopShort">Зупинити</sys:String>
+    <sys:String x:Key="BroadcastLinkChoiceLine">Пароль посилання: {0}. Змінюється в налаштуваннях.</sys:String>
+    <sys:String x:Key="ExchangeSettingsTitle">Обмін налаштуваннями (профіль STANDARD)</sys:String>
+    <sys:String x:Key="ExchangeSettingsHint">Зберігайте налаштування вигляду, відтворення та інтерфейсу на своєму сервері обміну як STANDARD і читайте їх на іншому ПК. Нічого не надсилається і не читається, доки ви не натиснете кнопку, а подальші зміни залишаються на цьому ПК. Теки, аудіопристрої, положення вікон, паролі та ключі ніколи його не залишають. Оператор сервера може прочитати збережені налаштування.</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupAppearance">Вигляд</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupPlayback">Відтворення</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupInterface">Інтерфейс</sys:String>
+    <sys:String x:Key="ExchangeSettingsSave">Зберегти як STANDARD</sys:String>
+    <sys:String x:Key="ExchangeSettingsRead">Прочитати STANDARD</sys:String>
+    <sys:String x:Key="ExchangeSettingsUnavailable">Збереження і читання STANDARD працюють, доки цей ПК підключений до сервера, який зберігає налаштування.</sys:String>
+    <sys:String x:Key="ExchangeSettingsChooseGroup">Виберіть хоча б одну групу.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveConfirm">Зберегти ці групи на сервері як STANDARD: {0}? Збережений там STANDARD буде замінено, а невибрана група з нього зникне.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadConfirm">Прочитати STANDARD із сервера й застосувати ці групи: {0}? Їхні налаштування на цьому ПК буде замінено.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSavedAt">Збережено як STANDARD: {0}.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadAt">STANDARD, збережений {0}, прочитано й застосовано.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveUnknown">Сервер не відповів, тому невідомо, чи збережено налаштування. Зберегти ще раз безпечно.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadDamaged">Налаштування на сервері пошкоджені. Нічого не змінено.</sys:String>
+    <sys:String x:Key="ExchangeSettingsBusy">Обмін налаштуваннями вже триває. Дочекайтеся його завершення.</sys:String>
+    <sys:String x:Key="ExchangeSettingsNotFound">На сервері ще не збережено стандартних налаштувань для цієї програми. Спочатку збережіть їх.</sys:String>
+    <sys:String x:Key="ExchangeSettingsInvalidPayload">Сервер не прийняв ці налаштування: вони пошкоджені або завеликі.</sys:String>
+    <sys:String x:Key="ExchangeSettingsAppIdMismatch">Цей сервер не зберігає налаштування цієї програми для цього акаунта.</sys:String>
+    <sys:String x:Key="ExchangeSettingsVersionIncompatible">Сервер не підтримує цю версію формату налаштувань.</sys:String>
 </ResourceDictionary>

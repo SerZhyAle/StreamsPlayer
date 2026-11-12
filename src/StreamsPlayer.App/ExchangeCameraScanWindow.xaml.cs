@@ -92,7 +92,9 @@ public partial class ExchangeCameraScanWindow : Window
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             // Windows reports a refused or busy camera with several exception types; the person is told which of
-            // the two it is, and neither the exception's text nor the device's name goes anywhere.
+            // the two it is, and neither the exception's text nor the device's name goes anywhere - the log gets
+            // the type only (SP-0247).
+            HandlerBoundary.Record("EXCHANGE CAMERA FAULT | type=" + exception.GetType().Name);
             if (!_ended && run == _run)
             {
                 End(ExchangeCameraFailures.MessageKey(ExchangeCameraFailures.Classify(exception)));

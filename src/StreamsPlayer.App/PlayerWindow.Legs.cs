@@ -133,7 +133,7 @@ public partial class PlayerWindow
     /// </summary>
     private async Task OpenWithDeadlineAsync(IVideoBackend backend, int epoch, uint cacheMs, StreamQualityRung? qualityCeiling)
     {
-        var open = Task.Run(() => OpenLeg(backend, epoch, cacheMs, qualityCeiling));
+        var open = Task.Run(() => OpenLegAsync(backend, epoch, cacheMs, qualityCeiling));
         using var deadlineCts = CancellationTokenSource.CreateLinkedTokenSource(_sessionCts.Token);
         var deadline = Task.Delay(OpenCallDeadline, deadlineCts.Token);
         if (await Task.WhenAny(open, deadline) == open)
@@ -162,6 +162,9 @@ public partial class PlayerWindow
         {
             return null; // window is tearing down; do not touch the (soon) disposed player
         }
+
+        if (_channel.FastMediaSorterBroadcast is { } descriptor)
+            _log.Event("BROADCAST DESCRIPTOR", BroadcastOpenDiagnostics.Fields(descriptor));
 
         if (_legCount > 0)
         {
@@ -233,7 +236,7 @@ public partial class PlayerWindow
     /// Hands the attempt to the engine. Any thread; a rejection is reported on the UI thread. A worker
     /// that was queued behind a newer attempt does nothing: it opens nothing and holds nothing.
     /// </summary>
-    private void OpenLeg(IVideoBackend backend, int epoch, uint cacheMs, StreamQualityRung? qualityCeiling)
+    private async Task OpenLegAsync(IVideoBackend backend, int epoch, uint cacheMs, StreamQualityRung? qualityCeiling)
     {
         if (_closing)
         {
@@ -258,6 +261,23 @@ public partial class PlayerWindow
         {
             ReportOpenFailure(backend, epoch, "unsupported_address");
             return;
+        }
+
+        // SP-0250 requirement 4: the engine reports a closed port, a 404 and an unreachable host as one error, so a LAN
+        // address of a broadcast that has played is asked first, and what it answers is the reconnect's answer.
+        if (await ProbeLanAsync(endpoint) is var lanAnswer && BroadcastEndAnswers.ReasonOf(lanAnswer) is { } lanReason)
+        {
+            if (!_closing && epoch == Volatile.Read(ref _attemptEpoch))
+            {
+                ReportOpenFailure(backend, epoch, lanReason);
+            }
+
+            return;
+        }
+
+        if (_closing || epoch != Volatile.Read(ref _attemptEpoch))
+        {
+            return; // the probe took its time, and the attempt it was for is gone
         }
 
         BroadcastVideoRoute? route;

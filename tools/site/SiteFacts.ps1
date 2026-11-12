@@ -18,6 +18,9 @@
                  language (Microsoft Store, winget) - a fifth card, or a lost route, is a finding;
       rendered   each key that states a fact carries its placeholder in every deck, so a typed number cannot
                  replace it, and no title or description (read raw by the structured data) carries one;
+      typed      (SP-0247) the README, Store listing and winget prose state the language count by hand; each such
+                 statement is declared (file, locale, a pattern whose one capture group is the count) and must
+                 equal the registry's count, as a digit or a number word of its locale, and must still be there;
       pillars    the README, the Store listing and the site's lead sentence in English, Russian and Ukrainian first
                  name the pillars of POSITIONING.md in its order, and the site's key line lists them in all
                  thirteen locales (the ten machine-translated ones by count and by the terms that are not
@@ -29,7 +32,7 @@
     Dot-source it from the site generator:
         . "$PSScriptRoot/SiteFacts.ps1"
         $facts = Get-SiteFactValue -Root $root -LanguageCount $languages.Count
-        $problems = Get-SiteFactProblem -Root $root -Deck $deckValues
+        $problems = Get-SiteFactProblem -Root $root -Deck $deckValues -LanguageCount $languages.Count
 #>
 
 function Get-SiteFactProp {
@@ -150,13 +153,64 @@ function Test-PillarOrder {
     return $null
 }
 
+function Get-TypedLanguageCountProblem {
+    # SP-0247 (SITE-REPRESENTATION rule 3): a surface that is not rendered from a deck types the language count in its
+    # own prose. Each declared statement is a file and a pattern whose one capture group is the count, as a digit or
+    # as a number word of the surface's locale. Every match must equal the registry's count, and a pattern that no
+    # longer matches is a finding too: a statement that was reworded or deleted is compared with nothing again.
+    param([Parameter(Mandatory)] $Config, [Parameter(Mandatory)] [string] $Root, [Parameter(Mandatory)] [int] $LanguageCount)
+
+    $section = Get-SiteFactProp $Config 'languageCount'
+    $surfaces = @(Get-SiteFactProp $section 'surfaces' | Where-Object { $null -ne $_ })
+    if (-not $surfaces.Count) { return @('site-facts.json declares no languageCount surfaces - the README, Store listing and winget prose state the count by hand.') }
+    $words = Get-SiteFactProp $section 'numberWords'
+
+    $problems = [System.Collections.Generic.List[string]]::new()
+    foreach ($surface in $surfaces) {
+        $relative = [string] $surface.path
+        $locale = [string] $surface.locale
+        $file = Join-Path $Root $relative
+        if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { $problems.Add("$relative does not exist - it is declared as stating the language count."); continue }
+        try { $regex = [regex]::new(([string] $surface.pattern).Normalize([System.Text.NormalizationForm]::FormC)) }
+        catch { $problems.Add("$relative`: /$($surface.pattern)/ is not a valid pattern: $($_.Exception.Message)"); continue }
+        if ($regex.GetGroupNumbers().Count -ne 2) { $problems.Add("$relative`: /$($surface.pattern)/ must have exactly one capture group, the count."); continue }
+
+        $found = $regex.Matches([System.IO.File]::ReadAllText($file).Normalize([System.Text.NormalizationForm]::FormC))
+        if (-not $found.Count) {
+            $problems.Add("$relative no longer states the language count (no match for /$($surface.pattern)/) - restore the statement or update its pattern in site-facts.json.")
+            continue
+        }
+        $table = Get-SiteFactProp $words $locale
+        foreach ($match in $found) {
+            $stated = $match.Groups[1].Value.Trim()
+            $value = $null
+            if ($stated -match '^[0-9]+$') { $value = [int] $stated }
+            else {
+                $key = $stated.ToLowerInvariant()
+                foreach ($word in @(if ($table) { $table.PSObject.Properties })) {
+                    if ($word.Name.Normalize([System.Text.NormalizationForm]::FormC).ToLowerInvariant() -eq $key) { $value = [int] $word.Value; break }
+                }
+            }
+            if ($null -eq $value) {
+                $problems.Add("$relative states the language count as '$stated', which is neither a digit nor a '$locale' number word in site-facts.json (languageCount.numberWords.$locale).")
+            }
+            elseif ($value -ne $LanguageCount) {
+                $problems.Add("$relative states $value interface languages ('$stated'), InterfaceLanguages ships $LanguageCount.")
+            }
+        }
+    }
+    return $problems.ToArray()
+}
+
 function Get-SiteFactProblem {
     [CmdletBinding()]
     param(
         # Repository root.
         [Parameter(Mandatory)] [string] $Root,
         # Every copy deck, by dictionary code: a dictionary of key -> value, as build-site.ps1 reads them.
-        [Parameter(Mandatory)] $Deck
+        [Parameter(Mandatory)] $Deck,
+        # How many languages the InterfaceLanguages registry ships.
+        [Parameter(Mandatory)] [int] $LanguageCount
     )
 
     $problems = [System.Collections.Generic.List[string]]::new()
@@ -226,6 +280,9 @@ function Get-SiteFactProblem {
             }
         }
     }
+
+    # ----- typed: the language count the prose surfaces state by hand -----------------------------------------
+    foreach ($problem in @(Get-TypedLanguageCountProblem -Config $config -Root $Root -LanguageCount $LanguageCount)) { $problems.Add($problem) }
 
     # ----- pillars: the positioning source's order, on every surface ----------------------------------------
     $positioning = $config.positioning

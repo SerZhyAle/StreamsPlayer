@@ -287,6 +287,19 @@ public partial class PlayerWindow
             return;
         }
 
+        // SP-0250: what a reconnect attempt was answered may be the broadcast's end - a relay 410, a tunnel "ended", a LAN
+        // address that refuses or answers 404. The end is shown at once; the producer's other endpoints are not tried.
+        if (NoteBroadcastAnswer(reason))
+        {
+            return;
+        }
+
+        if (IncomingBroadcastFailure.IsPasswordRefusal(reason))
+        {
+            ShowPlaybackFailure(reason);
+            return;
+        }
+
         if (CanAdvanceAttempt())
         {
             _ = AdvanceAttemptAsync(backend, reason);

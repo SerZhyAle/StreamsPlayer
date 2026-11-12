@@ -1,5 +1,5 @@
 {
-  "source": "DEVICE-EXCHANGE 1.5 section 9 items CZ (messages) and CY (ladder) and the amendment of 2026-10-17 (format-unsupported); SP-0225",
+  "source": "DEVICE-EXCHANGE 1.5 section 9 items CZ (messages) and CY (ladder), the amendment of 2026-10-17 (format-unsupported) and 1.12 item EP (settings refusals); SP-0225, SP-0260",
   "rows": [
     {
       "code": "bad-credentials",
@@ -192,6 +192,38 @@
       "en": "This format is newer than this program supports. Nothing was imported. Use a compatible program.",
       "ru": "Этот формат новее, чем поддерживает программа. Ничего не импортировано. Используйте совместимую программу.",
       "uk": "Цей формат новіший, ніж підтримує програма. Нічого не імпортовано. Скористайтеся сумісною програмою."
+    },
+    {
+      "code": "not-found",
+      "kind": "wire",
+      "step": null,
+      "en": "No standard settings are saved on the server for this program yet. Save them first.",
+      "ru": "На сервере пока не сохранены стандартные настройки для этой программы. Сначала сохраните их.",
+      "uk": "На сервері ще не збережено стандартних налаштувань для цієї програми. Спочатку збережіть їх."
+    },
+    {
+      "code": "invalid-payload",
+      "kind": "wire",
+      "step": null,
+      "en": "The server did not accept these settings: they are damaged or too large.",
+      "ru": "Сервер не принял эти настройки: они повреждены или слишком велики.",
+      "uk": "Сервер не прийняв ці налаштування: вони пошкоджені або завеликі."
+    },
+    {
+      "code": "app-id-mismatch",
+      "kind": "wire",
+      "step": "operator",
+      "en": "This server does not keep settings of this program for this account.",
+      "ru": "Этот сервер не хранит настройки этой программы для этого аккаунта.",
+      "uk": "Цей сервер не зберігає налаштування цієї програми для цього акаунта."
+    },
+    {
+      "code": "version-incompatible",
+      "kind": "wire",
+      "step": "operator",
+      "en": "The server does not support this version of the settings format.",
+      "ru": "Сервер не поддерживает эту версию формата настроек.",
+      "uk": "Сервер не підтримує цю версію формату налаштувань."
     }
   ],
   "steps": [

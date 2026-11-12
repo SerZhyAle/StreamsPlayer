@@ -49,6 +49,28 @@ public sealed class DriveSourceTests
     }
 
     [Fact]
+    public async Task AFailedPollKeepsCompletedDownloadsWithoutCommittingAPartialDirectory()
+    {
+        using var handler = new FakeDrive();
+        handler.Add("broadcast", BroadcastId, BroadcastRecord());
+        handler.Add("device", DeviceId, new { deviceId = DeviceId, deviceName = "Phone", presence = "online" });
+        handler.FailDownload = 2;
+        using var http = new HttpClient(handler);
+        var directory = new DriveDirectory(new DriveRestClient(http, _ => Task.FromResult("token")));
+        var before = directory.Snapshot;
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => directory.PollAsync("this-pc", default));
+        Assert.Same(before, directory.Snapshot);
+        Assert.Empty(directory.Snapshot.Groups);
+
+        handler.FailDownload = 0;
+        var recovered = await directory.PollAsync("this-pc", default);
+        Assert.Single(recovered.LiveBroadcastIds);
+        Assert.Equal("Phone", Assert.Single(recovered.Groups).DeviceName);
+        Assert.Equal(3, handler.Downloads);
+    }
+
+    [Fact]
     public async Task UnchangedRecordIsNotDownloadedAgainAndStillExpires()
     {
         using var handler = new FakeDrive();
@@ -186,6 +208,7 @@ public sealed class DriveSourceTests
         private readonly Dictionary<string, byte[]> _bodies = [];
         public DateTimeOffset Clock { get; set; } = Now;
         public int Downloads { get; private set; }
+        public int FailDownload { get; set; }
         public int Listings { get; private set; }
         public int Patches { get; private set; }
         public int Deletes { get; private set; }
@@ -214,6 +237,7 @@ public sealed class DriveSourceTests
             else if (request.Method == HttpMethod.Get)
             {
                 Downloads++;
+                if (Downloads == FailDownload) throw new HttpRequestException("fixture read failed");
                 content = new ByteArrayContent(_bodies[uri.Segments.Last()]);
             }
             else if (request.Method == HttpMethod.Delete) Deletes++;

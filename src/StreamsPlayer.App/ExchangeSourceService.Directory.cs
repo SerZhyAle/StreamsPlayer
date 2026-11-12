@@ -151,15 +151,24 @@ internal sealed partial class ExchangeSourceService
         var viewers = new List<ExchangeGuestDirectoryViewer>();
         foreach (var entry in Guests.Entries)
         {
-            var viewer = new ExchangeGuestDirectoryViewer(entry, reportFault, _trustBook.For(entry.DeviceId));
-            // S7-6: only the own session saves the book (ObserveDirectoryKeys), so a guest-only user would lose the keys a
-            // viewer trusted. The viewer publishes after it opens a record's box; the save writes only when a trust is dirty.
-            viewer.Changed += _trustBook.SaveIfDirty;
-            viewers.Add(viewer);
-            viewer.Start();
+            viewers.Add(OpenGuestViewer(entry, reportFault));
         }
 
         return viewers;
+    }
+
+    /// <summary>
+    /// One started read-only session for one guest entry. SP-0250 follows the entry of a broadcast a window plays with it,
+    /// and gives it back with the last such window; the caller owns it.
+    /// </summary>
+    internal ExchangeGuestDirectoryViewer OpenGuestViewer(ExchangeAccount entry, Action<Exception>? reportFault = null)
+    {
+        var viewer = new ExchangeGuestDirectoryViewer(entry, reportFault, _trustBook.For(entry.DeviceId));
+        // S7-6: only the own session saves the book (ObserveDirectoryKeys), so a guest-only user would lose the keys a
+        // viewer trusted. The viewer publishes after it opens a record's box; the save writes only when a trust is dirty.
+        viewer.Changed += _trustBook.SaveIfDirty;
+        viewer.Start();
+        return viewer;
     }
 
     private void RequestList()

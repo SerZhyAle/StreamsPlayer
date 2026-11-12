@@ -22,6 +22,10 @@
                  the culture would read as the last century;
                  an empty or missing folder; an authored language without notes; nothing to render
       real tree  the repository's own folder parses, newest first, every version in three languages, and renders
+      manifest   (SP-0259) the release manifest the writer produces reads back to the versioned asset, sidecar and
+                 durable addresses; a missing or unparseable file, a version that is not a stamp, a date that is not
+                 its release day, an asset name release.yml does not publish and a version without release notes
+                 throw; the repository's own manifest names a version its release notes record
 
     Exit 0 when every check passes, 1 otherwise. The last line is `release-notes: PASS|FAIL (..)`.
 #>
@@ -32,6 +36,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 . "$PSScriptRoot/ReleaseNotes.ps1"
+. "$PSScriptRoot/ReleaseManifest.ps1"
 
 # The generator's escaping function, as the renderer finds it in the caller's scope: the same four replacements
 # build-site.ps1's ConvertTo-HtmlText makes (its inline-markup table is irrelevant to a bullet).
@@ -300,6 +305,35 @@ try {
     $escaped = ConvertTo-ReleaseNotesHtml -Notes (Read-Notes $t) -Code 'en' -Authored $authored
     Check ($escaped.Contains('<li>Use &lt;b&gt; &amp; &quot;quotes&quot; in 5 &gt; 3.</li>')) 'a bullet goes through the generator escaping function'
 
+    # --- SP-0259: the release manifest (ReleaseManifest.ps1)
+    $m = New-Tree
+    foreach ($file in 'en-us', 'ru', 'uk') { Add-Note -Root $m -Version '26.1003.0030' -File $file }
+    New-Item -ItemType Directory -Force -Path (Join-Path $m 'tools/site') | Out-Null
+    $manifestPath = Join-Path $m 'tools/site/release-manifest.json'
+    $mNotes = Read-Notes $m
+    Check (Throws { Get-SiteReleaseManifest -Root $m -ReleaseNotes $mNotes } 'release-manifest\.json does not exist') 'a missing manifest throws'
+    [System.IO.File]::WriteAllText($manifestPath, (ConvertTo-SiteReleaseManifestJson -Version '26.1003.0030'), $utf8)
+    $release = Get-SiteReleaseManifest -Root $m -ReleaseNotes $mNotes
+    $download = 'https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1003.0030'
+    Check ($release.Version -eq '26.1003.0030' -and $release.Date -eq '2026-10-03') 'the manifest reads back its version and release day'
+    Check ($release.SetupUrl -eq "$download/StreamsPlayer-26.1003.0030-windows-x64-setup.exe" -and $release.SetupSha256Url -eq "$($release.SetupUrl).sha256") 'the setup link and its sidecar name the version'
+    Check ($release.ZipUrl -eq "$download/StreamsPlayer-26.1003.0030-windows-x64.zip" -and $release.ZipSha256Url -eq "$($release.ZipUrl).sha256") 'the ZIP link and its sidecar name the version'
+    Check ($release.ReleasesUrl -eq 'https://github.com/SerZhyAle/StreamsPlayer/releases') 'the durable link is the releases page, which lists the newest first'
+    $good = [System.IO.File]::ReadAllText($manifestPath)
+    $cases = @(
+        @{ Text = '{ not json'; Pattern = 'is not valid JSON'; Name = 'an unparseable manifest throws' }
+        @{ Text = $good.Replace('"version": "26.1003.0030"', '"version": "26.1003"'); Pattern = 'is not a version stamp'; Name = 'a version that is not a stamp throws' }
+        @{ Text = $good.Replace('"2026-10-03"', '"2026-10-04"'); Pattern = 'is not the release day'; Name = 'a date that is not the release day throws' }
+        @{ Text = $good.Replace('-windows-x64-setup.exe', '-setup.exe'); Pattern = 'assets\.setup .* is not the file release\.yml publishes'; Name = 'a setup name release.yml does not publish throws' }
+        @{ Text = $good.Replace('-windows-x64.zip', '.zip'); Pattern = 'assets\.zip .* is not the file release\.yml publishes'; Name = 'a ZIP name release.yml does not publish throws' }
+        @{ Text = (ConvertTo-SiteReleaseManifestJson -Version '26.1004.0030'); Pattern = 'has no release notes'; Name = 'a version the release notes do not record throws' }
+    )
+    foreach ($case in $cases) {
+        [System.IO.File]::WriteAllText($manifestPath, $case.Text, $utf8)
+        Check (Throws { Get-SiteReleaseManifest -Root $m -ReleaseNotes $mNotes } $case.Pattern) $case.Name
+    }
+    Check ((ConvertTo-SiteReleaseManifestJson -Version '26.1003.0030') -ceq $good -and -not $good.Contains("`r") -and $good.EndsWith("}`n")) 'the manifest text is stable, LF only, one final newline'
+
     # --- the repository's own folder
     $repositoryRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
     $real = Read-Notes $repositoryRoot
@@ -309,6 +343,8 @@ try {
     Check $descending 'the repository versions run strictly newest first'
     Check (@($real | Where-Object { $_.Notes['en'].Count -lt 1 -or $_.Notes['ru'].Count -lt 1 -or $_.Notes['uk'].Count -lt 1 }).Count -eq 0) 'every repository version has bullets in en, ru and uk'
     Check ((ConvertTo-ReleaseNotesHtml -Notes $real -Code 'de' -Authored $authored).Contains("id=`"v$($real[0].Version.Replace('.', '-'))`"")) 'the repository notes render, newest first'
+    $realRelease = Get-SiteReleaseManifest -Root $repositoryRoot -ReleaseNotes $real
+    Check (@($real | ForEach-Object { $_.Version }) -ccontains $realRelease.Version) 'the repository manifest names a version its release notes record'
 }
 catch {
     # A setup step or a subject function threw instead of answering: nothing was judged past this point, so the run could

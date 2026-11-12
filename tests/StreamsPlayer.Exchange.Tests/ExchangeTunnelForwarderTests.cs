@@ -116,6 +116,62 @@ public sealed class ExchangeTunnelForwarderTests
         Assert.Equal(0, read);
     }
 
+    // SP-0246 S13-4: the loopback port is reachable by every process of the machine, so the host may say who is let in.
+    [Fact]
+    public async Task AConnectorTheAdmissionTurnsAwayIsDroppedBeforeAnythingIsOpenedToTheExchange()
+    {
+        var connectorCalls = 0;
+        var refusals = 0;
+        IPEndPoint? seenPeer = null;
+        var seenPort = 0;
+        await using var forwarder = ExchangeTunnelForwarder.Start(
+            "fmsx://exchange.example.net:44022/b/b1/http",
+            "http://192.168.1.97:8768/live-audio.aac",
+            streamConnector: (_, _, _, _) =>
+            {
+                Interlocked.Increment(ref connectorCalls);
+                return Task.FromResult<Stream>(new MemoryStream());
+            },
+            admitPeer: (peer, port) =>
+            {
+                seenPeer = peer;
+                seenPort = port;
+                return false;
+            });
+        forwarder.Refused += _ => Interlocked.Increment(ref refusals);
+
+        using var stranger = new TcpClient();
+        await stranger.ConnectAsync(IPAddress.Loopback, forwarder.BoundPort);
+        var read = await stranger.GetStream().ReadAsync(new byte[16]);
+
+        Assert.Equal(0, read);
+        Assert.Equal(forwarder.BoundPort, seenPort);
+        Assert.Equal(((IPEndPoint)stranger.Client.LocalEndPoint!).Port, seenPeer!.Port);
+        Assert.Equal(0, connectorCalls);
+        Assert.Equal(0, refusals); // the listener did nothing wrong and is shown no failure
+        Assert.Equal(1, forwarder.RejectedPeers);
+    }
+
+    [Fact]
+    public async Task AnAdmittedConnectorIsServedAsBefore()
+    {
+        var exchangeServerStream = new DuplexPipeStream();
+        var forwarderExchangeStream = exchangeServerStream.CreatePaired();
+
+        await using var forwarder = ExchangeTunnelForwarder.Start(
+            "fmsx://exchange.example.net:44022/b/b1/http",
+            "http://192.168.1.97:8768/live-audio.aac",
+            streamConnector: (_, _, _, _) => Task.FromResult<Stream>(forwarderExchangeStream),
+            admitPeer: (_, _) => true);
+
+        using var client = new TcpClient();
+        await client.ConnectAsync(IPAddress.Loopback, forwarder.BoundPort);
+
+        using var connectDoc = await ExchangeProtocol.ReadAsync(exchangeServerStream, authenticated: false, CancellationToken.None);
+        Assert.Equal("connect", ExchangeProtocol.String(connectDoc.RootElement, "type"));
+        Assert.Equal(0, forwarder.RejectedPeers);
+    }
+
     [Fact]
     public async Task UnavailableRefusalClosesClientAndRecordsReason()
     {

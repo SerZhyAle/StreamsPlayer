@@ -88,7 +88,22 @@ internal sealed class WindowsAudioCapture : IDisposable
         _thread.SetApartmentState(ApartmentState.MTA);
     }
 
+    private readonly TaskCompletionSource<BroadcastCaptureFailure?> _opened = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     internal void Start() => _thread.Start();
+
+    internal async Task<BroadcastCaptureFailure?> StartAsync()
+    {
+        Start();
+        try { return await _opened.Task.WaitAsync(TimeSpan.FromSeconds(15)).ConfigureAwait(false); }
+        catch (TimeoutException) { return BroadcastCaptureFailure.Unknown; }
+    }
+
+    private void ReportFailure(BroadcastCaptureFailure failure)
+    {
+        _opened.TrySetResult(failure);
+        Failed?.Invoke(failure);
+    }
 
     public void Dispose()
     {
@@ -113,6 +128,7 @@ internal sealed class WindowsAudioCapture : IDisposable
             audioClient ??= OpenEndpointClient(out capture);
             if (audioClient is not null && capture is not null)
             {
+                _opened.TrySetResult(null);
                 CaptureLoop(capture);
                 _ = audioClient.Stop();
             }
@@ -120,7 +136,7 @@ internal sealed class WindowsAudioCapture : IDisposable
         catch (Exception exception)
         {
             // Nothing of the capture is logged with its ids or addresses; the outcome is the message.
-            Failed?.Invoke(exception is COMException com ? FailureOf(com.HResult) : BroadcastCaptureFailure.Unknown);
+            ReportFailure(exception is COMException com ? FailureOf(com.HResult) : BroadcastCaptureFailure.Unknown);
         }
         finally
         {
@@ -159,7 +175,7 @@ internal sealed class WindowsAudioCapture : IDisposable
         var device = _loopback ? OpenDefaultRenderEndpoint() : OpenCaptureEndpoint(_deviceId);
         if (device is null)
         {
-            Failed?.Invoke(BroadcastCaptureFailure.DeviceMissing);
+            ReportFailure(BroadcastCaptureFailure.DeviceMissing);
             return null;
         }
 
@@ -177,7 +193,7 @@ internal sealed class WindowsAudioCapture : IDisposable
                 }
             }
 
-            Failed?.Invoke(FailureOf(result));
+            ReportFailure(FailureOf(result));
             return null;
         }
         finally

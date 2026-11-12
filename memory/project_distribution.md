@@ -16,6 +16,6 @@ type: project
   - CSV listings must use CRLF endings and valid UTF-8 BOM.
   - Import is all-or-nothing per language: an error in one language drops that entire locale silently while importing others. Always re-export before importing.
 - **Release sequencing & Pages deployment:**
-  - Releases must follow a two-step push: tag and release workflow first, site docs update second to ensure download links never point to missing artifacts.
+  - Pages deploys only after a successful release run (or an explicit `gh workflow run pages.yml`), never on push, so the site and the release can share one commit; the older two-step push is retired (SP-0256, 2026-10-30).
 - **`build.ps1` defaults:**
   - `-Deploy` defaults to `$true`, building a self-contained Release EXE into local SZA app folders. Use `-Deploy:$false` for clean test runs.

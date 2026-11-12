@@ -26,16 +26,19 @@
   is then read back; a build that carries no client fails unless -AllowNoDriveClient is passed (local test
   packages only - the Store package must offer Google sign-in).
 #>
-# Defaults are the PERMANENT reserved Partner Center identity for Store ID 9NBTD5SXB8TB.
-# Do not change them; every Store update must ship these exact three values. See msix/README.md.
+# SP-0261: the PERMANENT reserved Partner Center identity (Store ID 9NBTD5SXB8TB) is read from msix/identity.json,
+# not kept here as parameter defaults; a run that finds no such file stops before it builds. Every Store update
+# must ship the file's exact three values (IdentityName, Publisher, PublisherDisplayName). See msix/README.md.
 [CmdletBinding()]
 param(
-    [string] $IdentityName = 'SZA.StreamsPlayer',
-    [string] $Publisher = 'CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD',
-    [string] $PublisherDisplayName = 'SZA',
+    # Overrides of the identity file's values, for a one-off package under another identity (-TestIdentity).
+    [string] $IdentityName,
+    [string] $Publisher,
+    [string] $PublisherDisplayName,
     [switch] $SelfSign,
-    # A one-off package under another identity. The read-back then judges against the three values above and
-    # says the package is not Store-valid; without this switch the reserved identity is the only one accepted.
+    # A one-off package under another identity. The read-back then judges against the three values passed
+    # here and says the package is not Store-valid; without this switch the reserved identity is the only one
+    # accepted.
     [switch] $TestIdentity,
     # S1-3: the Desktop OAuth client JSON; the same fallbacks as build.ps1 apply when it is not given.
     [string] $DriveClientFile = '',
@@ -46,6 +49,12 @@ param(
 $ErrorActionPreference = 'Stop'
 $msix = $PSScriptRoot
 $root = Split-Path $msix -Parent
+# SP-0261: first thing, before the tree is judged and before anything is published - no identity file, no build.
+. (Join-Path $msix 'MsixIdentity.ps1')
+$identity = Read-MsixIdentity -Path (Join-Path $msix 'identity.json')
+foreach ($field in 'IdentityName', 'Publisher', 'PublisherDisplayName') {
+    if (-not $PSBoundParameters.ContainsKey($field)) { Set-Variable -Name $field -Value $identity.$field }
+}
 $stage = Join-Path $msix 'stage'
 $dist = Join-Path $msix 'dist'
 # SP-0133: the package is built from a publish folder of its own, emptied first. It used to publish into the
@@ -89,8 +98,10 @@ try {
     }
 }
 finally { Pop-Location }
-$appVersion = $tag.Substring(1)
-[DateTime]::ParseExact($appVersion, 'yy.MMdd.HHmm', [Globalization.CultureInfo]::InvariantCulture) | Out-Null
+# SP-0247: the derivation and the MSIX remap below are the ones release.yml uses, held to fixed instants by
+# scripts/Test-ReleaseVersion.ps1.
+. (Join-Path $root 'scripts/ReleaseVersion.ps1')
+$appVersion = ConvertFrom-ReleaseTag -Tag $tag
 # SP-0184 (S1-6): the tag alone does not say the code was audited. The same gate release.yml runs must accept the
 # committed audit verdict of this exact version before a package is packed from it; it throws when it does not.
 & (Join-Path $root 'scripts/Assert-AuditVerdict.ps1') -Version $appVersion -Root $root
@@ -98,11 +109,7 @@ $appVersion = $tag.Substring(1)
 # script release.yml runs - the check used to live only inline in that workflow, so a package built
 # locally could come from a version the smoke gate never judged.
 & (Join-Path $root 'scripts/Assert-SmokeVerdict.ps1') -Version $appVersion -Root $root
-# The MSIX Identity Version schema forbids leading zeros in any part (e.g. 26.0723.0957.0 is
-# rejected), so convert each component to an integer: 26.0723.0957.0 -> 26.723.957.0. This is
-# still monotonic and unique per minute (MMDD and HHmm as ints preserve ordering).
-$msixVersion = (($appVersion.Split('.') | ForEach-Object { [int]$_ }) -join '.') + '.0'
-foreach ($part in $msixVersion.Split('.')) { if ([int]$part -gt 65535) { throw "Version part '$part' exceeds 65535." } }
+$msixVersion = ConvertTo-MsixVersion -Version $appVersion
 
 $makeappx = Find-SdkTool 'makeappx.exe'
 if ($SelfSign) { $signtool = Find-SdkTool 'signtool.exe' }

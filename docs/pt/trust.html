@@ -195,6 +195,7 @@
           <p>O instalador, o ZIP portátil e o pacote winget do STREAMS Player não têm assinatura de código. Um certificado de assinatura de código custa centenas de dólares por ano, e, para um aplicativo gratuito e sem receita, decidimos não comprar um por enquanto. É uma decisão, não um descuido - e, para um arquivo sem assinatura, um aviso é exatamente o que o Windows deve mostrar.</p>
           <p>O SmartScreen também leva em conta a reputação: quanto mais pessoas executam o mesmo arquivo sem problemas, mais cedo o Windows o reconhece e o aviso deixa de aparecer. Cada lançamento é um arquivo novo que começa do zero - é por isso que o aviso pode voltar depois de uma atualização, e é por isso que ele desaparece à medida que um lançamento é usado.</p>
           <p>A versão da Microsoft Store é assinada pela Microsoft e não mostra esta tela. Cada lançamento no GitHub também publica um arquivo .sha256 ao lado de cada download: execute <code dir="ltr">Get-FileHash -Algorithm SHA256 &lt;file&gt;</code> no PowerShell sobre o arquivo que você baixou, e o resultado deve ser igual ao valor desse arquivo.</p>
+          <p>Assinar não faria desaparecer todos os avisos. Os antivírus também julgam o que um aplicativo faz, e o STREAMS Player faz coisas que essas verificações observam: lê a área de transferência quando você cola ou importa uma conexão, e captura a tela, a câmera, o microfone ou o som do PC quando você inicia uma difusão. Cada coisa acontece só quando você pede, nunca em segundo plano - mas um antivírus cauteloso pode sinalizá-la mesmo assim, com ou sem assinatura.</p>
         </section>
 
         <section class="privacy-section" id="trust-click" aria-labelledby="trust-click-title">
@@ -205,6 +206,7 @@
             <li>Confira se o nome do arquivo é o do arquivo do STREAMS Player que você baixou e clique em “Executar assim mesmo” (Run anyway).</li>
           </ol>
           <p>Pronto - o instalador, ou o aplicativo do ZIP, inicia normalmente. Você nunca precisa desligar o SmartScreen nem desativar o seu antivírus, e o próprio aplicativo nunca precisa de direitos de administrador.</p>
+          <p>Se você usa o ZIP portátil, descompacte-o primeiro em uma pasta que vai manter - por exemplo, uma pasta nova em Documentos - e abra o aplicativo de lá. Não o abra de dentro do ZIP nem de uma pasta temporária: o Windows confia menos em um programa iniciado de um lugar assim, e o aviso tende mais a voltar.</p>
 
           <h3>“Deseja permitir que este aplicativo de um fornecedor desconhecido faça alterações no seu dispositivo?”</h3>
           <p>Normalmente você não deveria ver esta solicitação. Por padrão, o instalador instala só para você, em <code dir="ltr">%LOCALAPPDATA%\Programs\StreamsPlayer</code>, e não precisa de direitos de administrador para isso. Se ele perguntar como instalar, escolha “Instalar apenas para mim (recomendado)”.</p>
@@ -215,6 +217,7 @@
             <li>registrá-lo no Windows como aplicativo instalado, para que possa ser removido depois.</li>
           </ul>
           <p>Uma única ação remove as três coisas juntas: Configurações &gt; Aplicativos &gt; Aplicativos instalados (Aplicativos e recursos no Windows 10) &gt; STREAMS Player &gt; Desinstalar. Se preferir não conceder direitos de administrador, clique em “Não” e execute o instalador de novo com “Instalar apenas para mim”.</p>
+          <p>Seja qual for o modo de instalação, o instalador também associa os arquivos .spres - transmissões salvas pelo Fast Media Sorter - ao STREAMS Player. Essa configuração é gravada só para a sua conta, não precisa de direitos de administrador e Desinstalar a remove junto com o aplicativo; a versão da Microsoft Store declara o mesmo tipo de arquivo no seu pacote.</p>
 
           <h3>Se o seu antivírus segurar o arquivo</h3>
           <p>Alguns antivírus são cautelosos com arquivos novos e sem assinatura. Se o seu colocar o STREAMS Player em quarentena, restaure-o e adicione uma exceção apenas para a pasta dele - <code dir="ltr">%LOCALAPPDATA%\Programs\StreamsPlayer</code> para o instalador, ou a pasta em que você descompactou o ZIP. Uma exceção para essa única pasta é suficiente, e você pode removê-la a qualquer momento; não desligue o seu antivírus.</p>
@@ -225,7 +228,7 @@
           <ul class="trust-list">
             <li>Ele nunca precisa de direitos de administrador para ser instalado ou executado, nunca se adiciona à inicialização do Windows e não instala nenhum serviço em segundo plano.</li>
             <li>Nenhuma conta é necessária para a reprodução normal. A conta de troca opcional pertence a um servidor privado - o seu ou o de alguém que convidou você -, nunca a um serviço deste produto. Não há publicidade, análise, telemetria ou serviço operado pelo autor.</li>
-            <li>Conecta-se apenas quando você age e somente para o que for necessário: catálogo público e prévias no GitHub, provedor da transmissão reproduzida, gravada ou pré-visualizada, dispositivo FastMediaSorter na rede local e bibliotecas FFmpeg opcionais se solicitadas em Configurações. O guia de TV é baixado apenas do endereço inserido quando você clica em «Baixar guia». Somente se você ativar, há também uma conexão com o servidor de troca que você mesmo configurou e, se você entrar no Google em Configurações, com o Google (para os anúncios nos dados ocultos do aplicativo no seu Drive).</li>
+            <li>Conecta-se apenas quando você age e somente para o que for necessário: catálogo público e prévias no GitHub, provedor da transmissão reproduzida, gravada ou pré-visualizada, dispositivo com Fast Media Sorter &amp; Organizer for Android na rede local e bibliotecas FFmpeg opcionais se solicitadas em Configurações. O guia de TV é baixado apenas do endereço inserido quando você clica em «Baixar guia». Somente se você ativar, há também uma conexão com o servidor de troca que você mesmo configurou e, se você entrar no Google em Configurações, com o Google (para os anúncios nos dados ocultos do aplicativo no seu Drive).</li>
             <li>Ele nunca baixa o catálogo por conta própria - uma atualização só acontece quando você pede.</li>
             <li>Nunca envia dados ou registros por conta própria. «Enviar os registros ao autor» na página Sobre em Configurações apenas prepara um arquivo e uma mensagem no seu programa de e-mail; nada sai até você clicar em Enviar lá.</li>
             <li>Desinstalá-lo nunca apaga os seus canais, fixações ou histórico - eles ficam em <code dir="ltr">%LOCALAPPDATA%\StreamsPlayer</code> até você mesmo remover essa pasta.</li>

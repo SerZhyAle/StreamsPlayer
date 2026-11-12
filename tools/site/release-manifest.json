@@ -1,0 +1,9 @@
+{
+  "$comment": "SP-0259 (PAGE-STYLE 3.10): the release the site links. Written by tools/site/Write-ReleaseManifest.ps1 in the release flow, never by hand; read by tools/site/ReleaseManifest.ps1.",
+  "version": "26.1025.1927",
+  "date": "2026-10-25",
+  "assets": {
+    "setup": "StreamsPlayer-26.1025.1927-windows-x64-setup.exe",
+    "zip": "StreamsPlayer-26.1025.1927-windows-x64.zip"
+  }
+}

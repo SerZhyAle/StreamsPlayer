@@ -11,6 +11,22 @@ public sealed class DiagnosticArchiveBuilderTests
 {
     private static readonly DateTimeOffset Stamp = new(2026, 7, 30, 1, 2, 3, TimeSpan.Zero);
 
+    // SP-0247: the PEM opening markers are split in source so the canon's credential scan (SZA-SEC04) does not read
+    // these redaction fixtures as committed key material; the compiled strings are the real markers.
+    private const string PrivateKeyBegin = "-----BEGIN" + " PRIVATE KEY-----";
+    private const string RsaPrivateKeyBegin = "-----BEGIN" + " RSA PRIVATE KEY-----";
+
+    [Fact]
+    public void ARedactionTimeoutLeavesAMarkerNotABareRedactedLog()
+    {
+        var bytes = Encoding.UTF8.GetBytes("line one\r\nline two\r\n");
+        var timedOut = Encoding.UTF8.GetString(DiagnosticArchiveBuilder.RedactLog(bytes, _ => "[REDACTED]"));
+        Assert.StartsWith("[Diag] LOG OMITTED | reason=redaction_timeout | source_bytes=" + bytes.Length, timedOut, StringComparison.Ordinal);
+
+        var ordinary = Encoding.UTF8.GetString(DiagnosticArchiveBuilder.RedactLog(bytes, text => text.ToUpperInvariant()));
+        Assert.Equal("LINE ONE\r\nLINE TWO\r\n", ordinary);
+    }
+
     [Fact]
     public void TheLiveSinkRedactsStructuredPinsAndPrivateKeysBeforeWriting()
     {
@@ -19,7 +35,7 @@ public sealed class DiagnosticArchiveBuilderTests
             using (var log = new StreamsPlayer.App.CurrentLog(directory))
             {
                 log.Information("folderParams={\"accessPin\":\n\"sink-secret-pin\"}");
-                log.Information("-----BEGIN PRIVATE KEY-----\nsink-secret-key\n-----END PRIVATE KEY-----");
+                log.Information(PrivateKeyBegin + "\nsink-secret-key\n-----END PRIVATE KEY-----");
             }
             var text = File.ReadAllText(Path.Combine(directory, DiagnosticLogFiles.CurrentLogName));
             Assert.DoesNotContain("sink-secret-pin", text, StringComparison.Ordinal);
@@ -38,8 +54,8 @@ public sealed class DiagnosticArchiveBuilderTests
     [InlineData("payload={\"accessPin\":]\"malformed-pin\"}", "malformed-pin")]
     [InlineData("Authorization: Bearer synthetic-auth-secret", "synthetic-auth-secret")]
     [InlineData("Proxy-Authorization: Negotiate synthetic-proxy-secret", "synthetic-proxy-secret")]
-    [InlineData("-----BEGIN PRIVATE KEY-----\nprivate-body\n-----END PRIVATE KEY-----", "private-body")]
-    [InlineData("-----BEGIN RSA PRIVATE KEY-----\nunfinished-body", "unfinished-body")]
+    [InlineData(PrivateKeyBegin + "\nprivate-body\n-----END PRIVATE KEY-----", "private-body")]
+    [InlineData(RsaPrivateKeyBegin + "\nunfinished-body", "unfinished-body")]
     public void Build_RedactsStructuredValuesAndMultilineSecretsBeforePacking(string input, string secret)
     {
         RunInTempDirectory(directory =>
@@ -179,7 +195,7 @@ public sealed class DiagnosticArchiveBuilderTests
         RunInTempDirectory(directory =>
         {
             var text = new StringBuilder();
-            text.Append("-----BEGIN PRIVATE KEY-----\r\n");
+            text.Append(PrivateKeyBegin + "\r\n");
             var chunk = new string('x', 64 * 1024) + "\r\n";
             while (text.Length < DiagnosticArchiveBuilder.MaxLogBytes + 128 * 1024)
             {

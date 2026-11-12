@@ -1,0 +1,107 @@
+{
+  "name": "Live broadcast, audio",
+  "summary": "The small window of one incoming audio broadcast: its own volume, Stop, Record and Reconnect.",
+  "lead": "Each incoming audio broadcast has this small window to itself. It shows the broadcast's title and state, has its own volume, and lets you stop the broadcast, record it and listen again. The window is titled with the broadcast's own title, so every broadcast window reads differently, but they all look like this. Several can be open together, beside the main window and beside one another. Closing a window, with [[Esc]] or the close box or **Close**, stops that broadcast and nothing else.",
+  "order": [
+    "Read {@state} under the title: it shows whether the broadcast is connecting, playing, reconnecting, ended, failed or stopped.",
+    "Set the level with **{@volume}**, or tick **{@mute}**. Both change this broadcast only.",
+    "While the state is playing, press **{@record}** to save what you hear to a file; press it again to stop and save.",
+    "Press **{@stop}** to stop listening. When the window is not listening, **{@reconnect}** takes its place so that you can listen again.",
+    "If the broadcast failed, open **{@details}** to read the failure code. If **{@diagnose}** is offered, press it to check the connection.",
+    "Close the window when you are done: that ends the listening to this broadcast and nothing else."
+  ],
+  "elements": [
+    {
+      "id": "state",
+      "name": "State line",
+      "one": "Says what this broadcast is doing, or why it is not.",
+      "full": [
+        "The line under the title shows the state - connecting, playing, reconnecting, ended, failed or stopped - and, for some conditions, a message beside it. When the state is ended, the line is the sentence \"The broadcast has ended.\" When the broadcast failed, the line gives the message for the failure: it says what happened, and where there is something to try, that follows on the next line."
+      ],
+      "next": "Depending on the state, the buttons below change: **Stop** while the window is listening, **Reconnect** or **Play** when it is not."
+    },
+    {
+      "id": "details",
+      "nameKey": "ExchangeDiagnosisDetails",
+      "one": "Shows the code of a failure.",
+      "full": [
+        "Appears under the state line only when the broadcast failed for a reason that has a code. Expand it to read the line that starts with \"Code:\". The code is the short name of the failure."
+      ]
+    },
+    {
+      "id": "volume",
+      "nameKey": "AudioVolumeName",
+      "one": "Sets the volume of this broadcast only.",
+      "full": [
+        "The slider starts at the audio volume the main window is set to. Moving it changes this broadcast and nothing else: the volume of the main window, the other broadcasts and the saved setting stay as they are, and the level is not kept after this window closes.",
+        "A click on the slider jumps straight to that level."
+      ],
+      "why": "To balance a broadcast against the station playing in the main window or against other broadcasts."
+    },
+    {
+      "id": "mute",
+      "nameKey": "Mute",
+      "one": "Silences this broadcast without moving the slider.",
+      "full": [
+        "While it is ticked, this broadcast plays at zero. The slider keeps its position, so clearing the tick returns to the same level. It affects this broadcast only."
+      ],
+      "undo": "Clear the tick."
+    },
+    {
+      "id": "record",
+      "nameKey": "Record",
+      "one": "Saves what this broadcast plays to a file.",
+      "full": [
+        "The button shows only an icon; hover over it to read its name. Recording starts only while the state is playing. While it records, the button becomes **Stop recording**, and the line under the slider counts the length of the recording.",
+        "When the format of the broadcast cannot be recorded, the button is unavailable and its tooltip says \"This station's stream format cannot be recorded\".",
+        "Press the button again to end the recording and save the file: the line says that it is saving, then names the file and its length. Recordings go to the radio recordings folder, which is set on the Files page of Settings and is the Recordings folder in Music when none is chosen. If a folder cannot be written, the line says so and the recording goes to another folder; if writing fails, the recording stops and the line says it could not write to that folder. If nothing was recorded, the line says so."
+      ],
+      "why": "To keep a broadcast you want to hear again.",
+      "undo": "A saved recording is a file in the folder; delete it there if you do not want it.",
+      "shortcut": "[[R]] does the same from anywhere in the window."
+    },
+    {
+      "id": "reconnect",
+      "nameKey": "BroadcastReconnect",
+      "one": "Listens to the broadcast again.",
+      "full": [
+        "Shown while the window is not listening: after **Stop**, after the broadcast has ended, and after a failure. When the state is ended it reads **Reconnect**; in the other cases it reads **Play**."
+      ],
+      "next": "The state line shows how the new attempt goes."
+    },
+    {
+      "id": "diagnose",
+      "nameKey": "ExchangeDiagnose",
+      "one": "Opens the connection check for a broadcast that could not be kept.",
+      "full": [
+        "Shown when the broadcast failed in a way the window can only describe as unavailable, and a server to check is known. A failure that already says what to do, such as a refused password or a certificate that does not match, does not offer it."
+      ],
+      "next": "The Connection check window opens in front of this one, with the first line naming the broadcast; this window waits until you close it."
+    },
+    {
+      "id": "stop",
+      "nameKey": "Stop",
+      "one": "Stops listening to this broadcast.",
+      "full": [
+        "Shown while the window is connecting, playing or reconnecting. The window stays open with the state stopped, and **Play** takes the place of this button."
+      ],
+      "undo": "Press **Play** to listen again."
+    },
+    {
+      "id": "help",
+      "nameKey": "HelpName",
+      "one": "Opens this page when you press [[F1]].",
+      "full": [
+        "Pressing [[F1]] in this window opens the page of the window you are in, in your web browser; the application stays open."
+      ],
+      "next": "The page opens in your browser. Nothing in the application changes.",
+      "shortcut": "[[F1]] works from anywhere in the window."
+    }
+  ],
+  "related": [
+    { "help": "broadcasts", "note": "The list where Play opens a broadcast in a window like this one." },
+    { "help": "exchange-diagnosis", "note": "The connection check that Check the connection opens." },
+    { "help": "settings", "note": "Where the radio recordings folder is chosen." },
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." }
+  ]
+}

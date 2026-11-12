@@ -48,19 +48,22 @@
     {
       "url": "https://serzhyale.github.io/StreamsPlayer/trust.html",
       "heldBy": [
-        "README.md"
+        "README.md",
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.en-US.yaml"
       ]
     },
     {
       "url": "https://serzhyale.github.io/StreamsPlayer/ru/trust.html",
       "heldBy": [
-        "README.ru.md"
+        "README.ru.md",
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.ru-RU.yaml"
       ]
     },
     {
       "url": "https://serzhyale.github.io/StreamsPlayer/uk/trust.html",
       "heldBy": [
-        "README.uk.md"
+        "README.uk.md",
+        "winget/templates/SerZhyAle.StreamsPlayer.locale.uk-UA.yaml"
       ]
     },
     {

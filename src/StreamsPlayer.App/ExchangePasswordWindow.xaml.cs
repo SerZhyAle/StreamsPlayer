@@ -26,6 +26,9 @@ public partial class ExchangePasswordWindow : Window
         _exchange = exchange;
         InitializeComponent();
         Loaded += (_, _) => OldBox.Focus();
+        // APP-BEHAVIOUR rule 1: the close box is Cancel. Closing mid-request stops the wait exactly as Cancel does -
+        // the request, if it left, is not sent again (SP-0247).
+        Closing += (_, _) => _waiting?.Cancel();
         Closed += (_, _) =>
         {
             OldBox.Clear();

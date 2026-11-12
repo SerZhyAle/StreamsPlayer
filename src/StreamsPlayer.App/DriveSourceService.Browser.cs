@@ -18,6 +18,7 @@ internal sealed partial class DriveSourceService
         using var listener = new HttpListener();
         listener.Prefixes.Add(redirect);
         listener.Start();
+        ListenerBindLog.Loopback("google-sign-in", port);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
         timeout.CancelAfter(TimeSpan.FromMinutes(5));
         var verifier = DriveOAuth.NewVerifier();

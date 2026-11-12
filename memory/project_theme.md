@@ -12,7 +12,7 @@ type: project
   - System theme mode monitors `AppsUseLightTheme` and subscribes to `SystemEvents.UserPreferenceChanged` only while active, unsubscribing on exit to prevent leaks.
 - **Out-of-theme declarations & lint gates:**
   - Literal colours are forbidden except in `ThemeService` / `App.xaml` palette tables or preceded by an explicit `<!-- Out of theme (APP-STYLE 5: reason) -->` declaration.
-  - Enforced by `ThemeColourDeclarationTests` in CI.
+  - Enforced by `ThemeColourDeclarationTests` in the release suite (`scripts/check.ps1`, `release.yml`).
 - **Airspace & reparented controls overlay (SP-0072):**
   - `PlayerWindow` detaches `ControlsOverlay` and passes it to the video backend's stacked foreground window to avoid native airspace occlusion.
   - WPF property inheritance from `PlayerWindow` stops at the boundary. Inherited properties (`FlowDirection`, `DataContext`, `FontFamily`) must be set explicitly on `ControlsOverlay`.

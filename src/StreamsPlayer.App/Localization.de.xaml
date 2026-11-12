@@ -630,6 +630,8 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="BroadcastResourceAdded">Übertragung hinzugefügt: {0}</sys:String>
     <sys:String x:Key="BroadcastResourceUpdated">Übertragung aktualisiert: {0}</sys:String>
     <sys:String x:Key="BroadcastNoLongerAvailable">Die Übertragung {0} ist nicht mehr verfügbar.</sys:String>
+    <sys:String x:Key="BroadcastEnded">Die Übertragung ist beendet.</sys:String>
+    <sys:String x:Key="BroadcastReconnect">Neu verbinden</sys:String>
     <sys:String x:Key="BroadcastPlaylistPosition">{0} - Eintrag {1} von {2}</sys:String>
     <sys:String x:Key="FmsBroadcastConfirm">Diese Liveübertragung importieren?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
     <sys:String x:Key="FmsBroadcastAdded">Liveübertragung importiert: {0}.</sys:String>
@@ -638,7 +640,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="FmsBroadcastInvalid">Dies ist keine gültige FastMediaSorter-Übertragungsbeschreibung. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">Diese Übertragungsbeschreibung ist größer als 64 KiB. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer ist mit einem anderen Vorgang beschäftigt. Importieren Sie die Übertragung erneut, sobald der Vorgang abgeschlossen ist. Ihre Liste wurde nicht geändert.</sys:String>
-    <sys:String x:Key="FmsBroadcastListenerLimit">„{0}“ hat bereits die maximale Anzahl an Zuhörern. Versuchen Sie es erneut, wenn sich ein anderer Zuhörer abmeldet.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">„{0}“ hat bereits die maximale Anzahl an Zuschauern und Zuhörern. Versuchen Sie es erneut, wenn sich ein anderer abmeldet.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">„{0}“ sendet nicht mehr oder ist in diesem Netzwerk nicht mehr erreichbar.</sys:String>
     <!-- SP-0098 portable stream catalog import -->
     <sys:String x:Key="StreamCatalogSettings">Stream-Katalog</sys:String>
@@ -714,7 +716,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="SettingsFilesDesc">Ordner für Schnappschüsse und Stream-Aufnahmen</sys:String>
     <sys:String x:Key="SettingsAbout">Über</sys:String>
     <sys:String x:Key="SettingsExchangeDesc">Konto und Serververbindung</sys:String>
-    <sys:String x:Key="SettingsBroadcastDesc">Quellen, Netzwerkzugriff und Audioqualität</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Erlaubnis, Netzwerkzugriff und Qualität</sys:String>
     <sys:String x:Key="SettingsAboutDesc">App-Informationen, Lizenz und Diagnose</sys:String>
     <sys:String x:Key="ThemeHint">Wählen Sie hell, dunkel oder folgen Sie dem Windows-Design.</sys:String>
     <sys:String x:Key="TileSizeHint">Legen Sie fest, wie groß die Kanalkacheln im Raster dargestellt werden.</sys:String>
@@ -805,7 +807,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="BroadcastsPlayNamed">{0} abspielen</sys:String>
     <sys:String x:Key="BroadcastsKeepNamed">{0} zu meinen Sendern hinzufügen</sys:String>
     <sys:String x:Key="EndedLabel">Beendet</sys:String>
-    <sys:String x:Key="BroadcastCapabilityWarning">Diese Adresse enthält das Geheimnis der Übertragung: Wer sie hat, kann zuhören. Trotzdem weitergeben?</sys:String>
+    <sys:String x:Key="BroadcastCapabilityWarning">Diese Adresse enthält das Geheimnis der Übertragung: Wer sie hat, kann zuschauen und zuhören. Trotzdem weitergeben?</sys:String>
     <sys:String x:Key="ExchangeAutoAcceptCasts">Casts von meinen Geräten automatisch annehmen</sys:String>
     <sys:String x:Key="ExchangeCastTitle">Cast-Anfrage</sys:String>
     <sys:String x:Key="ExchangeCastOfferPrompt">{0} auf {1} möchte auf dieses Gerät übertragen. Annehmen?</sys:String>
@@ -833,7 +835,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="ExchangeStringFileFilter">Aus Datei importieren (*.fmsexch)|*.fmsexch|*.*|*.*</sys:String>
     <!-- SP-0217: broadcasting this PC devices through the device exchange. -->
     <sys:String x:Key="BroadcastTitle">Live-Übertragung</sys:String>
-    <sys:String x:Key="BroadcastHint">Sendet, was dieser PC aufzeichnet, an den Exchange-Server Ihres Kontos. Nichts wird aufgezeichnet, bevor Sie es hier erlauben und eine Quelle starten.</sys:String>
+    <sys:String x:Key="BroadcastHint">Sendet, was dieser PC aufzeichnet, an den Exchange-Server Ihres Kontos und, wenn die Option „Lokales Netzwerk“ aktiv ist, in Ihr lokales Netzwerk. Nichts wird aufgezeichnet, bevor Sie es hier erlauben und eine Quelle starten.</sys:String>
     <sys:String x:Key="BroadcastAllow">Übertragen von diesem PC erlauben</sys:String>
     <sys:String x:Key="BroadcastStartWithApp">Gewählte Quellen beim Start der Anwendung starten</sys:String>
     <sys:String x:Key="BroadcastMicStart">Mikrofon übertragen</sys:String>
@@ -843,8 +845,8 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="BroadcastDefaultDevice">Windows-Standard</sys:String>
     <sys:String x:Key="BroadcastLanListening">Lokales Netzwerk</sys:String>
     <sys:String x:Key="BroadcastLanPort">Port</sys:String>
-    <sys:String x:Key="BroadcastCap">Maximale Hörer</sys:String>
-    <sys:String x:Key="BroadcastCapHint">0 bedeutet keine Begrenzung. Jeder direkt verbundene Hörer nutzt den Upload dieses PCs. Über den Austauschserver sendet dieser PC eine Kopie für alle Hörer.</sys:String>
+    <sys:String x:Key="BroadcastCap">Maximale Zuschauer und Zuhörer</sys:String>
+    <sys:String x:Key="BroadcastCapHint">0 bedeutet keine Begrenzung. Jeder direkt verbundene Zuschauer oder Zuhörer nutzt den Upload dieses PCs. Über den Austauschserver sendet dieser PC eine Kopie für alle.</sys:String>
     <sys:String x:Key="BroadcastQuality">Qualität</sys:String>
     <sys:String x:Key="BroadcastSampleRate">Abtastrate</sys:String>
     <sys:String x:Key="BroadcastMicChannels">Mikrofonkanäle</sys:String>
@@ -868,14 +870,17 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="BroadcastAudioMicrophone">Mikrofon</sys:String>
     <sys:String x:Key="BroadcastAudioSystem">Systemton</sys:String>
     <sys:String x:Key="BroadcastNoDevices">Keine gefunden</sys:String>
-    <sys:String x:Key="BroadcastScreenPrivacy">Die Bildschirmübertragung sendet den ganzen gewählten Monitor, einschließlich der darauf angezeigten Benachrichtigungen und Passwörter. Von Windows geschützte Inhalte können leer erscheinen. Solange die Übertragung läuft, nennt die Anzeige den Monitor.</sys:String>
+    <sys:String x:Key="BroadcastScreenPrivacy">Die Bildschirmübertragung sendet den ganzen gewählten Monitor, einschließlich der darauf angezeigten Benachrichtigungen und Passwörter. Von Windows geschützte Inhalte können leer erscheinen. Solange die Übertragung läuft, nennt die Karte den Monitor.</sys:String>
     <sys:String x:Key="BroadcastVideoUnavailable">Der Windows-Videocodierer (H.264) startet auf diesem PC nicht, daher werden Bildschirm und Kamera nicht angeboten. Mikrofon und Systemton hängen nicht davon ab.</sys:String>
     <sys:String x:Key="BroadcastOwnOutputRisk">In dieser Windows-Version enthält der Systemton auch den Ton dieser Anwendung selbst; eine Übertragung, die Sie hier abspielen, würde also erneut gesendet. Hören Sie Übertragungen auf einem anderen Gerät, solange der Systemton läuft.</sys:String>
     <sys:String x:Key="BroadcastLinkPassword">Link-Passwort</sys:String>
+    <sys:String x:Key="BroadcastConfirmStopAll">Damit enden alle Übertragungen, die gerade laufen, und ihre Zuschauer und Zuhörer werden getrennt. Fortfahren?</sys:String>
+    <sys:String x:Key="BroadcastConfirmLanOff">Alle Zuschauer und Zuhörer im lokalen Netzwerk werden getrennt, und eine Übertragung, die nicht auch über den Austauschserver läuft, endet. Fortfahren?</sys:String>
+    <sys:String x:Key="BroadcastConfirmRevokeLink">Das aktuelle Link-Passwort gilt sofort nicht mehr, und alle, die damit zuschauen oder zuhören, werden getrennt. Fortfahren?</sys:String>
     <sys:String x:Key="BroadcastLinkGenerated">Neu für jede Übertragung</sys:String>
     <sys:String x:Key="BroadcastLinkCustom">Von mir festgelegt</sys:String>
     <sys:String x:Key="BroadcastLinkNone">Kein Passwort</sys:String>
-    <sys:String x:Key="BroadcastLinkHint">Gilt für den Link, die Datei und den QR-Code, die Sie anderen geben. Das Passwort steckt nie darin - nennen Sie es getrennt; kopieren können Sie es im Menü „Teilen“ der Live-Anzeige. Ein selbst festgelegtes Passwort liegt nur im Windows-Geheimnisspeicher Ihres Kontos.</sys:String>
+    <sys:String x:Key="BroadcastLinkHint">Gilt für den Link, die Datei und den QR-Code, die Sie anderen geben. Das Passwort steckt nie darin - nennen Sie es getrennt; kopieren können Sie es im Menü „Teilen“ des Übertragungsfensters. Ein selbst festgelegtes Passwort liegt nur im Windows-Geheimnisspeicher Ihres Kontos.</sys:String>
     <sys:String x:Key="BroadcastLinkNoneWarning">Ohne Passwort kann jeder, der den Link erhält, zusehen und zuhören.</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordField">Passwort für den Link</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordSave">Passwort speichern</sys:String>
@@ -902,7 +907,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="BroadcastNotAllowed">Erlauben Sie das Übertragen zuerst in den Einstellungen.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">Zu viele Übertragungen gleichzeitig.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">Diese Quelle ist bereits live.</sys:String>
-    <sys:String x:Key="BroadcastEncoderMissing">Der Windows-Audio-Encoder ist auf diesem PC nicht verfügbar; die Quellen werden nicht angeboten.</sys:String>
+    <sys:String x:Key="BroadcastEncoderMissing">Der Windows-Audio-Encoder ist auf diesem PC nicht verfügbar; eine Übertragung mit Ton kann daher nicht gestartet werden. Bildschirm oder Kamera ohne Ton sind davon nicht betroffen.</sys:String>
     <sys:String x:Key="BroadcastPortTaken">Der LAN-Port ist belegt. Wählen Sie in den Einstellungen einen anderen.</sys:String>
     <sys:String x:Key="BroadcastPermissionDenied">Windows hat dieser Anwendung das Mikrofon oder die Kamera verweigert. Erlauben Sie den Zugriff in den Windows-Datenschutzeinstellungen und starten Sie erneut.</sys:String>
     <sys:String x:Key="BroadcastDeviceInUse">Das Gerät wird von einem anderen Programm belegt. Schließen Sie es und starten Sie erneut.</sys:String>
@@ -1014,7 +1019,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Code: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Es gibt noch keinen Server zum Prüfen. Importieren Sie zuerst eine Verbindungszeichenfolge oder melden Sie sich an.</sys:String>
     <sys:String x:Key="BroadcastNoReachableEndpoint">Niemand kann diese Übertragung empfangen. Aktivieren Sie das lokale Netzwerk oder verbinden Sie sich mit Ihrem Austauschserver und versuchen Sie es erneut.</sys:String>
-    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Diese geschützte Adresse wird hier nicht unterstützt. Bitten Sie den Sender um einen Link über den Austauschserver.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Die direkte Verbindung zum Sender, im lokalen Netzwerk oder über den Austauschserver, verlangt eine Kennwortprüfung, die dieser Player nicht unterstützt. Bitten Sie um eine vom Austauschserver verteilte Übertragung.</sys:String>
     <sys:String x:Key="BroadcastNotListed">nicht aufgeführt</sys:String>
     <sys:String x:Key="BroadcastTrustPrompt">Dieser PC kann das Zertifikat von {0} nicht prüfen. Vergleichen Sie den Fingerabdruck mit dem Sender, bevor Sie ihm für diesen Kanal vertrauen:&#10;{1}&#10;Diesem Zertifikat vertrauen?</sys:String>
     <sys:String x:Key="DriveTitle">Über Google Drive</sys:String>
@@ -1022,7 +1027,6 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="DriveSignIn">Mit Google anmelden</sys:String>
     <sys:String x:Key="DriveSignOut">Von Google abmelden</sys:String>
     <sys:String x:Key="DriveNoCast">Über Google Drive kann keine Übertragung an ein Gerät gesendet werden, da Push-Benachrichtigungen fehlen.</sys:String>
-    <sys:String x:Key="DriveUnavailable">Die Google-Anmeldung ist in dieser Version nicht verfügbar.</sys:String>
     <sys:String x:Key="DriveSignedOut">Nicht bei Google angemeldet.</sys:String>
     <sys:String x:Key="DriveSigningIn">Schließen Sie die Google-Anmeldung im Browser ab.</sys:String>
     <sys:String x:Key="DriveConnected">Mit Google Drive verbunden.</sys:String>
@@ -1049,4 +1053,46 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="MyStreamsWatch">Ansehen</sys:String>
     <sys:String x:Key="MyStreamsListen">Anhören</sys:String>
     <sys:String x:Key="MyStreamsSaved">Gespeichert</sys:String>
+    <!-- Broadcast start verdict and publication details. -->
+    <sys:String x:Key="BroadcastStarting">Übertragung wird gestartet…</sys:String>
+    <sys:String x:Key="BroadcastStartFailed">Die Übertragung wurde nicht gestartet. {0} Prüfen Sie das gewählte Gerät und die Verbindung und versuchen Sie es erneut.</sys:String>
+    <sys:String x:Key="BroadcastStopped">Übertragung beendet.</sys:String>
+    <sys:String x:Key="BroadcastAnnounced">Auf {0} für {1} Geräte des Kontos angekündigt.</sys:String>
+    <sys:String x:Key="BroadcastNoRecipients">Warnung: Kein anderes Gerät des Kontos kann sie öffnen. Melden Sie sich auf dem Empfangsgerät an, prüfen Sie die Unterstützung für verschlüsselte Übertragungen und starten Sie erneut.</sys:String>
+    <sys:String x:Key="BroadcastNotAnnounced">Nicht auf dem Austauschserver angekündigt. Verbinden Sie das Konto, um die Übertragung anzukündigen.</sys:String>
+    <sys:String x:Key="BroadcastLanAddress">Adresse im lokalen Netzwerk: {0}.</sys:String>
+    <sys:String x:Key="BroadcastUnnamedDevice">Unbenanntes Gerät</sys:String>
+    <sys:String x:Key="BroadcastShowRecipients">Adressierte Geräte anzeigen</sys:String>
+    <sys:String x:Key="BroadcastWindowTitle">Übertragung</sys:String>
+    <sys:String x:Key="BroadcastButtonIdle">Übertragung: nichts läuft</sys:String>
+    <sys:String x:Key="BroadcastButtonServerWarning">Der Austauschserver ist nicht erreichbar, daher sehen die Geräte des Kontos diese Übertragung nicht, bis er zurück ist.</sys:String>
+    <sys:String x:Key="BroadcastStateOff">Aus</sys:String>
+    <sys:String x:Key="BroadcastStateLiveSince">Live seit {0}.</sys:String>
+    <sys:String x:Key="BroadcastStateStopping">Übertragung wird beendet..</sys:String>
+    <sys:String x:Key="BroadcastWhereDrive">Über Google Drive angekündigt.</sys:String>
+    <sys:String x:Key="BroadcastReceivers">Direkt mit diesem PC verbunden: {0}.</sys:String>
+    <sys:String x:Key="BroadcastOpenSettings">Einstellungen..</sys:String>
+    <sys:String x:Key="BroadcastOpenWindow">Übertragungsfenster öffnen</sys:String>
+    <sys:String x:Key="BroadcastStopShort">Beenden</sys:String>
+    <sys:String x:Key="BroadcastLinkChoiceLine">Link-Passwort: {0}. Es wird in den Einstellungen geändert.</sys:String>
+    <sys:String x:Key="ExchangeSettingsTitle">Einstellungen austauschen (Profil STANDARD)</sys:String>
+    <sys:String x:Key="ExchangeSettingsHint">Speichern Sie Ihre Einstellungen für Darstellung, Wiedergabe und Oberfläche als STANDARD auf Ihrem Austauschserver und lesen Sie sie auf einem anderen PC. Nichts wird gesendet oder gelesen, bevor Sie eine Schaltfläche drücken, und spätere Änderungen bleiben auf diesem PC. Ordner, Audiogeräte, Fensterpositionen, Passwörter und Schlüssel verlassen ihn nie. Der Betreiber des Servers kann die gespeicherten Einstellungen lesen.</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupAppearance">Darstellung</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupPlayback">Wiedergabe</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupInterface">Oberfläche</sys:String>
+    <sys:String x:Key="ExchangeSettingsSave">Als STANDARD speichern</sys:String>
+    <sys:String x:Key="ExchangeSettingsRead">STANDARD lesen</sys:String>
+    <sys:String x:Key="ExchangeSettingsUnavailable">Speichern und Lesen des STANDARD funktioniert, solange dieser PC bei einem Server angemeldet ist, der Einstellungen aufbewahrt.</sys:String>
+    <sys:String x:Key="ExchangeSettingsChooseGroup">Wählen Sie mindestens eine Gruppe.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveConfirm">Diese Gruppen als STANDARD auf dem Server speichern: {0}? Der dort gespeicherte STANDARD wird ersetzt, und eine nicht gewählte Gruppe fällt heraus.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadConfirm">Den STANDARD vom Server lesen und diese Gruppen anwenden: {0}? Ihre Einstellungen auf diesem PC werden ersetzt.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSavedAt">Als STANDARD gespeichert: {0}.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadAt">Der am {0} gespeicherte STANDARD wurde gelesen und angewendet.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveUnknown">Der Server hat nicht geantwortet, daher ist unbekannt, ob die Einstellungen gespeichert wurden. Erneutes Speichern ist sicher.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadDamaged">Die Einstellungen auf dem Server sind beschädigt. Nichts wurde geändert.</sys:String>
+    <sys:String x:Key="ExchangeSettingsBusy">Einstellungen werden bereits ausgetauscht. Warten Sie, bis der Vorgang endet.</sys:String>
+    <sys:String x:Key="ExchangeSettingsNotFound">Auf dem Server sind für dieses Programm noch keine Standardeinstellungen gespeichert. Speichern Sie sie zuerst.</sys:String>
+    <sys:String x:Key="ExchangeSettingsInvalidPayload">Der Server hat diese Einstellungen nicht angenommen: Sie sind beschädigt oder zu groß.</sys:String>
+    <sys:String x:Key="ExchangeSettingsAppIdMismatch">Dieser Server bewahrt für dieses Konto keine Einstellungen dieses Programms auf.</sys:String>
+    <sys:String x:Key="ExchangeSettingsVersionIncompatible">Der Server unterstützt diese Version des Einstellungsformats nicht.</sys:String>
 </ResourceDictionary>

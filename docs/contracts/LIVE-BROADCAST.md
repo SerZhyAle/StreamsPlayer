@@ -140,3 +140,15 @@ LAN/tunnel leg this client cannot authenticate is refused with its own message, 
 relay keeps its TLS Basic path. Producer password choices, Digest and verifiers remain coordinated
 with SP-0239 item 10; live-peer latency and joint acceptance remain outstanding. The implementation
 claim is not raised by these scoped corrections.
+
+**SP-0249 consumer, 2026-10-26:** protected LAN HTTP and RTSP, and their tunnel-inner connections,
+now answer the producer's Digest challenge through an owned loopback proxy. The one password prompt,
+channel secret store and terminal wrong-password refusal apply to these routes as to the relay;
+relay TLS Basic and the sealed transport checks are retained. The proxy supports SHA-256 and MD5,
+including legacy RTSP challenges without qop, and keeps credentials out of player addresses.
+Observed with the real Windows application and local producers: protected RTSP video, SHA-256 HTTP
+audio, a failed LAN attempt followed by RTSP through a pinned sealed tunnel, remembered credentials,
+and a wrong-password message followed by a fresh prompt. Protocol fixtures cover interleaved frames,
+control-address rewriting and the refusal of clear or Basic substitutes. Phone interoperability,
+first-picture and steady-state budgets remain unverified; this note does not raise the overall
+conformance claim.

@@ -349,6 +349,7 @@ try {
                 Check ($parsed.'@type' -eq 'SoftwareApplication') "$($language.DictionaryCode): the landing is a SoftwareApplication"
                 Check ($parsed.offers.price -eq '0') "$($language.DictionaryCode): the landing is free"
                 Check ($parsed.downloadUrl -eq 'https://github.com/SerZhyAle/StreamsPlayer/releases/latest') "$($language.DictionaryCode): the download address is the newest release, never a version"
+                Check ($parsed.installUrl -eq 'https://apps.microsoft.com/detail/9NBTD5SXB8TB') "$($language.DictionaryCode): the install address is the Microsoft Store page"
                 Check ($parsed.screenshot -eq "${baseUrl}assets/screens/grid-$($language.DictionaryCode).jpg") "$($language.DictionaryCode): the screenshot is the locale's own"
                 Check ($parsed.license -like '*/blob/main/LICENSE' -and $parsed.author.url -eq 'https://github.com/SerZhyAle') "$($language.DictionaryCode): license and author address are named"
                 Check ($parsed.name -eq 'STREAMS Player') "$($language.DictionaryCode): the application keeps its name"

@@ -27,12 +27,24 @@ function Get-ExistingReleaseState {
     return 'complete'
 }
 
+# SP-0246 S3-2: GET releases/tags/<tag> answers 404 for a draft, so the tags endpoint alone cannot see one;
+# the release list does. Pure so it can be tested without GitHub.
+function Test-DraftReleaseExists {
+    param([Parameter(Mandatory)] [string] $Tag, [AllowEmptyCollection()] [object[]] $Releases = @())
+
+    return @($Releases | Where-Object { $_.draft -and $_.tag_name -ceq $Tag }).Count -gt 0
+}
+
 if ($MyInvocation.InvocationName -ne '.') {
     $ErrorActionPreference = 'Stop'
     if (-not $Version -or -not $Tag -or -not $Repository) { throw 'Version, Tag and Repository are required.' }
     $out = gh api "repos/$Repository/releases/tags/$Tag" 2>&1
     if ($LASTEXITCODE -ne 0) {
         if (($out | Out-String) -notmatch 'HTTP 404') { throw "Release lookup failed: $($out | Out-String)" }
+        $listed = gh api --paginate --slurp "repos/$Repository/releases?per_page=100" 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "Release list lookup failed: $($listed | Out-String)" }
+        $releases = @(($listed | Out-String | ConvertFrom-Json) | ForEach-Object { $_ } | ForEach-Object { $_ })
+        if (Test-DraftReleaseExists -Tag $Tag -Releases $releases) { throw 'An existing draft requires explicit recovery before publication.' }
         $state = 'empty'
     }
     else {

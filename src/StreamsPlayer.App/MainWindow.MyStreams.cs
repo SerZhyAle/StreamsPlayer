@@ -145,10 +145,11 @@ public partial class MainWindow
         {
             if (_myStreamsDirectoryLease is not null)
             {
-                _myStreamsDirectoryLease.Dispose();
-                _myStreamsDirectoryLease = null;
                 Exchange.DirectoryChanged -= OnMyStreamsDirectoryChanged;
                 IncomingBroadcastsChanged -= OnMyStreamsIncomingChanged;
+                var lease = _myStreamsDirectoryLease;
+                _myStreamsDirectoryLease = null;
+                lease.Dispose();
                 MyStreamsGroups.Clear();
                 _myStreamsRefreshFailed = false;
             }

@@ -1,0 +1,12 @@
+USER-PLAYLIST conformance vectors (contract section 4 and the section 9 clarification), vendored for SP-0247.
+
+source:    Contracts/user-playlist/vectors/, contract version 0.12; this product owns the contract and its vectors
+copied:    byte for byte on 2026-10-26 from the contract store; never edited here - a change lands in the store first
+replayed:  M3uPlaylistVectorTests (the three .m3u8 files through M3uPlaylistParser; the JSON carrier is optional under
+           section 6 item A and this product has no JSON reader, so that vector is held only by its hash)
+
+sha256:
+  hls-manifest-rejection.m3u8          edd8c5057b07db68d97848fb6ef0f59829ad645ab9731159c210bba5353eeebc
+  valid-extended-hls-entry.m3u8        161fbae86acda2bbcdd0a8bc8d32ad6f184d65003cb6eb9dc27c780c94f9340e
+  valid-extended.m3u8                  dea1d85abc6d34afc51d02d5d4772f2f572977c9014354f663eda61eba36ca15
+  valid-playlist.sza-playlist.json     96f8ba19cbde5348c1465b0cabaae531e41f1303b0fc784fcbd0a520ed5b4067

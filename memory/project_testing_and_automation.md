@@ -14,8 +14,12 @@ type: project
   - Foreground-lock bypass using ALT tap collapses WPF content tree to chrome; follow with Escape key.
 - **Environment & sandbox isolation:**
   - `Enter-SpSandbox` and `Exit-SpSandbox` isolate `%LOCALAPPDATA%\StreamsPlayer`. Ensure processes are terminated before sandbox cleanup.
+  - **Git Bash text tools rewrite CRLF files as LF (SP-0247, 2026-10-26).** `sed -i` and `awk > file` in the Bash tool strip
+    every `\r` from a CRLF file - even a `sed -i` whose pattern matched nothing - and `grep` hides the `\r`, so a `\r$` anchor
+    never matches. Edit CRLF files (`*.cs`, `*.xaml`, `*.md`, the site decks, the winget templates) with the Edit tool or
+    PowerShell `[IO.File]::ReadAllText`/`WriteAllText`; after a shell edit, re-normalize to CRLF before diffing.
 - **Smoke playback gate (scripts/smoke-playback.ps1):**
-  - Mandatory offline/live separation: unit tests run offline in CI; `smoke-playback.ps1` validates shipping binaries against live endpoints before release.
+  - Mandatory offline/live separation: unit tests run offline in the release suite (`scripts/check.ps1`, `release.yml`; push CI runs only the fast tier since SP-0256); `smoke-playback.ps1` validates shipping binaries against live endpoints before release.
 - **Power assertions (WakeGuard):**
   - Ref-counted `SetThreadExecutionState` calls appear as a single entry per thread in `powercfg /requests`. Windows audio stack adds its own system-level entry during active audio playback.
 - **Driving the real app against a scripted exchange server (SP-0222, 2026-10-21).**
@@ -23,6 +27,6 @@ type: project
   - An **owned window is nested under its owner in the UIA tree**, not a child of the desktop: `FindAll(Children)` from the root misses it. Search the main window's `Descendants` for `ControlType.Window`, or `AutomationElement.FromHandle`.
   - Build, tests and review had all passed while three windows could not open: a `StaticResource` is resolved when a window loads, and `SettingsLinkButton` lived only inside `SettingsWindow.xaml`. `StaticResourceResolutionTests` now reads that rule for every window; a window that no test constructs still needs a run.
 - **Traps met while building SP-0226 (2026-10-21).**
-  - `StreamsPlayer.Exchange.Tests` compiles the App's exchange sources by link and holds `InternalsVisibleTo` from Core, so an App file that touches a Core `internal` member builds green there and fails in `StreamsPlayer.App` - build the App itself (`dotnet build src/StreamsPlayer.App`) after any Core visibility choice.
+  - `StreamsPlayer.Exchange.Tests` compiles the App's exchange sources by link and holds `InternalsVisibleTo` from Core, so an App file that touches a Core `internal` member builds green there and fails in `StreamsPlayer.App` - only the App build catches it, so a Core visibility choice is a `RELEASE` item naming `scripts/check.ps1` (or `dotnet build src/StreamsPlayer.App` in a run the owner names); between releases find every App use of the member by grep.
   - `scripts/check.ps1` cannot build while the owner's Release copy is running (`StreamsPlayer.Core.dll` in `src/StreamsPlayer.App/bin/Release/...` is locked); do not kill it - run the three test projects in Release and compile the App with `-p:OutDir=temp/<ticket>/..` instead, and say the gate was not run.
   - Patching files from PowerShell: a double-quoted string turns `` `e `` into ESC (0x1B) and drops the backtick of `` `word` `` (use single quotes or here-strings for text with markdown backticks), and in `@('a' + "`n", 'b')` the comma binds before `+` (parenthesize each element).

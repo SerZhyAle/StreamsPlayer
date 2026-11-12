@@ -33,4 +33,9 @@ $bad[1].size = 100
 $bad[1].state = 'new'
 Check (Refuses $bad) 'unfinished upload is refused'
 Check (-not (ThrowsLike { throw 'unrelated failure' } 'Release assets are incomplete or invalid')) 'an unrelated exception is not a refusal'
+$listed = @([pscustomobject]@{ tag_name = 'v1'; draft = $false }, [pscustomobject]@{ tag_name = 'v2'; draft = $true })
+Check (Test-DraftReleaseExists -Tag 'v2' -Releases $listed) 'a draft behind a tags-endpoint 404 is found in the release list'
+Check (-not (Test-DraftReleaseExists -Tag 'v1' -Releases $listed)) 'a published release is not a draft'
+Check (-not (Test-DraftReleaseExists -Tag 'v3' -Releases $listed)) 'an unlisted tag is not a draft'
+Check (-not (Test-DraftReleaseExists -Tag 'v2')) 'an empty list holds no draft'
 Write-Host "existing-release: PASS ($scenarios scenarios)"

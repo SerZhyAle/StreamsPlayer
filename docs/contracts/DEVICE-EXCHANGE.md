@@ -8,6 +8,12 @@
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | **receiver** and **broadcaster** (`product` `streamsplayer-windows`, items CE and BI; the role table of section 3 has said so since 0.23). It finds a user's broadcasts through the account's exchange server (and the optional Google Drive source, SP-0202; its joint broadcast runs remain open), plays them and accepts casts, and broadcasts the PC's audio to the one exchange server of its own account behind a Settings permission that is off by default (SP-0217; screen and camera are SP-0223, not built). It signs in only (`enroll`, never `register`), publishes no resource, takes no part in the clipboard, is no administration client and implements no server and no P2P. Broadcasts of other users reach it by their description, through whichever server the description names (SP-0215). |
 
+**SP-0260, 2026-11-12:** 1.12 items EN to ER (`SETTINGS-STANDARD-2026-11-12.md`) are implemented as a client: `appId`
+`streamsplayer`, groups `appearance`, `playback` and `interface`, the four frames on the control stream behind the
+`settings` feature, and the four refusal rows of item EP. The samples `vectors/settings-standard-v1/` are vendored as
+test data. The registry row is not moved to 1.12 until the release suite and a live round trip against the server
+(FMS_Win L0296) have run; no joint replay is claimed.
+
 **SP-0232, 2026-10-22:** section 29 DS-DU is audited in the [synchronization audit](../audits/SP-0232-contract-sync.md). The single own-account
 model has no separate outgoing selector; announcement/online/guest transitions and the live server/state
 line remain SP-0239. Registry implementation/reader claims stay `partial 1.5`; no 1.6 joint proof is claimed.
@@ -75,7 +81,7 @@ user made (`VERSIONING.md` section 4 rule 5).
 **State on 2026-10-21 (SP-0225):** the ladder of item CY, the table of item CZ and the display rules of item DA are built as the
 connection check, with the `format-unsupported` row of the amendment of 2026-10-17. The fifteen steps and the 24 rows this product
 raises are Core (`ExchangeDiagnosisStep`, `ExchangeFailureRows`, `ExchangeDiagnosisEngine`); the words are the table's in EN, RU and
-UK, held in CI by `ExchangeFailureTextTests` against a vector that `tools/localization/check-exchange-terms.ps1` exports from the
+UK, held in the release test suite by `ExchangeFailureTextTests` against a vector that `tools/localization/check-exchange-terms.ps1` exports from the
 catalog, and translated from EN in the other ten languages. A refusal is the server's answer, so the link steps before the one it
 names are shown as passed and nothing is probed; a failure with no reason on the wire (`unreachable`, `unanswered`, `tls-failed`) is
 walked, probing what this PC can see - a bounded connection to the address the person already uses, the adapters, a name lookup -

@@ -257,6 +257,10 @@ public partial class SettingsWindow : Window
         FlowDirection = (FlowDirection)FindResource("UiFlowDirection");
         PopulateOptions();
         ShowExchange();
+        ShowDrive();
+        PopulateBroadcastQuality();
+        PopulateBroadcastLink();
+        ShowBroadcasting();
         ShowTvSchedule();
         ShowVideoComponents();
         SyncHeader();
@@ -619,6 +623,7 @@ public partial class SettingsWindow : Window
 
         if (!e.Cancel)
         {
+            CommitBroadcastLanPort();
             SaveNavigationContext();
         }
 

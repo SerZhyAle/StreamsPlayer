@@ -1,0 +1,77 @@
+<Window x:Class="StreamsPlayer.App.BroadcastWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:StreamsPlayer.App"
+        FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource BroadcastWindowTitle}" Height="720" Width="640"
+        MinWidth="440" MinHeight="420"
+        WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBackground}"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <Window.Resources>
+        <!-- SP-0252: the exchange-server status row moved here from the header. It keeps the one-tone glyph (EXCHANGE-MARK section 6)
+             and its old job: it opens the Exchange server page of Settings, where the account is set up. -->
+        <Style x:Key="ExchangeStatusGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+            <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.source.exchange-server}" />
+        </Style>
+    </Window.Resources>
+    <!-- SP-0252: where a broadcast is started, watched, shared and stopped. A companion window (APP-BEHAVIOUR rule 1):
+         not modal, one instance, and closing it never stops anything - the header button stays red and reopens it. -->
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <DockPanel VerticalAlignment="Center">
+                    <Button x:Name="ExchangeSettingsButton" local:HelpAnchor.Id="e-server" Style="{StaticResource ExchangeStatusGlyphOnlyButton}"
+                            DockPanel.Dock="Left" VerticalAlignment="Top" Margin="0,0,6,0" Padding="4" Content="{DynamicResource ExchangeTitle}"
+                            ToolTip="{DynamicResource ExchangeTitle}" AutomationProperties.Name="{DynamicResource ExchangeTitle}"
+                            Click="ExchangeSettings_Click" />
+                    <TextBlock x:Name="ServerStatusText" TextWrapping="Wrap" />
+                </DockPanel>
+                <Button x:Name="HelpButton" Grid.Column="1" Style="{StaticResource HelpGlyphButton}" Margin="8,0,0,0"
+                        VerticalAlignment="Top" ToolTip="{DynamicResource HelpTip}"
+                        AutomationProperties.Name="{DynamicResource HelpName}" />
+            </Grid>
+            <TextBlock x:Name="LinkChoiceText" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
+            <TextBlock x:Name="ReasonText" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" />
+            <Button x:Name="EnableLinkButton" Style="{StaticResource SettingsLinkButton}" Content="{DynamicResource BroadcastOpenSettings}"
+                    Click="Settings_Click" Visibility="Collapsed" Margin="0,2,0,0" />
+            <TextBlock x:Name="VideoUnavailableText" Text="{DynamicResource BroadcastVideoUnavailable}" TextWrapping="Wrap"
+                       Foreground="{DynamicResource MutedBrush}" Margin="0,8,0,0" Visibility="Collapsed" />
+            <TextBlock x:Name="OutcomeText" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,12,0,0"
+                      Focusable="False">
+            <StackPanel x:Name="CardsPanel">
+                <local:BroadcastSourceCard x:Name="ScreenCard" local:HelpAnchor.Id="e-screen" />
+                <local:BroadcastSourceCard x:Name="CameraCard" local:HelpAnchor.Id="e-camera" />
+                <local:BroadcastSourceCard x:Name="MicrophoneCard" local:HelpAnchor.Id="e-microphone" />
+                <local:BroadcastSourceCard x:Name="SystemSoundCard" local:HelpAnchor.Id="e-system-sound" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Row="2" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button x:Name="StopAllButton" local:HelpAnchor.Id="e-stop-all" Style="{StaticResource StopGlyphButton}"
+                    Content="{DynamicResource BroadcastStopAll}" Click="StopAll_Click" Margin="4,3" />
+            <WrapPanel Grid.Column="1" HorizontalAlignment="Right">
+                <Button Style="{StaticResource SettingsLinkButton}" Content="{DynamicResource MediaExchange}" Click="ExchangeHelp_Click"
+                        ToolTip="{DynamicResource MediaExchangeTip}" AutomationProperties.Name="{DynamicResource MediaExchange}" Margin="4,3" />
+                <Button x:Name="SettingsButton" local:HelpAnchor.Id="e-settings" Style="{StaticResource SettingsGlyphButton}"
+                        Content="{DynamicResource BroadcastOpenSettings}" Click="Settings_Click" Margin="4,3" />
+                <Button Style="{StaticResource CloseAnswerGlyphButton}" Content="{DynamicResource Close}" Click="Close_Click" Margin="4,3" />
+            </WrapPanel>
+        </Grid>
+    </Grid>
+</Window>

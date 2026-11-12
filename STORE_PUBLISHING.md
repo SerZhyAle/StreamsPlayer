@@ -19,7 +19,7 @@ the step-by-step to build, submit, and update.
 | IARC Global Rating ID | `7fd02683-3ef9-8606-8fb0-3f68aa55f8fc` |
 | IARC rating date / storefront | `2026-07-23` · Microsoft |
 
-`msix/build-msix.ps1` already defaults to the three identity values, so a plain build is correctly identified.
+`msix/build-msix.ps1` reads the three identity values from `msix/identity.json` (and stops without it), so a plain build is correctly identified.
 
 ## Why this path
 
@@ -211,8 +211,31 @@ infringing-content policy. Pre-empt it:
 6. Submit for certification (a few business days). For an update, *Create new
    submission*, replace the package (same identity, higher version), refresh copy, submit.
 
-> The `msstore` CLI cannot automate submissions on an individual account (no Azure AD
-> org). Use the Partner Center web UI.
+> The upload, the listing and the submit stay in the Partner Center web UI. The Microsoft Store
+> Developer CLI (`msstore`) answers read-only calls for this account once the owner has configured it in
+> their own terminal: `msstore apps list`, `msstore submission status 9NBTD5SXB8TB` and
+> `msstore submission get 9NBTD5SXB8TB` show whether a submission is pending and which package is live.
+> Read the `Status` and the second output line, never the mere existence of JSON (with no pending
+> submission the command returns the last published one), and strip the raw line breaks of the
+> 80-column wrapped JSON before parsing it. Nothing in this repository writes to the Store through the
+> CLI or the API: a write needs the owner's words naming the product and the package version, and a
+> submission made in Partner Center is changed in Partner Center only. The credential belongs to the
+> owner and never enters a repository, a log or an agent chat.
+>
+> Before the tag, item 4b of the release checklist (`scripts/release.ps1`) runs
+> `scripts/Invoke-StorePreflight.ps1`. It calls the shared read-only preflight of the `sza` plugin with the
+> Store ID from `msix/identity.json` and the package version in its MSIX form, and holds no `msstore`
+> call of its own. The release stops there (exit 1, do not tag) when a submission is pending, the version
+> is not greater than every live package, the price is not `Free`, or the product has no live
+> submission. When the channel is unconfigured, the credential is missing or expired, or the token is
+> refused, it prints one line that the Store step is manual and exits 0: the release goes on as it does
+> without the channel, and the channel never fails a release after the tag. It does not test the package
+> signature (the package is built after the tag and read back by `msix/Assert-MsixPackage.ps1`),
+> Store-managed consumables, a console edit of a submission, the credential's expiry unless
+> `-CredentialExpiry` is passed, or that a write would succeed; it writes nothing, and the upload, the
+> listing and the commit stay manual. Each run appends one line - the Store ID, the package version, the
+> mode and the classifications, never an account identifier, a credential or an upload address - to
+> `release-verdicts/<version>.store-preflight.jsonl`, which is committed with the verdict files.
 
 ---
 

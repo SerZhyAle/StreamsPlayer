@@ -32,3 +32,10 @@ quoted dialogs, and no rule-4 instruction in the English source. Rule 5 is met b
 text or localization carries one (the word appears only in the English template comment, which is not rendered text, and in two
 unrelated source comments). `InstallTrustPageTests` now also fails on an "unblock" instruction in the English deck. Item L (the
 reference rendering restructured) changes nothing here: the page already has the four sections in the contract's order.
+
+**1.2, 2026-10-26 (SP-0247).** Item H(3): the three winget locale templates carry `InstallationNotes` that link the
+trust page of their language (held in `tools/site/held-addresses.json`). Item C: the page says that signing would not silence a
+behaviour check and names what this product does that such checks watch (clipboard on paste or import, screen, camera,
+microphone or system sound on a broadcast, each only on the user's action) - key `trust-why-4` - and tells a portable-ZIP user
+to unpack into a folder they keep before the first run (`trust-zip`). Item F: the per-user `.spres` association the installer
+writes, without elevation, and its removal by Uninstall are listed (`trust-admin-4`). All three in the thirteen decks.

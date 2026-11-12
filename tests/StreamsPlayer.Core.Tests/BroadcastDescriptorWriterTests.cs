@@ -43,6 +43,16 @@ public sealed class BroadcastDescriptorWriterTests
         Assert.StartsWith("https://example.test:44022/v2/b/", read.Url, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void TunnelOnly_TheTopLevelAddressIsTheTunnelsNotARelayNoEndpointLists()
+    {
+        var descriptor = BroadcastDescriptorWriter.Write(Plan(lan: null, relay: false, tunnel: true));
+        using var document = JsonDocument.Parse(descriptor);
+        var top = document.RootElement.GetProperty("url").GetString();
+        Assert.StartsWith("fmsx://example.test:44022/b/", top, StringComparison.Ordinal);
+        var endpoints = document.RootElement.GetProperty("endpoints").EnumerateArray().Select(e => e.GetProperty("url").GetString()).ToArray();
+        Assert.Contains(top, endpoints);
+    }
     [Theory]
     [InlineData("127.0.0.1")]
     [InlineData("0.0.0.0")]

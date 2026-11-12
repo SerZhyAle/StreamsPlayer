@@ -69,7 +69,7 @@ public partial class MainWindow
     }
 
     // Reflects a live Settings toggle. Enabling publishes any current/paused session; disabling
-    // tears the integration down and forgets a paused session (there is no UI to resume it).
+    // tears the integration down; the panel can still resume a paused station.
     private void ApplySystemMediaControlsSetting()
     {
         if (_state.SystemMediaControls)
@@ -86,7 +86,6 @@ public partial class MainWindow
         }
         else
         {
-            _audioPausedChannelId = null;
             DisposeSystemMediaControls();
         }
     }
@@ -132,9 +131,9 @@ public partial class MainWindow
     // An entry stops being available when its row has since been deleted from the catalog, or when the
     // user hid it or the bank retired it (SP-0212 L16): a media key must not play what no view would
     // show. A pinned row the bank retired stays available, exactly as the offer rules treat it.
-    private bool IsAudioNavEntryAvailable(int index) =>
+    private bool IsAudioNavEntryAvailable(int index, HashSet<string> hiddenIdentities) =>
         ChannelById(_audioNavOrder[index]) is { } channel &&
-        !IsHiddenBySet(BuildHiddenIdentitySet(), channel) &&
+        !IsHiddenBySet(hiddenIdentities, channel) &&
         (channel.RetiredAt is null || channel.Pinned);
 
     private void PublishAudioSession(bool playing)
@@ -176,8 +175,9 @@ public partial class MainWindow
         }
 
         var current = CurrentAudioNavIndex();
-        return (LivePlaybackNavigation.PreviousAvailable(current, IsAudioNavEntryAvailable) is not null,
-            LivePlaybackNavigation.NextAvailable(current, _audioNavOrder.Count, IsAudioNavEntryAvailable) is not null);
+        var hidden = BuildHiddenIdentitySet();
+        return (LivePlaybackNavigation.PreviousAvailable(current, index => IsAudioNavEntryAvailable(index, hidden)) is not null,
+            LivePlaybackNavigation.NextAvailable(current, _audioNavOrder.Count, index => IsAudioNavEntryAvailable(index, hidden)) is not null);
     }
 
     private void OnSystemMediaCommand(SystemMediaControls.Command command)
@@ -264,9 +264,10 @@ public partial class MainWindow
         }
 
         var current = CurrentAudioNavIndex();
+        var hidden = BuildHiddenIdentitySet();
         var target = forward
-            ? LivePlaybackNavigation.NextAvailable(current, _audioNavOrder.Count, IsAudioNavEntryAvailable)
-            : LivePlaybackNavigation.PreviousAvailable(current, IsAudioNavEntryAvailable);
+            ? LivePlaybackNavigation.NextAvailable(current, _audioNavOrder.Count, index => IsAudioNavEntryAvailable(index, hidden))
+            : LivePlaybackNavigation.PreviousAvailable(current, index => IsAudioNavEntryAvailable(index, hidden));
         if (target is not int index)
         {
             return; // no wrap: stop cleanly at either end

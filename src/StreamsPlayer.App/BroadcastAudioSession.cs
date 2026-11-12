@@ -23,12 +23,17 @@ internal sealed partial class BroadcastAudioSession : IDisposable
 {
     private readonly StreamChannel _channel;
     private readonly BroadcastCredentialsSession? _credentials;
+    // SP-0250: what tells a deliberate end from a lost connection, and what keeps the directory followed while this plays.
+    private readonly BroadcastEndWatch _end = new();
+    private readonly BroadcastEndFollower? _follower;
+    private IDisposable? _follow;
     private readonly Action<string, string[]>? _log;
     private readonly string? _outputDevice;
     private readonly AudioChannelMode _channelMode;
     // S6-2: the radio watchdog's poll cadence (MainWindow.AudioStallWatchdog) - fine against the 15 s bound, cheap against a poll.
     private static readonly TimeSpan StallPollInterval = TimeSpan.FromSeconds(2);
     private const string StallReason = "stall";
+    private const string EndTag = "PLAYBACK END";
     private readonly object _gate = new();
     private LivePlaybackRecoveryPolicy _policy = new();
     private CancellationTokenSource? _sessionCancellation;
@@ -47,8 +52,10 @@ internal sealed partial class BroadcastAudioSession : IDisposable
         int volume,
         string? outputDevice,
         AudioChannelMode channelMode,
-        Action<string, string[]>? log)
+        Action<string, string[]>? log,
+        BroadcastEndFollower? follower = null)
     {
+        _follower = follower;
         _channel = channel;
         _credentials = credentials;
         _volume = Math.Clamp(volume, 0, 100);
@@ -105,6 +112,10 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             _sessionCancellation = new CancellationTokenSource();
             token = _sessionCancellation.Token;
             _policy = new LivePlaybackRecoveryPolicy();
+            // Start after an ended state is the person's Reconnect: the window listens again, and follows the directory again.
+            _end.Reset();
+            ReleaseFollowLocked();
+            _follow = _follower?.Follow(_channel, OnDirectoryRemoval);
         }
 
         BeginLeg(reconnecting: false, token);
@@ -116,6 +127,7 @@ internal sealed partial class BroadcastAudioSession : IDisposable
         {
             _sessionCancellation?.Cancel();
             StopLegLocked();
+            ReleaseFollowLocked();
         }
 
         SetState(BroadcastLegState.Stopped, null);
@@ -133,6 +145,7 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             _disposed = true;
             _sessionCancellation?.Cancel();
             StopLegLocked();
+            ReleaseFollowLocked();
             _sessionCancellation?.Dispose();
             _sessionCancellation = null;
         }
@@ -168,30 +181,15 @@ internal sealed partial class BroadcastAudioSession : IDisposable
         _ = OpenAsync(playback, generation, token);
     }
 
-    /// <summary>
-    /// SP-0225: the host and port of the first listed endpoint that names a network address, for the connection check
-    /// of a leg that failed. Only the authority is taken - the path and the id behind it are the capability to
-    /// listen and never leave this class.
-    /// </summary>
-    internal (string Host, int Port)? DiagnosisTarget()
-    {
-        foreach (var endpoint in _channel.FastMediaSorterBroadcast?.PlaybackAttemptEndpoints() ?? [])
-        {
-            if (ExchangeDiagnosisRoute.TryAuthorityOf(endpoint.Url, out var host, out var port))
-            {
-                return (host, port);
-            }
-        }
-
-        return null;
-    }
+    /// <summary>SP-0225: the server the connection check of a failed leg looks at (the authority only).</summary>
+    internal (string Host, int Port)? DiagnosisTarget() => _channel.FastMediaSorterBroadcast?.DiagnosisTarget();
 
     private async Task OpenAsync(FastMediaSorterAudioLeg playback, int generation, CancellationToken token)
     {
         try
         {
             var result = await playback.OpenAsync(_channel, _volume, _credentials?.Credentials, token,
-                generation, State == BroadcastLegState.Reconnecting).ConfigureAwait(false);
+                generation, State == BroadcastLegState.Reconnecting, _end).ConfigureAwait(false);
             if (!result.Started && !result.Cancelled)
             {
                 HandleFailure(playback, generation, token, result.Reason, result.StatusCode);
@@ -223,6 +221,7 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             }
 
             _legPlayed = Stopwatch.StartNew();
+            _end.NoteLive();
             // S6-2: a second Playing for the same leg keeps its watch (and the silence it has already counted).
             if (_stallTimer is null && _sessionCancellation is { } cancellation && e.ReadInputBytes is { } readBytes)
             {
@@ -249,7 +248,14 @@ internal sealed partial class BroadcastAudioSession : IDisposable
         }
 
         // A phone's chunked body ending cleanly and a watch closing its socket both land here. Both mean the
-        // device may have stopped, so the bounded budget decides, then names the stop.
+        // device may have stopped. A removal the directory pushed while the stream still played is read now, with no
+        // reconnect to be refused first (item U); otherwise the bounded budget decides, and the reconnect's answer
+        // (a relay 410, a tunnel "ended", a refused or 404 LAN address) can end it before the budget does.
+        if (EndedBy(_end.NoteStopped()))
+        {
+            return;
+        }
+
         Recover((FastMediaSorterAudioLeg)sender!, generation, token, "end_reached", endReached: true, e.StatusCode);
     }
 
@@ -281,6 +287,12 @@ internal sealed partial class BroadcastAudioSession : IDisposable
         }
 
         LastFailureReason = reason;
+
+        // SP-0250: the stream failed to deliver, and what the reconnect was answered may say the broadcast is over.
+        if (EndedBy(_end.NoteStopped()) || EndedBy(_end.NoteAnswer(BroadcastEndAnswers.FromReason(reason))))
+        {
+            return;
+        }
 
         // The refusals no reconnect can mend (a refused password, a certificate that does not match, the bound, a
         // full listener list) end the leg at once with their message; everything else spends the recovery budget.
@@ -331,6 +343,11 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             $"attempt={decision.Attempt}", $"budget={decision.Budget}", $"reason={reason}"]);
         if (decision.Kind == RecoveryActionKind.HardFail)
         {
+            if (endReached)
+            {
+                _log?.Invoke(EndTag, [$"cause={BroadcastEndCauses.Name(_end.NoteBudgetExhausted().Cause)}", "kind=audio"]);
+            }
+
             End(endReached ? BroadcastLegState.Ended : BroadcastLegState.Failed, IncomingBroadcastFailure.NoLongerAvailableKey);
             return;
         }
@@ -358,9 +375,59 @@ internal sealed partial class BroadcastAudioSession : IDisposable
         lock (_gate)
         {
             StopLegLocked();
+            ReleaseFollowLocked();
         }
 
         SetState(state, messageKey);
+    }
+
+    /// <summary>The follower's word that the broadcast left the directory (on the UI thread, once per absence).</summary>
+    private void OnDirectoryRemoval()
+    {
+        lock (_gate)
+        {
+            if (_disposed || !IsActive)
+            {
+                return;
+            }
+        }
+
+        EndedBy(_end.NoteRemoval());
+    }
+
+    /// <summary>
+    /// Applies a verdict: an end stops the session's reconnecting for good and shows the ended state, which the person's
+    /// Reconnect (<see cref="Start"/>) leaves; anything else changes nothing. Returns whether the broadcast ended.
+    /// </summary>
+    private bool EndedBy(BroadcastEndVerdict verdict)
+    {
+        if (!verdict.IsEnd)
+        {
+            return false;
+        }
+
+        lock (_gate)
+        {
+            if (_disposed || State == BroadcastLegState.Ended || !IsActive)
+            {
+                return true;
+            }
+
+            // The cancelled token is what keeps a reconnect that is waiting out its delay from starting a leg.
+            _sessionCancellation?.Cancel();
+            StopLegLocked();
+            ReleaseFollowLocked();
+        }
+
+        _log?.Invoke(EndTag, [$"cause={BroadcastEndCauses.Name(verdict.Cause)}", "kind=audio"]);
+        SetState(BroadcastLegState.Ended, IncomingBroadcastFailure.EndedKey);
+        return true;
+    }
+
+    private void ReleaseFollowLocked()
+    {
+        _follow?.Dispose();
+        _follow = null;
     }
 
     private bool IsCurrent(FastMediaSorterAudioLeg playback, int generation)

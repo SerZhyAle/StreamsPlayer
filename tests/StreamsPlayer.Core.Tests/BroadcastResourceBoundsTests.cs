@@ -26,6 +26,26 @@ public sealed class BroadcastResourceBoundsTests
     }
 
     [Fact]
+    public void Many_lan_paths_do_not_crowd_out_the_ipv6_and_port_forward_paths()
+    {
+        var lan = Enumerable.Range(0, 30).Select(index => "{ \"kind\": \"lan\", \"host\": \"192.168.1.100\", \"port\": " + (1000 + index) + " }");
+        var others = new[]
+        {
+            "{ \"kind\": \"ipv6\", \"host\": \"[2001:db8::1]\", \"port\": 2000 }",
+            "{ \"kind\": \"portforward\", \"host\": \"203.0.113.9\", \"port\": 3000 }",
+        };
+        var document = "{ \"schemaVersion\": 1, \"kind\": \"broadcast\", \"protocol\": \"http\", \"mediaKind\": \"audio\", \"itemCount\": 1, "
+            + "\"resourceName\": \"Dune\", \"accessNote\": \"\", \"accessPaths\": [" + string.Join(",", lan.Concat(others)) + "], \"path\": \"/b/tok\" }";
+
+        var read = BroadcastResourceReader.Read(document);
+
+        Assert.True(read.IsAccepted);
+        var paths = read.Resource!.AccessPaths;
+        Assert.Equal(BroadcastResourceReader.MaximumAccessPaths, paths.Count);
+        Assert.Contains(paths, path => path.Kind == "ipv6");
+        Assert.Contains(paths, path => path.Kind == "portforward");
+    }
+    [Fact]
     public void A_long_title_and_note_are_cut_and_a_short_one_is_not()
     {
         var cut = BroadcastResourceReader.Read(Document(1, new string('a', 100_000), new string('b', 100_000)));

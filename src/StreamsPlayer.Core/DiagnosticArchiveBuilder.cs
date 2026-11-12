@@ -153,8 +153,25 @@ public static class DiagnosticArchiveBuilder
     /// </summary>
     private static void WriteRedacted(Stream destination, ReadOnlySpan<byte> bytes, DiagnosticPathRedactor paths)
     {
-        var redacted = LogEncoding.GetBytes(paths.Redact(ExchangeDiagnosticRedactor.Redact(CatalogUrlIdentity.RedactText(DiagnosticValueRedactor.Redact(LogEncoding.GetString(bytes))))));
+        var redacted = RedactLog(bytes, text => paths.Redact(ExchangeDiagnosticRedactor.Redact(CatalogUrlIdentity.RedactText(DiagnosticValueRedactor.Redact(text)))));
         destination.Write(redacted, 0, redacted.Length);
+    }
+
+    /// <summary>
+    /// SP-0246 S16-6: a redactor that times out answers the bare <c>[REDACTED]</c> for the whole text, so a reader of the
+    /// archive would see a log holding one word and no reason. The log is replaced by an explicit marker instead.
+    /// </summary>
+    internal static byte[] RedactLog(ReadOnlySpan<byte> bytes, Func<string, string> redact)
+    {
+        var text = LogEncoding.GetString(bytes);
+        var redacted = redact(text);
+        if (redacted == DiagnosticValueRedactor.RedactedToken && text != DiagnosticValueRedactor.RedactedToken)
+        {
+            return LogEncoding.GetBytes("[Diag] LOG OMITTED | reason=redaction_timeout | source_bytes=" +
+                bytes.Length.ToString(CultureInfo.InvariantCulture) + "\r\n");
+        }
+
+        return LogEncoding.GetBytes(redacted);
     }
 
     private static byte[] ReadAt(Stream source, long offset, long count)

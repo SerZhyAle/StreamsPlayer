@@ -34,17 +34,24 @@
     <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Leave.cs" Link="ExchangeSourceService.Leave.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Enroll.cs" Link="ExchangeSourceService.Enroll.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Password.cs" Link="ExchangeSourceService.Password.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Settings.cs" Link="ExchangeSourceService.Settings.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeGuestEntries.cs" Link="ExchangeGuestEntries.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/LoopbackPeerOwner.cs" Link="LoopbackPeerOwner.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Producer.cs" Link="ExchangeSourceService.Producer.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Directory.cs" Link="ExchangeSourceService.Directory.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Sealed.cs" Link="ExchangeSourceService.Sealed.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Loop.cs" Link="ExchangeSourceService.Loop.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Frames.cs" Link="ExchangeSourceService.Frames.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Casts.cs" Link="ExchangeSourceService.Casts.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeTrustBook.cs" Link="ExchangeTrustBook.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeGuestDirectoryViewer.cs" Link="ExchangeGuestDirectoryViewer.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ProductInfo.cs" Link="ProductInfo.cs" />
     <Compile Include="../../src/StreamsPlayer.App/CurrentLog.cs" Link="CurrentLog.cs" />
     <Compile Include="../../src/StreamsPlayer.App/HandlerBoundary.cs" Link="HandlerBoundary.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/ListenerBindLog.cs" Link="ListenerBindLog.cs" />
     <Compile Include="../../src/StreamsPlayer.App/FastMediaSorterPlaybackTransport.cs" Link="FastMediaSorterPlaybackTransport.cs" />
     <Compile Include="../../src/StreamsPlayer.App/BroadcastVideoRoute.cs" Link="BroadcastVideoRoute.cs" />
+    <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.Diagnostics.cs" Link="BroadcastProducerService.Diagnostics.cs" />
     <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.cs" Link="BroadcastProducerService.cs" />
     <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.Sealed.cs" Link="BroadcastProducerService.Sealed.cs" />
     <Compile Include="../../src/StreamsPlayer.App/BroadcastProducerService.Drive.cs" Link="BroadcastProducerService.Drive.cs" />

@@ -1,0 +1,117 @@
+{
+  "summary": "Where a broadcast from this PC is started, watched, shared and stopped.",
+  "lead": "Start, watch, share and stop what this PC broadcasts: the screen, the camera, the microphone and the system sound. Each source has its own card and starts and stops on its own, so any number of them can be live at once. The top line shows the state of the exchange server, and below it the link-password choice the next broadcast will use. If broadcasting is off, or this PC is signed in to a server only as a guest, the window says so and links to the Broadcasting page of Settings. Closing this window, with [[Esc]] too, does not stop a broadcast: the Broadcast button in the main window stays red while anything is live and opens this window again.",
+  "order": [
+    "If the window says broadcasting is off, press **{@settings}** and allow it on the Broadcasting page.",
+    "On the card of what you want to send, choose the device if the card offers a choice.",
+    "Press the start button of the card and wait for it to read live. **Cancel** ends a start that is still waiting.",
+    "Read on the card where it went: the local network address, Google Drive.",
+    "Hand it out with {@share} or send it to one of your own devices.",
+    "Press **Stop** on the card, or **{@stop-all}**, to end it."
+  ],
+  "elements": [
+    {
+      "id": "server",
+      "nameKey": "ExchangeTitle",
+      "mark": true,
+      "control": "ExchangeSettingsButton",
+      "one": "Shows how the connection to your exchange server is doing; opens its settings.",
+      "full": [
+        "The line beside this icon says whether this PC is connected to the exchange server of your account. A broadcast announced on the server reaches your other devices only while the connection is up. When the server cannot be reached and a broadcast needs it, the line says so, and the Broadcast button in the main window carries a small warning mark.",
+        "Pressing the icon opens the Exchange server page in Settings, where the account is set up."
+      ],
+      "next": "Settings opens on the Exchange server page, on top of this window."
+    },
+    {
+      "id": "screen",
+      "nameKey": "BroadcastScreenTitle",
+      "control": "ScreenCard",
+      "one": "Broadcasts one whole monitor, with or without a sound.",
+      "full": [
+        "Choose the monitor and the one sound that travels with the screen: none, the microphone or the system sound. The choices are read when the broadcast starts, so they are unavailable while it is live. The whole monitor is sent, including notifications and passwords, and content that Windows protects may come out blank.",
+        "The card is not shown on a PC whose Windows has no H.264 encoder; the window says so instead."
+      ],
+      "why": "To show what is on this PC to your phone or another PC.",
+      "next": "The card reads starting, then live since the time it went on the air. A refused start shows its reason on the card and leaves the source off.",
+      "undo": "Press **Stop** on the card."
+    },
+    {
+      "id": "camera",
+      "nameKey": "BroadcastCameraTitle",
+      "control": "CameraCard",
+      "one": "Broadcasts one camera, with or without a sound.",
+      "full": [
+        "Choose the camera and the one sound that travels with it, as for the screen. If Windows denies the camera to this application, or another program holds it, the broadcast does not start and the card says which."
+      ],
+      "next": "The card reads starting, then live since the time it went on the air.",
+      "undo": "Press **Stop** on the card."
+    },
+    {
+      "id": "microphone",
+      "nameKey": "BroadcastMicTitle",
+      "control": "MicrophoneCard",
+      "one": "Broadcasts the microphone you choose.",
+      "full": [
+        "**Windows default** follows whatever Windows uses as the default recording device; the other entries are the microphones Windows lists. The list is read only after broadcasting is allowed, so no capture device is touched before that. Mono or stereo, the sample rate and the bitrate are set in Settings."
+      ],
+      "next": "The card reads starting, then live since the time it went on the air.",
+      "undo": "Press **Stop** on the card."
+    },
+    {
+      "id": "system-sound",
+      "nameKey": "BroadcastSystemSoundTitle",
+      "control": "SystemSoundCard",
+      "one": "Broadcasts the sound this PC plays.",
+      "full": [
+        "Works like the microphone, with the sound this PC plays as the source. On a Windows that cannot leave this application's own sound out, the card says that a broadcast you play here would be sent on again."
+      ],
+      "next": "The card reads starting, then live since the time it went on the air.",
+      "undo": "Press **Stop** on the card."
+    },
+    {
+      "id": "share",
+      "nameKey": "BroadcastShareMenu",
+      "one": "Hands a live source to other people or devices, and says where it went.",
+      "full": [
+        "A live card shows where its source went: the local network address when **Local network** is on in Settings, Google Drive when it is used, and how many receivers are connected directly to this PC.",
+        "**Share** copies the link, copies its password, shows the link as a QR code for a phone, or saves the description file. The password is never inside the link; with the choice **No password** there is nothing to copy. **Cast to your own device** offers the source to one of your devices that is online and can play it; the device asks first. **Show addressed devices** names the devices the announcement was sealed to. It is the list of addressed devices, not of people watching."
+      ],
+      "undo": "Nothing here changes the broadcast. Changing the link password in Settings stops the previous one at once."
+    },
+    {
+      "id": "stop-all",
+      "nameKey": "BroadcastStopAll",
+      "control": "StopAllButton",
+      "one": "Ends every broadcast running from this PC.",
+      "full": [
+        "Stops all the sources that are live; each card goes back to off. The button is available only while something is running. A single source is stopped with **Stop** on its own card."
+      ],
+      "next": "The sources stop at once and the Broadcast button in the main window returns to its normal colour. Start any of them again from its card."
+    },
+    {
+      "id": "settings",
+      "nameKey": "BroadcastOpenSettings",
+      "control": "SettingsButton",
+      "one": "Opens the Broadcasting page of Settings.",
+      "full": [
+        "Broadcasting stays a setting in one place: the permission, starting the chosen sources with the application, the local network and its port, the listener cap, the quality and the link password. This window shows the current link-password choice and links there."
+      ],
+      "next": "Settings opens on the Broadcasting page, on top of this window."
+    },
+    {
+      "id": "help",
+      "nameKey": "HelpName",
+      "one": "Opens this page.",
+      "full": [
+        "Every window that has help carries this button near its top-right corner. It opens the page of the window you are in, in your web browser; the application stays open."
+      ],
+      "next": "The page opens in your browser. Nothing in the application changes.",
+      "shortcut": "[[F1]] does the same from anywhere in the window."
+    }
+  ],
+  "related": [
+    { "help": "main", "note": "The main window, whose Broadcast button opens this one." },
+    { "help": "settings", "note": "Where broadcasting is allowed and its network, quality and link password are set." },
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." }
+  ]
+}

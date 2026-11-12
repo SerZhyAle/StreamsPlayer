@@ -1,0 +1,122 @@
+{
+  "summary": "The live broadcasts of your account's devices, grouped by device, and a field to open one by link.",
+  "lead": "Lists the live broadcasts announced by the devices of the account you are signed in to, grouped by device, and opens the one you choose in a window of its own. A broadcast you only have as a link is opened from the field at the bottom. The window asks for the list when it opens and follows it while it stays open, so it has no refresh button. Closing it, with [[Esc]] too, closes only this list; each broadcast you opened has a window of its own.",
+  "order": [
+    "If the top line says why there is no list, press **{@settings}** and sign in on the page it opens. If the window offers **{@diagnose}**, press that to see what is wrong with the connection.",
+    "Find the broadcast in {@list}: it stands under the name of the device that makes it.",
+    "Press **{@play}** on its row to open it in a window of its own, or **{@keep}** to add it to your channels.",
+    "A broadcast you have only as a link goes into **{@link}** and is opened with **{@link-open}**.",
+    "Read the state word on the row to see how each open broadcast is doing. Broadcasts opened by link are also listed under \"Opened by link\"."
+  ],
+  "elements": [
+    {
+      "id": "status",
+      "nameKey": "ExchangeTitle",
+      "mark": true,
+      "one": "Says why there is no list, when there is none.",
+      "full": [
+        "The line beside this icon is the status of the connection that would give the list: the exchange server, or Google Drive where that is what is in use. It is shown only while nothing is signed in, and it is hidden when a list is shown.",
+        "It only reports. The buttons under it are the next step."
+      ]
+    },
+    {
+      "id": "settings",
+      "nameKey": "BroadcastsOpenSettings",
+      "one": "Opens Settings on the Exchange server page, where the sign-in is set up.",
+      "full": [
+        "The button is shown when nothing is signed in, and when a part of the list cannot be read until you act in Settings: signed out, refused, unreachable, or a certificate waiting for your approval. It is not shown while a connection is still being made."
+      ],
+      "next": "Settings opens on the Exchange server page."
+    },
+    {
+      "id": "diagnose",
+      "nameKey": "ExchangeDiagnose",
+      "one": "Opens the connection check for the first part of the list that cannot be read.",
+      "full": [
+        "The button is shown when a part of the list cannot be read. The check starts from that part's own status line, and it runs only because you pressed this button."
+      ],
+      "next": "The Connection check window opens in front of this one and starts at once; this window waits until you close it."
+    },
+    {
+      "id": "list",
+      "nameKey": "BroadcastsTitle",
+      "one": "Shows each broadcast under the device that makes it.",
+      "full": [
+        "The list is in sections. Your account comes first, then one section for each guest sign-in, and last, while any is open, the broadcasts you opened by link under the heading \"Opened by link\". Under a device's name stand its broadcasts, and beside the name the list says \"online\" or \"offline\". A broadcast shows its title, or what it carries if it has no title, and a second line that says what it carries: \"Video and audio\", \"Video only\" or \"Audio\". Once a window of that broadcast is open, the second line ends with the state of that window: connecting, playing, reconnecting, ended, failed or stopped.",
+        "A section that cannot be listed shows the status of its connection in place of broadcasts. A section with nothing in it says so, for example \"This account has no broadcasts right now; they appear here as your other devices start them.\"",
+        "A section for a guest sign-in is headed with the guest account and its server, and carries the note \"Signed in as a guest, so this list shows only what was given to this guest.\" Its rows have **Play** but not **Add to my channels**.",
+        "A row that cannot be played has no buttons, and its second line says why, for example \"This broadcast is not protected, so it is not played through the server.\" A row that came via Google Drive ends its second line with \"Via Google Drive\"; when Google Drive is in use, the section also says \"Casting is unavailable via Google Drive because it has no push notifications.\""
+      ],
+      "why": "To see what your other devices are broadcasting and which of it you have open.",
+      "shortcut": "[[Enter]] on a selected row that can be played does what **Play** does."
+    },
+    {
+      "id": "play",
+      "nameKey": "BroadcastsPlay",
+      "one": "Opens this broadcast in a window of its own.",
+      "full": [
+        "An audio broadcast opens in a small audio window; a video broadcast opens in a player window. Each broadcast has a window of its own, so several can be open together, and the station in the main window is left alone. The number open at once is limited: when it is reached, a line under the list says how many broadcasts are open - the most this PC holds at once - and asks you to close one.",
+        "A broadcast that is protected by a password may ask for it first, in a small window of its own; closing that question opens nothing. A broadcast that is already open is brought forward instead of being opened a second time."
+      ],
+      "next": "The window of the broadcast opens, and the second line of its row then shows the state of that window.",
+      "undo": "End it in the broadcast's own window."
+    },
+    {
+      "id": "keep",
+      "nameKey": "BroadcastsKeep",
+      "one": "Adds this broadcast to your channels.",
+      "full": [
+        "The broadcast becomes a channel in your list, and the main window selects it there. The button is not on the rows of a guest section: what a guest was given is played from here, not kept."
+      ],
+      "why": "To have the broadcast in your channel list.",
+      "next": "The channel is added and selected in the list of the main window."
+    },
+    {
+      "id": "link",
+      "nameKey": "BroadcastsOpenByLink",
+      "one": "The field where a broadcast link goes.",
+      "full": [
+        "Paste a broadcast link and press [[Enter]], or press **{@link-open}**. Text that is not a broadcast link is refused with the line \"This is not a broadcast link.\", and a link this version cannot read is refused with a line that says why. After a refusal the text stays in the field so that you can correct it; when the broadcast opens, or is already open, the field is cleared.",
+        "A broadcast opened by link is listed under \"Opened by link\", with its title and state, for as long as its window is open."
+      ],
+      "why": "To open a broadcast that was handed to you as a link and is not in your account's list.",
+      "shortcut": "[[Enter]] in the field does what **Open** does."
+    },
+    {
+      "id": "link-open",
+      "nameKey": "BroadcastsLinkOpen",
+      "one": "Opens the link in the field.",
+      "full": [
+        "Does nothing while the field is empty. Otherwise it opens the broadcast in a window of its own, as **{@play}** does, or brings that window forward if the broadcast is already open. A refusal is shown as a line above the field."
+      ],
+      "next": "The window of the broadcast opens and the field is emptied."
+    },
+    {
+      "id": "exchange-guide",
+      "nameKey": "MediaExchange",
+      "one": "Opens the guide to exchanging media between your devices.",
+      "full": [
+        "Opens a web page about live broadcasts and the exchange between your devices in your browser; the application stays open. The guide is on the internet, so it needs a connection. It comes in English, Russian and Ukrainian, and every other language opens the English one."
+      ],
+      "next": "The guide opens in your browser. Nothing in the application changes."
+    },
+    {
+      "id": "help",
+      "nameKey": "HelpName",
+      "one": "Opens this page when you press [[F1]].",
+      "full": [
+        "Pressing [[F1]] in this window opens the page of the window you are in, in your web browser; the application stays open."
+      ],
+      "next": "The page opens in your browser. Nothing in the application changes.",
+      "shortcut": "[[F1]] works from anywhere in the window."
+    }
+  ],
+  "related": [
+    { "help": "main", "note": "The main window, whose My broadcasts button opens this one." },
+    { "help": "broadcast-audio", "note": "The small window of one audio broadcast, which Play opens." },
+    { "help": "exchange-diagnosis", "note": "The connection check that Check the connection opens." },
+    { "help": "broadcast", "note": "Where a broadcast from this PC is started, shared and stopped." },
+    { "help": "settings", "note": "Where the exchange server account is set up." },
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." }
+  ]
+}

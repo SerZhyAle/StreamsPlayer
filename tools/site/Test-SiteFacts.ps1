@@ -8,14 +8,18 @@
     decks, then runs the real gate against it:
 
       passes     a consistent tree; a README that names the pillars among other words; a translated key line
-                 whose untranslated term is in place; a route named by its command marker; a Windows 11 minimum
-      fails      a minimum Windows the MSIX manifest or the winget manifest states differently, or that is not a
+                 whose untranslated term is in place; a route named by its command marker; a Windows 11 minimum;
+                 a typed language count that agrees, as a digit or as a number word in any letter case
+      fails     a minimum Windows the MSIX manifest or the winget manifest states differently, or that is not a
                  Windows 10 build number; a pattern with no match; a channel whose packaging file or whose
                  mention in it is gone; a channel card the declaration does not list, or one it lists and the deck
                  lacks; a fact key that lost its placeholder or carries a typed number; a title that carries a
                  placeholder; a prose list that dropped a route; a surface that misses a pillar, names two out of
                  order, or does not exist; a key line with the wrong count, order or untranslated term; a missing
-                 or malformed pillar table; a missing or unparseable declaration
+                 or malformed pillar table; a missing or unparseable declaration; a typed language count with the
+                 wrong digit, the wrong number word or a word the locale's table does not know; a typed count
+                 statement that vanished, a surface file that is gone, a pattern without one capture group, no
+                 typed-count surfaces declared; a registry that grows past every typed count
 
     Exit 0 when every check passes, 1 otherwise. The last line is `site-facts: PASS|FAIL (..)`.
 #>
@@ -78,7 +82,7 @@ function New-Decks {
     $de['hero-kicker'] = 'Internetradio · Live-Video · RTSP'
     return [ordered]@{ en = (New-Deck); ru = $ru; de = $de }
 }
-function Get-Problems { param($Decks = (New-Decks)) return ,@(Get-SiteFactProblem -Root $fixture -Deck $Decks) }
+function Get-Problems { param($Decks = (New-Decks), [int] $Languages = 13) return ,@(Get-SiteFactProblem -Root $fixture -Deck $Decks -LanguageCount $Languages) }
 
 function Write-Tree {
     Write-Fixture 'tools/site/site-facts.json' @'
@@ -109,6 +113,17 @@ function Write-Tree {
   "renderedKeys": {
     "languages": ["fact-langs", "cap-yours-4"],
     "windows": ["hero-eyebrow", "fact-windows"]
+  },
+  "languageCount": {
+    "numberWords": {
+      "en": { "thirteen": 13, "twelve": 12 },
+      "ru": { "тринадцати": 13 }
+    },
+    "surfaces": [
+      { "path": "listing.en.txt", "locale": "en", "pattern": "available in (\\S+) languages" },
+      { "path": "listing.en.txt", "locale": "en", "pattern": "(?m)^(\\S+) interface languages" },
+      { "path": "listing.ru.txt", "locale": "ru", "pattern": "доступен на (\\S+) языках" }
+    ]
   }
 }
 '@
@@ -138,6 +153,8 @@ None.
     Write-Fixture 'installer.yaml' "PackageIdentifier: X.Y`nMinimumOSVersion: 10.0.17763.0`n"
     Write-Fixture 'setup.iss' '[Setup]'
     Write-Fixture 'release.yml' "files: Player-setup.exe Player.zip`n"
+    Write-Fixture 'listing.en.txt' "The interface is available in 13 languages.`nThirteen interface languages, right to left where it belongs`n"
+    Write-Fixture 'listing.ru.txt' "Интерфейс доступен на тринадцати языках.`n"
 }
 
 try {
@@ -223,6 +240,31 @@ try {
     Check (Has (Get-Problems $decks) "\[de\] hero-kicker item 3 is 'RTSP-Kameras', POSITIONING\.md says 'RTSP'") 'a translated key line that changes an untranslated term fails'
     $decks = New-Decks; $decks['de']['hero-kicker'] = 'Rundfunk · Bewegtbild · RTSP'
     Check ((Get-Problems $decks).Count -eq 0) 'a translated key line with its own words and the untranslated term passes'
+
+    # --- typed language count (SP-0247)
+    Set-Fixture 'listing.en.txt' 'in 13 languages' 'in 12 languages'
+    Check (Has (Get-Problems) "listing\.en\.txt states 12 interface languages \('12'\), InterfaceLanguages ships 13") 'a typed count with the wrong digit fails'
+    Write-Tree
+    Set-Fixture 'listing.en.txt' 'Thirteen interface' 'Twelve interface'
+    Check (Has (Get-Problems) "listing\.en\.txt states 12 interface languages \('Twelve'\)") 'a typed count with the wrong number word fails'
+    Write-Tree
+    Set-Fixture 'listing.ru.txt' 'тринадцати' 'двенадцати'
+    Check (Has (Get-Problems) "listing\.ru\.txt states the language count as 'двенадцати', which is neither a digit nor a 'ru' number word") 'a number word the locale table does not know fails'
+    Write-Tree
+    Set-Fixture 'listing.en.txt' 'Thirteen interface languages' 'Interface in many languages'
+    Check (Has (Get-Problems) 'listing\.en\.txt no longer states the language count') 'a typed count statement that vanished fails'
+    Write-Tree
+    Remove-Item (Join-Path $fixture 'listing.ru.txt')
+    Check (Has (Get-Problems) 'listing\.ru\.txt does not exist - it is declared as stating the language count') 'a typed count surface that is gone fails'
+    Write-Tree
+    Set-Fixture 'tools/site/site-facts.json' 'доступен на (\\S+) языках' 'доступен на \\S+ языках'
+    Check (Has (Get-Problems) 'must have exactly one capture group') 'a typed count pattern without its capture group fails'
+    Write-Tree
+    $typed = @((Get-Problems -Languages 14) | Where-Object { $_ -match 'InterfaceLanguages ships 14' })
+    Check ($typed.Count -eq 3) "a fourteenth language fails every typed count (got $($typed.Count) of 3)"
+    Set-Fixture 'tools/site/site-facts.json' '"languageCount"' '"languageCountGone"'
+    Check (Has (Get-Problems) 'declares no languageCount surfaces') 'a declaration without typed-count surfaces fails'
+    Write-Tree
 
     # --- the pillar table
     Set-Fixture 'POSITIONING.md' '| 2 | Live video |' '| 3 | Live video |'

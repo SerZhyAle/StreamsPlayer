@@ -55,7 +55,8 @@ public static class M3uPlaylistParser
     /// </summary>
     public static M3uImportPreview Analyze(string text, ISet<string> existingUrls)
     {
-        if (text.Contains("#EXT-X-", StringComparison.OrdinalIgnoreCase))
+        var lines = text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+        if (IsHlsManifest(lines))
         {
             return new M3uImportPreview(M3uImportStatus.HlsManifest, [], 0, 0, 0, 0);
         }
@@ -71,7 +72,7 @@ public static class M3uPlaylistParser
         var truncated = false;
         string? nextTitle = null;
 
-        foreach (var originalLine in text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n'))
+        foreach (var originalLine in lines)
         {
             var line = originalLine.Trim();
             if (line.StartsWith("#EXTINF:", StringComparison.OrdinalIgnoreCase))
@@ -142,6 +143,14 @@ public static class M3uPlaylistParser
         var status = candidateLines == 0 ? M3uImportStatus.Empty : M3uImportStatus.Ok;
         return new M3uImportPreview(status, newEntries, newEntries.Count, duplicate, invalid, skipped, truncated);
     }
+
+    /// <summary>
+    /// USER-PLAYLIST section 9: a file is an HLS media manifest only when one of its own lines begins with
+    /// <c>#EXT-X-</c>. The same text inside a title, an attribute value or a URL is content, and an entry URL
+    /// ending <c>.m3u8</c> is an ordinary channel - matching anywhere in the text refused real playlists.
+    /// </summary>
+    private static bool IsHlsManifest(IEnumerable<string> lines) =>
+        lines.Any(line => line.TrimStart().StartsWith("#EXT-X-", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// The display title of an <c>#EXTINF</c> line: whatever follows the first comma outside a quoted attribute

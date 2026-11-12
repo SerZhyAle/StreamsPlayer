@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-BEHAVIOUR` |
-| **Version** | 0.12 (draft) |
+| **Version** | 0.13 (draft) |
 | **Home** | `Contracts/desktop-app-ux/README.md`, with the evidence per rule in `APP-BEHAVIOUR.md` |
 | **Owner** | **this product**. StreamsPlayer writes the amendments and answers the questions |
 | **This product's role** | **producer and consumer** - the rules were read from this code, and this code is bound by them |
@@ -44,9 +44,19 @@ modal, owned, centred on its owner, with one `IsCancel` exit.
 **Before changing a window.** Rules 1, 2, 3, 5, 6, 10, 11 and 12 all constrain what a dialog or a long
 operation may do. `PLAN/SP-0102` is this product's own interface audit and is the ticket that mapped them.
 
-**Conformance evidence.** No vectors. Five rules are gated in CI - `LocalizationParityTests`
+**Conformance evidence.** No vectors. Five rules are gated in the test suite the release runs - `LocalizationParityTests`
 (rule 8), `LocalizedCallSiteTests` (rule 7), `TabAutomationNameTests` and `GlyphAutomationNameTests`
 (rule 9), and
 `DesktopUxConformanceTests` (rule 12's handler allow-list with rule 1's Escape on the settings window, and
 rule 6's scan for exception text outside a log call). The rest are read
 against the code, and section 13 of the contract names the ladder for turning them into gates.
+
+**0.13, 2026-10-26 (SP-0247).** The owner amended rule 4 (a standing consent - its own setting, off by default,
+naming the action it licenses, off in one action, each use logged - is inside the rule; the exchange connection at launch,
+start-with-application broadcasting and auto-accept casts are that shape) and corrected rule 7's example (this product's source
+language is English). The 2026-10-25 exceptions are closed in code: a value control that would end a broadcast on the air,
+disconnect its listeners or revoke the link password asks first with No as the default (`SettingsWindow.Broadcast.cs`
+`ConfirmLiveBroadcastChange`); every listener bind is logged (`ListenerBindLog`); the exchange action and camera catch-alls log
+the exception type; a missing translation renders English before the key (`LocalizationService`); the exchange password
+dialog's close box cancels the wait like Cancel; Google sign-in is hidden in a build without a client. Not observed in a
+running window yet; fixed-size windows in the longest language remain unmeasured.

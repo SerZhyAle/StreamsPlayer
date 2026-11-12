@@ -12,8 +12,8 @@ namespace StreamsPlayer.App;
 /// A flag denotes a country, so it is shown for a country and never for a language (<c>ICON-EXTERNAL</c>
 /// section 4 rule 6). <c>ru.png</c> and <c>by.png</c> are the white-blue-white and white-red-white
 /// bitmaps the owner chose on purpose (<c>STREAM-BANK</c> section 5.1: RU and BY use a custom bitmap);
-/// they replace the state flags of the pack on purpose. The rest come from the flag-icons set
-/// (THIRD-PARTY-NOTICES.txt). A code without a bitmap answers <c>null</c> and is drawn bare.
+/// they replace the state flags of the pack on purpose. The rest are flagcdn.com (Flagpedia) bitmaps,
+/// 40 px wide at each flag's own aspect ratio (THIRD-PARTY-NOTICES.txt). A code without a bitmap answers <c>null</c> and is drawn bare.
 /// </remarks>
 internal static class CountryFlags
 {

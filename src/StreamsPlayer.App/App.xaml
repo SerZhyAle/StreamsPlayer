@@ -1133,6 +1133,11 @@
             <Style x:Key="BroadcastingGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.feature.live-broadcast}" />
             </Style>
+            <!-- SP-0252: the compact panel's indicator, shown only while a source is live, so it carries the danger role. -->
+            <Style x:Key="BroadcastGlyphOnlyButton" TargetType="Button" BasedOn="{StaticResource GlyphOnlyButton}">
+                <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.feature.live-broadcast}" />
+                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+            </Style>
             <Style x:Key="ExchangeConnectGlyphButton" TargetType="Button" BasedOn="{StaticResource GlyphButton}">
                 <Setter Property="local:Glyph.Geometry" Value="{StaticResource Icon.action.connect-device}" />
             </Style>

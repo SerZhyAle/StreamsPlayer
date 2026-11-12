@@ -118,17 +118,16 @@
       "tip": "In Grid view the **Operations** menu gains a **Refresh previews** entry, which captures the visible previews at once, when automatic thumbnail updates are on in Settings."
     },
     {
-      "id": "exchange",
-      "nameKey": "ExchangeTitle",
-      "mark": true,
-      "control": "ExchangeSourceStatusButton",
-      "one": "Shows how the connection to your exchange server is doing; opens its settings.",
+      "id": "broadcast",
+      "nameKey": "BroadcastWindowTitle",
+      "control": "BroadcastButton",
+      "one": "Opens the Broadcast window; it is red while this PC is broadcasting.",
       "full": [
-        "This icon appears only while this device is signed in to your exchange server account and the account is switched on. Its tooltip shows the connection state, for example connecting or connected.",
-        "Pressing it opens the Exchange server page in Settings, where the account is set up and its connection state is shown."
+        "Always shown. It opens the Broadcast window, where the screen, the camera, the microphone and the system sound of this PC are started, watched, shared and stopped. Pressing it again brings the open window forward.",
+        "While anything is live the icon turns red and shows how many sources are live, and its tooltip names them. A small warning mark appears on it only while the exchange server cannot be reached and a broadcast needs it.",
+        "Closing the Broadcast window does not stop a broadcast: this button stays red and opens the window again. This button shows only its icon; hover over it to read its name."
       ],
-      "next": "Settings opens on the Exchange server page, on top of this window.",
-      "tip": "Pressing [[Ctrl+V]] in this window while an exchange connection string, or a screenshot of its QR code, is on the clipboard opens the same page with the details filled in."
+      "next": "The Broadcast window opens, and this window stays usable."
     },
     {
       "id": "broadcasts",
@@ -139,22 +138,12 @@
         "Appears when the exchange source is enabled or you are signed in with Google. It opens the broadcasts of your other devices, grouped by device. From here you can play one or add it to your channels.",
         "The list is a companion window: it stays open beside the others, there is only one of it, and pressing the button again brings the open one forward.",
         "A failed incoming video broadcast keeps its window and offers Retry in that window. Details shows the failure code; the message first says what happened and then what to try. Other broadcast windows keep playing.",
+        "A password-protected broadcast asks once before connecting, whether it plays over your local network or through the exchange server. The password is remembered for that channel in the Windows secret store. A wrong password stops playback and is forgotten; open the broadcast again or retry to enter the new one. Reconnecting never opens a password prompt.",
         "If a description gives no certificate fingerprint and this PC cannot verify the server, compare the fingerprint with the broadcaster before accepting it. Trust is kept only for that channel. Removing an exchange entry keeps its imported channels with the label not listed.",
         "This button shows only its icon; hover over it to read its name.",
-        "The broadcasts button also appears when you sign in with Google. Announcements from Drive join the same list, grouped by device and marked as coming through Google Drive; duplicates already listed by the exchange server appear once. Closing or minimizing the list stops Drive requests."
+        "The broadcasts button also appears when you sign in with Google. Announcements from Drive join the same list, grouped by device and marked as coming via Google Drive; duplicates already listed by the exchange server appear once. Closing or minimizing the list stops Drive requests."
       ],
       "next": "The My broadcasts window opens, and this window stays usable."
-    },
-    {
-      "id": "broadcast-live",
-      "nameKey": "BroadcastIndicatorName",
-      "control": "BroadcastLiveButton",
-      "one": "Shows that this PC is broadcasting, and what it is broadcasting.",
-      "full": [
-        "Appears only while this PC is broadcasting. It shows a red broadcast icon, without a caption. Its tooltip names the active sources in your interface language, for example the PC microphone, the PC screen with the monitor that is live, or the PC camera with its name.",
-        "Pressing it opens the menu for stopping, casting or sharing the active sources. Share copies the link, copies its password, shows the link as a QR code for a phone, or saves the description file. It never starts a capture. Stopping the last source hides the icon."
-      ],
-      "undo": "Stop acts at once, without a question; a stopped broadcast has to be started again."
     },
     {
       "id": "settings",
@@ -163,7 +152,8 @@
       "one": "Opens the settings and the information about the app.",
       "full": [
         "Opens Settings with eight pages in the left menu: General, Library, Playback, Audio, Files, Exchange server, Broadcasting and About.",
-        "In a narrow window this button shows only its icon; its tooltip and accessible name remain available."
+        "In a narrow window this button shows only its icon; its tooltip and accessible name remain available.",
+        "Pressing [[Ctrl+V]] in this window while an exchange connection string, or a screenshot of its QR code, is on the clipboard opens Settings on the Exchange server page with the details filled in."
       ],
       "next": "This window waits until you close Settings.",
       "tip": "The button is greyed out while a download or another long operation is running."

@@ -20,6 +20,11 @@
       release-notes-test   tools/site/Test-ReleaseNotes.ps1 - the release-notes reader and the What's new renderer's own
                            fixture tests, and the repository's notes folder read through them (SP-0039)
       msix-gate     msix/Test-AssertMsixPackage.ps1 - the Store package read-back refuses what it must (SP-0190)
+      msix-identity msix/Test-MsixIdentity.ps1 - msix/identity.json agrees with the read-back constants and the identity
+                    tables, and the build stops without it (SP-0261; also in check-fast.ps1)
+      store-preflight-call-test scripts/Test-StorePreflightCall.ps1 - the release flow's call of the shared read-only Store
+                    preflight, against a stub: exit mapping, the manual line, the record, no msstore call of its own
+                    (SP-0261 Part 2; also in check-fast.ps1)
       msix-manifest msix/Test-AppxManifest.ps1 - the committed manifest template packs under the Windows SDK's own
                     makeappx, from any tree state (build-msix.ps1 refuses a dirty tree, so it cannot be the
                     first to find a schema error) (SP-0238); COULD NOT VERIFY without the SDK
@@ -43,6 +48,11 @@
                     on it, while docs/assets/demo holds no demo file, because nothing has been recorded yet
       check-verdict-scripts-test scripts/Test-CheckVerdictScripts.ps1 - the exit code and the last line of the gate
                     scripts that answer in CHECK-VERDICT, on throwaway trees and stubbed children (SP-0239)
+      measure-capture-times-test scripts/Test-MeasureCaptureTimes.ps1 - the capture-time measure's fixture tests (SP-0246)
+      release-version-test scripts/Test-ReleaseVersion.ps1 - the tag derivation, the MSIX remap and the winget renderer
+                    at fixed instants (PACKAGE-VERSIONING rung 2a, SP-0247)
+      release-artifact-version-test scripts/Test-ReleaseArtifactVersion.ps1 - the read-back release.yml runs on the exe,
+                    the zip and the setup EXE, on a fixture binary built in a throwaway folder (SP-0247)
 
     Exit codes (CHECK-VERDICT): 0 passed, 1 a check failed, 2 a check could not verify. A child that answers 4
     ("not looked at yet": a lock another run holds) is read as 2, and an exit nothing above anticipated (dotnet
@@ -90,6 +100,10 @@ try {
     $results['release-notes-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'msix/Test-AssertMsixPackage.ps1')
     $results['msix-gate'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'msix/Test-MsixIdentity.ps1')
+    $results['msix-identity'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'scripts/Test-StorePreflightCall.ps1')
+    $results['store-preflight-call-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'msix/Test-AppxManifest.ps1') -Configuration $Configuration
     $results['msix-manifest'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'tools/store/Test-StoreListing.ps1')
@@ -110,6 +124,12 @@ try {
     $results['snapshot-tool-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'scripts/Test-CheckVerdictScripts.ps1')
     $results['check-verdict-scripts-test'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'scripts/Test-MeasureCaptureTimes.ps1')
+    $results['measure-capture-times-test'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'scripts/Test-ReleaseVersion.ps1')
+    $results['release-version-test'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'scripts/Test-ReleaseArtifactVersion.ps1')
+    $results['release-artifact-version-test'] = $LASTEXITCODE
     # Run once the files exist (SP-0039 6.4). A folder holding only some of the three is a defect and is judged, so the
     # gate keys on "any demo file", not on all of them; the check itself answers 1 for a file of the set that is absent.
     $skipped = [System.Collections.Generic.List[string]]::new()

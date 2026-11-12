@@ -252,6 +252,8 @@ public partial class PlayerWindow : Window
     /// <summary>Re-renders the text this window cannot express as a <c>DynamicResource</c>.</summary>
     internal void RefreshLocalization()
     {
+        ApplyPlaylistTitle();
+        RefreshBroadcastFailure();
         RefreshWindowTitle();
         if (_waitResourceKey is { } key)
         {
@@ -321,6 +323,7 @@ public partial class PlayerWindow : Window
             // and the native call runs on a worker, so a slow engine cannot defer the first observation.
             _statsTimer.Start();
             _watchdogTimer.Start();
+            BeginReadingBroadcastEnd(); // SP-0250: before the first open, so a removal that comes while it connects is read
             _ = StartMediaOffUiThreadAsync("initial", QualityCeiling); // the ladder's answer is not in yet - memory's may be
             ShowControls();
             if (_startFullscreen)
@@ -714,6 +717,7 @@ public partial class PlayerWindow : Window
         if (!_reachedLive)
         {
             _reachedLive = true;
+            NoteBroadcastLive(); // SP-0250: this broadcast has played, which is what lets a 404 or a closed port mean "ended"
             _probeLegPending = false; // SP-0130: the probe went live; its trial is the governor's from here
             _quietUntilLive = false; // SP-0062: from here on this is an ordinary window
             _recovery.NotifyLive(); // sustained live - restore the full recovery budget
@@ -894,6 +898,13 @@ public partial class PlayerWindow : Window
             return;
         }
 
+        // SP-0250: a stream that stopped while the directory had already removed its broadcast is over, with no reconnect to
+        // be refused first (item U). Every other stop goes on to the bounded recovery, whose legs read the answers.
+        if (NoteBroadcastStopped())
+        {
+            return;
+        }
+
         _recoveryInFlight = true;
         _recovering = true;
         // SP-0045: red once the stream has played at least once; before that it is still connecting and
@@ -979,7 +990,8 @@ public partial class PlayerWindow : Window
                 return; // stop / close / switch cancelled the wait - never restart the old stream
             }
 
-            if (_closing)
+            // SP-0250: a removal that came during the backoff has ended the broadcast; it is not re-opened behind the verdict.
+            if (_closing || _broadcastEnded)
             {
                 return;
             }
@@ -1477,6 +1489,7 @@ public partial class PlayerWindow : Window
     {
         _closing = true; // stop any pending background reconnect
         _sessionCts.Cancel(); // abort any in-flight recovery backoff so the old stream never restarts
+        StopFollowingBroadcast(); // SP-0250: the directory is followed only while a window plays
         _wake?.Dispose(); // release the idle-sleep + display hold for this video session
         _wake = null;
         _log.Event("PLAYBACK CLOSE", $"watch_ms={_playbackClock.ElapsedMilliseconds}", $"live={_reachedLive}", $"stalls={_stallCount}", $"url={_channel.Url}");

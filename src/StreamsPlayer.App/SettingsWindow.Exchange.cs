@@ -24,6 +24,7 @@ public partial class SettingsWindow
                 ExchangeSecretBox.Clear();
         };
         InitializeExchangeCamera();
+        InitializeExchangeSettings();
         ShowExchange();
         if (Exchange.Account is { SignedOut: true, Token: null })
         {
@@ -92,6 +93,7 @@ public partial class SettingsWindow
         ShowExchangePrompt();
         ShowGuestEntries();
         UpdateBroadcastGuestNote();
+        ShowExchangeSettings();
         _showingExchange = false;
     }
 
@@ -430,9 +432,11 @@ public partial class SettingsWindow
                 exception.Previous ?? "-", exception.Presented), LocalizationService.Get("ExchangeTitle"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            // Account details and server exceptions never enter the diagnostic log.
+            // Account details and server exception text never enter the diagnostic log - the type alone does,
+            // so a failure the person reports leaves a trace (APP-BEHAVIOUR rule 6, SP-0247).
+            HandlerBoundary.Record("EXCHANGE ACTION FAULT | type=" + exception.GetType().Name);
             MessageBox.Show(this, LocalizationService.Get("ExchangeStorageFailed"), LocalizationService.Get("ExchangeTitle"));
         }
         finally

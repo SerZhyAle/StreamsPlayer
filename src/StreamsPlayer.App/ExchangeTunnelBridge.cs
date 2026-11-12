@@ -34,7 +34,7 @@ internal static class ExchangeTunnelBridge
     /// else. A listener that does not accept the leaf hangs up, and the tunnel simply ends.
     /// </summary>
     internal static async Task RunAsync(ExchangeSourceService exchange, ExchangeTunnelOpen tunnel, int localPort,
-        CancellationToken cancellationToken, ExchangeTunnelCertificate inner)
+        CancellationToken cancellationToken, ExchangeTunnelCertificate inner, Action? opened = null)
     {
         try
         {
@@ -65,6 +65,7 @@ internal static class ExchangeTunnelBridge
             setup.CancelAfter(Timeout.InfiniteTimeSpan); // set-up is done; the idle timeout owns the bridge from here
             using var local = new TcpClient();
             await local.ConnectAsync(IPAddress.Loopback, localPort, cancellationToken).ConfigureAwait(false);
+            opened?.Invoke();
             await PumpAsync(remote, local.GetStream(), IdleTimeout, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception exception) when (IsConnectionFailure(exception))

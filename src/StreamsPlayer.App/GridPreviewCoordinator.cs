@@ -85,7 +85,7 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         _autoCaptureEnabled = autoCaptureEnabled ?? (() => true);
     }
 
-    public bool IsRunning => _session is not null;
+    public bool IsRunning => _session is { IsCancellationRequested: false };
 
     public async Task StartAsync()
     {
@@ -97,11 +97,12 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         await _lifecycle.WaitAsync();
         try
         {
-            if (_disposed || !GridPreviewFeature.CaptureEnabled || _session is not null)
+            if (_disposed || !GridPreviewFeature.CaptureEnabled || IsRunning)
             {
                 return;
             }
 
+            await StopSessionAsync();
             _session = new CancellationTokenSource();
             _workers = new Task[MaxConcurrentCaptures];
             Volatile.Write(ref _workerFaultReported, 0);
@@ -137,7 +138,7 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
         }
 
         var session = _session;
-        using var activeRequest = session is null
+        using var activeRequest = session is null || session.IsCancellationRequested
             ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
             : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, session.Token);
         var activeToken = activeRequest.Token;
@@ -182,7 +183,7 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
 
             // Stored previews always show; auto-capture of a first-time blank only when the setting is on.
             // Explicit refresh always captures - but only while a capture session exists.
-            if (session is not null && (force || (!hasStored && _autoCaptureEnabled())) &&
+            if (session is { IsCancellationRequested: false } && (force || (!hasStored && _autoCaptureEnabled())) &&
                 Enqueue(url, force) == PreviewEnqueueOutcome.UnderCooldown)
             {
                 cooledDown++;
@@ -381,7 +382,7 @@ public sealed class GridPreviewCoordinator : IAsyncDisposable
     {
         // An explicit request - a hover dwell or an explicit refresh - is the user asking for this tile
         // now, and clears the cooldown instead of being stopped by it.
-        if (_captureService.IsPaused)
+        if (!IsRunning || _captureService.IsPaused)
         {
             return PreviewEnqueueOutcome.Paused;
         }

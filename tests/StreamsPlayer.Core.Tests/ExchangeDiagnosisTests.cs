@@ -76,11 +76,11 @@ public sealed class ExchangeDiagnosisTests
     }
 
     [Fact]
-    public void TheRowsAreTheTwentyFourThisProductRaisesWithUniqueCodesAndKeys()
+    public void TheRowsAreTheTwentyEightThisProductRaisesWithUniqueCodesAndKeys()
     {
-        Assert.Equal(24, ExchangeFailureRows.All.Count);
-        Assert.Equal(24, ExchangeFailureRows.All.Select(row => row.Code).Distinct().Count());
-        Assert.Equal(24, ExchangeFailureRows.All.Select(row => row.MessageKey).Distinct().Count());
+        Assert.Equal(28, ExchangeFailureRows.All.Count);
+        Assert.Equal(28, ExchangeFailureRows.All.Select(row => row.Code).Distinct().Count());
+        Assert.Equal(28, ExchangeFailureRows.All.Select(row => row.MessageKey).Distinct().Count());
     }
 
     [Theory]

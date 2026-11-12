@@ -33,6 +33,8 @@ internal static class HandlerBoundary
     /// </summary>
     public static void Record(string line) => _log?.Information(line);
 
+    public static void Diagnostic(string line) => _log?.Event(line);
+
     /// <summary>Runs an asynchronous handler body inside the boundary. Use in place of an <c>async</c> lambda.</summary>
     public static async void Run(string handler, Func<Task> action)
     {

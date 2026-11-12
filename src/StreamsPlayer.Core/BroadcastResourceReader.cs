@@ -299,14 +299,40 @@ public static class BroadcastResourceReader
                 continue;
             }
 
-            paths.Add(new BroadcastAccessPath(kind, hostElement.GetString()!, port));
-            if (paths.Count >= MaximumAccessPaths)
+            // Each kind is bounded on its own so that many lan paths cannot crowd out the ipv6 and port-forward ones.
+            if (paths.Count(existing => existing.Kind == kind) < MaximumAccessPaths)
+            {
+                paths.Add(new BroadcastAccessPath(kind, hostElement.GetString()!, port));
+            }
+        }
+
+        return paths.Count <= MaximumAccessPaths ? paths : InterleaveKinds(paths);
+    }
+
+    /// <summary>SP-0246 R5-2: the first <see cref="MaximumAccessPaths"/> paths taken kind by kind in turn, each kind in its own document order.</summary>
+    private static List<BroadcastAccessPath> InterleaveKinds(List<BroadcastAccessPath> paths)
+    {
+        var byKind = paths.GroupBy(path => path.Kind).Select(group => group.ToList()).ToList();
+        var result = new List<BroadcastAccessPath>(MaximumAccessPaths);
+        for (var round = 0; result.Count < MaximumAccessPaths; round++)
+        {
+            var any = false;
+            foreach (var group in byKind)
+            {
+                if (round < group.Count && result.Count < MaximumAccessPaths)
+                {
+                    result.Add(group[round]);
+                    any = true;
+                }
+            }
+
+            if (!any)
             {
                 break;
             }
         }
 
-        return paths;
+        return result;
     }
 
     private static bool IsHost(string host)

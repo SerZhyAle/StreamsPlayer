@@ -430,9 +430,12 @@ description: External references, standards, and cross-repository dependencies
   SP-0109**. The shape that closed them is now the rule for new UI: `SettingsWindow` holds values only
   (an operation goes in the Close-only `ToolsWindow` behind Operations > Tools, a per-channel one in the
   channel's menu), and a failure message is `FailureCauseText` over the exception's *type*, never
-  `exception.Message`. Both are CI gates in `DesktopUxConformanceTests`, so breaking either fails the
+  `exception.Message`. Both are release-suite gates in `DesktopUxConformanceTests`, so breaking either fails the
   build with a message that says where the control belongs. The registry had undercounted rule 6 (two
   leaks named, six real) - a declared exception is a lower bound, so re-search before closing one.
+  **Correction 2026-10-26 (SP-0247):** "owns two" is stale - the registry lists five owned here
+  (`APP-BEHAVIOUR`, `APP-STYLE`, `USER-PLAYLIST`, `DIAGNOSTIC-REPORT`, `WINDOWS-STORE`); the list's one home
+  is `docs/contracts/README.md`.
 
 - **A contract may never be a build input from outside this repository.** On 2026-09-22 an earlier,
   unfinished alignment pass deleted the in-repo copy of the live-broadcast contract and pointed the test
@@ -519,15 +522,17 @@ description: External references, standards, and cross-repository dependencies
      hunting a "10.0.10" of it. The pin has to update `KnownFrameworkReference`, which only exists after
      the SDK targets - hence a root `Directory.Build.targets` (2026-08-21).
 
-- **`project` - a release and the site that advertises it must be two pushes, in that order.**
-  `pages.yml` deploys on any push to `main` touching `docs/**`, so a single commit carrying both the
-  release wiring and the generated site publishes the download tile *before* the release that contains
-  the file - the tile would resolve to nothing for the minutes the release workflow runs, and to the
-  previous release forever if the workflow failed. Split it: commit everything except `docs/`, push,
-  tag, wait for the release to land and verify the asset, then commit `docs/` and push. Since SP-0156
-  the deploy waits for CI's documentation and site-sync gates on the same commit (a `ci-gate` job), so
-  the split leaves no red site in between - the only cost is remembering to run `build-site.ps1` and
-  make the second commit (2026-08-21; gate added 2026-09-30).
+- **`project` - the site deploys after the release run, never on a push (SP-0256, 2026-10-30).**
+  `pages.yml` runs on `workflow_run` of `Release` (only when it concluded success) or on an explicit
+  `gh workflow run pages.yml`, and its own `gate` job runs the documentation gate and the site-sync check
+  on the commit it then deploys. A release commit may therefore carry the regenerated `docs/` together
+  with the release wiring: the download tile goes live only after the release that holds the file. The
+  two-push split of 2026-08-21 (commit everything but `docs/`, tag, wait, then push `docs/`) and the
+  SP-0156 `ci-gate` that waited for push CI are both retired - push CI now runs only the fast tier. A
+  `docs/` change pushed between releases stays unpublished until the next release or an explicit run.
+  The trigger is `workflow_run`, not `release: published`: release.yml creates the GitHub Release with
+  the workflow token, which starts no other workflow, and the `github-pages` environment admits only
+  `main`, so a tag-push trigger would be refused.
 
 - **`reference` - launching a station from the command line takes `--url <value>`, two arguments.**
   `StreamLaunchRequest.Parse` accepts exactly zero or two arguments; anything else is `Invalid`, and an

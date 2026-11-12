@@ -36,13 +36,15 @@ internal sealed partial class BroadcastProducerService
     /// Makes the keys of a broadcast and takes the lease that keeps the device list current while it runs. The list is
     /// fetched because a person started a broadcast (SP-0222 holds): the lease is the producer's own follow of it.
     /// </summary>
-    private async Task<BroadcastSealing?> PrepareSealingAsync(BroadcastRunningSource state)
+    private async Task<BroadcastSealing?> PrepareSealingAsync(BroadcastRunningSource state, CancellationToken cancel)
     {
         var sealing = state.Sealing ??= new BroadcastSealing(state.BroadcastId, MediaTypeOf(state.Source));
         sealing.DirectoryLease ??= _exchange.AcquireDirectory(follow: true);
-        if (!await _exchange.WaitForDirectoryAsync(DirectoryWait, CancellationToken.None).ConfigureAwait(false))
+        Diagnose(state.Source, "directory-awaited");
+        if (!await _exchange.WaitForDirectoryAsync(DirectoryWait, cancel).ConfigureAwait(false))
         {
-            Report("ExchangeUnavailable");
+            Diagnose(state.Source, "directory-timed-out");
+            ReportState(state, "ExchangeUnavailable");
             return null;
         }
         return sealing;
@@ -56,30 +58,40 @@ internal sealed partial class BroadcastProducerService
     {
         using var self = _exchange.OwnE2eKey();
         // The own pair joins every box (item DK); a re-seal that left it out would lock the account's own devices out.
-        return self is null
-            ? null
+        var box = self is null ? null
             : sealing.Sealer.Refresh(_exchange.Account.DeviceId, self, _exchange.SealRecipients(), state.OwnPair).Box;
+        if (box is not null) Diagnose(state.Source, "record-sealed", "recipients=" + RecipientNames(box).Length);
+        return box;
     }
     /// <summary>The record of `broadcast-start` or `broadcast-update`, with the box it currently carries (item DK).</summary>
-    private Task<bool> PostRecordAsync(BroadcastRunningSource state, string type, CancellationToken cancellationToken)
+    private async Task<bool> PostRecordAsync(BroadcastRunningSource state, string type, CancellationToken cancellationToken)
     {
         if (state.Plan is not { } plan || state.DescriptorJson is not { } descriptor)
         {
-            return Task.FromResult(false);
+            return false;
         }
 
+        var recordBox = state.Sealing?.Sealer.Box;
+        var recipientNames = recordBox is null ? Array.Empty<string>() : RecipientNames(recordBox);
         var envelope = new Dictionary<string, object?>
         {
             ["schemaVersion"] = 2,
             ["type"] = type,
-            ["broadcast"] = BroadcastDescriptorWriter.BroadcastRecord(plan, descriptor, state.StartedAt, state.Sealing?.Sealer.Box),
+            ["broadcast"] = BroadcastDescriptorWriter.BroadcastRecord(plan, descriptor, state.StartedAt, recordBox),
             ["maxListeners"] = state.AnnouncedMaxListeners,
             // Item DV: on every start and update, an empty list included - it is how the relay learns that nobody is asked for a pair.
             ["verifiers"] = BroadcastVerifier.ToEnvelopeMember(state.Verifiers)
         };
-        return type == "broadcast-update"
-            ? _exchange.PostBroadcastUpdateAsync(envelope, cancellationToken)
-            : _exchange.PostControlEnvelopeAsync(envelope, cancellationToken);
+        var posted = type == "broadcast-update"
+            ? await _exchange.PostBroadcastUpdateAsync(envelope, cancellationToken).ConfigureAwait(false)
+            : await _exchange.PostControlEnvelopeAsync(envelope, cancellationToken).ConfigureAwait(false);
+        Diagnose(state.Source, type, "sent=" + posted);
+        if (posted && type == "broadcast-update" && recordBox is not null)
+        {
+            state.RecipientNames = recipientNames;
+            UpdateRouteVerdict(state);
+        }
+        return posted;
     }
 
     // --- recipients change ----------------------------------------------------------
@@ -151,6 +163,7 @@ internal sealed partial class BroadcastProducerService
                 return await PostRecordAsync(state, "broadcast-update", unchangedTimeout.Token).ConfigureAwait(false);
             }
 
+            Diagnose(state.Source, "record-sealed", "recipients=" + (refresh.Box is null ? 0 : RecipientNames(refresh.Box).Length));
             using var timeout = new CancellationTokenSource(EndWriteTimeout);
             var posted = await PostRecordAsync(state, "broadcast-update", timeout.Token).ConfigureAwait(false);
             if (refresh.NewEpoch)

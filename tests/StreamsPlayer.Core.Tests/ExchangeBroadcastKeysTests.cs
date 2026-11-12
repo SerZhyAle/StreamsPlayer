@@ -237,4 +237,50 @@ public sealed class ExchangeBroadcastKeysTests
         var good = ExchangeBroadcastKeys.ReadPayload(System.Text.Encoding.UTF8.GetBytes(json));
         Assert.Equal(new ExchangeRelayCredentials("a", "b"), good!.Credentials);
     }
+
+    // SP-0246 S16-5: the two static maps held every broadcast id a directory had ever listed until the process ended.
+    [Fact]
+    public void TheKeyMapsAreBounded_AndTheEntryWrittenLongestAgoIsTheOneThatGoes()
+    {
+        ExchangeBroadcastKeys.Clear();
+        var secrets = new ExchangeBroadcastSecrets(new byte[32], null, null);
+        var over = ExchangeBroadcastKeys.MaximumRemembered + 25;
+        for (var index = 0; index < over; index++)
+        {
+            ExchangeBroadcastKeys.Put("bound-held-" + index, secrets);
+            ExchangeBroadcastKeys.Fail("bound-failed-" + index, ExchangeSealedState.SealedFailed);
+        }
+
+        var (held, failed) = ExchangeBroadcastKeys.Counts;
+        Assert.True(held <= ExchangeBroadcastKeys.MaximumRemembered, $"held {held}");
+        Assert.True(failed <= ExchangeBroadcastKeys.MaximumRemembered, $"failed {failed}");
+        Assert.Null(ExchangeBroadcastKeys.Find("bound-held-0"));
+        Assert.Equal(ExchangeSealedState.None, ExchangeBroadcastKeys.FailureOf("bound-failed-0"));
+        Assert.NotNull(ExchangeBroadcastKeys.Find("bound-held-" + (over - 1)));
+        Assert.Equal(ExchangeSealedState.SealedFailed, ExchangeBroadcastKeys.FailureOf("bound-failed-" + (over - 1)));
+        ExchangeBroadcastKeys.Clear();
+    }
+
+    [Fact]
+    public void WritingAnEntryAgainKeepsItAmongTheNewest()
+    {
+        ExchangeBroadcastKeys.Clear();
+        var secrets = new ExchangeBroadcastSecrets(new byte[32], null, null);
+        ExchangeBroadcastKeys.Put("live-again", secrets);
+        for (var index = 0; index < ExchangeBroadcastKeys.MaximumRemembered - 1; index++)
+        {
+            ExchangeBroadcastKeys.Put("filler-" + index, secrets);
+        }
+
+        // A directory frame carries a live broadcast's box again; that write must make it newer than the fillers.
+        ExchangeBroadcastKeys.Put("live-again", secrets);
+        for (var index = 0; index < 10; index++)
+        {
+            ExchangeBroadcastKeys.Put("late-" + index, secrets);
+        }
+
+        Assert.NotNull(ExchangeBroadcastKeys.Find("live-again"));
+        Assert.Null(ExchangeBroadcastKeys.Find("filler-0"));
+        ExchangeBroadcastKeys.Clear();
+    }
 }

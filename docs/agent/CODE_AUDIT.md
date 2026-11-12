@@ -54,7 +54,8 @@ a tail manifest that the fan-out and the summary accept like the first.
 ### Slice procedure
 
 1. **Pre-scan.** The build and test baseline is green (`pwsh -NoProfile -File ./build.ps1 -Test -Deploy:$false`,
-   exit 0); the manifest's signal counts for the slice's files are the reading list's first hints; the earlier
+   exit 0) - a release-tier run (SP-0256), made once per campaign on the audited tree and recorded on the
+   umbrella ticket, never once per slice; the manifest's signal counts for the slice's files are the reading list's first hints; the earlier
    audit dossiers' findings for the same files are known and not rediscovered. A green baseline is a starting
    point, never a verdict.
 2. **Layered read.** Every audited file is read line by line, aimed at what no gate sees:

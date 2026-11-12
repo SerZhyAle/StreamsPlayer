@@ -49,3 +49,16 @@ secrets/
 # Editor-local settings - personal colour schemes and layouts, never product state.
 .vscode/
 .idea/
+
+# Generated spec-command wrappers (SP-0257). The sza plugin's register-spec-commands.ps1 writes these eight
+# forwarders into .claude/commands on each machine (forwards_to marker). They are per-install output, not product
+# documents: a registry entry for a file a clean checkout lacks fails the documentation gate, and build-local's
+# `git add --all` would otherwise commit them.
+/.claude/commands/sa.md
+/.claude/commands/sd.md
+/.claude/commands/sn.md
+/.claude/commands/sq.md
+/.claude/commands/spec-all.md
+/.claude/commands/spec-draft.md
+/.claude/commands/spec-next.md
+/.claude/commands/spec-quiz.md

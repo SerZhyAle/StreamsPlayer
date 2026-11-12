@@ -630,6 +630,8 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="BroadcastResourceAdded">Diffusion ajoutée : {0}</sys:String>
     <sys:String x:Key="BroadcastResourceUpdated">Diffusion mise à jour : {0}</sys:String>
     <sys:String x:Key="BroadcastNoLongerAvailable">La diffusion {0} n'est plus disponible.</sys:String>
+    <sys:String x:Key="BroadcastEnded">La diffusion est terminée.</sys:String>
+    <sys:String x:Key="BroadcastReconnect">Se reconnecter</sys:String>
     <sys:String x:Key="BroadcastPlaylistPosition">{0} - élément {1} sur {2}</sys:String>
     <sys:String x:Key="FmsBroadcastConfirm">Importer cette diffusion en direct ?&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
     <sys:String x:Key="FmsBroadcastAdded">Diffusion en direct importée : {0}.</sys:String>
@@ -638,7 +640,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="FmsBroadcastInvalid">Cette description de diffusion FastMediaSorter n'est pas valide. Votre liste n'a pas changé.</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">Cette description de diffusion dépasse 64 Kio. Votre liste n'a pas changé.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer est occupé par une autre opération. Importez de nouveau la diffusion une fois celle-ci terminée. Votre liste n'a pas changé.</sys:String>
-    <sys:String x:Key="FmsBroadcastListenerLimit">{0} a déjà atteint le nombre maximal d'auditeurs. Réessayez quand un autre auditeur se déconnecte.</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0} a déjà atteint le nombre maximal de spectateurs et d'auditeurs. Réessayez quand un autre se déconnecte.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} a cessé de diffuser ou n'est plus joignable sur ce réseau.</sys:String>
     <!-- SP-0098 portable stream catalog import -->
     <sys:String x:Key="StreamCatalogSettings">Catalogue de flux</sys:String>
@@ -714,7 +716,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="SettingsFilesDesc">Dossiers pour les captures d'images et enregistrements de flux</sys:String>
     <sys:String x:Key="SettingsAbout">À propos</sys:String>
     <sys:String x:Key="SettingsExchangeDesc">Compte et connexion au serveur</sys:String>
-    <sys:String x:Key="SettingsBroadcastDesc">Sources, accès réseau et qualité audio</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">Autorisation, accès réseau et qualité</sys:String>
     <sys:String x:Key="SettingsAboutDesc">Informations sur l'application, licence et diagnostics</sys:String>
     <sys:String x:Key="ThemeHint">Choisissez clair, sombre ou suivez les paramètres d'apparence de Windows.</sys:String>
     <sys:String x:Key="TileSizeHint">Ajustez la taille des vignettes de chaînes dans la grille.</sys:String>
@@ -779,7 +781,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="BroadcastsEmpty">Ce compte n’a aucune diffusion actuellement ; elles apparaîtront ici lorsque vos autres appareils les lanceront.</sys:String>
     <sys:String x:Key="BroadcastsOnline">en ligne</sys:String>
     <sys:String x:Key="BroadcastsOffline">hors ligne</sys:String>
-    <sys:String x:Key="BroadcastsPlay">Écouter</sys:String>
+    <sys:String x:Key="BroadcastsPlay">Lire</sys:String>
     <sys:String x:Key="BroadcastsKeep">Ajouter à mes chaînes</sys:String>
     <sys:String x:Key="BroadcastsUnsupportedReason">Ces adresses ne permettent pas de lire la diffusion. Demandez un autre lien à la personne qui diffuse.</sys:String>
     <sys:String x:Key="BroadcastsUnsealedReason">Cette diffusion n’est pas protégée, donc elle n’est pas lue via le serveur.</sys:String>
@@ -802,10 +804,10 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="BroadcastsStateFailed">échec</sys:String>
     <sys:String x:Key="BroadcastsBoundReached">{0} diffusions sont déjà ouvertes, le maximum que ce PC gère à la fois. Fermez-en une pour en ouvrir une autre.</sys:String>
     <sys:String x:Key="BroadcastsOpenSettings">Ouvrir les paramètres de connexion</sys:String>
-    <sys:String x:Key="BroadcastsPlayNamed">Écouter {0}</sys:String>
+    <sys:String x:Key="BroadcastsPlayNamed">Lire {0}</sys:String>
     <sys:String x:Key="BroadcastsKeepNamed">Ajouter {0} à mes chaînes</sys:String>
     <sys:String x:Key="EndedLabel">Terminée</sys:String>
-    <sys:String x:Key="BroadcastCapabilityWarning">Cette adresse contient le secret de la diffusion : quiconque la détient peut écouter. La transmettre quand même ?</sys:String>
+    <sys:String x:Key="BroadcastCapabilityWarning">Cette adresse contient le secret de la diffusion : quiconque la détient peut regarder et écouter. La transmettre quand même ?</sys:String>
     <sys:String x:Key="ExchangeAutoAcceptCasts">Accepter automatiquement les diffusions de mes appareils</sys:String>
     <sys:String x:Key="ExchangeCastTitle">Demande de diffusion</sys:String>
     <sys:String x:Key="ExchangeCastOfferPrompt">{0} sur {1} souhaite diffuser sur cet appareil. Accepter ?</sys:String>
@@ -833,7 +835,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="ExchangeStringFileFilter">Importer depuis un fichier (*.fmsexch)|*.fmsexch|*.*|*.*</sys:String>
     <!-- SP-0217: broadcasting this PC devices through the device exchange. -->
     <sys:String x:Key="BroadcastTitle">Diffusion en direct</sys:String>
-    <sys:String x:Key="BroadcastHint">Envoie ce que ce PC capte vers le serveur d'échange de votre compte. Rien n'est capté tant que vous ne l'autorisez pas ici et ne démarrez pas une source.</sys:String>
+    <sys:String x:Key="BroadcastHint">Envoie ce que ce PC capte vers le serveur d'échange de votre compte et, si l'option « Réseau local » est activée, vers votre réseau local. Rien n'est capté tant que vous ne l'autorisez pas ici et ne démarrez pas une source.</sys:String>
     <sys:String x:Key="BroadcastAllow">Autoriser ce PC à diffuser</sys:String>
     <sys:String x:Key="BroadcastStartWithApp">Démarrer les sources choisies au lancement de l'application</sys:String>
     <sys:String x:Key="BroadcastMicStart">Diffuser le microphone</sys:String>
@@ -843,8 +845,8 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="BroadcastDefaultDevice">Valeur par défaut de Windows</sys:String>
     <sys:String x:Key="BroadcastLanListening">Réseau local</sys:String>
     <sys:String x:Key="BroadcastLanPort">Port</sys:String>
-    <sys:String x:Key="BroadcastCap">Auditeurs maximum</sys:String>
-    <sys:String x:Key="BroadcastCapHint">0 signifie sans limite. Chaque auditeur connecté directement utilise le débit sortant de ce PC. Par le serveur d’échange, ce PC envoie une copie pour tous les auditeurs.</sys:String>
+    <sys:String x:Key="BroadcastCap">Spectateurs et auditeurs maximum</sys:String>
+    <sys:String x:Key="BroadcastCapHint">0 signifie sans limite. Chaque spectateur ou auditeur connecté directement utilise le débit sortant de ce PC. Par le serveur d’échange, ce PC envoie une copie pour tous.</sys:String>
     <sys:String x:Key="BroadcastQuality">Qualité</sys:String>
     <sys:String x:Key="BroadcastSampleRate">Fréquence d'échantillonnage</sys:String>
     <sys:String x:Key="BroadcastMicChannels">Canaux du microphone</sys:String>
@@ -868,14 +870,17 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="BroadcastAudioMicrophone">Microphone</sys:String>
     <sys:String x:Key="BroadcastAudioSystem">Son du système</sys:String>
     <sys:String x:Key="BroadcastNoDevices">Aucun trouvé</sys:String>
-    <sys:String x:Key="BroadcastScreenPrivacy">La diffusion de l’écran envoie tout le moniteur choisi, y compris les notifications et les mots de passe qui s’y affichent. Le contenu protégé par Windows peut apparaître vide. Pendant la diffusion, l’indicateur nomme le moniteur.</sys:String>
+    <sys:String x:Key="BroadcastScreenPrivacy">La diffusion de l’écran envoie tout le moniteur choisi, y compris les notifications et les mots de passe qui s’y affichent. Le contenu protégé par Windows peut apparaître vide. Pendant la diffusion, la carte nomme le moniteur.</sys:String>
     <sys:String x:Key="BroadcastVideoUnavailable">L’encodeur vidéo de Windows (H.264) ne démarre pas sur ce PC ; l’écran et la caméra ne sont donc pas proposés. Le microphone et le son du système n’en dépendent pas.</sys:String>
     <sys:String x:Key="BroadcastOwnOutputRisk">Dans cette version de Windows, le son du système contient aussi celui de cette application ; une diffusion que vous lisez ici serait donc renvoyée. Écoutez les diffusions sur un autre appareil tant que le son du système est diffusé.</sys:String>
     <sys:String x:Key="BroadcastLinkPassword">Mot de passe du lien</sys:String>
+    <sys:String x:Key="BroadcastConfirmStopAll">Toutes les diffusions en cours s&apos;arrêtent et leurs spectateurs et auditeurs sont déconnectés. Continuer ?</sys:String>
+    <sys:String x:Key="BroadcastConfirmLanOff">Tous ceux qui regardent ou écoutent sur votre réseau local sont déconnectés, et une diffusion qui ne passe pas aussi par le serveur d&apos;échange s&apos;arrête. Continuer ?</sys:String>
+    <sys:String x:Key="BroadcastConfirmRevokeLink">Le mot de passe actuel du lien cesse aussitôt de fonctionner, et tous ceux qui regardent ou écoutent avec lui sont déconnectés. Continuer ?</sys:String>
     <sys:String x:Key="BroadcastLinkGenerated">Nouveau pour chaque diffusion</sys:String>
     <sys:String x:Key="BroadcastLinkCustom">Défini par moi</sys:String>
     <sys:String x:Key="BroadcastLinkNone">Aucun mot de passe</sys:String>
-    <sys:String x:Key="BroadcastLinkHint">S’applique au lien, au fichier et au code QR que vous donnez à d’autres personnes. Le mot de passe n’y figure jamais : communiquez-le à part ; vous pouvez le copier depuis le menu « Partager » de l’indicateur. Un mot de passe que vous définissez n’est conservé que dans le magasin de secrets Windows de votre compte.</sys:String>
+    <sys:String x:Key="BroadcastLinkHint">S’applique au lien, au fichier et au code QR que vous donnez à d’autres personnes. Le mot de passe n’y figure jamais : communiquez-le à part ; vous pouvez le copier depuis le menu « Partager » de la fenêtre de diffusion. Un mot de passe que vous définissez n’est conservé que dans le magasin de secrets Windows de votre compte.</sys:String>
     <sys:String x:Key="BroadcastLinkNoneWarning">Sans mot de passe, toute personne qui reçoit le lien peut regarder et écouter.</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordField">Mot de passe pour le lien</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordSave">Enregistrer le mot de passe</sys:String>
@@ -902,7 +907,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="BroadcastNotAllowed">Autorisez d'abord la diffusion dans les paramètres.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">Trop de diffusions à la fois.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">Cette source est déjà en direct.</sys:String>
-    <sys:String x:Key="BroadcastEncoderMissing">L'encodeur audio de Windows est indisponible sur ce PC ; les sources ne sont donc pas proposées.</sys:String>
+    <sys:String x:Key="BroadcastEncoderMissing">L'encodeur audio de Windows est indisponible sur ce PC ; une diffusion avec du son ne peut donc pas démarrer. Une diffusion de l'écran ou de la caméra sans son n'est pas concernée.</sys:String>
     <sys:String x:Key="BroadcastPortTaken">Le port LAN est occupé. Choisissez-en un autre dans les paramètres.</sys:String>
     <sys:String x:Key="BroadcastPermissionDenied">Windows a refusé le microphone ou la caméra à cette application. Autorisez-le dans les paramètres de confidentialité de Windows et recommencez.</sys:String>
     <sys:String x:Key="BroadcastDeviceInUse">L'appareil est occupé par un autre programme. Fermez-le et redémarrez.</sys:String>
@@ -1014,7 +1019,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="ExchangeDiagnosisCodeLine">Code : {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">Il n'y a pas encore de serveur à vérifier. Importez d'abord une chaîne de connexion ou connectez-vous.</sys:String>
     <sys:String x:Key="BroadcastNoReachableEndpoint">Personne ne peut recevoir cette diffusion. Activez le réseau local ou connectez-vous au serveur d’échange, puis réessayez.</sys:String>
-    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">Cette adresse protégée ne peut pas être lue ici. Demandez un lien via le serveur d’échange à l’émetteur.</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">La connexion directe à l’émetteur, sur le réseau local ou via le serveur d’échange, exige une vérification du mot de passe que ce lecteur ne prend pas en charge. Demandez une diffusion distribuée par le serveur d’échange.</sys:String>
     <sys:String x:Key="BroadcastNotListed">absent de la liste</sys:String>
     <sys:String x:Key="BroadcastTrustPrompt">Ce PC ne peut pas vérifier le certificat de {0}. Comparez cette empreinte avec l’émetteur avant de lui faire confiance pour cette chaîne :&#10;{1}&#10;Faire confiance à ce certificat ?</sys:String>
     <sys:String x:Key="DriveTitle">Via Google Drive</sys:String>
@@ -1022,7 +1027,6 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="DriveSignIn">Se connecter avec Google</sys:String>
     <sys:String x:Key="DriveSignOut">Se déconnecter de Google</sys:String>
     <sys:String x:Key="DriveNoCast">L’envoi d’une diffusion vers un appareil est indisponible via Google Drive, qui ne propose pas de notifications push.</sys:String>
-    <sys:String x:Key="DriveUnavailable">La connexion Google est indisponible dans cette version.</sys:String>
     <sys:String x:Key="DriveSignedOut">Non connecté à Google.</sys:String>
     <sys:String x:Key="DriveSigningIn">Terminez la connexion Google dans votre navigateur.</sys:String>
     <sys:String x:Key="DriveConnected">Connecté à Google Drive.</sys:String>
@@ -1049,4 +1053,46 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="MyStreamsWatch">Regarder</sys:String>
     <sys:String x:Key="MyStreamsListen">Écouter</sys:String>
     <sys:String x:Key="MyStreamsSaved">Enregistré</sys:String>
+    <!-- Broadcast start verdict and publication details. -->
+    <sys:String x:Key="BroadcastStarting">Démarrage de la diffusion…</sys:String>
+    <sys:String x:Key="BroadcastStartFailed">La diffusion n’a pas démarré. {0} Vérifiez l’appareil sélectionné et la connexion, puis réessayez.</sys:String>
+    <sys:String x:Key="BroadcastStopped">Diffusion arrêtée.</sys:String>
+    <sys:String x:Key="BroadcastAnnounced">Annoncée sur {0} à {1} appareils du compte.</sys:String>
+    <sys:String x:Key="BroadcastNoRecipients">Attention : aucun autre appareil du compte ne peut l’ouvrir. Connectez-vous sur l’appareil récepteur, vérifiez la prise en charge des diffusions chiffrées, puis redémarrez.</sys:String>
+    <sys:String x:Key="BroadcastNotAnnounced">Non annoncée sur le serveur d’échange. Connectez le compte pour l’annoncer.</sys:String>
+    <sys:String x:Key="BroadcastLanAddress">Adresse sur le réseau local : {0}.</sys:String>
+    <sys:String x:Key="BroadcastUnnamedDevice">Appareil sans nom</sys:String>
+    <sys:String x:Key="BroadcastShowRecipients">Afficher les appareils destinataires</sys:String>
+    <sys:String x:Key="BroadcastWindowTitle">Diffusion</sys:String>
+    <sys:String x:Key="BroadcastButtonIdle">Diffusion : rien en direct</sys:String>
+    <sys:String x:Key="BroadcastButtonServerWarning">Le serveur d’échange est injoignable : les appareils du compte ne verront pas cette diffusion tant qu’il ne sera pas revenu.</sys:String>
+    <sys:String x:Key="BroadcastStateOff">Désactivée</sys:String>
+    <sys:String x:Key="BroadcastStateLiveSince">En direct depuis {0}.</sys:String>
+    <sys:String x:Key="BroadcastStateStopping">Arrêt de la diffusion..</sys:String>
+    <sys:String x:Key="BroadcastWhereDrive">Annoncée via Google Drive.</sys:String>
+    <sys:String x:Key="BroadcastReceivers">Connectés directement à ce PC : {0}.</sys:String>
+    <sys:String x:Key="BroadcastOpenSettings">Paramètres..</sys:String>
+    <sys:String x:Key="BroadcastOpenWindow">Ouvrir la fenêtre de diffusion</sys:String>
+    <sys:String x:Key="BroadcastStopShort">Arrêter</sys:String>
+    <sys:String x:Key="BroadcastLinkChoiceLine">Mot de passe du lien : {0}. Il se modifie dans les paramètres.</sys:String>
+    <sys:String x:Key="ExchangeSettingsTitle">Échange des paramètres (profil STANDARD)</sys:String>
+    <sys:String x:Key="ExchangeSettingsHint">Conservez vos paramètres d'apparence, de lecture et d'interface sur votre serveur d'échange comme STANDARD et lisez-les sur un autre PC. Rien n'est envoyé ni lu avant que vous appuyiez sur un bouton, et les changements suivants restent sur ce PC. Les dossiers, les périphériques audio, les positions des fenêtres, les mots de passe et les clés ne le quittent jamais. L'opérateur du serveur peut lire les paramètres enregistrés.</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupAppearance">Apparence</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupPlayback">Lecture</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupInterface">Interface</sys:String>
+    <sys:String x:Key="ExchangeSettingsSave">Enregistrer comme STANDARD</sys:String>
+    <sys:String x:Key="ExchangeSettingsRead">Lire STANDARD</sys:String>
+    <sys:String x:Key="ExchangeSettingsUnavailable">L'enregistrement et la lecture du STANDARD fonctionnent tant que ce PC est connecté à un serveur qui conserve les paramètres.</sys:String>
+    <sys:String x:Key="ExchangeSettingsChooseGroup">Choisissez au moins un groupe.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveConfirm">Enregistrer ces groupes sur le serveur comme STANDARD : {0} ? Le STANDARD qui y est enregistré est remplacé, et un groupe non choisi en sort.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadConfirm">Lire le STANDARD du serveur et appliquer ces groupes : {0} ? Leurs paramètres sur ce PC seront remplacés.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSavedAt">Enregistré comme STANDARD : {0}.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadAt">Le STANDARD enregistré le {0} a été lu et appliqué.</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveUnknown">Le serveur n'a pas répondu, on ne sait donc pas si les paramètres ont été enregistrés. Enregistrer à nouveau est sans risque.</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadDamaged">Les paramètres sur le serveur sont endommagés. Rien n'a été modifié.</sys:String>
+    <sys:String x:Key="ExchangeSettingsBusy">Un échange de paramètres est déjà en cours. Attendez qu'il se termine.</sys:String>
+    <sys:String x:Key="ExchangeSettingsNotFound">Aucun paramètre standard n'est encore enregistré sur le serveur pour ce programme. Enregistrez-les d'abord.</sys:String>
+    <sys:String x:Key="ExchangeSettingsInvalidPayload">Le serveur n'a pas accepté ces paramètres : ils sont endommagés ou trop volumineux.</sys:String>
+    <sys:String x:Key="ExchangeSettingsAppIdMismatch">Ce serveur ne conserve pas les paramètres de ce programme pour ce compte.</sys:String>
+    <sys:String x:Key="ExchangeSettingsVersionIncompatible">Le serveur ne prend pas en charge cette version du format des paramètres.</sys:String>
 </ResourceDictionary>

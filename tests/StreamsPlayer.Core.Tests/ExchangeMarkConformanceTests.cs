@@ -128,8 +128,10 @@ public sealed class ExchangeMarkConformanceTests
         Assert.True(File.Exists(OwnGlyph));
         var settings = File.ReadAllText(Path.Combine(AppSourceFile.Directory, "SettingsWindow.xaml"));
         Assert.Contains("Icon.feature.server-relay", settings, StringComparison.Ordinal);
-        var main = File.ReadAllText(Path.Combine(AppSourceFile.Directory, "MainWindow.xaml"));
-        Assert.Contains("Icon.source.exchange-server", main, StringComparison.Ordinal);
+        // SP-0252: the status row moved from the main window's header into the broadcast window, whose first line it leads.
+        var broadcast = File.ReadAllText(Path.Combine(AppSourceFile.Directory, "BroadcastWindow.xaml"));
+        Assert.Contains("Icon.source.exchange-server", broadcast, StringComparison.Ordinal);
+        Assert.DoesNotContain("Icon.source.exchange-server", File.ReadAllText(Path.Combine(AppSourceFile.Directory, "MainWindow.xaml")), StringComparison.Ordinal);
     }
 
     [Fact]

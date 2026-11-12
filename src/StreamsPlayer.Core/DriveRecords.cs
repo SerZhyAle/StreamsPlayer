@@ -107,6 +107,9 @@ public sealed class DriveDirectory(DriveRestClient client)
             {
                 var bytes = await client.ReadAsync(file, cancellation).ConfigureAwait(false);
                 record = bytes is null ? null : DriveRecords.Parse(bytes, file.Name);
+                // A later read can time out. Keep completed downloads so the next bounded poll
+                // progresses through a large folder, while Snapshot remains an atomic whole view.
+                _cache[file.Id] = (file.ModifiedTime, file.Name, record);
             }
             next[file.Id] = (file.ModifiedTime, file.Name, record);
             if (record is null || record.DeviceId == ownDeviceId)

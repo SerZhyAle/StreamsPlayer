@@ -60,22 +60,26 @@ strings; the dictionaries win if the two ever disagree.
 | **Operations** | The header menu that holds the rarely used actions, including Library settings and the catalog import. |
 | **Library settings** | The settings page, opened from Settings or Operations, for library operations and options (catalog import, snapshot, cleanup, playlists, TV schedule, channel visibility). |
 | **Record** | Capture the live stream that is playing to a file, without interrupting playback. |
+| **Broadcast** | Live broadcasting of this PC's screen, camera, microphone or system audio. |
+| **Exchange server** | The private server connecting the user's devices for media exchange and encrypted broadcasts. |
+| **Connection check** | The step-by-step diagnostic test that diagnoses why the exchange server will not connect. |
+| **My broadcasts** | The window that lists the broadcasts the other devices of the signed-in account announce, grouped by device. |
 
-| Language | Operations | Library settings | Record |
-|---|---|---|---|
-| English (`en`) | Operations | Library settings | Record |
-| Russian (`ru`) | Операции | Настройки библиотеки | Запись |
-| Ukrainian (`uk`) | Операції | Налаштування бібліотеки | Запис |
-| German (`de`) | Aktionen | Bibliothekseinstellungen | Aufnehmen |
-| Italian (`it`) | Azioni | Impostazioni libreria | Registra |
-| Spanish (`es`) | Acciones | Configuración de biblioteca | Grabar |
-| French (`fr`) | Actions | Paramètres de la bibliothèque | Enregistrer |
-| Portuguese (`pt`) | Ações | Configurações da biblioteca | Gravar |
-| Chinese (`zh`) | 操作 | 媒体库设置 | 录制 |
-| Hindi (`hi`) | कार्य | लाइब्रेरी सेटिंग्स | रिकॉर्ड करें |
-| Bengali (`bn`) | কাজ | লাইব্রেরি সেটিংস | রেকর্ড করুন |
-| Arabic (`ar`) | إجراءات | إعدادات المكتبة | تسجيل |
-| Urdu (`ur`) | کارروائیاں | لائبریری ترتیبات | ریکارڈ کریں |
+| Language | Operations | Library settings | Record | Broadcast | Exchange server | Connection check | My broadcasts |
+|---|---|---|---|---|---|---|---|
+| English (`en`) | Operations | Library settings | Record | Broadcast | Exchange server | Connection check | My broadcasts |
+| Russian (`ru`) | Операции | Настройки библиотеки | Запись | Трансляция | Сервер обмена | Проверка соединения | Свои трансляции |
+| Ukrainian (`uk`) | Операції | Налаштування бібліотеки | Запис | Трансляція | Сервер обміну | Перевірка з'єднання | Свої трансляції |
+| German (`de`) | Aktionen | Bibliothekseinstellungen | Aufnehmen | Übertragung | Austauschserver | Verbindungsprüfung | Eigene Übertragungen |
+| Italian (`it`) | Azioni | Impostazioni libreria | Registra | Trasmissione | Server di scambio | Controllo della connessione | Le mie trasmissioni |
+| Spanish (`es`) | Acciones | Configuración de biblioteca | Grabar | Transmisión | Servidor de intercambio | Comprobación de la conexión | Mis emisiones |
+| French (`fr`) | Actions | Paramètres de la bibliothèque | Enregistrer | Diffusion | Serveur d’échange | Vérification de la connexion | Mes diffusions |
+| Portuguese (`pt`) | Ações | Configurações da biblioteca | Gravar | Transmissão | Servidor de troca | Verificação da conexão | Minhas transmissões |
+| Chinese (`zh`) | 操作 | 媒体库设置 | 录制 | 广播 | 交换服务器 | 连接检查 | 我的广播 |
+| Hindi (`hi`) | कार्य | लाइब्रेरी सेटिंग्स | रिकॉर्ड करें | प्रसारण | एक्सचेंज सर्वर | कनेक्शन की जाँच | मेरे प्रसारण |
+| Bengali (`bn`) | কাজ | লাইব্রেরি সেটিংস | রেকর্ড করুন | সম্প্রচার | এক্সচেঞ্জ সার্ভার | সংযোগ যাচাই | আমার সম্প্রচার |
+| Arabic (`ar`) | إجراءات | إعدادات المكتبة | تسجيل | البث | خادم التبادل | فحص الاتصال | عمليات البث الخاصة بي |
+| Urdu (`ur`) | کارروائیاں | لائبریری ترتیبات | ریکارڈ کریں | نشر | ایکسچینج سرور | کنکشن کی جانچ | میری نشریات |
 
 ### Help (SP-0230)
 

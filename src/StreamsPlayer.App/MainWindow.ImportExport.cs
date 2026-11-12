@@ -328,6 +328,7 @@ public partial class MainWindow
                 $"bank_atlas={(bankCarriedAtlas ? "present" : "absent")}",
                 $"installed={(bankCarriedAtlas ? "replaced" : "kept")}");
 
+            var store = _store;
             MergeResult? merge = null;
             var commit = await CommitStateAsync(
                 state =>
@@ -345,7 +346,7 @@ public partial class MainWindow
                     return FaviconAtlasReferences.ReleaseUnreferenced(
                         state with { Channels = merge.Channels.ToList() }, AtlasSlot.Imported);
                 },
-                (state, cancellationToken) => _store.SaveAsync(
+                (state, cancellationToken) => store.SaveAsync(
                     state,
                     bank.FaviconAtlas,
                     bankCarriedAtlas,

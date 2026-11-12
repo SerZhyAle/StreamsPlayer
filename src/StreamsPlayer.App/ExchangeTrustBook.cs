@@ -22,6 +22,7 @@ internal sealed class ExchangeTrustBook(string directory, string fileName = "exc
     // S7-7: ToData() clears a trust's own dirty flag before the write, so a write that did not land is kept here;
     // without it the keys of that write would never be saved again.
     private bool _unsaved;
+    private long _retryAfter;
 
     /// <summary>The trust of one entry; created empty the first time it is asked for.</summary>
     internal ExchangeDeviceTrust For(string entryDeviceId)
@@ -98,6 +99,7 @@ internal sealed class ExchangeTrustBook(string directory, string fileName = "exc
     private void SaveLocked(bool force)
     {
         var entries = Entries();
+        if (!force && Environment.TickCount64 < _retryAfter) return;
         if (!force && !_unsaved && !entries.Values.Any(trust => trust.IsDirty))
         {
             return;
@@ -125,18 +127,19 @@ internal sealed class ExchangeTrustBook(string directory, string fileName = "exc
             File.WriteAllBytes(temporary, protectedBytes);
             File.Move(temporary, _path, overwrite: true);
             _unsaved = false;
+            _retryAfter = 0;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or CryptographicException)
         {
-            // The book stays in memory for this session and stays unsaved (S7-7), so the next save tries again.
+            // Keep unsaved trust in memory, without serializing it on every directory/keepalive event.
+            _retryAfter = Environment.TickCount64 + 30_000;
         }
         finally
         {
             CryptographicOperations.ZeroMemory(clear);
-            if (File.Exists(temporary))
-            {
-                File.Delete(temporary);
-            }
+            try { File.Delete(temporary); }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            { /* A blocked temporary is retried with the book, after the backoff. */ }
         }
     }
 }

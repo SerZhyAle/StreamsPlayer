@@ -110,7 +110,9 @@ public sealed class RecordingFinisherTests : IDisposable
             File.WriteAllText(file, "x");
         }
 
-        File.SetLastWriteTimeUtc(stale, DateTime.UtcNow - RecordingFinisher.StalePartialAge - TimeSpan.FromMinutes(5));
+        var staleTime = DateTime.UtcNow - RecordingFinisher.StalePartialAge - TimeSpan.FromMinutes(5);
+        File.SetCreationTimeUtc(stale, staleTime);
+        File.SetLastWriteTimeUtc(stale, staleTime);
         RecordingFinisher.RemoveStalePartials([_recordings], _log, DateTimeOffset.UtcNow);
 
         Assert.False(File.Exists(stale));

@@ -68,6 +68,22 @@ public static class BroadcastSources
     public static bool IsAudioOnly(BroadcastSource source) =>
         Mode(source) == FastMediaSorterBroadcastDescriptor.AudioOnlyMode;
 
+    /// <summary>
+    /// The sound a screen or camera broadcast carries beside its picture, from the Settings choice
+    /// ("mic" or "system-audio"); null is a picture without sound. Only a broadcast with a companion needs
+    /// Windows' audio encoder, so a missing encoder must never stop a start that has none (SP-0251).
+    /// </summary>
+    public static BroadcastSource? CompanionAudio(BroadcastSource source, BroadcastProducerSettings settings)
+    {
+        var choice = source switch
+        {
+            BroadcastSource.Screen => settings.ScreenAudioSource,
+            BroadcastSource.Camera => settings.CameraAudioSource,
+            _ => null
+        };
+        return TryParseWireName(choice, out var companion) && IsAudioOnly(companion) ? companion : null;
+    }
+
     /// <summary>Open question 4, the recommended answer: mono for the microphone, stereo for the system sound.</summary>
     public static int DefaultChannels(BroadcastSource source) => source switch
     {

@@ -39,12 +39,62 @@ asks. The build-versus-release rule itself has one home in the canon
 - `winget/` - release-manifest templates and submission notes; `manifests/` holds a version-pinned copy of a submitted manifest set and is not the template source.
 - `PLAN/` - spec tickets. **Untracked** (`.gitignore`): a fresh clone, CI, or an outside contributor will not have it, so nothing outside this working tree may depend on a ticket's contents.
 
+## Fast checks and the release tier
+
+**Between releases nothing above 5 seconds runs** - no full build, no test suite, no check measured above 5 s or
+never measured - unless the owner names that run (canon `TESTING_AND_QA.md` §2; SP-0256). A technical piece, a
+point fix or a small improvement is checked by static inspection, the fast tier and a direct call of what
+changed, and reported as "not built, not tested until the release"; a slower rung it skipped is a `RELEASE` item
+in its audit, naming the command below that the release runs.
+
+- **Fast tier:** `pwsh -NoProfile -File ./scripts/check-fast.ps1 [-Area docs|help|site|release-scripts|snapshot]`
+  - the checks below marked fast, in parallel; `all` (the default) took 3.71 s, one area 0.83-3.00 s (2026-10-30,
+  timed around the whole call). Push CI and `scripts/build-local.ps1` run it and nothing else.
+- **Release tier:** `pwsh -NoProfile -File ./scripts/check.ps1` (Release restore, build, the suite and every check
+  of both tiers), `./scripts/smoke-playback.ps1`, `./msix/build-msix.ps1 -SelfSign` - run by the release checklist
+  (`scripts/release.ps1` items 3, 4, 6); `release.yml` builds and tests the tag's own tree and runs the
+  documentation gate, the site-sync check and the fixtures push CI no longer carries; `pages.yml` runs the
+  documentation gate and the site-sync check on the commit it deploys, after a successful release run or on an
+  explicit run, never on push.
+
+Measured list. Method: one direct `pwsh -NoProfile -File <script>` call, wall time around the child process, on
+the owner's machine on 2026-10-30, unless the CI step time of run 40234064360 (2026-10-25) or 38010697651
+(2026-10-10) is named. A check with no measured time is release tier until a release run measures it; moving a
+check into the fast tier needs a time of 5 s or less recorded here first.
+
+| Check | Seconds | Tier |
+| --- | --- | --- |
+| `scripts/check-docs.ps1` | 1.60 (CI 2-3) | fast |
+| `scripts/check-help.ps1` | 0.47 | fast |
+| `scripts/Test-TestResultSummary.ps1` | 0.45 (CI 1) | fast |
+| `scripts/Test-ExistingReleaseState.ps1` | 0.40 | fast |
+| `scripts/Test-ReleaseVersion.ps1` | 2.59 | fast |
+| `msix/Test-MsixIdentity.ps1` | 0.72 (2026-11-12, mean of 3) | fast |
+| `scripts/Test-StorePreflightCall.ps1` | 2.8 (2026-11-12, mean of 3) | fast |
+| `tools/site/Test-HeldAddresses.ps1` | 0.85 | fast |
+| `tools/site/Test-ReleaseNotes.ps1` | 0.95 | fast |
+| `tools/site/Test-SiteDiscovery.ps1` | 1.40 | fast |
+| `tools/site/Test-SiteFacts.ps1` | 0.92 | fast |
+| `tools/build-catalog-snapshot.ps1 -Check -Offline` | 1.28 | fast |
+| `tools/help/build-help.ps1 -Check` | 5.37 | release |
+| `tools/audit/Test-AuditTools.ps1` | 5.61 | release |
+| `tools/store/Test-StoreListing.ps1` | CI 6 | release |
+| `scripts/Test-MeasureCaptureTimes.ps1` | 7.66 | release |
+| `tools/audit/Test-AuditVerdictGate.ps1` | 10.21 | release |
+| `tools/site/build-site.ps1 -Check` | CI 15-20 | release |
+| `msix/Test-AssertMsixPackage.ps1` | 21.51 | release |
+| `tools/Test-CatalogSnapshot.ps1` | above 30 (stopped) | release |
+| `dotnet restore` + `dotnet build StreamsPlayer.sln -c Release` | CI 30 + 30 | release |
+| `scripts/test.ps1` (the whole suite; a `--filter` run still builds first) | CI 417 | release |
+| `scripts/Test-CheckVerdictScripts.ps1`, `scripts/Test-SmokeVerdictGate.ps1`, `scripts/Test-ReleaseArtifactVersion.ps1`, `msix/Test-AppxManifest.ps1`, `tools/site/make-demo.ps1 -Check`, `scripts/smoke-playback.ps1` | not measured | release |
+
 ## Development commands
 
 Run from the repository root. A human types these in PowerShell. **An agent must prefix every `.ps1`
 with `pwsh -NoProfile -File`** - a bare `./build.ps1` in a Bash tool call is refused by the canon's
 `guard-bash` hook (`GITHUB_INTERACTION.md` §6), and backgrounding one would report the wrapper's exit
-code instead of the build's.
+code instead of the build's. Every command below that builds, tests or runs a check of the release tier is for
+the release or for a run the owner names (section above).
 
 - `build.ps1` deploys by default: `-Deploy` is `$true` unless you pass `-Deploy:$false`. Deploying forces Release; it *throws* rather than silently coercing if `-Configuration` is bound to non-Release or `-Runtime` to anything but `win-x64`. Every `build.ps1` line below inherits that.
 - `pwsh -NoProfile -File ./build.ps1 -Test -Deploy:$false` - restore, build and run tests without touching the local app folders.
@@ -63,7 +113,7 @@ code instead of the build's.
 
 - `pwsh -NoProfile -File ./tools/help/build-help.ps1` (`-Check` writes nothing and fails on a stale file) - regenerate `docs/help/` from `help/` and the dictionaries; `pwsh -NoProfile -File ./scripts/check-help.ps1` - hold the generated help pages to `CONTEXT-HELP` (SP-0230). Both run inside `scripts/check.ps1`.
 
-Never run `scripts/build-local.ps1` unless the user explicitly requests a commit: it runs `git add --all` and commits.
+Never run `scripts/build-local.ps1` unless the user explicitly requests a commit: it runs the fast tier (`scripts/check-fast.ps1`), then `git add --all` and commits.
 
 ## Code and test conventions
 
@@ -77,8 +127,9 @@ Never run `scripts/build-local.ps1` unless the user explicitly requests a commit
   projects. Follow standard C# naming: PascalCase for types/members,
   camelCase for locals and parameters.
 - Build with `dotnet build StreamsPlayer.sln -c Release` and test with
-  `dotnet test StreamsPlayer.sln -c Release --no-build` before proposing a
-  release.
+  `dotnet test StreamsPlayer.sln -c Release --no-build` as part of a release
+  (`scripts/check.ps1` runs both), never between releases unless the owner
+  names that run; between releases run `scripts/check-fast.ps1`.
 
 ## Git conventions
 

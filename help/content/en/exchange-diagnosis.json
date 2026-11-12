@@ -1,0 +1,95 @@
+{
+  "summary": "The step-by-step check of why the exchange server does not connect, and what to try.",
+  "lead": "Finds out, step by step, why the connection to your exchange server does not work, and says what to try. It runs only because you pressed a button that opens it - **Check the connection** in My broadcasts, in the window of a broadcast, or on the Exchange server page of Settings - and it stops at the first step that does not pass. It changes no setting. Closing the window, with [[Esc]] too, also ends a check that is still running.",
+  "order": [
+    "Read {@happened}: it is the line of the screen you came from, so you know what is being checked.",
+    "Wait while the bar and \"Checking..\" show: the check goes through its steps in order and stops at the first one that does not pass.",
+    "Do what {@try} says. If every step this PC can check passes, it offers the first step that cannot be checked from here.",
+    "If that did not help, press **{@next}** to see the next suggestion, as long as the button is shown.",
+    "After each change, press **{@again}** to run the whole check from the start.",
+    "Open **{@details}** to see the server that was checked, the failure code and every step with how it came out."
+  ],
+  "elements": [
+    {
+      "id": "happened",
+      "nameKey": "ExchangeDiagnosisHappened",
+      "one": "Says in a sentence what the screen you came from was showing.",
+      "full": [
+        "The line is the one that screen showed; for a broadcast that is no longer available it names the broadcast. It is shown at once, before the check has finished.",
+        "Two other cases change what the window shows. When the server is already connected there is nothing to check, so the window shows that line and nothing else. When no server is known, the line says that there is no server to check and asks you to import a connection string or sign in first."
+      ]
+    },
+    {
+      "id": "try",
+      "nameKey": "ExchangeDiagnosisTry",
+      "one": "The first thing worth doing about the step that did not pass.",
+      "full": [
+        "The check stops at the first step that does not pass and shows the advice for that step here. If every step this PC can look at passes, the first step that cannot be checked from this PC is offered instead.",
+        "This part appears only after the check has finished, and only when there is a step to suggest."
+      ],
+      "why": "It turns the result into one thing to do, instead of a list to read."
+    },
+    {
+      "id": "details",
+      "nameKey": "ExchangeDiagnosisDetails",
+      "one": "Opens the part that holds the address that was checked, the failure code and the steps.",
+      "full": [
+        "The part is closed when the window opens. Inside are the line that starts with \"Server:\", with the address and port that were checked, the line that starts with \"Code:\", with the code of the failure, and the list of steps. It is not shown when there was nothing to check."
+      ]
+    },
+    {
+      "id": "steps",
+      "nameKey": "ExchangeDiagnosisSteps",
+      "one": "Lists every step with how it came out.",
+      "full": [
+        "The list is inside the details. Each line reads a state, a hyphen and the advice of that step. The states are \"Passed\", \"Did not pass\", \"Cannot be checked from this PC\" and \"Not reached\". The check stops at the first step that does not pass, so the steps after it read \"Not reached\".",
+        "A step that does not belong to this connection is left out of the list. A step marked \"Cannot be checked from this PC\" is one that only the other end or the network can show; it is offered to you to try, not judged."
+      ]
+    },
+    {
+      "id": "exchange-guide",
+      "nameKey": "MediaExchange",
+      "one": "Opens the guide to exchanging media between your devices.",
+      "full": [
+        "Opens a web page about exchanging media between your devices in your browser; the application stays open. The guide is on the internet, so it needs a connection. It comes in English, Russian and Ukrainian, and every other language opens the English one."
+      ],
+      "next": "The guide opens in your browser. Nothing in the application changes."
+    },
+    {
+      "id": "next",
+      "nameKey": "ExchangeDiagnosisNext",
+      "one": "Shows the next suggestion.",
+      "full": [
+        "Replaces the text under \"What to try\" with the next step that is still left to try, and goes on down the list each time you press it. When no step is left, the button is no longer shown. It is also hidden while the check runs and when there is no suggestion.",
+        "There is no way back one step; **Check again** starts over and shows the first suggestion again."
+      ],
+      "why": "For when the first suggestion did not help."
+    },
+    {
+      "id": "again",
+      "nameKey": "ExchangeDiagnosisAgain",
+      "one": "Runs the whole check again.",
+      "full": [
+        "Starts the check from the first step and replaces the result. The button is unavailable while a check runs."
+      ],
+      "why": "To see whether what you changed made a difference.",
+      "next": "The bar and \"Checking..\" show while the check runs, then the new result replaces the old one."
+    },
+    {
+      "id": "help",
+      "nameKey": "HelpName",
+      "one": "Opens this page when you press [[F1]].",
+      "full": [
+        "Pressing [[F1]] in this window opens the page of the window you are in, in your web browser; the application stays open."
+      ],
+      "next": "The page opens in your browser. Nothing in the application changes.",
+      "shortcut": "[[F1]] works from anywhere in the window."
+    }
+  ],
+  "related": [
+    { "help": "broadcasts", "note": "The list that offers Check the connection when part of it cannot be read." },
+    { "help": "broadcast-audio", "note": "The window of an audio broadcast, which can offer Check the connection after a failure." },
+    { "help": "settings", "note": "The Exchange server page, which has its own Check the connection button." },
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." }
+  ]
+}

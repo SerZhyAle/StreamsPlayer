@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Help - My broadcasts</title>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <nav class="help-crumbs" aria-label="Breadcrumb">
+    <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>My broadcasts</span>
+  </nav>
+  <header class="hero">
+    <p class="kicker">Window help</p>
+    <h1>My broadcasts</h1>
+    <p class="lead">Lists the live broadcasts announced by the devices of the account you are signed in to, grouped by device, and opens the one you choose in a window of its own. A broadcast you only have as a link is opened from the field at the bottom. The window asks for the list when it opens and follows it while it stays open, so it has no refresh button. Closing it, with <kbd>Esc</kbd> too, closes only this list; each broadcast you opened has a window of its own.</p>
+  </header>
+
+  <h2>In this order</h2>
+  <ol class="order">
+    <li>If the top line says why there is no list, press <b><a href="#e-settings">Open sign-in settings</a></b> and sign in on the page it opens. If the window offers <b><a href="#e-diagnose">Check the connection</a></b>, press that to see what is wrong with the connection.</li>
+    <li>Find the broadcast in <a href="#e-list">My broadcasts</a>: it stands under the name of the device that makes it.</li>
+    <li>Press <b><a href="#e-play">Play</a></b> on its row to open it in a window of its own, or <b><a href="#e-keep">Add to my channels</a></b> to add it to your channels.</li>
+    <li>A broadcast you have only as a link goes into <b><a href="#e-link">Open by link</a></b> and is opened with <b><a href="#e-link-open">Open</a></b>.</li>
+    <li>Read the state word on the row to see how each open broadcast is doing. Broadcasts opened by link are also listed under &quot;Opened by link&quot;.</li>
+  </ol>
+
+  <h2>The elements</h2>
+  <div class="elements">
+    <details class="el" id="e-status">
+      <summary><img src="../mark-24.png" srcset="../mark-24.png 1x, ../mark-48.png 2x" width="24" height="24" alt=""><span><span class="name">Exchange server</span><span class="one">Says why there is no list, when there is none.</span></span></summary>
+      <div class="full">
+        <p>The line beside this icon is the status of the connection that would give the list: the exchange server, or Google Drive where that is what is in use. It is shown only while nothing is signed in, and it is hidden when a list is shown.</p>
+        <p>It only reports. The buttons under it are the next step.</p>
+      </div>
+    </details>
+    <details class="el" id="e-settings">
+      <summary><span><span class="name">Open sign-in settings</span><span class="one">Opens Settings on the Exchange server page, where the sign-in is set up.</span></span></summary>
+      <div class="full">
+        <p>The button is shown when nothing is signed in, and when a part of the list cannot be read until you act in Settings: signed out, refused, unreachable, or a certificate waiting for your approval. It is not shown while a connection is still being made.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>Settings opens on the Exchange server page.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-diagnose">
+      <summary><span><span class="name">Check the connection</span><span class="one">Opens the connection check for the first part of the list that cannot be read.</span></span></summary>
+      <div class="full">
+        <p>The button is shown when a part of the list cannot be read. The check starts from that part's own status line, and it runs only because you pressed this button.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The Connection check window opens in front of this one and starts at once; this window waits until you close it.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-list">
+      <summary><span><span class="name">My broadcasts</span><span class="one">Shows each broadcast under the device that makes it.</span></span></summary>
+      <div class="full">
+        <p>The list is in sections. Your account comes first, then one section for each guest sign-in, and last, while any is open, the broadcasts you opened by link under the heading &quot;Opened by link&quot;. Under a device's name stand its broadcasts, and beside the name the list says &quot;online&quot; or &quot;offline&quot;. A broadcast shows its title, or what it carries if it has no title, and a second line that says what it carries: &quot;Video and audio&quot;, &quot;Video only&quot; or &quot;Audio&quot;. Once a window of that broadcast is open, the second line ends with the state of that window: connecting, playing, reconnecting, ended, failed or stopped.</p>
+        <p>A section that cannot be listed shows the status of its connection in place of broadcasts. A section with nothing in it says so, for example &quot;This account has no broadcasts right now; they appear here as your other devices start them.&quot;</p>
+        <p>A section for a guest sign-in is headed with the guest account and its server, and carries the note &quot;Signed in as a guest, so this list shows only what was given to this guest.&quot; Its rows have <b>Play</b> but not <b>Add to my channels</b>.</p>
+        <p>A row that cannot be played has no buttons, and its second line says why, for example &quot;This broadcast is not protected, so it is not played through the server.&quot; A row that came via Google Drive ends its second line with &quot;Via Google Drive&quot;; when Google Drive is in use, the section also says &quot;Casting is unavailable via Google Drive because it has no push notifications.&quot;</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>To see what your other devices are broadcasting and which of it you have open.</dd>
+          <dt>Shortcut</dt><dd><kbd>Enter</kbd> on a selected row that can be played does what <b>Play</b> does.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-play">
+      <summary><span><span class="name">Play</span><span class="one">Opens this broadcast in a window of its own.</span></span></summary>
+      <div class="full">
+        <p>An audio broadcast opens in a small audio window; a video broadcast opens in a player window. Each broadcast has a window of its own, so several can be open together, and the station in the main window is left alone. The number open at once is limited: when it is reached, a line under the list says how many broadcasts are open - the most this PC holds at once - and asks you to close one.</p>
+        <p>A broadcast that is protected by a password may ask for it first, in a small window of its own; closing that question opens nothing. A broadcast that is already open is brought forward instead of being opened a second time.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The window of the broadcast opens, and the second line of its row then shows the state of that window.</dd>
+          <dt>Undo</dt><dd>End it in the broadcast's own window.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-keep">
+      <summary><span><span class="name">Add to my channels</span><span class="one">Adds this broadcast to your channels.</span></span></summary>
+      <div class="full">
+        <p>The broadcast becomes a channel in your list, and the main window selects it there. The button is not on the rows of a guest section: what a guest was given is played from here, not kept.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>To have the broadcast in your channel list.</dd>
+          <dt>Next</dt><dd>The channel is added and selected in the list of the main window.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-link">
+      <summary><span><span class="name">Open by link</span><span class="one">The field where a broadcast link goes.</span></span></summary>
+      <div class="full">
+        <p>Paste a broadcast link and press <kbd>Enter</kbd>, or press <b><a href="#e-link-open">Open</a></b>. Text that is not a broadcast link is refused with the line &quot;This is not a broadcast link.&quot;, and a link this version cannot read is refused with a line that says why. After a refusal the text stays in the field so that you can correct it; when the broadcast opens, or is already open, the field is cleared.</p>
+        <p>A broadcast opened by link is listed under &quot;Opened by link&quot;, with its title and state, for as long as its window is open.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>To open a broadcast that was handed to you as a link and is not in your account's list.</dd>
+          <dt>Shortcut</dt><dd><kbd>Enter</kbd> in the field does what <b>Open</b> does.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-link-open">
+      <summary><span><span class="name">Open</span><span class="one">Opens the link in the field.</span></span></summary>
+      <div class="full">
+        <p>Does nothing while the field is empty. Otherwise it opens the broadcast in a window of its own, as <b><a href="#e-play">Play</a></b> does, or brings that window forward if the broadcast is already open. A refusal is shown as a line above the field.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The window of the broadcast opens and the field is emptied.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-exchange-guide">
+      <summary><span><span class="name">Media exchange</span><span class="one">Opens the guide to exchanging media between your devices.</span></span></summary>
+      <div class="full">
+        <p>Opens a web page about live broadcasts and the exchange between your devices in your browser; the application stays open. The guide is on the internet, so it needs a connection. It comes in English, Russian and Ukrainian, and every other language opens the English one.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The guide opens in your browser. Nothing in the application changes.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-help">
+      <summary><span><span class="name">Help</span><span class="one">Opens this page when you press <kbd>F1</kbd>.</span></span></summary>
+      <div class="full">
+        <p>Pressing <kbd>F1</kbd> in this window opens the page of the window you are in, in your web browser; the application stays open.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The page opens in your browser. Nothing in the application changes.</dd>
+          <dt>Shortcut</dt><dd><kbd>F1</kbd> works from anywhere in the window.</dd>
+        </dl>
+      </div>
+    </details>
+  </div>
+
+  <h2>Related</h2>
+  <ul class="related">
+    <li><a href="main.html"><b>STREAMS Player</b><span class="pill">Window</span><small>The main window, whose My broadcasts button opens this one.</small></a></li>
+    <li><a href="broadcast-audio.html"><b>Live broadcast, audio</b><span class="pill">Window</span><small>The small window of one audio broadcast, which Play opens.</small></a></li>
+    <li><a href="exchange-diagnosis.html"><b>Connection check</b><span class="pill">Window</span><small>The connection check that Check the connection opens.</small></a></li>
+    <li><a href="broadcast.html"><b>Broadcast</b><span class="pill">Window</span><small>Where a broadcast from this PC is started, shared and stopped.</small></a></li>
+    <li><a href="settings.html"><b>STREAMS Player settings</b><span class="pill">Window</span><small>Where the exchange server account is set up.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/index.html#use"><b>How to use</b><span class="pill gold">Site</span><small>The whole task, from the first start to your own playlists.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Written against STREAMS Player 26.1021, 2026-10-21.</span>
+    <a href="index.html">Help index</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/support.html">Ask a question or report a problem</a>
+  </footer>
+
+</main>
+<script>
+/* Progressive enhancement only: the page is complete without it. */
+(function () {
+  function openHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === 'DETAILS') { el.open = true; }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+})();
+</script>
+</body>
+</html>

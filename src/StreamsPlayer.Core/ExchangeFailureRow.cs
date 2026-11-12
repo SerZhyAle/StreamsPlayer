@@ -66,6 +66,19 @@ public static class ExchangeFailureRows
     public static readonly ExchangeFailureRow NotPermitted = new("not-permitted", ExchangeFailureKind.Wire,
         null, false, "ExchangeNotPermitted");
 
+    // SP-0260: the four reasons of the settings standard (DEVICE-EXCHANGE 1.12 item EP), worded in its rows.
+    public static readonly ExchangeFailureRow NotFound = new("not-found", ExchangeFailureKind.Wire,
+        null, false, "ExchangeSettingsNotFound");
+
+    public static readonly ExchangeFailureRow InvalidPayload = new("invalid-payload", ExchangeFailureKind.Wire,
+        null, false, "ExchangeSettingsInvalidPayload");
+
+    public static readonly ExchangeFailureRow AppIdMismatch = new("app-id-mismatch", ExchangeFailureKind.Wire,
+        ExchangeDiagnosisStep.Operator, false, "ExchangeSettingsAppIdMismatch");
+
+    public static readonly ExchangeFailureRow VersionIncompatible = new("version-incompatible", ExchangeFailureKind.Wire,
+        ExchangeDiagnosisStep.Operator, false, "ExchangeSettingsVersionIncompatible");
+
     /// <summary>An unknown <c>refused.reason</c> is shown as a generic refusal (section 7.10), step "operator".</summary>
     public static readonly ExchangeFailureRow Refused = new("refused", ExchangeFailureKind.Wire,
         ExchangeDiagnosisStep.Operator, false, "ExchangeRefused");
@@ -105,7 +118,7 @@ public static class ExchangeFailureRows
         BadCredentials, BadCredentialsCode, DeviceRevoked, SignedOut, VersionUnsupported, TlsRequired, IdCollision,
         Capacity, PortUnavailable, Unavailable, RateLimited, PasswordPolicy, LimitReached, NotPermitted, Refused,
         CastDeclined, CastTimeout, CastUnsupported, Unreachable, Unanswered, TlsFailed, CertificateChanged,
-        EmptyCredential, FormatUnsupported
+        EmptyCredential, FormatUnsupported, NotFound, InvalidPayload, AppIdMismatch, VersionIncompatible
     });
 
     /// <summary>The row whose text a status line shows under <paramref name="key"/>; null for a key that is not a failure.</summary>
@@ -131,6 +144,10 @@ public static class ExchangeFailureRows
         "password-policy" => PasswordPolicy,
         "limit-reached" => LimitReached,
         "not-permitted" => NotPermitted,
+        "not-found" => NotFound,
+        "invalid-payload" => InvalidPayload,
+        "app-id-mismatch" => AppIdMismatch,
+        "version-incompatible" => VersionIncompatible,
         _ => Refused
     };
 

@@ -6,10 +6,10 @@ using StreamsPlayer.Core;
 namespace StreamsPlayer.App;
 
 /// <summary>
-/// SP-0217's always-visible indicator menu, shared by the main window and the compact panel: while any
-/// source is live it names each one and offers its stop, its cast targets (the account's receivers
-/// whose declared pairs cover one of its endpoints - a receiver that does not is shown as
-/// unsupported, never offered) and its hand-off channels (link, import file).
+/// The hand-off menus of a live source in the broadcast window (SP-0252 requirement 4): the share items (link, password,
+/// QR code, description file) and the cast targets (the account's receivers whose declared pairs cover one of the
+/// source's endpoints - a receiver that does not is shown as unsupported, never offered). They are the actions the
+/// live indicator's menu had; the window only asks for them where the source's card is.
 /// </summary>
 internal static class BroadcastLiveMenuBuilder
 {
@@ -21,72 +21,27 @@ internal static class BroadcastLiveMenuBuilder
     internal static readonly TimeSpan ReceiversWait = TimeSpan.FromSeconds(3);
 
     /// <summary>
-    /// <see cref="Build"/> after asking the account for its receivers once. The ask is a lease on the directory
-    /// held for as long as the menu takes to build and given back at once: the menu keeps the receivers it
+    /// The cast menu of one live source, after asking the account for its receivers once. The ask is a lease on the
+    /// directory held for as long as the menu takes to build and given back at once: the menu keeps the receivers it
     /// captured, and nothing is followed afterwards.
     /// </summary>
-    internal static async Task<ContextMenu> BuildAsync(BroadcastProducerService producer, ExchangeSourceService exchange,
-        Window owner)
-    {
-        if (producer.Running.Count == 0 || !exchange.IsActive)
-        {
-            return Build(producer, exchange, owner);
-        }
-
-        using var lease = exchange.AcquireDirectory(follow: false);
-        await exchange.WaitForDirectoryAsync(ReceiversWait);
-        return Build(producer, exchange, owner);
-    }
-
-    internal static ContextMenu Build(BroadcastProducerService producer, ExchangeSourceService exchange, Window owner)
-    {
-        var menu = new ContextMenu();
-        var running = producer.Running;
-        if (running.Count == 0)
-        {
-            return menu;
-        }
-
-        foreach (var source in running)
-        {
-            if (menu.Items.Count > 0)
-            {
-                menu.Items.Add(new Separator());
-            }
-
-            var title = producer.SourceTitle(source);
-            // The stop is a plain item of its own. It used to be the header of the cast and share submenus, and a submenu
-            // header only opens its submenu when clicked, while a click on any item below it bubbled up and stopped the
-            // broadcast: copying the link stopped it, and the stop item itself could not.
-            var stop = new MenuItem { Header = LocalizationService.Format("BroadcastStopSource", title) };
-            stop.Click += (_, _) => RunSafely(nameof(BroadcastLiveMenuBuilder), owner, () => producer.StopAsync(source));
-            menu.Items.Add(stop);
-
-            // What can be done with the running source: the submenu is named after it, so two live sources stay apart.
-            var options = new MenuItem { Header = title };
-            if (exchange.IsActive && exchange.CanCast)
-            {
-                // A cast goes through the exchange server, so the entry exists only while the account is on - and
-                // only for a member's account, on a server that has not said it lacks cast (items AO, 7.2): a hidden
-                // entry is better than one the server refuses.
-                options.Items.Add(BuildCastMenu(producer, exchange, source, owner));
-            }
-
-            options.Items.Add(BuildShareItems(producer, source, title, owner));
-            menu.Items.Add(options);
-        }
-
-        menu.Items.Add(new Separator());
-        var help = new MenuItem { Header = LocalizationService.Get("MediaExchange") };
-        help.Click += (_, _) => ExchangeHelp.Open(owner, ExchangePortalPage.Broadcasts);
-        menu.Items.Add(help);
-        return menu;
-    }
-
-    private static MenuItem BuildCastMenu(BroadcastProducerService producer, ExchangeSourceService exchange,
+    internal static async Task<ContextMenu> BuildCastMenuAsync(BroadcastProducerService producer, ExchangeSourceService exchange,
         BroadcastSource source, Window owner)
     {
-        var cast = new MenuItem { Header = LocalizationService.Get("BroadcastCastMenu") };
+        if (exchange.IsActive)
+        {
+            using var lease = exchange.AcquireDirectory(follow: false);
+            await exchange.WaitForDirectoryAsync(ReceiversWait);
+            return BuildCastMenu(producer, exchange, source, owner);
+        }
+
+        return BuildCastMenu(producer, exchange, source, owner);
+    }
+
+    internal static ContextMenu BuildCastMenu(BroadcastProducerService producer, ExchangeSourceService exchange,
+        BroadcastSource source, Window owner)
+    {
+        var menu = new ContextMenu();
         var descriptor = producer.DescriptorText(source);
         var read = descriptor is null ? null : FastMediaSorterBroadcastDescriptor.Read(descriptor);
         var endpoints = read is { IsAccepted: true, Broadcast: not null } ? read.Broadcast.Endpoints : [];
@@ -116,23 +71,23 @@ internal static class BroadcastLiveMenuBuilder
             }
 
             var captured = receiver;
-            item.Click += (_, _) => RunSafely(nameof(BroadcastLiveMenuBuilder), owner, () => producer.CastAsync(source, captured));
-            cast.Items.Add(item);
+            item.Click += (_, _) => RunSafely(nameof(BroadcastLiveMenuBuilder), () => producer.CastAsync(source, captured));
+            menu.Items.Add(item);
         }
 
-        if (cast.Items.Count == 0)
+        if (menu.Items.Count == 0)
         {
-            cast.IsEnabled = false;
-            cast.ToolTip = LocalizationService.Get("BroadcastCastNoReceivers");
-            ToolTipService.SetShowOnDisabled(cast, true); // S6-6
+            // An empty menu would not open at all; the one disabled line says why there is nothing to pick.
+            var none = new MenuItem { Header = LocalizationService.Get("BroadcastCastNoReceivers"), IsEnabled = false };
+            menu.Items.Add(none);
         }
 
-        return cast;
+        return menu;
     }
 
-    private static MenuItem BuildShareItems(BroadcastProducerService producer, BroadcastSource source, string title, Window owner)
+    internal static ContextMenu BuildShareMenu(BroadcastProducerService producer, BroadcastSource source, Window owner)
     {
-        var share = new MenuItem { Header = LocalizationService.Get("BroadcastShareMenu") };
+        var menu = new ContextMenu();
         var link = new MenuItem { Header = LocalizationService.Get("BroadcastCopyLink") };
         link.Click += (_, _) =>
         {
@@ -148,7 +103,7 @@ internal static class BroadcastLiveMenuBuilder
                 HandlerBoundary.Report(nameof(BroadcastLiveMenuBuilder), exception);
             }
         };
-        share.Items.Add(link);
+        menu.Items.Add(link);
 
         // Item R: the password is the person's to tell, apart from the link. With "none" there is nothing to copy.
         var password = new MenuItem { Header = LocalizationService.Get("BroadcastCopyPassword") };
@@ -173,7 +128,7 @@ internal static class BroadcastLiveMenuBuilder
                 HandlerBoundary.Report(nameof(BroadcastLiveMenuBuilder), exception);
             }
         };
-        share.Items.Add(password);
+        menu.Items.Add(password);
 
         var qr = new MenuItem { Header = LocalizationService.Get("BroadcastShowQr") };
         qr.Click += (_, _) =>
@@ -190,10 +145,10 @@ internal static class BroadcastLiveMenuBuilder
                 HandlerBoundary.Report(nameof(BroadcastLiveMenuBuilder), exception);
             }
         };
-        share.Items.Add(qr);
+        menu.Items.Add(qr);
 
         var file = new MenuItem { Header = LocalizationService.Get("BroadcastSaveFile") };
-        file.Click += (_, _) => RunSafely(nameof(BroadcastLiveMenuBuilder), owner, () =>
+        file.Click += (_, _) => RunSafely(nameof(BroadcastLiveMenuBuilder), () =>
         {
             if (producer.DescriptorText(source) is not { } descriptor)
             {
@@ -212,15 +167,12 @@ internal static class BroadcastLiveMenuBuilder
 
             return Task.CompletedTask;
         });
-        share.Items.Add(file);
-        return share;
+        menu.Items.Add(file);
+        return menu;
     }
 
-    private static void RunSafely(string name, Window owner, Func<Task> action)
-    {
-        _ = owner;
-        // S6-5: the boundary awaits the task, so a fault in StopAsync/CastAsync is logged and reported once. The old
-        // `_ = action()` caught only a synchronous throw and dropped the task, and with it every later fault.
+    private static void RunSafely(string name, Func<Task> action) =>
+        // S6-5: the boundary awaits the task, so a fault in CastAsync is logged and reported once. A bare `_ = action()`
+        // would catch only a synchronous throw and drop the task, and with it every later fault.
         HandlerBoundary.Run(name, action);
-    }
 }

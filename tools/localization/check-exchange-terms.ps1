@@ -117,6 +117,22 @@ foreach ($line in $block) {
 if ($format.Count -ne 3) { throw 'The three texts of format-unsupported were not found.' }
 $exported.Add([ordered]@{ code = 'format-unsupported'; kind = 'local'; step = $null; en = $format['en']; ru = $format['ru']; uk = $format['uk'] })
 
+# SP-0260: the four reasons of the settings standard, rows that extend item CZ in the amendment of 2026-11-12 (item EP).
+$settingsAmendment = Join-Path $CatalogRoot 'device-exchange/SETTINGS-STANDARD-2026-11-12.md'
+$settingsLines = Get-Content -LiteralPath $settingsAmendment -Encoding utf8
+$ep = [System.Collections.Generic.Dictionary[string, object]]::new()
+foreach ($line in $settingsLines) {
+    if ($line -notmatch '^\| `(not-found|invalid-payload|app-id-mismatch|version-incompatible)` \| wire \|') { continue }
+    $cells = $line.Split('|')
+    $step = $cells[3].Trim().Trim('`')
+    $ep[$Matches[1]] = [ordered]@{ code = $Matches[1]; kind = 'wire'; step = $(if ($step -eq '-') { $null } else { $step })
+        en = $cells[4].Trim(); ru = $cells[5].Trim(); uk = $cells[6].Trim() }
+}
+foreach ($code in @('not-found', 'invalid-payload', 'app-id-mismatch', 'version-incompatible')) {
+    if (-not $ep.ContainsKey($code)) { throw "Item EP has no row '$code'." }
+    $exported.Add($ep[$code])
+}
+
 $ci = $rows | Select-String -Pattern '^\*\*CY \[NEW\]' | Select-Object -First 1
 $da = $rows | Select-String -Pattern '^\*\*DA \[NEW\]' | Select-Object -First 1
 $steps = [System.Collections.Generic.List[object]]::new()
@@ -129,7 +145,7 @@ foreach ($line in $rows[($ci.LineNumber - 1)..($da.LineNumber - 2)]) {
 if ($steps.Count -ne 15) { throw "Item CY should hold 15 steps; found $($steps.Count)." }
 
 $vector = [ordered]@{
-    source = 'DEVICE-EXCHANGE 1.5 section 9 items CZ (messages) and CY (ladder) and the amendment of 2026-10-17 (format-unsupported); SP-0225'
+    source = 'DEVICE-EXCHANGE 1.5 section 9 items CZ (messages) and CY (ladder), the amendment of 2026-10-17 (format-unsupported) and 1.12 item EP (settings refusals); SP-0225, SP-0260'
     rows = $exported
     steps = $steps
 }
@@ -151,7 +167,9 @@ $keyOf = @{ 'bad-credentials' = 'ExchangeBadCredentials'; 'bad-credentials-code'
     'limit-reached' = 'ExchangeLimitReached'; 'not-permitted' = 'ExchangeNotPermitted'; 'refused' = 'ExchangeRefused'
     'declined' = 'BroadcastCastDeclined'; 'timeout' = 'BroadcastCastTimeout'; 'unsupported' = 'BroadcastCastUnsupported'
     'unreachable-server' = 'ExchangeUnreachable'; 'unanswered' = 'ExchangeUnanswered'; 'tls-failed' = 'ExchangeTlsFailed'
-    'certificate-changed' = 'ExchangeCertificateChanged'; 'empty-credential' = 'ExchangeEmptyCredential'; 'format-unsupported' = 'ExchangeFormatUnsupported' }
+    'certificate-changed' = 'ExchangeCertificateChanged'; 'empty-credential' = 'ExchangeEmptyCredential'; 'format-unsupported' = 'ExchangeFormatUnsupported'
+    'not-found' = 'ExchangeSettingsNotFound'; 'invalid-payload' = 'ExchangeSettingsInvalidPayload'; 'app-id-mismatch' = 'ExchangeSettingsAppIdMismatch'
+    'version-incompatible' = 'ExchangeSettingsVersionIncompatible' }
 $tableCount = 0
 foreach ($code in @('en', 'ru', 'uk')) {
     $values = Read-Dictionary $code

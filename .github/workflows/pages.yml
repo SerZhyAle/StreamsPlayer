@@ -1,17 +1,24 @@
 name: Deploy Pages
 
-# SP-0156: the site deploys only after CI judged the same commit - the documentation gate and the
-# site-sync check are CI steps, so a push whose docs would fail them never reaches Pages. The deploy
-# job waits for the ci.yml run of its own head SHA and requires it green.
+# SP-0156: the site deploys only a commit whose documentation gate and site-sync check passed on that same
+# commit. SP-0256 (owner decision, 2026-10-30): the site no longer deploys on push. It deploys after a release
+# run of release.yml concluded success, or on an explicit run of this workflow, and the two gates run here, in
+# the gate job, on exactly the commit the deploy job publishes.
+#
+# The release run is followed through workflow_run, not through a release event: release.yml creates the GitHub
+# Release with the workflow token, and an event caused by that token starts no other workflow. workflow_run runs
+# on the default branch, which the github-pages environment's branch policy (main only) admits; a tag-push trigger
+# would be refused by it. The commit published is the one the release run was started for - the tagged commit
+# for a tag push, the head of the dispatched branch for a manual release run.
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
   contents: read
-  actions: read
   pages: write
   id-token: write
 
@@ -20,53 +27,59 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ci-gate:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      GH_TOKEN: ${{ github.token }}
+  gate:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: windows-latest
+    timeout-minutes: 20
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
+    defaults:
+      run:
+        shell: pwsh
     steps:
-      - name: Wait for CI to judge this commit
+      - name: Resolve the commit to publish
+        id: commit
+        env:
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          sha="${GITHUB_SHA}"
-          deadline=$(( $(date +%s) + 1500 ))
-          while true; do
-            runs="$(gh run list -R "$GITHUB_REPOSITORY" -w ci.yml -c "$sha" --json databaseId,status,conclusion)"
-            count="$(echo "$runs" | jq 'length')"
-            if [ "$count" -eq 0 ]; then
-              if [ "$(date +%s)" -gt "$deadline" ]; then
-                echo "No CI run exists for commit $sha." >&2
-                exit 1
-              fi
-              sleep 30
-              continue
-            fi
-            active="$(echo "$runs" | jq '[.[] | select(.status != "completed")] | length')"
-            if [ "$active" -gt 0 ]; then
-              if [ "$(date +%s)" -gt "$deadline" ]; then
-                echo "CI for commit $sha is still running after 25 minutes." >&2
-                exit 1
-              fi
-              sleep 30
-              continue
-            fi
-            verdict="$(echo "$runs" | jq -r 'sort_by(.databaseId) | last | .conclusion')"
-            if [ "$verdict" != "success" ]; then
-              echo "CI for commit $sha concluded '$verdict'; the site deploys only a green commit." >&2
-              exit 1
-            fi
-            echo "CI for commit $sha concluded success."
-            exit 0
-          done
+          $sha = if ($env:RUN_SHA) { $env:RUN_SHA } else { $env:GITHUB_SHA }
+          if ($sha -notmatch '^[0-9a-f]{40}$') { throw "No commit to publish (got '$sha')." }
+          Write-Host "Publishing commit $sha."
+          "sha=$sha" | Out-File $env:GITHUB_OUTPUT -Append
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.commit.outputs.sha }}
+          persist-credentials: false
+      # DOC-INTERNAL-QUALITY (SP-0140). Exit 0 pass, 1 finding, 2 could not verify (CHECK-VERDICT).
+      - name: Documentation gate
+        run: |
+          pwsh -NoProfile -File scripts/check-docs.ps1
+          if ($LASTEXITCODE -ne 0) { throw "The documentation gate did not pass (exit $LASTEXITCODE); the site is not deployed." }
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      # The site-sync check reads the interface languages from the built Core assembly (tools/InterfaceLanguages.ps1).
+      - name: Build Core
+        run: |
+          dotnet build src/StreamsPlayer.Core/StreamsPlayer.Core.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw "Building StreamsPlayer.Core failed (exit $LASTEXITCODE)." }
+      # Rule 4: the generated site under docs/ matches its copy decks.
+      - name: Site sync check
+        run: |
+          pwsh -NoProfile -File tools/site/build-site.ps1 -Check
+          if ($LASTEXITCODE -ne 0) { throw "The site-sync check did not pass (exit $LASTEXITCODE); the site is not deployed." }
 
   deploy:
-    needs: ci-gate
+    needs: gate
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.gate.outputs.sha }}
+          persist-credentials: false
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:

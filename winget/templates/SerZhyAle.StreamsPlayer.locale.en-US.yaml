@@ -24,6 +24,7 @@ Tags:
 - windows
 ReleaseNotes: REPLACE_RELEASE_NOTES
 ReleaseNotesUrl: https://github.com/SerZhyAle/StreamsPlayer/releases/tag/vREPLACE_VERSION
+InstallationNotes: STREAMS Player is not code-signed, so Windows SmartScreen may warn the first time it starts - what the warning means and how to check the download - https://serzhyale.github.io/StreamsPlayer/trust.html
 ReleaseDate: REPLACE_RELEASE_DATE
 ManifestType: defaultLocale
 ManifestVersion: 1.12.0

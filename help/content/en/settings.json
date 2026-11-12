@@ -630,13 +630,47 @@
           "undo": "Each guest account is signed out on its own and your own account is not touched. Sign in to the guest account again to bring it back."
         },
         {
+          "id": "exchange-settings-groups",
+          "nameKey": "ExchangeSettingsTitle",
+          "control": "ExchangeSettingsAppearanceCheckBox",
+          "one": "Chooses which settings Save as STANDARD and Read STANDARD act on: Appearance, Playback, Interface.",
+          "full": [
+            "**Appearance** is the theme, the tile size, the list or grid view, the animated background, hiding adult content, always on top and keeping the player controls visible. **Playback** is the volumes, mute, the audio channels, keeping the PC awake, the media keys, the video engine and updating previews. **Interface** is the interface language.",
+            "Folders, the audio output device, window positions, listening history, passwords and keys are never part of any group: they stay on this PC. The group section appears while this PC is signed in to a server that keeps settings."
+          ]
+        },
+        {
+          "id": "exchange-settings-save",
+          "nameKey": "ExchangeSettingsSave",
+          "control": "ExchangeSettingsSaveButton",
+          "one": "Saves the chosen groups on your exchange server as the STANDARD of this program.",
+          "full": [
+            "Asks first and names the groups. The STANDARD on the server is replaced as a whole: a group you did not choose leaves it. The operator of the server can read the saved settings.",
+            "If the server does not answer, it is not known whether the settings were saved; saving again is safe."
+          ],
+          "next": "The line below the buttons shows when the STANDARD was saved.",
+          "undo": "Save again with the settings you want to keep there."
+        },
+        {
+          "id": "exchange-settings-read",
+          "nameKey": "ExchangeSettingsRead",
+          "control": "ExchangeSettingsReadButton",
+          "one": "Reads the STANDARD from your exchange server and applies the chosen groups on this PC.",
+          "full": [
+            "Asks first and names the groups whose settings on this PC will be replaced. Nothing is changed until the whole answer is understood; a damaged or newer format changes nothing.",
+            "It happens once: later changes stay on this PC and are never sent by themselves. Nothing is read when the program starts or connects."
+          ],
+          "next": "The settings act at once, and the other pages of Settings show the new values.",
+          "undo": "Change any setting back by hand; it stays on this PC."
+        },
+        {
           "id": "drive-sign-in",
           "nameKey": "DriveSignIn",
           "control": "DriveSignInButton",
           "one": "Signs in with Google in your browser to find broadcasts announced by your own devices.",
           "full": [
             "Only hidden application data is used; no media passes through Drive. The broadcast list checks for changes only while it is open and not minimized. Casting is unavailable because Drive has no push. A direct connection can fail behind NAT; a broadcast with an exchange endpoint can use it without an exchange account on this PC.",
-            "When you broadcast from this PC, its announcement is written and renewed through Google Drive too, then removed when you stop. Your Google grant is protected for your Windows user."
+            "When you broadcast from this PC, its announcement is written and renewed via Google Drive too, then removed when you stop. Your Google grant is protected for your Windows user."
           ]
         },
         {
@@ -653,7 +687,7 @@
     {
       "id": "broadcast",
       "nameKey": "BroadcastTitle",
-      "lead": "Allow broadcasting from this PC and choose its sources, network access and sound quality. The controls are shown directly on this page, without a collapsible group.",
+      "lead": "Allow broadcasting from this PC and set its network access, quality and link password. Starting, watching, sharing and stopping a source happens in the Broadcast window, which the button on this page opens. The page shows no per-source controls and no result of a start: the window shows each source's state and, for a refused start, the reason.",
       "elements": [
         {
           "id": "broadcast-guide",
@@ -671,9 +705,9 @@
           "full": [
             "Sending what this PC captures to the exchange server of your account takes two steps: first allow it here, then start a source yourself. Nothing is captured until both are done. It is off by default, and while it is off the rest of this group stays hidden.",
             "While this PC is signed in to a server only as a guest, it cannot broadcast and no source is offered.",
-            "A broadcast starts only when a listener can reach it over the enabled local network or a connected exchange server. A local-only broadcast still has a description you can copy or save."
+            "A broadcast starts only when a viewer or listener can reach it over the enabled local network or a connected exchange server. A local-only broadcast still has a description you can copy or save."
           ],
-          "next": "The other controls of the group appear and the list of microphones is read."
+          "next": "The other controls of the group appear."
         },
         {
           "id": "broadcast-start-with-app",
@@ -685,73 +719,24 @@
           ]
         },
         {
-          "id": "broadcast-mic",
-          "nameKey": "BroadcastMicStart",
-          "control": "BroadcastMicButton",
-          "one": "Starts broadcasting the microphone chosen below.",
+          "id": "broadcast-window",
+          "nameKey": "BroadcastOpenWindow",
+          "control": "BroadcastOpenWindowButton",
+          "one": "Closes Settings and opens the Broadcast window, where a source is started.",
           "full": [
-            "Starts capturing the microphone and offers it as a live broadcast: through the exchange server when the account is connected, and on the local network when {@broadcast-lan} is on. The capture begins only when you press the button. The button is unavailable while the microphone is already being broadcast."
+            "The Broadcast window has a card for the screen, the camera, the microphone and the system sound. Start, Cancel, Stop, Share and Cast are on the cards, and a live card shows where its source went. Closing the window does not stop a broadcast.",
+            "Settings is a modal window, so it closes first and the Broadcast window opens when it is gone."
           ],
-          "next": "The line below the quality options reports what happened. **Stop all** ends the broadcast."
-        },
-        {
-          "id": "broadcast-sound",
-          "nameKey": "BroadcastSoundStart",
-          "control": "BroadcastSoundButton",
-          "one": "Starts broadcasting the system sound of this PC.",
-          "full": [
-            "Works like {@broadcast-mic}, with the sound this PC plays as the source instead of a microphone. Its channels are set by **System sound channels** below."
-          ],
-          "next": "The line below the quality options reports what happened. **Stop all** ends the broadcast."
-        },
-        {
-          "id": "broadcast-screen",
-          "nameKey": "BroadcastScreenStart",
-          "control": "BroadcastScreenButton",
-          "one": "Starts broadcasting the whole monitor chosen below.",
-          "full": [
-            "Captures the chosen monitor and offers it as a live broadcast the way {@broadcast-mic} does; the sound it carries is set by **Sound with the screen**. Everything on that monitor is sent, including notifications and passwords, and content that Windows protects may come out blank. The capture begins only when you press the button, and the button is not shown on a PC whose Windows has no H.264 encoder."
-          ],
-          "next": "The indicator in the main window names the monitor that is live. **Stop all** ends the broadcast."
-        },
-        {
-          "id": "broadcast-camera",
-          "nameKey": "BroadcastCameraStart",
-          "control": "BroadcastCameraButton",
-          "one": "Starts broadcasting the camera chosen below.",
-          "full": [
-            "Captures the chosen camera and offers it as a live broadcast the way {@broadcast-mic} does; the sound it carries is set by **Sound with the camera**. If Windows denies the camera to this application, or another program holds it, the broadcast does not start and a message says which. The button is not shown on a PC whose Windows has no H.264 encoder."
-          ],
-          "next": "The indicator in the main window names the camera that is live. **Stop all** ends the broadcast."
-        },
-        {
-          "id": "broadcast-stop",
-          "nameKey": "BroadcastStopAll",
-          "control": "BroadcastStopButton",
-          "one": "Ends every broadcast running from this PC.",
-          "full": [
-            "Stops all the sources that are live. The button is available only while something is running."
-          ],
-          "next": "The sources stop at once; start any of them again with its own button."
-        },
-        {
-          "id": "broadcast-mic-device",
-          "nameKey": "BroadcastMicDevice",
-          "control": "BroadcastMicDeviceBox",
-          "one": "Chooses which microphone the microphone broadcast uses.",
-          "full": [
-            "**Windows default** follows whatever Windows uses as the default recording device; the other entries are the microphones Windows lists. The list is read only after broadcasting is allowed, so no capture device is touched before that."
-          ],
-          "next": "The choice is used the next time you start the microphone."
+          "next": "Settings closes and the Broadcast window opens."
         },
         {
           "id": "broadcast-lan",
           "nameKey": "BroadcastLanListening",
           "control": "BroadcastLanCheckBox",
-          "one": "Lets devices on your local network listen to this PC directly.",
+          "one": "Lets devices on your local network receive this PC's broadcast directly.",
           "full": [
-            "When it is on, a broadcast is also offered on this PC's local-network address, on the port beside the box, so devices on the same network can listen without the exchange server. It is off by default.",
-            "Each direct listener uses this PC's upload; through the exchange server this PC sends one copy for all listeners."
+            "When it is on, a broadcast is also offered on this PC's local-network address, on the port beside the box, so devices on the same network can receive it without the exchange server. It is off by default.",
+            "Each direct viewer or listener uses this PC's upload; through the exchange server this PC sends one copy for all of them."
           ],
           "next": "Read when a source starts: a source that is already live keeps what it started with."
         },
@@ -761,16 +746,16 @@
           "control": "BroadcastLanPortBox",
           "one": "The port the local-network share listens on.",
           "full": [
-            "A number from 1 to 65535; the default is 8768. A value outside that range is ignored and the last good port stays. It is read when a source starts."
+            "A number from 1 to 65535; the default is 8768. The change applies when you leave the field and stops any running broadcasts; start them again to use the new port. A value outside that range is ignored and the last good port stays."
           ]
         },
         {
           "id": "broadcast-cap",
           "nameKey": "BroadcastCap",
           "control": "BroadcastCapBox",
-          "one": "Caps how many listeners a broadcast takes; 0 means no limit.",
+          "one": "Caps how many viewers and listeners a broadcast takes; 0 means no limit.",
           "full": [
-            "A number from 0 to 64, where 0 means no limit. Each direct listener on the local network uses this PC's upload, while through the exchange server this PC sends one copy for all listeners. A value outside the range is ignored."
+            "A number from 0 to 64, where 0 means no limit. Each direct viewer or listener on the local network uses this PC's upload, while through the exchange server this PC sends one copy for all of them. A value outside the range is ignored."
           ]
         },
         {
@@ -810,51 +795,15 @@
           ]
         },
         {
-          "id": "broadcast-monitor",
-          "nameKey": "BroadcastMonitor",
-          "control": "BroadcastMonitorBox",
-          "one": "The monitor that the screen broadcast sends.",
-          "full": [
-            "A whole monitor is sent, never a part of it or one window. The picture is scaled down to at most 1280 by 720 and keeps the monitor's proportions."
-          ]
-        },
-        {
-          "id": "broadcast-screen-audio",
-          "nameKey": "BroadcastScreenAudio",
-          "control": "BroadcastScreenAudioBox",
-          "one": "The one sound that travels with the screen: none, the microphone or the system sound.",
-          "full": [
-            "The sound is part of the same broadcast, so a listener hears it with the picture. On a Windows that can leave this application's own sound out, a broadcast you play here is never sent on; on an older Windows the note under the options says what happens."
-          ]
-        },
-        {
-          "id": "broadcast-camera-device",
-          "nameKey": "BroadcastCamera",
-          "control": "BroadcastCameraBox",
-          "one": "The camera that the camera broadcast sends.",
-          "full": [
-            "Only one camera is sent. A camera that another program is using cannot be started until that program lets it go."
-          ]
-        },
-        {
-          "id": "broadcast-camera-audio",
-          "nameKey": "BroadcastCameraAudio",
-          "control": "BroadcastCameraAudioBox",
-          "one": "The one sound that travels with the camera: none, the microphone or the system sound.",
-          "full": [
-            "Works like {@broadcast-screen-audio}, for the camera broadcast."
-          ]
-        },
-        {
           "id": "broadcast-link-password",
           "nameKey": "BroadcastLinkPassword",
           "control": "BroadcastLinkChoiceBox",
           "one": "How the password of the link you give to other people is made.",
           "full": [
             "The link, the file and the QR code of a broadcast open it for anyone who also knows its password; the password is never inside them, so you tell it separately. **Made for each broadcast** creates a new random password every time a broadcast starts, **Set by me** keeps the one you type, and **No password** lets anyone who gets the link watch and listen. Your other devices signed in to the account's exchange server receive the password by themselves.",
-            "Changing the choice or the password while a broadcast is live takes effect at once: the previous password is refused for every new connection, and a listener on this PC's local-network share who used it is disconnected."
+            "Changing the choice or the password while a broadcast is live takes effect at once: the previous password is refused for every new connection, and a viewer or listener on this PC's local-network share who used it is disconnected."
           ],
-          "next": "Open the live indicator, then **Share**, to copy the password or show the QR code."
+          "next": "Open the Broadcast window, then **Share** on the source's card, to copy the password or show the QR code."
         },
         {
           "id": "broadcast-link-custom",

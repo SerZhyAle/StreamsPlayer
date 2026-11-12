@@ -337,22 +337,22 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
 
             await RunStartupStepAsync(nameof(LoadTvScheduleAsync), LoadTvScheduleAsync); // SP-0075: the local file only - never the network
-            await StartRequestedPlaybackAsync();
-            await HandOverStagedRecordingsAsync(); // SP-0121: what a crash left in staging goes to the user
+            await RunStartupStepAsync(nameof(StartRequestedPlaybackAsync), StartRequestedPlaybackAsync);
+            await RunStartupStepAsync(nameof(HandOverStagedRecordingsAsync), HandOverStagedRecordingsAsync);
 
             // SP-0132: both through the gate. A named launch or a resume starts a station above, which makes
             // the panel reachable before these questions are asked.
             if (_cleanInstall)
             {
                 // SP-0059: a machine that has never run the product is asked where its channels come from.
-                await WhenCatalogShownAsync(AskWhereChannelsComeFromAsync);
+                await RunStartupStepAsync(nameof(AskWhereChannelsComeFromAsync), () => WhenCatalogShownAsync(AskWhereChannelsComeFromAsync));
             }
             else
             {
                 // SP-0052: the one first-launch offer, shown after the window has settled so it never
                 // competes with the load itself. Nothing is applied until the user accepts it. Kept exactly
                 // as it was for every installation that already has local state.
-                await WhenCatalogShownAsync(OfferCatalogSnapshotAsync);
+                await RunStartupStepAsync(nameof(OfferCatalogSnapshotAsync), () => WhenCatalogShownAsync(OfferCatalogSnapshotAsync));
             }
         }
         catch (Exception exception)
@@ -431,18 +431,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             // SP-0161: the transfer is over, so the run can no longer be stopped - the Cancel button goes
             // dark for the merge and save instead of swallowing a click and reporting success.
             EndCancellablePhase();
-            CatalogRefreshResult? result = null;
-            var commit = await CommitStateAsync(
-                async (state, cancellationToken) =>
-                    (result = await StreamCatalogService.ApplyAsync(outcome, state, cancellationToken)).State,
-                (state, cancellationToken) => _store.SaveAsync(
-                    state,
-                    outcome.Bank.FaviconAtlas,
-                    outcome.ReplacesAtlas,
-                    cancellationToken),
-                // SP-0161: merge and save are not cancellable. Closing the window cancels the transfer only; this
-                // phase runs to its end so the outcome is either written whole or not at all.
-                CancellationToken.None);
+            var (commit, result) = await CommitDownloadedCatalogAsync(outcome);
             // The download is over and the outcome is about to be written, so no further report may touch
             // the status line.
             _reportingProgress = false;
@@ -531,16 +520,33 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
+    private async Task<(CatalogStateCommitResult Commit, CatalogRefreshResult? Result)> CommitDownloadedCatalogAsync(
+        CatalogRefreshOutcome outcome)
+    {
+        var store = _store;
+        CatalogRefreshResult? result = null;
+        var commit = await CommitStateAsync(
+            async (state, cancellationToken) =>
+                (result = await StreamCatalogService.ApplyAsync(outcome, state, cancellationToken)).State,
+            (state, cancellationToken) => store.SaveAsync(
+                state, outcome.Bank.FaviconAtlas, outcome.ReplacesAtlas, cancellationToken),
+            // Once the transfer finishes, merge and save run to completion even if the window closes.
+            CancellationToken.None);
+        return (commit, result);
+    }
+
     private async void AddButton_Click(object sender, RoutedEventArgs e)
     {
         try
         {
+            if (_busy || _catalogStateUnreadable || _shuttingDown) return;
             var dialog = new AddStreamWindow { Owner = this };
             if (dialog.ShowDialog() != true)
             {
                 return;
             }
 
+            if (_busy || _catalogStateUnreadable || _shuttingDown) return;
             var url = dialog.StreamUrl.Trim();
             if (_state.Channels.Any(channel => CatalogUrlIdentity.SameIdentity(channel.Url, url)))
             {
@@ -799,11 +805,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         try
         {
-            if ((sender as MenuItem)?.Tag is ChannelRow row && row.Channel.MediaKind != MediaKind.Audio &&
-                !await RefuseUnlaunchableAsync(row.Channel))
+            if ((sender as MenuItem)?.Tag is ChannelRow row && row.Channel.MediaKind != MediaKind.Audio)
             {
-                var trusted = await ResolveBroadcastTrustAsync(row.Channel);
-                OpenIndependentPlayerWindow(trusted);
+                await PlayChannelAsync(row.Channel, rememberSelection: true);
             }
         }
         catch (Exception exception)
@@ -1809,6 +1813,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         if (!busy && _pendingDriveDirectory is not null)
             HandlerBoundary.Run(nameof(ApplyPendingDriveDirectoryAsync), ApplyPendingDriveDirectoryAsync);
+        if (!busy && _pendingGuestDirectories.Count > 0)
+            HandlerBoundary.Run(nameof(ApplyPendingGuestDirectoriesAsync), ApplyPendingGuestDirectoriesAsync);
     }
 
 }

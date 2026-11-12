@@ -22,7 +22,7 @@ public partial class MainWindow
         // Mandatory, unlike the export gate it mirrors: a chat message is not revocable and is a strictly
         // easier leak path than a file the user chose where to save. SP-0212 (L28): the keys and their
         // order are ChannelHandOutWarnings' one rule, so a warning added there reaches this hand-out too.
-        foreach (var key in ChannelHandOutWarnings.KeysFor(row.Channel.Url))
+        foreach (var key in ChannelHandOutWarnings.KeysForRow(row.Channel))
         {
             if (MessageBox.Show(DialogOwner, LocalizationService.Get(key),
                     LocalizationService.Get("MenuCopyShareText"), MessageBoxButton.YesNo, MessageBoxImage.Warning,

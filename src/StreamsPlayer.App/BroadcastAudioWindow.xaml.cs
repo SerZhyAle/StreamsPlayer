@@ -70,6 +70,9 @@ public partial class BroadcastAudioWindow : Window
         }
     }
 
+    /// <summary>APP-SETTINGS rule 5: the state line is formatted in code, so a language switch re-renders it (SP-0247).</summary>
+    internal void RefreshLocalization() => Refresh();
+
     private void Refresh()
     {
         var stateKey = _session.State switch
@@ -83,7 +86,9 @@ public partial class BroadcastAudioWindow : Window
         };
         var state = LocalizationService.Get(stateKey);
         StateText.Text = _session.MessageKey is { } key
-            ? state + " " + (key == IncomingBroadcastFailure.BoundReachedKey
+            // SP-0250: the ended message is a sentence of its own ("The broadcast has ended."); it is not appended to the state word.
+            ? key == IncomingBroadcastFailure.EndedKey ? LocalizationService.Get(key)
+            : state + " " + (key == IncomingBroadcastFailure.BoundReachedKey
                 ? LocalizationService.Format(key, IncomingBroadcastWindows.Default.Maximum)
                 : LocalizationService.Format(key, _title))
             : state;
@@ -103,6 +108,9 @@ public partial class BroadcastAudioWindow : Window
         var active = _session.IsActive;
         StopButton.Visibility = active ? Visibility.Visible : Visibility.Collapsed;
         PlayButton.Visibility = active ? Visibility.Collapsed : Visibility.Visible;
+        // SP-0250 requirement 6: an ended broadcast offers an explicit Reconnect, and nothing restarts by itself (1.2 amendment).
+        PlayButton.SetResourceReference(System.Windows.Controls.ContentControl.ContentProperty,
+            _session.State == BroadcastLegState.Ended ? "BroadcastReconnect" : "Play");
         RefreshRecording();
     }
 

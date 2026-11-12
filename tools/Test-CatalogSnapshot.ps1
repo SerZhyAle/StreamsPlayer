@@ -81,6 +81,16 @@ try {
     else { Check $false 'streams.csv is the first entry' }
     Check (-not (Test-Path -LiteralPath "$out.tmp")) 'no staging archive is left behind on success'
 
+    # SP-0246 S3-5: the inflate ceiling is the bank reader's, not a small default - the real snapshot's CSV is several MB.
+    $midBankFolder = Join-Path $work 'mid-bank'
+    New-FixtureBankFolder $midBankFolder 25000
+    $midBank = Join-Path $work 'mid-bank.zip'
+    Compress-Archive -Path (Join-Path $midBankFolder 'streams.csv') -DestinationPath $midBank
+    $midOut = Join-Path $work 'mid-snapshot.zip'
+    $r = Invoke-Script @('-BankPath', $midBank, '-OutputPath', $midOut)
+    Check ((Get-Item -LiteralPath (Join-Path $midBankFolder 'streams.csv')).Length -gt 1MB) 'the mid-size fixture CSV is above one megabyte'
+    Check ($r.Exit -eq 0) "a bank whose CSV is a few megabytes still builds and validates (got $($r.Exit): $($r.Output -join ' | '))"
+
     # --- an oversized bank never replaces the target with an invalid snapshot (SP-0212 L7) ----------------------
     # 200,000 rows of a 26-letter alphabet make ~19 MB of CSV that compresses to well over the
     # 8 MB BundledCatalogSnapshot.MaximumSnapshotBytes ceiling, so the staged snapshot fails Test-Snapshot
@@ -100,6 +110,31 @@ try {
     $after = [System.IO.File]::ReadAllBytes($target)
     Check ([System.Linq.Enumerable]::SequenceEqual($before, $after)) 'the file the output path already held is left byte-identical'
     Check (-not (Test-Path -LiteralPath "$target.tmp")) 'the invalid staged archive is removed, not left behind'
+
+    # A tiny compressed file may still expand beyond the reader's CSV ceiling.
+    $inflateBank = Join-Path $work 'inflate-bank.zip'
+    $archive = [System.IO.Compression.ZipFile]::Open($inflateBank, 'Create')
+    try {
+        $entry = $archive.CreateEntry('streams.csv')
+        $stream = $entry.Open()
+        try {
+            $chunk = [byte[]]::new(1024 * 1024)
+            for ($i = 0; $i -lt 33; $i++) { $stream.Write($chunk) }
+        }
+        finally { $stream.Dispose() }
+    }
+    finally { $archive.Dispose() }
+    $r = Invoke-Script @('-BankPath', $inflateBank, '-OutputPath', $target)
+    Check ($r.Exit -eq 1 -and $r.Output -match 'inflate ceiling') 'a compressed CSV above the uncompressed ceiling is refused'
+    Check ([System.Linq.Enumerable]::SequenceEqual($before, [System.IO.File]::ReadAllBytes($target))) 'an inflate refusal preserves the target'
+
+    $noBuild = Join-Path $work 'no-build/tools'
+    New-Item -ItemType Directory -Path $noBuild -Force | Out-Null
+    foreach ($name in 'build-catalog-snapshot.ps1', 'InterfaceLanguages.ps1') {
+        Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination (Join-Path $noBuild $name)
+    }
+    $answer = & pwsh -NoProfile -File (Join-Path $noBuild 'build-catalog-snapshot.ps1') -Check -Offline 2>&1 | ForEach-Object { "$_" }
+    Check ($LASTEXITCODE -eq 2 -and $answer[-1] -eq 'catalog-snapshot: COULD NOT VERIFY') 'check without a built contract answers could-not-verify'
 }
 catch {
     # A setup step or a subject script threw instead of answering: nothing was judged past this point, so the run could

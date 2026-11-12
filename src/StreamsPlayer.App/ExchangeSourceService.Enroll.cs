@@ -181,7 +181,8 @@ internal sealed partial class ExchangeSourceService
 
             var interval = ExchangeHandshake.ReadInterval(accepted);
             var kind = ExchangeAccountKinds.Parse(ExchangeProtocol.String(accepted, "accountKind"));
-            cancellationToken.ThrowIfCancellationRequested();
+            // Enrollment has committed on the server. Keep its token and key even if the prompt was
+            // cancelled while the answer arrived; abandoning them would strand a registered device.
 
             if (kind == ExchangeAccountKind.Guest)
             {
@@ -199,11 +200,9 @@ internal sealed partial class ExchangeSourceService
             {
                 // The new entry is signed in and is a member's: only now does the old one go, in item AB's order.
                 await LeaveOwnEntryAsync().ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
             }
 
             RememberServerFacts(accepted);
-            cancellationToken.ThrowIfCancellationRequested();
             var enrolled = new ExchangeAccount(deviceId, host, port, login, token, connection.Fingerprint, true,
                 Account.AutoAcceptCasts, connection.PublicKeyFingerprint).WithE2eKey(deviceKey);
             savingAccount = true;

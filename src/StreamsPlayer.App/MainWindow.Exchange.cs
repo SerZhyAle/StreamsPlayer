@@ -13,14 +13,12 @@ public partial class MainWindow
         void Refresh()
         {
             ApplyExchangeEntryBindings();
-            // Both buttons belong to the exchange server, so both follow the Settings page: an account that is
-            // switched off or was never registered shows neither. The status line and the way back in stay
-            // in Settings > Exchange server, which is where a device without an active account is told why (SP-0201).
-            var visibility = source.IsActive ? Visibility.Visible : Visibility.Collapsed;
-            ExchangeSourceStatusButton.Visibility = visibility;
+            // The incoming list follows the account: an account that is switched off or was never registered shows no
+            // button. The status line and the way back in stay in Settings > Exchange server, which is where a device
+            // without an active account is told why (SP-0201). SP-0252: the server's status is also the first line of
+            // the broadcast window, and the header's warning mark follows the session, so it is refreshed here.
             BroadcastsButton.Visibility = source.IsActive || drive.SignedIn ? Visibility.Visible : Visibility.Collapsed;
-            ExchangeSourceStatusButton.SetResourceReference(System.Windows.Automation.AutomationProperties.HelpTextProperty, source.StatusKey);
-            ExchangeSourceStatusText.SetResourceReference(System.Windows.Controls.TextBlock.TextProperty, source.StatusKey);
+            RefreshBroadcastIndicator();
             if (source.SignedOutNotice)
             {
                 // SP-0221 requirement 7: the account ended this sign-in. One message that says which, then the
@@ -29,7 +27,8 @@ public partial class MainWindow
                 Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, () =>
                     HandlerBoundary.Run(nameof(InitializeExchangeStatus), () =>
                     {
-                        new ExchangeFailureWindow(ExchangeFailureRows.SignedOut) { Owner = this }.ShowDialog();
+                        if (_shuttingDown) return Task.CompletedTask;
+                        new ExchangeFailureWindow(ExchangeFailureRows.SignedOut) { Owner = DialogOwner }.ShowDialog();
                         if (!_busy)
                         {
                             OpenSettings(SettingsWindow.ExchangePageIndex);
@@ -73,8 +72,6 @@ public partial class MainWindow
         };
         Refresh();
     }
-
-    private void ExchangeSourceStatus_Click(object sender, RoutedEventArgs e) => OpenSettings(SettingsWindow.ExchangePageIndex);
 
     private void BroadcastsButton_Click(object sender, RoutedEventArgs e)
         => OpenExchangeBroadcasts(DialogOwner);
@@ -355,7 +352,8 @@ public partial class MainWindow
                 await PersistAsync(state =>
                 {
                     applied = FastMediaSorterBroadcastImport.Apply(
-                        state.Channels, offer.Descriptor, DateTimeOffset.UtcNow, offer.BroadcastId);
+                        state.Channels, offer.Descriptor, DateTimeOffset.UtcNow, offer.BroadcastId,
+                        directoryEntryIdentity: ExchangeAccountIdentity.Key(Exchange.Account.Host, Exchange.Account.Port, Exchange.Account.Login));
                     return state with { Channels = [.. applied.Channels] };
                 });
 

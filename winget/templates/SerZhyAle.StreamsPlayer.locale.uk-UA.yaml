@@ -22,5 +22,6 @@ Tags:
 - ip-камера
 ReleaseNotes: REPLACE_RELEASE_NOTES_UK
 ReleaseNotesUrl: https://github.com/SerZhyAle/StreamsPlayer/releases/tag/vREPLACE_VERSION
+InstallationNotes: Трансляції не підписані сертифікатом розробника, тому під час першого запуску Windows SmartScreen може показати попередження - що воно означає і як перевірити завантаження - https://serzhyale.github.io/StreamsPlayer/uk/trust.html
 ManifestType: locale
 ManifestVersion: 1.12.0

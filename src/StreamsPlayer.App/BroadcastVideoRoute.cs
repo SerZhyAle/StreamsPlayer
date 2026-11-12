@@ -5,12 +5,12 @@ namespace StreamsPlayer.App;
 /// <summary>One engine-facing address and its owned security transport, shared by playback and grid capture.</summary>
 internal sealed class BroadcastVideoRoute : IDisposable
 {
-    private readonly IDisposable? _transport;
+    private readonly IDisposable[] _transports;
 
-    private BroadcastVideoRoute(Uri address, IDisposable? transport = null)
+    private BroadcastVideoRoute(Uri address, params IDisposable[] transports)
     {
         Address = address;
-        _transport = transport;
+        _transports = transports;
     }
 
     internal Uri Address { get; }
@@ -25,11 +25,10 @@ internal sealed class BroadcastVideoRoute : IDisposable
             return null;
         }
 
-        if (passwordProtected && decision.RelayOptions(endpoint.Url) is null)
+        credentials = decision.Credentials ?? credentials;
+        if (passwordProtected && credentials is null)
         {
-            // The engines do not answer the producer's Digest challenge. Refuse before exposing a
-            // password in a URL or turning an unsupported protected route into a generic engine error.
-            failed(ExchangeBroadcastAuth.UnsupportedEndpointReason);
+            failed(ExchangeBroadcastAuth.PasswordRequiredReason);
             return null;
         }
 
@@ -42,8 +41,15 @@ internal sealed class BroadcastVideoRoute : IDisposable
                 return null;
             }
 
-            var forwarder = ExchangeTunnelForwarder.Start(tunnel, inner, endpoint.CertFingerprint, tunnelPin: decision.TunnelPin);
+            var forwarder = ExchangeTunnelForwarder.Start(tunnel, inner, endpoint.CertFingerprint, tunnelPin: decision.TunnelPin,
+                admitPeer: LoopbackPeerOwner.IsThisProcess);
             forwarder.Refused += failed;
+            ListenerBindLog.Loopback("video-tunnel", forwarder.BoundPort);
+            if (passwordProtected)
+            {
+                try { return Protected(inner, forwarder.LoopbackUrl, credentials!, failed, null, forwarder); }
+                catch { forwarder.Dispose(); throw; }
+            }
             return WithTransport(forwarder.LoopbackUrl, forwarder);
         }
 
@@ -53,6 +59,17 @@ internal sealed class BroadcastVideoRoute : IDisposable
             return null;
         }
 
+        if (passwordProtected && decision.RelayOptions(endpoint.Url) is null
+            && endpoint.Transport?.Equals("RELAY", StringComparison.OrdinalIgnoreCase) != true)
+        {
+            if (address.Scheme is not ("http" or "https" or "rtsp"))
+            {
+                failed(ExchangeBroadcastAuth.UnsupportedEndpointReason);
+                return null;
+            }
+            return Protected(endpoint.Url, null, credentials!, failed, endpoint.CertFingerprint);
+        }
+
         if (decision.RelayOptions(endpoint.Url) is not null
             || endpoint.Transport?.Equals("RELAY", StringComparison.OrdinalIgnoreCase) == true
             || address.Scheme == Uri.UriSchemeHttps && (verifyHttp || endpoint.CertFingerprint is not null))
@@ -60,22 +77,36 @@ internal sealed class BroadcastVideoRoute : IDisposable
             var proxy = ExchangeRelayProxy.Start(endpoint.Url, endpoint.CertFingerprint,
                 credentials: decision.Credentials ?? credentials, sealedRelay: decision.RelayOptions(endpoint.Url));
             proxy.Failed += failed;
+            ListenerBindLog.Loopback("video-relay", proxy.BoundPort);
             return WithTransport(proxy.LoopbackUrl, proxy);
         }
 
         return new BroadcastVideoRoute(address);
     }
 
-    public void Dispose() => _transport?.Dispose();
+    public void Dispose()
+    {
+        foreach (var transport in _transports) transport.Dispose();
+    }
 
-    private static BroadcastVideoRoute WithTransport(string loopbackUrl, IDisposable transport)
+    private static BroadcastVideoRoute Protected(string target, string? connect, ExchangeRelayCredentials credentials,
+        Action<string> failed, string? pin, IDisposable? tunnel = null)
+    {
+        var proxy = BroadcastDigestProxy.Start(target, credentials, connect, pin, LoopbackPeerOwner.IsThisProcess,
+            connectTimeout: connect is null ? null : TimeSpan.FromSeconds(15));
+        proxy.Failed += failed;
+        ListenerBindLog.Loopback("video-digest", proxy.BoundPort);
+        return WithTransport(proxy.LoopbackUrl, tunnel is null ? [proxy] : [proxy, tunnel]);
+    }
+
+    private static BroadcastVideoRoute WithTransport(string loopbackUrl, params IDisposable[] transports)
     {
         if (LaunchableAddress.TryParse(loopbackUrl, out var address))
         {
-            return new BroadcastVideoRoute(address, transport);
+            return new BroadcastVideoRoute(address, transports);
         }
 
-        transport.Dispose();
+        foreach (var transport in transports) transport.Dispose();
         throw new InvalidOperationException("The local playback transport has no playable address.");
     }
 }

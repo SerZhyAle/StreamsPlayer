@@ -112,7 +112,7 @@ internal static class BroadcastDigest
     /// <c>Digest name=value, name="quoted \" value", ..</c> as a case-insensitive map, or null when the scheme is not
     /// Digest, the syntax is broken, or a name repeats (two readings of one answer is how a check gets bypassed).
     /// </summary>
-    private static Dictionary<string, string>? ParseFields(string header)
+    internal static Dictionary<string, string>? ParseFields(string header)
     {
         const string scheme = "Digest";
         if (header.Length <= scheme.Length

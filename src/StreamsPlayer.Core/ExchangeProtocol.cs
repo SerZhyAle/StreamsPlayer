@@ -74,7 +74,9 @@ public static class ExchangeProtocol
         "subscribe", "changed", "publish", "published", "unpublish", "broadcast-start", "broadcast-started",
         "broadcast-update", "broadcast-end", "pairing-request", "pairing-code", "revoke", "connect", "open",
         "attach", "connected", "upload", "upload-accepted", "cast", "cast-offer", "cast-answer", "cast-result", "cast-stop",
-        "password-change", "password-changed"
+        "password-change", "password-changed",
+        // SP-0260 / items EN to ER (1.12): snake case on the wire, as the amendment keeps them.
+        "settings_save_standard", "settings_saved", "settings_get_standard", "settings_standard_payload"
     };
     public static JsonSerializerOptions JsonOptions { get; } = new(JsonSerializerDefaults.Web);
 

@@ -43,10 +43,31 @@ public partial class MainWindow
                     LocalizationService.Get("ExchangeTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
             }
             dialog.ShowDialog();
+            if (_broadcastWindowAfterSettings)
+            {
+                _broadcastWindowAfterSettings = false;
+                OpenBroadcastWindow();
+            }
         }
         catch (Exception exception)
         {
+            _broadcastWindowAfterSettings = false;
             HandlerBoundary.Report(nameof(OpenSettings), exception);
+        }
+    }
+
+    // SP-0252: Settings is modal, so a window opened from it would stay unreachable until it closed. The link on the
+    // Broadcasting page therefore closes Settings first and opens the broadcast window once it is gone.
+    private bool _broadcastWindowAfterSettings;
+
+    internal void RequestBroadcastWindowAfterSettings(Window settings)
+    {
+        _broadcastWindowAfterSettings = true;
+        settings.Close();
+        if (settings.IsVisible)
+        {
+            // The close was refused (an operation is running in Settings): nothing is opened later behind the person's back.
+            _broadcastWindowAfterSettings = false;
         }
     }
 
@@ -69,12 +90,17 @@ public partial class MainWindow
         await PersistAsync(state => state with { TileSize = tileSize });
         if (changed)
         {
-            PropertyChanged?.Invoke(this, new(nameof(GridTileWidth)));
-            PropertyChanged?.Invoke(this, new(nameof(GridTileHeight)));
-            PropertyChanged?.Invoke(this, new(nameof(IsVerySmallTile)));
-            _catalogColumns = 0;
-            UpdateCatalogColumns();
+            OnTileSizeChanged();
         }
+    }
+
+    private void OnTileSizeChanged()
+    {
+        PropertyChanged?.Invoke(this, new(nameof(GridTileWidth)));
+        PropertyChanged?.Invoke(this, new(nameof(GridTileHeight)));
+        PropertyChanged?.Invoke(this, new(nameof(IsVerySmallTile)));
+        _catalogColumns = 0;
+        UpdateCatalogColumns();
     }
 
     internal async Task ApplyHideAdultContentFromSettingsAsync(bool hide)

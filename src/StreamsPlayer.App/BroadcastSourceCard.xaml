@@ -1,0 +1,58 @@
+<UserControl x:Class="StreamsPlayer.App.BroadcastSourceCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:StreamsPlayer.App"
+             IsTabStop="False">
+    <!-- SP-0252: one source of the broadcast window. The state is told by the dot's shape, by the words and by the colour
+         (APP-STYLE): a ring for off, a filled dot for live, the words always. Everything the window can do with the source
+         is on this card, so two live sources never share a control. -->
+    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" Padding="12,10" Margin="0,0,0,10">
+        <StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Ellipse x:Name="StateDot" Width="12" Height="12" StrokeThickness="2" VerticalAlignment="Center" Margin="0,0,8,0"
+                         Stroke="{DynamicResource MutedBrush}" Fill="Transparent" />
+                <TextBlock x:Name="TitleText" Grid.Column="1" FontWeight="SemiBold" FontSize="15" TextWrapping="Wrap" VerticalAlignment="Center" />
+            </Grid>
+            <TextBlock x:Name="StateText" TextWrapping="Wrap" Margin="20,2,0,6" Foreground="{DynamicResource MutedBrush}" />
+
+            <Grid x:Name="ChoicesGrid" Margin="20,0,0,6" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="FirstChoiceLabel" Grid.Row="0" VerticalAlignment="Center" Margin="0,0,8,6" />
+                <ComboBox x:Name="FirstChoiceBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,6"
+                          AutomationProperties.Name="{Binding Text, ElementName=FirstChoiceLabel}" />
+                <TextBlock x:Name="SecondChoiceLabel" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,8,0" Visibility="Collapsed" />
+                <ComboBox x:Name="SecondChoiceBox" Grid.Row="1" Grid.Column="1" Visibility="Collapsed"
+                          AutomationProperties.Name="{Binding Text, ElementName=SecondChoiceLabel}" />
+            </Grid>
+            <TextBlock x:Name="NoteText" Margin="20,0,0,6" TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Visibility="Collapsed" />
+
+            <ProgressBar x:Name="StartProgress" IsIndeterminate="True" Height="4" Margin="20,0,0,8" Visibility="Collapsed"
+                         Foreground="{DynamicResource AccentBrush}" Background="{DynamicResource SectionBrush}" BorderThickness="0" />
+
+            <WrapPanel Margin="20,0,0,0">
+                <Button x:Name="StartButton" Style="{StaticResource BroadcastingGlyphButton}" Click="Start_Click" Margin="0,0,8,4"
+                        AutomationProperties.Name="{Binding Content, RelativeSource={RelativeSource Self}}" />
+                <Button x:Name="CancelButton" Style="{StaticResource CancelGlyphButton}" Content="{DynamicResource Cancel}"
+                        Click="Cancel_Click" Margin="0,0,8,4" Visibility="Collapsed" />
+                <Button x:Name="StopButton" Style="{StaticResource StopGlyphButton}" Content="{DynamicResource BroadcastStopShort}"
+                        Click="Stop_Click" Margin="0,0,8,4" Visibility="Collapsed" />
+                <Button x:Name="ShareButton" Style="{StaticResource ExportGlyphButton}" Content="{DynamicResource BroadcastShareMenu}" Click="Share_Click" Margin="0,0,8,4" Visibility="Collapsed" />
+                <Button x:Name="CastButton" Style="{StaticResource ExchangeConnectGlyphButton}" Content="{DynamicResource BroadcastCastMenu}" Click="Cast_Click" Margin="0,0,8,4" Visibility="Collapsed" />
+                <Button x:Name="RecipientsButton" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource BroadcastShowRecipients}" Click="Recipients_Click" Margin="0,0,8,4" Visibility="Collapsed" />
+            </WrapPanel>
+
+            <TextBlock x:Name="WhereText" Margin="20,4,0,0" TextWrapping="Wrap" Visibility="Collapsed" />
+        </StackPanel>
+    </Border>
+</UserControl>

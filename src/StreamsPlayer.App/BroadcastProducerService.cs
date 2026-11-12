@@ -36,6 +36,10 @@ internal sealed class BroadcastRunningSource : IDisposable
     public bool ExchangeStarted { get; set; }
     public Channel<BroadcastMediaChunk>? UploadChunks { get; set; }
     public Task? UploadTask { get; set; }
+    public bool UploadAccepted { get; set; }
+    public bool UploadJoined { get; set; }
+    public List<BroadcastMediaChunk> UploadStartupBuffer { get; } = [];
+    public object UploadGate { get; } = new();
 
     /// <summary>SP-0226: the keys, certificate and lease of a broadcast sealed to the account's devices; null while it is not.</summary>
     public BroadcastSealing? Sealing { get; set; }
@@ -75,6 +79,11 @@ internal sealed class BroadcastRunningSource : IDisposable
     /// <summary>Ends the current upload without the clean end that would end the broadcast (a replacement retires the old one this way).</summary>
     public CancellationTokenSource? UploadRetire { get; set; }
     public volatile int TunnelCount;
+    public string? FailureKey { get; set; }
+    public BroadcastCaptureFailure? CaptureFailure { get; set; }
+    public string? AnnouncedServer { get; set; }
+    public IReadOnlyList<string> RecipientNames { get; set; } = [];
+    public int LastLanListeners { get; set; }
 
     public void Dispose()
     {
@@ -107,6 +116,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
     /// <summary>The upload queue bound: about two seconds of 128 kbit/s audio. A stalled relay ends the
     /// upload visibly (it never blocks the capture thread); no retry runs in the background.</summary>
     private const int UploadQueueChunks = 48;
+    private const int VideoUploadQueueChunks = 128;
 
     private static readonly TimeSpan StartAnswerTimeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan EndWriteTimeout = TimeSpan.FromSeconds(2);
@@ -122,13 +132,15 @@ internal sealed partial class BroadcastProducerService : IDisposable
     private readonly object _gate = new();
     private readonly SemaphoreSlim _sourceOperations = new(1, 1);
     private bool _restartHandled;
+    private long _exchangeGeneration;
 
     internal BroadcastProducerSettings Settings { get; private set; }
     internal string? OutcomeKey { get; private set; }
     internal event Action? Changed;
 
-    internal BroadcastProducerService(string dataDirectory, ExchangeSourceService exchange, DriveSourceService? drive = null)
+    internal BroadcastProducerService(string dataDirectory, ExchangeSourceService exchange, DriveSourceService? drive = null, Action<string>? diagnostic = null)
     {
+        _diagnostic = diagnostic ?? HandlerBoundary.Diagnostic;
         _store = new BroadcastProducerSettingsStore(dataDirectory);
         _passwords = new BroadcastLinkPasswordStore(dataDirectory);
         Settings = _store.LoadSync();
@@ -139,7 +151,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
         _exchange.CastResult += OnCastResult;
         _exchange.TunnelRequested += OnTunnelRequested;
         _exchange.DirectoryChanged += OnDirectoryChanged;
-        _exchange.BeforeLeaveAsync = StopAllAsync;
+        _exchange.BeforeLeaveAsync = () => StopAllAsync(BroadcastStopCause.SignOut);
     }
 
     internal IReadOnlyList<BroadcastSource> Running
@@ -166,33 +178,99 @@ internal sealed partial class BroadcastProducerService : IDisposable
     /// The user's explicit start of one source (requirement 1). The LAN share and the capture start
     /// without the server; the exchange half starts when the session is up, and follows it back.
     /// </summary>
-    internal async Task<bool> StartAsync(BroadcastSource source)
+    internal async Task<bool> StartAsync(BroadcastSource source, CancellationToken cancel = default)
     {
-        await _sourceOperations.WaitAsync().ConfigureAwait(false);
-        try { return await StartCoreAsync(source).ConfigureAwait(false); }
-        finally { _sourceOperations.Release(); }
+        CancellationTokenSource own;
+        lock (_gate)
+        {
+            if (!_starting.Add(source)) return false;
+            own = CancellationTokenSource.CreateLinkedTokenSource(cancel);
+            _startCancels[source] = own;
+        }
+        SetVerdict(new(source, BroadcastProducerState.Starting));
+        Diagnose(source, "start-asked");
+        var token = own.Token;
+        var holdsOperations = false;
+        try
+        {
+            // SP-0252: the wait for another source's start is part of this start, so the person's cancel ends it too.
+            await _sourceOperations.WaitAsync(token).ConfigureAwait(false);
+            holdsOperations = true;
+            OutcomeKey = null;
+            var started = await StartCoreAsync(source, token).ConfigureAwait(false);
+            BroadcastRunningSource? state;
+            lock (_gate) _running.TryGetValue(source, out state);
+            if (started && state is not null && state.CaptureFailure is null)
+            {
+                UpdateRouteVerdict(state, started: true);
+                return true;
+            }
+            if (state is not null && state.CaptureFailure is not null)
+                await StopCoreAsync(source, BroadcastStopCause.CaptureLoss).ConfigureAwait(false);
+            if (StartVerdicts.FirstOrDefault(item => item.Source == source)?.State == BroadcastProducerState.Failed) return false;
+            return FailStart(source, state?.FailureKey ?? OutcomeKey ?? "ExchangeUnavailable");
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // SP-0252 / APP-BEHAVIOUR: the person cancelled a start. Whatever it had opened is closed, and the source
+            // is simply off again - a cancel is not a failure and leaves no sentence to read.
+            Diagnose(source, "start-cancelled");
+            if (holdsOperations) await StopCoreAsync(source, BroadcastStopCause.StartRollback).ConfigureAwait(false);
+            SetVerdict(new(source, BroadcastProducerState.Stopped));
+            return false;
+        }
+        catch (Exception exception) when (IsConnectionFailure(exception) || WindowsVideoBroadcast.IsCaptureFailure(exception))
+        {
+            Diagnose(source, "start-failed", "type=" + exception.GetType().Name);
+            await StopCoreAsync(source, BroadcastStopCause.StartRollback).ConfigureAwait(false);
+            return FailStart(source, "BroadcastCaptureFailed");
+        }
+        finally
+        {
+            lock (_gate)
+            {
+                _starting.Remove(source);
+                _startCancels.Remove(source);
+            }
+            own.Dispose();
+            if (holdsOperations) _sourceOperations.Release();
+            Changed?.Invoke();
+        }
     }
 
-    private async Task<bool> StartCoreAsync(BroadcastSource source)
+    /// <summary>
+    /// SP-0252 requirement 2: ends a start that is still waiting - for another source's start, the account's device list,
+    /// the server's answer or the device. A source that is already live is not touched; stopping it is <see cref="StopAsync"/>.
+    /// </summary>
+    internal void CancelStart(BroadcastSource source)
+    {
+        CancellationTokenSource? start;
+        lock (_gate) _startCancels.TryGetValue(source, out start);
+        try { start?.Cancel(); }
+        catch (ObjectDisposedException)
+        {
+            // The start finished between the lookup and the cancel: there is nothing left to cancel.
+        }
+    }
+
+    private async Task<bool> StartCoreAsync(BroadcastSource source, CancellationToken cancel)
     {
         var refusal = RefusalFor(source);
         if (refusal is not null)
         {
-            Report(RefusalKey(refusal.Value));
-            return false;
+            Diagnose(source, "consent-refused", "code=" + RefusalKey(refusal.Value));
+            return FailStart(source, RefusalKey(refusal.Value));
         }
 
         var lanAddress = Settings.LanListening ? ChooseLanAddress() : null;
-        if (!BroadcastProducerGate.IsReachable(lanAddress, _exchange.PublicEndpoint is not null,
-            _exchange.MayBroadcast, _exchange.ServerSeals, _exchange.OwnKeyMissing, _exchange.Features))
-        {
-            Report("BroadcastNoReachableEndpoint");
-            return false;
-        }
+        var reachable = BroadcastProducerGate.IsReachable(lanAddress, _exchange.PublicEndpoint is not null,
+            _exchange.MayBroadcast, _exchange.ServerSeals, _exchange.OwnKeyMissing, _exchange.Features);
+        Diagnose(source, "reachability", ReachabilityFacts(lanAddress, reachable));
+        if (!reachable) return FailStart(source, "BroadcastNoReachableEndpoint");
 
-        if (!BroadcastSources.IsAudioOnly(source)) return await StartVideoAsync(source, lanAddress).ConfigureAwait(false);
+        if (!BroadcastSources.IsAudioOnly(source)) return await StartVideoAsync(source, lanAddress, cancel).ConfigureAwait(false);
         var port = SourcePort(source);
-        if (port == 0) { Report("BroadcastPortTaken"); return false; }
+        if (port == 0) return FailStart(source, "BroadcastPortTaken");
 
         var channels = source == BroadcastSource.Microphone ? Settings.MicrophoneChannels : Settings.SystemSoundChannels;
         WindowsAacEncoder encoder;
@@ -204,8 +282,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
         {
             // Constraint 10: no new binary for the encoder; where Windows' own is absent the source is
             // not offered and the settings say why.
-            Report("BroadcastEncoderMissing");
-            return false;
+            return FailStart(source, "BroadcastEncoderMissing");
         }
 
         var lanServer = new BroadcastLanServer(new BroadcastLanServerOptions(
@@ -217,14 +294,14 @@ internal sealed partial class BroadcastProducerService : IDisposable
             // The loopback half is always bound - the tunnel bridge and this machine reach it there;
             // the LAN half only while the opt-in is on (constraint 4).
             lanServer.Start(lanAddress, port);
+            LogBinds(source, lanAddress, port);
         }
         catch (SocketException)
         {
             // Section 2.1: no fallback port - taken means this share does not start.
             await lanServer.StopAsync().ConfigureAwait(false);
             encoder.Dispose();
-            Report("BroadcastPortTaken");
-            return false;
+            return FailStart(source, "BroadcastPortTaken");
         }
 
         var state = new BroadcastRunningSource
@@ -238,7 +315,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
             SampleRate = Settings.SampleRate,
             Channels = channels,
             AudioBitrate = Settings.BitrateKbps,
-            CaptureReady = true,
+            CaptureReady = false,
             Capture = new WindowsAudioCapture(source == BroadcastSource.SystemSound,
                 source == BroadcastSource.Microphone ? Settings.MicrophoneDeviceId : null,
                 Settings.SampleRate, channels),
@@ -247,6 +324,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
             LanAddress = lanAddress,
             LocalPort = port
         };
+        lock (_gate) _running[source] = state;
         state.LinkPair = NewLinkPair(out var generatedLink);
         state.LinkIsGenerated = generatedLink;
         await ApplyProtectionAsync(state).ConfigureAwait(false);
@@ -256,34 +334,42 @@ internal sealed partial class BroadcastProducerService : IDisposable
         state.Capture.Failed += failure => OnCaptureFailed(state, failure);
         lanServer!.LanListenerCountChanged += count => OnLanListenerCount(state, count);
 
-        lock (_gate)
+        if (!Settings.Allowed || IsGuestOnly)
         {
-            _running[source] = state;
+            await StopCoreAsync(source, BroadcastStopCause.StartRollback).ConfigureAwait(false);
+            return FailStart(source, IsGuestOnly ? "BroadcastGuestRefused" : "BroadcastNotAllowed");
         }
-
-        if (!Settings.Allowed || IsGuestOnly) { await StopCoreAsync(source).ConfigureAwait(false); return false; }
-        state.Capture.Start();
+        cancel.ThrowIfCancellationRequested();
+        var captureFailure = await state.Capture.StartAsync().ConfigureAwait(false);
+        if (captureFailure is not null)
+        {
+            await StopCoreAsync(source, BroadcastStopCause.CaptureLoss).ConfigureAwait(false);
+            return FailStart(source, CaptureFailureKey(captureFailure.Value));
+        }
+        state.CaptureReady = true;
+        Diagnose(source, "capture-opened");
         await SaveChosenAsync(source, chosen: true).ConfigureAwait(false);
         Changed?.Invoke();
-        await EstablishOnExchangeAsync(state).ConfigureAwait(false);
+        await EstablishOnExchangeCoreAsync(state, cancel).ConfigureAwait(false);
+        cancel.ThrowIfCancellationRequested();
         if (lanAddress is null && !state.ExchangeStarted)
         {
-            await StopCoreAsync(source).ConfigureAwait(false);
-            return false;
+            await StopCoreAsync(source, BroadcastStopCause.StartRollback).ConfigureAwait(false);
+            return FailStart(source, state.FailureKey ?? "ExchangeUnavailable");
         }
         await PublishDriveAsync().ConfigureAwait(false);
         return true;
     }
 
     /// <summary>The user's stop of one source: the broadcast ends cleanly, the choice is unmade.</summary>
-    internal async Task StopAsync(BroadcastSource source)
+    internal async Task StopAsync(BroadcastSource source, BroadcastStopCause cause = BroadcastStopCause.Person)
     {
         await _sourceOperations.WaitAsync().ConfigureAwait(false);
-        try { await StopCoreAsync(source).ConfigureAwait(false); }
+        try { await StopCoreAsync(source, cause).ConfigureAwait(false); }
         finally { _sourceOperations.Release(); }
     }
 
-    private async Task StopCoreAsync(BroadcastSource source)
+    private async Task StopCoreAsync(BroadcastSource source, BroadcastStopCause cause = BroadcastStopCause.StartRollback)
     {
         BroadcastRunningSource? state;
         lock (_gate)
@@ -294,6 +380,11 @@ internal sealed partial class BroadcastProducerService : IDisposable
             }
         }
 
+        Diagnose(source, "stop", "cause=" + StopCauseName(cause));
+        if (cause == BroadcastStopCause.CaptureLoss)
+            SetVerdict(new(source, BroadcastProducerState.Failed, state.FailureKey ?? "BroadcastCaptureFailed"));
+        else if (cause != BroadcastStopCause.StartRollback)
+            SetVerdict(new(source, BroadcastProducerState.Stopped));
         await TeardownAsync(state).ConfigureAwait(false);
         await PublishDriveAsync().ConfigureAwait(false);
         await SaveChosenAsync(source, chosen: false).ConfigureAwait(false);
@@ -304,14 +395,14 @@ internal sealed partial class BroadcastProducerService : IDisposable
     /// Ends every running broadcast: the leave path (constraint 6 - `broadcast-end` while the control
     /// stream is still alive, before `bye` and `revoke`) and the quit path both call this.
     /// </summary>
-    internal async Task StopAllAsync()
+    internal async Task StopAllAsync(BroadcastStopCause cause = BroadcastStopCause.Person)
     {
         await _sourceOperations.WaitAsync().ConfigureAwait(false);
-        try { await StopAllCoreAsync().ConfigureAwait(false); }
+        try { await StopAllCoreAsync(cause).ConfigureAwait(false); }
         finally { _sourceOperations.Release(); }
     }
 
-    private async Task StopAllCoreAsync()
+    private async Task StopAllCoreAsync(BroadcastStopCause cause = BroadcastStopCause.SettingsChanged)
     {
         List<BroadcastRunningSource> states;
         lock (_gate)
@@ -325,6 +416,8 @@ internal sealed partial class BroadcastProducerService : IDisposable
 
         foreach (var state in states)
         {
+            Diagnose(state.Source, "stop", "cause=" + StopCauseName(cause));
+            SetVerdict(new(state.Source, BroadcastProducerState.Stopped));
             await TeardownAsync(state).ConfigureAwait(false);
         }
         await PublishDriveAsync().ConfigureAwait(false);
@@ -369,7 +462,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
     internal async Task SetAllowedAsync(bool allowed)
     {
         await UpdateSettingsAsync(settings => settings with { Allowed = allowed }).ConfigureAwait(false);
-        if (!allowed) await StopAllAsync().ConfigureAwait(false);
+        if (!allowed) await StopAllAsync(BroadcastStopCause.SettingsChanged).ConfigureAwait(false);
         if (allowed && _exchange.IsActive)
         {
             // Re-establish the session; the server still holds the roles from enrollment.
@@ -430,18 +523,86 @@ internal sealed partial class BroadcastProducerService : IDisposable
 
     private void PostUploadChunk(BroadcastRunningSource state, BroadcastMediaChunk chunk)
     {
-        if (state.UploadChunks is not null && !state.UploadChunks.Writer.TryWrite(chunk))
+        Channel<BroadcastMediaChunk>? chunks;
+        lock (state.UploadGate)
         {
-            state.UploadChunks.Writer.TryComplete();
-            state.UploadChunks = null;
-            Report("BroadcastRelayLost");
+            chunks = state.UploadChunks;
+            if (chunks is null)
+            {
+                return;
+            }
+
+            var isVideo = !BroadcastSources.IsAudioOnly(state.Source);
+            if (!state.UploadAccepted)
+            {
+                if (isVideo)
+                {
+                    if (chunk.Joinable)
+                    {
+                        state.UploadStartupBuffer.Clear();
+                        state.UploadStartupBuffer.Add(chunk);
+                    }
+                    else if (state.UploadStartupBuffer.Count > 0 && state.UploadStartupBuffer.Count < VideoUploadQueueChunks)
+                    {
+                        state.UploadStartupBuffer.Add(chunk);
+                    }
+                }
+                else
+                {
+                    state.UploadStartupBuffer.Add(chunk);
+                    if (state.UploadStartupBuffer.Count > UploadQueueChunks)
+                    {
+                        state.UploadStartupBuffer.RemoveAt(0);
+                    }
+                }
+                return;
+            }
+
+            if (!state.UploadJoined)
+            {
+                if (isVideo && !chunk.Joinable)
+                {
+                    return;
+                }
+                state.UploadJoined = true;
+            }
+        }
+
+        if (!chunks.Writer.TryWrite(chunk))
+        {
+            lock (state.UploadGate)
+            {
+                if (state.UploadChunks == chunks)
+                {
+                    state.UploadChunks.Writer.TryComplete();
+                    state.UploadChunks = null;
+                }
+            }
+            Diagnose(state.Source, "relay-upload-lost", "code=queue-full");
+            ReportState(state, "BroadcastRelayLost");
         }
     }
 
     private void OnCaptureFailed(BroadcastRunningSource state, BroadcastCaptureFailure failure)
     {
-        Report(CaptureFailureKey(failure));
-        _ = StopAsync(state.Source);
+        lock (_gate)
+        {
+            if (!IsRunning(state)) return;
+            state.CaptureFailure = failure;
+        }
+        Diagnose(state.Source, "capture-lost", "code=" + CaptureFailureKey(failure));
+        ReportState(state, CaptureFailureKey(failure));
+        _ = StopCaptureAsync(state);
+    }
+
+    private async Task StopCaptureAsync(BroadcastRunningSource state)
+    {
+        await _sourceOperations.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            if (IsRunning(state)) await StopCoreAsync(state.Source, BroadcastStopCause.CaptureLoss).ConfigureAwait(false);
+        }
+        finally { _sourceOperations.Release(); }
     }
 
     internal static string CaptureFailureKey(BroadcastCaptureFailure failure) => failure switch
@@ -454,8 +615,12 @@ internal sealed partial class BroadcastProducerService : IDisposable
 
     // --- the exchange half --------------------------------------------------------
 
-    private async Task EstablishOnExchangeAsync(BroadcastRunningSource state)
+    private Task EstablishOnExchangeAsync(BroadcastRunningSource state) => EstablishOnExchangeCoreAsync(state, CancellationToken.None);
+
+    // SP-0252: the start path passes the person's cancel; the session-online and test paths have none.
+    private async Task EstablishOnExchangeCoreAsync(BroadcastRunningSource state, CancellationToken cancel)
     {
+        var generation = Volatile.Read(ref _exchangeGeneration);
         var publicEndpoint = _exchange.PublicEndpoint;
         if (publicEndpoint is null || !_exchange.MayBroadcast)
         {
@@ -475,20 +640,20 @@ internal sealed partial class BroadcastProducerService : IDisposable
         {
             state.Plan = PlanOf(state, null, relay: false, tunnel: false, BroadcastSealMode.None);
             state.DescriptorJson = BroadcastDescriptorWriter.Write(state.Plan);
-            Report(_exchange.OwnKeyMissing ? "ExchangeE2eOwnKeyMissing" : ExchangeSealedState.ServerNoE2e.MessageKey());
+            ReportState(state, _exchange.OwnKeyMissing ? "ExchangeE2eOwnKeyMissing" : ExchangeSealedState.ServerNoE2e.MessageKey());
             return;
         }
 
         // Item M: from the moment it carries an exchange endpoint the broadcast is protected - for the rest of its life.
         state.Announced = relay || tunnel;
         await ApplyProtectionAsync(state).ConfigureAwait(false);
-        var sealing = await PrepareSealingAsync(state).ConfigureAwait(false);
+        var sealing = await PrepareSealingAsync(state, cancel).ConfigureAwait(false);
         if (sealing is null)
         {
             return;
         }
         var accepted = false;
-        await sealing.Gate.WaitAsync().ConfigureAwait(false);
+        await sealing.Gate.WaitAsync(cancel).ConfigureAwait(false);
         try
         {
             var plan = PlanOf(state, publicEndpoint, relay, tunnel, BroadcastSealMode.Record);
@@ -498,17 +663,26 @@ internal sealed partial class BroadcastProducerService : IDisposable
             state.AnnouncedMaxListeners = Settings.MaxListeners;
             if (SealRecordBox(state, sealing) is null)
             {
-                Report(ExchangeSealedState.E2eMissing.MessageKey());
+                ReportState(state, ExchangeSealedState.E2eMissing.MessageKey());
                 return;
             }
 
             // Constraint 3: the broadcast starts once the server answered `broadcast-started`, with or
             // without a LAN address. A refusal is the user's message, never a stalled start.
-            var answerTask = _exchange.WaitForBroadcastStartAnswerAsync(state.BroadcastId, StartAnswerTimeout, CancellationToken.None);
-            var posted = await PostRecordAsync(state, "broadcast-start", CancellationToken.None).ConfigureAwait(false);
+            // The person's cancel (SP-0252) ends the wait for the answer as it ends the start: the link makes the one
+            // deadline source answer both the timeout and the cancel, and the filters below tell them apart.
+            using var startDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancel);
+            startDeadline.CancelAfter(StartAnswerTimeout);
+            var answerTask = _exchange.WaitForBroadcastStartAnswerAsync(state.BroadcastId, StartAnswerTimeout, startDeadline.Token);
+            var posted = await PostRecordAsync(state, "broadcast-start", startDeadline.Token).ConfigureAwait(false);
             if (!posted)
             {
-                Report("ExchangeUnavailable");
+                startDeadline.Cancel();
+                try { await answerTask.ConfigureAwait(false); }
+                catch (Exception exception) when (exception is OperationCanceledException or TimeoutException) { }
+                cancel.ThrowIfCancellationRequested();
+                Diagnose(state.Source, "broadcast-start-not-sent");
+                ReportState(state, "ExchangeUnavailable");
                 return;
             }
 
@@ -517,28 +691,35 @@ internal sealed partial class BroadcastProducerService : IDisposable
             {
                 answer = await answerTask.ConfigureAwait(false);
             }
-            catch (TimeoutException)
+            catch (Exception exception) when (exception is TimeoutException or OperationCanceledException && !cancel.IsCancellationRequested)
             {
-                Report("ExchangeUnavailable");
+                Diagnose(state.Source, "broadcast-start-timed-out");
+                ReportState(state, "ExchangeUnavailable");
                 return;
             }
 
             if (answer is not null)
             {
-                Report(ExchangeProtocol.RefusalKey(answer));
+                Diagnose(state.Source, "broadcast-start-refused", "code=" + (ExchangeSourceService.IsBroadcastRefusal(answer) ? answer : "unknown"));
+                ReportState(state, ExchangeProtocol.RefusalKey(answer));
                 return;
             }
 
-            state.ExchangeStarted = true;
-            accepted = true;
-            if (relay && state.CaptureReady)
+            lock (_gate)
             {
-                // Every upload replacement, including a reconnect, carries a new epoch (item DL).
-                if (state.Sealing?.Sealer.Relay is { } encoder)
+                if (generation != _exchangeGeneration) return;
+                state.ExchangeStarted = true;
+                state.AnnouncedServer = SafeEndpoint(_exchange.Account.Host + ":" + _exchange.Account.Port);
+                state.RecipientNames = RecipientNames(sealing.Sealer.Box!);
+                state.FailureKey = null;
+                Diagnose(state.Source, "broadcast-start-accepted", "server=" + state.AnnouncedServer + " | recipients=" + state.RecipientNames.Count);
+                accepted = true;
+                if (relay && state.CaptureReady)
                 {
-                    encoder.NewEpoch();
+                    // Every upload replacement, including a reconnect, carries a new epoch (item DL).
+                    state.Sealing?.Sealer.Relay?.NewEpoch();
+                    StartUpload(state);
                 }
-                StartUpload(state);
             }
         }
         finally
@@ -550,23 +731,31 @@ internal sealed partial class BroadcastProducerService : IDisposable
             }
             sealing.Gate.Release();
         }
+        UpdateRouteVerdict(state);
         await PublishDriveAsync().ConfigureAwait(false);
     }
     /// <summary>The relay upload: a second TLS data stream - `hello`, `upload`, chunks - owned by this task.</summary>
     private void StartUpload(BroadcastRunningSource state)
     {
-        if (state.UploadChunks is not null)
+        lock (state.UploadGate)
         {
-            return;
-        }
+            if (state.UploadChunks is not null)
+            {
+                return;
+            }
 
-        var chunks = Channel.CreateBounded<BroadcastMediaChunk>(state.Video is null ? UploadQueueChunks : 8);
-        var retire = new CancellationTokenSource();
-        var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        state.UploadChunks = chunks;
-        state.UploadRetire = retire;
-        state.UploadReady = ready;
-        state.UploadTask = RunUploadAsync(state, chunks, retire.Token, ready);
+            var isVideo = !BroadcastSources.IsAudioOnly(state.Source);
+            var chunks = Channel.CreateBounded<BroadcastMediaChunk>(isVideo ? VideoUploadQueueChunks : UploadQueueChunks);
+            var retire = new CancellationTokenSource();
+            var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            state.UploadAccepted = false;
+            state.UploadJoined = false;
+            state.UploadStartupBuffer.Clear();
+            state.UploadChunks = chunks;
+            state.UploadRetire = retire;
+            state.UploadReady = ready;
+            state.UploadTask = RunUploadAsync(state, chunks, retire.Token, ready);
+        }
     }
 
     private async Task RunUploadAsync(BroadcastRunningSource state, Channel<BroadcastMediaChunk> chunks, CancellationToken retire,
@@ -592,7 +781,8 @@ internal sealed partial class BroadcastProducerService : IDisposable
             using var welcome = await ExchangeHandshake.ReadAsync(connection.Stream, "welcome", handshake.Token).ConfigureAwait(false);
             if (ExchangeProtocol.String(welcome.RootElement, "type") == "refused")
             {
-                Report(ExchangeProtocol.RefusalKey(ExchangeProtocol.String(welcome.RootElement, "reason")));
+                Diagnose(state.Source, "relay-upload-refused", "code=" + ExchangeProtocol.RefusalKey(ExchangeProtocol.String(welcome.RootElement, "reason")));
+                ReportState(state, "BroadcastRelayLost");
                 return;
             }
 
@@ -605,8 +795,24 @@ internal sealed partial class BroadcastProducerService : IDisposable
             using var accepted = await ExchangeHandshake.ReadAsync(connection.Stream, "upload-accepted", handshake.Token).ConfigureAwait(false);
             if (ExchangeProtocol.String(accepted.RootElement, "type") == "refused")
             {
-                Report(ExchangeProtocol.RefusalKey(ExchangeProtocol.String(accepted.RootElement, "reason")));
+                Diagnose(state.Source, "relay-upload-refused", "code=" + ExchangeProtocol.RefusalKey(ExchangeProtocol.String(accepted.RootElement, "reason")));
+                ReportState(state, "BroadcastRelayLost");
                 return;
+            }
+
+            Diagnose(state.Source, "relay-upload-accepted");
+            lock (state.UploadGate)
+            {
+                state.UploadAccepted = true;
+                if (state.UploadStartupBuffer.Count > 0)
+                {
+                    state.UploadJoined = true;
+                    foreach (var buffered in state.UploadStartupBuffer)
+                    {
+                        chunks.Writer.TryWrite(buffered);
+                    }
+                    state.UploadStartupBuffer.Clear();
+                }
             }
 
             // A sealed upload always begins with its header chunk (the key ring, then the format header's record when the
@@ -631,11 +837,16 @@ internal sealed partial class BroadcastProducerService : IDisposable
         {
             // The upload ends; the LAN share keeps serving. The next session online re-establishes the
             // exchange half; no retry runs in the background (constraint 6).
-            Report("BroadcastRelayLost");
+            Diagnose(state.Source, "relay-upload-lost", "type=" + exception.GetType().Name);
+            ReportState(state, "BroadcastRelayLost");
         }
         finally
         {
             ready.TrySetResult();
+            lock (state.UploadGate)
+            {
+                state.UploadStartupBuffer.Clear();
+            }
         }
     }
     private void OnSessionOnline()
@@ -675,7 +886,12 @@ internal sealed partial class BroadcastProducerService : IDisposable
             {
                 if (!state.ExchangeStarted)
                 {
-                    await EstablishOnExchangeAsync(state).ConfigureAwait(false);
+                    try { await EstablishOnExchangeAsync(state).ConfigureAwait(false); }
+                    catch (Exception exception) when (IsConnectionFailure(exception))
+                    {
+                        HandlerBoundary.Record("BROADCAST ESTABLISH FAULT | type=" + exception.GetType().Name);
+                        Report("BroadcastRelayLost");
+                    }
                 }
             }
         }
@@ -684,22 +900,33 @@ internal sealed partial class BroadcastProducerService : IDisposable
 
     private void OnSessionOffline()
     {
-        List<BroadcastRunningSource> states;
         lock (_gate)
         {
-            states = [.. _running.Values];
-        }
-
-        foreach (var state in states)
-        {
-            state.ExchangeStarted = false;
-            state.UploadChunks?.Writer.TryComplete();
-            state.UploadChunks = null;
+            _exchangeGeneration++;
+            foreach (var state in _running.Values)
+            {
+                if (state.ExchangeStarted) Diagnose(state.Source, "session-lost");
+                state.ExchangeStarted = false;
+                UpdateRouteVerdict(state);
+                state.UploadRetire?.Cancel();
+                state.UploadChunks?.Writer.TryComplete();
+                state.UploadChunks = null;
+                lock (state.UploadGate)
+                {
+                    state.UploadStartupBuffer.Clear();
+                }
+            }
         }
     }
 
     private void OnLanListenerCount(BroadcastRunningSource state, int lanListeners)
     {
+        lock (_gate)
+        {
+            if (!IsRunning(state) || state.LastLanListeners == lanListeners) return;
+            state.LastLanListeners = lanListeners;
+        }
+        Diagnose(state.Source, "listeners-changed", "lan=" + lanListeners);
         // Item M: the server counts the relay and the tunnels; the producer answers for the LAN share,
         // lowering the figure while LAN listeners are connected.
         if (Settings.MaxListeners <= 0 || !state.ExchangeStarted || state.DescriptorJson is null)
@@ -720,12 +947,31 @@ internal sealed partial class BroadcastProducerService : IDisposable
     }
     private async Task TeardownAsync(BroadcastRunningSource state)
     {
+        // SP-0250 requirement 9 / DEVICE-EXCHANGE item DX: `broadcast-end` is written before any stream of the broadcast
+        // closes - the capture's chunks, the relay upload, the tunnels and the LAN listener - so a consumer that reads the
+        // directory's removal and one that reads a stream's end meet the same broadcast. It is an order, not a request:
+        // it has no answer, and with no control stream the write returns at once and holds nothing (a stop is never held
+        // for the server). A write that does not land inside EndWriteTimeout is given up, never waited for.
+        if (state.ExchangeStarted)
+        {
+            using var timeout = new CancellationTokenSource(EndWriteTimeout);
+            var ended = await _exchange.PostControlEnvelopeAsync(new
+            {
+                schemaVersion = 2, type = "broadcast-end", broadcastId = state.BroadcastId
+            }, timeout.Token).ConfigureAwait(false);
+            Diagnose(state.Source, "broadcast-end", "sent=" + ended);
+        }
+
         if (state.Video is not null) await state.Video.DisposeAsync().ConfigureAwait(false);
         await Task.Run(state.Dispose).ConfigureAwait(false);
-        // The upload ends before the record does: the zero-length chunk closes the relay cleanly, then
-        // the broadcast itself ends on the control stream.
+        // Then the relay upload ends cleanly - the zero-length chunk of 7.6 - and then the LAN listener closes
+        // every listener's chunked body and its port.
         state.UploadChunks?.Writer.TryComplete();
         state.UploadChunks = null;
+        lock (state.UploadGate)
+        {
+            state.UploadStartupBuffer.Clear();
+        }
         if (state.UploadTask is { } upload)
         {
             try
@@ -742,19 +988,13 @@ internal sealed partial class BroadcastProducerService : IDisposable
         state.UploadRetire?.Cancel();
         state.Sealing?.Dispose();
         state.Sealing = null;
-        if (state.ExchangeStarted)
-        {
-            using var timeout = new CancellationTokenSource(EndWriteTimeout);
-            _ = await _exchange.PostControlEnvelopeAsync(new
-            {
-                schemaVersion = 2, type = "broadcast-end", broadcastId = state.BroadcastId
-            }, timeout.Token).ConfigureAwait(false);
-        }
-
         if (state.LanServer is not null)
         {
             // Every listener's chunked body ends cleanly.
             await state.LanServer.StopAsync().ConfigureAwait(false);
+            Diagnose(state.Source, "listener-unbound", "scope=loopback | port=" + state.LocalPort);
+            if (state.LanAddress is not null)
+                Diagnose(state.Source, "listener-unbound", "scope=lan | port=" + state.LocalPort);
             state.LanServer = null;
         }
     }
@@ -857,7 +1097,8 @@ internal sealed partial class BroadcastProducerService : IDisposable
             return;
         }
 
-        _ = ExchangeTunnelBridge.RunAsync(_exchange, tunnel, state.LocalPort, cancellationToken, state.Sealing.Sealer.Tunnel)
+        _ = ExchangeTunnelBridge.RunAsync(_exchange, tunnel, state.LocalPort, cancellationToken, state.Sealing.Sealer.Tunnel,
+                () => Diagnose(state.Source, "tunnel-bridge-opened"))
             .ContinueWith(_ => Interlocked.Decrement(ref state.TunnelCount), CancellationToken.None);
     }
 
@@ -884,7 +1125,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
         _ => "BroadcastAlreadyRunning"
     };
 
-    private static string TitleOf(BroadcastSource source) => source switch
+    internal static string TitleOf(BroadcastSource source) => source switch
     {
         BroadcastSource.Microphone => LocalizationService.Get("BroadcastMicTitle"),
         BroadcastSource.SystemSound => LocalizationService.Get("BroadcastSystemSoundTitle"),

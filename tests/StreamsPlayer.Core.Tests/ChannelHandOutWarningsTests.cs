@@ -61,4 +61,18 @@ public sealed class ChannelHandOutWarningsTests
             Assert.True(dictionary.Values.ContainsKey(ChannelHandOutWarnings.CapabilityKey), dictionary.Code);
         }
     }
+
+    [Fact]
+    public void ABroadcastResourceRowAsksTheCredentialWarningEvenWithAPlainAddress()
+    {
+        var row = Row("token-path");
+        Assert.Equal([ChannelHandOutWarnings.CredentialKey], ChannelHandOutWarnings.KeysForRow(row));
+        Assert.Empty(ChannelHandOutWarnings.KeysForRow(Row(null)));
+    }
+
+    private static StreamChannel Row(string? resourceKey) => new()
+    {
+        Id = Guid.NewGuid(), Url = "http://192.168.1.20:8080/stream", Title = "Radio", MediaKind = MediaKind.Audio,
+        SourceOrigin = SourceOrigin.Imported, SortIndex = 0, AddedAt = DateTimeOffset.UnixEpoch, ResourceKey = resourceKey
+    };
 }

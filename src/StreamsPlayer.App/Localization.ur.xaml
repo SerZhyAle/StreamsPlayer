@@ -630,6 +630,8 @@
     <sys:String x:Key="BroadcastResourceAdded">نشریات شامل کر دی گئی: {0}</sys:String>
     <sys:String x:Key="BroadcastResourceUpdated">نشریات اپڈیٹ کر دی گئی: {0}</sys:String>
     <sys:String x:Key="BroadcastNoLongerAvailable">نشریات {0} اب دستیاب نہیں۔</sys:String>
+    <sys:String x:Key="BroadcastEnded">نشریہ ختم ہو گیا ہے۔</sys:String>
+    <sys:String x:Key="BroadcastReconnect">دوبارہ جوڑیں</sys:String>
     <sys:String x:Key="BroadcastPlaylistPosition">{0} - آئٹم {1} از {2}</sys:String>
     <sys:String x:Key="FmsBroadcastConfirm">کیا یہ براہ راست نشریات درآمد کریں؟&#x0D;&#x0A;&#x0D;&#x0A;{0}&#x0D;&#x0A;{1}</sys:String>
     <sys:String x:Key="FmsBroadcastAdded">براہ راست نشریات درآمد ہو گئی: {0}۔</sys:String>
@@ -638,7 +640,7 @@
     <sys:String x:Key="FmsBroadcastInvalid">یہ FastMediaSorter نشریات کی درست تفصیل نہیں ہے۔ آپ کی فہرست نہیں بدلی۔</sys:String>
     <sys:String x:Key="FmsBroadcastTooLarge">یہ نشریاتی تفصیل 64 KiB سے بڑی ہے۔ آپ کی فہرست نہیں بدلی۔</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer ایک اور عمل میں مصروف ہے۔ جب وہ عمل مکمل ہو جائے تو نشریات دوبارہ درآمد کریں۔ آپ کی فہرست نہیں بدلی۔</sys:String>
-    <sys:String x:Key="FmsBroadcastListenerLimit">{0} پر سامعین کی زیادہ سے زیادہ تعداد پہلے ہی پوری ہو چکی ہے۔ کسی دوسرے سامع کے منقطع ہونے پر دوبارہ کوشش کریں۔</sys:String>
+    <sys:String x:Key="FmsBroadcastListenerLimit">{0} پر ناظرین اور سامعین کی زیادہ سے زیادہ تعداد پہلے ہی پوری ہو چکی ہے۔ کسی دوسرے کے منقطع ہونے پر دوبارہ کوشش کریں۔</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} نے نشریات بند کر دی ہیں یا اب اس نیٹ ورک پر دستیاب نہیں ہے۔</sys:String>
     <!-- SP-0098 portable stream catalog import -->
     <sys:String x:Key="StreamCatalogSettings">اسٹریم کیٹلاگ</sys:String>
@@ -714,7 +716,7 @@
     <sys:String x:Key="SettingsFilesDesc">اسکرین شاٹس اور نشریات کی ریکارڈنگ کے فولڈرز</sys:String>
     <sys:String x:Key="SettingsAbout">کے بارے میں</sys:String>
     <sys:String x:Key="SettingsExchangeDesc">اکاؤنٹ اور سرور سے اتصال</sys:String>
-    <sys:String x:Key="SettingsBroadcastDesc">ذرائع، نیٹ ورک تک رسائی اور آڈیو کا معیار</sys:String>
+    <sys:String x:Key="SettingsBroadcastDesc">اجازت، نیٹ ورک تک رسائی اور معیار</sys:String>
     <sys:String x:Key="SettingsAboutDesc">ایپ کی معلومات، لائسنس اور تشخیص</sys:String>
     <sys:String x:Key="ThemeHint">ہلکا، گہرا منتخب کریں یا اپنے Windows کے انداز کی پیروی کریں۔</sys:String>
     <sys:String x:Key="TileSizeHint">گرڈ میں چینل ٹائلز کا سائز ترتیب دیں۔</sys:String>
@@ -805,7 +807,7 @@
     <sys:String x:Key="BroadcastsPlayNamed">{0} چلائیں</sys:String>
     <sys:String x:Key="BroadcastsKeepNamed">{0} کو میرے چینلز میں شامل کریں</sys:String>
     <sys:String x:Key="EndedLabel">ختم شدہ</sys:String>
-    <sys:String x:Key="BroadcastCapabilityWarning">اس پتے میں نشری کا راز ہے: جس کے پاس ہے وہ سن سکتا ہے۔ پھر بھی دینا چاہتے ہیں؟</sys:String>
+    <sys:String x:Key="BroadcastCapabilityWarning">اس پتے میں نشری کا راز ہے: جس کے پاس ہے وہ دیکھ اور سن سکتا ہے۔ پھر بھی دینا چاہتے ہیں؟</sys:String>
     <sys:String x:Key="ExchangeAutoAcceptCasts">میری ڈیوائسز سے خودکار طور پر کاسٹ قبول کریں</sys:String>
     <sys:String x:Key="ExchangeCastTitle">کاسٹ کی درخواست</sys:String>
     <sys:String x:Key="ExchangeCastOfferPrompt">{1} پر {0} اس ڈیوائس پر کاسٹ کرنا چاہتا ہے۔ قبول کریں؟</sys:String>
@@ -833,7 +835,7 @@
     <sys:String x:Key="ExchangeStringFileFilter">فائل سے درآمد کریں (*.fmsexch)|*.fmsexch|*.*|*.*</sys:String>
     <!-- SP-0217: broadcasting this PC devices through the device exchange. -->
     <sys:String x:Key="BroadcastTitle">لائیو براڈکاسٹ</sys:String>
-    <sys:String x:Key="BroadcastHint">جو یہ پی سی کیپچر کرتا ہے اسے آپ کے اکاؤنٹ کے ایکسچینج سرور پر بھیجتا ہے۔ جب تک آپ یہاں اجازت نہ دیں اور کوئی ذریعہ شروع نہ کریں، کچھ بھی کیپچر نہیں ہوتا۔</sys:String>
+    <sys:String x:Key="BroadcastHint">جو یہ پی سی کیپچر کرتا ہے اسے آپ کے اکاؤنٹ کے ایکسچینج سرور پر اور، اگر «مقامی نیٹ ورک» کا آپشن آن ہو، تو آپ کے مقامی نیٹ ورک پر بھیجتا ہے۔ جب تک آپ یہاں اجازت نہ دیں اور کوئی ذریعہ شروع نہ کریں، کچھ بھی کیپچر نہیں ہوتا۔</sys:String>
     <sys:String x:Key="BroadcastAllow">اس پی سی کو نشر کرنے کی اجازت دیں</sys:String>
     <sys:String x:Key="BroadcastStartWithApp">ایپلیکیشن شروع ہونے پر منتخب ذرائع شروع کریں</sys:String>
     <sys:String x:Key="BroadcastMicStart">مائیکروفون نشر کریں</sys:String>
@@ -843,8 +845,8 @@
     <sys:String x:Key="BroadcastDefaultDevice">Windows کا ڈیفالٹ</sys:String>
     <sys:String x:Key="BroadcastLanListening">مقامی نیٹ ورک</sys:String>
     <sys:String x:Key="BroadcastLanPort">پورٹ</sys:String>
-    <sys:String x:Key="BroadcastCap">زیادہ سے زیادہ سننے والے</sys:String>
-    <sys:String x:Key="BroadcastCapHint">0 کا مطلب کوئی حد نہیں۔ براہ راست جڑا ہر سامع اس پی سی کا اپ لوڈ استعمال کرتا ہے۔ ایکسچینج سرور کے ذریعے یہ پی سی تمام سامعین کے لیے ایک کاپی بھیجتا ہے۔</sys:String>
+    <sys:String x:Key="BroadcastCap">زیادہ سے زیادہ ناظرین اور سامعین</sys:String>
+    <sys:String x:Key="BroadcastCapHint">0 کا مطلب کوئی حد نہیں۔ براہ راست جڑا ہر ناظر یا سامع اس پی سی کا اپ لوڈ استعمال کرتا ہے۔ ایکسچینج سرور کے ذریعے یہ پی سی سب کے لیے ایک کاپی بھیجتا ہے۔</sys:String>
     <sys:String x:Key="BroadcastQuality">معیار</sys:String>
     <sys:String x:Key="BroadcastSampleRate">سیمپل ریٹ</sys:String>
     <sys:String x:Key="BroadcastMicChannels">مائیکروفون چینل</sys:String>
@@ -868,14 +870,17 @@
     <sys:String x:Key="BroadcastAudioMicrophone">مائیکروفون</sys:String>
     <sys:String x:Key="BroadcastAudioSystem">سسٹم آواز</sys:String>
     <sys:String x:Key="BroadcastNoDevices">کچھ نہیں ملا</sys:String>
-    <sys:String x:Key="BroadcastScreenPrivacy">اسکرین نشر چنا ہوا پورا مانیٹر بھیجتی ہے، بشمول اس پر دکھائی دینے والی اطلاعات اور پاس ورڈ۔ جس مواد کی Windows حفاظت کرتا ہے وہ خالی آ سکتا ہے۔ نشر کے دوران اشارہ مانیٹر کا نام بتاتا ہے۔</sys:String>
+    <sys:String x:Key="BroadcastScreenPrivacy">اسکرین نشر چنا ہوا پورا مانیٹر بھیجتی ہے، بشمول اس پر دکھائی دینے والی اطلاعات اور پاس ورڈ۔ جس مواد کی Windows حفاظت کرتا ہے وہ خالی آ سکتا ہے۔ نشر کے دوران کارڈ مانیٹر کا نام بتاتا ہے۔</sys:String>
     <sys:String x:Key="BroadcastVideoUnavailable">اس پی سی پر Windows کا ویڈیو انکوڈر (H.264) شروع نہیں ہوتا، اس لیے اسکرین اور کیمرا پیش نہیں کیے جاتے۔ مائیکروفون اور سسٹم آواز اس پر منحصر نہیں۔</sys:String>
     <sys:String x:Key="BroadcastOwnOutputRisk">Windows کے اس ورژن میں سسٹم آواز میں اس ایپلیکیشن کی اپنی آواز بھی شامل ہوتی ہے، اس لیے یہاں چلایا گیا نشر دوبارہ بھیج دیا جائے گا۔ سسٹم آواز جاری ہو تو نشریات کسی دوسرے آلے پر سنیں۔</sys:String>
     <sys:String x:Key="BroadcastLinkPassword">لنک کا پاس ورڈ</sys:String>
+    <sys:String x:Key="BroadcastConfirmStopAll">اس سے ابھی جاری تمام لائیو براڈکاسٹ بند ہو جائیں گے اور ان کے ناظرین اور سامعین منقطع ہو جائیں گے۔ جاری رکھیں؟</sys:String>
+    <sys:String x:Key="BroadcastConfirmLanOff">مقامی نیٹ ورک پر دیکھنے یا سننے والے سب منقطع ہو جائیں گے، اور جو براڈکاسٹ ایکسچینج سرور پر بھی نہیں ہے وہ بند ہو جائے گا۔ جاری رکھیں؟</sys:String>
+    <sys:String x:Key="BroadcastConfirmRevokeLink">لنک کا موجودہ پاس ورڈ فوراً کام کرنا بند کر دے گا، اور اس سے دیکھنے یا سننے والے سب منقطع ہو جائیں گے۔ جاری رکھیں؟</sys:String>
     <sys:String x:Key="BroadcastLinkGenerated">ہر نشر کے لیے نیا</sys:String>
     <sys:String x:Key="BroadcastLinkCustom">میں خود طے کرتا ہوں</sys:String>
     <sys:String x:Key="BroadcastLinkNone">بغیر پاس ورڈ</sys:String>
-    <sys:String x:Key="BroadcastLinkHint">یہ اس لنک، فائل اور QR کوڈ پر لاگو ہوتا ہے جو آپ دوسروں کو دیتے ہیں۔ پاس ورڈ ان کے اندر کبھی نہیں ہوتا - اسے الگ سے بتائیں؛ آپ اسے نشر کے اشارے کے «شیئر» مینو سے کاپی کر سکتے ہیں۔ آپ کا طے کیا ہوا پاس ورڈ صرف آپ کے اکاؤنٹ کے Windows سیکرٹ اسٹور میں رکھا جاتا ہے۔</sys:String>
+    <sys:String x:Key="BroadcastLinkHint">یہ اس لنک، فائل اور QR کوڈ پر لاگو ہوتا ہے جو آپ دوسروں کو دیتے ہیں۔ پاس ورڈ ان کے اندر کبھی نہیں ہوتا - اسے الگ سے بتائیں؛ آپ اسے نشر کی ونڈو کے «شیئر» مینو سے کاپی کر سکتے ہیں۔ آپ کا طے کیا ہوا پاس ورڈ صرف آپ کے اکاؤنٹ کے Windows سیکرٹ اسٹور میں رکھا جاتا ہے۔</sys:String>
     <sys:String x:Key="BroadcastLinkNoneWarning">پاس ورڈ کے بغیر، جسے بھی لنک ملے وہ دیکھ اور سن سکتا ہے۔</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordField">لنک کے لیے پاس ورڈ</sys:String>
     <sys:String x:Key="BroadcastLinkPasswordSave">پاس ورڈ محفوظ کریں</sys:String>
@@ -902,7 +907,7 @@
     <sys:String x:Key="BroadcastNotAllowed">پہلے ترتیبات میں نشر کی اجازت دیں۔</sys:String>
     <sys:String x:Key="BroadcastTooManySources">ایک ساتھ بہت زیادہ نشریات۔</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">یہ ذریعہ پہلے سے لائیو ہے۔</sys:String>
-    <sys:String x:Key="BroadcastEncoderMissing">Windows کا آڈیو انکوڈر اس پی سی پر موجود نہیں، اس لیے ذرائع پیش نہیں کیے جاتے۔</sys:String>
+    <sys:String x:Key="BroadcastEncoderMissing">Windows کا آڈیو انکوڈر اس پی سی پر موجود نہیں، اس لیے آواز والا نشریہ شروع نہیں ہو سکتا۔ بغیر آواز کے اسکرین یا کیمرے کا نشریہ اس سے متاثر نہیں ہوتا۔</sys:String>
     <sys:String x:Key="BroadcastPortTaken">LAN پورٹ مصروف ہے۔ ترتیبات میں کوئی اور چنیں۔</sys:String>
     <sys:String x:Key="BroadcastPermissionDenied">Windows نے اس ایپلیکیشن کو مائیکروفون یا کیمرا دینے سے انکار کیا۔ Windows کی پرائیویسی سیٹنگز میں اجازت دے کر دوبارہ شروع کریں۔</sys:String>
     <sys:String x:Key="BroadcastDeviceInUse">ڈیوائس کسی اور پروگرام کے پاس ہے۔ اسے بند کر کے دوبارہ شروع کریں۔</sys:String>
@@ -1014,7 +1019,7 @@
     <sys:String x:Key="ExchangeDiagnosisCodeLine">کوڈ: {0}</sys:String>
     <sys:String x:Key="ExchangeDiagnosisNoServer">ابھی جانچنے کے لیے کوئی سرور نہیں ہے۔ پہلے کنکشن اسٹرنگ درآمد کریں یا سائن اِن کریں۔</sys:String>
     <sys:String x:Key="BroadcastNoReachableEndpoint">کوئی اس نشریات کو وصول نہیں کر سکتا۔ مقامی نیٹ ورک فعال کریں یا تبادلہ سرور سے جڑ کر پھر کوشش کریں۔</sys:String>
-    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">یہ محفوظ نشریاتی پتہ یہاں نہیں چلایا جا سکتا۔ بھیجنے والے سے تبادلہ سرور کے ذریعے لنک مانگیں۔</sys:String>
+    <sys:String x:Key="BroadcastProtectedEndpointUnsupported">مقامی نیٹ ورک یا تبادلہ سرور کے ذریعے بھیجنے والے سے براہ راست کنکشن کو پاس ورڈ کی ایسی جانچ درکار ہے جسے یہ پلیئر سپورٹ نہیں کرتا۔ تبادلہ سرور سے تقسیم کردہ نشریات مانگیں۔</sys:String>
     <sys:String x:Key="BroadcastNotListed">فہرست میں نہیں</sys:String>
     <sys:String x:Key="BroadcastTrustPrompt">یہ کمپیوٹر {0} کے سرٹیفکیٹ کی تصدیق نہیں کر سکتا۔ اس چینل کے لیے اعتماد کرنے سے پہلے بھیجنے والے سے فنگرپرنٹ ملائیں:&#10;{1}&#10;کیا اس سرٹیفکیٹ پر اعتماد کریں؟</sys:String>
     <sys:String x:Key="DriveTitle">Google Drive کے ذریعے</sys:String>
@@ -1022,7 +1027,6 @@
     <sys:String x:Key="DriveSignIn">Google سے سائن ان کریں</sys:String>
     <sys:String x:Key="DriveSignOut">Google سے سائن آؤٹ کریں</sys:String>
     <sys:String x:Key="DriveNoCast">Google Drive میں پش اطلاعات نہیں ہیں، اس لیے کسی آلے کو نشریات نہیں بھیجی جا سکتیں۔</sys:String>
-    <sys:String x:Key="DriveUnavailable">اس ورژن میں Google سائن ان دستیاب نہیں۔</sys:String>
     <sys:String x:Key="DriveSignedOut">Google میں سائن ان نہیں ہے۔</sys:String>
     <sys:String x:Key="DriveSigningIn">براؤزر میں Google سائن ان مکمل کریں۔</sys:String>
     <sys:String x:Key="DriveConnected">Google Drive سے منسلک ہے۔</sys:String>
@@ -1049,4 +1053,46 @@
     <sys:String x:Key="MyStreamsWatch">دیکھیں</sys:String>
     <sys:String x:Key="MyStreamsListen">سنیں</sys:String>
     <sys:String x:Key="MyStreamsSaved">محفوظ</sys:String>
+    <!-- Broadcast start verdict and publication details. -->
+    <sys:String x:Key="BroadcastStarting">نشریات شروع ہو رہی ہیں…</sys:String>
+    <sys:String x:Key="BroadcastStartFailed">نشریات شروع نہیں ہوئیں۔ {0} منتخب آلہ اور کنکشن چیک کریں، پھر دوبارہ کوشش کریں۔</sys:String>
+    <sys:String x:Key="BroadcastStopped">نشریات رک گئیں۔</sys:String>
+    <sys:String x:Key="BroadcastAnnounced">{0} پر اکاؤنٹ کے {1} آلات کے لیے اعلان کیا گیا۔</sys:String>
+    <sys:String x:Key="BroadcastNoRecipients">انتباہ: اکاؤنٹ کا کوئی دوسرا آلہ اسے نہیں کھول سکتا۔ وصول کنندہ آلے پر سائن ان کریں، خفیہ کردہ نشریات کی معاونت چیک کریں، پھر دوبارہ شروع کریں۔</sys:String>
+    <sys:String x:Key="BroadcastNotAnnounced">ایکسچینج سرور پر اعلان نہیں ہوا۔ اعلان کے لیے اکاؤنٹ منسلک کریں۔</sys:String>
+    <sys:String x:Key="BroadcastLanAddress">مقامی نیٹ ورک کا پتہ: {0}۔</sys:String>
+    <sys:String x:Key="BroadcastUnnamedDevice">بے نام آلہ</sys:String>
+    <sys:String x:Key="BroadcastShowRecipients">وصول کنندہ آلات دکھائیں</sys:String>
+    <sys:String x:Key="BroadcastWindowTitle">نشر</sys:String>
+    <sys:String x:Key="BroadcastButtonIdle">نشر: کچھ بھی لائیو نہیں</sys:String>
+    <sys:String x:Key="BroadcastButtonServerWarning">ایکسچینج سرور تک رسائی نہیں ہو رہی، اس لیے اس کے لوٹنے تک اکاؤنٹ کے آلات یہ نشر نہیں دیکھ سکیں گے۔</sys:String>
+    <sys:String x:Key="BroadcastStateOff">بند</sys:String>
+    <sys:String x:Key="BroadcastStateLiveSince">{0} سے لائیو۔</sys:String>
+    <sys:String x:Key="BroadcastStateStopping">نشر روکا جا رہا ہے..</sys:String>
+    <sys:String x:Key="BroadcastWhereDrive">Google Drive کے ذریعے اعلان کیا گیا۔</sys:String>
+    <sys:String x:Key="BroadcastReceivers">اس پی سی سے براہِ راست جڑے ہوئے: {0}۔</sys:String>
+    <sys:String x:Key="BroadcastOpenSettings">ترتیبات..</sys:String>
+    <sys:String x:Key="BroadcastOpenWindow">نشر کی ونڈو کھولیں</sys:String>
+    <sys:String x:Key="BroadcastStopShort">روکیں</sys:String>
+    <sys:String x:Key="BroadcastLinkChoiceLine">لنک کا پاس ورڈ: {0}۔ اسے ترتیبات میں بدلا جاتا ہے۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsTitle">سیٹنگز کا تبادلہ (STANDARD پروفائل)</sys:String>
+    <sys:String x:Key="ExchangeSettingsHint">اپنی ظاہری شکل، پلے بیک اور انٹرفیس کی سیٹنگز کو اپنے ایکسچینج سرور پر STANDARD کے طور پر رکھیں اور انہیں دوسرے پی سی پر پڑھیں۔ جب تک آپ بٹن نہ دبائیں، کچھ بھی بھیجا یا پڑھا نہیں جاتا، اور بعد کی تبدیلیاں اسی پی سی پر رہتی ہیں۔ فولڈرز، آڈیو آلات، ونڈو کی جگہیں، پاس ورڈز اور کلیدیں کبھی اسے نہیں چھوڑتیں۔ سرور کا منتظم محفوظ کی گئی سیٹنگز پڑھ سکتا ہے۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupAppearance">ظاہری شکل</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupPlayback">پلے بیک</sys:String>
+    <sys:String x:Key="ExchangeSettingsGroupInterface">انٹرفیس</sys:String>
+    <sys:String x:Key="ExchangeSettingsSave">STANDARD کے طور پر محفوظ کریں</sys:String>
+    <sys:String x:Key="ExchangeSettingsRead">STANDARD پڑھیں</sys:String>
+    <sys:String x:Key="ExchangeSettingsUnavailable">STANDARD کو محفوظ کرنا اور پڑھنا اسی وقت کام کرتا ہے جب یہ پی سی ایسے سرور سے جڑا ہو جو سیٹنگز رکھتا ہے۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsChooseGroup">کم از کم ایک گروپ منتخب کریں۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveConfirm">ان گروپس کو سرور پر STANDARD کے طور پر محفوظ کریں: {0}؟ وہاں محفوظ STANDARD بدل دیا جائے گا، اور جو گروپ منتخب نہیں کیا گیا وہ اس سے نکل جائے گا۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadConfirm">سرور سے STANDARD پڑھیں اور یہ گروپس لاگو کریں: {0}؟ اس پی سی پر ان کی سیٹنگز بدل دی جائیں گی۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsSavedAt">STANDARD کے طور پر محفوظ کیا گیا: {0}۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadAt">{0} کو محفوظ کیا گیا STANDARD پڑھا اور لاگو کیا گیا۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsSaveUnknown">سرور نے جواب نہیں دیا، اس لیے معلوم نہیں کہ سیٹنگز محفوظ ہوئیں یا نہیں۔ دوبارہ محفوظ کرنا محفوظ ہے۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsReadDamaged">سرور پر سیٹنگز خراب ہیں۔ کچھ نہیں بدلا گیا۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsBusy">سیٹنگز کا تبادلہ پہلے سے جاری ہے۔ اس کے مکمل ہونے کا انتظار کریں۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsNotFound">سرور پر اس پروگرام کے لیے ابھی کوئی معیاری سیٹنگز محفوظ نہیں ہیں۔ پہلے انہیں محفوظ کریں۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsInvalidPayload">سرور نے یہ سیٹنگز قبول نہیں کیں: یہ خراب ہیں یا بہت بڑی ہیں۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsAppIdMismatch">یہ سرور اس اکاؤنٹ کے لیے اس پروگرام کی سیٹنگز نہیں رکھتا۔</sys:String>
+    <sys:String x:Key="ExchangeSettingsVersionIncompatible">سرور سیٹنگز فارمیٹ کے اس ورژن کی حمایت نہیں کرتا۔</sys:String>
 </ResourceDictionary>

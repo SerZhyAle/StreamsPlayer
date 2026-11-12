@@ -32,6 +32,7 @@
     { "id": "tv-schedule-binding", "name": "TV schedule channel", "nameKey": "TvScheduleBindingTitle", "form": "page", "help": "tv-schedule", "class": "TvScheduleBindingWindow", "slice": "S3" },
 
     { "id": "broadcasts", "name": "My broadcasts", "nameKey": "BroadcastsTitle", "form": "page", "help": "broadcasts", "class": "BroadcastsWindow", "slice": "S4" },
+    { "id": "broadcast", "name": "Broadcast", "nameKey": "BroadcastWindowTitle", "form": "page", "help": "broadcast", "class": "BroadcastWindow", "slice": "S4" },
     { "id": "broadcast-audio", "name": "Live broadcast, audio", "form": "page", "help": "broadcast-audio", "class": "BroadcastAudioWindow", "slice": "S4",
       "reason": "The window's title is the broadcast's own channel title, so no fixed UI string names the surface; the page carries its name in the copy file." },
     { "id": "exchange-diagnosis", "name": "Connection check", "nameKey": "ExchangeDiagnosisTitle", "form": "page", "help": "exchange-diagnosis", "class": "ExchangeDiagnosisWindow", "slice": "S4" },

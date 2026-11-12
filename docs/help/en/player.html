@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Help - STREAMS Player video</title>
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <nav class="help-crumbs" aria-label="Breadcrumb">
+    <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>STREAMS Player video</span>
+  </nav>
+  <header class="hero">
+    <p class="kicker">Window help</p>
+    <h1>STREAMS Player video</h1>
+    <p class="lead">This window plays one video or RTSP channel. The picture fills the window, and a control panel lies over its bottom edge: the sound controls at the left end, the channel's name and state in the middle, and the buttons for tracks, capture, recording, full screen and more actions at the right end. The panel hides four seconds after you last used it and comes back with a click on the picture, and captions written over the picture say why it is dark. Keys cover the common actions, and <kbd>F1</kbd> opens this page. The engine that draws the picture, VLC or FlyleafLib, is chosen under <b>Video and RTSP playback engine</b> on the <b>Playback</b> page of Settings, and a change applies to the next window you open.</p>
+  </header>
+
+  <h2>In this order</h2>
+  <ol class="order">
+    <li>Start a video or RTSP channel in the main window; it opens in this window.</li>
+    <li>Read <a href="#e-status">Status line</a> in the <a href="#e-panel">Control panel</a> while the channel connects. If the picture is dark, <a href="#e-notice">Caption over the picture</a> says why.</li>
+    <li>Click the picture to bring the panel back whenever it has hidden, or keep it on screen with <b><a href="#e-pin">Pin the playback controls</a></b>.</li>
+    <li>Set the sound with <b><a href="#e-volume">Video volume</a></b> and <b><a href="#e-mute">Mute</a></b>, and choose another sound or subtitle track with <b><a href="#e-audio-tracks">Audio</a></b> and <b><a href="#e-subtitles">Subtitles</a></b> when the stream offers them.</li>
+    <li>Fill the screen with <b><a href="#e-fullscreen">Fullscreen</a></b>, <kbd>F</kbd> or a double-click on the picture; <kbd>Esc</kbd> brings the window back.</li>
+    <li>Keep something: <b><a href="#e-save-frame">Save frame</a></b> writes the picture on screen to a file, and <b><a href="#e-record">Record</a></b> records the stream.</li>
+    <li>End with <b><a href="#e-close">Close</a></b>; the playback stops with the window.</li>
+  </ol>
+
+  <h2>The elements</h2>
+  <div class="elements">
+    <details class="el" id="e-panel">
+      <summary><span><span class="name">Control panel</span><span class="one">The bar over the bottom of the picture that holds the buttons; it hides itself after four seconds.</span></span></summary>
+      <div class="full">
+        <p>The panel appears when the window opens and again each time you click the picture, press one of the player keys or open one of its menus. Four seconds after the last of these it hides and leaves the whole picture free. An open menu holds the countdown, and every click in the window starts it afresh.</p>
+        <p>Click anywhere on the picture to bring a hidden panel back, or press <b><a href="#e-pin">Pin the playback controls</a></b> to keep it on screen.</p>
+        <p>Hiding the panel changes nothing else: the sound, a recording and the captions over the picture go on as they were.</p>
+        <div class="note"><span class="tag">Tip</span><p>The channel's name, <a href="#e-status">Status line</a> and <a href="#e-signal">Signal quality</a> are part of the panel and hide with it; <a href="#e-notice">Caption over the picture</a>, <a href="#e-rec-badge">Recording badge</a> and <a href="#e-toast">Message over the picture</a> do not.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-mute">
+      <summary><span><span class="name">Mute</span><span class="one">Switches the video sound off and on.</span></span></summary>
+      <div class="full">
+        <p>Pressing it silences the video, and the button then reads <b>Unmute</b>; pressing it again brings the sound back at the level the volume slider shows. The state is saved together with the volume, so the next video window opens the same way.</p>
+        <dl class="facts">
+          <dt>Shortcut</dt><dd><kbd>M</kbd> does the same from anywhere in the window.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-volume">
+      <summary><span><span class="name">Video volume</span><span class="one">Sets the video volume from 0 to 100.</span></span></summary>
+      <div class="full">
+        <p>A click anywhere on the slider jumps straight to that level instead of stepping towards it. Moving the slider while the sound is muted switches the sound back on. The level is applied at once and saved when the slider settles, so the next video window opens at it.</p>
+        <dl class="facts">
+          <dt>Shortcut</dt><dd><kbd>Ctrl</kbd> + <kbd>↑</kbd> raises the volume by 10 and <kbd>Ctrl</kbd> + <kbd>↓</kbd> lowers it by 10; holding the keys repeats the step.</dd>
+        </dl>
+        <div class="note"><span class="tag">Tip</span><p>When the sound is muted and the slider is at the top, <kbd>Ctrl</kbd> + <kbd>↑</kbd> switches the sound back on.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-title">
+      <summary><span><span class="name">Channel name</span><span class="one">Shows the name of the channel; a playlist adds the number of the item that plays.</span></span></summary>
+      <div class="full">
+        <p>The name sits in the middle of the control panel and is also in the title bar of the window, so the taskbar button says what is playing. A channel that is a playlist adds the item that plays and the total, as in &quot;item 2 of 5&quot;, and moves on to the next item when one ends.</p>
+      </div>
+    </details>
+    <details class="el" id="e-on-air">
+      <summary><span><span class="name">What is on air</span><span class="one">Names what the stream announces as on air.</span></span></summary>
+      <div class="full">
+        <p>When the stream sends the name of what is on the air, the line under the channel's name reads &quot;On air:&quot; followed by that text. A stream that announces nothing leaves the panel as it was, with no empty line. The line is cleared when the player gives up on the stream.</p>
+      </div>
+    </details>
+    <details class="el" id="e-schedule">
+      <summary><span><span class="name">TV programme now and next</span><span class="one">Shows the programme on now and the one after it, from your TV schedule.</span></span></summary>
+      <div class="full">
+        <p>Two lines under the channel's name: &quot;Now&quot; with the start and end time and the title of the programme, and &quot;Next&quot; with the start time and the title. They appear only for a channel that is matched to a TV schedule loaded in Settings, on the <b>Library</b> page; a line is left out when the schedule has no programme for it. Times are shown in your local time, and the lines are refreshed every 30 seconds, so a new download, a removal or a changed match reaches a window that is already open.</p>
+        <div class="note"><span class="tag">Tip</span><p><a href="#e-on-air">What is on air</a> comes from the stream itself, not from your schedule; the two answer different questions and either may be absent.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-status">
+      <summary><span><span class="name">Status line</span><span class="one">Says what the player is doing: buffering, playing live, reconnecting or giving up.</span></span></summary>
+      <div class="full">
+        <p>Reads &quot;Buffering..&quot; with a percentage while the buffer fills, &quot;Playing live&quot; with a number of seconds once the picture runs, &quot;Reconnecting..&quot; with the number of the attempt and of the attempts allowed while the player reopens the stream, and &quot;Stream unavailable&quot; after the player gives up.</p>
+        <p>The number of seconds is the buffer the player keeps, so the picture runs about that far behind the source; a source that works in segments adds its own delay on top. After a reconnect the number is smaller, because a reopened stream gets a smaller buffer.</p>
+        <div class="note"><span class="tag">Tip</span><p>When the picture is dark and the panel is hidden, <a href="#e-notice">Caption over the picture</a> says why.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-signal">
+      <summary><span><span class="name">Signal quality</span><span class="one">A thin bar that shows how full the buffer is and, by its colour, how steady the signal is.</span></span></summary>
+      <div class="full">
+        <p>The length of the fill is the buffer, from empty to full. The colour is the signal: grey while the player connects, green when the stream arrives cleanly, yellow when it is unstable and red when there is no signal, for instance while the player reconnects a stream that had been playing.</p>
+        <p>Point at the bar to read the same in words: &quot;Signal is good&quot;, &quot;Signal is unstable&quot;, &quot;No signal&quot; or &quot;Connecting..&quot;.</p>
+        <div class="note"><span class="tag">Tip</span><p>The colour is not the only sign; the tooltip says the state in words.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-audio-tracks">
+      <summary><span><span class="name">Audio</span><span class="one">Opens the list of audio tracks when the stream has more than one.</span></span></summary>
+      <div class="full">
+        <p>The button is there only when the stream offers more than one audio track. The menu lists the tracks by name, or by number when a track has no name; the one in use carries a check mark, and choosing another switches to it at once.</p>
+        <dl class="facts">
+          <dt>Shortcut</dt><dd><kbd>A</kbd> opens the same menu when the button is there; otherwise the key does nothing.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-subtitles">
+      <summary><span><span class="name">Subtitles</span><span class="one">Opens the list of subtitle tracks when the stream has more than one.</span></span></summary>
+      <div class="full">
+        <p>Works like <a href="#e-audio-tracks">Audio</a>, for subtitles: the button is there only when the stream offers more than one subtitle track, the menu lists them with the one in use checked, and choosing another switches to it at once.</p>
+      </div>
+    </details>
+    <details class="el" id="e-save-frame">
+      <summary><span><span class="name">Save frame</span><span class="one">Saves the picture on screen as a file and as the icon of this channel.</span></span></summary>
+      <div class="full">
+        <p>One press does two things: the current frame is written to a picture file at the resolution of the stream itself, and the same frame becomes the icon of this channel in the main window.</p>
+        <p>The file goes to the folder set as <b>Frames folder</b> on the <b>Files</b> page of Settings. If that folder cannot be written, the app uses a fallback folder, and the message names both.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>To keep a moment of the video and to choose the picture the channel shows in the main window.</dd>
+          <dt>Next</dt><dd><a href="#e-toast">Message over the picture</a> names the saved file, or says that the frame could not be saved.</dd>
+        </dl>
+        <div class="note"><span class="tag">Tip</span><p>Before the first picture appears, the button does nothing and says nothing.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-record">
+      <summary><span><span class="name">Record</span><span class="one">Records the live stream into a file; press it again to stop.</span></span></summary>
+      <div class="full">
+        <p>Pressing it starts saving the stream to a file in the folder set as <b>Video recordings folder</b> on the <b>Files</b> page of Settings. While it records, the button reads <b>Stop recording</b> and <a href="#e-rec-badge">Recording badge</a> shows the elapsed time. A recording belongs to the channel, not to one connection: when the player reconnects, the part so far is closed and the next part starts when the picture is back, so a long recording can end up as several files.</p>
+        <p>When the recording ends, <a href="#e-toast">Message over the picture</a> names the saved file, or the number of parts and their folder. If the folder cannot be written, the recording goes to a fallback folder and the message says which. If the playback stops for good, the recording ends with it and the message starts with &quot;Recording ended with playback.&quot; Closing the window ends the recording too.</p>
+        <p>Before the first picture appears, pressing the button does nothing. The button is greyed out, and its tooltip gives the reason, when this version of the video engine cannot record.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd><b>Stop recording</b>, or <kbd>R</kbd>, closes the file and saves it; while the file is finished the message reads &quot;Saving recording..&quot;.</dd>
+          <dt>Shortcut</dt><dd><kbd>R</kbd> starts and stops the recording from anywhere in the window.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-pin">
+      <summary><span><span class="name">Pin the playback controls</span><span class="one">Keeps the control panel on screen instead of hiding it after four seconds.</span></span></summary>
+      <div class="full">
+        <p>While the panel is pinned it stays over the bottom of the picture and the countdown does not run. The icon of the button changes with the state; its tooltip and accessible name stay the same.</p>
+        <p>The choice applies to every video window, including the ones opened after the change, and is kept for the next start of the app.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Press it again, and the panel hides after four seconds of inactivity as before.</dd>
+        </dl>
+        <div class="note"><span class="tag">Tip</span><p>This pin is about the panel. To pin the channel itself in the main window, use <b>Pin</b> in the menu of <a href="#e-actions">More player actions</a>.</p></div>
+      </div>
+    </details>
+    <details class="el" id="e-fullscreen">
+      <summary><span><span class="name">Fullscreen</span><span class="one">Makes the window fill the screen; the same button then leaves full screen.</span></span></summary>
+      <div class="full">
+        <p>In full screen the window loses its frame and is maximized, and the button reads <b>Exit fullscreen</b>. A double-click on the picture does the same as the button; a double-click on the control panel does not. A channel opened with <b>Open fullscreen</b> in the main window starts in full screen. The control panel hides and returns as usual.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd><kbd>Esc</kbd> leaves full screen. Outside full screen it does nothing, so it never closes the window by accident.</dd>
+          <dt>Shortcut</dt><dd><kbd>F</kbd> or <kbd>F11</kbd> switches full screen on and off from anywhere in the window.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-actions">
+      <summary><span><span class="name">More player actions</span><span class="one">Opens a menu of the actions that have no button of their own.</span></span></summary>
+      <div class="full">
+        <p>The menu opens upward from the button and holds, in this order: <a href="#e-always-on-top">Always on top</a>, <a href="#e-pin-channel">Pin</a>, <a href="#e-about-channel">About channel</a>, <a href="#e-collections">Add to collection</a> and <a href="#e-new-collection">Add to new collection</a>. The control panel stays on screen while the menu is open.</p>
+      </div>
+    </details>
+    <details class="el" id="e-always-on-top">
+      <summary><span><span class="name">Always on top</span><span class="one">Keeps the video windows above all other windows.</span></span></summary>
+      <div class="full">
+        <p>The entry names what a click does: while the window is not on top it reads <b>Always on top - ON</b>, and while it is on top it reads <b>Always on top - OFF</b>. The choice applies to every video window and is kept for the next start of the app.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Choose the entry again.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-pin-channel">
+      <summary><span><span class="name">Pin</span><span class="one">Pins this channel in the main window, or unpins it.</span></span></summary>
+      <div class="full">
+        <p>The entry reads <b>Pin</b> for a channel that is not pinned and <b>Unpin</b> for one that is. It does what the pin on the channel's card in the main window does: the channel goes into the pinned section there. This is the pin of the channel; the button that keeps the control panel on screen is <a href="#e-pin">Pin the playback controls</a>.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>Choose <b>Unpin</b>, and the channel goes back to the list. Pinning deletes nothing.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-about-channel">
+      <summary><span><span class="name">About channel</span><span class="one">Opens the About the channel window for this channel.</span></span></summary>
+      <div class="full">
+        <p>Shows what the app knows about the channel, with the details the running stream reports. It uses the connection that is already playing and opens no new one.</p>
+      </div>
+    </details>
+    <details class="el" id="e-collections">
+      <summary><span><span class="name">Add to collection</span><span class="one">Puts this channel into your collections, or takes it out.</span></span></summary>
+      <div class="full">
+        <p>The submenu lists your collections, each with a check mark when this channel is in it. Choosing one adds the channel to it or takes the channel out. When you have no collections, the submenu holds a greyed-out line that says so; make the first one with <a href="#e-new-collection">Add to new collection</a>.</p>
+      </div>
+    </details>
+    <details class="el" id="e-new-collection">
+      <summary><span><span class="name">Add to new collection</span><span class="one">Makes a new collection that holds this channel.</span></span></summary>
+      <div class="full">
+        <p>The row has a text field: type a name and press <kbd>Enter</kbd>. The collection is made with this channel in it. A name that is empty or already used is refused with a message. While you type in the field, the player keys are ignored.</p>
+      </div>
+    </details>
+    <details class="el" id="e-close">
+      <summary><span><span class="name">Close</span><span class="one">Closes the video window and stops the stream.</span></span></summary>
+      <div class="full">
+        <p>Closing the window ends the playback and releases the video engine; a recording that is running is ended and finished in the background. The window remembers its place and size for this channel and opens there next time. A window closed in full screen leaves the remembered place as it was.</p>
+      </div>
+    </details>
+    <details class="el" id="e-notice">
+      <summary><span><span class="name">Caption over the picture</span><span class="one">Says why the picture is dark; it stays on screen when the control panel hides.</span></span></summary>
+      <div class="full">
+        <p>When the picture is missing for more than a moment, a caption appears in the top left corner of the window: &quot;Connecting..&quot; while the channel opens, &quot;Signal lost - searching..&quot; when a stream that was playing stops delivering, &quot;Reconnecting..&quot; with the attempt and the number allowed, such as 2/3, while the player reopens the stream, &quot;Switching quality..&quot; when the player itself reopens the stream at another quality, and &quot;Stream unavailable&quot; after it gives up. A gap too short to name stays silent, and the caption goes away the moment the picture is back.</p>
+      </div>
+    </details>
+    <details class="el" id="e-failure">
+      <summary><span><span class="name">Stream unavailable</span><span class="one">The message window that opens when the player gives up on a channel.</span></span></summary>
+      <div class="full">
+        <p>For every channel except a live video broadcast (see <a href="#e-broadcast-failure">Failure panel</a>), a window titled <b>Stream unavailable</b> opens over the player. It names the cause and offers answers on labelled buttons: <b>Retry</b>, <b>Copy report</b>, <b>Hide</b> (for a catalog channel) or <b>Delete</b> (for one of your own), and <b>Keep</b>.</p>
+        <p><b>Retry</b> starts again with a fresh set of attempts. <b>Copy report</b> copies the failure report. <b>Hide</b> or <b>Delete</b> takes the channel out of the list as in the main window, and closes this window. <b>Keep</b> leaves the channel in the list, and <a href="#e-notice">Caption over the picture</a> goes on saying that the stream is unavailable.</p>
+        <dl class="facts">
+          <dt>Undo</dt><dd>After <b>Keep</b>, close this window and start the channel again from the main window to try once more.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-broadcast-failure">
+      <summary><span><span class="name">Failure panel</span><span class="one">For a live video broadcast, the failure is shown as a panel in the middle of the picture.</span></span></summary>
+      <div class="full">
+        <p>A channel that is a live video broadcast gets this panel instead of the message window. It says what happened and what to try, and it has a button that tries again: <b>Retry</b>, or <b>Reconnect</b> when the message says that the broadcast has ended. In a failure message the panel also holds <b>Details</b>, which opens to a failure code. When the message can only say that the broadcast is unavailable and a server to check is known, the panel also holds <b>Check the connection</b>: it opens the Connection check window in front of the player, and the check runs only because you pressed it.</p>
+        <p>The window stays open. The panel disappears when you press <b>Retry</b> or <b>Reconnect</b>.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The caption reads &quot;Connecting..&quot; while the player opens the stream again.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-rec-badge">
+      <summary><span><span class="name">Recording badge</span><span class="one">Shows that a recording is on and for how long; it stays visible when the panel hides.</span></span></summary>
+      <div class="full">
+        <p>A small badge with a red dot, REC and the elapsed time appears in the top right corner of the picture while a recording is on. It does not hide with the control panel.</p>
+        <p>The badge is dimmed while no part is being written, for instance between a dropped connection and the return of the picture, so it never claims a recording that is not happening.</p>
+      </div>
+    </details>
+    <details class="el" id="e-toast">
+      <summary><span><span class="name">Message over the picture</span><span class="one">A short message in the middle of the picture reports what a capture or a recording did.</span></span></summary>
+      <div class="full">
+        <p>It fades in, holds for a moment and fades out, and clicks pass through it. It reports results such as &quot;Frame saved:&quot; with the file name, &quot;Recording saved:&quot; with the file name, a folder that could not be written and the one used instead, &quot;Could not save the frame&quot; and &quot;Could not start recording&quot;. A message that names a folder or a file stays a little longer.</p>
+      </div>
+    </details>
+    <details class="el" id="e-keys">
+      <summary><span><span class="name">Keyboard</span><span class="one">The keys that work in the video window.</span></span></summary>
+      <div class="full">
+        <p><kbd>M</kbd> mutes and unmutes; <kbd>Ctrl</kbd> + <kbd>↑</kbd> and <kbd>Ctrl</kbd> + <kbd>↓</kbd> raise and lower the volume by 10; <kbd>A</kbd> opens the audio track menu; <kbd>F</kbd> and <kbd>F11</kbd> switch full screen on and off; <kbd>Esc</kbd> leaves full screen; <kbd>R</kbd> starts and stops the recording; <kbd>F1</kbd> opens this page. Each of these keys, except <kbd>F1</kbd>, also brings the control panel back, so you see what the key did.</p>
+        <p>The letter keys and <kbd>F11</kbd> work on their own: with Ctrl, Shift, Alt or the Windows key held they do nothing, and holding one down does not repeat its action. Only the volume keys take Ctrl, and only Ctrl; holding them repeats the step. <kbd>Space</kbd> and <kbd>Enter</kbd> stay with the button that has the focus.</p>
+        <p>The keys act on the window only when nothing else wants them: they do nothing while you type in the field for a new collection or while a menu of the control panel is open.</p>
+      </div>
+    </details>
+    <details class="el" id="e-help">
+      <summary><span><span class="name">Help</span><span class="one">Opens this page.</span></span></summary>
+      <div class="full">
+        <p>Pressing <kbd>F1</kbd> in this window opens the page of the window you are in, in your web browser; the application stays open.</p>
+        <dl class="facts">
+          <dt>Next</dt><dd>The page opens in your browser. Nothing in the application changes.</dd>
+        </dl>
+      </div>
+    </details>
+  </div>
+
+  <h2>Related</h2>
+  <ul class="related">
+    <li><a href="main.html"><b>STREAMS Player</b><span class="pill">Window</span><small>The main window, which opens this one for video and RTSP channels.</small></a></li>
+    <li><a href="settings.html"><b>STREAMS Player settings</b><span class="pill">Window</span><small>Where the video engine, the sound device, the folders for frames and video recordings and the TV schedule are set.</small></a></li>
+    <li><a href="https://serzhyale.github.io/StreamsPlayer/index.html#use"><b>How to use</b><span class="pill gold">Site</span><small>The whole task, from the first start to your own playlists.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Written against STREAMS Player 26.1021, 2026-10-21.</span>
+    <a href="index.html">Help index</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/support.html">Ask a question or report a problem</a>
+  </footer>
+
+</main>
+<script>
+/* Progressive enhancement only: the page is complete without it. */
+(function () {
+  function openHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === 'DETAILS') { el.open = true; }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+})();
+</script>
+</body>
+</html>

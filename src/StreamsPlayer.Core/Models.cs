@@ -251,6 +251,24 @@ public sealed record FastMediaSorterBroadcastInfo
             endpoint.CertFingerprint is null && BroadcastCertificateTrust.EndpointIdentity(endpoint.Url) is { } identity
                 && CertificatePins.TryGetValue(identity, out var pin) ? endpoint with { CertFingerprint = pin } : endpoint).ToArray();
     }
+
+    /// <summary>
+    /// SP-0225: the host and port of the first listed endpoint that names a network address - what the connection
+    /// check of a failed broadcast looks at, for the audio and the video window alike. Only the authority is taken:
+    /// the path and the id behind it are the capability to listen and never leave this method.
+    /// </summary>
+    public (string Host, int Port)? DiagnosisTarget(string fallbackUrl = "")
+    {
+        foreach (var endpoint in PlaybackAttemptEndpoints(fallbackUrl))
+        {
+            if (ExchangeDiagnosisRoute.TryAuthorityOf(endpoint.Url, out var host, out var port))
+            {
+                return (host, port);
+            }
+        }
+
+        return null;
+    }
 }
 
 public sealed record StreamChannel

@@ -88,6 +88,9 @@ No telemetry
 @@hero-download
 Download (.exe)
 
+@@release-facts
+Version [[version]] of [[releasedate]]
+
 @@hero-cta-use
 How to use
 
@@ -167,7 +170,10 @@ A ~15-second live buffer, and video that settles at the quality your connection 
 Record the live video or radio you are playing straight to a file, without interrupting playback: video goes to the Recordings folder in Videos, radio to the Recordings folder in Music, or to folders you choose.
 
 @@cap-play-6
-Listen to a live audio or video broadcast from a FastMediaSorter phone or watch - over your local network, or through your exchange server when the broadcast offers one.
+Listen to a live audio or video broadcast from a phone or watch running Fast Media Sorter & Organizer for Android - over your local network, or through your exchange server when the broadcast offers one.
+
+@@cap-play-7
+Broadcast the screen, a camera, the microphone or the sound of this PC from the Broadcast window - each source has its own card, and you share it as a link, a QR code or a file. Broadcasting is off until you allow it in Settings.
 
 @@cap-window-title
 Watch your way
@@ -189,6 +195,9 @@ The player says why over the video whenever the picture stops - and re-opens a s
 
 @@cap-window-6
 Shrink the catalog to a small captionless panel while radio plays - the station and track on top, and below them the volume, the sleep timer, previous and next station, a random station, Record, and the panel's own always-on-top, back and minimize buttons.
+
+@@cap-window-7
+Press F1 in a window to open the offline help in your browser - the page for that window, or the index - written in English, Russian and Ukrainian. In the video player M mutes, Ctrl+Up and Ctrl+Down change the volume, and A opens the audio tracks.
 
 @@cap-grid-title
 Visual grid
@@ -226,6 +235,9 @@ A private Recently played history of your last 100 channels, with the track that
 @@cap-yours-7
 Import channels from an M3U file or playlist URL, with a preview before anything is added, and export your own or pinned channels to M3U.
 
+@@cap-yours-8
+Sign in to an exchange server of your own: the My broadcasts window lists what your other devices broadcast, each broadcast plays in its own window, and Check the connection names the first step that fails. Google sign-in for finding broadcasts is optional, and the media never passes through Drive.
+
 @@cap-local-title
 Local by design
 
@@ -242,28 +254,28 @@ Refresh the catalog only when you choose.
 How to use it
 
 @@use-description
-Open it and pick a channel - that is the whole flow. Install it with the setup executable, from the Microsoft Store, with winget, or unpack the portable ZIP - or run it from source; you can also launch a stream directly from the command line.
+Install it, open it and pick a channel - that is the whole flow. Use the setup executable, the Microsoft Store, winget or the portable ZIP; no account is needed. You can also add a stream by its address or launch one directly from the command line.
 
 @@use-1-title
-Run it from source
+Install it
 
 @@use-1-text
-With the .NET 10 SDK installed, restore, build, and launch from the repository root.
+Get it from the Microsoft Store, install it with [[command]], run the setup executable from the latest release, or unpack the portable ZIP and start StreamsPlayer.exe. No account or registration is needed.
 
 @@use-2-title
-Pick and play
+Pick, play or receive a broadcast
 
 @@use-2-text
 Browse the catalog, filter or search, then select a channel. Radio starts in the main window; video and RTSP open in the player window. An ordinary launch starts nothing; turn on Resume playback on startup in [[glyph:app.settings]] Settings and it brings back whatever was playing when you last closed the app.
 
-In the 64-bit viewer, right-click a video or audio file or its folder and choose Broadcast. Share Manager exports a .spres file, QR code or quick link for import in StreamsPlayer. A folder is one playlist channel with a frozen list; Refresh replaces that list and Revoke stops its link. The HTTP gateway has its own switch, off by default. Each token grants read-only access to one broadcast and normally expires after 24 hours. HTTP is unencrypted: share the document privately and keep internet access off unless you need it.
+Broadcasts of your own files come from Fast Media Sorter & Sharing for Windows and its 64-bit viewer. In the 64-bit viewer, right-click a video or audio file or its folder and choose Broadcast. Share Manager exports a .spres file, QR code or quick link for import in StreamsPlayer. A folder is one playlist channel with a frozen list; Refresh replaces that list and Revoke stops its link. The HTTP gateway has its own switch, off by default. Each token grants read-only access to one broadcast and normally expires after 24 hours. HTTP is unencrypted: share the document privately and keep internet access off unless you need it.
 
 
 @@use-3-title
 Open any URL directly
 
 @@use-3-text
-Play a stream without touching the catalog.
+Press Add stream and enter the address of any stream - internet radio, M3U8 or RTSP; it plays without the catalog. The command below opens one directly.
 
 @@use-4-title
 Save a channel to a shortcut
@@ -280,7 +292,7 @@ Open Settings from the gear button in the header, or from the Library settings e
 Exchange media between your devices
 
 @@use-6-text
-STREAMS Player is the Windows player for live broadcasts from a FastMediaSorter phone or watch. The media exchange portal explains the three ways to connect your devices - the home network, the exchange server and live broadcast - which program does what on a phone, a watch, a TV, a VR headset and a PC, and what works today.
+STREAMS Player is the Windows player for live broadcasts from a phone or watch running Fast Media Sorter & Organizer for Android. The media exchange portal explains the three ways to connect your devices - the home network, the exchange server and live broadcast - which program does what on a phone, a watch, a TV, a VR headset and a PC, and what works today.
 
 @@use-6-link
 Open the media exchange portal
@@ -322,7 +334,7 @@ No account is required for ordinary playback. The optional exchange account belo
 Network access
 
 @@privacy-network
-The application connects only on your action, and only to the place that action needs: the public stream catalog and the optional preview pack offered after it, downloaded from GitHub when you import the catalog or accept the pack; the provider of a stream you play, record or open About channel for, or whose video preview refreshes while Grid mode is visible; a FastMediaSorter phone or watch you imported, reached directly on your local network; and, only if you ask for them in Settings on the Playback page, the optional FFmpeg libraries for the experimental FlyleafLib engine, downloaded from a third-party GitHub project (BtbN/FFmpeg-Builds). Each request goes straight to that destination and is subject to its policies; none passes through a service run by the author. A TV schedule is downloaded only from the address you enter yourself in Settings on the Library page, once each time you press Download schedule, and never in the background. The optional Exchange source in Library settings connects to your own server over TLS. Signing in sends your login, password or pairing code, device identity, product version and receiver capabilities; this program signs in only and never creates an account. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Import a connection string, a file or a QR picture in Library settings, or paste or drop one in the main window. A connection string carries the server address and an optional certificate fingerprint, with no secret; an invitation inside it is checked and dropped, never sent or kept. Reading it only fills the form. The server's address and port are under Details in the form: check them before entering your password or pairing code; neither is kept. A supplied fingerprint must match, with no trust prompt. Without one, you approve the server fingerprint before signing in; a certificate renewed with the same key is accepted, and any other change needs your approval. Changing the account's password sends the old and the new password to your server once and keeps neither. No local agent or second program is needed.  When a broadcast plays through your exchange server with a pinned certificate, that one stream is forwarded by a temporary local proxy on 127.0.0.1 which exists only while the broadcast plays and is reachable only from this device. Broadcasting: the application can send four sources of this PC live - a microphone you choose, the sound the PC is playing, one whole monitor you choose and a camera you choose, the screen and the camera each optionally carrying one sound (the microphone or the system sound) in the same broadcast - to the exchange server of your own account or over your local network, only when you allow it in Settings and start each source yourself; it is off until then, nothing is captured while it is off, and a visible indicator with a stop is shown while a source is live, naming the monitor or camera that is live. Video is H.264 up to 1280x720 at 30 frames per second, about 2 Mbit/s, made with Windows’ own encoder; no component is added. Everything on the chosen monitor is sent, including notifications and passwords, and content that Windows protects may come out blank. A PC signed in to a server only as a guest does not broadcast. Listeners connect over your local network, if you enable it, or through your exchange server. You can limit the number of listeners. Each listener on the local network and each tunnel uses this PC’s upload; through the server’s relay this PC sends one copy for all listeners. A broadcast link, file or QR code you hand out carries the title, addresses and keys that open the broadcast, and never the password. In Settings you choose how the password is made: a random password for each broadcast (the default), one you set (1 to 64 characters, kept only in the Windows secret store of your Windows account), or none, in which case anyone who gets the link can watch and listen. A change while you broadcast revokes the previous password at once. The Share menu of the live indicator copies the link, copies the password, shows the link as a QR code for a phone to scan and saves the description file. Treat the link as a secret and share it only with people you choose. The account directory carries those keys in an encrypted box.
+The application connects only on your action, and only to the place that action needs: the public stream catalog and the optional preview pack offered after it, downloaded from GitHub when you import the catalog or accept the pack; the provider of a stream you play, record or open About channel for, or whose video preview refreshes while Grid mode is visible; a phone or watch you imported, running Fast Media Sorter & Organizer for Android, reached directly on your local network; and, only if you ask for them in Settings on the Playback page, the optional FFmpeg libraries for the FlyleafLib engine, downloaded from a third-party GitHub project (BtbN/FFmpeg-Builds). Each request goes straight to that destination and is subject to its policies; none passes through a service run by the author. A TV schedule is downloaded only from the address you enter yourself in Settings on the Library page, once each time you press Download schedule, and never in the background. The optional Exchange source in Exchange server settings connects to your own server over TLS. Signing in sends your login, password or pairing code, device identity, product version and receiver capabilities; this program signs in only and never creates an account. Later connections use the device identity and device token. It holds one control connection with keepalives and reconnects while enabled; disabling it closes the connection. Import a connection string, a file or a QR picture in Exchange server settings, or paste or drop one in the main window. A connection string carries the server address and an optional certificate fingerprint, with no secret; an invitation inside it is checked and dropped, never sent or kept. Reading it only fills the form. The server's address and port are under Details in the form: check them before entering your password or pairing code; neither is kept. A supplied fingerprint must match, with no trust prompt. Without one, you approve the server fingerprint before signing in; a certificate renewed with the same key is accepted, and any other change needs your approval. Changing the account's password sends the old and the new password to your server once and keeps neither. Save as STANDARD sends the appearance, playback and interface settings you choose to your server, where its operator can read them, and Read STANDARD fetches them back; both run only when you press them, and folders, audio devices, window positions, history, passwords and keys are never sent. No local agent or second program is needed.  When a broadcast plays through your exchange server with a pinned certificate, that one stream is forwarded by a temporary local proxy on 127.0.0.1 which exists only while the broadcast plays and is reachable only from this device. Broadcasting: the application can send four sources of this PC live - a microphone you choose, the sound the PC is playing, one whole monitor you choose and a camera you choose, the screen and the camera each optionally carrying one sound (the microphone or the system sound) in the same broadcast - to the exchange server of your own account or over your local network, only when you allow it in Settings and start each source yourself; it is off until then, nothing is captured while it is off, and the Broadcast button in the main window turns red while a source is live, and the Broadcast window, with a stop for each source, names the monitor or camera that is live. Video is H.264 up to 1280x720 at 30 frames per second, about 2 Mbit/s, made with Windows’ own encoder; no component is added. Everything on the chosen monitor is sent, including notifications and passwords, and content that Windows protects may come out blank. A PC signed in to a server only as a guest does not broadcast. Listeners connect over your local network, if you enable it, or through your exchange server. You can limit the number of listeners. Each direct listener uses this PC’s upload; through the exchange server this PC sends one copy for all listeners. A broadcast link, file or QR code you hand out carries the title, addresses and keys that open the broadcast, and never the password. In Settings you choose how the password is made: a random password for each broadcast (the default), one you set (1 to 64 characters, kept only in the Windows secret store of your Windows account), or none, in which case anyone who gets the link can watch and listen. A change while you broadcast revokes the previous password at once. The Share menu of the Broadcast window copies the link, copies the password, shows the link as a QR code for a phone to scan and saves the description file. Treat the link as a secret and share it only with people you choose. The account directory carries those keys in an encrypted box.
 
 In the 64-bit viewer, right-click a video or audio file or its folder and choose Broadcast. Share Manager exports a .spres file, QR code or quick link for import in StreamsPlayer. A folder is one playlist channel with a frozen list; Refresh replaces that list and Revoke stops its link. The HTTP gateway has its own switch, off by default. Each token grants read-only access to one broadcast and normally expires after 24 hours. HTTP is unencrypted: share the document privately and keep internet access off unless you need it.
 
@@ -340,13 +352,13 @@ The exchange server connects your devices, so it knows the names of your account
 To sign in, this PC sends your login and your password or pairing code once, then its device identity, its device name (STREAMS Player, not the name of your PC), product, version, platform (Windows) and roles, its receiver capabilities and the public half of its encryption key. While the connection is on, the server sees that this device is online. When you broadcast, it receives the broadcast's title (for the screen and the camera it names the monitor or the camera), the fact that it is audio or video, and the audio or video itself, encrypted on this PC before it leaves; the private key never leaves this PC.
 
 @@privacy-exchange-broadcast
-Broadcasting can send four sources of this PC: a microphone you choose, the sound the PC is playing, one whole monitor you choose and a camera you choose; the screen and the camera can each carry one sound, the microphone or the system sound, in the same broadcast. Video is H.264 up to 1280x720 at 30 frames per second, about 2 Mbit/s, made with Windows' own encoder; no component is added. It is off until you allow it in Settings, nothing is captured while it is off, and you start each source yourself; a visible indicator with a stop is shown while a source is live and names the monitor or camera that is live. Everything on the chosen monitor is sent, including notifications and passwords, and content that Windows protects may come out blank. A PC signed in to a server only as a guest does not broadcast. Each listener on the local network and each tunnel uses this PC's upload; through the server's relay this PC sends one copy for all listeners. The link, the file and the QR code you hand to someone outside the account never contain the password. You choose how it is made: a random password for each broadcast (the default), one you set (1 to 64 characters, kept only in the Windows secret store of your Windows account), or none, in which case anyone who gets the link can watch and listen. A change while you broadcast revokes the previous password at once. The Share menu of the live indicator copies the link and the password, shows the link as a QR code for a phone to scan, and saves the description file. Only if you also turn on the option to start with the application do the sources you left chosen start again when the application starts, once the account is online. A listener's device can record what it receives, and this program cannot prevent that.
+Broadcasting can send four sources of this PC: a microphone you choose, the sound the PC is playing, one whole monitor you choose and a camera you choose; the screen and the camera can each carry one sound, the microphone or the system sound, in the same broadcast. Video is H.264 up to 1280x720 at 30 frames per second, about 2 Mbit/s, made with Windows' own encoder; no component is added. It is off until you allow it in Settings, nothing is captured while it is off, and you start each source yourself; the Broadcast button in the main window turns red while a source is live, and the Broadcast window, with a stop for each source, names the monitor or camera that is live. Everything on the chosen monitor is sent, including notifications and passwords, and content that Windows protects may come out blank. A PC signed in to a server only as a guest does not broadcast. Each direct listener uses this PC's upload; through the exchange server this PC sends one copy for all listeners. The link, the file and the QR code you hand to someone outside the account never contain the password. You choose how it is made: a random password for each broadcast (the default), one you set (1 to 64 characters, kept only in the Windows secret store of your Windows account), or none, in which case anyone who gets the link can watch and listen. A change while you broadcast revokes the previous password at once. The Share menu of the Broadcast window copies the link and the password, shows the link as a QR code for a phone to scan, and saves the description file. Only if you also turn on the option to start with the application do the sources you left chosen start again when the application starts, once the account is online. A listener's device can record what it receives, and this program cannot prevent that.
 
 @@privacy-exchange-camera
-The camera of this PC is used in two ways, each for one thing only. The first is reading a connection QR when you press "Scan with the camera" in Settings: while the scan window is open, the picture is looked at in memory to find the QR; it is never stored, sent or logged, and the camera is released the moment the window closes. Where Windows reports no camera, that button is not offered. The second is sending the picture of the camera you choose as a broadcast, and only when you start it yourself with "Broadcast camera" in Settings: the picture is then encoded on this PC and sent as that broadcast, and the camera is released when the broadcast stops.
+The camera of this PC is used in two ways, each for one thing only. The first is reading a connection QR when you press "Scan with the camera" in Settings: while the scan window is open, the picture is looked at in memory to find the QR; it is never stored, sent or logged, and the camera is released the moment the window closes. Where Windows reports no camera, that button is not offered. The second is sending the picture of the camera you choose as a broadcast, and only when you start it yourself with "Broadcast camera" on the camera's card in the Broadcast window: the picture is then encoded on this PC and sent as that broadcast, and the camera is released when the broadcast stops.
 
 @@privacy-exchange-account
-This program signs in and never creates an account. An account is deleted in FastMediaSorter on the phone, or by asking whoever runs the server; the exchange portal says how. Signing out on this device removes this device, not the account.
+This program signs in and never creates an account. An account is deleted in Fast Media Sorter & Organizer for Android, or by asking whoever runs the server; the exchange portal says how. Signing out on this device removes this device, not the account.
 
 @@privacy-exchange-portal
 How to delete an account
@@ -355,7 +367,7 @@ How to delete an account
 This website
 
 @@privacy-site
-This section is about this website, not the application. Every page loads its typefaces from Google Fonts: your browser requests a stylesheet from fonts.googleapis.com and the font files from fonts.gstatic.com, so Google receives your IP address, your browser details and the address of the page you are reading. The home page also asks api.github.com once for the latest release, so that the installer button points at the current file; GitHub receives your IP address and your browser details. The pages themselves are served by GitHub Pages (serzhyale.github.io). The site has no analytics, advertising or tracking, sets no cookies, and keeps only your theme and language choice in your browser's local storage. Each of these services is subject to its own policy; none is operated by the author.
+This section is about this website, not the application. Every page loads its typefaces from Google Fonts: your browser requests a stylesheet from fonts.googleapis.com and the font files from fonts.gstatic.com, so Google receives your IP address, your browser details and the address of the page you are reading. The pages themselves are served by GitHub Pages (serzhyale.github.io). The site has no analytics, advertising or tracking, sets no cookies, and keeps only your theme and language choice in your browser's local storage. Each of these services is subject to its own policy; none is operated by the author.
 @@privacy-local-title
 Local data
 
@@ -462,7 +474,7 @@ It never needs administrator rights to install or run, never adds itself to Wind
 No account is required for ordinary playback. The optional exchange account belongs to a private server - your own, or one run by someone who invited you - never to a service of this product. There is no advertising, analytics, telemetry or service operated by the author.
 
 @@trust-never-3
-It connects only when you act, and only to what that action needs: the public stream catalog and its optional preview pack on GitHub, the provider of a stream you play, record or preview, a FastMediaSorter phone or watch on your own network, and the optional FFmpeg libraries if you ask for them in Settings. A TV schedule is fetched only from an address you enter yourself, and only when you press Download schedule. Only if you turn them on, it also connects to the exchange server you set up yourself and, if you sign in to Google in Settings, to Google (for the announcements in your own hidden Drive application data).
+It connects only when you act, and only to what that action needs: the public stream catalog and its optional preview pack on GitHub, the provider of a stream you play, record or preview, a phone or watch running Fast Media Sorter & Organizer for Android on your own network, and the optional FFmpeg libraries if you ask for them in Settings. A TV schedule is fetched only from an address you enter yourself, and only when you press Download schedule. Only if you turn them on, it also connects to the exchange server you set up yourself and, if you sign in to Google in Settings, to Google (for the announcements in your own hidden Drive application data).
 @@trust-never-4
 It never downloads the catalog on its own - a refresh happens only when you ask for it.
 
@@ -599,3 +611,12 @@ This page was machine-translated and has not been proofread by a native speaker.
 
 @@privacy-drive
 Google sign-in is optional and requests only drive.appdata. Google receives the sign-in and API requests at accounts.google.com, oauth2.googleapis.com and www.googleapis.com. Only device names (fmsx-device-*) and broadcast announcements (fmsx-broadcast-*) in your hidden application data are read. This PC writes and renews its own announcements while broadcasting and removes them at the end; media never passes through Drive. The directory is polled only while its window is open and not minimized. The refresh token is protected for your Windows user. Signing out forgets it and asks Google to revoke access; a failed revocation is reported. Announcements stay in your Google account without additional end-to-end encryption.
+
+@@trust-why-4
+Signing would not silence every warning. Antivirus programs also judge what an app does, and STREAMS Player does things such checks watch: it reads the clipboard when you paste or import a connection, and it captures your screen, camera, microphone or the sound of your PC when you start a broadcast. It does each only when you ask, never in the background - but a cautious antivirus may still flag it, signed or not.
+
+@@trust-zip
+If you use the portable ZIP, first unpack it into a folder you will keep - for example a new folder in Documents - and start the app from there. Do not start it from inside the ZIP or from a temporary folder: Windows trusts a program less when it starts from such a place, so the warning is more likely to come back.
+
+@@trust-admin-4
+Whichever way you install, the installer also sets .spres files - a broadcast saved by Fast Media Sorter - to open in STREAMS Player. That setting is written for your account only, needs no administrator rights, and Uninstall removes it together with the app; the Microsoft Store version declares the same file type in its package.
