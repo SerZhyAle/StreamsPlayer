@@ -390,7 +390,7 @@ try {
     $tree = Join-Path $work 'build-site'
     New-Item -ItemType Directory -Path (Join-Path $tree 'tools/site') -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $repo 'tools/InterfaceLanguages.ps1') -Destination (Join-Path $tree 'tools/InterfaceLanguages.ps1')
-    foreach ($name in 'build-site', 'HeldAddresses', 'SiteFacts', 'SiteDecks', 'SiteDiscovery', 'SiteNotFound', 'ReleaseNotes') {
+    foreach ($name in 'build-site', 'HeldAddresses', 'SiteFacts', 'SiteDecks', 'SiteDiscovery', 'SiteNotFound', 'ReleaseNotes', 'ReleaseManifest') {
         Copy-Item -LiteralPath (Join-Path $repo "tools/site/$name.ps1") -Destination (Join-Path $tree "tools/site/$name.ps1")
     }
     $buildSite = Join-Path $tree 'tools/site/build-site.ps1'

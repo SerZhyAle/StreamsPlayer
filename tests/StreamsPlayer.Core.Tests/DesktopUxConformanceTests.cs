@@ -27,6 +27,8 @@ public sealed class DesktopUxConformanceTests
         ["ExchangeTrust_Click"] = "explicitly confirms a certificate replacement",
         ["ExchangeForget_Click"] = "explicitly removes the account after confirmation",
         ["ExchangeImportString_Click"] = "opens the paste/type editor without connecting",
+        ["ExchangeSettingsSave_Click"] = "explicitly saves the chosen groups on the server as the STANDARD after confirmation",
+        ["ExchangeSettingsRead_Click"] = "explicitly reads the STANDARD from the server and overwrites the chosen local groups after confirmation",
         ["ExchangeImportFile_Click"] = "reads a bounded file and fills the form without connecting",
         ["ExchangeReadString_Click"] = "parses the typed string and fills the form without connecting",
         ["ExchangeImportQrFile_Click"] = "reads a bounded picture file and fills the form without connecting",

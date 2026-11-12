@@ -350,6 +350,28 @@
       "ExchangeCameraTimeout",
       "ExchangeCameraTitle",
       "ExchangeImportCamera"
+    ],
+    "DEVICE-EXCHANGE settings profile (SP-0260)": [
+      "ExchangeSettingsAppIdMismatch",
+      "ExchangeSettingsBusy",
+      "ExchangeSettingsChooseGroup",
+      "ExchangeSettingsGroupAppearance",
+      "ExchangeSettingsGroupInterface",
+      "ExchangeSettingsGroupPlayback",
+      "ExchangeSettingsHint",
+      "ExchangeSettingsInvalidPayload",
+      "ExchangeSettingsNotFound",
+      "ExchangeSettingsRead",
+      "ExchangeSettingsReadAt",
+      "ExchangeSettingsReadConfirm",
+      "ExchangeSettingsReadDamaged",
+      "ExchangeSettingsSave",
+      "ExchangeSettingsSaveConfirm",
+      "ExchangeSettingsSavedAt",
+      "ExchangeSettingsSaveUnknown",
+      "ExchangeSettingsTitle",
+      "ExchangeSettingsUnavailable",
+      "ExchangeSettingsVersionIncompatible"
     ]
   }
 }

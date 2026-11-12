@@ -312,8 +312,23 @@ public sealed class ExchangeTunnelForwarderTests
         }
     }
 
-    private static bool IsPortListening(int port) =>
-        IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners().Any(ep => ep.Port == port);
+    // Whether something holds the port: another listener cannot bind it. The operating system's listener table
+    // (GetActiveTcpListeners) is not a reliable witness - on some machines a fresh loopback listener is not in it at all
+    // (measured 2026-11-12) - and a connect probe would open the forwarder's tunnel toward the exchange.
+    private static bool IsPortListening(int port)
+    {
+        try
+        {
+            using var probe = new TcpListener(IPAddress.Loopback, port) { ExclusiveAddressUse = true };
+            probe.Start();
+            probe.Stop();
+            return false;
+        }
+        catch (SocketException)
+        {
+            return true;
+        }
+    }
 
     private static X509Certificate2 GenerateSelfSignedCert()
     {
