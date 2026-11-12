@@ -381,7 +381,9 @@ foreach ($locale in $locales) {
 }
 
 $generatedBytes = [ordered]@{}
-foreach ($path in $generated.Keys) { $generatedBytes[$path] = $utf8.GetBytes($generated[$path]) }
+# A here-string in this script carries the script's own line breaks, which a Windows checkout makes CRLF (.gitattributes); the
+# pages are LF in git and compared as LF, so the generator emits LF whatever its own file holds.
+foreach ($path in $generated.Keys) { $generatedBytes[$path] = $utf8.GetBytes(([string]$generated[$path]).Replace("`r`n", "`n")) }
 $generatedBytes['help.css'] = [System.IO.File]::ReadAllBytes((Join-Path $source 'templates/help.css'))
 $generatedBytes['sza-kit.css'] = [System.IO.File]::ReadAllBytes((Join-Path $root 'docs/assets/sza-kit.css'))
 # EXCHANGE-MARK rule 6 (SP-0234): the two frames an entry's mark draws are copies of the vendored PNGs, byte for byte
