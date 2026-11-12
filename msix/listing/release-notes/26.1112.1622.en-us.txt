@@ -1,0 +1,12 @@
+Version 26.1112.1622
+
+- The Broadcast button in the header opens a Broadcast window with a card for the screen, the camera, the microphone and the system sound. Each starts and stops on its own, so several can be live at once, and each can be shared as a link, a QR code or a file.
+- A broadcast that does not start says why on its card, and a start that is still waiting can be cancelled. A cast to one of your devices tells you whether it was accepted.
+- A screen broadcast keeps 30 frames per second on a 4K monitor, and monitors are named with their real pixel size.
+- Within seconds of the broadcaster stopping, the player says "The broadcast has ended" and offers Reconnect. A real network loss still reconnects by itself.
+- A broadcast with a password plays on this PC over the local network or through your exchange server after the password is given once.
+- Standard settings can be saved on your exchange server and read on another PC. Device keys, hardware paths, audio devices, ports and window positions stay on each PC.
+- The header shows icons for List, Grid, Exchange server and My broadcasts, and Exchange server and Broadcasting are separate pages in Settings.
+- Radio is no longer silent after a video player or a channel preview muted the app's audio.
+- The built-in channel list is current (18 824 live streams as of 2026-11-11).
+- The Broadcast window has its own page in the offline help (F1).

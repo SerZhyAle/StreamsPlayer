@@ -221,7 +221,10 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             }
 
             _legPlayed = Stopwatch.StartNew();
-            _end.NoteLive();
+            // RRA-1: which transport carried this leg's audio decides whether a LAN answer can end the broadcast later (a foreign
+            // host at the producer's LAN address reads as a refusal or a 404 to a listener that played over the relay). A leg
+            // that cannot say keeps Unknown, the older reading by "played at all".
+            _end.NoteLive(sender is FastMediaSorterAudioLeg leg ? leg.AttemptTransport : BroadcastLiveTransport.Unknown);
             // S6-2: a second Playing for the same leg keeps its watch (and the silence it has already counted).
             if (_stallTimer is null && _sessionCancellation is { } cancellation && e.ReadInputBytes is { } readBytes)
             {

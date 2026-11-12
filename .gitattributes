@@ -44,6 +44,10 @@ docs/assets/glyphs/*.svg -text
 # byte-identical to the catalog's reference stylesheet, pinned by SHA-256 in tools/site/kit-provenance.txt
 # and checked by tools/site/build-site.ps1 -Check. Line-ending normalization would change what the site serves.
 docs/assets/sza-kit.css -text
+# The in-app help ships a byte-identical copy of the kit beside its pages (tools/help/build-help.ps1), and
+# scripts/check-help.ps1 compares the two by hash. `*.css text eol=crlf` turned the copy into CRLF on a Windows
+# checkout while the source above stays LF, so the help check failed on every clean clone (push CI, release.yml).
+docs/help/sza-kit.css -text
 
 # SP-0195 follow-up: the vendored WAVE-PARTICLES reference implementation is served byte-identical too
 # (pinned in tools/site/kit-provenance.txt, checked by tools/site/build-site.ps1).

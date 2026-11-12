@@ -61,16 +61,33 @@ public partial class PlayerWindow
     private bool NoteBroadcastAnswer(string reason) =>
         _endWatch is { } watch && EndBroadcast(watch.NoteAnswer(BroadcastEndAnswers.FromReason(reason)));
 
-    private void NoteBroadcastLive() => _endWatch?.NoteLive();
+    /// <summary>
+    /// The picture is live. S6-2: the endpoint this attempt opened says which transport carried it - the attempt does not
+    /// move once the leg is live, so it is the one the picture came over - and the watch keeps it to tell a LAN answer
+    /// that speaks for the broadcast from one a foreign host at the same address gives a viewer on another network.
+    /// </summary>
+    private void NoteBroadcastLive()
+    {
+        if (_endWatch is not { } watch)
+        {
+            return;
+        }
+
+        watch.NoteLive(_attemptIndex < _attemptPlan.Count
+            ? BroadcastLiveTransports.Of(_attemptPlan[_attemptIndex])
+            : BroadcastLiveTransport.Unknown);
+    }
 
     /// <summary>
-    /// What a producer's LAN address answers now (<see cref="BroadcastLanProbe"/>), asked only for a broadcast this window has
-    /// played and only for an address that is not the exchange server's own: a relay and a tunnel answer through the attempt
-    /// itself. Runs on the open worker; anything that says nothing is <see cref="BroadcastEndAnswer.None"/>.
+    /// What a producer's LAN address answers now (<see cref="BroadcastLanProbe"/>), asked only for a broadcast whose last
+    /// picture did not come over a relay or a tunnel (S6-2: <see cref="BroadcastEndWatch.ReadsLanAnswers"/>, the reading the
+    /// watch applies to the answer, so a probe is never made for an answer that could not end anything) and only for an
+    /// address that is not the exchange server's own: a relay and a tunnel answer through the attempt itself. Runs on the
+    /// open worker; anything that says nothing is <see cref="BroadcastEndAnswer.None"/>.
     /// </summary>
     private async Task<BroadcastEndAnswer> ProbeLanAsync(FastMediaSorterBroadcastEndpoint endpoint)
     {
-        if (_endWatch is not { PlayedBefore: true } || ExchangeEndpointKinds.IsExchangeEndpoint(endpoint)
+        if (_endWatch is not { ReadsLanAnswers: true } || ExchangeEndpointKinds.IsExchangeEndpoint(endpoint)
             || !LaunchableAddress.TryParse(endpoint.Url, out var address))
         {
             return BroadcastEndAnswer.None;

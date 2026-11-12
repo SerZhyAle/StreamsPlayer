@@ -45,6 +45,9 @@ internal sealed class WindowsAudioCapture : IDisposable
     private const long HundredNanosecondsPerMillisecond = 10_000;
     private const int HresultAccessDenied = unchecked((int)0x80070005);
     private const int AudclntDeviceInUse = unchecked((int)0x8889000A);
+    // S13-2: what the capture loop throws when the device is unplugged or its endpoint is invalidated while live.
+    private const int AudclntDeviceInvalidated = unchecked((int)0x88890004);
+    private const int AudclntResourcesInvalidated = unchecked((int)0x88890026);
     private const int ClsctxInprocServer = 1;
     private const int StgmRead = 0;
     private const int SharedMode = 0;
@@ -306,6 +309,7 @@ internal sealed class WindowsAudioCapture : IDisposable
     {
         HresultAccessDenied => BroadcastCaptureFailure.WindowsPermissionDenied,
         AudclntDeviceInUse => BroadcastCaptureFailure.DeviceInUse,
+        AudclntDeviceInvalidated or AudclntResourcesInvalidated => BroadcastCaptureFailure.DeviceMissing,
         _ => BroadcastCaptureFailure.Unknown
     };
 

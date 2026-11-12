@@ -11,12 +11,10 @@
 // with the shared value current at that moment, and the entry-page redirect in the head honours it only
 // while that value is unchanged.
 //
-// One runtime request (SP-0092). Release asset names carry the version, so no static URL can point at
-// the installer itself; the resolver at the bottom asks the GitHub API for the latest release and
-// upgrades the download link. Two things make that acceptable rather than a privacy regression: the
-// site is served from GitHub Pages, so the visitor's browser has already contacted GitHub for this very
-// page and the request adds no new party - and the link works without it, because the rendered href
-// already points at the releases page and the resolver only ever replaces it on success.
+// No runtime request (SP-0259, PAGE-STYLE 3.10). The download links, the version and its date are
+// rendered into the page at build time from tools/site/release-manifest.json; the SP-0092 resolver that
+// asked api.github.com for the latest release is gone, so a rate-limited or script-less visitor gets the
+// same working link as everyone else, and the privacy page no longer names that request.
 
 function setThemeMeta(theme) {
   const meta = document.querySelector('meta[name="theme-color"]');
@@ -89,32 +87,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
-// SP-0092: point the installer tile at the actual asset of the latest release. Failure of any kind -
-// offline, rate-limited, renamed asset - leaves the rendered releases-page href untouched, which is a
-// working link rather than a broken one.
-(function resolveInstallerLink() {
-  // Two links, one request: the hero button and the Distribution tile point at the same file. Both
-  // ids are looked up before the fetch so a page without one of them still resolves the other.
-  const links = ["dl-setup-hero", "dl-setup"]
-    .map((id) => document.getElementById(id))
-    .filter(Boolean);
-  if (!links.length) {
-    return;
-  }
-  fetch("https://api.github.com/repos/SerZhyAle/StreamsPlayer/releases/latest")
-    .then((response) => (response.ok ? response.json() : Promise.reject()))
-    .then((release) => {
-      const asset = (release.assets || []).find((candidate) =>
-        /-windows-x64-setup\.exe$/.test(candidate.name)
-      );
-      if (asset && asset.browser_download_url) {
-        links.forEach((link) => {
-          link.href = asset.browser_download_url;
-        });
-      }
-    })
-    .catch(() => {
-      /* Keep the static releases/latest href. */
-    });
-})();

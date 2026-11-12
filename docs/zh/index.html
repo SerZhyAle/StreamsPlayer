@@ -34,7 +34,7 @@
     <meta name="twitter:title" content="STREAMS Player - Windows 上的网络广播、直播视频和 RTSP 播放器">
     <meta name="twitter:description" content="适用于 Windows 的 STREAMS Player：浏览并播放网络广播、直播视频和 RTSP 流。">
     <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"适用于 Windows 的 STREAMS Player：浏览并播放网络广播、直播视频和 RTSP 流。","url":"https://serzhyale.github.io/StreamsPlayer/zh/","inLanguage":"zh-Hans","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-zh.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/zh/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"适用于 Windows 的 STREAMS Player：浏览并播放网络广播、直播视频和 RTSP 流。","url":"https://serzhyale.github.io/StreamsPlayer/zh/","inLanguage":"zh-Hans","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-zh.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","installUrl":"https://apps.microsoft.com/detail/9NBTD5SXB8TB","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/zh/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/zh/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
@@ -200,15 +200,18 @@
           </div>
           <!-- The installer is the primary action, and it is first because it was not here at all:
                the only route to a download sat in the Distribution grid at 90% of the page height, so a
-               visitor who did not scroll to the bottom never found one. site.js rewrites this href to the
-               exact -windows-x64-setup.exe of the current release; the static href reaches the release
-               page, which is a working answer rather than a dead link when that fetch fails. -->
+               visitor who did not scroll to the bottom never found one. SP-0259 (PAGE-STYLE 3.10): its href
+               is the exact -windows-x64-setup.exe of the release named in tools/site/release-manifest.json,
+               rendered at build time, so it works with scripts off and no request to api.github.com; the
+               line below names that version, its date and its checksum, with the durable releases page
+               beside it. -->
           <div class="button-group">
-            <a class="button button-primary" id="dl-setup-hero" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">下载 (.exe)</a>
+            <a class="button button-primary" id="dl-setup-hero" href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe">下载 (.exe)</a>
             <a class="button button-gold" href="#use">如何使用</a>
             <a class="button button-ghost" href="https://github.com/SerZhyAle/StreamsPlayer">查看源代码</a>
             <a class="button button-ghost" href="#distribution">发布状态</a>
           </div>
+          <p class="release-facts">版本 <span dir="ltr">26.1112.1622</span>，发布于 <time datetime="2026-11-12" dir="ltr">2026-11-12</time> · <a href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe.sha256" dir="ltr">SHA-256</a> · <a href="https://github.com/SerZhyAle/StreamsPlayer/releases">GitHub 上的全部发布</a></p>
         </div>
 
         <aside class="status-card" aria-labelledby="status-title">
@@ -307,27 +310,26 @@
 
       <section class="section" id="use" aria-labelledby="use-title">
         <h2 class="section-heading" id="use-title"><span class="hash">#</span><span>如何使用</span></h2>
-        <p class="section-description">打开它，选一个频道 - 整个流程就是这样。可用安装程序，或从 Microsoft Store、winget 或便携版 ZIP 安装，也可以从源代码运行；还可以直接从命令行启动一个流。</p>
+        <p class="section-description">安装、打开、选一个频道 - 整个流程就是这样。可用安装程序、Microsoft Store、winget 或便携版 ZIP，无需账户。也可以按地址添加一个流，或直接从命令行启动。</p>
         <ol class="steps">
           <li class="step">
             <div>
-              <h3>从源代码运行</h3>
-              <p>装好 .NET 10 SDK 后，在仓库根目录还原、生成并启动。</p>
-              <pre dir="ltr"><code>./build.ps1 -Run</code></pre>
+              <h3>安装</h3>
+              <p>从 Microsoft Store 获取，用 <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code> 安装，运行最新版本的安装程序，或解压便携版 ZIP 后启动 StreamsPlayer.exe。无需账户，也无需注册。</p>
             </div>
           </li>
           <li class="step">
             <div>
-              <h3>选择并播放</h3>
+              <h3>选择、播放或接收广播</h3>
               <p>浏览目录，筛选或搜索，然后选择一个频道。广播在主窗口开始播放；视频和 RTSP 在播放器窗口中打开。普通启动不会播放任何内容；在<svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg>设置中开启「启动时继续播放」，启动便会恢复上次关闭时正在播放的内容。
 
-在 64 位查看器中，右键点击视频、音频文件或其文件夹并选择广播。Share Manager 导出 .spres 文件、二维码或快速链接，供 StreamsPlayer 导入。文件夹成为一个包含固定播放列表的频道；刷新会替换列表，撤销会停用链接。HTTP 网关有独立开关，默认关闭。每个令牌只允许读取一个广播，通常在 24 小时后过期。HTTP 未加密：请私下分享文档，仅在需要时启用互联网访问。</p>
+你自己文件的广播来自 Fast Media Sorter &amp; Sharing for Windows 及其 64 位查看器。在 64 位查看器中，右键点击视频、音频文件或其文件夹并选择广播。Share Manager 导出 .spres 文件、二维码或快速链接，供 StreamsPlayer 导入。文件夹成为一个包含固定播放列表的频道；刷新会替换列表，撤销会停用链接。HTTP 网关有独立开关，默认关闭。每个令牌只允许读取一个广播，通常在 24 小时后过期。HTTP 未加密：请私下分享文档，仅在需要时启用互联网访问。</p>
             </div>
           </li>
           <li class="step">
             <div>
               <h3>直接打开任意 URL</h3>
-              <p>不碰目录也能播放一个流。</p>
+              <p>点击「添加流」并输入任意流的地址 - 网络电台、M3U8 或 RTSP，不经目录即可播放。下面的命令可直接打开一个流。</p>
               <pre dir="ltr"><code>StreamsPlayer.exe <span class="tok">--url</span> "https://example.test/live"</code></pre>
             </div>
           </li>
@@ -361,11 +363,11 @@
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>分发渠道</span></h2>
         <p class="section-description">所有获取方式都已可用。可运行 GitHub 上最新发布页里的安装程序，从 Microsoft Store 获取，下载便携版 ZIP，或使用 <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code> 安装。</p>
         <div class="distribution-grid">
-          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe">
             <span class="channel-mark">EXE</span>
             <div><strong>安装程序（.exe）</strong><span class="pill">可用</span></div>
           </a>
-          <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+          <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64.zip">
             <span class="channel-mark">ZIP</span>
             <div><strong>便携版 ZIP</strong><span class="pill">可用</span></div>
           </a>
@@ -378,6 +380,7 @@
             <div><strong>winget</strong><span class="pill">可用</span></div>
           </a>
         </div>
+        <p class="release-facts">版本 <span dir="ltr">26.1112.1622</span>，发布于 <time datetime="2026-11-12" dir="ltr">2026-11-12</time> · SHA-256: <a href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe.sha256" dir="ltr">EXE</a>, <a href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64.zip.sha256" dir="ltr">ZIP</a> · <a href="https://github.com/SerZhyAle/StreamsPlayer/releases">GitHub 上的全部发布</a></p>
         <p class="section-description">安装程序就是文件名以 -windows-x64-setup.exe 结尾的那个文件。它只为当前用户安装，从不索取管理员权限；卸载它也不会影响您的频道、置顶和播放记录。它没有签名，因此首次运行时 Windows 会发出警告；每次发布都会在每个下载文件旁附上一个 .sha256 文件，您可以据此核对拿到的东西就是发布出来的东西。</p>
         <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
              the download is, not only from the footer. SP-0039: so is what changed, which a reader deciding

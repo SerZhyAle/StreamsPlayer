@@ -35,7 +35,7 @@ internal sealed partial class BroadcastProducerService
         if (lanAddress is not null)
         {
             ListenerBindLog.Lan(BindOwner(source), port);
-            Diagnose(source, "listener-bound", "scope=lan | address=" + lanAddress + " | port=" + port);
+            Diagnose(source, "listener-bound", "scope=lan | port=" + port);
         }
     }
 
@@ -157,7 +157,7 @@ internal sealed partial class BroadcastProducerService
                 if (oldAddress is not null && oldAddress != address)
                     Diagnose(state.Source, "listener-unbound", "scope=lan | port=" + state.LocalPort);
                 if (address is not null && oldAddress != address)
-                    Diagnose(state.Source, "listener-bound", "scope=lan | address=" + address + " | port=" + state.LocalPort);
+                    Diagnose(state.Source, "listener-bound", "scope=lan | port=" + state.LocalPort);
                 state.LanAddress = address;
                 if (state.LanServer is not null && address is not null)
                     ListenerBindLog.Lan(BindOwner(state.Source), SourcePort(state.Source));

@@ -90,6 +90,109 @@ public sealed class BroadcastEndWatchTests
         Assert.False(watch.WouldEnd(answer));
     }
 
+    // S6-2: a foreign host at the producer's LAN address must not end a broadcast the viewer plays over a relay.
+    [Theory]
+    [InlineData(BroadcastEndAnswer.LanRefused)]
+    [InlineData(BroadcastEndAnswer.LanNotFound)]
+    [InlineData(BroadcastEndAnswer.LanGone)]
+    public void ALanAnswerAfterARelayOrTunnelPlayIsNotAnEnd(BroadcastEndAnswer answer)
+    {
+        var watch = new BroadcastEndWatch();
+        watch.NoteLive(BroadcastLiveTransport.Exchange);
+        watch.NoteStopped();
+
+        Assert.False(watch.ReadsLanAnswers);
+        Assert.False(watch.WouldEnd(answer));
+        Assert.False(watch.NoteAnswer(answer).IsEnd);
+        Assert.Null(watch.Ended);
+    }
+
+    [Theory]
+    [InlineData(BroadcastEndAnswer.LanRefused, BroadcastEndCause.LanRefused)]
+    [InlineData(BroadcastEndAnswer.LanNotFound, BroadcastEndCause.LanNotFound)]
+    [InlineData(BroadcastEndAnswer.LanGone, BroadcastEndCause.LanGone)]
+    public void ALanAnswerAfterALanPlayEndsTheBroadcast(BroadcastEndAnswer answer, BroadcastEndCause cause)
+    {
+        var watch = new BroadcastEndWatch();
+        watch.NoteLive(BroadcastLiveTransport.Lan);
+        watch.NoteStopped();
+
+        Assert.True(watch.ReadsLanAnswers);
+        Assert.True(watch.WouldEnd(answer));
+        var verdict = watch.NoteAnswer(answer);
+        Assert.True(verdict.IsEnd);
+        Assert.Equal(cause, verdict.Cause);
+    }
+
+    [Fact]
+    public void APlayThatSaysNothingOfItsTransportKeepsTheOlderReadingOfLanAnswers()
+    {
+        // A leg that cannot say which transport played (the audio session when its leg has started no engine) keeps the older
+        // reading: a LAN answer counts once the broadcast has played at all.
+        var watch = new BroadcastEndWatch();
+        Assert.False(watch.ReadsLanAnswers);
+
+        watch.NoteLive();
+
+        Assert.True(watch.ReadsLanAnswers);
+        Assert.True(watch.NoteAnswer(BroadcastEndAnswer.LanRefused).IsEnd);
+    }
+
+    [Theory]
+    [InlineData(BroadcastLiveTransport.Lan, BroadcastEndAnswer.RelayGone, BroadcastEndCause.RelayGone)]
+    [InlineData(BroadcastLiveTransport.Lan, BroadcastEndAnswer.TunnelEnded, BroadcastEndCause.TunnelEnded)]
+    [InlineData(BroadcastLiveTransport.Lan, BroadcastEndAnswer.RelayNotFound, BroadcastEndCause.RelayNotFoundAfterPlay)]
+    [InlineData(BroadcastLiveTransport.Exchange, BroadcastEndAnswer.RelayGone, BroadcastEndCause.RelayGone)]
+    [InlineData(BroadcastLiveTransport.Exchange, BroadcastEndAnswer.TunnelEnded, BroadcastEndCause.TunnelEnded)]
+    [InlineData(BroadcastLiveTransport.Exchange, BroadcastEndAnswer.RelayNotFound, BroadcastEndCause.RelayNotFoundAfterPlay)]
+    public void RelayAndTunnelAnswersKeepTheirRulesWhicheverTransportPlayed(
+        BroadcastLiveTransport transport, BroadcastEndAnswer answer, BroadcastEndCause cause)
+    {
+        var watch = new BroadcastEndWatch();
+        watch.NoteLive(transport);
+
+        var verdict = watch.NoteAnswer(answer);
+
+        Assert.True(verdict.IsEnd);
+        Assert.Equal(cause, verdict.Cause);
+    }
+
+    [Fact]
+    public void ReconnectKeepsTheTransportUntilTheNextPlayReplacesIt()
+    {
+        // The person's Reconnect after a relay-played broadcast must not meet the LAN reading again (PlayedBefore survives Reset).
+        var watch = new BroadcastEndWatch();
+        watch.NoteLive(BroadcastLiveTransport.Exchange);
+        watch.NoteStopped();
+        watch.Reset();
+
+        Assert.True(watch.PlayedBefore);
+        Assert.False(watch.ReadsLanAnswers);
+        Assert.False(watch.NoteAnswer(BroadcastEndAnswer.LanNotFound).IsEnd);
+
+        watch.NoteLive(BroadcastLiveTransport.Lan);
+        Assert.True(watch.ReadsLanAnswers);
+
+        watch.Reset();
+        watch.NoteLive(BroadcastLiveTransport.Exchange);
+        Assert.False(watch.ReadsLanAnswers);
+    }
+
+    [Theory]
+    [InlineData("http://192.168.1.20:8080/live", null, BroadcastLiveTransport.Lan)]
+    [InlineData("rtsp://192.168.1.20:8554/live", "RTSP", BroadcastLiveTransport.Lan)]
+    [InlineData("https://relay.example/v2/b/abc/stream", "RELAY", BroadcastLiveTransport.Exchange)]
+    [InlineData("https://relay.example/v2/b/abc/stream", null, BroadcastLiveTransport.Exchange)]
+    [InlineData("fmsx://relay.example/b/abc/https", "TUNNEL", BroadcastLiveTransport.Exchange)]
+    [InlineData("fmsx://relay.example/b/abc/https", null, BroadcastLiveTransport.Exchange)]
+    [InlineData("http://192.168.1.20:8080/live", "RELAY", BroadcastLiveTransport.Exchange)]
+    public void AnEndpointIsToldAsLanOrExchangeByTheRuleTheProbeUses(string url, string? transport, BroadcastLiveTransport expected)
+    {
+        var endpoint = new FastMediaSorterBroadcastEndpoint(url, transport, null, null, null, null, null, null, null);
+
+        Assert.Equal(expected, BroadcastLiveTransports.Of(endpoint));
+    }
+
     [Theory]
     [InlineData(BroadcastEndAnswer.RelayGone)]
     [InlineData(BroadcastEndAnswer.TunnelEnded)]

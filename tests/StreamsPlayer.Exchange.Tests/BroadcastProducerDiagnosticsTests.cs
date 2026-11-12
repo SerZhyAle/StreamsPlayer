@@ -79,9 +79,12 @@ public sealed partial class ExchangeLoopRecoveryTests
         Assert.Single(lines, line => line.Contains("step=start-asked"));
         Assert.Single(lines, line => line.Contains("step=start-refused"));
         var facts = Assert.Single(lines, line => line.Contains("step=reachability"));
-        foreach (var fact in new[] { "reachable=False", "lan-enabled=False", "lan-address=none", "session-online=False",
-                     "public-endpoint=none", "guest=False", "sealed=False", "relay=False", "tunnel=False", "own-key=False" })
+        foreach (var fact in new[] { "reachable=False", "lan-enabled=False", "lan-bound=False", "session-online=False",
+                     "guest=False", "sealed=False", "relay=False", "tunnel=False", "own-key=False" })
             Assert.Contains(fact, facts);
+        // S4-3 / S4-4: neither this machine's address nor the exchange server's host and port goes into a log that may be mailed.
+        Assert.DoesNotContain("lan-address", facts);
+        Assert.DoesNotContain("public-endpoint", facts);
     }
 
     [Theory]

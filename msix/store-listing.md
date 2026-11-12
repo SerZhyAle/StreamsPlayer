@@ -63,36 +63,53 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
-### Prepared for the next release (SP-0254; the version is stamped at release)
+### Prepared for 26.1112.1622
 
-Written against the working tree after 26.1025.1927, and only for the part a user can reach and that was observed
-working. At release the stamp replaces `REPLACE_VERSION` and the three blocks become the files
-`msix/listing/release-notes/<version>.{en-us,ru,uk}.txt`, which the site's What's new reads. Supersedes nothing.
+Supersedes nothing: 26.1025.1927 is prepared below. This is the package that adds the Broadcast window with a card per source, the end-of-broadcast message with Reconnect, password broadcasts over the local network and through the exchange server, the standard settings saved on and read from the exchange server, the icon header with separate Exchange server and Broadcasting pages, and the fix for radio left silent by a muted video player. The three blocks below are the files
+`msix/listing/release-notes/26.1112.1622.*.txt`.
 
 ```text
-Version REPLACE_VERSION
+Version 26.1112.1622
 
-- The Broadcast button in the header opens a Broadcast window with a card for the screen, the camera, the microphone and the system sound: each starts and stops on its own, so several can be live at once, and each can be shared as a link, a QR code or a file.
-- A broadcast that does not start says why on its card, and a start that is still waiting can be cancelled. The start controls moved out of Settings, which keeps the permission, the network, the quality and the link password.
+- The Broadcast button in the header opens a Broadcast window with a card for the screen, the camera, the microphone and the system sound. Each starts and stops on its own, so several can be live at once, and each can be shared as a link, a QR code or a file.
+- A broadcast that does not start says why on its card, and a start that is still waiting can be cancelled. A cast to one of your devices tells you whether it was accepted.
 - A screen broadcast keeps 30 frames per second on a 4K monitor, and monitors are named with their real pixel size.
+- Within seconds of the broadcaster stopping, the player says "The broadcast has ended" and offers Reconnect. A real network loss still reconnects by itself.
+- A broadcast with a password plays on this PC over the local network or through your exchange server after the password is given once.
+- Standard settings can be saved on your exchange server and read on another PC. Device keys, hardware paths, audio devices, ports and window positions stay on each PC.
+- The header shows icons for List, Grid, Exchange server and My broadcasts, and Exchange server and Broadcasting are separate pages in Settings.
+- Radio is no longer silent after a video player or a channel preview muted the app's audio.
+- The built-in channel list is current (18 824 live streams as of 2026-11-11).
 - The Broadcast window has its own page in the offline help (F1).
 ```
 
 ```text
-Версия REPLACE_VERSION
+Версия 26.1112.1622
 
-- Кнопка «Трансляция» в шапке открывает окно трансляции с карточками экрана, камеры, микрофона и системного звука: каждая запускается и останавливается сама, поэтому в эфире может быть несколько источников сразу, а делиться можно ссылкой, QR-кодом или файлом.
-- Трансляция, которая не запустилась, называет причину на своей карточке, а запуск, который ещё ждёт, можно отменить. Кнопки запуска переехали из «Настроек», где остались разрешение, сеть, качество и пароль ссылки.
+- Кнопка «Трансляция» в шапке открывает окно трансляции с карточками экрана, камеры, микрофона и системного звука. Каждая запускается и останавливается сама, поэтому в эфире может быть несколько источников сразу, а делиться можно ссылкой, QR-кодом или файлом.
+- Трансляция, которая не запустилась, называет причину на своей карточке, а запуск, который ещё ждёт, можно отменить. Передача на своё устройство сообщает, принята ли она.
 - Трансляция экрана держит 30 кадров в секунду на мониторе 4K, а мониторы называются с реальным размером в пикселях.
+- Через несколько секунд после остановки передающего плеер пишет «Трансляция закончилась» и предлагает «Переподключиться». Настоящая потеря сети по-прежнему переподключает сама.
+- Трансляция с паролем играет на этом ПК по локальной сети или через ваш сервер обмена, когда пароль введён один раз.
+- Стандартные настройки можно сохранить на вашем сервере обмена и прочитать на другом ПК. Ключи устройств, пути к оборудованию, звуковые устройства, порты и положение окон остаются на каждом ПК.
+- В шапке значки «Список», «Сетка», «Сервер обмена» и «Свои трансляции», а «Сервер обмена» и «Трансляция» - отдельные страницы «Настроек».
+- Радио больше не молчит после того, как видеоплеер или предпросмотр канала заглушил звук приложения.
+- Встроенный список каналов актуален (18 824 активных потока от 11.11.2026).
 - У окна трансляции есть своя страница во встроенной справке (F1).
 ```
 
 ```text
-Версія REPLACE_VERSION
+Версія 26.1112.1622
 
-- Кнопка «Трансляція» в шапці відкриває вікно трансляції з картками екрана, камери, мікрофона й системного звуку: кожна запускається і зупиняється сама, тож в ефірі може бути кілька джерел одночасно, а ділитися можна посиланням, QR-кодом або файлом.
-- Трансляція, яка не запустилася, називає причину на своїй картці, а запуск, що ще чекає, можна скасувати. Кнопки запуску переїхали з «Налаштувань», де лишилися дозвіл, мережа, якість і пароль посилання.
+- Кнопка «Трансляція» в шапці відкриває вікно трансляції з картками екрана, камери, мікрофона й системного звуку. Кожна запускається і зупиняється сама, тож в ефірі може бути кілька джерел одночасно, а ділитися можна посиланням, QR-кодом або файлом.
+- Трансляція, яка не запустилася, називає причину на своїй картці, а запуск, що ще чекає, можна скасувати. Передача на свій пристрій повідомляє, чи її прийнято.
 - Трансляція екрана тримає 30 кадрів на секунду на моніторі 4K, а монітори називаються з реальним розміром у пікселях.
+- Через кілька секунд після зупинки передавача плеєр пише «Трансляція закінчилася» і пропонує «Перепідключитися». Справжня втрата мережі, як і раніше, перепідключає сама.
+- Трансляція з паролем грає на цьому ПК локальною мережею або через ваш сервер обміну, коли пароль уведено один раз.
+- Стандартні налаштування можна зберегти на вашому сервері обміну й прочитати на іншому ПК. Ключі пристроїв, шляхи до обладнання, звукові пристрої, порти й положення вікон лишаються на кожному ПК.
+- У шапці значки «Список», «Сітка», «Сервер обміну» і «Свої трансляції», а «Сервер обміну» і «Трансляція» - окремі сторінки «Налаштувань».
+- Радіо більше не мовчить після того, як відеоплеєр або попередній перегляд каналу заглушив звук застосунку.
+- Вбудований список каналів актуальний (18 824 активні потоки від 11.11.2026).
 - Вікно трансляції має власну сторінку у вбудованій довідці (F1).
 ```
 

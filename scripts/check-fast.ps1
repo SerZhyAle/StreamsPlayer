@@ -28,7 +28,7 @@
     Exit codes (CHECK-VERDICT): 0 passed, 1 a check failed, 2 a check could not verify. A child that answers 4
     ("not looked at yet") is read as 2, and so is a child still running 60 s after the call started. The last
     line names the failures and the elapsed wall time:
-        check-fast: PASS (<n> checks, <s> s)
+        check-fast: PASS (<n> checks, <m> skipped, <s> s)
         check-fast: FAIL (<names>; <s> s)
         check-fast: COULD NOT VERIFY (<names>; <s> s)
 #>
@@ -52,9 +52,16 @@ $checks = @(
     [pscustomobject]@{ Area = 'release-scripts'; Name = 'release-version-test'; File = 'scripts/Test-ReleaseVersion.ps1'; Arguments = @() }
     [pscustomobject]@{ Area = 'release-scripts'; Name = 'msix-identity-test'; File = 'msix/Test-MsixIdentity.ps1'; Arguments = @() }
     [pscustomobject]@{ Area = 'release-scripts'; Name = 'store-preflight-call-test'; File = 'scripts/Test-StorePreflightCall.ps1'; Arguments = @() }
-    [pscustomobject]@{ Area = 'snapshot'; Name = 'snapshot-check'; File = 'tools/build-catalog-snapshot.ps1'; Arguments = @('-Check', '-Offline') }
+    # NeedsBuiltCore: the snapshot ceilings are read from the built StreamsPlayer.Core.dll (SP-0133), and the fast tier
+    # builds nothing - push CI has no build at all. Without a build the check is skipped by name on the verdict line
+    # (release.yml runs the same check after its own build); a checkout that was built still runs it.
+    [pscustomobject]@{ Area = 'snapshot'; Name = 'snapshot-check'; File = 'tools/build-catalog-snapshot.ps1'; Arguments = @('-Check', '-Offline'); NeedsBuiltCore = $true }
 )
-$selected = @($checks | Where-Object { $Area -eq 'all' -or $_.Area -eq $Area })
+$coreBuilt = (Test-Path -LiteralPath (Join-Path $root 'src/StreamsPlayer.Core/bin/Release/net10.0/StreamsPlayer.Core.dll')) -or
+             (Test-Path -LiteralPath (Join-Path $root 'src/StreamsPlayer.Core/bin/Debug/net10.0/StreamsPlayer.Core.dll'))
+$inArea = @($checks | Where-Object { $Area -eq 'all' -or $_.Area -eq $Area })
+$skipped = @($inArea | Where-Object { $_.PSObject.Properties['NeedsBuiltCore'] -and $_.NeedsBuiltCore -and -not $coreBuilt })
+$selected = @($inArea | Where-Object { $skipped -notcontains $_ })
 $timeoutMs = 60000
 $clock = [System.Diagnostics.Stopwatch]::StartNew()
 $scratch = Join-Path $root ('temp/check-fast/' + [guid]::NewGuid().ToString('N'))
@@ -92,12 +99,19 @@ try {
 
     $clock.Stop()
     $seconds = '{0:N1} s' -f $clock.Elapsed.TotalSeconds
+    # RRB-5: a run that judged nothing (the one requested area was skipped for want of a build) is not a pass.
+    if ($results.Count -eq 0) {
+        foreach ($check in $skipped) { Write-Host "check-fast: $($check.Name) skipped - no built StreamsPlayer.Core.dll; the release build runs it" }
+        Write-Host "check-fast: COULD NOT VERIFY (no check ran; $($skipped.Count) skipped; $seconds)"
+        exit 2
+    }
     $failed = @($results.Keys | Where-Object { $results[$_] -notin 0, 2, 4 })
     $unverified = @($results.Keys | Where-Object { $results[$_] -in 2, 4 })
     foreach ($name in $results.Keys) { Write-Host ("check-fast: {0} exit {1}" -f $name, $results[$name]) }
+    foreach ($check in $skipped) { Write-Host "check-fast: $($check.Name) skipped - no built StreamsPlayer.Core.dll; the release build runs it" }
     if ($failed.Count) { Write-Host "check-fast: FAIL ($($failed -join ', '); $seconds)"; exit 1 }
     if ($unverified.Count) { Write-Host "check-fast: COULD NOT VERIFY ($($unverified -join ', '); $seconds)"; exit 2 }
-    Write-Host "check-fast: PASS ($($results.Count) checks, $seconds)"
+    Write-Host "check-fast: PASS ($($results.Count) checks, $($skipped.Count) skipped, $seconds)"
     exit 0
 }
 catch {

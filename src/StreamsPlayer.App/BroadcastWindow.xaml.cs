@@ -111,7 +111,10 @@ public partial class BroadcastWindow : Window
         StopAllButton.IsEnabled = running.Count > 0 && _stopping.Count < running.Count;
         StopAllButton.Visibility = offered ? Visibility.Visible : Visibility.Collapsed;
         VideoUnavailableText.Visibility = offered && _videoKnown && !_videoOffered ? Visibility.Visible : Visibility.Collapsed;
-        var outcome = verdicts.Count == 0 && _producer.OutcomeKey is { } key ? LocalizationService.Get(key) : string.Empty;
+        // S4-2 / RRB-1: the producer's outcome (a cast's answer, a lost relay, a changed link) is shown while any source runs,
+        // so a stale one does not stay under stopped cards. A sentence a card already tells as its own reason is not repeated.
+        var outcome = running.Count > 0 && _producer.OutcomeKey is { } key && !verdicts.Any(verdict => verdict.ReasonKey == key)
+            ? LocalizationService.Get(key) : string.Empty;
         OutcomeText.Text = outcome;
         OutcomeText.Visibility = outcome.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
@@ -192,7 +195,7 @@ public partial class BroadcastWindow : Window
 
         return new BroadcastCardView(_producer.SourceTitle(source), phase, state, StartCaption(source),
             !videoMissing && BroadcastWindowRules.CanStart(phase, busy), NoteOf(source), where,
-            facts is { Server: not null } && facts.Recipients.Count > 0);
+            facts is { Server: not null } && facts.Recipients.Count > 0, _exchange.IsActive && _exchange.CanCast);
     }
 
     private static string LiveState(BroadcastLiveFacts? facts, BroadcastStartVerdict? verdict)

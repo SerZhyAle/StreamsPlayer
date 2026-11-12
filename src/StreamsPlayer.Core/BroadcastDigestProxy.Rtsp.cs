@@ -109,7 +109,8 @@ public sealed partial class BroadcastDigestProxy
                     }
                 }
             }
-            catch (Exception exception) when (exception is IOException or SocketException or OperationCanceledException or ObjectDisposedException)
+            catch (Exception exception) when (exception is IOException or SocketException or OperationCanceledException or ObjectDisposedException
+                or InvalidDataException) // S10-1
             {
                 if (!session.IsCancellationRequested) Fail("broadcast-digest-connection-failed");
             }

@@ -34,7 +34,7 @@
     <meta name="twitter:title" content="STREAMS Player - Windows کے لیے انٹرنیٹ ریڈیو، براہِ راست ویڈیو اور RTSP">
     <meta name="twitter:description" content="Windows کے لیے STREAMS Player: انٹرنیٹ ریڈیو، براہِ راست ویڈیو اور RTSP نشریات دیکھیں اور چلائیں۔">
     <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"Windows کے لیے STREAMS Player: انٹرنیٹ ریڈیو، براہِ راست ویڈیو اور RTSP نشریات دیکھیں اور چلائیں۔","url":"https://serzhyale.github.io/StreamsPlayer/ur/","inLanguage":"ur","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-ur.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/ur/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"Windows کے لیے STREAMS Player: انٹرنیٹ ریڈیو، براہِ راست ویڈیو اور RTSP نشریات دیکھیں اور چلائیں۔","url":"https://serzhyale.github.io/StreamsPlayer/ur/","inLanguage":"ur","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-ur.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","installUrl":"https://apps.microsoft.com/detail/9NBTD5SXB8TB","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/ur/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/ur/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
@@ -200,15 +200,18 @@
           </div>
           <!-- The installer is the primary action, and it is first because it was not here at all:
                the only route to a download sat in the Distribution grid at 90% of the page height, so a
-               visitor who did not scroll to the bottom never found one. site.js rewrites this href to the
-               exact -windows-x64-setup.exe of the current release; the static href reaches the release
-               page, which is a working answer rather than a dead link when that fetch fails. -->
+               visitor who did not scroll to the bottom never found one. SP-0259 (PAGE-STYLE 3.10): its href
+               is the exact -windows-x64-setup.exe of the release named in tools/site/release-manifest.json,
+               rendered at build time, so it works with scripts off and no request to api.github.com; the
+               line below names that version, its date and its checksum, with the durable releases page
+               beside it. -->
           <div class="button-group">
-            <a class="button button-primary" id="dl-setup-hero" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">ڈاؤن لوڈ کریں (.exe)</a>
+            <a class="button button-primary" id="dl-setup-hero" href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe">ڈاؤن لوڈ کریں (.exe)</a>
             <a class="button button-gold" href="#use">استعمال کیسے کریں</a>
             <a class="button button-ghost" href="https://github.com/SerZhyAle/StreamsPlayer">سورس کوڈ دیکھیں</a>
             <a class="button button-ghost" href="#distribution">ریلیز کی حالت</a>
           </div>
+          <p class="release-facts">ورژن <span dir="ltr">26.1112.1622</span>، بتاریخ <time datetime="2026-11-12" dir="ltr">2026-11-12</time> · <a href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe.sha256" dir="ltr">SHA-256</a> · <a href="https://github.com/SerZhyAle/StreamsPlayer/releases">GitHub پر تمام ریلیزز</a></p>
         </div>
 
         <aside class="status-card" aria-labelledby="status-title">
@@ -307,27 +310,26 @@
 
       <section class="section" id="use" aria-labelledby="use-title">
         <h2 class="section-heading" id="use-title"><span class="hash">#</span><span>استعمال کیسے کریں</span></h2>
-        <p class="section-description">کھولیں اور چینل منتخب کریں - یہی سارا طریقہ ہے۔ اسے سیٹ اپ فائل سے، Microsoft Store، winget یا پورٹیبل ZIP سے انسٹال کریں - یا سورس کوڈ سے چلائیں؛ کسی نشریات کو براہِ راست کمانڈ لائن سے بھی کھول سکتے ہیں۔</p>
+        <p class="section-description">انسٹال کریں، کھولیں اور چینل منتخب کریں - یہی سارا طریقہ ہے۔ سیٹ اپ فائل، Microsoft Store، winget یا پورٹیبل ZIP میں سے کوئی بھی لیں؛ اکاؤنٹ کی ضرورت نہیں۔ آپ کسی نشریات کو اس کے پتے سے شامل بھی کر سکتے ہیں یا اسے سیدھا کمانڈ لائن سے کھول سکتے ہیں۔</p>
         <ol class="steps">
           <li class="step">
             <div>
-              <h3>سورس کوڈ سے چلائیں</h3>
-              <p>.NET 10 SDK انسٹال ہو تو مخزن کی جڑ سے پیکج بحال کریں، تعمیر کریں اور ایپ چلائیں۔</p>
-              <pre dir="ltr"><code>./build.ps1 -Run</code></pre>
+              <h3>انسٹال کریں</h3>
+              <p>اسے Microsoft Store سے حاصل کریں، <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code> سے انسٹال کریں، تازہ ترین ریلیز کی سیٹ اپ فائل چلائیں، یا پورٹیبل ZIP کھول کر StreamsPlayer.exe شروع کریں۔ نہ اکاؤنٹ چاہیے، نہ رجسٹریشن۔</p>
             </div>
           </li>
           <li class="step">
             <div>
-              <h3>منتخب کریں اور چلائیں</h3>
+              <h3>منتخب کریں، چلائیں یا نشریات وصول کریں</h3>
               <p>فہرست دیکھیں، فلٹر یا تلاش کریں، پھر چینل منتخب کریں۔ ریڈیو مرکزی ونڈو میں شروع ہوتا ہے؛ ویڈیو اور RTSP پلیئر ونڈو میں کھلتے ہیں۔ عام آغاز پر کچھ نہیں چلتا؛ <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg> ترتیبات میں «شروع ہونے پر پلے بیک دوبارہ چلائیں» آن کریں تو آغاز وہی واپس لے آئے گا جو پچھلی بار بند کرتے وقت چل رہا تھا۔
 
-64 بٹ ویوئر میں ویڈیو، آڈیو فائل یا اس کے فولڈر پر دایاں کلک کر کے نشریات منتخب کریں۔ Share Manager، StreamsPlayer میں درآمد کے لیے .spres فائل، QR کوڈ یا فوری لنک دیتا ہے۔ فولڈر ایک مستقل فہرست والا چینل بنتا ہے؛ تازہ کاری فہرست بدلتی ہے اور منسوخی لنک بند کرتی ہے۔ HTTP گیٹ وے کا الگ سوئچ ہے اور وہ بطور ڈیفالٹ بند ہے۔ ہر ٹوکن صرف ایک نشریات پڑھنے دیتا ہے، عموماً 24 گھنٹے کے لیے۔ HTTP غیر مرموز ہے: دستاویز نجی طور پر دیں اور انٹرنیٹ رسائی صرف ضرورت پر فعال کریں۔</p>
+آپ کی اپنی فائلوں کی نشریات Fast Media Sorter &amp; Sharing for Windows اور اس کے 64 بٹ ویوئر سے آتی ہیں۔ 64 بٹ ویوئر میں ویڈیو، آڈیو فائل یا اس کے فولڈر پر دایاں کلک کر کے نشریات منتخب کریں۔ Share Manager، StreamsPlayer میں درآمد کے لیے .spres فائل، QR کوڈ یا فوری لنک دیتا ہے۔ فولڈر ایک مستقل فہرست والا چینل بنتا ہے؛ تازہ کاری فہرست بدلتی ہے اور منسوخی لنک بند کرتی ہے۔ HTTP گیٹ وے کا الگ سوئچ ہے اور وہ بطور ڈیفالٹ بند ہے۔ ہر ٹوکن صرف ایک نشریات پڑھنے دیتا ہے، عموماً 24 گھنٹے کے لیے۔ HTTP غیر مرموز ہے: دستاویز نجی طور پر دیں اور انٹرنیٹ رسائی صرف ضرورت پر فعال کریں۔</p>
             </div>
           </li>
           <li class="step">
             <div>
               <h3>کوئی بھی URL براہِ راست کھولیں</h3>
-              <p>فہرست کو چھیڑے بغیر نشریات چلائیں۔</p>
+              <p>«نشریات شامل کریں» دبائیں اور کسی بھی نشریات کا پتہ دیں - انٹرنیٹ ریڈیو، M3U8 یا RTSP؛ یہ فہرست کے بغیر چلتی ہے۔ نیچے دی گئی کمانڈ اسے سیدھا کھولتی ہے۔</p>
               <pre dir="ltr"><code>StreamsPlayer.exe <span class="tok">--url</span> "https://example.test/live"</code></pre>
             </div>
           </li>
@@ -361,11 +363,11 @@
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>تقسیم</span></h2>
         <p class="section-description">تمام ذرائع دستیاب ہیں۔ GitHub کی تازہ ترین ریلیز سے انسٹالر چلائیں، Microsoft Store سے حاصل کریں، پورٹیبل ZIP ڈاؤن لوڈ کریں، یا <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code> سے انسٹال کریں۔</p>
         <div class="distribution-grid">
-          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe">
             <span class="channel-mark">EXE</span>
             <div><strong>انسٹالر (.exe)</strong><span class="pill">دستیاب</span></div>
           </a>
-          <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+          <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64.zip">
             <span class="channel-mark">ZIP</span>
             <div><strong>پورٹیبل ZIP</strong><span class="pill">دستیاب</span></div>
           </a>
@@ -378,6 +380,7 @@
             <div><strong>winget</strong><span class="pill">دستیاب</span></div>
           </a>
         </div>
+        <p class="release-facts">ورژن <span dir="ltr">26.1112.1622</span>، بتاریخ <time datetime="2026-11-12" dir="ltr">2026-11-12</time> · SHA-256: <a href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe.sha256" dir="ltr">EXE</a>, <a href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64.zip.sha256" dir="ltr">ZIP</a> · <a href="https://github.com/SerZhyAle/StreamsPlayer/releases">GitHub پر تمام ریلیزز</a></p>
         <p class="section-description">انسٹالر وہ فائل ہے جس کا نام -windows-x64-setup.exe پر ختم ہوتا ہے۔ یہ صرف موجودہ صارف کے لیے انسٹال ہوتا ہے اور کبھی منتظم کے اختیارات نہیں مانگتا، اور اسے ہٹانے پر آپ کے چینل، پن اور تاریخچہ جوں کے توں رہتے ہیں۔ یہ دستخط شدہ نہیں ہے، اس لیے پہلی بار چلانے پر Windows تنبیہ کرتا ہے؛ ہر ریلیز میں ہر ڈاؤن لوڈ کے ساتھ ایک .sha256 فائل شائع ہوتی ہے، تاکہ آپ جانچ سکیں کہ جو ملا وہی شائع ہوا تھا۔</p>
         <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
              the download is, not only from the footer. SP-0039: so is what changed, which a reader deciding

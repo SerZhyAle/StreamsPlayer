@@ -712,7 +712,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
                 state.AnnouncedServer = SafeEndpoint(_exchange.Account.Host + ":" + _exchange.Account.Port);
                 state.RecipientNames = RecipientNames(sealing.Sealer.Box!);
                 state.FailureKey = null;
-                Diagnose(state.Source, "broadcast-start-accepted", "server=" + state.AnnouncedServer + " | recipients=" + state.RecipientNames.Count);
+                Diagnose(state.Source, "broadcast-start-accepted", "server=announced | recipients=" + state.RecipientNames.Count);
                 accepted = true;
                 if (relay && state.CaptureReady)
                 {

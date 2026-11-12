@@ -39,6 +39,19 @@ public static class BroadcastAttemptAdvance
     /// current when it is not would be booked against the successor and skip that endpoint.
     /// </summary>
     public static bool IsCurrentAttempt(int reportEpoch, int currentEpoch) => reportEpoch == currentEpoch;
+
+    /// <summary>
+    /// S6-1: whether a refusal that finds no endpoint left to advance to goes to the bounded recovery instead of being the
+    /// verdict. A leg that never showed a picture is the verdict's (a plain pre-live refusal); one that did
+    /// (<paramref name="reachedLive"/>: the relay or the tunnel failed under a stream that was playing) and a relay's
+    /// <c>503</c> (an upload stall that SP-0250 keeps recovering, item DX) are blips the recovery owns. A refusal no
+    /// reconnect can mend - a password, a certificate or sealed-content state, the forwarder bound - stays the verdict
+    /// whichever way it comes (<see cref="IncomingBroadcastFailure.TerminalMessageKey"/>). A listener limit is a status of
+    /// the device's own answer and a reason carries none, so it is not asked of this path.
+    /// </summary>
+    public static bool HandsToRecovery(bool reachedLive, string? reason) =>
+        (reachedLive || BroadcastEndAnswers.FromReason(reason) == BroadcastEndAnswer.RelayStalled)
+        && IncomingBroadcastFailure.TerminalMessageKey(reason, null) is null;
 }
 
 /// <summary>

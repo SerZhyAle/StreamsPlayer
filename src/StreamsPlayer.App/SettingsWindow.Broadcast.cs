@@ -45,7 +45,7 @@ public partial class SettingsWindow
         {
             LocalizationService.Get("BroadcastMono"), LocalizationService.Get("BroadcastStereo")
         };
-        BroadcastBitrateBox.ItemsSource = new[] { "96", "128", "192", "256" };
+        BroadcastBitrateBox.ItemsSource = new[] { "96", "128", "160", "192" };
         _showingBroadcast = false;
     }
 
@@ -63,7 +63,7 @@ public partial class SettingsWindow
         BroadcastSampleRateBox.SelectedItem = Broadcast.Settings.SampleRate == 48000 ? "48000" : "44100";
         BroadcastMicChannelsBox.SelectedIndex = Broadcast.Settings.MicrophoneChannels == 2 ? 1 : 0;
         BroadcastSoundChannelsBox.SelectedIndex = Broadcast.Settings.SystemSoundChannels == 2 ? 1 : 0;
-        BroadcastBitrateBox.SelectedItem = Array.IndexOf(new[] { "96", "128", "192", "256" },
+        BroadcastBitrateBox.SelectedItem = Array.IndexOf(new[] { "96", "128", "160", "192" },
             Broadcast.Settings.BitrateKbps.ToString(System.Globalization.CultureInfo.InvariantCulture)) >= 0
             ? Broadcast.Settings.BitrateKbps.ToString(System.Globalization.CultureInfo.InvariantCulture)
             : "128";

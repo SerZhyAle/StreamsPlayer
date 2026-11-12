@@ -25,8 +25,11 @@ internal sealed partial class BroadcastProducerService
                 }));
             }
         }
-        if (!_drive.SignedIn) return;
+        // S4-1: the outgoing list is stored even while signed out, so the first publication after sign-in carries
+        // today's broadcasts instead of the list of the last start or stop (UpdateBroadcastsAsync publishes only
+        // when signed in). Only the diagnostic line below waits for a sign-in.
         await _drive.UpdateBroadcastsAsync(announcements).ConfigureAwait(false);
+        if (!_drive.SignedIn) return;
         _diagnostic("BROADCAST | step=drive-publication | records=" + announcements.Count
             + " | code=" + _drive.StatusKey);
     }

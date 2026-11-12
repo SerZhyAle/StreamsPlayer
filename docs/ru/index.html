@@ -34,7 +34,7 @@
     <meta name="twitter:title" content="Трансляции - интернет-радио, live-видео и RTSP для Windows">
     <meta name="twitter:description" content="Трансляции для Windows: каталог и воспроизведение интернет-радио, live-видео и RTSP-потоков.">
     <meta name="twitter:image" content="https://serzhyale.github.io/StreamsPlayer/assets/og-card.png">
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"Трансляции для Windows: каталог и воспроизведение интернет-радио, live-видео и RTSP-потоков.","url":"https://serzhyale.github.io/StreamsPlayer/ru/","inLanguage":"ru","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-ru.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/ru/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"STREAMS Player","description":"Трансляции для Windows: каталог и воспроизведение интернет-радио, live-видео и RTSP-потоков.","url":"https://serzhyale.github.io/StreamsPlayer/ru/","inLanguage":"ru","image":"https://serzhyale.github.io/StreamsPlayer/assets/og-card.png","screenshot":"https://serzhyale.github.io/StreamsPlayer/assets/screens/grid-ru.jpg","applicationCategory":"MultimediaApplication","operatingSystem":"Windows","downloadUrl":"https://github.com/SerZhyAle/StreamsPlayer/releases/latest","installUrl":"https://apps.microsoft.com/detail/9NBTD5SXB8TB","releaseNotes":"https://serzhyale.github.io/StreamsPlayer/ru/whats-new.html","softwareHelp":{"@type":"CreativeWork","url":"https://serzhyale.github.io/StreamsPlayer/ru/support.html"},"isAccessibleForFree":true,"license":"https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE","author":{"@type":"Person","name":"Serhii Zhyhunenko","url":"https://github.com/SerZhyAle"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
     <link rel="icon" href="../assets/favicon-32.png" sizes="32x32" type="image/png">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <script type="application/json" id="language-urls">{"en":"../","ru":"../ru/","uk":"../uk/","de":"../de/","it":"../it/","es":"../es/","fr":"../fr/","pt":"../pt/","zh":"../zh/","hi":"../hi/","bn":"../bn/","ar":"../ar/","ur":"../ur/"}</script>
@@ -200,15 +200,18 @@
           </div>
           <!-- The installer is the primary action, and it is first because it was not here at all:
                the only route to a download sat in the Distribution grid at 90% of the page height, so a
-               visitor who did not scroll to the bottom never found one. site.js rewrites this href to the
-               exact -windows-x64-setup.exe of the current release; the static href reaches the release
-               page, which is a working answer rather than a dead link when that fetch fails. -->
+               visitor who did not scroll to the bottom never found one. SP-0259 (PAGE-STYLE 3.10): its href
+               is the exact -windows-x64-setup.exe of the release named in tools/site/release-manifest.json,
+               rendered at build time, so it works with scripts off and no request to api.github.com; the
+               line below names that version, its date and its checksum, with the durable releases page
+               beside it. -->
           <div class="button-group">
-            <a class="button button-primary" id="dl-setup-hero" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">Скачать (.exe)</a>
+            <a class="button button-primary" id="dl-setup-hero" href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe">Скачать (.exe)</a>
             <a class="button button-gold" href="#use">Как пользоваться</a>
             <a class="button button-ghost" href="https://github.com/SerZhyAle/StreamsPlayer">Исходный код</a>
             <a class="button button-ghost" href="#distribution">Статус выпуска</a>
           </div>
+          <p class="release-facts">Версия <span dir="ltr">26.1112.1622</span> от <time datetime="2026-11-12" dir="ltr">2026-11-12</time> · <a href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe.sha256" dir="ltr">SHA-256</a> · <a href="https://github.com/SerZhyAle/StreamsPlayer/releases">Все релизы на GitHub</a></p>
         </div>
 
         <aside class="status-card" aria-labelledby="status-title">
@@ -307,27 +310,26 @@
 
       <section class="section" id="use" aria-labelledby="use-title">
         <h2 class="section-heading" id="use-title"><span class="hash">#</span><span>Как пользоваться</span></h2>
-        <p class="section-description">Откройте и выберите канал - вот и весь сценарий. Установите инсталлятором, из Microsoft Store, через winget или распакуйте портативный ZIP - либо запускайте из исходников; поток можно открыть и прямо из командной строки.</p>
+        <p class="section-description">Установите, откройте и выберите канал - вот и весь сценарий. Подойдёт инсталлятор, Microsoft Store, winget или портативный ZIP; учётная запись не нужна. Поток можно добавить по адресу или открыть прямо из командной строки.</p>
         <ol class="steps">
           <li class="step">
             <div>
-              <h3>Запуск из исходников</h3>
-              <p>С установленным .NET 10 SDK выполните восстановление, сборку и запуск из корня репозитория.</p>
-              <pre dir="ltr"><code>./build.ps1 -Run</code></pre>
+              <h3>Установка</h3>
+              <p>Установите из Microsoft Store, командой <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>, инсталлятором из последнего выпуска или распакуйте портативный ZIP и запустите StreamsPlayer.exe. Ни учётной записи, ни регистрации не нужно.</p>
             </div>
           </li>
           <li class="step">
             <div>
-              <h3>Выбрать и слушать</h3>
+              <h3>Выбрать, слушать или принять трансляцию</h3>
               <p>Откройте каталог, отфильтруйте или найдите нужное и выберите канал. Радио начинается в главном окне; видео и RTSP открываются в окне плеера. Обычный запуск ничего не включает; включите «Возобновлять воспроизведение при старте» в <svg class="glyph" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg> настройках - и запуск вернёт то, что играло в момент последнего закрытия.
 
-В 64-битном просмотрщике нажмите правой кнопкой на видео, аудиофайл или его папку и выберите трансляцию. Менеджер общего доступа выдаёт файл .spres, QR-код или быструю ссылку для импорта в StreamsPlayer. Папка становится одним каналом с зафиксированным списком: обновление заменяет список, отзыв отключает ссылку. HTTP-шлюз имеет отдельный переключатель и по умолчанию выключен. Токен даёт доступ только для чтения одной трансляции, обычно на 24 часа. HTTP не шифруется: передавайте документ лично и включайте интернет-доступ только при необходимости.</p>
+Трансляции ваших собственных файлов приходят из Fast Media Sorter &amp; Sharing for Windows и его 64-битного просмотрщика. В 64-битном просмотрщике нажмите правой кнопкой на видео, аудиофайл или его папку и выберите трансляцию. Менеджер общего доступа выдаёт файл .spres, QR-код или быструю ссылку для импорта в StreamsPlayer. Папка становится одним каналом с зафиксированным списком: обновление заменяет список, отзыв отключает ссылку. HTTP-шлюз имеет отдельный переключатель и по умолчанию выключен. Токен даёт доступ только для чтения одной трансляции, обычно на 24 часа. HTTP не шифруется: передавайте документ лично и включайте интернет-доступ только при необходимости.</p>
             </div>
           </li>
           <li class="step">
             <div>
               <h3>Открыть любой URL напрямую</h3>
-              <p>Воспроизведите поток, не трогая каталог.</p>
+              <p>Нажмите «Добавить поток» и укажите адрес любого потока - интернет-радио, M3U8 или RTSP: он играет без каталога. Команда ниже открывает поток напрямую.</p>
               <pre dir="ltr"><code>StreamsPlayer.exe <span class="tok">--url</span> "https://example.test/live"</code></pre>
             </div>
           </li>
@@ -361,11 +363,11 @@
         <h2 class="section-heading" id="distribution-title"><span class="hash">#</span><span>Распространение</span></h2>
         <p class="section-description">Все каналы доступны. Запустите инсталлятор из последнего релиза на GitHub, установите из Microsoft Store, скачайте портативный ZIP или установите командой <code dir="ltr">winget install SerZhyAle.StreamsPlayer</code>.</p>
         <div class="distribution-grid">
-          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+          <a class="channel" id="dl-setup" href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe">
             <span class="channel-mark">EXE</span>
             <div><strong>Инсталлятор (.exe)</strong><span class="pill">Доступно</span></div>
           </a>
-          <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/latest">
+          <a class="channel" href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64.zip">
             <span class="channel-mark">ZIP</span>
             <div><strong>Портативный ZIP</strong><span class="pill">Доступно</span></div>
           </a>
@@ -378,6 +380,7 @@
             <div><strong>winget</strong><span class="pill">Доступно</span></div>
           </a>
         </div>
+        <p class="release-facts">Версия <span dir="ltr">26.1112.1622</span> от <time datetime="2026-11-12" dir="ltr">2026-11-12</time> · SHA-256: <a href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64-setup.exe.sha256" dir="ltr">EXE</a>, <a href="https://github.com/SerZhyAle/StreamsPlayer/releases/download/v26.1112.1622/StreamsPlayer-26.1112.1622-windows-x64.zip.sha256" dir="ltr">ZIP</a> · <a href="https://github.com/SerZhyAle/StreamsPlayer/releases">Все релизы на GitHub</a></p>
         <p class="section-description">Инсталлятор - это файл, имя которого заканчивается на -windows-x64-setup.exe. Он ставится только для текущего пользователя и никогда не просит прав администратора, а удаление не трогает ваши каналы, закреплённые станции и историю. Он не подписан, поэтому при первом запуске Windows покажет предупреждение; рядом с каждым файлом в релизе публикуется .sha256, так что вы можете проверить, что скачали именно то, что было опубликовано.</p>
         <!-- SP-0105, INSTALL-TRUST rule 7: the page a SmartScreen-warned user needs is linked from where
              the download is, not only from the footer. SP-0039: so is what changed, which a reader deciding

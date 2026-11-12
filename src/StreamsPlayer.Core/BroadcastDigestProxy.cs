@@ -95,7 +95,8 @@ public sealed partial class BroadcastDigestProxy : IDisposable
             }
         }
         catch (Exception exception) when (exception is IOException or SocketException or OperationCanceledException
-            or ObjectDisposedException or HttpRequestException or AuthenticationException or InvalidOperationException)
+            or ObjectDisposedException or HttpRequestException or AuthenticationException or InvalidOperationException
+            or InvalidDataException) // S10-1: a malformed RTSP message is a failure to report, not an unobserved fault
         {
             if (!token.IsCancellationRequested)
                 Fail(exception is ExchangeBroadcastCertificateException certificate ? certificate.Reason : ConnectionFailure(exception));

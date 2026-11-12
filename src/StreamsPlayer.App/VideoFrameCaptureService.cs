@@ -146,7 +146,9 @@ public sealed class VideoFrameCaptureService : IAsyncDisposable
                     firstFrame.TrySetResult([.. pixels]);
                 }
             };
-            mediaPlayer = new VlcMediaPlayer(_libVlc) { Mute = true, Volume = 0 };
+            // No Mute or Volume here: the capture is silent through :no-audio below, and on the default audio output either
+            // property writes the Windows audio session shared by the whole process - which muted a radio playing in it.
+            mediaPlayer = new VlcMediaPlayer(_libVlc);
             media = new Media(_libVlc, address);
             media.AddOption(":no-audio");
             media.AddOption(":network-caching=2000");

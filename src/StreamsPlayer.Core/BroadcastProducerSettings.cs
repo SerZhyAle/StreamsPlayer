@@ -163,7 +163,8 @@ public sealed class BroadcastProducerSettingsStore
             SampleRate = settings.SampleRate is 44100 or 48000 or 32000 or 24000 or 22050 or 16000 ? settings.SampleRate : 44100,
             MicrophoneChannels = settings.MicrophoneChannels is 1 or 2 ? settings.MicrophoneChannels : 1,
             SystemSoundChannels = settings.SystemSoundChannels is 1 or 2 ? settings.SystemSoundChannels : 2,
-            BitrateKbps = settings.BitrateKbps is >= 32 and <= 320 ? settings.BitrateKbps : 128,
+            // S11-1: the Windows AAC encoder lists 96, 128, 160 and 192 kbit/s only; a stored 256 would refuse every start.
+            BitrateKbps = settings.BitrateKbps is >= 32 and <= 320 ? Math.Min(settings.BitrateKbps, 192) : 128,
             MaxListeners = settings.MaxListeners is >= 0 and <= 64 ? settings.MaxListeners : 0,
             MicrophoneDeviceId = string.IsNullOrWhiteSpace(settings.MicrophoneDeviceId) ? null : settings.MicrophoneDeviceId,
             RestartSources = restart

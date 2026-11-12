@@ -306,6 +306,21 @@ public partial class PlayerWindow
             return;
         }
 
+        // S6-1: with no endpoint left, a refusal is a verdict only for a leg that never showed a picture (the rule, and the
+        // refusals that stay verdicts, are BroadcastAttemptAdvance.HandsToRecovery). A live leg whose transport failed and a
+        // relay 503 are blips the bounded recovery owns. The transport's report is queued ahead of the engine's own end of the
+        // same interruption, so taking the verdict here would set the failure latch first and turn the reconnect that end was
+        // about to start into a hand Retry. RRA-2: the hand-off goes through AdvanceOrRecover, the one place that knows a
+        // playlist window - there the engine's own end or error report would skip the item and a direct recovery would race it
+        // and open the next item twice, so the transport's report takes the decision the engine's would. Elsewhere
+        // CanAdvanceAttempt is already false, so it is RecoverAsync, which drops a report while a recovery is in flight or the
+        // verdict is final, spends its own budget and ends in its own HardFail.
+        if (BroadcastAttemptAdvance.HandsToRecovery(_reachedLive, reason))
+        {
+            AdvanceOrRecover(reason, new PlaybackFailureSignal(reason));
+            return;
+        }
+
         ShowPlaybackFailure(reason);
     }
 }

@@ -137,7 +137,9 @@ internal sealed class FastMediaSorterAudioPlayback : IDisposable
         try
         {
             var libVlc = SharedLibVlc.Value;
-            _player = new MediaPlayer(libVlc) { Volume = volume };
+            // The process shares one Windows audio session with every other LibVLC player (see StandardAudioPlayback.Play),
+            // so this connection states its own mute instead of inheriting one.
+            _player = new MediaPlayer(libVlc) { Volume = volume, Mute = false };
             if (!string.IsNullOrEmpty(_audioOutputDevice))
             {
                 ApplyOutputDevice(_player, _audioOutputDevice);

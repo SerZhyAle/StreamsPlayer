@@ -140,7 +140,10 @@ internal sealed class StandardAudioPlayback : IDisposable
         {
             var libVlc = SharedLibVlc.Value;
             ListenToEngineLog(libVlc);
-            _leg = new Leg(this, connection, new MediaPlayer(libVlc) { Volume = volume });
+            // Every LibVLC player in the process writes one shared Windows audio session, and Windows keeps its mute
+            // per app. Radio has no mute control, so a mute left by the video player (or a capture) would play into a
+            // silent session while AUDIO HEARD still counts buffers: each connection states its own mute.
+            _leg = new Leg(this, connection, new MediaPlayer(libVlc) { Volume = volume, Mute = false });
             if (!string.IsNullOrEmpty(_audioOutputDevice))
             {
                 ApplyOutputDevice(_leg.Player, _audioOutputDevice);

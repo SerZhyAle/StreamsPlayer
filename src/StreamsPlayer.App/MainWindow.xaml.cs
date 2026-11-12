@@ -1020,6 +1020,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             return;
         }
 
+        // S7-2: the trust probe above waits on the network; a window that closed meanwhile starts nothing.
+        if (_shuttingDown)
+        {
+            return;
+        }
+
         if (!NetworkInterface.GetIsNetworkAvailable())
         {
             _log.Event("REFUSE", "op=playback", "reason=offline", $"kind={channel.MediaKind}", $"url={channel.Url}");
@@ -1050,6 +1056,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             if (resolved.Channel is null)
             {
                 return; // every path failed: already reported with the right sentence
+            }
+
+            // RRB-2 (S7-2): the race of the addresses awaits the network too; a window that closed meanwhile opens nothing.
+            if (_shuttingDown)
+            {
+                return;
             }
 
             if (resolved.PlaylistItems is { } playlistItems)

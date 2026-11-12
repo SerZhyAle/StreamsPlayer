@@ -175,7 +175,8 @@ public static class StandardSettings
 
             return new StandardSettingsReadResult(new StandardSettingsDocument(read), StandardSettingsReadFailure.None);
         }
-        catch (JsonException)
+        // S12-2: a lone-surrogate escape in a group or member name throws InvalidOperationException, not JsonException.
+        catch (Exception exception) when (exception is JsonException or InvalidOperationException)
         {
             return new StandardSettingsReadResult(null, StandardSettingsReadFailure.Damaged);
         }
@@ -234,9 +235,16 @@ public static class StandardSettings
     private static bool TryEnum<T>(JsonElement element, out T value) where T : struct, Enum
     {
         value = default;
-        return element.ValueKind == JsonValueKind.String && element.GetString() is { } text
+        // S12-2: a lone-surrogate escape parses as a string element but GetString throws; that is no value.
+        return element.ValueKind == JsonValueKind.String && SafeString(element) is { } text
             && Enum.GetNames<T>().Contains(text, StringComparer.Ordinal)
             && Enum.TryParse(text, ignoreCase: false, out value);
+    }
+
+    private static string? SafeString(JsonElement element)
+    {
+        try { return element.GetString(); }
+        catch (InvalidOperationException) { return null; }
     }
 }
 

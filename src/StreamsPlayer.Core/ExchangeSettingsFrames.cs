@@ -39,12 +39,14 @@ public static class ExchangeSettingsFrames
     {
         if (!IsOwn(root) || !root.TryGetProperty("formatVersion", out var format) || format.ValueKind != JsonValueKind.Number
             || !format.TryGetInt32(out var formatVersion)
-            || !root.TryGetProperty("settingsPayload", out var payload) || payload.ValueKind != JsonValueKind.String)
+            // S12-1 (SP-0180): a lone-surrogate escape makes GetString throw, which a peer must never be able to use to
+            // end the control loop; ExchangeProtocol.String answers null for it and the request ends as unanswered.
+            || ExchangeProtocol.String(root, "settingsPayload") is not { } payload)
         {
             return null;
         }
 
-        return new ExchangeSettingsPayload(formatVersion, payload.GetString(), UpdatedAt(root));
+        return new ExchangeSettingsPayload(formatVersion, payload, UpdatedAt(root));
     }
 
     private static bool IsOwn(JsonElement root) =>

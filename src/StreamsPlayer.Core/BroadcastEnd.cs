@@ -136,6 +136,30 @@ public static class BroadcastEndAnswers
     }
 }
 
+/// <summary>
+/// S6-2: the kind of endpoint the last picture of a broadcast came over. A LAN address is a place on the producer's own
+/// network; what answers there speaks for the broadcast only to a viewer that watched it there. A viewer that played it over
+/// a relay or a tunnel may be on another network, where the same address is some other host's.
+/// </summary>
+public enum BroadcastLiveTransport
+{
+    /// <summary>Not told. A caller that does not say which endpoint went live keeps the older reading: a LAN answer counts once the broadcast has played at all.</summary>
+    Unknown,
+
+    /// <summary>The producer's own address (an HTTP or RTSP address on its LAN).</summary>
+    Lan,
+
+    /// <summary>An exchange server's relay or tunnel.</summary>
+    Exchange
+}
+
+public static class BroadcastLiveTransports
+{
+    /// <summary>The transport an endpoint carries, by the same rule that tells the probe a relay or a tunnel from a LAN address.</summary>
+    public static BroadcastLiveTransport Of(FastMediaSorterBroadcastEndpoint endpoint) =>
+        ExchangeEndpointKinds.IsExchangeEndpoint(endpoint) ? BroadcastLiveTransport.Exchange : BroadcastLiveTransport.Lan;
+}
+
 /// <summary>What the watch says after an event: keep the bounded recovery going, or the broadcast ended.</summary>
 public readonly record struct BroadcastEndVerdict(bool IsEnd, BroadcastEndCause Cause)
 {
@@ -152,7 +176,8 @@ public readonly record struct BroadcastEndVerdict(bool IsEnd, BroadcastEndCause 
 /// at once a stream that is stopped or being recovered.</item>
 /// <item>A relay <c>410</c> and a tunnel <c>ended</c> end the broadcast whenever they come. A relay <c>404</c> and every LAN
 /// answer end it only for a broadcast this window had played before: before that, <c>404</c> is "not started" (item S) and a
-/// closed LAN port is a stale address.</item>
+/// closed LAN port is a stale address. A LAN answer needs more (S6-2): the last picture must not have come over a relay
+/// or a tunnel, because a viewer on another network meets some other host at the producer's LAN address.</item>
 /// <item>A relay <c>503</c> (an upload stall) and every answer that says nothing end nothing.</item>
 /// </list>
 /// An end is sticky until <see cref="Reset"/> - the person's Reconnect. Safe from any thread.
@@ -162,6 +187,7 @@ public sealed class BroadcastEndWatch
     private readonly object _gate = new();
     private bool _live;
     private bool _playedBefore;
+    private BroadcastLiveTransport _liveTransport;
     private bool _removalSeen;
     private BroadcastEndCause? _ended;
 
@@ -170,14 +196,29 @@ public sealed class BroadcastEndWatch
         get { lock (_gate) return _playedBefore; }
     }
 
+    /// <summary>
+    /// S6-2: whether an answer of the producer's LAN address can end the broadcast now - it has played, and its last picture did
+    /// not come over a relay or a tunnel. The one reading the LAN probe and <see cref="NoteAnswer"/> share.
+    /// </summary>
+    public bool ReadsLanAnswers
+    {
+        get { lock (_gate) return LanAnswersEnd; }
+    }
+
+    private bool LanAnswersEnd => _playedBefore && _liveTransport != BroadcastLiveTransport.Exchange;
+
     /// <summary>The cause of the end this watch has decided, or null while the broadcast has not ended.</summary>
     public BroadcastEndCause? Ended
     {
         get { lock (_gate) return _ended; }
     }
 
-    /// <summary>The stream is delivering. The first time after a stop it also drops a removal that was waiting (a re-announced broadcast is live again).</summary>
-    public void NoteLive()
+    /// <summary>
+    /// The stream is delivering. The first time after a stop it also drops a removal that was waiting (a re-announced broadcast is live again).
+    /// S6-2: <paramref name="transport"/> is what carried the picture; every call replaces what an earlier one said, so a
+    /// reconnect that goes live over a relay clears a LAN reading and the other way round.
+    /// </summary>
+    public void NoteLive(BroadcastLiveTransport transport = BroadcastLiveTransport.Unknown)
     {
         lock (_gate)
         {
@@ -193,6 +234,7 @@ public sealed class BroadcastEndWatch
             }
 
             _playedBefore = true;
+            _liveTransport = transport;
         }
     }
 
@@ -258,7 +300,7 @@ public sealed class BroadcastEndWatch
         }
     }
 
-    /// <summary>The person's Reconnect: the window listens again. What it had played stays played.</summary>
+    /// <summary>The person's Reconnect: the window listens again. What it had played stays played, and so does the transport it came over until the next <see cref="NoteLive"/> says otherwise.</summary>
     public void Reset()
     {
         lock (_gate)
@@ -274,9 +316,9 @@ public sealed class BroadcastEndWatch
         BroadcastEndAnswer.TunnelEnded => BroadcastEndCause.TunnelEnded,
         BroadcastEndAnswer.RelayGone => BroadcastEndCause.RelayGone,
         BroadcastEndAnswer.RelayNotFound when _playedBefore => BroadcastEndCause.RelayNotFoundAfterPlay,
-        BroadcastEndAnswer.LanRefused when _playedBefore => BroadcastEndCause.LanRefused,
-        BroadcastEndAnswer.LanNotFound when _playedBefore => BroadcastEndCause.LanNotFound,
-        BroadcastEndAnswer.LanGone when _playedBefore => BroadcastEndCause.LanGone,
+        BroadcastEndAnswer.LanRefused when LanAnswersEnd => BroadcastEndCause.LanRefused,
+        BroadcastEndAnswer.LanNotFound when LanAnswersEnd => BroadcastEndCause.LanNotFound,
+        BroadcastEndAnswer.LanGone when LanAnswersEnd => BroadcastEndCause.LanGone,
         _ => null
     };
 

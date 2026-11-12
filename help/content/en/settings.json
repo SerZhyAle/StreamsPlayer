@@ -789,7 +789,7 @@
           "id": "broadcast-bitrate",
           "nameKey": "BroadcastBitrate",
           "control": "BroadcastBitrateBox",
-          "one": "How much data per second the broadcast uses: 96, 128, 192 or 256 kbit/s.",
+          "one": "How much data per second the broadcast uses: 96, 128, 160 or 192 kbit/s.",
           "full": [
             "A higher bitrate sounds better and uses more of this PC's upload. The default is 128 kbit/s."
           ]

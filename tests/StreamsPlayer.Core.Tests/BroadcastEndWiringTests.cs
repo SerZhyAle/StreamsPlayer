@@ -93,12 +93,63 @@ public sealed class BroadcastEndWiringTests
         Assert.Contains("NoteBroadcastLive();", Assert.Single(AppSourceFile.LoadAll("PlayerWindow.xaml.cs")).Text, StringComparison.Ordinal);
     }
 
+    // S6-2: the window tells the watch which transport went live and asks the watch's own reading before it probes the LAN.
+    [Fact]
+    public void ThePlayerTellsTheWatchTheTransportThatWentLiveAndProbesTheLanOnlyWhereItsAnswerCouldEndTheBroadcast()
+    {
+        var live = Method("PlayerWindow.BroadcastEnd.cs", "private void NoteBroadcastLive(");
+        Assert.Contains("BroadcastLiveTransports.Of(_attemptPlan[_attemptIndex])", live, StringComparison.Ordinal);
+        Assert.Contains("watch.NoteLive(", live, StringComparison.Ordinal);
+
+        var probe = Assert.Single(AppSourceFile.LoadAll("PlayerWindow.BroadcastEnd.cs")).Masked;
+        var probeBody = probe[probe.IndexOf("private async Task<BroadcastEndAnswer> ProbeLanAsync(", StringComparison.Ordinal)..];
+        Assert.Contains("ReadsLanAnswers: true", probeBody, StringComparison.Ordinal);
+        Assert.DoesNotContain("PlayedBefore", probeBody, StringComparison.Ordinal);
+    }
+
+    // RRA-1: the audio leg records the transport of each attempt before it starts that attempt's engine.
+    [Fact]
+    public void TheAudioLegRecordsTheTransportOfAnAttemptBeforeItStartsItsEngine()
+    {
+        var leg = Assert.Single(AppSourceFile.LoadAll("FastMediaSorterAudioLeg.cs")).Masked;
+
+        var record = leg.IndexOf("_attemptTransport = BroadcastLiveTransports.Of(endpoint);", StringComparison.Ordinal);
+        var start = leg.IndexOf("opening = _playback.StartAsync(", StringComparison.Ordinal);
+        Assert.True(record > 0 && record < start, "the attempt's transport must be recorded before its engine starts");
+        Assert.Contains("internal BroadcastLiveTransport AttemptTransport => _attemptTransport;", leg, StringComparison.Ordinal);
+    }
+
+    // S6-1 / RRA-2 / RRA-3: with no endpoint left, the Core rule decides whether a refusal goes to the bounded recovery (through
+    // AdvanceOrRecover, which knows a playlist window), after the guards that stay verdicts (the stale-answer check, the end
+    // reading, the password) and the endpoint advance, and before the verdict. The rule itself is held by BroadcastRecoveryHandOffTests.
+    [Fact]
+    public void AnOpenFailureOnALiveLegOrARelayStallGoesToTheBoundedRecoveryAfterTheGuardsAndTheAdvance()
+    {
+        var report = Assert.Single(AppSourceFile.LoadAll("PlayerWindow.Attempts.cs")).Masked;
+        var body = report[report.IndexOf("private void ReportOpenFailure(", StringComparison.Ordinal)..];
+
+        var stale = body.IndexOf("epoch != _attemptEpoch", StringComparison.Ordinal);
+        var ended = body.IndexOf("NoteBroadcastAnswer(reason)", StringComparison.Ordinal);
+        var password = body.IndexOf("IsPasswordRefusal(reason)", StringComparison.Ordinal);
+        var advance = body.IndexOf("CanAdvanceAttempt()", StringComparison.Ordinal);
+        var handOff = body.IndexOf("if (BroadcastAttemptAdvance.HandsToRecovery(_reachedLive, reason))", StringComparison.Ordinal);
+        var call = body.IndexOf("AdvanceOrRecover(reason, new PlaybackFailureSignal(reason));", StringComparison.Ordinal);
+        var verdict = body.LastIndexOf("ShowPlaybackFailure(reason);", StringComparison.Ordinal);
+
+        Assert.True(stale >= 0 && stale < ended && ended < password && password < advance && advance < handOff && handOff < call && call < verdict,
+            "ReportOpenFailure must judge the stale answer, the end, the password and the advance before the hand-off, and the hand-off before the verdict");
+        Assert.DoesNotContain("RecoverAsync(", body, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void TheAudioSessionReadsEveryStopAndEveryAnswerAndStopsFollowingWhenItIsNotPlaying()
     {
         var text = Assert.Single(AppSourceFile.LoadAll("BroadcastAudioSession.cs")).Text;
 
-        Assert.Contains("_end.NoteLive();", text, StringComparison.Ordinal);
+        // RRA-1: the leg tells which transport played, so a relay-played listener does not read a foreign LAN host as the end.
+        Assert.Contains("_end.NoteLive(sender is FastMediaSorterAudioLeg leg ? leg.AttemptTransport : BroadcastLiveTransport.Unknown);",
+            Method("BroadcastAudioSession.cs", "private void Playback_Playing("), StringComparison.Ordinal);
+        Assert.DoesNotContain("_end.NoteLive();", text, StringComparison.Ordinal);
         Assert.Contains("EndedBy(_end.NoteStopped())", Method("BroadcastAudioSession.cs", "private void Playback_Ended("), StringComparison.Ordinal);
         Assert.Contains("_end.NoteAnswer(BroadcastEndAnswers.FromReason(reason))", Method("BroadcastAudioSession.cs", "private void HandleFailure("),
             StringComparison.Ordinal);

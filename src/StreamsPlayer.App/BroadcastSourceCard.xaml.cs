@@ -14,7 +14,8 @@ internal sealed record BroadcastCardView(
     bool CanStart,
     string? Note,
     IReadOnlyList<string> Where,
-    bool CanShowRecipients);
+    bool CanShowRecipients,
+    bool CanCast);
 
 /// <summary>
 /// One source of the broadcast window: its state, the choices that belong to it, and Start, Cancel, Stop, Share and Cast.
@@ -106,7 +107,10 @@ public partial class BroadcastSourceCard : UserControl
         AutomationProperties.SetName(StopButton, LocalizationService.Format("BroadcastStopSource", view.Title));
 
         // Share and cast belong to a source that is on the air; while it is being stopped there is nothing to hand out.
-        ShareButton.Visibility = CastButton.Visibility = live ? Visibility.Visible : Visibility.Collapsed;
+        // S5-1 (DEVICE-EXCHANGE 7.2): a client hides what the server did not offer, so the cast button waits for a
+        // connected exchange server whose welcome features carry the cast offer.
+        ShareButton.Visibility = live ? Visibility.Visible : Visibility.Collapsed;
+        CastButton.Visibility = live && view.CanCast ? Visibility.Visible : Visibility.Collapsed;
         AutomationProperties.SetName(ShareButton, LocalizationService.Format("BroadcastSourceDevice", view.Title, LocalizationService.Get("BroadcastShareMenu")));
         AutomationProperties.SetName(CastButton, LocalizationService.Format("BroadcastSourceDevice", view.Title, LocalizationService.Get("BroadcastCastMenu")));
         RecipientsButton.Visibility = live && view.CanShowRecipients ? Visibility.Visible : Visibility.Collapsed;

@@ -17,6 +17,8 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
     private BroadcastDigestProxy? _digestProxy;
     private bool _streaming;
     private bool _disposed;
+    // RRA-1: read by the LibVLC thread that raises Playing, written by the open walk; the volatile read is the whole contract.
+    private volatile BroadcastLiveTransport _attemptTransport;
 
     internal FastMediaSorterAudioLeg(Action<string, string[]>? log)
     {
@@ -31,6 +33,14 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
     internal event EventHandler<FastMediaSorterAudioPlaybackEventArgs>? Ended;
     internal event EventHandler<FastMediaSorterAudioPlaybackEventArgs>? Failed;
     internal event Action<string>? RelayFailed;
+
+    /// <summary>
+    /// RRA-1: what carries the endpoint whose engine was started last - the one a <see cref="Playing"/> report is for. The
+    /// walk records it before it starts an attempt's engine and each start stops the engine of the one before, so a report of
+    /// the engine going live always reads its own attempt's transport, even when it arrives before <c>OpenAsync</c> has seen
+    /// the attempt succeed. <see cref="BroadcastLiveTransport.Unknown"/> until an attempt has started one.
+    /// </summary>
+    internal BroadcastLiveTransport AttemptTransport => _attemptTransport;
 
     internal string? AudioOutputDevice
     {
@@ -187,6 +197,7 @@ internal sealed class FastMediaSorterAudioLeg : IDisposable
                 // A proxy owns the upstream pin and password. LAN and tunnel-inner requests carry no relay password.
                 relayCredentials = _relayProxy is null && endpoint.Transport?.Equals("RELAY", StringComparison.OrdinalIgnoreCase) == true
                     ? credentials : null;
+                _attemptTransport = BroadcastLiveTransports.Of(endpoint);
                 opening = _playback.StartAsync(address, volume, cancellationToken, connectTimeout,
                     _relayProxy is null && _digestProxy is null ? endpoint.CertFingerprint : null, relayCredentials);
             }

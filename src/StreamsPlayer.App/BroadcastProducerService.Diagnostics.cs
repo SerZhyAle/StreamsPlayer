@@ -132,8 +132,10 @@ internal sealed partial class BroadcastProducerService
     }
 
     private string ReachabilityFacts(string? address, bool reachable) =>
-        $"reachable={reachable} | lan-enabled={Settings.LanListening} | lan-address={address ?? "none"}"
-        + $" | session-online={_exchange.PublicEndpoint is not null} | public-endpoint={SafeEndpoint(_exchange.PublicEndpoint)}"
+        // S4-3 / S4-4 (DIAGNOSTIC-REPORT section 10, ListenerBindLog): the log may be mailed, so it records that a LAN address
+        // is bound and that the session is online, never this machine's address or the exchange server's host and port.
+        $"reachable={reachable} | lan-enabled={Settings.LanListening} | lan-bound={address is not null}"
+        + $" | session-online={_exchange.PublicEndpoint is not null}"
         + $" | guest={IsGuestOnly} | sealed={_exchange.ServerSeals}"
         + $" | relay={_exchange.Features.Contains("relay")} | tunnel={_exchange.Features.Contains("tunnel")}"
         + $" | own-key={_exchange.Account.E2ePrivateKey is not null}";
