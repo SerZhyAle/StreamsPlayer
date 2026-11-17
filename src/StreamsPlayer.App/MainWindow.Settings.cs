@@ -22,6 +22,9 @@ public partial class MainWindow
     // only once the committed state agrees. PersistAsync ignores a failed write and leaves the state as it was.
     private bool _restrictedCommandsRevoked;
 
+    // Counts the person's toggles of that switch, so a write that finishes late cannot clear a revocation a newer toggle has set.
+    private int _restrictedCommandsRequest;
+
     /// <summary>The guard for commands above risk <c>safe</c>: the committed setting, unless the person has just turned it off.</summary>
     internal bool AcceptsRestrictedCommands => _state.AcceptsRestrictedCommands && !_restrictedCommandsRevoked;
 
@@ -148,11 +151,14 @@ public partial class MainWindow
     internal async Task ApplyAcceptsRestrictedCommandsFromSettingsAsync(bool accepts)
     {
         // Fail closed: turning the switch off is seen by a command that arrives during the write, and by one after a failed write.
+        var request = ++_restrictedCommandsRequest;
         _restrictedCommandsRevoked = !accepts;
         await PersistAsync(state => state with { AcceptsRestrictedCommands = accepts });
         var saved = _state.AcceptsRestrictedCommands == accepts;
-        if (saved)
+        if (saved && request == _restrictedCommandsRequest)
         {
+            // Only the newest toggle may clear the revocation: an earlier write that lands while a later off-toggle is still
+            // pending describes a state the person has already left (re-audit RA-B-1).
             _restrictedCommandsRevoked = false;
         }
 
