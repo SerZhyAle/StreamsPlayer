@@ -63,15 +63,15 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
-### Prepared for 26.1117.1644
+### Prepared for 26.1117.1838
 
 Supersedes nothing: 26.1112.1622 is prepared below. This is the package that adds the command line for scripts and other
 programs with its console companion and the "Commands from other programs" settings group, the pinned section's state
 triangle and the exchange page's explanation for a peer that cannot send protected content yet. The three blocks below are
-the files `msix/listing/release-notes/26.1117.1644.*.txt`.
+the files `msix/listing/release-notes/26.1117.1838.*.txt`.
 
 ```text
-Version 26.1117.1644
+Version 26.1117.1838
 
 - Scripts, shortcuts and other programs can give StreamsPlayer commands: show and close it, play, pause, resume and stop streams, set the volume, add a stream to your list and ask about its state. A command goes to the running copy and never opens a dialog.
 - StreamsPlayerCli.exe, a console companion installed beside the app, prints to a pipe and returns an exit code. StreamsPlayerCli.exe commands lists every command.
@@ -83,7 +83,7 @@ Version 26.1117.1644
 ```
 
 ```text
-Версия 26.1117.1644
+Версия 26.1117.1838
 
 - Скрипты, ярлыки и другие программы могут давать StreamsPlayer команды: показать и закрыть его, воспроизвести, поставить на паузу, продолжить и остановить трансляцию, задать громкость, добавить трансляцию в ваш список и узнать состояние. Команда идёт в уже запущенную копию и никогда не открывает диалог.
 - Консольный помощник StreamsPlayerCli.exe устанавливается рядом с приложением, пишет в канал и возвращает код выхода. «StreamsPlayerCli.exe commands» перечисляет все команды.
@@ -95,7 +95,7 @@ Version 26.1117.1644
 ```
 
 ```text
-Версія 26.1117.1644
+Версія 26.1117.1838
 
 - Скрипти, ярлики та інші програми можуть давати StreamsPlayer команди: показати й закрити його, відтворити, поставити на паузу, продовжити й зупинити потік, задати гучність, додати потік до вашого списку й дізнатися стан. Команда йде до вже запущеної копії й ніколи не відкриває діалог.
 - Консольний помічник StreamsPlayerCli.exe встановлюється поруч із застосунком, пише в канал і повертає код виходу. «StreamsPlayerCli.exe commands» перелічує всі команди.

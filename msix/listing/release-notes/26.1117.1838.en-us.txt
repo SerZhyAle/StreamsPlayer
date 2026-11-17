@@ -1,4 +1,4 @@
-Version 26.1117.1644
+Version 26.1117.1838
 
 - Scripts, shortcuts and other programs can give StreamsPlayer commands: show and close it, play, pause, resume and stop streams, set the volume, add a stream to your list and ask about its state. A command goes to the running copy and never opens a dialog.
 - StreamsPlayerCli.exe, a console companion installed beside the app, prints to a pipe and returns an exit code. StreamsPlayerCli.exe commands lists every command.
