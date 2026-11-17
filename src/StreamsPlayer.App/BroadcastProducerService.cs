@@ -419,6 +419,12 @@ internal sealed partial class BroadcastProducerService : IDisposable
             Diagnose(state.Source, "stop", "cause=" + StopCauseName(cause));
             SetVerdict(new(state.Source, BroadcastProducerState.Stopped));
             await TeardownAsync(state).ConfigureAwait(false);
+            if (cause == BroadcastStopCause.Person)
+            {
+                // release audit 26.1117.1644 (S3-1): the person's "Stop all" unmakes the choice, as StopAsync does for one source, or
+                // "start the chosen sources with the application" would bring them back. Every other cause keeps it for the next start.
+                await SaveChosenAsync(state.Source, chosen: false).ConfigureAwait(false);
+            }
         }
         await PublishDriveAsync().ConfigureAwait(false);
 

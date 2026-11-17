@@ -37,6 +37,8 @@ public partial class App : Application
     private int _exitCompleted;
     private Stopwatch? _closeClock;
 
+    private static readonly TimeSpan ListenerCloseMinimum = TimeSpan.FromMilliseconds(500);
+
     private TimeSpan RemainingCloseTime
     {
         get
@@ -257,8 +259,21 @@ public partial class App : Application
 
         if (_activationListener is not null)
         {
-            // Nothing the listener runs waits on this thread, so blocking here cannot deadlock.
-            _activationListener.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            // release audit 26.1117.1644 (S10-1): since SP-0271 the listener's loop awaits command handlers whose continuations
+            // need the dispatcher (play, playback resume and record wait on the window), so blocking this thread here could hang
+            // the exit with no window left. The wait pumps the dispatcher and is bounded; the close time may already be spent,
+            // and the listener still gets a short, fixed turn.
+            var listenerBound = RemainingCloseTime;
+            if (listenerBound < ListenerCloseMinimum)
+            {
+                listenerBound = ListenerCloseMinimum;
+            }
+
+            if (!WaitPumping(_activationListener.DisposeAsync().AsTask(), listenerBound))
+            {
+                _log?.Event("SHUTDOWN DEADLINE", "path=listener", $"after_ms={listenerBound.TotalMilliseconds:F0}");
+            }
+
             _activationListener = null;
         }
 

@@ -10,8 +10,8 @@
 
 The mark of the exchange server, drawn nowhere in this repository: the coloured mark is the catalog's PNG steps copied
 byte for byte into `assets/exchange-mark/` (pinned in its `PROVENANCE.txt`, written by `tools/Sync-ExchangeMark.ps1`),
-and the one-tone glyph is the catalog's `exchange-mark-mono.svg` kept as `assets/glyphs/own/source.exchange-server.svg`,
-which `tools/Sync-IconGlyphs.ps1` turns into the geometry of the main window's status button (rule 6, path data unchanged).
+and the one-tone glyph is the catalog's own `source.exchange-server` glyph of `ICON-SET` 0.41 (`assets/glyphs/source.exchange-server.svg`,
+pinned in `assets/glyphs/PROVENANCE.txt`), which `tools/Sync-IconGlyphs.ps1` turns into the geometry of the status button (rule 6, path data unchanged).
 
 `ExchangeMarkIcon` draws the coloured mark at 24 px beside the Settings group heading and the change-password dialog, and
 at 16 px in the guest-account rows, the status lines, the account's broadcast list and before the portal link; the PNG step

@@ -69,3 +69,6 @@ tests/StreamsPlayer.Exchange.Tests/Vectors/protection-v1.json -text
 tests/StreamsPlayer.Exchange.Tests/Vectors/qr/*.fmscfg -text
 # SP-0247: the USER-PLAYLIST conformance vectors, pinned by SHA-256 in their PROVENANCE.txt and by M3uPlaylistVectorTests.
 tests/StreamsPlayer.Core.Tests/Vectors/user-playlist/* -text
+# SP-0285: the Drive vectors (records and packets) are byte-for-byte copies of the contract catalog, pinned by SHA-256 in their
+# PROVENANCE.txt and by DriveVectorsReplayTests; without -text a Windows checkout turns their LF into CRLF and both hashes fail.
+tests/StreamsPlayer.Core.Tests/Vectors/drive-v1/* -text

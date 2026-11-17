@@ -18,6 +18,13 @@ public partial class MainWindow
 
     internal CatalogState State => _state;
 
+    // release audit 26.1117.1644 (S4-1): set the moment the person turns the switch off, before the save is attempted, and cleared
+    // only once the committed state agrees. PersistAsync ignores a failed write and leaves the state as it was.
+    private bool _restrictedCommandsRevoked;
+
+    /// <summary>The guard for commands above risk <c>safe</c>: the committed setting, unless the person has just turned it off.</summary>
+    internal bool AcceptsRestrictedCommands => _state.AcceptsRestrictedCommands && !_restrictedCommandsRevoked;
+
     /// <summary>
     /// Deliberately not gated on <c>_preferencesLoaded</c> (SP-0050). The interface language moved in
     /// here from the header, and it has to stay reachable when the catalog load fails: on a failed load
@@ -140,8 +147,16 @@ public partial class MainWindow
     /// </summary>
     internal async Task ApplyAcceptsRestrictedCommandsFromSettingsAsync(bool accepts)
     {
+        // Fail closed: turning the switch off is seen by a command that arrives during the write, and by one after a failed write.
+        _restrictedCommandsRevoked = !accepts;
         await PersistAsync(state => state with { AcceptsRestrictedCommands = accepts });
-        _log.Event("COMMANDS SETTING", $"accepts_restricted={accepts}");
+        var saved = _state.AcceptsRestrictedCommands == accepts;
+        if (saved)
+        {
+            _restrictedCommandsRevoked = false;
+        }
+
+        _log.Event("COMMANDS SETTING", $"accepts_restricted={AcceptsRestrictedCommands}", $"saved={saved}");
     }
 
     internal async Task ApplyKeepAwakeFromSettingsAsync(bool keepAwake)

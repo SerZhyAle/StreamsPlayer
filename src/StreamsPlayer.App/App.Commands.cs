@@ -104,7 +104,7 @@ public partial class App
             return LoggedAsync(request, Task.FromResult(AppCommandResponse.Busy(request.RequestId, AppCommandMessages.Busy)));
         }
 
-        var refused = AppCommandPolicy.CheckRisk(request.RequestId, parse.Entry, window.State.AcceptsRestrictedCommands,
+        var refused = AppCommandPolicy.CheckRisk(request.RequestId, parse.Entry, window.AcceptsRestrictedCommands,
             LocalizationService.Get("AcceptsRestrictedCommands"));
         return LoggedAsync(request,
             refused is not null ? Task.FromResult(refused) : Run(parse, request, window, cancellationToken));
@@ -166,7 +166,7 @@ public partial class App
                 {
                     ["version"] = ProductInfo.Version,
                     ["pid"] = Environment.ProcessId,
-                    ["acceptsRestrictedCommands"] = window.State.AcceptsRestrictedCommands,
+                    ["acceptsRestrictedCommands"] = window.AcceptsRestrictedCommands,
                     ["activeSessions"] = Windows.OfType<PlayerWindow>().Count() + (window.IsPlayingAudio ? 1 : 0),
                     ["profile"] = AppPaths.IsRelocated ? "relocated" : "default"
                 });

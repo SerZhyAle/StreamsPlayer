@@ -41,6 +41,8 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+# What's new texts and verdicts travel through `git show | Set-Content`: without this a non-ASCII character is decoded in the console code page.
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Set-Location $root
 

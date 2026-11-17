@@ -265,7 +265,7 @@ internal sealed class StreamAudioRecorder
                 if (outcome.Bytes == 0 && path is not null)
                 {
                     // SP-0164: a recording that wrote nothing leaves no file - the video path deletes such
-                    // files too. Here, past the await using, the stream is closed and the delete can
+                    // files too. Here, past WriteAsync, the stream is closed and the delete can
                     // succeed; Outcome has already dropped the path from the outcome itself.
                     TryDeleteEmpty(path);
                 }
@@ -333,50 +333,86 @@ internal sealed class StreamAudioRecorder
 
     private async Task<AudioRecordingOutcome> WriteAsync(Stream network, byte[] head, FileStream file, string path, CancellationToken token)
     {
-        await using (file.ConfigureAwait(false))
+        AudioRecordingOutcome? outcome = null;
+        try
         {
-            _written.Start();
-            if (!await TryWriteAsync(file, head).ConfigureAwait(false))
+            outcome = await CopyAsync(network, head, file, path, token).ConfigureAwait(false);
+        }
+        finally
+        {
+            if (outcome is null)
             {
-                return Outcome(AudioRecordingEnd.WriteFailed, path, "write");
+                // An exception is on its way out and is the one reported; closing the file must not replace it.
+                await TryCloseAsync(file, path).ConfigureAwait(false);
+            }
+        }
+
+        // release audit 26.1117.1644 (S5-1): the stream's own buffer is flushed once more on close. A flush that fails there is a
+        // lost tail, so the recording is a failed write whatever ended it - and the close must not throw the outcome (NoSpace) away.
+        return await TryCloseAsync(file, path).ConfigureAwait(false) || outcome.End == AudioRecordingEnd.WriteFailed
+            ? outcome
+            : Outcome(AudioRecordingEnd.WriteFailed, path, "write");
+    }
+
+    /// <summary>Closes the recording's file; false (noted and logged like a failed write) when the final flush failed.</summary>
+    private async Task<bool> TryCloseAsync(FileStream file, string path)
+    {
+        try
+        {
+            await file.DisposeAsync().ConfigureAwait(false);
+            return true;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            NoteWriteFailure(exception);
+            _log.Event("AUDIO RECORD ERROR", $"err={exception.Message}", $"path={path}");
+            return false;
+        }
+    }
+
+    private async Task<AudioRecordingOutcome> CopyAsync(Stream network, byte[] head, FileStream file, string path, CancellationToken token)
+    {
+        _written.Start();
+        if (!await TryWriteAsync(file, head).ConfigureAwait(false))
+        {
+            return Outcome(AudioRecordingEnd.WriteFailed, path, "write");
+        }
+
+        var buffer = new byte[32 * 1024];
+        while (true)
+        {
+            int read;
+            using (var idle = CancellationTokenSource.CreateLinkedTokenSource(token))
+            {
+                idle.CancelAfter(IdleLimit);
+                try
+                {
+                    read = await network.ReadAsync(buffer, idle.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (StopRequested)
+                {
+                    return Outcome(AudioRecordingEnd.Stopped, path, null);
+                }
+                catch (OperationCanceledException)
+                {
+                    return Outcome(AudioRecordingEnd.ConnectionLost, path, "idle");
+                }
+                catch (Exception exception) when (exception is IOException or HttpRequestException)
+                {
+                    return StopRequested
+                        ? Outcome(AudioRecordingEnd.Stopped, path, null)
+                        : Failed(AudioRecordingEnd.ConnectionLost, path, exception);
+                }
             }
 
-            var buffer = new byte[32 * 1024];
-            while (true)
+            if (read <= 0)
             {
-                int read;
-                using (var idle = CancellationTokenSource.CreateLinkedTokenSource(token))
-                {
-                    idle.CancelAfter(IdleLimit);
-                    try
-                    {
-                        read = await network.ReadAsync(buffer, idle.Token).ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException) when (StopRequested)
-                    {
-                        return Outcome(AudioRecordingEnd.Stopped, path, null);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        return Outcome(AudioRecordingEnd.ConnectionLost, path, "idle");
-                    }
-                    catch (Exception exception) when (exception is IOException or HttpRequestException)
-                    {
-                        return StopRequested
-                            ? Outcome(AudioRecordingEnd.Stopped, path, null)
-                            : Failed(AudioRecordingEnd.ConnectionLost, path, exception);
-                    }
-                }
+                return Outcome(StopRequested ? AudioRecordingEnd.Stopped : AudioRecordingEnd.ConnectionLost, path, "eof");
+            }
 
-                if (read <= 0)
-                {
-                    return Outcome(StopRequested ? AudioRecordingEnd.Stopped : AudioRecordingEnd.ConnectionLost, path, "eof");
-                }
-
-                if (!await TryWriteAsync(file, buffer.AsMemory(0, read)).ConfigureAwait(false))
-                {
-                    return Outcome(AudioRecordingEnd.WriteFailed, path, "write");
-                }
+            if (!await TryWriteAsync(file, buffer.AsMemory(0, read)).ConfigureAwait(false))
+            {
+                return Outcome(AudioRecordingEnd.WriteFailed, path, "write");
             }
         }
     }

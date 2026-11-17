@@ -74,8 +74,12 @@ public sealed class ReleaseAuditSp0246SourceTests
     public void S6_1_TheExitStepsShareOneCloseBudgetInsteadOfAddingTheirOwnWaits()
     {
         var body = Body(Source("App.xaml.cs"), @"private void CompleteExit\(\)");
-        Assert.Equal(3, Count(body, "RemainingCloseTime"));
+        // Four steps: the broadcasts, the account, Drive and (release audit 26.1117.1644, S10-1) the activation listener, whose
+        // wait pumps the dispatcher and takes what is left of the budget, floored at ListenerCloseMinimum once it is spent.
+        Assert.Equal(4, Count(body, "RemainingCloseTime"));
+        Assert.Contains("ListenerCloseMinimum", body, StringComparison.Ordinal);
         Assert.DoesNotContain("TimeSpan.FromSeconds", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetAwaiter().GetResult()", body, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -193,10 +197,24 @@ public sealed class ReleaseAuditSp0246SourceTests
     [Fact]
     public void S12_7_ACastRowCarriesTheDirectoryIdentityOfTheEntryThatReceivedIt()
     {
-        var text = Source("MainWindow.Exchange.cs").Masked;
+        // SP-0263 (S8-2) reads the identity before the mutation lambda, so the Apply call passes the local; what holds shut S12-7 is
+        // that the local is still read from the entry that received the row, and that the call still carries it.
+        var file = Source("MainWindow.Exchange.cs");
+        var text = file.Masked;
+        var received = text.IndexOf("var entry = listingEntry ?? Exchange.Account;", StringComparison.Ordinal);
+        var identity = text.IndexOf(
+            "var directoryEntryIdentity = ExchangeAccountIdentity.Key(entry.Host, entry.Port, entry.Login);", StringComparison.Ordinal);
         var apply = text.IndexOf("FastMediaSorterBroadcastImport.Apply(", StringComparison.Ordinal);
-        Assert.True(apply > 0);
-        Assert.Contains("directoryEntryIdentity: ExchangeAccountIdentity.Key(", text[apply..(apply + 400)], StringComparison.Ordinal);
+        Assert.True(received > 0 && received < identity && identity < apply);
+        Assert.Contains("directoryEntryIdentity: directoryEntryIdentity", text[apply..(apply + 400)], StringComparison.Ordinal);
+
+        var offer = Body(file, @"private void PlayCastOffer\(");
+        Assert.Contains(
+            "var directoryEntryIdentity = ExchangeAccountIdentity.Key(Exchange.Account.Host, Exchange.Account.Port, Exchange.Account.Login);",
+            offer, StringComparison.Ordinal);
+        var castApply = offer.IndexOf("FastMediaSorterBroadcastImport.Apply(", StringComparison.Ordinal);
+        Assert.True(castApply > 0);
+        Assert.Contains("directoryEntryIdentity: directoryEntryIdentity", offer[castApply..(castApply + 400)], StringComparison.Ordinal);
     }
 
     [Fact]

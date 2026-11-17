@@ -167,6 +167,12 @@
         "docs/help/uk/index.html",
         "docs/help/uk/settings.html"
       ]
+    },
+    {
+      "url": "https://serzhyale.github.io/StreamsPlayer/whats-new.html",
+      "heldBy": [
+        "scripts/New-ReleaseDossier.ps1"
+      ]
     }
   ]
 }

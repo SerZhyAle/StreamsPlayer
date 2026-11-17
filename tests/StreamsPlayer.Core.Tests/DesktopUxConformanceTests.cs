@@ -54,6 +54,7 @@ public sealed class DesktopUxConformanceTests
         ["InterfaceSizeBox_SelectionChanged"] = "applies the interface size on touch; only an explicit choice resizes anything (SP-0231, UI-SIZING 2.1)",
         ["InputProfileBox_SelectionChanged"] = "applies the input profile on touch; never inferred from an input event (SP-0231, UI-SIZING 2.1)",
         ["AnimatedBackdropOption_Toggled"] = "applies the animated backdrop setting on touch; raised for a user's activation only (SP-0231, BOOLEAN-OPTION)",
+        ["AcceptsRestrictedCommandsOption_Toggled"] = "applies the let-other-programs-ask setting on touch; a reversible boolean whose off state takes effect at once (SP-0271, BOOLEAN-OPTION)",
         ["HideAdultContentCheckBox_Click"] = "applies the adult content filter on touch",
         ["UpdatePreviewsCheckBox_Click"] = "applies the thumbnail preview update setting on touch",
         ["KeepAwakeCheckBox_Click"] = "applies the keep awake setting on touch",

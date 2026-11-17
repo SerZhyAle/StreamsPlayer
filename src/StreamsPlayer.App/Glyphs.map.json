@@ -65,7 +65,7 @@
     {"id": "feature.live-broadcast", "name": "Live Broadcast", "surfaces": ["style:BroadcastingGlyphButton", "style:BroadcastGlyphOnlyButton", "style:BroadcastHeaderGlyphButton"], "note": "Outgoing capture, the header's Broadcast button and the compact panel's live indicator; incoming broadcasts keep content.stream. own/ expands the catalog SVG's round strokes to filled contours because the WPF geometry template paints fills; the dot, arcs and dimensions are preserved."},
     {"id": "feature.server-relay", "name": "Relay through the server", "surfaces": ["SettingsWindow.xaml broadcast exchange path hint"]},
     {"id": "action.connect-device", "name": "Connect a device", "surfaces": ["style:ExchangeConnectGlyphButton"]},
-    { "id": "app.theme", "name": "Theme", "site": true, "surfaces": [ "site theme switch", "SettingsWindow.xaml Theme row" ] }
+    { "id": "app.theme", "name": "Theme", "surfaces": [ "site theme switch", "SettingsWindow.xaml Theme row" ] }
   ],
   "pending": [],
   "private": [

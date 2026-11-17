@@ -14,4 +14,3 @@ png/mark-48.png  0083264a11d69a0b97aec5ea96144ad6ea29ed1abdf59ca2c09c27b239b60e6
 png/mark-56.png  2536533f866c576e8d0b2939ce8bce2c81a216658c3ebf8dda4cd7f05acc67d4  assets/exchange-mark/png/mark-56.png
 png/mark-64.png  ad8e63098713b5e87e4458b7e8e24a21175985f361b18782112633756aacd379  assets/exchange-mark/png/mark-64.png
 png/mark-96.png  a912b47c8941d4442eeb6d7bca6f8533ef4e9ddb91b683df37af948720c96187  assets/exchange-mark/png/mark-96.png
-svg/exchange-mark-mono.svg  124cc6f3136351e2c1bd064bd8c69aaf398f578a836d6565c1831abab3399b89  assets/glyphs/own/source.exchange-server.svg

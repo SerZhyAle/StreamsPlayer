@@ -210,6 +210,21 @@ public sealed class AnswerButtonConformanceTests
         return attribute.Success ? attribute.Groups["key"].Value : null;
     }
 
+    /// <summary>The style key the button names, or - for a local style written inside the button - the key that style is based on.</summary>
+    private static string? EffectiveStyleKey(XElement button)
+    {
+        var key = StyleKey(button);
+        if (key is not null)
+        {
+            return key;
+        }
+
+        var inline = button.Elements().FirstOrDefault(e => e.Name.LocalName == "Button.Style")?.Elements()
+            .FirstOrDefault(e => e.Name.LocalName == "Style");
+        var basedOn = inline is null ? null : StaticKey.Match(inline.Attribute("BasedOn")?.Value ?? "");
+        return basedOn is { Success: true } ? basedOn.Groups["key"].Value : null;
+    }
+
     private static bool HasGlyph(XElement button, Dictionary<string, (string? BasedOn, bool SetsGlyph)> styles)
     {
         // An inline path of the generated dictionary inside the button's own content.
@@ -219,15 +234,7 @@ public sealed class AnswerButtonConformanceTests
             return true;
         }
 
-        var key = StyleKey(button);
-        if (key is null)
-        {
-            // A local style written inside the button, based on a glyph style.
-            var inline = button.Elements().FirstOrDefault(e => e.Name.LocalName == "Button.Style")?.Elements()
-                .FirstOrDefault(e => e.Name.LocalName == "Style");
-            key = inline is null ? null : StaticKey.Match(inline.Attribute("BasedOn")?.Value ?? "").Groups["key"].Value;
-        }
-
+        var key = EffectiveStyleKey(button);
         for (var depth = 0; key is not null && depth < 8; depth++)
         {
             if (!styles.TryGetValue(key, out var style)) return false;
@@ -245,6 +252,7 @@ public sealed class AnswerButtonConformanceTests
     private static bool IsDeclaredLink(XElement button) =>
         // Hyperlink-looking text in the About page (licence, instructions, site..): a link, not a command.
         StyleKey(button) == "SettingsLinkButton"
-        // The disclosure header of a main-window section: it carries its expand / collapse glyph inline.
-        || StyleKey(button) == "SectionHeaderButtonStyle";
+        // The disclosure header of a main-window section, named by attribute or by a local style based on it: it carries its
+        // state triangle (Chrome.group-state, COLLAPSIBLE-GROUP 1.3 rule 2, SP-0280) inline, which is the glyph of that control.
+        || EffectiveStyleKey(button) == "SectionHeaderButtonStyle";
 }

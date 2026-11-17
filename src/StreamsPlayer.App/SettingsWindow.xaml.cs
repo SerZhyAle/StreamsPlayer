@@ -193,7 +193,7 @@ public partial class SettingsWindow : Window
         HideAdultContentCheckBox.IsChecked = _mainWindow.State.HideAdultContent;
         UpdatePreviewsCheckBox.IsChecked = _mainWindow.State.UpdateStreamPreviews;
         AnimatedBackdropOption.IsChecked = _mainWindow.State.AnimatedBackdrop;
-        AcceptsRestrictedCommandsOption.IsChecked = _mainWindow.State.AcceptsRestrictedCommands;
+        AcceptsRestrictedCommandsOption.IsChecked = _mainWindow.AcceptsRestrictedCommands;
         KeepAwakeCheckBox.IsChecked = _mainWindow.State.KeepAwakeDuringPlayback;
         SystemMediaControlsCheckBox.IsChecked = _mainWindow.State.SystemMediaControls;
         ResumePlaybackCheckBox.IsChecked = _mainWindow.State.ResumePlaybackOnStartup;

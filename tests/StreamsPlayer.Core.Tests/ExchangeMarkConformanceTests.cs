@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using StreamsPlayer.App;
 
 namespace StreamsPlayer.Core.Tests;
@@ -15,7 +16,11 @@ public sealed class ExchangeMarkConformanceTests
 {
     private static string Vendored => Path.Combine(AppContext.BaseDirectory, "exchange-mark");
 
-    private static string OwnGlyph => Path.Combine(AppContext.BaseDirectory, "glyphs", "own", "source.exchange-server.svg");
+    // ICON-SET 0.41 folded the mark's one-tone glyph into the vocabulary: the status row wears the catalog's own
+    // glyphs/source.exchange-server.svg (hash-pinned in assets/glyphs/PROVENANCE.txt), and this own/ copy is retired.
+    private static string RetiredOwnGlyph => Path.Combine(AppContext.BaseDirectory, "glyphs", "own", "source.exchange-server.svg");
+
+    private static string PathData(string svg) => Regex.Match(svg, "\\bd=\"(?<d>[^\"]+)\"").Groups["d"].Value;
 
     /// <summary>The recorded files: contract path, SHA-256 (lower case) and the path in this repository.</summary>
     private static IReadOnlyList<(string Contract, string Hash, string Repository)> Provenance() =>
@@ -32,9 +37,13 @@ public sealed class ExchangeMarkConformanceTests
         var problems = new List<string>();
         foreach (var (contract, hash, repository) in Provenance())
         {
-            var file = repository.StartsWith("assets/exchange-mark/", StringComparison.Ordinal)
-                ? Path.Combine(Vendored, repository["assets/exchange-mark/".Length..])
-                : OwnGlyph;
+            if (!repository.StartsWith("assets/exchange-mark/", StringComparison.Ordinal))
+            {
+                problems.Add($"{contract}: {repository} is outside assets/exchange-mark/");
+                continue;
+            }
+
+            var file = Path.Combine(Vendored, repository["assets/exchange-mark/".Length..]);
             if (!File.Exists(file)) { problems.Add($"{contract}: {repository} is not in the repository"); continue; }
             var actual = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(file))).ToLowerInvariant();
             if (actual != hash) { problems.Add($"{repository} is not {contract} of the recorded version (rule 6: a copy is never edited)"); }
@@ -125,7 +134,15 @@ public sealed class ExchangeMarkConformanceTests
         // feature.server-relay never wears the mark; the status row source.exchange-server does, as the one-tone glyph.
         var glyphs = Path.Combine(AppContext.BaseDirectory, "glyphs");
         Assert.False(File.Exists(Path.Combine(glyphs, "own", "feature.server-relay.svg")));
-        Assert.True(File.Exists(OwnGlyph));
+        Assert.False(File.Exists(RetiredOwnGlyph));
+
+        // The status row's glyph is the one-tone star - five closed straight rays - and the relay row's is the catalog's
+        // server bays, which are rounded boxes and arcs: two different drawings, neither drawn by this product.
+        var star = PathData(File.ReadAllText(Path.Combine(glyphs, "source.exchange-server.svg")));
+        var bays = PathData(File.ReadAllText(Path.Combine(glyphs, "feature.server-relay.svg")));
+        Assert.Equal(5, star.Count(character => character == 'Z'));
+        Assert.DoesNotContain("A", star, StringComparison.Ordinal);
+        Assert.Contains("A", bays, StringComparison.Ordinal);
         var settings = File.ReadAllText(Path.Combine(AppSourceFile.Directory, "SettingsWindow.xaml"));
         Assert.Contains("Icon.feature.server-relay", settings, StringComparison.Ordinal);
         // SP-0252: the status row moved from the main window's header into the broadcast window, whose first line it leads.

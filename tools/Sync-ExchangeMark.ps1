@@ -11,10 +11,9 @@
                                              (the 100 to 200 per cent steps of 16 and 24 DIP, and the sizes
                                              above them for a larger scale, rule 5)
     assets/exchange-mark/PROVENANCE.txt      the contract version and the SHA-256 of every copy
-    assets/glyphs/own/source.exchange-server.svg
-                                             the one-tone glyph (svg/exchange-mark-mono.svg), which
-                                             Sync-IconGlyphs.ps1 turns into the geometry of the header button;
-                                             rule 6 lets the glyph's path be carried that way, unchanged
+
+    The one-tone glyph is not copied here: ICON-SET 0.41 carries it as the catalog's own
+    glyphs/source.exchange-server.svg, which Sync-IconGlyphs.ps1 vendors and pins in assets/glyphs/PROVENANCE.txt.
 
     The files travel to the App as Resource items and to the help pages through tools/help/build-help.ps1.
     Nothing here is generated from a drawing of this product's own.
@@ -44,7 +43,6 @@ $repository = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $artwork = if ($CatalogRoot) { Join-Path $CatalogRoot 'exchange-mark/artwork' } else { $null }
 $target = Join-Path $repository 'assets/exchange-mark'
 $provenancePath = Join-Path $target 'PROVENANCE.txt'
-$glyphCopy = Join-Path $repository 'assets/glyphs/own/source.exchange-server.svg'
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 
 # 16 and 24 DIP at 100, 125, 150, 175 and 200 per cent are 16/20/24/28/32 and 24/30/36/42/48 pixels; 40, 56, 64
@@ -66,7 +64,6 @@ function Get-Sha256([string] $Path) { return (Get-FileHash -LiteralPath $Path -A
 # [catalog path, product path]
 $copies = [System.Collections.Generic.List[object]]::new()
 foreach ($step in $steps) { $copies.Add(@("png/mark-$step.png", (Join-Path $target "png/mark-$step.png"))) }
-$copies.Add(@('svg/exchange-mark-mono.svg', $glyphCopy))
 
 foreach ($pair in $copies) {
     $entry = $manifest.files | Where-Object { $_.path -eq $pair[0] }
