@@ -371,6 +371,9 @@
     <sys:String x:Key="PlayerPinControlsName">Закріпити панель керування</sys:String>
     <sys:String x:Key="SettingsGeneralBasics">Основні налаштування</sys:String>
     <sys:String x:Key="SettingsGeneralView">Вигляд каталогу</sys:String>
+    <sys:String x:Key="SettingsGeneralCommands">Команди від інших програм</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommands">Дозволити іншим програмам просити STREAMS Player працювати з моїми файлами, екраном, буфером обміну або мережею</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommandsHint">Вимкнено: скрипти та інші програми можуть показати й закрити STREAMS Player, відтворити, поставити на паузу, продовжити й зупинити потік, задати гучність, додати потік і дізнатися стан. Увімкнено: вони можуть також отримати перелік того, що грає зараз, і записувати до названої ними теки - це читання або запис ваших даних. Змінити це можете лише ви, тут.</sys:String>
     <sys:String x:Key="SettingsGeneralInterface">Інтерфейс</sys:String>
     <sys:String x:Key="InterfaceSizeLabel">Розмір інтерфейсу</sys:String>
     <sys:String x:Key="InterfaceSizeHint">Задає розмір тексту, піктограм, відступів і областей натискання.</sys:String>
@@ -637,8 +640,8 @@
     <sys:String x:Key="FmsBroadcastAdded">Пряму трансляцію імпортовано: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUpdated">Пряму трансляцію оновлено: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUnsupportedMode">Цей режим трансляції ще не підтримується. Ваш список не змінено.</sys:String>
-    <sys:String x:Key="FmsBroadcastInvalid">Це некоректний опис трансляції FastMediaSorter. Ваш список не змінено.</sys:String>
-    <sys:String x:Key="FmsBroadcastTooLarge">Опис трансляції більший за 64 КіБ. Ваш список не змінено.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">Це некоректний дескриптор трансляції FastMediaSorter. Ваш список не змінено.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">Дескриптор трансляції більший за 64 КіБ. Ваш список не змінено.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer зайнятий іншою операцією. Імпортуйте трансляцію ще раз, коли операція завершиться. Ваш список не змінено.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">На пристрої «{0}» уже досягнуто максимальної кількості глядачів і слухачів. Спробуйте знову, коли хтось від'єднається.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">Пристрій «{0}» припинив трансляцію або більше недоступний у цій мережі.</sys:String>
@@ -762,6 +765,7 @@
     <sys:String x:Key="ExchangeTlsRequired">Сервер приймає це лише через захищене з'єднання, а це з'єднання не захищене.</sys:String>
     <sys:String x:Key="ExchangeIdCollision">Сервер уже знає інший пристрій під таким самим номером. Видаліть цей сервер зі списку й додайте його знову.</sys:String>
     <sys:String x:Key="ExchangeStateE2eMissing">Цей пристрій поки не вміє приймати захищений вміст, тому через сервер йому нічого не надсилається.</sys:String>
+    <sys:String x:Key="ExchangeStateE2eMissingPeer">Пристрій, на якому цей вміст, поки не вміє передавати його захищеним, тому через сервер від нього нічого не надходить.</sys:String>
     <sys:String x:Key="ExchangeStateKeyChanged">Ключ захисту цього пристрою змінився, тому йому нічого не надсилається. Видаліть пристрій з акаунта й додайте його знову.</sys:String>
     <sys:String x:Key="ExchangeStateServerNoE2e">Цей сервер не вміє передавати захищений вміст, тому папки, трансляції й буфер через нього не йдуть.</sys:String>
     <sys:String x:Key="ExchangeStateSealedFailed">Це не вдалося відкрити на цьому пристрої. Повторіть з іншого пристрою.</sys:String>
@@ -817,8 +821,8 @@
     <sys:String x:Key="ExchangeReplacePrompt">Цей ПК увійшов до {0}. Якщо новий акаунт - ваш власний або сімейний, він замінить цей вхід: трансляції цього ПК завершаться, і ПК вийде з {0}. Гостьовий акаунт буде додано поруч. Продовжити?</sys:String>
     <sys:String x:Key="ExchangeForgottenOffline">Ви вийшли на цьому пристрої. Сервер не вдалося сповістити, тому пристрій може залишитися у списку, доки інший пристрій його не видалить. Повторів не буде.</sys:String>
     <sys:String x:Key="ExchangeReplacementRequired">Підтвердьте вихід із поточного облікового запису перед підключенням до іншого.</sys:String>
-    <sys:String x:Key="BroadcastCertificateUntrusted">Сервер трансляції надав сертифікат, який цей комп’ютер не може перевірити, а в описі немає відбитка. Попросіть автора трансляції оновити опис.</sys:String>
-    <sys:String x:Key="BroadcastCertificateMismatch">Сертифікат сервера трансляції не відповідає відбитку в її описі. Відтворення відхилено.</sys:String>
+    <sys:String x:Key="BroadcastCertificateUntrusted">Сервер трансляції надав сертифікат, який цей комп’ютер не може перевірити, а в дескрипторі немає відбитка. Попросіть автора трансляції оновити дескриптор.</sys:String>
+    <sys:String x:Key="BroadcastCertificateMismatch">Сертифікат сервера трансляції не відповідає відбитку в її дескрипторі. Відтворення відхилено.</sys:String>
     <sys:String x:Key="BroadcastPasswordTitle">Пароль трансляції</sys:String>
     <sys:String x:Key="BroadcastPasswordPrompt">Трансляцію «{0}» захищено паролем. Введіть пароль, який дав її автор.</sys:String>
     <sys:String x:Key="BroadcastPasswordRequired">Трансляція запитує пароль, але на цьому комп’ютері його не збережено. Відкрийте її ще раз, щоб увести пароль.</sys:String>
@@ -892,7 +896,7 @@
     <sys:String x:Key="BroadcastQrTitle">QR-код трансляції</sys:String>
     <sys:String x:Key="BroadcastQrHint">Відскануйте цей код телефоном, щоб відкрити трансляцію. У коді немає пароля - повідомте його окремо.</sys:String>
     <sys:String x:Key="BroadcastQrImageName">QR-код посилання на трансляцію</sys:String>
-    <sys:String x:Key="BroadcastQrTooLong">Опис цієї трансляції задовгий для QR-коду. Скопіюйте посилання або збережіть файл.</sys:String>
+    <sys:String x:Key="BroadcastQrTooLong">Дескриптор цієї трансляції задовгий для QR-коду. Скопіюйте посилання або збережіть файл.</sys:String>
     <sys:String x:Key="BroadcastGuestRefused">Цей ПК увійшов як гість і не веде трансляцій.</sys:String>
     <sys:String x:Key="BroadcastIndicatorLive">Трансляція: {0}</sys:String>
     <sys:String x:Key="BroadcastIndicatorName">Індикатор прямої трансляції</sys:String>
@@ -902,8 +906,8 @@
     <sys:String x:Key="BroadcastCastUnsupported">Інший пристрій не вміє відтворювати таку трансляцію.</sys:String>
     <sys:String x:Key="BroadcastShareMenu">Поділитися</sys:String>
     <sys:String x:Key="BroadcastCopyLink">Копіювати посилання</sys:String>
-    <sys:String x:Key="BroadcastSaveFile">Зберегти файл опису</sys:String>
-    <sys:String x:Key="BroadcastFileFilter">Опис трансляції (*.fmsbcast)|*.fmsbcast</sys:String>
+    <sys:String x:Key="BroadcastSaveFile">Зберегти файл дескриптора</sys:String>
+    <sys:String x:Key="BroadcastFileFilter">Дескриптор трансляції (*.fmsbcast)|*.fmsbcast</sys:String>
     <sys:String x:Key="BroadcastNotAllowed">Спочатку дозвольте трансляцію в налаштуваннях.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">Занадто багато трансляцій одночасно.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">Це джерело вже в ефірі.</sys:String>

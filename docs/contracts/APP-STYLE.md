@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-STYLE` |
-| **Version** | 0.13, 2026-10-22 (SP-0232) |
+| **Version** | 0.15, 2026-11-15 (SP-0278) |
 | **Home** | `Contracts/desktop-app-ux/APP-STYLE.md` |
 | **Owner** | StreamsPlayer |
 | **This product's role** | Owner and consumer |

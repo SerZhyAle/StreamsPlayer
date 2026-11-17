@@ -181,6 +181,6 @@ finally {
     }
 }
 
-if ($failures.Count -eq 0) { "smoke-verdict-gate: PASS ($passed checks)"; exit 0 }
+if ($failures.Count -eq 0) { "smoke-verdict-gate: PASS (run=$passed skipped=0)"; exit 0 }
 "smoke-verdict-gate: FAIL ($($failures.Count) of $($passed + $failures.Count) checks)"
 exit 1

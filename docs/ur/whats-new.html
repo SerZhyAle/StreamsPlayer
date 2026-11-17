@@ -67,8 +67,14 @@
         // PAGE-STYLE amendment 2026-10-17: explicit shipped locales override remembered choices,
         // including on child/locale pages; a valid canonical query wins over the legacy spelling.
         var query = new URLSearchParams(window.location.search);
-        var canonical = query.get("lang");
-        var legacy = query.get("l");
+        // PAGE-STYLE 3.5 item 1: `ua` in a query is read as `uk`, the code the page ships; the stored
+        // sza-lang value stays `ua`.
+        function queryLocale(name) {
+          var value = query.get(name);
+          return value === "ua" ? "uk" : value;
+        }
+        var canonical = queryLocale("lang");
+        var legacy = queryLocale("l");
         var requested = Object.prototype.hasOwnProperty.call(urls, canonical) ? canonical
           : Object.prototype.hasOwnProperty.call(urls, legacy) ? legacy : null;
         if (requested) {
@@ -380,7 +386,7 @@
         <h2 class="footer-heading">مزید اوزار</h2>
         <div class="tools-grid">
           <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>Fast Media Sorter &amp; Organizer</b><span>Android میڈیا سارٹر</span></a>
-          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter &amp; Sharing for Windows</b><span>Windows میڈیا سارٹر</span></a>
+          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter &amp; Sharing for Windows</b><span>Windows میڈیا اور فائل مینیجر</span></a>
           <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Windows کی بورڈ لے آؤٹ درست کرنے والا</span></a>
           <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Windows ای بک کنورٹر</span></a>
           <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Windows اسٹوریج کمانڈ لائن ٹول</span></a>

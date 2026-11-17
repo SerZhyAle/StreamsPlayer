@@ -38,7 +38,16 @@ public partial class MainWindow
         var live = running.Count > 0;
         var warning = Broadcast.ServerNeededButUnreachable;
 
-        BroadcastButton.Tag = live ? running.Count.ToString(CultureInfo.CurrentCulture) : string.Empty;
+        var liveCount = live ? running.Count.ToString(CultureInfo.CurrentCulture) : string.Empty;
+        var widthChanged = !string.Equals(BroadcastButton.Tag as string, liveCount, StringComparison.Ordinal);
+        BroadcastButton.Tag = liveCount;
+        if (widthChanged)
+        {
+            // SP-0263 (S7-1): the button grows when its live count shows and shrinks when it goes, so the header's
+            // full-or-compact decision is taken again instead of waiting for the next resize.
+            ScheduleHeaderLayout();
+        }
+
         BroadcastWarningMark.Visibility = warning ? Visibility.Visible : Visibility.Collapsed;
         if (!live)
         {

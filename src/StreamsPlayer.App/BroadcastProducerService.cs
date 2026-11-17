@@ -340,7 +340,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
             return FailStart(source, IsGuestOnly ? "BroadcastGuestRefused" : "BroadcastNotAllowed");
         }
         cancel.ThrowIfCancellationRequested();
-        var captureFailure = await state.Capture.StartAsync().ConfigureAwait(false);
+        var captureFailure = await state.Capture.StartAsync(cancel).ConfigureAwait(false);
         if (captureFailure is not null)
         {
             await StopCoreAsync(source, BroadcastStopCause.CaptureLoss).ConfigureAwait(false);

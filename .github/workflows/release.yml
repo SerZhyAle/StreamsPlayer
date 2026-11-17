@@ -240,6 +240,12 @@ jobs:
         if: steps.existing.outputs.complete != 'true'
         run: |
           ./scripts/Assert-PinnedNatives.ps1 -Folder stage/StreamsPlayer -ProjectPath src/StreamsPlayer.App/StreamsPlayer.App.csproj
+      # SP-0275 (APP-COMMANDS rule 9): the console companion is published into the same stage by the application project,
+      # so the archive and the installer carry it; this proves it is there and still a console program.
+      - name: Assert the console companion in the payload
+        if: steps.existing.outputs.complete != 'true'
+        run: |
+          ./scripts/Assert-ConsoleCompanion.ps1 -Folder stage/StreamsPlayer
       - name: Install Inno Setup
         if: steps.existing.outputs.complete != 'true'
         run: |

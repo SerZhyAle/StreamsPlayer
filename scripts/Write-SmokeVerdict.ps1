@@ -25,6 +25,9 @@
 .PARAMETER AppPath
   The StreamsPlayer.exe the gate just tested.
 
+.PARAMETER Companion
+  SP-0277: the console-companion round's observations, written as the verdict's `companion` member when given.
+
 .EXAMPLE
   pwsh -NoProfile -File ./scripts/Write-SmokeVerdict.ps1 -AppPath artifacts/smoke/StreamsPlayer.exe
 #>
@@ -39,7 +42,13 @@ param(
 
     # SP-0184 (A2-4): the checks this run did not make (-SkipVideo, -SkipRecording). A PASS that skipped something
     # is recorded as such, and release.yml refuses it: the switches are for a developer machine, not for a release.
-    [string[]] $Skipped = @()
+    [string[]] $Skipped = @(),
+
+    # SP-0277: what the console-companion round observed (exit codes, the manifest's command count, whether the running
+    # copy that answered was the launched one). Informational: written as the `companion` member and not required by
+    # Assert-SmokeVerdict.ps1 - a verdict is bound to the tagged tree's own code, so it can only have been written by a
+    # smoke script that ran the round, and that script writes nothing when the round is red.
+    [System.Collections.IDictionary] $Companion
 )
 
 Set-StrictMode -Version Latest
@@ -91,8 +100,9 @@ $verdict = [ordered]@{
     when    = (Get-Date).ToString('yyyy-MM-ddTHH:mm:sszzz')
     skipped = @($Skipped)
 }
+if ($Companion) { $verdict['companion'] = $Companion }
 $folder = Join-Path $Root 'release-verdicts'
 New-Item -ItemType Directory -Path $folder -Force | Out-Null
 $path = Join-Path $folder "$version.json"
-$verdict | ConvertTo-Json | Set-Content -LiteralPath $path -Encoding utf8
+$verdict | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $path -Encoding utf8
 Write-Host "Release verdict written: $path (commit $commit). Commit it and put the v$version tag on that commit." -ForegroundColor Green

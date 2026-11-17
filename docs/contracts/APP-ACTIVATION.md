@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-ACTIVATION` |
-| **Version** | 0.13, 2026-10-22 (SP-0232) |
+| **Version** | 0.15, 2026-11-15 (SP-0278) |
 | **Home** | `Contracts/app-activation/README.md` |
 | **Owner** | CyrFlip |
 | **This product's role** | Consumer: CLI plus acknowledged, current-user pipe; no URI scheme |

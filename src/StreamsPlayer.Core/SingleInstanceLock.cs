@@ -1,10 +1,10 @@
 using System.IO;
 using System.Threading;
 
-namespace StreamsPlayer.App;
+namespace StreamsPlayer.Core;
 
 /// <summary>SP-0170: how an attempt on the session lock ended.</summary>
-internal enum SingleInstanceLockResult
+public enum SingleInstanceLockResult
 {
     /// <summary>This copy holds the lock and is the first.</summary>
     Acquired,
@@ -21,14 +21,16 @@ internal enum SingleInstanceLockResult
 
 /// <summary>
 /// SP-0118: the session-local named lock the first copy holds for its lifetime (<c>APP-ACTIVATION</c>
-/// rule 2). Its name comes from <see cref="StreamsPlayer.Core.SingleInstanceIdentity"/> and is frozen.
+/// rule 2). Its name comes from <see cref="SingleInstanceIdentity"/> and is frozen.
 /// </summary>
 /// <remarks>
 /// A mutex is owned by a thread, so it is taken and released on the UI thread - in
 /// <c>App.OnStartup</c> and <c>App.OnExit</c>. A lock left behind by a copy that crashed is abandoned,
 /// not held: taking it over is correct, since no process is using the state any more.
+/// SP-0275: the type lives in Core, public, so the console companion asks the same question the player does
+/// (is a first instance running?) with the same code; it only ever probes and lets go at once.
 /// </remarks>
-internal sealed class SingleInstanceLock : IDisposable
+public sealed class SingleInstanceLock : IDisposable
 {
     private readonly Mutex _mutex;
 
@@ -38,7 +40,7 @@ internal sealed class SingleInstanceLock : IDisposable
     /// Takes the lock, waiting up to <paramref name="wait"/> for the copy that holds it to let go (SP-0170: a
     /// copy that is closing releases it when its close work is done). Never throws for an unopenable lock.
     /// </summary>
-    internal static SingleInstanceLockResult TryAcquire(string name, TimeSpan wait, out SingleInstanceLock? held)
+    public static SingleInstanceLockResult TryAcquire(string name, TimeSpan wait, out SingleInstanceLock? held)
     {
         held = null;
         Mutex mutex;

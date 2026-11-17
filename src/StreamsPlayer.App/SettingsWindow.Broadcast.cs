@@ -49,7 +49,11 @@ public partial class SettingsWindow
         _showingBroadcast = false;
     }
 
-    private void ShowBroadcasting()
+    private void ShowBroadcasting() => ShowBroadcastingCore(discardPortEdit: false);
+
+    // SP-0263 (S11-2): the port stays uncommitted until Enter or LostFocus (SP-0246 S15-5), and this runs on every producer
+    // event, so a box the person is typing in is left alone; only a refused change (discardPortEdit) puts the stored port back.
+    private void ShowBroadcastingCore(bool discardPortEdit)
     {
         _showingBroadcast = true;
         var guestOnly = Broadcast.IsGuestOnly;
@@ -58,7 +62,11 @@ public partial class SettingsWindow
         BroadcastControls.Visibility = Broadcast.Settings.Allowed && !guestOnly ? Visibility.Visible : Visibility.Collapsed;
         BroadcastStartWithAppCheckBox.IsChecked = Broadcast.Settings.StartWithApplication;
         BroadcastLanCheckBox.IsChecked = Broadcast.Settings.LanListening;
-        BroadcastLanPortBox.Text = Broadcast.Settings.LanPort.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (discardPortEdit || !BroadcastLanPortBox.IsKeyboardFocused)
+        {
+            BroadcastLanPortBox.Text = Broadcast.Settings.LanPort.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
         BroadcastCapBox.Text = Broadcast.Settings.MaxListeners.ToString(System.Globalization.CultureInfo.InvariantCulture);
         BroadcastSampleRateBox.SelectedItem = Broadcast.Settings.SampleRate == 48000 ? "48000" : "44100";
         BroadcastMicChannelsBox.SelectedIndex = Broadcast.Settings.MicrophoneChannels == 2 ? 1 : 0;
@@ -175,7 +183,7 @@ public partial class SettingsWindow
 
         if (!ConfirmLiveBroadcastChange("BroadcastConfirmStopAll"))
         {
-            ShowBroadcasting();
+            ShowBroadcastingCore(discardPortEdit: true);
             return;
         }
 

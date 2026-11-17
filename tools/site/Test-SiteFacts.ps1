@@ -62,6 +62,7 @@ function New-Deck {
         'fact-windows'             = '[[windows]]'
         'fact-langs'               = '[[languages]] interface languages'
         'cap-yours-4'              = 'Switch between [[languages]] languages.'
+        'cap-yours-9'              = 'Give it [[commands]] commands from a script.'
         'hero-kicker'              = 'Internet radio · Live video · RTSP'
         'what-p1'                  = 'An app for internet radio, live video, and RTSP cameras.'
         'channel-setup'            = 'Installer (.exe)'
@@ -110,9 +111,11 @@ function Write-Tree {
     { "id": "winget", "deckKey": "channel-winget", "name": "winget", "orMarker": "[[command]]", "evidence": [ { "path": "installer.yaml" } ] }
   ],
   "channelProse": ["status-description", "use-description", "distribution-description"],
+  "commands": { "source": "docs/cli-commands.json" },
   "renderedKeys": {
     "languages": ["fact-langs", "cap-yours-4"],
-    "windows": ["hero-eyebrow", "fact-windows"]
+    "windows": ["hero-eyebrow", "fact-windows"],
+    "commands": ["cap-yours-9"]
   },
   "languageCount": {
     "numberWords": {
@@ -148,6 +151,7 @@ None.
 '@
     Write-Fixture 'README.md' "<p>Internet radio, live video, and RTSP for Windows.</p>`nMore words, then RTSP again.`n"
     Write-Fixture 'README.ru.md' "<p>Интернет-радио, live-видео и RTSP для Windows.</p>`n"
+    Write-Fixture 'docs/cli-commands.json' '{ "commands": [ { "name": "status" }, { "name": "quit" } ] }'
     Write-Fixture 'app.csproj' '<Project><PropertyGroup><SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion></PropertyGroup></Project>'
     Write-Fixture 'AppxManifest.xml' '<Package><Dependencies><TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" /></Dependencies></Package>'
     Write-Fixture 'installer.yaml' "PackageIdentifier: X.Y`nMinimumOSVersion: 10.0.17763.0`n"
@@ -167,6 +171,7 @@ try {
     $value = Get-SiteFactValue -Root $fixture -LanguageCount 13
     Check ($value.Languages -eq 13) 'the language count is the registry count'
     Check ($value.Windows -eq 'Windows 10 / 11') 'a Windows 10 build minimum renders as Windows 10 / 11'
+    Check ($value.Commands -eq 2) 'the command count is the number of commands in the manifest'
     Set-Fixture 'app.csproj' '10.0.17763.0' '10.0.22000.0'
     Set-Fixture 'AppxManifest.xml' '10.0.17763.0' '10.0.22000.0'
     Set-Fixture 'installer.yaml' '10.0.17763.0' '10.0.22000.0'
@@ -218,9 +223,24 @@ try {
     $decks = New-Decks; $decks['de']['title-home'] = 'Player for [[windows]]'
     Check (Has (Get-Problems $decks) '\[de\] title-home carries a fact placeholder') 'a title that carries a fact placeholder fails'
 
+    # --- the command count (SP-0276)
+    $decks = New-Decks; $decks['ru']['cap-yours-9'] = 'Управляйте из скрипта: 14 команд.'
+    Check (Has (Get-Problems $decks) '\[ru\] cap-yours-9 does not carry \[\[commands\]\]') 'a typed command count fails'
+    $decks = New-Decks; $decks['de'].Remove('cap-yours-9')
+    Check (Has (Get-Problems $decks) '\[de\] cap-yours-9 is missing') 'a missing command key fails'
+    $decks = New-Decks; $decks['en']['description-home'] = 'Scriptable with [[commands]] commands.'
+    Check (Has (Get-Problems $decks) '\[en\] description-home carries a fact placeholder') 'a description that carries the command placeholder fails'
+    Write-Fixture 'docs/cli-commands.json' '{ "commands": [] }'
+    Check (Has (Get-Problems) 'commands: docs/cli-commands\.json declares no commands') 'a manifest without commands fails'
+    Write-Fixture 'docs/cli-commands.json' '{ not json'
+    Check (Has (Get-Problems) 'commands: docs/cli-commands\.json is not valid JSON') 'a manifest that is not JSON fails'
+    Remove-Item (Join-Path $fixture 'docs/cli-commands.json')
+    Check (Has (Get-Problems) 'commands: docs/cli-commands\.json does not exist') 'a missing manifest fails'
+    Write-Fixture 'docs/cli-commands.json' '{ "commands": [ { "name": "status" }, { "name": "quit" } ] }'
+    Check ((Get-Problems).Count -eq 0) 'the command-count fixture is consistent again'
+
     # --- pillars
-    Write-Fixture 'README.md' "<p>Internet radio and live video for Windows.</p>`n"
-    Check (Has (Get-Problems) "README\.md: pillar 3 'RTSP' is missing") 'a surface that misses a pillar fails'
+    Write-Fixture 'README.md' "<p>Internet radio and live video for Windows.</p>`n"    Check (Has (Get-Problems) "README\.md: pillar 3 'RTSP' is missing") 'a surface that misses a pillar fails'
     Write-Fixture 'README.md' "<p>RTSP, live video, internet radio.</p>`n"
     Check (Has (Get-Problems) "README\.md: pillar 2 'Live video' is out of order") 'a surface that names the pillars out of order fails'
     Write-Fixture 'README.md' "<p>Live video, internet radio, and RTSP.</p>`nLater, correctly: internet radio, live video, RTSP.`n"
@@ -304,5 +324,5 @@ if ($failures.Count) {
     Write-Output "site-facts: FAIL ($($failures.Count) of $($passed + $failures.Count))"
     exit 1
 }
-Write-Output "site-facts: PASS ($passed checks)"
+Write-Output "site-facts: PASS (run=$passed skipped=0)"
 exit 0

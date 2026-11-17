@@ -50,14 +50,18 @@ public partial class MainWindow
         await ImportBroadcastResourceTextAsync(text, owner, playAfterImport);
     }
 
-    private async Task ImportBroadcastResourceTextAsync(string text, Window owner, bool playAfterImport = false)
+    /// <summary>
+    /// The channel the document made or updated, or <see langword="null"/> when nothing was imported - SP-0272's
+    /// <c>play --file</c> reads it; every other caller ignores it.
+    /// </summary>
+    private async Task<StreamChannel?> ImportBroadcastResourceTextAsync(string text, Window owner, bool playAfterImport = false)
     {
         if (_busy)
         {
             _log.Event("REFUSE", "op=resource_import", "reason=busy");
             MessageBox.Show(owner, LocalizationService.Get("BroadcastResourceBusy"),
                 LocalizationService.Get("BroadcastResourceTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
+            return null;
         }
 
         var read = BroadcastResourceReader.Read(text);
@@ -72,7 +76,7 @@ public partial class MainWindow
             _log.Event("RESOURCE IMPORT FAIL", $"status={read.Status}");
             MessageBox.Show(owner, LocalizationService.Get(key),
                 LocalizationService.Get("BroadcastResourceTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
+            return null;
         }
 
         // One row per broadcast: the resource path is the de-duplication key, so a re-imported
@@ -100,12 +104,12 @@ public partial class MainWindow
                 return state with { Channels = [.. rows] };
             }))
         {
-            return;
+            return null;
         }
 
         if (imported is not { } channel)
         {
-            return;
+            return null;
         }
 
         _log.Event("RESOURCE IMPORT APPLY",
@@ -120,6 +124,8 @@ public partial class MainWindow
         {
             await PlayChannelAsync(channel, rememberSelection: false);
         }
+
+        return channel;
     }
 
     /// <summary>

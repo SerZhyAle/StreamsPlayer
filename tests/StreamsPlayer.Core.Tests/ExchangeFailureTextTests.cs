@@ -29,6 +29,25 @@ public sealed class ExchangeFailureTextTests
     }
 
     [Fact]
+    public void TheEndedRowOfAnEndedBroadcastAtATunnelIsInTheTableAndSaysWhatTheEndedBroadcastAlreadySays()
+    {
+        // DEVICE-EXCHANGE item DY: `ended` is a wire reason of 7.10 with no step, the 29th row of the table.
+        var rows = Table.Value.RootElement.GetProperty("rows").EnumerateArray().ToArray();
+        Assert.Equal(29, rows.Length);
+        Assert.Equal(29, ExchangeFailureRows.All.Count);
+        var entry = rows.Single(row => row.GetProperty("code").GetString() == "ended");
+        Assert.Equal("wire", entry.GetProperty("kind").GetString());
+        Assert.Equal(JsonValueKind.Null, entry.GetProperty("step").ValueKind);
+        Assert.Equal("The broadcast has ended.", entry.GetProperty("en").GetString());
+
+        var row = ExchangeFailureRows.ByCode(BroadcastEndAnswers.TunnelEndedReason);
+        Assert.Same(ExchangeFailureRows.Ended, row);
+        Assert.Equal("BroadcastEnded", row!.MessageKey);
+        Assert.Equal(IncomingBroadcastFailure.EndedKey, row.MessageKey);
+        Assert.Same(row, ExchangeFailureRows.ByMessageKey("BroadcastEnded"));
+    }
+
+    [Fact]
     public void EveryRowHasTheKindAndTheStepOfItsRowInTheTable()
     {
         foreach (var entry in Table.Value.RootElement.GetProperty("rows").EnumerateArray())

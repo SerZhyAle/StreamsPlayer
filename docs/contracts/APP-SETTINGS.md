@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `APP-SETTINGS` |
-| **Version** | 0.7 read 2026-10-22; earlier implementation 0.3 (draft) |
+| **Version** | 0.8 read 2026-11-15 (SP-0278); 0.7 read 2026-10-22; earlier implementation 0.3 (draft) |
 | **Home** | `Contracts/desktop-app-ux/README.md`, with the rules in `APP-SETTINGS.md` |
 | **Owner** | CyrFlip |
 | **This product's role** | **consumer** (opted in by SP-0188, 2026-10-02) |

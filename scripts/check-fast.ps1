@@ -5,10 +5,14 @@
 
     -Area picks the checks of the touched area; the default, all, runs every fast check. The checks of the
     chosen area run as parallel child processes (each writes only under its own GUID-named scratch folder), so
-    one call stays inside the 5 s budget. Each child's output is printed in the order below, then one verdict.
+    a call costs about its slowest check under load, not the sum of them. Each child's output is printed in the
+    order below, then one verdict. Between releases call the area of what changed; all is inside the 5 s cap too
+    (3.6 s, SP-0290) and is the call when the touched area is unclear.
 
       Area             Check                                                  Seconds  Measured
       docs             scripts/check-docs.ps1                                 1.60     direct call, 2026-10-30
+      docs             tools/Build-CliDoc.ps1 -Check                          0.39     direct call, 2026-11-14
+      docs             tools/Test-CliDoc.ps1                                  1.79     direct call, mean of 3, 2026-11-15
       help             scripts/check-help.ps1                                 0.47     direct call, 2026-10-30
       site             tools/site/Test-HeldAddresses.ps1                      0.85     direct call, 2026-10-30
       site             tools/site/Test-ReleaseNotes.ps1                       0.95     direct call, 2026-10-30
@@ -16,10 +20,18 @@
       site             tools/site/Test-SiteFacts.ps1                          0.92     direct call, 2026-10-30
       release-scripts  scripts/Test-TestResultSummary.ps1                     0.45     direct call, 2026-10-30
       release-scripts  scripts/Test-ExistingReleaseState.ps1                  0.40     direct call, 2026-10-30
-      release-scripts  scripts/Test-ReleaseVersion.ps1                        2.59     direct call, 2026-10-30
+      release-scripts  scripts/Test-ReleaseVersion.ps1                        1.31     direct call, mean of 3, 2026-11-15
       release-scripts  msix/Test-MsixIdentity.ps1                             0.72     direct call, 2026-11-12
-      release-scripts  scripts/Test-StorePreflightCall.ps1                    2.8      direct call, 2026-11-12
+      release-scripts  scripts/Test-StorePreflightCall.ps1                    1.17     direct call, mean of 3, 2026-11-15
       snapshot         tools/build-catalog-snapshot.ps1 -Check -Offline       1.28     direct call, 2026-10-30
+
+    Whole calls, wall time around the script, 2026-11-15 (SP-0290): all 3.64 s (twelve runs 3.38 to 3.89 s; the verdict
+    line read 3.1 to 3.6 s), and the mean of 3 for docs 2.3, help 0.9, site 1.9, release-scripts 1.9, snapshot 1.7.
+    Before SP-0290 (SP-0288): all 4.9 s, docs 3.4, release-scripts 3.8. The parallel run is slower than the slowest
+    check alone, about twice for every check: in one profiled all-run Test-CliDoc, Test-ReleaseVersion and
+    Test-StorePreflightCall finished at 3.6 to 3.95, 3.1 to 3.4 and 2.7 to 2.8 s against 1.8, 1.3 and 1.2 s alone, so
+    the run is bound by the work started, not by the slowest check. Test-SiteDiscovery and check-docs now finish
+    with Test-CliDoc (3.3 to 3.7 s in the run, 1.4 and 1.6 s alone) and are the next candidates.
 
     A check measured above 5 s, or never measured, is release tier and is not listed here; the measured list
     with both classes is in AGENTS.md "Fast checks and the release tier". Moving a check into this list needs a
@@ -42,6 +54,8 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $checks = @(
     [pscustomobject]@{ Area = 'docs'; Name = 'docs-quality'; File = 'scripts/check-docs.ps1'; Arguments = @() }
+    [pscustomobject]@{ Area = 'docs'; Name = 'cli-docs'; File = 'tools/Build-CliDoc.ps1'; Arguments = @('-Check') }
+    [pscustomobject]@{ Area = 'docs'; Name = 'cli-docs-test'; File = 'tools/Test-CliDoc.ps1'; Arguments = @() }
     [pscustomobject]@{ Area = 'help'; Name = 'help'; File = 'scripts/check-help.ps1'; Arguments = @() }
     [pscustomobject]@{ Area = 'site'; Name = 'held-addresses-test'; File = 'tools/site/Test-HeldAddresses.ps1'; Arguments = @() }
     [pscustomobject]@{ Area = 'site'; Name = 'release-notes-test'; File = 'tools/site/Test-ReleaseNotes.ps1'; Arguments = @() }

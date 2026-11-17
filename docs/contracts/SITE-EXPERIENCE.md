@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `SITE-EXPERIENCE` |
-| **Version** | 0.6, 2026-11-12 (SP-0259; read for rule 13, items E and F) |
+| **Version** | 0.6, 2026-11-15 (SP-0278; rule 13, items E and F also read 2026-11-12, SP-0259) |
 | **Home** | `Contracts/product-site/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | Consumer, page tier |

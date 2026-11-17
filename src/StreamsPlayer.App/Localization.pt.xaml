@@ -371,6 +371,9 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="PlayerPinControlsName">Fixar os controlos de reprodução</sys:String>
     <sys:String x:Key="SettingsGeneralBasics">Configurações básicas</sys:String>
     <sys:String x:Key="SettingsGeneralView">Aparência do catálogo</sys:String>
+    <sys:String x:Key="SettingsGeneralCommands">Comandos de outros programas</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommands">Permitir que outros programas peçam ao STREAMS Player para trabalhar com meus arquivos, a tela, a área de transferência ou a rede</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommandsHint">Desativado: scripts e outros programas podem mostrar e fechar o STREAMS Player, reproduzir, pausar, retomar e parar transmissões, ajustar o volume, adicionar uma transmissão e consultar o estado. Ativado: também podem listar o que está tocando agora e gravar em uma pasta que indicarem, o que lê ou grava seus dados. Só você pode mudar isso, aqui.</sys:String>
     <sys:String x:Key="SettingsGeneralInterface">Interface</sys:String>
     <sys:String x:Key="InterfaceSizeLabel">Tamanho da interface</sys:String>
     <sys:String x:Key="InterfaceSizeHint">Define o tamanho do texto, dos ícones, dos espaçamentos e das áreas de clique.</sys:String>
@@ -637,8 +640,8 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="FmsBroadcastAdded">Transmissão em direto importada: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUpdated">Transmissão em direto atualizada: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUnsupportedMode">Este modo de transmissão ainda não é suportado. A sua lista não foi alterada.</sys:String>
-    <sys:String x:Key="FmsBroadcastInvalid">Esta não é uma descrição válida de transmissão do FastMediaSorter. A sua lista não foi alterada.</sys:String>
-    <sys:String x:Key="FmsBroadcastTooLarge">Esta descrição de transmissão é maior que 64 KiB. A sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">Este não é um descritor de transmissão do FastMediaSorter válido. A sua lista não foi alterada.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">Este descritor de transmissão é maior que 64 KiB. A sua lista não foi alterada.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer está ocupado com outra operação. Importe a transmissão novamente quando a operação terminar. A sua lista não foi alterada.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} já tem o número máximo de espectadores e ouvintes. Tente novamente quando outro se desligar.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} deixou de transmitir ou já não está acessível nesta rede.</sys:String>
@@ -762,6 +765,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="ExchangeTlsRequired">O servidor só aceita isto por uma conexão protegida, e esta conexão não está protegida.</sys:String>
     <sys:String x:Key="ExchangeIdCollision">O servidor já conhece outro dispositivo com o número deste dispositivo. Remova este servidor da lista e adicione-o novamente.</sys:String>
     <sys:String x:Key="ExchangeStateE2eMissing">Este dispositivo ainda não consegue receber conteúdo protegido, por isso nada lhe é enviado através do servidor.</sys:String>
+    <sys:String x:Key="ExchangeStateE2eMissingPeer">O dispositivo que tem este conteúdo ainda não consegue enviá-lo protegido, por isso nada dele chega através do servidor.</sys:String>
     <sys:String x:Key="ExchangeStateKeyChanged">A chave de proteção deste dispositivo mudou, por isso nada lhe é enviado. Remova o dispositivo da conta e adicione-o novamente.</sys:String>
     <sys:String x:Key="ExchangeStateServerNoE2e">Este servidor não consegue transportar conteúdo protegido, por isso as pastas, as transmissões e a área de transferência não passam por ele.</sys:String>
     <sys:String x:Key="ExchangeStateSealedFailed">Não foi possível abrir isto neste dispositivo. Tente novamente a partir do outro dispositivo.</sys:String>
@@ -817,8 +821,8 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="ExchangeReplacePrompt">Este PC entrou em {0}. Se a nova conta for a sua ou uma conta da família, ela substitui essa entrada: as transmissões deste PC terminam e ele sai de {0}. Uma conta de convidado é adicionada ao lado, em vez disso. Continuar?</sys:String>
     <sys:String x:Key="ExchangeForgottenOffline">Saiu neste dispositivo. Não foi possível avisar o servidor, então o dispositivo pode continuar na lista até que outro dispositivo o remova. Não haverá nova tentativa.</sys:String>
     <sys:String x:Key="ExchangeReplacementRequired">Confirme a saída da conta atual antes de entrar noutra.</sys:String>
-    <sys:String x:Key="BroadcastCertificateUntrusted">O servidor da transmissão apresenta um certificado que este PC não consegue verificar e a descrição não fornece uma impressão digital. Peça uma descrição atualizada a quem transmite.</sys:String>
-    <sys:String x:Key="BroadcastCertificateMismatch">O certificado do servidor da transmissão não corresponde à impressão digital na descrição. A reprodução foi recusada.</sys:String>
+    <sys:String x:Key="BroadcastCertificateUntrusted">O servidor da transmissão apresenta um certificado que este PC não consegue verificar e o descritor não fornece uma impressão digital. Peça um descritor atualizado a quem transmite.</sys:String>
+    <sys:String x:Key="BroadcastCertificateMismatch">O certificado do servidor da transmissão não corresponde à impressão digital no descritor. A reprodução foi recusada.</sys:String>
     <sys:String x:Key="BroadcastPasswordTitle">Senha da transmissão</sys:String>
     <sys:String x:Key="BroadcastPasswordPrompt">{0} está protegida. Introduza a senha que quem transmite lhe deu.</sys:String>
     <sys:String x:Key="BroadcastPasswordRequired">Esta transmissão pede uma senha e neste PC não está guardada nenhuma. Abra-a de novo para introduzir a senha.</sys:String>
@@ -892,7 +896,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="BroadcastQrTitle">Código QR da transmissão</sys:String>
     <sys:String x:Key="BroadcastQrHint">Digitalize este código com um telemóvel para abrir a transmissão. O código não contém a senha: comunique-a em separado.</sys:String>
     <sys:String x:Key="BroadcastQrImageName">Código QR da ligação da transmissão</sys:String>
-    <sys:String x:Key="BroadcastQrTooLong">A descrição desta transmissão é demasiado longa para um código QR. Copie a ligação ou guarde o ficheiro.</sys:String>
+    <sys:String x:Key="BroadcastQrTooLong">O descritor desta transmissão é demasiado longo para um código QR. Copie a ligação ou guarde o ficheiro.</sys:String>
     <sys:String x:Key="BroadcastGuestRefused">Com a sessão de convidado, este PC não transmite.</sys:String>
     <sys:String x:Key="BroadcastIndicatorLive">A transmitir: {0}</sys:String>
     <sys:String x:Key="BroadcastIndicatorName">Indicador de transmissão em direto</sys:String>
@@ -902,8 +906,8 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="BroadcastCastUnsupported">O outro dispositivo não consegue reproduzir este tipo de transmissão.</sys:String>
     <sys:String x:Key="BroadcastShareMenu">Partilhar</sys:String>
     <sys:String x:Key="BroadcastCopyLink">Copiar a ligação</sys:String>
-    <sys:String x:Key="BroadcastSaveFile">Guardar o ficheiro de descrição</sys:String>
-    <sys:String x:Key="BroadcastFileFilter">Descrição da transmissão (*.fmsbcast)|*.fmsbcast</sys:String>
+    <sys:String x:Key="BroadcastSaveFile">Guardar o ficheiro do descritor</sys:String>
+    <sys:String x:Key="BroadcastFileFilter">Descritor da transmissão (*.fmsbcast)|*.fmsbcast</sys:String>
     <sys:String x:Key="BroadcastNotAllowed">Permita primeiro a transmissão nas definições.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">Demasiadas transmissões ao mesmo tempo.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">Esta fonte já está em direto.</sys:String>

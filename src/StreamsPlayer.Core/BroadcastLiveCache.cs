@@ -12,6 +12,8 @@ namespace StreamsPlayer.Core;
 /// <para>SP-0203: the buffer follows the endpoint the leg actually opens (rule 4 - raise it only to that
 /// endpoint's own <c>targetLatencyMs</c>), and an exchange endpoint (<c>RELAY</c>/<c>TUNNEL</c>) may go to
 /// 2000 ms, the value the contract names for the relay.</para>
+/// <para>SP-0281: an endpoint that states no latency is read by item V of <c>LIVE-BROADCAST</c> - see
+/// <c>Stated</c> - and the floor and the ceiling bound a default as they bound a stated figure.</para>
 /// </summary>
 public static class BroadcastLiveCache
 {
@@ -26,6 +28,12 @@ public static class BroadcastLiveCache
 
     /// <summary>A descriptor that states no <c>targetLatencyMs</c>: the HTTP MPEG-TS figure of item H.</summary>
     public const uint UnstatedMilliseconds = 1_000;
+
+    /// <summary>Item V's default for an <c>RTSP</c> endpoint that states none (11 section 2.5); item L's floor then bounds it.</summary>
+    public const uint RtspUnstatedMilliseconds = 200;
+
+    /// <summary>Item V's default for a <c>RELAY</c> or <c>TUNNEL</c> endpoint that states none (item D).</summary>
+    public const uint ExchangeUnstatedMilliseconds = 2_000;
 
     /// <summary>The buffer for this channel, or <c>null</c> when the product's own setting applies.</summary>
     public static uint? For(StreamChannel channel) => For(channel, endpoint: null);
@@ -45,16 +53,31 @@ public static class BroadcastLiveCache
             return null;
         }
 
-        var ceiling = endpoint is not null && IsExchangeTransport(endpoint.Transport)
-            ? ExchangeCeilingMilliseconds
-            : CeilingMilliseconds;
-        var stated = endpoint?.TargetLatencyMs ?? broadcast.TargetLatencyMs;
-        if (stated is not { } latency || latency <= 0)
+        var exchange = endpoint is not null && IsExchangeTransport(endpoint.Transport);
+        var ceiling = exchange ? ExchangeCeilingMilliseconds : CeilingMilliseconds;
+        return (uint)Math.Clamp(Stated(broadcast, endpoint, exchange), FloorMilliseconds, ceiling);
+    }
+
+    /// <summary>
+    /// <c>LIVE-BROADCAST</c> item V's reading order: the endpoint's own figure; for a LAN endpoint (or no endpoint at all)
+    /// the descriptor's top-level figure, which is the LAN stream's and is never taken by a <c>RELAY</c> or a
+    /// <c>TUNNEL</c>; then the default of the endpoint's transport. A figure that is not positive states nothing.
+    /// </summary>
+    private static long Stated(FastMediaSorterBroadcastInfo broadcast, FastMediaSorterBroadcastEndpoint? endpoint, bool exchange)
+    {
+        if (endpoint?.TargetLatencyMs is { } own && own > 0)
         {
-            return UnstatedMilliseconds;
+            return own;
         }
 
-        return (uint)Math.Clamp(latency, FloorMilliseconds, ceiling);
+        if (!exchange && broadcast.TargetLatencyMs is { } topLevel && topLevel > 0)
+        {
+            return topLevel;
+        }
+
+        return exchange ? ExchangeUnstatedMilliseconds
+            : endpoint?.Transport?.Equals("RTSP", StringComparison.OrdinalIgnoreCase) == true ? RtspUnstatedMilliseconds
+            : UnstatedMilliseconds;
     }
 
     private static bool IsExchangeTransport(string? transport) =>

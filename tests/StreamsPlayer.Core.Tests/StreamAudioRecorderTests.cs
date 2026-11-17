@@ -65,6 +65,42 @@ public sealed class StreamAudioRecorderTests
         Assert.Null(received.Path);
     }
 
+    // SP-0273: what the record start command waits on - the file, at the first byte; nothing, when none ever came.
+    [Fact]
+    public async Task TheFirstBytesCompleteWithTheFileInTheRequestedFolderOnceTheStationSentAudio()
+    {
+        using var server = OneShotServer.Start("HTTP/1.1 200 OK\r\nContent-Type: audio/mpeg\r\nConnection: close\r\n\r\nID3");
+        var folder = NewFolder();
+        using var log = new CurrentLog(NewFolder());
+        var recorder = StreamAudioRecorder.Start(Channel(server.Url), [folder], log, null);
+
+        var file = await recorder.FirstBytes.WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.NotNull(file);
+        Assert.Equal(folder, recorder.RequestedFolder);
+        Assert.Equal(folder, Path.GetDirectoryName(file), ignoreCase: true);
+        Assert.True(File.Exists(file));
+        var outcome = await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal(file, outcome.Path);
+        Assert.False(outcome.NoSpace);
+    }
+
+    [Fact]
+    public async Task TheFirstBytesCompleteWithNothingWhenTheRecordingEndedBeforeAnyArrived()
+    {
+        using var server = OneShotServer.Start("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n");
+        var folder = NewFolder();
+        using var log = new CurrentLog(NewFolder());
+        var recorder = StreamAudioRecorder.Start(Channel(server.Url), [folder], log, null);
+
+        Assert.Null(await recorder.FirstBytes.WaitAsync(TimeSpan.FromSeconds(10)));
+        var outcome = await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Equal(AudioRecordingEnd.NotConnected, outcome.End);
+        Assert.Null(outcome.Path);
+        Assert.False(outcome.NoSpace);
+    }
+
     private static StreamChannel Channel(Uri url) => new()
     {
         Id = Guid.NewGuid(),

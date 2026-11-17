@@ -371,6 +371,9 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="PlayerPinControlsName">Épingler les commandes de lecture</sys:String>
     <sys:String x:Key="SettingsGeneralBasics">Réglages de base</sys:String>
     <sys:String x:Key="SettingsGeneralView">Apparence du catalogue</sys:String>
+    <sys:String x:Key="SettingsGeneralCommands">Commandes d&apos;autres programmes</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommands">Autoriser d&apos;autres programmes à demander à STREAMS Player de travailler avec mes fichiers, l&apos;écran, le presse-papiers ou le réseau</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommandsHint">Désactivé : les scripts et les autres programmes peuvent afficher et fermer STREAMS Player, lire, mettre en pause, reprendre et arrêter des flux, régler le volume, ajouter un flux et demander l&apos;état. Activé : ils peuvent aussi lister ce qui est lu maintenant et enregistrer dans un dossier qu&apos;ils nomment, ce qui lit ou écrit vos données. Vous seul pouvez le modifier, ici.</sys:String>
     <sys:String x:Key="SettingsGeneralInterface">Interface</sys:String>
     <sys:String x:Key="InterfaceSizeLabel">Taille de l&apos;interface</sys:String>
     <sys:String x:Key="InterfaceSizeHint">Définit la taille du texte, des icônes, des espacements et des zones de clic.</sys:String>
@@ -637,8 +640,8 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="FmsBroadcastAdded">Diffusion en direct importée : {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUpdated">Diffusion en direct mise à jour : {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUnsupportedMode">Ce mode de diffusion n'est pas encore pris en charge. Votre liste n'a pas changé.</sys:String>
-    <sys:String x:Key="FmsBroadcastInvalid">Cette description de diffusion FastMediaSorter n'est pas valide. Votre liste n'a pas changé.</sys:String>
-    <sys:String x:Key="FmsBroadcastTooLarge">Cette description de diffusion dépasse 64 Kio. Votre liste n'a pas changé.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">Ce descripteur de diffusion FastMediaSorter n'est pas valide. Votre liste n'a pas changé.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">Ce descripteur de diffusion dépasse 64 Kio. Votre liste n'a pas changé.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer est occupé par une autre opération. Importez de nouveau la diffusion une fois celle-ci terminée. Votre liste n'a pas changé.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} a déjà atteint le nombre maximal de spectateurs et d'auditeurs. Réessayez quand un autre se déconnecte.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} a cessé de diffuser ou n'est plus joignable sur ce réseau.</sys:String>
@@ -762,6 +765,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="ExchangeTlsRequired">Le serveur n'accepte cela que par une connexion protégée, et celle-ci n'est pas protégée.</sys:String>
     <sys:String x:Key="ExchangeIdCollision">Le serveur connaît déjà un autre appareil sous le numéro de cet appareil. Retirez ce serveur de la liste et ajoutez-le de nouveau.</sys:String>
     <sys:String x:Key="ExchangeStateE2eMissing">Cet appareil ne peut pas encore recevoir de contenu protégé, donc rien ne lui est envoyé par le serveur.</sys:String>
+    <sys:String x:Key="ExchangeStateE2eMissingPeer">L'appareil qui détient ce contenu ne peut pas encore l'envoyer protégé, donc rien de sa part ne passe par le serveur.</sys:String>
     <sys:String x:Key="ExchangeStateKeyChanged">La clé de protection de cet appareil a changé, donc rien ne lui est envoyé. Retirez l’appareil du compte et ajoutez-le de nouveau.</sys:String>
     <sys:String x:Key="ExchangeStateServerNoE2e">Ce serveur ne peut pas acheminer de contenu protégé, donc les dossiers, les diffusions et le presse-papiers ne passent pas par lui.</sys:String>
     <sys:String x:Key="ExchangeStateSealedFailed">Impossible d’ouvrir ceci sur cet appareil. Réessayez depuis l’autre appareil.</sys:String>
@@ -817,8 +821,8 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="ExchangeReplacePrompt">Ce PC est connecté à {0}. Si le nouveau compte est le vôtre ou un compte familial, il remplace cette connexion : les diffusions de ce PC s'arrêtent et il se déconnecte de {0}. Un compte invité est ajouté à côté à la place. Continuer ?</sys:String>
     <sys:String x:Key="ExchangeForgottenOffline">Déconnecté sur cet appareil. Le serveur n'a pas pu être prévenu : cet appareil peut rester dans la liste jusqu'à ce qu'un autre appareil le retire. Aucune nouvelle tentative n'aura lieu.</sys:String>
     <sys:String x:Key="ExchangeReplacementRequired">Confirmez le départ du compte actuel avant d'en rejoindre un autre.</sys:String>
-    <sys:String x:Key="BroadcastCertificateUntrusted">Le serveur de la diffusion présente un certificat que ce PC ne peut pas vérifier, et la description ne fournit aucune empreinte. Demandez une description à jour à la personne qui diffuse.</sys:String>
-    <sys:String x:Key="BroadcastCertificateMismatch">Le certificat du serveur de la diffusion ne correspond pas à l’empreinte de sa description. La lecture a été refusée.</sys:String>
+    <sys:String x:Key="BroadcastCertificateUntrusted">Le serveur de la diffusion présente un certificat que ce PC ne peut pas vérifier, et le descripteur ne fournit aucune empreinte. Demandez un descripteur à jour à la personne qui diffuse.</sys:String>
+    <sys:String x:Key="BroadcastCertificateMismatch">Le certificat du serveur de la diffusion ne correspond pas à l’empreinte de son descripteur. La lecture a été refusée.</sys:String>
     <sys:String x:Key="BroadcastPasswordTitle">Mot de passe de la diffusion</sys:String>
     <sys:String x:Key="BroadcastPasswordPrompt">{0} est protégée. Saisissez le mot de passe que la personne qui diffuse vous a donné.</sys:String>
     <sys:String x:Key="BroadcastPasswordRequired">Cette diffusion demande un mot de passe, et aucun n'est enregistré sur ce PC. Ouvrez-la de nouveau pour saisir le mot de passe.</sys:String>
@@ -892,7 +896,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="BroadcastQrTitle">Code QR de la diffusion</sys:String>
     <sys:String x:Key="BroadcastQrHint">Scannez ce code avec un téléphone pour ouvrir la diffusion. Le code ne contient pas le mot de passe : communiquez-le à part.</sys:String>
     <sys:String x:Key="BroadcastQrImageName">Code QR du lien de la diffusion</sys:String>
-    <sys:String x:Key="BroadcastQrTooLong">La description de cette diffusion est trop longue pour un code QR. Copiez le lien ou enregistrez le fichier.</sys:String>
+    <sys:String x:Key="BroadcastQrTooLong">Le descripteur de cette diffusion est trop long pour un code QR. Copiez le lien ou enregistrez le fichier.</sys:String>
     <sys:String x:Key="BroadcastGuestRefused">Connecté en tant qu’invité, ce PC ne diffuse rien.</sys:String>
     <sys:String x:Key="BroadcastIndicatorLive">Diffusion : {0}</sys:String>
     <sys:String x:Key="BroadcastIndicatorName">Indicateur de diffusion en direct</sys:String>
@@ -902,8 +906,8 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="BroadcastCastUnsupported">L'autre appareil ne peut pas lire ce type de diffusion.</sys:String>
     <sys:String x:Key="BroadcastShareMenu">Partager</sys:String>
     <sys:String x:Key="BroadcastCopyLink">Copier le lien</sys:String>
-    <sys:String x:Key="BroadcastSaveFile">Enregistrer le fichier de description</sys:String>
-    <sys:String x:Key="BroadcastFileFilter">Description de diffusion (*.fmsbcast)|*.fmsbcast</sys:String>
+    <sys:String x:Key="BroadcastSaveFile">Enregistrer le fichier de descripteur</sys:String>
+    <sys:String x:Key="BroadcastFileFilter">Descripteur de diffusion (*.fmsbcast)|*.fmsbcast</sys:String>
     <sys:String x:Key="BroadcastNotAllowed">Autorisez d'abord la diffusion dans les paramètres.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">Trop de diffusions à la fois.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">Cette source est déjà en direct.</sys:String>

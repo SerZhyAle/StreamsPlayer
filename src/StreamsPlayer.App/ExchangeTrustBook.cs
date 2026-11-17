@@ -136,23 +136,20 @@ internal sealed class ExchangeTrustBook(string directory, string fileName = "exc
             // holds that it lacks are added (an observation never replaces a kept key).
             // RRB-4: where the session saw another key than the file holds, the file's key is the older pin and wins, so
             // the next list reports the change instead of this merge hiding it.
+            // RRC-1: one atomic replace, not a forget and an observe - another thread could pin the session's key in between.
             foreach (var id in trust.DeviceIds)
             {
-                if (trust.TrustedDevice(id) is { } point
-                    && current.ObserveDevice(id, point) == ExchangeKeyObservation.KeyChanged)
+                if (trust.TrustedDevice(id) is { } point)
                 {
-                    current.ForgetDevice(id);
-                    current.ObserveDevice(id, point);
+                    current.ReplaceDevice(id, point);
                 }
             }
 
             foreach (var id in (IEnumerable<string>?)data?.Grants?.Keys ?? [])
             {
-                if (trust.TrustedGrant(id) is { } point
-                    && current.ObserveGrant(id, point) == ExchangeKeyObservation.KeyChanged)
+                if (trust.TrustedGrant(id) is { } point)
                 {
-                    current.ForgetGrant(id);
-                    current.ObserveGrant(id, point);
+                    current.ReplaceGrant(id, point);
                 }
             }
         }

@@ -371,6 +371,9 @@
     <sys:String x:Key="PlayerPinControlsName">Fijar los controles de reproducción</sys:String>
     <sys:String x:Key="SettingsGeneralBasics">Ajustes básicos</sys:String>
     <sys:String x:Key="SettingsGeneralView">Aspecto del catálogo</sys:String>
+    <sys:String x:Key="SettingsGeneralCommands">Órdenes de otros programas</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommands">Permitir que otros programas pidan a STREAMS Player trabajar con mis archivos, la pantalla, el portapapeles o la red</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommandsHint">Desactivado: los scripts y otros programas pueden mostrar y cerrar STREAMS Player, reproducir, pausar, reanudar y detener transmisiones, ajustar el volumen, añadir una transmisión y consultar el estado. Activado: también pueden listar lo que suena ahora y grabar en una carpeta que indiquen, lo que lee o escribe sus datos. Solo usted puede cambiarlo, aquí.</sys:String>
     <sys:String x:Key="SettingsGeneralInterface">Interfaz</sys:String>
     <sys:String x:Key="InterfaceSizeLabel">Tamaño de la interfaz</sys:String>
     <sys:String x:Key="InterfaceSizeHint">Define el tamaño del texto, los iconos, los espacios y las áreas de clic.</sys:String>
@@ -637,8 +640,8 @@
     <sys:String x:Key="FmsBroadcastAdded">Emisión en directo importada: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUpdated">Emisión en directo actualizada: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUnsupportedMode">Este modo de emisión todavía no es compatible. Su lista no ha cambiado.</sys:String>
-    <sys:String x:Key="FmsBroadcastInvalid">Esta no es una descripción válida de emisión de FastMediaSorter. Su lista no ha cambiado.</sys:String>
-    <sys:String x:Key="FmsBroadcastTooLarge">Esta descripción de emisión supera 64 KiB. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">Este no es un descriptor de emisión válido de FastMediaSorter. Su lista no ha cambiado.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">Este descriptor de emisión supera 64 KiB. Su lista no ha cambiado.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer está ocupado con otra operación. Importe la emisión de nuevo cuando termine. Su lista no ha cambiado.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} ya tiene el número máximo de espectadores y oyentes. Vuelva a intentarlo cuando otro se desconecte.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} dejó de emitir o ya no está accesible en esta red.</sys:String>
@@ -762,6 +765,7 @@
     <sys:String x:Key="ExchangeTlsRequired">El servidor solo acepta esto a través de una conexión protegida, y esta no está protegida.</sys:String>
     <sys:String x:Key="ExchangeIdCollision">El servidor ya conoce otro dispositivo con el número de este dispositivo. Elimine este servidor de la lista y añádalo de nuevo.</sys:String>
     <sys:String x:Key="ExchangeStateE2eMissing">Este dispositivo aún no puede recibir contenido protegido, por lo que no se le envía nada a través del servidor.</sys:String>
+    <sys:String x:Key="ExchangeStateE2eMissingPeer">El dispositivo que tiene este contenido aún no puede enviarlo protegido, por lo que nada de él llega a través del servidor.</sys:String>
     <sys:String x:Key="ExchangeStateKeyChanged">La clave de protección de este dispositivo ha cambiado, por lo que no se le envía nada. Elimine el dispositivo de la cuenta y añádalo de nuevo.</sys:String>
     <sys:String x:Key="ExchangeStateServerNoE2e">Este servidor no puede transportar contenido protegido, por lo que las carpetas, las difusiones y el portapapeles no pasan por él.</sys:String>
     <sys:String x:Key="ExchangeStateSealedFailed">No se pudo abrir en este dispositivo. Inténtelo de nuevo desde el otro dispositivo.</sys:String>
@@ -817,8 +821,8 @@
     <sys:String x:Key="ExchangeReplacePrompt">Este PC tiene la sesión iniciada en {0}. Si la cuenta nueva es la suya o una cuenta familiar, sustituye esa sesión: las emisiones de este PC terminan y cierra la sesión de {0}. Una cuenta de invitado se añade al lado en su lugar. ¿Continuar?</sys:String>
     <sys:String x:Key="ExchangeForgottenOffline">Sesión cerrada en este dispositivo. No se pudo avisar al servidor, así que el dispositivo puede seguir en la lista hasta que otro dispositivo lo quite. No habrá reintentos.</sys:String>
     <sys:String x:Key="ExchangeReplacementRequired">Confirma la salida de la cuenta actual antes de acceder a otra.</sys:String>
-    <sys:String x:Key="BroadcastCertificateUntrusted">El servidor de la emisión presenta un certificado que este PC no puede verificar y la descripción no incluye una huella. Pida una descripción actualizada a quien emite.</sys:String>
-    <sys:String x:Key="BroadcastCertificateMismatch">El certificado del servidor de la emisión no coincide con la huella de su descripción. Se rechazó la reproducción.</sys:String>
+    <sys:String x:Key="BroadcastCertificateUntrusted">El servidor de la emisión presenta un certificado que este PC no puede verificar y el descriptor no incluye una huella. Pida un descriptor actualizado a quien emite.</sys:String>
+    <sys:String x:Key="BroadcastCertificateMismatch">El certificado del servidor de la emisión no coincide con la huella de su descriptor. Se rechazó la reproducción.</sys:String>
     <sys:String x:Key="BroadcastPasswordTitle">Contraseña de la emisión</sys:String>
     <sys:String x:Key="BroadcastPasswordPrompt">{0} está protegida. Escriba la contraseña que le dio quien emite.</sys:String>
     <sys:String x:Key="BroadcastPasswordRequired">Esta emisión pide una contraseña y en este PC no hay ninguna guardada. Ábrala de nuevo para escribir la contraseña.</sys:String>
@@ -892,7 +896,7 @@
     <sys:String x:Key="BroadcastQrTitle">Código QR de la transmisión</sys:String>
     <sys:String x:Key="BroadcastQrHint">Escanee este código con un teléfono para abrir la transmisión. El código no contiene la contraseña: comuníquela por separado.</sys:String>
     <sys:String x:Key="BroadcastQrImageName">Código QR del enlace de la transmisión</sys:String>
-    <sys:String x:Key="BroadcastQrTooLong">La descripción de esta transmisión es demasiado larga para un código QR. Copie el enlace o guarde el archivo.</sys:String>
+    <sys:String x:Key="BroadcastQrTooLong">El descriptor de esta transmisión es demasiado largo para un código QR. Copie el enlace o guarde el archivo.</sys:String>
     <sys:String x:Key="BroadcastGuestRefused">Con la sesión de invitado, este PC no transmite.</sys:String>
     <sys:String x:Key="BroadcastIndicatorLive">Transmitiendo: {0}</sys:String>
     <sys:String x:Key="BroadcastIndicatorName">Indicador de transmisión en directo</sys:String>
@@ -902,8 +906,8 @@
     <sys:String x:Key="BroadcastCastUnsupported">El otro dispositivo no puede reproducir este tipo de difusión.</sys:String>
     <sys:String x:Key="BroadcastShareMenu">Compartir</sys:String>
     <sys:String x:Key="BroadcastCopyLink">Copiar el enlace</sys:String>
-    <sys:String x:Key="BroadcastSaveFile">Guardar el archivo de descripción</sys:String>
-    <sys:String x:Key="BroadcastFileFilter">Descripción de transmisión (*.fmsbcast)|*.fmsbcast</sys:String>
+    <sys:String x:Key="BroadcastSaveFile">Guardar el archivo de descriptor</sys:String>
+    <sys:String x:Key="BroadcastFileFilter">Descriptor de transmisión (*.fmsbcast)|*.fmsbcast</sys:String>
     <sys:String x:Key="BroadcastNotAllowed">Permita primero la transmisión en la configuración.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">Demasiadas transmisiones a la vez.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">Esta fuente ya está en directo.</sys:String>

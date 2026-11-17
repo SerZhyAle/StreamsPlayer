@@ -16,8 +16,9 @@
                      AutomationProperties.Name="{DynamicResource ExchangeDiagnosisRunning}" />
         <TextBlock x:Name="RunningText" Text="{DynamicResource ExchangeDiagnosisRunning}" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,8" />
         <!-- The plumbing stays behind this control: the address, the code and the steps with their states. -->
-        <Expander x:Name="DetailsExpander" Header="{DynamicResource ExchangeDiagnosisDetails}" Margin="0,4,0,0"
+        <Expander x:Name="DetailsExpander" Style="{StaticResource SettingsGroup}" Margin="0,4,0,0"
                   AutomationProperties.Name="{DynamicResource ExchangeDiagnosisDetails}">
+            <Expander.Header><TextBlock Text="{DynamicResource ExchangeDiagnosisDetails}" TextWrapping="Wrap" /></Expander.Header>
             <StackPanel Margin="0,6,0,0">
                 <TextBlock x:Name="ServerText" TextWrapping="Wrap" FlowDirection="LeftToRight" />
                 <TextBlock x:Name="CodeText" TextWrapping="Wrap" FlowDirection="LeftToRight" Margin="0,2,0,8" />

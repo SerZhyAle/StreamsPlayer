@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `ICON-SET`, `ICON-RENDER`, `ICON-EXTERNAL` |
-| **Version** | 0.36 / 0.24 / 0.12, 2026-10-22 (SP-0232) |
+| **Version** | 0.41 / 0.25 / 0.12 read 2026-11-15 (SP-0278); the vendored map and glyph copies synchronized to the same versions by SP-0280 on 2026-11-15 |
 | **Home** | `Contracts/iconography/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | Consumer |

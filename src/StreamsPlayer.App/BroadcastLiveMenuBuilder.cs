@@ -7,7 +7,7 @@ namespace StreamsPlayer.App;
 
 /// <summary>
 /// The hand-off menus of a live source in the broadcast window (SP-0252 requirement 4): the share items (link, password,
-/// QR code, description file) and the cast targets (the account's receivers whose declared pairs cover one of the
+/// QR code, descriptor file) and the cast targets (the account's receivers whose declared pairs cover one of the
 /// source's endpoints - a receiver that does not is shown as unsupported, never offered). They are the actions the
 /// live indicator's menu had; the window only asks for them where the source's card is.
 /// </summary>

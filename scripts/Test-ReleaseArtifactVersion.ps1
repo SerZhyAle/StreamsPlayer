@@ -82,13 +82,13 @@ try {
 
     # --- accepted ------------------------------------------------------------------------------------------------
     $r = Invoke-Assert @('-Version', $version, '-ExePath', $exe)
-    Check ($r.Exit -eq 0 -and $r.Last -ceq 'release-version: PASS (3 assertions)' -and $r.Text -match 'binary file version 26\.719\.131\.0 ') 'the exe passes and its binary version is the remap 26.719.131.0' $r
+    Check ($r.Exit -eq 0 -and $r.Last -ceq 'release-version: PASS (run=3 skipped=0)' -and $r.Text -match 'binary file version 26\.719\.131\.0 ') 'the exe passes and its binary version is the remap 26.719.131.0' $r
     $r = Invoke-Assert @('-Version', $version, '-ZipPath', $zip)
-    Check ($r.Exit -eq 0 -and $r.Last -ceq 'release-version: PASS (4 assertions)') 'the exe inside the zip passes' $r
+    Check ($r.Exit -eq 0 -and $r.Last -ceq 'release-version: PASS (run=4 skipped=0)') 'the exe inside the zip passes' $r
     $r = Invoke-Assert @('-Version', $version, '-SetupPath', $exe)
-    Check ($r.Exit -eq 0 -and $r.Last -ceq 'release-version: PASS (1 assertions)') 'a setup whose ProductVersion is the version passes' $r
+    Check ($r.Exit -eq 0 -and $r.Last -ceq 'release-version: PASS (run=1 skipped=0)') 'a setup whose ProductVersion is the version passes' $r
     $r = Invoke-Assert @('-Version', $version, '-ExePath', $exe, '-ZipPath', $zip, '-SetupPath', $exe)
-    Check ($r.Exit -eq 0 -and $r.Last -ceq 'release-version: PASS (8 assertions)') 'all three artifacts at once pass' $r
+    Check ($r.Exit -eq 0 -and $r.Last -ceq 'release-version: PASS (run=8 skipped=0)') 'all three artifacts at once pass' $r
     Check (-not @(Get-ChildItem -LiteralPath ([System.IO.Path]::GetTempPath()) -Directory -Filter 'sp0247-readback-*' | Where-Object { $_.FullName -ne $work })) 'the extraction folder is removed afterwards'
 
     # --- refused -------------------------------------------------------------------------------------------------
@@ -120,6 +120,6 @@ catch {
 }
 finally { if (Test-Path -LiteralPath $work) { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue } }
 
-if ($failures.Count -eq 0) { Write-Output "release-artifact-version-tests: PASS ($passed checks)"; exit 0 }
+if ($failures.Count -eq 0) { Write-Output "release-artifact-version-tests: PASS (run=$passed skipped=0)"; exit 0 }
 Write-Output "release-artifact-version-tests: FAIL ($($failures.Count) of $($passed + $failures.Count) checks)"
 exit 1

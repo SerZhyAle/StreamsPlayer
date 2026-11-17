@@ -7,7 +7,8 @@
     <StackPanel Margin="20">
         <TextBlock x:Name="HappenedText" TextWrapping="Wrap" />
         <TextBlock x:Name="TryText" TextWrapping="Wrap" Margin="0,10,0,0" />
-        <Expander Header="{DynamicResource ExchangeDiagnosisDetails}" Margin="0,14,0,0">
+        <Expander Style="{StaticResource SettingsGroup}" Margin="0,14,0,0">
+            <Expander.Header><TextBlock Text="{DynamicResource ExchangeDiagnosisDetails}" TextWrapping="Wrap" /></Expander.Header>
             <TextBlock x:Name="CodeText" TextWrapping="Wrap" />
         </Expander>
         <Button Content="{DynamicResource Close}" Style="{StaticResource CloseAnswerGlyphButton}" IsCancel="True"

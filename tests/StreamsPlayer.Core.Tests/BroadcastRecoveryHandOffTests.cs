@@ -54,6 +54,7 @@ public sealed class BroadcastRecoveryHandOffTests
     [InlineData(ExchangeBroadcastCertificateException.UntrustedWithoutFingerprint)]
     [InlineData("key-changed")]
     [InlineData("e2e-missing")]
+    [InlineData("e2e-missing-peer")]
     [InlineData(ExchangeBroadcastResources.CapacityReason)]
     public void ARefusalNoReconnectCanMendStaysTheVerdictLiveOrNot(string reason)
     {

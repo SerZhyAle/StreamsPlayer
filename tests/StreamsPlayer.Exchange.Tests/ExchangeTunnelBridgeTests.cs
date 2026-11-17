@@ -59,6 +59,28 @@ public sealed class ExchangeTunnelBridgeTests
         }
     }
 
+    // SP-0263 (S3-3): a reset on one side used to leave the other copy waiting out the whole idle timeout.
+    [Fact]
+    public async Task AResetOnOneSideEndsTheBridgeWithoutWaitingForTheIdleTimeout()
+    {
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var accepting = listener.AcceptTcpClientAsync();
+        using var resetPeer = new TcpClient();
+        await resetPeer.ConnectAsync(IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port);
+        using var resetBridged = await accepting;
+        var (otherPeer, otherBridged) = await PairAsync();
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var pump = ExchangeTunnelBridge.PumpAsync(resetBridged.GetStream(), otherBridged, TimeSpan.FromMinutes(10), cancellation.Token);
+
+        resetPeer.Client.LingerState = new LingerOption(true, 0);
+        resetPeer.Close();
+
+        await pump.WaitAsync(TimeSpan.FromSeconds(10));
+        otherPeer.Dispose();
+        otherBridged.Dispose();
+    }
+
     [Fact]
     public async Task ABridgeWithNoTrafficAtAllEndsAtTheTimeout()
     {

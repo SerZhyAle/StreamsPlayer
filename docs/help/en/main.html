@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
 <title>Help - STREAMS Player</title>
 <script>
 (function () {
@@ -156,7 +157,7 @@
         <p>The list is a companion window: it stays open beside the others, there is only one of it, and pressing the button again brings the open one forward.</p>
         <p>A failed incoming video broadcast keeps its window and offers Retry in that window. Details shows the failure code; the message first says what happened and then what to try. Other broadcast windows keep playing.</p>
         <p>A password-protected broadcast asks once before connecting, whether it plays over your local network or through the exchange server. The password is remembered for that channel in the Windows secret store. A wrong password stops playback and is forgotten; open the broadcast again or retry to enter the new one. Reconnecting never opens a password prompt.</p>
-        <p>If a description gives no certificate fingerprint and this PC cannot verify the server, compare the fingerprint with the broadcaster before accepting it. Trust is kept only for that channel. Removing an exchange entry keeps its imported channels with the label not listed.</p>
+        <p>If a descriptor gives no certificate fingerprint and this PC cannot verify the server, compare the fingerprint with the broadcaster before accepting it. Trust is kept only for that channel. Removing an exchange entry keeps its imported channels with the label not listed.</p>
         <p>This button shows only its icon; hover over it to read its name.</p>
         <p>The broadcasts button also appears when you sign in with Google. Announcements from Drive join the same list, grouped by device and marked as coming via Google Drive; duplicates already listed by the exchange server appear once. Closing or minimizing the list stops Drive requests.</p>
         <dl class="facts">
@@ -212,8 +213,8 @@
       <summary><span><span class="name">Paste channel</span><span class="one">Adds a channel that someone sent you as text, from the clipboard.</span></span></summary>
       <div class="full">
         <p>Reads the clipboard and, when it holds a channel shared with <b>Copy share text</b>, asks &quot;Add this channel to your list?&quot; and shows its title and address. Only your yes adds it. The address is taken as written, and nothing is requested from the network at this step.</p>
-        <p>If the channel is already in your list nothing is added: the app takes you to it, or offers to bring it back if you had hidden it. A live-broadcast link or description from another device, and an exchange connection string, are recognised too and handled where they belong.</p>
-        <div class="note"><span class="tag">Tip</span><p>You can also drop a broadcast description file (.fmsbcast or .spres) onto the window to import it.</p></div>
+        <p>If the channel is already in your list nothing is added: the app takes you to it, or offers to bring it back if you had hidden it. A live-broadcast link or descriptor from another device, and an exchange connection string, are recognised too and handled where they belong.</p>
+        <div class="note"><span class="tag">Tip</span><p>You can also drop a broadcast descriptor (.fmsbcast) or a broadcast resource file (.spres) onto the window to import it.</p></div>
       </div>
     </details>
     <details class="el" id="e-op-random">

@@ -55,8 +55,7 @@ public static class M3uPlaylistParser
     /// </summary>
     public static M3uImportPreview Analyze(string text, ISet<string> existingUrls)
     {
-        var lines = text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
-        if (IsHlsManifest(lines))
+        if (IsHlsManifest(LinesOf(text)))
         {
             return new M3uImportPreview(M3uImportStatus.HlsManifest, [], 0, 0, 0, 0);
         }
@@ -72,7 +71,7 @@ public static class M3uPlaylistParser
         var truncated = false;
         string? nextTitle = null;
 
-        foreach (var originalLine in lines)
+        foreach (var originalLine in LinesOf(text))
         {
             var line = originalLine.Trim();
             if (line.StartsWith("#EXTINF:", StringComparison.OrdinalIgnoreCase))
@@ -142,6 +141,20 @@ public static class M3uPlaylistParser
 
         var status = candidateLines == 0 ? M3uImportStatus.Empty : M3uImportStatus.Ok;
         return new M3uImportPreview(status, newEntries, newEntries.Count, duplicate, invalid, skipped, truncated);
+    }
+
+    /// <summary>
+    /// SP-0263 (S12-3): the lines of a body, one at a time. Splitting the whole body into an array before any cap applied
+    /// made a body of one-character lines cost about twenty times its own size in strings; a reader holds one line, and
+    /// breaks on <c>\r\n</c>, <c>\r</c> and <c>\n</c> exactly as the replacement it stands in for did.
+    /// </summary>
+    private static IEnumerable<string> LinesOf(string text)
+    {
+        using var reader = new StringReader(text);
+        while (reader.ReadLine() is { } line)
+        {
+            yield return line;
+        }
     }
 
     /// <summary>

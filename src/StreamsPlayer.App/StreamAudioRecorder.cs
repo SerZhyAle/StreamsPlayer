@@ -25,8 +25,12 @@ internal enum AudioRecordingEnd
     WriteFailed
 }
 
-/// <summary>What a radio recording produced. <see cref="Path"/> is null when nothing was written.</summary>
-internal sealed record AudioRecordingOutcome(AudioRecordingEnd End, string? Path, long Bytes, TimeSpan Length, string? Detail = null);
+/// <summary>
+/// What a radio recording produced. <see cref="Path"/> is null when nothing was written. <see cref="NoSpace"/> (SP-0273) says a
+/// write that failed was the volume being full, which a command answers as exit 13 and not 14.
+/// </summary>
+internal sealed record AudioRecordingOutcome(
+    AudioRecordingEnd End, string? Path, long Bytes, TimeSpan Length, string? Detail = null, bool NoSpace = false);
 
 /// <summary>
 /// SP-0101 / SP-0121: records a radio station by copying its stream to a file. The copy runs on its own connection
@@ -63,6 +67,12 @@ internal sealed class StreamAudioRecorder
     private int _stopRequested;
     private long _bytes;
 
+    // SP-0273: what a command waits on. The file path is published when the file exists; the first-bytes task completes with it
+    // once data was written, or with null when the recording ended without writing any.
+    private readonly TaskCompletionSource<string?> _firstBytes = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private string? _filePath;
+    private int _noSpace;
+
     private StreamAudioRecorder(StreamChannel channel, IReadOnlyList<string> chain, CurrentLog log, Action<string, string>? onRedirected)
     {
         _log = log;
@@ -74,6 +84,18 @@ internal sealed class StreamAudioRecorder
     }
 
     internal DateTimeOffset StartedAt { get; }
+
+    /// <summary>The first folder of the chain this recording was asked to write into (SP-0273: the folder a command named).</summary>
+    internal string RequestedFolder => _chain[0];
+
+    /// <summary>
+    /// SP-0273: completes with the recording's file once the first bytes are in it, or with <see langword="null"/> when the
+    /// recording ended before any arrived (<see cref="Completion"/> then says why).
+    /// </summary>
+    internal Task<string?> FirstBytes => _firstBytes.Task;
+
+    /// <summary>SP-0273: completes with the outcome when the recording ends, however it ends, with no event subscription.</summary>
+    internal Task<AudioRecordingOutcome> Completion => _worker;
 
     /// <summary>
     /// Raised once when the recording ends for any reason but <see cref="StopAsync"/>. Not raised after a stop
@@ -125,7 +147,16 @@ internal sealed class StreamAudioRecorder
 
     private async Task<AudioRecordingOutcome> RecordAsync(string url)
     {
-        var outcome = await CopyAsync(url).ConfigureAwait(false);
+        AudioRecordingOutcome outcome;
+        try
+        {
+            outcome = await CopyAsync(url).ConfigureAwait(false);
+        }
+        finally
+        {
+            _firstBytes.TrySetResult(null); // no-op when bytes were written: the first write already completed it
+        }
+
         _log.Event("AUDIO RECORD END",
             $"end={outcome.End}",
             $"bytes={outcome.Bytes}",
@@ -223,6 +254,7 @@ internal sealed class StreamAudioRecorder
                     return Failed(AudioRecordingEnd.WriteFailed, null, exception);
                 }
 
+                Volatile.Write(ref _filePath, path);
                 _log.Event("AUDIO RECORD FILE", $"format={kind.Extension}", $"content_type={response.Content.Headers.ContentType?.MediaType ?? "none"}", $"path={path}", $"skipped={skipped ?? "none"}");
                 if (skipped is not null)
                 {
@@ -356,10 +388,16 @@ internal sealed class StreamAudioRecorder
         {
             await file.WriteAsync(data).ConfigureAwait(false);
             Interlocked.Add(ref _bytes, data.Length);
+            if (data.Length > 0)
+            {
+                _firstBytes.TrySetResult(Volatile.Read(ref _filePath)); // SP-0273: only the first call completes it
+            }
+
             return true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
+            NoteWriteFailure(exception);
             _log.Event("AUDIO RECORD ERROR", $"err={exception.Message}", $"path={file.Name}");
             return false;
         }
@@ -368,8 +406,18 @@ internal sealed class StreamAudioRecorder
     /// <summary>An outcome caused by an exception: its text goes to the log, only its type into the outcome.</summary>
     private AudioRecordingOutcome Failed(AudioRecordingEnd end, string? path, Exception exception)
     {
+        NoteWriteFailure(exception);
         _log.Event("AUDIO RECORD ERROR", $"end={end}", $"err={exception.Message}");
         return Outcome(end, path, exception.GetType().Name);
+    }
+
+    /// <summary>SP-0273: remembers that a failed write was a full volume, so the outcome can say so (exit 13, not 14).</summary>
+    private void NoteWriteFailure(Exception exception)
+    {
+        if (AppRecordCommands.ClassifyWrite(exception) == AppRecordWriteProblem.NoSpace)
+        {
+            Interlocked.Exchange(ref _noSpace, 1);
+        }
     }
 
     private void TryDeleteEmpty(string path)
@@ -388,7 +436,8 @@ internal sealed class StreamAudioRecorder
     {
         _written.Stop();
         var bytes = Interlocked.Read(ref _bytes);
-        return new AudioRecordingOutcome(end, bytes > 0 ? path : null, bytes, _written.Elapsed, detail);
+        return new AudioRecordingOutcome(end, bytes > 0 ? path : null, bytes, _written.Elapsed, detail,
+            NoSpace: Volatile.Read(ref _noSpace) == 1);
     }
 
     private static async Task<byte[]> ReadHeadAsync(Stream network, CancellationToken token)

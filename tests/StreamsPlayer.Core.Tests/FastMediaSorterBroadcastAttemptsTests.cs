@@ -174,4 +174,88 @@ public sealed class FastMediaSorterBroadcastAttemptsTests
         var attempt = Assert.Single(descriptor.PlaybackAttemptEndpoints());
         Assert.Equal("rtsp://192.168.1.97:8554/live", attempt.Url);
     }
+
+    // SP-0281, LIVE-BROADCAST item W: an endpoint that omits `transport` or `mode`.
+    private static FastMediaSorterBroadcastEndpoint Bare(string url, string? transport = null, string? mode = null,
+        ExchangeEndpointSeal? seal = null) =>
+        new(url, transport, mode, null, null, null, null, null, null, null, null, seal);
+
+    [Fact]
+    public void AnHttpEndpointWithNoTransportAndNoModeTakesTheSchemesTransportAndTheDescriptorsMode()
+    {
+        var audio = Assert.Single(Descriptor("AUDIO_ONLY", Bare("http://192.168.1.97:8768/live-audio.aac"))
+            .PlaybackAttemptEndpoints());
+        Assert.Equal("http://192.168.1.97:8768/live-audio.aac", audio.Url);
+        Assert.Equal("HTTP", audio.Transport);
+        Assert.Equal("AUDIO_ONLY", audio.Mode);
+
+        var video = Assert.Single(Descriptor("VIDEO_AUDIO", Bare("http://192.168.1.97:8768/live.ts"))
+            .PlaybackAttemptEndpoints());
+        Assert.Equal("http://192.168.1.97:8768/live.ts", video.Url);
+        Assert.Equal("HTTP", video.Transport);
+        Assert.Equal("VIDEO_AUDIO", video.Mode);
+    }
+
+    [Fact]
+    public void AnRtspEndpointWithNoTransportOrNoModeIsAnAttemptOfTheDescriptorsMode()
+    {
+        var bare = Assert.Single(Descriptor("VIDEO_ONLY", Bare("rtsp://192.168.1.97:8555/cam")).PlaybackAttemptEndpoints());
+        Assert.Equal("rtsp://192.168.1.97:8555/cam", bare.Url);
+        Assert.Equal("RTSP", bare.Transport);
+        Assert.Equal("VIDEO_ONLY", bare.Mode);
+
+        var declared = Assert.Single(Descriptor("VIDEO_AUDIO", Bare("rtsp://192.168.1.97:8555/cam", "RTSP"))
+            .PlaybackAttemptEndpoints());
+        Assert.Equal("rtsp://192.168.1.97:8555/cam", declared.Url);
+        Assert.Equal("VIDEO_AUDIO", declared.Mode);
+    }
+
+    [Fact]
+    public void AnHttpAudioEndpointWithNoModeInAnAudioDescriptorIsAnAudioAttempt()
+    {
+        var attempt = Assert.Single(Descriptor("AUDIO_ONLY", Bare("http://192.168.1.97:8768/live-audio.aac", "HTTP"))
+            .PlaybackAttemptEndpoints());
+        Assert.Equal("http://192.168.1.97:8768/live-audio.aac", attempt.Url);
+        Assert.Equal("AUDIO_ONLY", attempt.Mode);
+    }
+
+    [Fact]
+    public void AnEndpointWithNoModeIsNeverReadAsAudioInAVideoDescriptor()
+    {
+        // The reader does not supply AUDIO_ONLY of its own: the address then plays as the video shape or not at all.
+        var descriptor = Descriptor("VIDEO_AUDIO", Bare("http://192.168.1.97:8768/live-audio.aac", "HTTP"));
+        Assert.Equal("VIDEO_AUDIO", Assert.Single(descriptor.PlaybackAttemptEndpoints()).Mode);
+        Assert.Equal("rtsp://192.168.1.97:8554/live", descriptor.SelectAudioEndpoint().Url);
+    }
+
+    [Fact]
+    public void AnEndpointWhoseSchemeCannotNameATransportIsSkippedAndTheOthersAreTried()
+    {
+        var descriptor = Descriptor(
+            "AUDIO_ONLY",
+            Bare("fmsx://relay.example.net:44022/b/b1/http"),
+            Bare("https://relay.example.net:44022/v2/b/b1/stream"),
+            Bare("http://192.168.1.97:8768/live-audio.aac", seal: new ExchangeEndpointSeal(1)),
+            Bare("http://192.168.1.97:8768/live-audio.aac", "   "),
+            Bare("http://192.168.1.98:8768/live-audio.aac", "HTTP", "AUDIO_ONLY"));
+
+        // The blank transport is an absent one and reads from the scheme; the sealed one and the two exchange
+        // addresses stay out, since no scheme is a witness of a relay or a tunnel.
+        Assert.Equal(
+            ["http://192.168.1.97:8768/live-audio.aac", "http://192.168.1.98:8768/live-audio.aac"],
+            descriptor.PlaybackAttemptEndpoints().Select(endpoint => endpoint.Url));
+    }
+
+    [Fact]
+    public void ADescriptorWithNoEndpointListIsOneEndpointWhoseTransportIsRtspOrHttp()
+    {
+        var https = new FastMediaSorterBroadcast("https://192.168.1.97:8768/live-audio.aac", "AUDIO_ONLY", "Kitchen",
+            "src-1", true, 1000, []);
+        var attempt = Assert.Single(https.PlaybackAttemptEndpoints());
+        Assert.Equal("HTTP", attempt.Transport);
+        Assert.Equal("AUDIO_ONLY", attempt.Mode);
+
+        var rtsp = new FastMediaSorterBroadcast("rtsp://192.168.1.97:8554/live", "VIDEO_AUDIO", "Cam", "src-2", true, null, []);
+        Assert.Equal("RTSP", Assert.Single(rtsp.PlaybackAttemptEndpoints()).Transport);
+    }
 }

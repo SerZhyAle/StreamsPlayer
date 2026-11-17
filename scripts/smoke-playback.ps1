@@ -32,6 +32,12 @@
       makes a relocated profile an instance of its own - and the owner's session logs are never rotated;
       the gate checks that last point itself and fails if they changed.
 
+  SP-0277: a third round runs the console companion, StreamsPlayerCli.exe, from the same publish folder against a profile
+  of its own (scripts/SmokeCompanionRound.ps1). With nothing running, `commands --json` must parse in a pipeline,
+  `status` must exit 11 and `play --url x` must exit 10; then a bare launch of the player must answer `status` with exit 0
+  and its own pid and relocated profile. It needs no network and no audio device. A red round is a red gate, and a PASS
+  keeps what the round saw in the verdict's `companion` member.
+
   Deliberately NOT part of scripts/check.ps1: that gate must stay offline and deterministic so CI can
   run it. This one needs the network, a desktop session and a working audio device, so it runs on the
   owner's machine before a release - release.ps1 step 4.
@@ -89,6 +95,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
+. (Join-Path $PSScriptRoot 'SmokeCompanionRound.ps1')
 
 function Write-Step([string] $Message) { Write-Host "==> $Message" -ForegroundColor Cyan }
 function Write-Good([string] $Message) { Write-Host "    $Message" -ForegroundColor Green }
@@ -379,6 +386,18 @@ try {
         if (-not $passed) { $failed += [pscustomobject]@{ Round = $round; Attempts = $attempts } }
     }
 
+    # SP-0277: the console companion, from the folder under test, against a profile of its own. Before the owner-logs
+    # check below, so the copy this round launches is covered by it too.
+    Write-Step 'Round: console companion - StreamsPlayerCli.exe beside the application'
+    $companionProfile = Join-Path $profiles 'companion'
+    Reset-Folder $companionProfile
+    $companion = Invoke-CompanionRound -Cli (Join-Path $appDir 'StreamsPlayerCli.exe') -App $AppPath `
+        -ProfileDir $companionProfile -Budget $TimeoutSeconds
+    foreach ($check in $companion.Checks) {
+        if ($check.Ok) { Write-Good "expected: $($check.Expected) | actual: $($check.Actual)" }
+        else { Write-Bad "expected: $($check.Expected) | actual: $($check.Actual)" }
+    }
+
     # SP-0133 acceptance, checked rather than assumed: the owner's session logs are exactly as they were.
     $ownerLogsAfter = Get-OwnerSessionLogs
     $ownerTouched = @(Compare-Object -ReferenceObject @($ownerLogsBefore) -DifferenceObject @($ownerLogsAfter)).Count -gt 0
@@ -388,20 +407,23 @@ try {
     else { Write-Good "expected: the owner's Session-*.log files unchanged | actual: unchanged ($(@($ownerLogsAfter).Count) file(s))" }
 
     Write-Host ''
-    if (-not $failed -and -not $ownerTouched) {
+    if (-not $failed -and -not $ownerTouched -and $companion.Pass) {
         # SP-0156: a PASS becomes the committed release verdict release.yml requires. A failure to record
         # it is a red gate - a PASS nobody can hand to the release is not a release's PASS.
         $skipped = @(if ($SkipVideo) { 'video' }; if ($SkipRecording) { 'recording' })
-        & (Join-Path $PSScriptRoot 'Write-SmokeVerdict.ps1') -AppPath $AppPath -Skipped $skipped
+        & (Join-Path $PSScriptRoot 'Write-SmokeVerdict.ps1') -AppPath $AppPath -Skipped $skipped -Companion $companion.Observed
         $recorded = if ($SkipRecording) { '' } else { ' and recorded' }
         $what = if ($SkipVideo) { 'audio was heard' } else { 'audio was heard and video was shown' }
-        Write-Host "Playback smoke check PASSED - $what$recorded, against an isolated profile." -ForegroundColor Green
+        Write-Host "Playback smoke check PASSED - $what$recorded, and the console companion answered, against isolated profiles." -ForegroundColor Green
         exit 0
     }
 
     foreach ($f in $failed) {
         Write-Bad "expected: $($f.Round.Pass) and a checked recording from at least one source | actual: none ($($f.Round.Stack))"
         $f.Attempts | ForEach-Object { Write-Bad "  $($_.Url) -> $($_.Verdict) $($_.Detail)" }
+    }
+    if (-not $companion.Pass) {
+        Write-Bad "expected: every console companion check green | actual: $(@($companion.Checks | Where-Object { -not $_.Ok } | ForEach-Object Name) -join ', ') failed"
     }
     Write-Host ''
     Write-Host @"
@@ -424,6 +446,13 @@ Cheapest checks first. Each probe's own log is in $profiles\<round>-<n>\Current.
      recording that never finished - look for RECORD FINISH / AUDIO RECORD END in the log.
   6. Nothing at all in the log: confirm the argument form is ``--url <value>``, two arguments - a bare URL
      parses as Invalid and is silently ignored.
+  7. Console companion round (its profile's log is $companionProfile\Current.log): "missing" means the app
+     project did not publish StreamsPlayerCli.exe into its own folder - run scripts/Assert-ConsoleCompanion.ps1
+     on it. A manifest that does not parse or a start verb that exits 0 is the companion itself. "status" 11 for
+     the whole budget with the player alive means a dialog is open or the window never loaded - read the
+     COMMAND and DATA DIRECTORY lines in that log; a pid or profile that is not the launched copy's means the
+     companion reached another copy, so check that both resolve STREAMSPLAYER_DATA_DIRECTORY the same way
+     (AppDataProfile in StreamsPlayer.Core).
 
 Do not release on a red result here. This gate exists because a release already shipped that built
 clean, tested clean, and played nothing.

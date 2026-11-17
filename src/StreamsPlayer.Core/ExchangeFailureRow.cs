@@ -92,6 +92,13 @@ public static class ExchangeFailureRows
     public static readonly ExchangeFailureRow CastUnsupported = new("unsupported", ExchangeFailureKind.Cast,
         null, false, "BroadcastCastUnsupported");
 
+    /// <summary>
+    /// SP-0281 / item DY: a tunnel <c>connect</c> refused with <c>ended</c> - the broadcast ended and its id is not live. Its
+    /// text is the one the ended broadcast already says, so the word the person reads is the same on every path.
+    /// </summary>
+    public static readonly ExchangeFailureRow Ended = new(BroadcastEndAnswers.TunnelEndedReason, ExchangeFailureKind.Wire,
+        null, false, IncomingBroadcastFailure.EndedKey);
+
     /// <summary>"Cannot reach the server": nothing answered at all. Walked from the first step.</summary>
     public static readonly ExchangeFailureRow Unreachable = new("unreachable-server", ExchangeFailureKind.Local,
         ExchangeDiagnosisStep.PcAsleep, true, "ExchangeUnreachable");
@@ -118,7 +125,7 @@ public static class ExchangeFailureRows
         BadCredentials, BadCredentialsCode, DeviceRevoked, SignedOut, VersionUnsupported, TlsRequired, IdCollision,
         Capacity, PortUnavailable, Unavailable, RateLimited, PasswordPolicy, LimitReached, NotPermitted, Refused,
         CastDeclined, CastTimeout, CastUnsupported, Unreachable, Unanswered, TlsFailed, CertificateChanged,
-        EmptyCredential, FormatUnsupported, NotFound, InvalidPayload, AppIdMismatch, VersionIncompatible
+        EmptyCredential, FormatUnsupported, NotFound, InvalidPayload, AppIdMismatch, VersionIncompatible, Ended
     });
 
     /// <summary>The row whose text a status line shows under <paramref name="key"/>; null for a key that is not a failure.</summary>

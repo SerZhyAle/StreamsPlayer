@@ -1,5 +1,5 @@
 {
-  "$comment": "SP-0198 (SITE-REPRESENTATION rules 1 to 3). The facts the site copy states, each with the file a program reads it from, and the surfaces that must list the pillars of POSITIONING.md in its order. tools/site/SiteFacts.ps1 renders the language count and the minimum Windows into the copy decks and checks the rest, including (SP-0247) the language count typed in the README, Store listing and winget prose; build-site.ps1 -Check runs it. A pattern's first capture group is the value.",
+  "$comment": "SP-0198 (SITE-REPRESENTATION rules 1 to 3; SP-0276 adds the command count). The facts the site copy states, each with the file a program reads it from, and the surfaces that must list the pillars of POSITIONING.md in its order. tools/site/SiteFacts.ps1 renders the language count and the minimum Windows into the copy decks and checks the rest, including (SP-0247) the language count typed in the README, Store listing and winget prose; build-site.ps1 -Check runs it. A pattern's first capture group is the value.",
 
   "positioning": {
     "source": "POSITIONING.md",
@@ -37,9 +37,15 @@
 
   "channelProse": ["status-description", "use-description", "distribution-description"],
 
+  "commands": {
+    "$comment": "SP-0276. The number of commands the command line takes, rendered into the decks as [[commands]] and never typed. The source is the manifest of record (APP-COMMANDS rule 18).",
+    "source": "docs/cli-commands.json"
+  },
+
   "renderedKeys": {
     "languages": ["fact-langs", "cap-yours-4"],
-    "windows": ["hero-eyebrow", "fact-windows"]
+    "windows": ["hero-eyebrow", "fact-windows"],
+    "commands": ["cap-yours-9"]
   },
 
   "languageCount": {

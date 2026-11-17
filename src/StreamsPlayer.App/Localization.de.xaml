@@ -371,6 +371,9 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="PlayerPinControlsName">Wiedergabesteuerung anheften</sys:String>
     <sys:String x:Key="SettingsGeneralBasics">Grundeinstellungen</sys:String>
     <sys:String x:Key="SettingsGeneralView">Katalogansicht</sys:String>
+    <sys:String x:Key="SettingsGeneralCommands">Befehle von anderen Programmen</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommands">Anderen Programmen erlauben, STREAMS Player mit meinen Dateien, dem Bildschirm, der Zwischenablage oder dem Netzwerk arbeiten zu lassen</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommandsHint">Aus: Skripte und andere Programme können STREAMS Player anzeigen und schließen, Streams abspielen, pausieren, fortsetzen und stoppen, die Lautstärke einstellen, einen Stream hinzufügen und nach dem Zustand fragen. Ein: Sie dürfen auch auflisten, was gerade läuft, und in einen von ihnen genannten Ordner aufnehmen - das liest oder schreibt Ihre Daten. Nur Sie können das ändern, hier.</sys:String>
     <sys:String x:Key="SettingsGeneralInterface">Oberfläche</sys:String>
     <sys:String x:Key="InterfaceSizeLabel">Größe der Oberfläche</sys:String>
     <sys:String x:Key="InterfaceSizeHint">Legt fest, wie groß Text, Symbole, Abstände und Klickziele sind.</sys:String>
@@ -637,8 +640,8 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="FmsBroadcastAdded">Liveübertragung importiert: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUpdated">Liveübertragung aktualisiert: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUnsupportedMode">Dieser Übertragungsmodus wird noch nicht unterstützt. Ihre Liste wurde nicht geändert.</sys:String>
-    <sys:String x:Key="FmsBroadcastInvalid">Dies ist keine gültige FastMediaSorter-Übertragungsbeschreibung. Ihre Liste wurde nicht geändert.</sys:String>
-    <sys:String x:Key="FmsBroadcastTooLarge">Diese Übertragungsbeschreibung ist größer als 64 KiB. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">Dies ist kein gültiger FastMediaSorter-Übertragungsdeskriptor. Ihre Liste wurde nicht geändert.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">Dieser Übertragungsdeskriptor ist größer als 64 KiB. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer ist mit einem anderen Vorgang beschäftigt. Importieren Sie die Übertragung erneut, sobald der Vorgang abgeschlossen ist. Ihre Liste wurde nicht geändert.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">„{0}“ hat bereits die maximale Anzahl an Zuschauern und Zuhörern. Versuchen Sie es erneut, wenn sich ein anderer abmeldet.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">„{0}“ sendet nicht mehr oder ist in diesem Netzwerk nicht mehr erreichbar.</sys:String>
@@ -762,6 +765,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="ExchangeTlsRequired">Der Server akzeptiert dies nur über eine geschützte Verbindung, und diese Verbindung ist nicht geschützt.</sys:String>
     <sys:String x:Key="ExchangeIdCollision">Der Server kennt unter der Nummer dieses Geräts bereits ein anderes Gerät. Entfernen Sie diesen Server aus der Liste und fügen Sie ihn erneut hinzu.</sys:String>
     <sys:String x:Key="ExchangeStateE2eMissing">Dieses Gerät kann geschützte Inhalte noch nicht empfangen, deshalb wird ihm über den Server nichts gesendet.</sys:String>
+    <sys:String x:Key="ExchangeStateE2eMissingPeer">Das Gerät, auf dem sich dieser Inhalt befindet, kann ihn noch nicht geschützt senden, deshalb kommt über den Server nichts von ihm an.</sys:String>
     <sys:String x:Key="ExchangeStateKeyChanged">Der Schutzschlüssel dieses Geräts hat sich geändert, deshalb wird ihm nichts gesendet. Entfernen Sie das Gerät aus dem Konto und fügen Sie es erneut hinzu.</sys:String>
     <sys:String x:Key="ExchangeStateServerNoE2e">Dieser Server kann geschützte Inhalte nicht weiterleiten, deshalb laufen Ordner, Übertragungen und die Zwischenablage nicht über ihn.</sys:String>
     <sys:String x:Key="ExchangeStateSealedFailed">Das ließ sich auf diesem Gerät nicht öffnen. Versuchen Sie es erneut vom anderen Gerät aus.</sys:String>
@@ -817,8 +821,8 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="ExchangeReplacePrompt">Dieser PC ist bei {0} angemeldet. Ist das neue Konto Ihr eigenes oder ein Familienkonto, ersetzt es diese Anmeldung: Die Übertragungen dieses PCs enden und er meldet sich von {0} ab. Ein Gastkonto wird stattdessen daneben hinzugefügt. Fortfahren?</sys:String>
     <sys:String x:Key="ExchangeForgottenOffline">Auf diesem Gerät abgemeldet. Der Server konnte nicht benachrichtigt werden, daher kann dieses Gerät gelistet bleiben, bis ein anderes Gerät es entfernt. Es folgt kein neuer Versuch.</sys:String>
     <sys:String x:Key="ExchangeReplacementRequired">Bestätigen Sie das Verlassen des aktuellen Kontos, bevor Sie einem anderen beitreten.</sys:String>
-    <sys:String x:Key="BroadcastCertificateUntrusted">Der Server der Übertragung legt ein Zertifikat vor, das dieser PC nicht prüfen kann, und die Beschreibung enthält keinen Fingerabdruck. Bitten Sie den Sender um eine aktualisierte Beschreibung.</sys:String>
-    <sys:String x:Key="BroadcastCertificateMismatch">Das Serverzertifikat der Übertragung stimmt nicht mit dem Fingerabdruck in der Beschreibung überein. Die Wiedergabe wurde abgelehnt.</sys:String>
+    <sys:String x:Key="BroadcastCertificateUntrusted">Der Server der Übertragung legt ein Zertifikat vor, das dieser PC nicht prüfen kann, und der Deskriptor enthält keinen Fingerabdruck. Bitten Sie den Sender um einen aktualisierten Deskriptor.</sys:String>
+    <sys:String x:Key="BroadcastCertificateMismatch">Das Serverzertifikat der Übertragung stimmt nicht mit dem Fingerabdruck im Deskriptor überein. Die Wiedergabe wurde abgelehnt.</sys:String>
     <sys:String x:Key="BroadcastPasswordTitle">Kennwort der Übertragung</sys:String>
     <sys:String x:Key="BroadcastPasswordPrompt">{0} ist geschützt. Geben Sie das Kennwort ein, das Ihnen der Sender gegeben hat.</sys:String>
     <sys:String x:Key="BroadcastPasswordRequired">Diese Übertragung verlangt ein Kennwort, und auf diesem PC ist keins gespeichert. Öffnen Sie sie erneut, um das Kennwort einzugeben.</sys:String>
@@ -892,7 +896,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="BroadcastQrTitle">QR-Code der Übertragung</sys:String>
     <sys:String x:Key="BroadcastQrHint">Scannen Sie diesen Code mit einem Telefon, um die Übertragung zu öffnen. Der Code enthält das Passwort nicht - nennen Sie es getrennt.</sys:String>
     <sys:String x:Key="BroadcastQrImageName">QR-Code des Übertragungslinks</sys:String>
-    <sys:String x:Key="BroadcastQrTooLong">Die Beschreibung dieser Übertragung ist für einen QR-Code zu lang. Kopieren Sie stattdessen den Link oder speichern Sie die Datei.</sys:String>
+    <sys:String x:Key="BroadcastQrTooLong">Der Deskriptor dieser Übertragung ist für einen QR-Code zu lang. Kopieren Sie stattdessen den Link oder speichern Sie die Datei.</sys:String>
     <sys:String x:Key="BroadcastGuestRefused">Als Gast angemeldet, überträgt dieser PC nichts.</sys:String>
     <sys:String x:Key="BroadcastIndicatorLive">Überträgt: {0}</sys:String>
     <sys:String x:Key="BroadcastIndicatorName">Indikator für Live-Übertragung</sys:String>
@@ -902,8 +906,8 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="BroadcastCastUnsupported">Das andere Gerät kann diese Art von Übertragung nicht wiedergeben.</sys:String>
     <sys:String x:Key="BroadcastShareMenu">Teilen</sys:String>
     <sys:String x:Key="BroadcastCopyLink">Link kopieren</sys:String>
-    <sys:String x:Key="BroadcastSaveFile">Beschreibungsdatei speichern</sys:String>
-    <sys:String x:Key="BroadcastFileFilter">Übertragungsbeschreibung (*.fmsbcast)|*.fmsbcast</sys:String>
+    <sys:String x:Key="BroadcastSaveFile">Deskriptordatei speichern</sys:String>
+    <sys:String x:Key="BroadcastFileFilter">Übertragungsdeskriptor (*.fmsbcast)|*.fmsbcast</sys:String>
     <sys:String x:Key="BroadcastNotAllowed">Erlauben Sie das Übertragen zuerst in den Einstellungen.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">Zu viele Übertragungen gleichzeitig.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">Diese Quelle ist bereits live.</sys:String>

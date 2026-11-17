@@ -115,6 +115,31 @@
              CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- SP-0271 (APP-COMMANDS C1): the manifest's source, read as a file and compared with the copy Core embeds. -->
+  <ItemGroup>
+    <Content Include="..\..\docs\cli-commands.json" Link="docs\cli-commands.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    SP-0275: the console companion of the command line. Its project file and sources, the application project that
+    publishes it, the gate script and the local build script that run the payload check - all read as text, on the same
+    terms as the sources above: never loaded or compiled here, and no project reference to the companion.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\src\StreamsPlayer.Cli\*.cs;..\..\src\StreamsPlayer.Cli\*.csproj"
+             Link="cli-source\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\src\StreamsPlayer.App\StreamsPlayer.App.csproj"
+             Link="app-source\StreamsPlayer.App.csproj"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\scripts\Assert-ConsoleCompanion.ps1"
+             Link="scripts\Assert-ConsoleCompanion.ps1"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\build.ps1"
+             Link="build.ps1"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <!--
     SP-0105: the INSTALL-TRUST page is generated from a template and thirteen copy decks. The generator's
     own -Check runs in CI (the "Site sync check" step of ci.yml) but only proves that docs/ matches the
@@ -263,6 +288,8 @@
     <Content Include="Vectors\user-playlist\*" CopyToOutputDirectory="PreserveNewest" />
     <!-- SP-0260: the settings standard samples (DEVICE-EXCHANGE 1.12 items EN to ER). -->
     <Content Include="Vectors\settings-standard-v1\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- SP-0285: the DEVICE-EXCHANGE Drive corpora (records-v1, sections 6 and 8.1, rung 1; drive-packets-v1, section 24, rung 3). -->
+    <Content Include="Vectors\drive-v1\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

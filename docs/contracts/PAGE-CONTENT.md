@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `PAGE-CONTENT`, `PAGE-STYLE`, `SITE-FAMILY-MAP` |
-| **Version** | 1.5 / 3.4 / 1.9, 2026-10-22 (SP-0232) |
+| **Version** | 1.5 / 3.10 / 1.12, 2026-11-15 (SP-0278) |
 | **Home** | `Contracts/product-web-pages/README.md` |
 | **Owner** | sza.od.ua hub |
 | **This product's role** | Consumer: generated site and offline help |

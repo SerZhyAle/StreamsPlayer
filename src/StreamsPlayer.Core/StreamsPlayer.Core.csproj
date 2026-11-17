@@ -47,6 +47,13 @@
     <EmbeddedResource Include="..\..\help\help-map.json" LogicalName="help-map.json" />
   </ItemGroup>
 
+  <!-- SP-0271: the command manifest of APP-COMMANDS rule 18. docs/cli-commands.json is its one source of truth; it is
+       embedded so the json form of `commands` prints the shipped bytes and both processes parse against the same
+       declarations. An XML comment cannot contain a double hyphen, so the flag is spelled out here in words. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\docs\cli-commands.json" LogicalName="cli-commands.json" />
+  </ItemGroup>
+
   <Target Name="RequireBundledCatalogSnapshot" BeforeTargets="BeforeBuild"
           Condition="'$(AllowMissingCatalogSnapshot)' != 'true' And !Exists('$(BundledCatalogSnapshotPath)')">
     <!-- The generator reads its contract from a built StreamsPlayer.Core, so regenerating from a tree

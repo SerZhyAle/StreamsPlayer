@@ -8,6 +8,9 @@
                     and the pillars of POSITIONING.md agree with their sources (SITE-REPRESENTATION rules 1 to 3, SP-0198)
       help-build    tools/help/build-help.ps1 -Check - docs/help matches the help map, the copy and the dictionaries
                     (CONTEXT-HELP rule 12, the pages are a render target; SP-0230)
+      cli-docs      tools/Build-CliDoc.ps1 -Check - docs/CLI.md is what docs/cli-commands.json renders and the manifest carries every
+                    member of APP-COMMANDS rule 18 (SP-0276; also in check-fast.ps1)
+      cli-docs-test tools/Test-CliDoc.ps1 - the generator and its member gate's own fixtures (SP-0276; also in check-fast.ps1)
       help          scripts/check-help.ps1 - the generated help pages hold CONTEXT-HELP's anatomy, language, no-request
                     and link rules in every authored locale; the windows against the map, the baseline and the anchors
                     are HelpGateTests in `tests` (SP-0230)
@@ -84,6 +87,10 @@ try {
     $results['test-results-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'scripts/check-docs.ps1')
     $results['docs-quality'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'tools/Build-CliDoc.ps1') -Check
+    $results['cli-docs'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'tools/Test-CliDoc.ps1')
+    $results['cli-docs-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'tools/site/build-site.ps1') -Check
     $results['site-sync'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'tools/help/build-help.ps1') -Check

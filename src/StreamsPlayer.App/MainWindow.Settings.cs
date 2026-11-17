@@ -134,6 +134,16 @@ public partial class MainWindow
         }
     }
 
+    /// <summary>
+    /// SP-0271, <c>APP-COMMANDS</c> rule 13: the person's one switch for commands above risk <c>safe</c>. Only this
+    /// Settings row changes it; no command does.
+    /// </summary>
+    internal async Task ApplyAcceptsRestrictedCommandsFromSettingsAsync(bool accepts)
+    {
+        await PersistAsync(state => state with { AcceptsRestrictedCommands = accepts });
+        _log.Event("COMMANDS SETTING", $"accepts_restricted={accepts}");
+    }
+
     internal async Task ApplyKeepAwakeFromSettingsAsync(bool keepAwake)
     {
         await PersistAsync(state => state with { KeepAwakeDuringPlayback = keepAwake });

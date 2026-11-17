@@ -138,6 +138,36 @@ public sealed class ExchangeBroadcastKeysTests
     }
 
     [Fact]
+    public void AnUnsealedPeerEndpointSaysE2eMissingPeerOnlyWhenThisDeviceHoldsItsOwnListedKey()
+    {
+        // Item FB: `e2e-missing-peer` needs this device's own key and its own listed record carrying `e2eKey`; it is
+        // written by the application from a directory frame, and the cases below are the whole decision.
+        var relay = Endpoint(RelayUrl, "RELAY", null);
+        var tunnel = Endpoint(TunnelUrl, "TUNNEL", null, "http://192.0.2.1:8554/x");
+        var unknownSeal = Endpoint(RelayUrl, "RELAY", new ExchangeEndpointSeal(2));
+        try
+        {
+            ExchangeBroadcastKeys.OwnKeyListed = false;
+            Assert.True(ExchangeBroadcastKeys.Decide(relay) is { Allowed: false, State: ExchangeSealedState.E2eMissing });
+            Assert.True(ExchangeBroadcastKeys.Decide(tunnel) is { Allowed: false, State: ExchangeSealedState.E2eMissing });
+
+            ExchangeBroadcastKeys.OwnKeyListed = true;
+            var refused = ExchangeBroadcastKeys.Decide(relay);
+            Assert.True(refused is { Allowed: false, State: ExchangeSealedState.E2eMissingPeer });
+            Assert.Equal("e2e-missing-peer", refused.Reason);
+            Assert.True(ExchangeBroadcastKeys.Decide(tunnel) is { Allowed: false, State: ExchangeSealedState.E2eMissingPeer });
+            // A seal this reader does not know is not "the peer has no key": it cannot tell, so it says `e2e-missing`.
+            Assert.True(ExchangeBroadcastKeys.Decide(unknownSeal) is { Allowed: false, State: ExchangeSealedState.E2eMissing });
+            // A LAN endpoint is never judged, whatever this device knows about its key.
+            Assert.True(ExchangeBroadcastKeys.Decide(Endpoint("http://192.168.1.5:8554/live-audio.aac", "HTTP", null)) is { Allowed: true });
+        }
+        finally
+        {
+            ExchangeBroadcastKeys.OwnKeyListed = false;
+        }
+    }
+
+    [Fact]
     public void ASealedRelayNeedsItsKey_FromTheBoxOrFromTheLinkItself()
     {
         var sealedEndpoint = Endpoint(RelayUrl, "RELAY", new ExchangeEndpointSeal(1));

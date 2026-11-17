@@ -172,5 +172,5 @@ if ($failures.Count) {
     Write-Output "held-addresses: FAIL ($($failures.Count) of $($passed + $failures.Count))"
     exit 1
 }
-Write-Output "held-addresses: PASS ($passed checks)"
+Write-Output "held-addresses: PASS (run=$passed skipped=0)"
 exit 0

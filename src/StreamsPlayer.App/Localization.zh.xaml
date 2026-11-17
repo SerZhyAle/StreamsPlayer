@@ -371,6 +371,9 @@
     <sys:String x:Key="PlayerPinControlsName">固定播放控件</sys:String>
     <sys:String x:Key="SettingsGeneralBasics">基本设置</sys:String>
     <sys:String x:Key="SettingsGeneralView">目录外观</sys:String>
+    <sys:String x:Key="SettingsGeneralCommands">来自其他程序的命令</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommands">允许其他程序请求 STREAMS Player 使用我的文件、屏幕、剪贴板或网络</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommandsHint">关闭：脚本和其他程序可以显示和关闭 STREAMS Player、播放、暂停、继续和停止流、调节音量、添加流并查询其状态。开启：它们还可以列出当前正在播放的内容，并录制到它们指定的文件夹，这会读取或写入你的数据。只有你可以在这里更改此设置。</sys:String>
     <sys:String x:Key="SettingsGeneralInterface">界面</sys:String>
     <sys:String x:Key="InterfaceSizeLabel">界面大小</sys:String>
     <sys:String x:Key="InterfaceSizeHint">设置文字、图标、间距和点击区域的大小。</sys:String>
@@ -637,8 +640,8 @@
     <sys:String x:Key="FmsBroadcastAdded">已导入直播：{0}。</sys:String>
     <sys:String x:Key="FmsBroadcastUpdated">已更新直播：{0}。</sys:String>
     <sys:String x:Key="FmsBroadcastUnsupportedMode">尚不支持此直播模式。您的列表未更改。</sys:String>
-    <sys:String x:Key="FmsBroadcastInvalid">这不是有效的 FastMediaSorter 直播描述。您的列表未更改。</sys:String>
-    <sys:String x:Key="FmsBroadcastTooLarge">此直播描述大于 64 KiB。您的列表未更改。</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">这不是有效的 FastMediaSorter 直播描述符。您的列表未更改。</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">此直播描述符大于 64 KiB。您的列表未更改。</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer 正在执行另一项操作。请在操作完成后再次导入此直播。您的列表未更改。</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} 的观众和听众人数已达上限。请在其他人断开后重试。</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} 已停止直播，或在此网络中无法访问。</sys:String>
@@ -762,6 +765,7 @@
     <sys:String x:Key="ExchangeTlsRequired">服务器只在受保护的连接上接受此操作，而当前连接未受保护。</sys:String>
     <sys:String x:Key="ExchangeIdCollision">服务器上已有另一台设备使用了此设备的编号。请从列表中移除此服务器，然后重新添加。</sys:String>
     <sys:String x:Key="ExchangeStateE2eMissing">此设备目前还无法接收受保护的内容，因此不会通过服务器向它发送任何内容。</sys:String>
+    <sys:String x:Key="ExchangeStateE2eMissingPeer">拥有此内容的设备目前还无法以受保护的方式发送它，因此不会有任何内容通过服务器从它传来。</sys:String>
     <sys:String x:Key="ExchangeStateKeyChanged">此设备的保护密钥已更改，因此不会向它发送任何内容。请从账户中移除该设备，然后重新添加。</sys:String>
     <sys:String x:Key="ExchangeStateServerNoE2e">此服务器无法传输受保护的内容，因此文件夹、广播和剪贴板不会经由它传递。</sys:String>
     <sys:String x:Key="ExchangeStateSealedFailed">无法在此设备上打开。请从另一台设备重试。</sys:String>
@@ -817,8 +821,8 @@
     <sys:String x:Key="ExchangeReplacePrompt">此电脑已登录 {0}。如果新账户是你自己的或家庭账户，它会替换该登录：此电脑的广播会结束，并退出 {0}。如果是访客账户，则会改为添加在旁边。是否继续？</sys:String>
     <sys:String x:Key="ExchangeForgottenOffline">已在此设备上退出登录。未能通知服务器，因此在其他设备将其移除之前，此设备可能仍显示在列表中。不会重试。</sys:String>
     <sys:String x:Key="ExchangeReplacementRequired">加入其他账户之前，请确认退出当前账户。</sys:String>
-    <sys:String x:Key="BroadcastCertificateUntrusted">广播服务器提供的证书无法由此电脑验证，且描述中没有指纹。请向广播者索取更新后的描述。</sys:String>
-    <sys:String x:Key="BroadcastCertificateMismatch">广播服务器的证书与描述中的指纹不匹配。已拒绝播放。</sys:String>
+    <sys:String x:Key="BroadcastCertificateUntrusted">广播服务器提供的证书无法由此电脑验证，且描述符中没有指纹。请向广播者索取更新后的描述符。</sys:String>
+    <sys:String x:Key="BroadcastCertificateMismatch">广播服务器的证书与描述符中的指纹不匹配。已拒绝播放。</sys:String>
     <sys:String x:Key="BroadcastPasswordTitle">直播密码</sys:String>
     <sys:String x:Key="BroadcastPasswordPrompt">{0} 受密码保护。请输入直播者提供给您的密码。</sys:String>
     <sys:String x:Key="BroadcastPasswordRequired">此直播需要密码，但此电脑上未保存任何密码。请重新打开以输入密码。</sys:String>
@@ -892,7 +896,7 @@
     <sys:String x:Key="BroadcastQrTitle">广播二维码</sys:String>
     <sys:String x:Key="BroadcastQrHint">用手机扫描此二维码即可打开广播。二维码不含密码 - 请另行告知。</sys:String>
     <sys:String x:Key="BroadcastQrImageName">广播链接的二维码</sys:String>
-    <sys:String x:Key="BroadcastQrTooLong">此广播的描述太长，无法放入二维码。请改为复制链接或保存文件。</sys:String>
+    <sys:String x:Key="BroadcastQrTooLong">此广播的描述符太长，无法放入二维码。请改为复制链接或保存文件。</sys:String>
     <sys:String x:Key="BroadcastGuestRefused">以访客身份登录时，此电脑不进行广播。</sys:String>
     <sys:String x:Key="BroadcastIndicatorLive">正在广播：{0}</sys:String>
     <sys:String x:Key="BroadcastIndicatorName">实时广播指示器</sys:String>
@@ -902,8 +906,8 @@
     <sys:String x:Key="BroadcastCastUnsupported">另一台设备无法播放这种广播。</sys:String>
     <sys:String x:Key="BroadcastShareMenu">分享</sys:String>
     <sys:String x:Key="BroadcastCopyLink">复制链接</sys:String>
-    <sys:String x:Key="BroadcastSaveFile">保存描述文件</sys:String>
-    <sys:String x:Key="BroadcastFileFilter">广播描述 (*.fmsbcast)|*.fmsbcast</sys:String>
+    <sys:String x:Key="BroadcastSaveFile">保存描述符文件</sys:String>
+    <sys:String x:Key="BroadcastFileFilter">广播描述符 (*.fmsbcast)|*.fmsbcast</sys:String>
     <sys:String x:Key="BroadcastNotAllowed">请先在设置中允许广播。</sys:String>
     <sys:String x:Key="BroadcastTooManySources">同时广播太多。</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">此源已在直播。</sys:String>

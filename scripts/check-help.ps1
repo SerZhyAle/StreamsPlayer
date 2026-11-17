@@ -19,11 +19,16 @@
                  a page the index does not link fails, so a page nobody reaches cannot ship
       requests   a page makes none (rule 12): the referrer is withheld; nothing but an anchor leads to
                  another origin; no web font, script source, @import or url()
+      search     a page carries <meta name="robots" content="noindex"> (item G: help pages are built for the
+                 application and stay out of the corpus; they are not in the sitemap and robots.txt does not block them)
       links      every relative link and style sheet resolves; every #anchor names an id of its target; a
                  link between pages never leaves the locale; an address of the product site resolves against
                  docs/ (offline), and no other address appears
       assets     sza-kit.css beside the pages is byte-identical to docs/assets/sza-kit.css and help.css to
                  help/templates/help.css
+      baseline   help/help-baseline.txt holds no line that its copy at HEAD does not (CHECK-BASELINE item B); a
+                 line the working file added is named. Without git, a commit or a committed copy the comparison is
+                 skipped and the verdict line says "baseline not compared with HEAD"
 
     Exit code (CHECK-VERDICT): 0 pass, 1 a defect, 2 could not verify. The last line is the verdict.
 #>
@@ -80,6 +85,27 @@ $baselineFile = Join-Path $Root 'help/help-baseline.txt'
 $baseline = if (Test-Path -LiteralPath $baselineFile) {
     @(Get-Content -LiteralPath $baselineFile -Encoding utf8 | Where-Object { $_.Trim() -and -not $_.TrimStart().StartsWith('#') })
 } else { @() }
+# CHECK-BASELINE item B: rule 4 binds a set whether or not a tool rewrites it, so a line the working file holds and the
+# copy at HEAD does not is a rise, fails the run and is named. The comparison needs git, a commit and a committed copy;
+# without one it is skipped and the verdict line says so (a fixture tree or a source archive has none), never a silent pass.
+function Get-CommittedBaseline {
+    if (-not (Get-Command git -CommandType Application -ErrorAction SilentlyContinue)) { return $null }
+    $committed = @(& git -C $Root show 'HEAD:./help/help-baseline.txt' 2>$null)
+    if ($LASTEXITCODE -ne 0) { return $null }
+    return @($committed | Where-Object { $_.Trim() -and -not $_.TrimStart().StartsWith('#') })
+}
+$committedBaseline = Get-CommittedBaseline
+$baselineNote = 'baseline not compared with HEAD, no committed copy'
+if ($null -ne $committedBaseline) {
+    $baselineNote = 'baseline held against HEAD'
+    $known = [System.Collections.Generic.HashSet[string]]::new([string[]] $committedBaseline, [StringComparer]::Ordinal)
+    $added = @($baseline | Where-Object { -not $known.Contains($_) })
+    if ($added.Count) {
+        Fail ("baseline: help/help-baseline.txt gained $($added.Count) line(s) that the copy at HEAD does not hold: " + ($added -join '; ') +
+            ' - a baseline may only fall (CHECK-BASELINE rule 2). Accepting new debt is a deliberate act: commit the line with its reason in the message' +
+            ' or in a # comment beside it, and the next run passes (rule 6)')
+    }
+}
 $unwritten = @($baseline | Where-Object { $_ -match '^page (\S+)$' } | ForEach-Object { $Matches[1] })
 $noPicture = @($baseline | Where-Object { $_ -match '^shot (\S+)$' } | ForEach-Object { $Matches[1] })
 
@@ -125,6 +151,7 @@ foreach ($locale in $locales) {
         $direction = if ($rightToLeft -contains $locale) { 'rtl' } else { 'ltr' }
         if ($html -notmatch ('<html lang="' + $locale + '" dir="' + $direction + '">')) { Fail "anatomy: $where has the wrong lang or dir" }
         if ($html -notmatch '<meta name="referrer" content="no-referrer">') { Fail "requests: $where does not withhold the referrer (rule 12)" }
+        if ($html -notmatch '<meta name="robots" content="noindex">') { Fail "search: $where carries no noindex (CONTEXT-HELP item G, DOC-EXTERNAL-QUALITY item O)" }
         if ($markup -match '<(?!a )[^>]*\b(src|href)="https?:') { Fail "requests: $where loads something from another origin (rule 12)" }
         if ($markup -match '@import|url\(' -or $html -match '<script[^>]*\bsrc=' -or $html -match 'fonts\.googleapis') { Fail "requests: $where imports a style, a script or a font (rule 12)" }
         if ($html -match '<img\b(?![^>]*\balt=)') { Fail "anatomy: $where has a picture with no alt text" }
@@ -190,7 +217,7 @@ foreach ($locale in $locales) {
 }
 
 foreach ($failure in $failures) { Write-Host "  FAIL  $failure" }
-$summary = "$pageCount pages in $($locales.Count) locales, $(@($map.surfaces).Count) surfaces, $linkCount links, $(@($baseline).Count) baseline lines"
+$summary = "$pageCount pages in $($locales.Count) locales, $(@($map.surfaces).Count) surfaces, $linkCount links, $(@($baseline).Count) baseline lines, $baselineNote"
 if ($failures.Count) {
     Write-Host "help: FAIL ($($failures.Count) problem(s); $summary)"
     exit 1

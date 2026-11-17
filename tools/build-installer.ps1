@@ -125,6 +125,11 @@ if (-not (Test-Path -LiteralPath $notices)) {
 Write-Host "Asserting the pinned natives in $SourceDir .."
 & (Join-Path $root 'scripts/Assert-PinnedNatives.ps1') -Folder $SourceDir -ProjectPath (Join-Path $root 'src/StreamsPlayer.App/StreamsPlayer.App.csproj')
 
+# SP-0275: the installer's recursive [Files] line carries whatever the staging tree holds, so the console companion
+# (published beside the player by the application project) is installed too; prove it is there and still a console program.
+Write-Host "Asserting the console companion in $SourceDir .."
+& (Join-Path $root 'scripts/Assert-ConsoleCompanion.ps1') -Folder $SourceDir
+
 # ---- compile ----------------------------------------------------------------------------------
 
 $sourceAbs = (Resolve-Path -LiteralPath $SourceDir).Path

@@ -281,6 +281,20 @@ public sealed class HelpGateTests
     }
 
     [Fact]
+    public void K_a_help_glyph_button_never_carries_a_help_anchor()
+    {
+        // CONTEXT-HELP 0.4 item K: the help button is the way to a window's page, not an entry of its own, so an anchor on
+        // it would name a control whose only job is to open the page.
+        var offenders = AppSourceFile.LoadAll("*.xaml")
+            .SelectMany(file => Regex.Matches(file.Text, @"<[A-Za-z][^<>]*HelpGlyphButton[^<>]*>")
+                .Where(tag => tag.Value.Contains("HelpAnchor.Id", StringComparison.Ordinal))
+                .Select(tag => $"{file.Name}: {tag.Value}"))
+            .ToList();
+
+        Assert.Empty(offenders);
+    }
+
+    [Fact]
     public void F1_is_the_help_commands_gesture_registered_once_for_windows_and_never_system_wide()
     {
         var sources = AppSourceFile.LoadAll("*.cs");

@@ -1,11 +1,12 @@
 <#
     SP-0198 (SITE-REPRESENTATION rules 1 to 3): the facts the site copy states, typed once in their source.
 
-    The declaration is tools/site/site-facts.json. Two facts are rendered into the copy decks as inline
+    The declaration is tools/site/site-facts.json. Three facts are rendered into the copy decks as inline
     placeholders, so no deck types them:
 
       [[languages]]  how many interface languages ship        - the InterfaceLanguages registry (Core)
       [[windows]]    the minimum Windows, as the site names it - SupportedOSPlatformVersion of the App project
+      [[commands]]   how many commands the command line takes (SP-0276) - the manifest docs/cli-commands.json
 
     The channels are not a number the page states. The cards and the prose lists name them, and the gate holds those
     to the declared list.
@@ -86,10 +87,29 @@ function Get-SiteFactValue {
 
     $config = Read-SiteFactConfig -Root $Root
     $minimum = Get-SiteFactSourceValue -Root $Root -Rule $config.minimumWindows.source
+    # The command count is a fact only when site-facts.json declares its source (SP-0276); a declaration without one renders none.
+    $commandsRule = Get-SiteFactProp $config 'commands'
+    $commands = if ($commandsRule) { Get-SiteFactCommandCount -Root $Root -Rule $commandsRule } else { $null }
     return [pscustomobject]@{
         Languages = $LanguageCount
         Windows   = Get-MinimumWindowsLabel -Version $minimum
+        Commands  = $commands
     }
+}
+
+function Get-SiteFactCommandCount {
+    # How many commands the manifest declares. Throws a sentence a person can act on.
+    param([Parameter(Mandatory)] [string] $Root, [Parameter(Mandatory)] $Rule)
+
+    $relative = [string] $Rule.source
+    $path = Join-Path $Root $relative
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "$relative does not exist." }
+    try { $manifest = [System.IO.File]::ReadAllText($path) | ConvertFrom-Json }
+    catch { throw "$relative is not valid JSON: $($_.Exception.Message)" }
+    $commands = Get-SiteFactProp $manifest 'commands'
+    $count = if ($null -eq $commands) { 0 } else { @($commands).Count }
+    if ($count -lt 1) { throw "$relative declares no commands." }
+    return $count
 }
 
 function Read-PositioningPillar {
@@ -263,8 +283,12 @@ function Get-SiteFactProblem {
     }
 
     # ----- rendered: a fact is a placeholder, never a number ---------------------------------------------
-    foreach ($fact in 'languages', 'windows') {
-        foreach ($key in @($config.renderedKeys.$fact)) {
+    $commandsRule = Get-SiteFactProp $config 'commands'
+    if ($commandsRule) {
+        try { [void] (Get-SiteFactCommandCount -Root $Root -Rule $commandsRule) } catch { $problems.Add("commands: $($_.Exception.Message)") }
+    }
+    foreach ($fact in 'languages', 'windows', 'commands') {
+        foreach ($key in @(Get-SiteFactProp $config.renderedKeys $fact | Where-Object { $_ })) {
             $typed = [System.Collections.Generic.List[string]]::new()
             foreach ($code in $Deck.Keys) {
                 if (-not $Deck[$code].Contains($key)) { $problems.Add("[$code] $key is missing."); continue }
@@ -275,7 +299,7 @@ function Get-SiteFactProblem {
     }
     foreach ($code in $Deck.Keys) {
         foreach ($key in @($Deck[$code].Keys | Where-Object { $_ -like 'title-*' -or $_ -like 'description-*' })) {
-            if ($Deck[$code][$key] -match '\[\[(languages|windows)\]\]') {
+            if ($Deck[$code][$key] -match '\[\[(languages|windows|commands)\]\]') {
                 $problems.Add("[$code] $key carries a fact placeholder, but the structured data reads it raw - state the fact in the page, not the title.")
             }
         }

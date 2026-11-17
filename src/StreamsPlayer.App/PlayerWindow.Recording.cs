@@ -43,21 +43,44 @@ public partial class PlayerWindow
     private void RecordButton_Click(object sender, RoutedEventArgs e) =>
         HandlerBoundary.Run(nameof(RecordButton_Click), ToggleRecordingAsync);
 
-    private Task ToggleRecordingAsync() => _recordingSession is null
-        ? StartRecordingSessionAsync()
-        : EndRecordingSessionAsync(RecordingEnd.User);
-
-    private async Task StartRecordingSessionAsync()
+    private async Task ToggleRecordingAsync()
     {
-        if (_recordingBusy || _closing || _failureShown || !_reachedLive || _backend.RecordUnavailableReason is not null)
+        if (_recordingSession is null)
         {
-            return;
+            await StartRecordingSessionAsync();
+        }
+        else
+        {
+            await EndRecordingSessionAsync(RecordingEnd.User);
+        }
+    }
+
+    private Task StartRecordingSessionAsync() => TryStartRecordingSessionAsync(null);
+
+    /// <summary>
+    /// Starts a recording session and says what became of the start. The Record button and the keyboard ignore the answer
+    /// (their notices are the toasts); the <c>record start</c> command (SP-0273) answers with it.
+    /// </summary>
+    /// <param name="chainOverride">
+    /// The chain a command hands over - exactly the folder the caller named, with no fallback. Null for the Record button,
+    /// which reads the settings chain.
+    /// </param>
+    private async Task<PlayerRecordingStart> TryStartRecordingSessionAsync(IReadOnlyList<string>? chainOverride)
+    {
+        if (_backend.RecordUnavailableReason is not null)
+        {
+            return PlayerRecordingStart.Unavailable;
+        }
+
+        if (_recordingBusy || _closing || _failureShown || !_reachedLive)
+        {
+            return _recordingBusy ? PlayerRecordingStart.Busy : PlayerRecordingStart.NotLive;
         }
 
         // SP-0179: the smoke gate's folder is a chain of one - its check reads the file from exactly there.
-        IReadOnlyList<string> chain = SmokeRecording.Folder is { } smokeFolder && _smokeRecordingActive
+        IReadOnlyList<string> chain = chainOverride ?? (SmokeRecording.Folder is { } smokeFolder && _smokeRecordingActive
             ? new[] { smokeFolder }
-            : CaptureFolders.Chain(CaptureKind.StreamVideo, _captureFolder(CaptureKind.StreamVideo));
+            : CaptureFolders.Chain(CaptureKind.StreamVideo, _captureFolder(CaptureKind.StreamVideo)));
         _recordingBusy = true;
         try
         {
@@ -65,19 +88,19 @@ public partial class PlayerWindow
             var destination = await Task.Run(() => CaptureFolders.FirstWritable(chain));
             if (_closing)
             {
-                return;
+                return PlayerRecordingStart.NotLive;
             }
 
             if (_failureShown || !_reachedLive)
             {
-                return; // the source changed while the folder probe was in flight
+                return PlayerRecordingStart.NotLive; // the source changed while the folder probe was in flight
             }
 
             if (destination is null)
             {
                 _log.Event("RECORD SESSION", "state=no_writable_folder", $"engine={_backend.EngineName}", $"folder={chain[0]}", $"url={_channel.Url}");
                 ShowFrameToast(LocalizationService.Format("RecordWriteFailed", chain[0]), RecordingNoticeHoldMs);
-                return;
+                return PlayerRecordingStart.NoWritableFolder;
             }
 
             var target = new RecordingTarget(destination.Folder, StreamTitleFormatter.Display(_channel.Title), destination.Rest);
@@ -114,7 +137,7 @@ public partial class PlayerWindow
             if (!ReferenceEquals(backend, _backend))
             {
                 _recordingResumePending = true;
-                return; // the old leg's segment is collected by its release; resume on the current one
+                return PlayerRecordingStart.NotConfirmed; // the old leg's segment is collected by its release; resume on the current one
             }
 
             if (!started)
@@ -126,7 +149,7 @@ public partial class PlayerWindow
                     ShowFrameToast(LocalizationService.Get("RecordStartFailed"));
                 }
 
-                return;
+                return PlayerRecordingStart.Refused;
             }
 
             _recordingResumePending = false;
@@ -137,6 +160,8 @@ public partial class PlayerWindow
                 // CAPTURE-OUTPUT rule 11: the fallback is told when it happens, not when the recording ends.
                 ShowFrameToast(LocalizationService.Format("RecordFellBack", skipped, destination.Folder), RecordingNoticeHoldMs);
             }
+
+            return PlayerRecordingStart.Started;
         }
         finally
         {
@@ -301,18 +326,20 @@ public partial class PlayerWindow
 
     /// <summary>
     /// Ends the recording: the last segment is handed over (by <paramref name="engineStopped"/> when the engine is
-    /// stopping anyway, otherwise by asking it), every segment is finished, and one notice reports them all.
+    /// stopping anyway, otherwise by asking it), every segment is finished, and one notice reports them all. Returns what
+    /// became of every segment - the <c>record stop</c> command (SP-0273) answers with it - or <see langword="null"/> when no
+    /// recording was ended by this call.
     /// </summary>
-    private async Task EndRecordingSessionAsync(RecordingEnd why, Task? engineStopped = null)
+    private async Task<IReadOnlyList<SegmentResult>?> EndRecordingSessionAsync(RecordingEnd why, Task? engineStopped = null)
     {
         if (_recordingSession is not { } session || _recordingEnding)
         {
-            return;
+            return null;
         }
 
         if (_recordingBusy && engineStopped is null)
         {
-            return; // a start or resume is waiting on the engine; the press after it lands is the one that counts
+            return null; // a start or resume is waiting on the engine; the press after it lands is the one that counts
         }
 
         _recordingEnding = true;
@@ -346,6 +373,8 @@ public partial class PlayerWindow
             {
                 ShowFrameToast(DescribeRecording(results, why), RecordingNoticeHoldMs);
             }
+
+            return results;
         }
         finally
         {

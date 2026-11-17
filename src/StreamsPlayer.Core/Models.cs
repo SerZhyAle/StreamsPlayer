@@ -601,6 +601,13 @@ public sealed record CatalogState
     public bool AnimatedBackdrop { get; init; } = true;
 
     /// <summary>
+    /// SP-0271, <c>APP-COMMANDS</c> rule 13: whether other programs may ask for commands above risk <c>safe</c>. Off
+    /// until the person turns it on in Settings; no command changes it. Deliberately absent from
+    /// <see cref="StandardSettings.Declarations"/>, so it never travels to another device.
+    /// </summary>
+    public bool AcceptsRestrictedCommands { get; init; }
+
+    /// <summary>
     /// Which published artwork build seeded the local preview store, as
     /// <c>artwork-manifest.json</c> stamps it (SP-0091), or null when none has.
     /// </summary>

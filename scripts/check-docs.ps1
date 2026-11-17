@@ -1,12 +1,31 @@
 <#
     SP-0140: the DOC-INTERNAL-QUALITY gate (shared contract, documentation-quality domain, rules 1-7).
 
-    Reads DOCUMENT_REGISTRY.jsonl at the repository root and judges every documentation file in the tree:
+    Reads DOCUMENT_REGISTRY.jsonl at the repository root and judges every documentation file of the maintained corpus
+    that the registry declares (item V, below):
 
       registry   rule 1 - every entry is well-formed: topic, product area, one or more update triggers, a
-                          role (source/render); a render entry names its generator and never is hand-edited.
+                          role (source/render); a render entry names its generator and the check that fails while the file
+                          differs from what the generator writes (item W), and never is hand-edited.
       coverage   rule 2 - both ways: every declared path exists, and every documentation file (*.md anywhere,
-                          *.html under docs/) is declared by exactly one entry or by an explicit ignore entry.
+                          *.html under docs/) that lies in the maintained corpus is declared by exactly one entry or by an
+                          explicit ignore entry.
+
+    The maintained corpus is declared, never inferred (item V). The registry holds three kinds of record, one thing each:
+
+      {"path": "<file or glob>", "topic": .., "area": .., "triggers": [..], "role": "source|render", ..}
+                          a document and where it comes from (rule 1).
+      {"root": "<directory>/" | "<file>", "reason": ".."}
+                          a root of the corpus: a path ending in "/" is a directory (every documentation file below it), any
+                          other path is one file. At least one root is declared; each names a tracked directory or file that
+                          holds a documentation file; none repeats or lies inside another.
+      {"ignore": "<glob>", "reason": ".."}
+                          a documentation file under a root that the corpus excludes, with the reason. An excluded file has no
+                          path record, and an ignore that excludes nothing is a finding.
+
+    A documentation file is in the corpus when a root covers it, and only then does rule 2 ask for its record. A file under no
+    root is outside the corpus: it is not judged and is named in a "note:" line and in the verdict line; a path record for it is
+    a finding, because a record is a claim that the file is maintained.
       links      rule 3 - every relative link and heading anchor in a source Markdown document resolves, and
                           never into a path git does not track (the planning folder is untracked on purpose).
       assets     rule 6 - every image a source document cites exists as a tracked file.
@@ -39,7 +58,7 @@
     Exit codes (CHECK-VERDICT): 0 passed, 1 a finding, 2 could not verify (no git, no or unreadable registry, a portal
     page with no dictionary to judge it against).
     The run never stops at the first finding; the last line is the verdict:
-        docs-quality: PASS (<n> documents, <m> links)
+        docs-quality: PASS (<n> documents under <r> roots, [<k> outside every root, ]<s> source documents checked, <m> links, ..)
         docs-quality: FAIL (<n> finding(s))
         docs-quality: COULD NOT VERIFY (<reason>)
 
@@ -117,6 +136,9 @@ function ConvertTo-GlobRegex([string] $Glob) {
 }
 
 $entries = [System.Collections.Generic.List[object]]::new()
+# The declared roots of the maintained corpus (item V), one object per valid root record.
+$corpusRoots = [System.Collections.Generic.List[object]]::new()
+$rootRecords = 0
 $lineNumber = 0
 foreach ($raw in [System.IO.File]::ReadAllLines($registryPath)) {
     $lineNumber++
@@ -125,6 +147,22 @@ foreach ($raw in [System.IO.File]::ReadAllLines($registryPath)) {
     try { $record = $raw | ConvertFrom-Json -AsHashtable }
     catch { Add-Finding 'registry' $where "not valid JSON: $($_.Exception.Message)"; continue }
 
+    $kinds = @('path', 'root', 'ignore' | Where-Object { $record.ContainsKey($_) })
+    if ($kinds.Count -gt 1) { Add-Finding 'registry' $where "record carries $($kinds -join ' and ') - one record declares one thing"; continue }
+
+    if ($record.ContainsKey('root')) {
+        $rootRecords++
+        $rootPath = [string] $record['root']
+        if (-not ([string] $record['reason']).Trim()) { Add-Finding 'registry' $where "root '$rootPath' has no reason" }
+        $rootSegments = @(($rootPath -replace '/$', '') -split '/')
+        if (-not $rootPath.Trim() -or $rootPath.StartsWith('/') -or $rootPath.Contains('\') -or $rootPath -match '[*?]' -or @($rootSegments | Where-Object { $_ -in '', '.', '..' }).Count -gt 0) {
+            Add-Finding 'registry' $where "root '$rootPath' is not a repository-relative path (no leading slash, backslash, glob, empty segment, '.' or '..')"
+            continue
+        }
+        $corpusRoots.Add([pscustomobject]@{ Path = $rootPath; IsDirectory = $rootPath.EndsWith('/'); Where = $where; Matched = 0 })
+        continue
+    }
+
     if ($record.ContainsKey('ignore')) {
         if (-not $record['reason']) { Add-Finding 'registry' $where "ignore entry '$($record['ignore'])' has no reason" }
         $entries.Add([pscustomobject]@{ Kind = 'ignore'; Pattern = [string] $record['ignore']; Regex = (ConvertTo-GlobRegex $record['ignore']); Where = $where; Role = 'ignore'; Matched = 0; Record = $record })
@@ -132,7 +170,7 @@ foreach ($raw in [System.IO.File]::ReadAllLines($registryPath)) {
     }
 
     $path = [string] $record['path']
-    if (-not $path) { Add-Finding 'registry' $where 'entry has neither "path" nor "ignore"'; continue }
+    if (-not $path) { Add-Finding 'registry' $where 'entry has none of "path", "root" or "ignore"'; continue }
     foreach ($field in 'topic', 'area') {
         if (-not ([string] $record[$field]).Trim()) { Add-Finding 'registry' $where "$path has no $field" }
     }
@@ -141,6 +179,13 @@ foreach ($raw in [System.IO.File]::ReadAllLines($registryPath)) {
     $role = [string] $record['role']
     if ($role -notin 'source', 'render') { Add-Finding 'registry' $where "$path has role '$role' (expected source or render)" }
     if ($role -eq 'render' -and -not ([string] $record['generator']).Trim()) { Add-Finding 'registry' $where "render entry $path names no generator" }
+    if ($role -eq 'render') {
+        # DOC-INTERNAL-QUALITY item W: a render is recorded while a registered generator AND the check that fails while the
+        # committed file differs from what the generator writes are both named; the check's script must be a file of the tree.
+        $checkCommand = ([string] $record['check']).Trim()
+        if (-not $checkCommand) { Add-Finding 'registry' $where "render entry $path names no check (the command that fails while the file differs from what its generator writes)" }
+        elseif (-not $files.Contains(($checkCommand -split '\s+')[0])) { Add-Finding 'registry' $where "render entry $path names the check '$checkCommand', and its script is not a file of the tree" }
+    }
     if ($role -eq 'source' -and $path.Contains('*')) { Add-Finding 'registry' $where "source entry $path is a pattern - a hand-written document is declared by its own path" }
 
     $entries.Add([pscustomobject]@{ Kind = 'path'; Pattern = $path; Regex = (ConvertTo-GlobRegex $path); Where = $where; Role = $role; Matched = 0; Record = $record })
@@ -148,25 +193,77 @@ foreach ($raw in [System.IO.File]::ReadAllLines($registryPath)) {
 
 # ---------------------------------------------------------------- rule 2: reverse coverage
 
-$sources = [System.Collections.Generic.List[string]]::new()
+# Item V: the corpus is what the declared roots cover. The roots are judged first, as a reader of the registry would.
+if ($rootRecords -eq 0) {
+    Add-Finding 'registry' $registryName 'declares no root of the maintained corpus (add {"root":"<directory>/","reason":".."} or {"root":"<file>","reason":".."} records; the boundary is declared, never inferred)'
+}
+for ($i = 0; $i -lt $corpusRoots.Count; $i++) {
+    for ($j = 0; $j -lt $corpusRoots.Count; $j++) {
+        if ($i -eq $j) { continue }
+        $outer = $corpusRoots[$i]
+        $inner = $corpusRoots[$j]
+        if ($outer.Path -ceq $inner.Path) {
+            if ($i -lt $j) { Add-Finding 'registry' $inner.Where "root '$($inner.Path)' is declared twice ($($outer.Where), $($inner.Where)) - one home per root" }
+        } elseif ($outer.IsDirectory -and $inner.Path.StartsWith($outer.Path, [StringComparison]::Ordinal)) {
+            Add-Finding 'registry' $inner.Where "root '$($inner.Path)' lies inside root '$($outer.Path)' ($($outer.Where)) - declare one of them"
+        }
+    }
+}
+
+$corpus = [System.Collections.Generic.List[string]]::new()
+$outside = [System.Collections.Generic.List[string]]::new()
 foreach ($document in $documents) {
+    $covered = $false
+    foreach ($corpusRoot in $corpusRoots) {
+        $hit = if ($corpusRoot.IsDirectory) { $document.StartsWith($corpusRoot.Path, [StringComparison]::Ordinal) } else { $document -ceq $corpusRoot.Path }
+        if ($hit) { $corpusRoot.Matched++; $covered = $true }
+    }
+    if ($covered) { $corpus.Add($document) } else { $outside.Add($document) }
+}
+foreach ($corpusRoot in $corpusRoots) {
+    $exists = if ($corpusRoot.IsDirectory) { $directories.Contains($corpusRoot.Path.Substring(0, $corpusRoot.Path.Length - 1)) } else { $files.Contains($corpusRoot.Path) }
+    if (-not $exists) {
+        Add-Finding 'coverage' $corpusRoot.Where "root '$($corpusRoot.Path)' names no tracked $(if ($corpusRoot.IsDirectory) { 'directory' } else { 'file' })"
+    } elseif ($corpusRoot.Matched -eq 0) {
+        Add-Finding 'coverage' $corpusRoot.Where "root '$($corpusRoot.Path)' covers no documentation file (*.md, docs/**/*.html) - drop it, or put the documents it stands for under it"
+    }
+}
+
+$sources = [System.Collections.Generic.List[string]]::new()
+foreach ($document in $corpus) {
     $owners = @($entries | Where-Object { $_.Regex.IsMatch($document) })
     foreach ($owner in $owners) { $owner.Matched++ }
     $declared = @($owners | Where-Object Kind -eq 'path')
+    $excluded = @($owners | Where-Object Kind -eq 'ignore')
     if ($owners.Count -eq 0) {
         Add-Finding 'coverage' $document "not declared in $registryName (add an entry, or an ignore entry with a reason)"
     } elseif ($declared.Count -gt 1) {
         Add-Finding 'coverage' $document "declared by $($declared.Count) entries ($(($declared | ForEach-Object Where) -join ', ')) - one home per document"
+    } elseif ($declared.Count -eq 1 -and $excluded.Count -gt 0) {
+        Add-Finding 'coverage' $document "recorded by $($declared[0].Where) and excluded by the ignore at $($excluded[0].Where) - an excluded file has no record"
     } elseif ($declared.Count -eq 1 -and $declared[0].Role -eq 'source' -and $document -match '\.md$') {
         $sources.Add($document)
     }
 }
-foreach ($entry in $entries) {
-    if ($entry.Matched -gt 0) { continue }
-    if ($entry.Kind -eq 'path' -and -not $entry.Pattern.Contains('*') -and $files.Contains($entry.Pattern)) {
-        Add-Finding 'coverage' $entry.Where "$($entry.Pattern) is declared but is not a documentation file (*.md, docs/**/*.html)"
-    } else {
-        Add-Finding 'coverage' $entry.Where "$($entry.Kind) '$($entry.Pattern)' matches no file in the tree"
+# With no root declared there is no corpus to judge records against; the one finding above says why, and the records are not
+# each reported as matching nothing.
+if ($corpusRoots.Count -gt 0) {
+    # A record claims its file is maintained; under no root the file is outside the corpus, so the claim is a finding.
+    foreach ($document in $outside) {
+        foreach ($owner in @($entries | Where-Object { $_.Kind -eq 'path' -and $_.Regex.IsMatch($document) })) {
+            $owner.Matched++
+            Add-Finding 'coverage' $owner.Where "$($owner.Pattern) records $document, which lies under no declared root (outside the corpus a record is a contradiction: declare its root, or drop the record)"
+        }
+    }
+    foreach ($entry in $entries) {
+        if ($entry.Matched -gt 0) { continue }
+        if ($entry.Kind -eq 'path' -and -not $entry.Pattern.Contains('*') -and $files.Contains($entry.Pattern)) {
+            Add-Finding 'coverage' $entry.Where "$($entry.Pattern) is declared but is not a documentation file (*.md, docs/**/*.html)"
+        } elseif ($entry.Kind -eq 'ignore') {
+            Add-Finding 'coverage' $entry.Where "ignore '$($entry.Pattern)' matches no documentation file under a declared root (it excludes nothing - drop it)"
+        } else {
+            Add-Finding 'coverage' $entry.Where "$($entry.Kind) '$($entry.Pattern)' matches no file in the tree"
+        }
     }
 }
 
@@ -360,10 +457,17 @@ foreach ($entry in @($entries | Where-Object Kind -eq 'path')) {
 
 # ---------------------------------------------------------------- verdict
 
+# A file under no declared root is outside the corpus and is not judged (item V). It is named, so that a new documentation
+# folder nobody declared is seen the day it appears; with no root declared at all every file would be named, so none is.
+if ($corpusRoots.Count -gt 0) {
+    foreach ($document in $outside) { Write-Host "  note: $document lies under no declared root - outside the corpus, not judged" -ForegroundColor Yellow }
+}
+
 if ($findings.Count -gt 0) {
     foreach ($finding in $findings) { Write-Host "  $finding" -ForegroundColor Red }
     Write-Host "docs-quality: FAIL ($($findings.Count) finding(s))"
     exit 1
 }
-Write-Host "docs-quality: PASS ($($documents.Count) documents, $($sources.Count) source documents checked, $linkCount links, $termCount control names, $mirrorCount mirrors)"
+$outsideNote = if ($outside.Count -gt 0) { "$($outside.Count) outside every root, " } else { '' }
+Write-Host "docs-quality: PASS ($($corpus.Count) documents under $($corpusRoots.Count) roots, $($outsideNote)$($sources.Count) source documents checked, $linkCount links, $termCount control names, $mirrorCount mirrors)"
 exit 0

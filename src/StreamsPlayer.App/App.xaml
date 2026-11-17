@@ -200,6 +200,34 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <!-- SP-0263 (S5-3): the password boxes of the prompts and of Settings take the same palette keys as the text
+                 box above; the stock template stayed light in the dark theme, a white box beside the themed ones. -->
+            <Style TargetType="PasswordBox">
+                <Setter Property="Background" Value="{DynamicResource ControlBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                <Setter Property="CaretBrush" Value="{DynamicResource TextBrush}" />
+                <Setter Property="SelectionBrush" Value="{DynamicResource SelectionBrush}" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="PasswordBox">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3"
+                                    Padding="{TemplateBinding Padding}">
+                                <ScrollViewer x:Name="PART_ContentHost" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentMarkBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <Style TargetType="CheckBox">
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                 <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisual}" />
@@ -1449,7 +1477,7 @@
                                               IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="ToggleButton">
-                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                            <Border x:Name="Face" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
                                                     BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4"
                                                     Padding="{TemplateBinding Padding}">
                                                 <Grid>
@@ -1462,10 +1490,19 @@
                                                     <!-- SP-0113: nav.dropdown, the small solid triangle - a chevron here would be nav.expand. -->
                                                     <Viewbox Grid.Column="1" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Right"
                                                              Margin="0,0,1,0" FlowDirection="LeftToRight">
-                                                        <Path Data="{StaticResource Icon.nav.dropdown}" Width="24" Height="24" Fill="{DynamicResource TextBrush}" />
+                                                        <Path x:Name="Arrow" Data="{StaticResource Icon.nav.dropdown}" Width="24" Height="24" Fill="{DynamicResource TextBrush}" />
                                                     </Viewbox>
                                                 </Grid>
                                             </Border>
+                                            <!-- SP-0263 (S5-2): WINDOWS-UI's dropdown row requires an unavailable state - a disabled
+                                                 box (the source cards while broadcasting, the settings boxes while busy) must not look usable. -->
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="Face" Property="Background" Value="{DynamicResource ControlBrush}" />
+                                                    <Setter TargetName="Face" Property="TextElement.Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                                                    <Setter TargetName="Arrow" Property="Fill" Value="{DynamicResource DisabledTextBrush}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </ToggleButton.Template>
                                 </ToggleButton>

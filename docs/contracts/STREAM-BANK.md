@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `STREAM-BANK` |
-| **Version** | 2.4, 2026-10-22 (SP-0232) |
+| **Version** | 2.10, 2026-11-15 (SP-0278) |
 | **Home** | `Contracts/stream-catalog/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | Consumer of published ZIP and optional artwork |
@@ -18,3 +18,7 @@ The Android source-normalizer/artwork rollout is not modified from this reposito
 
 The [synchronization audit](../audits/SP-0232-contract-sync.md) records clause scope, evidence and remaining work. Own catalog registry rows remain
 the conformance authority; a read version does not upgrade an implementation claim.
+
+STREAM-BANK 2.11 item AB resolves the scope for this player. The first-connection bound is a dated
+variant in the product's catalog registry row and [playback resilience](../PLAYBACK_RESILIENCE.md);
+an untrusted-certificate failure is still owed by SP-0284. This reading does not claim full 2.11 adoption.

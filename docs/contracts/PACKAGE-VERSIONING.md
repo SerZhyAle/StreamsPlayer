@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `PACKAGE-VERSIONING` |
-| **Version** | 0.5 (draft) |
+| **Version** | 0.8 (draft), read 2026-11-15 (SP-0278) |
 | **Home** | `Contracts/package-versioning/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | **consumer** |
@@ -19,5 +19,5 @@ Evidence: `scripts/release.ps1`, `build.ps1`, `msix/build-msix.ps1`, `installer/
 **0.5, read 2026-10-07 (SP-0206).** 0.3 registers the StreamsPlayer Android bands (not this repository); 0.4 adds the `dotted-loose`
 rendering for FastMediaSorter_Lite; 0.5 adds the independent-clock edition profile (section 8), which does not apply here. This
 product's rendering is `dotted` (`v<yy>.<MMdd>.<HHmm>`, `^v\d{2}\.\d{4}\.\d{4}$`, enforced at `.github/workflows/release.yml:53`
-and `scripts/release.ps1`); the MSIX remap is `<yy>.<MMdd>.<HHmm without zeros>.0` (`msix/build-msix.ps1:85`), order-preserving
+and `scripts/release.ps1`); the MSIX remap is `<yy>.<MMdd>.<HHmm without zeros>.0` (`scripts/ReleaseVersion.ps1:21-24`), order-preserving
 with the 65535 cap checked. Owed and not written: the section 4 fixed-instant vector tests for the tag and the remap.

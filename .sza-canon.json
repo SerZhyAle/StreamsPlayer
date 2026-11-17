@@ -24,6 +24,9 @@
   "ledgerShape": 4,
   "ledgerFile": null,
 
+  "docRegistryShape": 1,
+  "docRegistryFile": "DOCUMENT_REGISTRY.jsonl",
+
   "channels": ["github", "winget", "msstore"],
 
   "site": {

@@ -95,10 +95,12 @@ internal sealed class WindowsAudioCapture : IDisposable
 
     internal void Start() => _thread.Start();
 
-    internal async Task<BroadcastCaptureFailure?> StartAsync()
+    // SP-0263 (S13-3): the person's cancel ends the wait at once, as the video path's does; the caller's rollback disposes
+    // the capture, whose thread then ends on its own.
+    internal async Task<BroadcastCaptureFailure?> StartAsync(CancellationToken cancel = default)
     {
         Start();
-        try { return await _opened.Task.WaitAsync(TimeSpan.FromSeconds(15)).ConfigureAwait(false); }
+        try { return await _opened.Task.WaitAsync(TimeSpan.FromSeconds(15), cancel).ConfigureAwait(false); }
         catch (TimeoutException) { return BroadcastCaptureFailure.Unknown; }
     }
 

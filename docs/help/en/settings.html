@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
 <title>Help - STREAMS Player settings</title>
 <script>
 (function () {
@@ -95,6 +96,17 @@
         <dl class="facts">
           <dt>Why</dt><dd>For a calmer window.</dd>
           <dt>Next</dt><dd>The background starts or stops at once.</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="el" id="e-accepts-restricted-commands">
+      <summary><span><span class="name">Let other programs ask STREAMS Player to work with my files, screen, clipboard or the network</span><span class="one">Decides whether other programs may ask the app to read or write your data, beyond controlling it.</span></span></summary>
+      <div class="full">
+        <p>Scripts, scheduled tasks and other programs can give the app commands on its command line, such as <b>StreamsPlayer.exe status</b>; <b>StreamsPlayer.exe commands</b> lists them. Showing and closing the app, playing, pausing, resuming and stopping streams, setting the volume, adding a stream and asking whether it is running always work. This switch decides the rest: commands that read your data, such as listing what is playing now, or write it, such as recording into a folder the caller names.</p>
+        <p>It is off until you turn it on, and only you can change it, here - no command can. While it is off, such a command is refused with a message that names this setting.</p>
+        <dl class="facts">
+          <dt>Why</dt><dd>Turn it on when a script of yours needs one of those commands.</dd>
+          <dt>Next</dt><dd>The next command is answered by the new value.</dd>
         </dl>
       </div>
     </details>
@@ -634,7 +646,7 @@
       <div class="full">
         <p>Sending what this PC captures to the exchange server of your account takes two steps: first allow it here, then start a source yourself. Nothing is captured until both are done. It is off by default, and while it is off the rest of this group stays hidden.</p>
         <p>While this PC is signed in to a server only as a guest, it cannot broadcast and no source is offered.</p>
-        <p>A broadcast starts only when a viewer or listener can reach it over the enabled local network or a connected exchange server. A local-only broadcast still has a description you can copy or save.</p>
+        <p>A broadcast starts only when a viewer or listener can reach it over the enabled local network or a connected exchange server. A local-only broadcast still has a descriptor you can copy or save.</p>
         <dl class="facts">
           <dt>Next</dt><dd>The other controls of the group appear.</dd>
         </dl>

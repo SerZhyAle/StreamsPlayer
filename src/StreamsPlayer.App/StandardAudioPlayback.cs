@@ -143,6 +143,10 @@ internal sealed class StandardAudioPlayback : IDisposable
             // Every LibVLC player in the process writes one shared Windows audio session, and Windows keeps its mute
             // per app. Radio has no mute control, so a mute left by the video player (or a capture) would play into a
             // silent session while AUDIO HEARD still counts buffers: each connection states its own mute.
+            // SP-0263 (RRB-6) - the shared-session rule: this holds for every connection, a reconnect leg included, so
+            // a mute the person set in a video window on the same session ends when a station opens or re-opens. The
+            // alternative (unmuting only on a start the person made) would let a reconnect play into a mute that radio
+            // has no control to undo.
             _leg = new Leg(this, connection, new MediaPlayer(libVlc) { Volume = volume, Mute = false });
             if (!string.IsNullOrEmpty(_audioOutputDevice))
             {

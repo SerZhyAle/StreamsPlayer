@@ -163,9 +163,19 @@ internal sealed class WindowsAacEncoder : IDisposable
             throw new InvalidOperationException("No AAC encoder is registered on this machine.");
         }
 
-        SetInputType(transform);
-        SetOutputType(transform);
-        _ = transform.ProcessMessage(MftMessageNotifyBeginStreaming, IntPtr.Zero);
+        try
+        {
+            SetInputType(transform);
+            SetOutputType(transform);
+            _ = transform.ProcessMessage(MftMessageNotifyBeginStreaming, IntPtr.Zero);
+        }
+        catch
+        {
+            // SP-0263 (S11-4): a refused encoder shape must not leave the activated MFT alive until the finalizer runs.
+            Marshal.ReleaseComObject(transform);
+            throw;
+        }
+
         return transform;
     }
 

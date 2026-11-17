@@ -15,7 +15,8 @@
         <TextBlock x:Name="TitleText" FontWeight="SemiBold" TextWrapping="Wrap" />
         <StackPanel Grid.Row="1" Margin="0,4,0,0">
             <TextBlock x:Name="StateText" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" />
-            <Expander x:Name="FailureDetails" Header="{DynamicResource ExchangeDiagnosisDetails}" Visibility="Collapsed" Margin="0,8,0,0">
+            <Expander x:Name="FailureDetails" Style="{StaticResource SettingsGroup}" Visibility="Collapsed" Margin="0,8,0,0">
+                <Expander.Header><TextBlock Text="{DynamicResource ExchangeDiagnosisDetails}" TextWrapping="Wrap" /></Expander.Header>
                 <TextBlock x:Name="FailureCode" TextWrapping="Wrap" />
             </Expander>
         </StackPanel>

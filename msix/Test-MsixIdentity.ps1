@@ -131,6 +131,6 @@ catch {
 }
 finally { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue }
 
-if ($failures.Count -eq 0) { Write-Output "msix-identity: PASS ($passed checks)"; exit 0 }
+if ($failures.Count -eq 0) { Write-Output "msix-identity: PASS (run=$passed skipped=0)"; exit 0 }
 Write-Output "msix-identity: FAIL ($($failures.Count) of $($passed + $failures.Count) checks)"
 exit 1

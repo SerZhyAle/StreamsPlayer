@@ -87,6 +87,10 @@ public partial class MainWindow
                 WatchForFastMediaSorterAudioStall(playback, _fastMediaSorterAudioGeneration, readBytes);
             }
             await HandleAudioOpenedAsync();
+            if (IsCurrentFastMediaSorterPlayback(playback))
+            {
+                NoteAudioHeard(); // SP-0272: this route has no output counters; its live event is the proof it has
+            }
         })), DispatcherPriority.Normal);
     }
 

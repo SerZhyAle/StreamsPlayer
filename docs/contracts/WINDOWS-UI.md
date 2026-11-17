@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `WINDOWS-UI` |
-| **Version** | 0.10 read 2026-10-22; earlier implementation partial 0.4 (draft) |
+| **Version** | 0.12 read 2026-11-15 (SP-0278); 0.10 read 2026-10-22; earlier implementation partial 0.4 (draft) |
 | **Home** | `Contracts/desktop-app-ux/WINDOWS-UI.md` |
 | **Owner** | Fast Media Sorter & Sharing for Windows (the reference viewer); portfolio-wide opt-in decided 2026-10-05 |
 | **This product's role** | **consumer** (opted in by the same portfolio decision; adopted and audited by SP-0191, 2026-10-05) |

@@ -34,6 +34,10 @@ public static class DriveRecords
             var id = type == "device" ? deviceId : ExchangeProtocol.String(record, "broadcastId");
             if (id is null || fileName != $"fmsx-{type}-{id}.json")
                 return null;
+            // DEVICE-EXCHANGE 8.1 and records-v1 "wrapper-without-ttl": a device wrapper states its own lifetime, and the
+            // contract gives a device no default, so a device wrapper without the member is skipped.
+            if (type == "device" && !root.TryGetProperty("ttlSeconds", out _))
+                return null;
             var ttl = type == "device" ? DeviceTtlSeconds : BroadcastTtlSeconds;
             if (root.TryGetProperty("ttlSeconds", out var value) && value.ValueKind == JsonValueKind.Number
                 && value.TryGetInt32(out var seconds) && seconds is >= 1 and <= 86400)
@@ -123,7 +127,10 @@ public sealed class DriveDirectory(DriveRestClient client)
             else
             {
                 var fields = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(record.Record)!;
-                fields["presence"] = JsonSerializer.SerializeToElement(expired ? "offline" : "online");
+                // DEVICE-EXCHANGE 6.1: the writer's own presence decides, and only "online" reads online. A record past its
+                // lifetime reads offline on Drive's clock (8.1 item C). This is the reading the server directory applies.
+                var online = !expired && ExchangeProtocol.String(record.Record, "presence") == "online";
+                fields["presence"] = JsonSerializer.SerializeToElement(online ? "online" : "offline");
                 devices.Add(JsonSerializer.SerializeToElement(fields));
             }
         }

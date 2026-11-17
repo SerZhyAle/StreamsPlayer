@@ -162,7 +162,11 @@ if (-not (Test-Path -LiteralPath (Join-Path $publish 'StreamsPlayer.exe'))) { th
 $publishedAssembly = Join-Path $publish 'StreamsPlayer.dll'
 if (-not (Test-Path -LiteralPath $publishedAssembly -PathType Leaf)) { throw "Published StreamsPlayer.dll not found in $publish." }
 $assemblyText = [System.Text.Encoding]::Latin1.GetString([System.IO.File]::ReadAllBytes($publishedAssembly))
-if (-not $assemblyText.Contains('SP_DRIVE_CLIENT_ID', [System.StringComparison]::Ordinal)) {
+# SP-0263 (S1-1): MSBuild embeds each of the two keys only when its value is non-empty, so a client id with an empty
+# secret publishes cleanly and Google sign-in then fails at the token exchange. Both keys have to be present.
+$hasDriveClientId = $assemblyText.Contains('SP_DRIVE_CLIENT_ID', [System.StringComparison]::Ordinal)
+$hasDriveClientSecret = $assemblyText.Contains('SP_DRIVE_CLIENT_SECRET', [System.StringComparison]::Ordinal)
+if (-not ($hasDriveClientId -and $hasDriveClientSecret)) {
     if ($AllowNoDriveClient) {
         Write-Warning 'The published StreamsPlayer.dll carries no Google Drive OAuth client - Google sign-in is unavailable in this package (-AllowNoDriveClient). Never upload it.'
     }
@@ -174,6 +178,10 @@ if (-not $assemblyText.Contains('SP_DRIVE_CLIENT_ID', [System.StringComparison]:
 # SP-0156 (T-10): the Store package carries the same pinned-natives evidence as every other channel -
 # the native tree present and byte-identical to the package the project pins, not merely present.
 & (Join-Path $root 'scripts/Assert-PinnedNatives.ps1') -Folder $publish -ProjectPath (Join-Path $root 'src/StreamsPlayer.App/StreamsPlayer.App.csproj')
+
+# SP-0275: the Store package carries the console companion beside the player (the application project publishes it into this
+# folder) and it is still a console program with no window toolkit behind it. The manifest's second alias needs the file.
+& (Join-Path $root 'scripts/Assert-ConsoleCompanion.ps1') -Folder $publish
 
 # SP-0157: the stage is overlaid below, so whatever survives this removal is packed. A locked file from an earlier
 # stage fails the build here rather than riding into the Store package.

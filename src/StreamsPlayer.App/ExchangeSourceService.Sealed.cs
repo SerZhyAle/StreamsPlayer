@@ -88,12 +88,24 @@ internal sealed partial class ExchangeSourceService
     }
 
     /// <summary>
+    /// Item FB: tells the playback decision whether this device can say "the other device is the one without a key" - it holds
+    /// its own key and its own listed record, as the server sent it, carries `e2eKey`. Nothing is asked of the server; the
+    /// directory frame already in hand is the whole evidence, and without it the decision says `e2e-missing`.
+    /// </summary>
+    private void NoteOwnKeyListed(ExchangeDirectorySnapshot snapshot)
+    {
+        var own = snapshot.Devices?.FirstOrDefault(device => string.Equals(device.DeviceId, Account.DeviceId, StringComparison.Ordinal));
+        ExchangeBroadcastKeys.OwnKeyListed = HasAccount && !Account.Guest && Account.E2ePrivateKey is not null && own?.E2eKey is not null;
+    }
+
+    /// <summary>
     /// Applies a directory to the trust: every listed device is observed (so a first key is remembered and a
     /// changed one is noticed). Absence is not the person's revoke: keep its key so a server cannot hide a device
     /// and reintroduce its id with a substituted key (item DG).
     /// </summary>
     private void ObserveDirectoryKeys(ExchangeDirectorySnapshot snapshot)
     {
+        NoteOwnKeyListed(snapshot);
         if (snapshot.Devices is not { Count: > 0 } devices)
         {
             return;

@@ -31,6 +31,7 @@ public partial class App : Application
     private ActivationPipeListener? _activationListener;
     private MainWindow? _mainWindow;
     private bool _mainWindowClosed;
+    private bool _mainWindowClosing;
     private bool _sessionEnding;
     private int _terminating;
     private int _exitCompleted;
@@ -53,11 +54,19 @@ public partial class App : Application
         // rotates no session log and opens no window: it hands its request over and ends.
         var identity = SingleInstanceIdentity.For(
             AppPaths.DataDirectory, AppPaths.DefaultDataDirectory, Process.GetCurrentProcess().SessionId);
-        var lockResult = SingleInstanceLock.TryAcquire(identity.MutexName, TimeSpan.Zero, out _instanceLock);
-        if (lockResult != SingleInstanceLockResult.Acquired
-            && !HandOverToRunningCopy(identity, e.Args, lockResult, out _instanceLock))
+        // SP-0271: Program.Main may already hold the lock - a bare start or a `start` verb with nothing running.
+        if (HandedLock is { } handed)
         {
-            return;
+            _instanceLock = handed;
+        }
+        else
+        {
+            var lockResult = SingleInstanceLock.TryAcquire(identity.MutexName, TimeSpan.Zero, out _instanceLock);
+            if (lockResult != SingleInstanceLockResult.Acquired
+                && !HandOverToRunningCopy(identity, e.Args, lockResult, out _instanceLock))
+            {
+                return;
+            }
         }
 
         // SP-0120: the default, OnLastWindowClose, ended the process as soon as the main window was gone - which
@@ -93,7 +102,8 @@ public partial class App : Application
 
         // Listening before the window exists keeps a later copy's bounded connect from timing out on a
         // slow start; what arrives is marshalled to the dispatcher, which runs it once this method ends.
-        _activationListener = new ActivationPipeListener(identity.PipeName, OnForwardedLaunch, OnForwardedLaunchRejected);
+        _activationListener = new ActivationPipeListener(
+            identity.PipeName, OnForwardedLaunch, OnForwardedLaunchRejected, OnCommandAsync);
         _activationListener.Start();
 
         Exchange = new ExchangeSourceService(AppPaths.DataDirectory, line => _log.Information(line));
@@ -102,16 +112,25 @@ public partial class App : Application
         BroadcastEnd = new BroadcastEndFollower(Exchange, Dispatcher);
         Exchange.Start();
 
-        var window = new MainWindow(_log, StreamLaunchRequest.Parse(e.Args));
+        var window = new MainWindow(_log, StreamLaunchRequest.Parse(LaunchArguments ?? e.Args));
         window.InitializeExchangeStatus(Exchange);
         window.InitializeBroadcastIndicator();
         _mainWindow = window;
         MainWindow = window;
+        // SP-0274: a start verb (cold start) runs as the first thing the window does once its catalog has loaded.
+        if (StartCommand is { } startCommand)
+        {
+            window.StartupCommand = () => RunStartCommandAsync(startCommand);
+        }
         // Registered after the window's own Closed handler, which is what starts the close work read below.
         window.Closed += (_, _) => HandlerBoundary.Run("App.MainWindow.Closed", () => EndAfterCloseWorkAsync(window));
         // SP-0170: the moment the close is under way - nothing cancels it - a forwarded launch is refused, and the
         // sender is told so, rather than a window that is closing being asked to play it.
-        window.Closing += (_, _) => _activationListener?.StopAccepting();
+        window.Closing += (_, _) =>
+        {
+            _mainWindowClosing = true;
+            _activationListener?.StopAccepting();
+        };
         window.Show();
     }
 

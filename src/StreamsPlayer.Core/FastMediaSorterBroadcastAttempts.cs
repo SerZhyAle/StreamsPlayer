@@ -12,7 +12,40 @@ public static class FastMediaSorterBroadcastAttempts
     /// <summary>The endpoints this build can play for this mode, in the producer's listed order.</summary>
     public static IReadOnlyList<FastMediaSorterBroadcastEndpoint> PlaybackAttempts(
         string mode, IReadOnlyList<FastMediaSorterBroadcastEndpoint> endpoints) =>
-        endpoints.Where(endpoint => IsPlaybackEndpoint(mode, endpoint)).ToArray();
+        Resolved(mode, endpoints).Where(endpoint => IsPlaybackEndpoint(mode, endpoint)).ToArray();
+
+    private static IEnumerable<FastMediaSorterBroadcastEndpoint> Resolved(
+        string descriptorMode, IReadOnlyList<FastMediaSorterBroadcastEndpoint> endpoints) =>
+        endpoints.Select(endpoint => Resolve(descriptorMode, endpoint));
+
+    /// <summary>
+    /// SP-0281, <c>LIVE-BROADCAST</c> item W: an endpoint that omits <c>mode</c> takes the descriptor's, and one that omits
+    /// <c>transport</c> takes it from the scheme of its own <c>url</c> - <c>rtsp</c> is <c>RTSP</c>, <c>http</c> is
+    /// <c>HTTP</c>. Any other scheme tells nothing (a relay is sealed and a tunnel is played through a forwarder, and an
+    /// address is no witness of either), and neither does an endpoint that carries a <c>seal</c>: its transport stays
+    /// absent and it is skipped silently like a transport this build does not implement. A blank member is an absent one.
+    /// The attempt carries the resolved values, so what reads <c>Transport</c> and <c>Mode</c> downstream is unchanged.
+    /// </summary>
+    private static FastMediaSorterBroadcastEndpoint Resolve(string descriptorMode, FastMediaSorterBroadcastEndpoint endpoint)
+    {
+        var transport = string.IsNullOrWhiteSpace(endpoint.Transport) ? TransportOfScheme(endpoint) : endpoint.Transport;
+        var mode = string.IsNullOrWhiteSpace(endpoint.Mode) ? descriptorMode : endpoint.Mode;
+        return transport == endpoint.Transport && mode == endpoint.Mode
+            ? endpoint
+            : endpoint with { Transport = transport, Mode = mode };
+    }
+
+    private static string? TransportOfScheme(FastMediaSorterBroadcastEndpoint endpoint)
+    {
+        if (endpoint.Seal is not null || !Uri.TryCreate(endpoint.Url, UriKind.Absolute, out var uri))
+        {
+            return null;
+        }
+
+        return uri.Scheme.Equals("rtsp", StringComparison.OrdinalIgnoreCase) ? "RTSP"
+            : uri.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase) ? "HTTP"
+            : null;
+    }
 
     /// <summary>The first playable audio attempt, or the legacy top-level endpoint.</summary>
     public static FastMediaSorterBroadcastEndpoint SelectAudio(
@@ -26,11 +59,17 @@ public static class FastMediaSorterBroadcastAttempts
         IReadOnlyList<FastMediaSorterBroadcastEndpoint> endpoints) =>
         VideoAttempts(mode, endpoints).FirstOrDefault() ?? Legacy(legacyUrl, mode, isLive, targetLatencyMs);
 
-    /// <summary>The legacy top-level address as the single attempt of a descriptor with no usable list.</summary>
+    /// <summary>
+    /// The legacy top-level address as the single attempt of a descriptor with no usable list. Item W reads a descriptor
+    /// with no list as one endpoint made of its root members whose transport is <c>RTSP</c> for an <c>rtsp</c> address
+    /// and <c>HTTP</c> otherwise - such a descriptor never carried a relay or a tunnel.
+    /// </summary>
     public static FastMediaSorterBroadcastEndpoint Legacy(string url, string mode, bool isLive, long? targetLatencyMs) =>
         new(
             url,
-            Uri.TryCreate(url, UriKind.Absolute, out var uri) ? uri.Scheme.ToUpperInvariant() : null,
+            Uri.TryCreate(url, UriKind.Absolute, out var uri)
+                ? uri.Scheme.Equals("rtsp", StringComparison.OrdinalIgnoreCase) ? "RTSP" : "HTTP"
+                : null,
             mode,
             null,
             null,
@@ -41,14 +80,14 @@ public static class FastMediaSorterBroadcastAttempts
 
     private static IEnumerable<FastMediaSorterBroadcastEndpoint> AudioAttempts(
         string mode, IReadOnlyList<FastMediaSorterBroadcastEndpoint> endpoints) =>
-        endpoints.Where(endpoint =>
+        Resolved(mode, endpoints).Where(endpoint =>
             IsHttpAudio(endpoint) ||
             IsRelayEndpoint(endpoint) && IsAudioMode(endpoint.Mode) ||
             IsTunnelAudio(endpoint));
 
     private static IEnumerable<FastMediaSorterBroadcastEndpoint> VideoAttempts(
         string mode, IReadOnlyList<FastMediaSorterBroadcastEndpoint> endpoints) =>
-        endpoints.Where(endpoint =>
+        Resolved(mode, endpoints).Where(endpoint =>
             IsDeclaredRtspEndpoint(mode, endpoint) ||
             IsHttpVideoEndpoint(mode, endpoint) ||
             IsRelayEndpoint(endpoint) && IsVideoMode(mode, endpoint.Mode) ||

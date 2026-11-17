@@ -185,6 +185,10 @@ Two branches, because "not answering" and "answering slowly" deserve different a
 | `DeadSource` - nothing has arrived at all | `DeadSourceAfter` = **8 s** | straight to the verdict, no re-open, no status probe |
 | `Deadline` - answered, never reached the screen | `OpenDeadline` = **20 s** | `RecoveryTrigger.OpenTimeout`: one re-open, then the verdict |
 
+**STREAM-BANK 2.11 item AB, dated variant (2026-11-16):** these bounds and the one re-open are this
+product's recorded variant of section 6.1. The deadline applies per open, so the second leg can take
+another 20 s before the verdict. Review the variant if the engine or open policy changes.
+
 The dead branch skips `RecoverAsync` entirely. Re-opening a host that has delivered zero bytes repeats
 the silence, and `RecoverAsync` would first spend a `PlaybackStatusProbe` round trip on a host that has
 just proved it answers nothing - adding seconds to the wait this rule exists to cut.

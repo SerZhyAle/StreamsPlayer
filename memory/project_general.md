@@ -8,6 +8,13 @@ description: Cross-cutting project learnings, corrections, and non-obvious conte
 
 ## Project
 
+- **Glyphs.xaml omits a meaning whose surfaces are all site-only (SP-0280, 2026-11-15).** `tools/Sync-IconGlyphs.ps1`
+  writes a geometry only when one surface of the meaning is not prefixed `site `, so `app.theme` (site only) had no
+  `Icon.app.theme` key for the Settings Theme row. *How to apply:* add the in-app surface string to `Glyphs.map.json`
+  before a XAML reference, then re-run the sync (`-CatalogRoot` set to the contract store).
+- **A string Expander header leaves a settings-group toggle unnamed (SP-0280, 2026-11-15).** The `SettingsGroup`
+  template binds the toggle's accessible name to `Header.Text`; a string `Header` has no `Text`, so the binding fails
+  without an error. *How to apply:* give a styled disclosure a `TextBlock` header, as the settings groups do.
 - **The OS AAC encoder on this machine (Windows 11 build 26200, Insider) crashes 0xC0000005 in its own
   Media Foundation (SP-0214, 2026-10-14).** `mfplat.dll`'s sample objects die in `IMFSample.SetSampleTime`,
   and `mfAACEnc.dll` (CLSID 93af0c51-..) dies in `IMFTransform.ProcessInput`/`ProcessOutput` once an output

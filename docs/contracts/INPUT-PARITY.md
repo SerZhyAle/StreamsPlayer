@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `INPUT-PARITY` |
-| **Version** | 0.4, 2026-10-22 (SP-0232) |
+| **Version** | 0.7, 2026-11-15 (SP-0278) |
 | **Home** | `Contracts/input-controls/README.md` |
 | **Owner** | Shared, with column stewards |
 | **This product's role** | Consumer: Windows live playback, keyboard/mouse/SMTC |

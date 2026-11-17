@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `SITE-REPRESENTATION` |
-| **Version** | 0.1 (draft) |
+| **Version** | 0.2 (draft), read 2026-11-15 (SP-0278) |
 | **Home** | `Contracts/product-site/SITE-REPRESENTATION.md`, with the run-list `SITE-CHECKLIST.md` beside it |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | **consumer at the page tier**, opted in 2026-10-06 (SP-0192) |
@@ -27,8 +27,7 @@ there are no function pages, no settings reference and no showcase.
   types either, and `build-site.ps1 -Check` fails a deck that does. The MSIX manifest and the winget manifest are compared
   with that minimum. The four channels are declared in `tools/site/site-facts.json` with the packaging file each one
   stands on; the deck has exactly one card for each, and the prose that lists the install routes names the two that keep
-  their name in every language. Not judged: a language count typed in prose by the README or the Store listing, which
-  are other surfaces (SP-0198).
+  their name in every language. A language count typed in prose by the README, the Store listing or the winget locales is gated by `SiteFacts.ps1` (`Get-TypedLanguageCountProblem`, SP-0198, SP-0247).
 - **Public editions** (rule 4): one edition, Windows x64, in four channels (setup executable, portable ZIP, Microsoft
   Store, winget), each under one name in the site copy.
 - **Trust pages say one thing** (rule 12): the privacy, trust and store-data copy are changed in the same edit

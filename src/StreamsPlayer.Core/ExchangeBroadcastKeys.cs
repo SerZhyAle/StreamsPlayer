@@ -56,8 +56,21 @@ public static class ExchangeBroadcastKeys
     private static readonly ConcurrentDictionary<string, (ExchangeBroadcastSecrets Secrets, long Order)> Held = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<string, (ExchangeSealedState State, long Order)> Failed = new(StringComparer.Ordinal);
 
+    private static volatile bool _ownKeyListed;
+
     /// <summary>The application's secret store for the keys of a link a person imported; null in a process that has none.</summary>
     public static Func<string, ExchangeBroadcastSecrets?>? PersistedLookup { get; set; }
+
+    /// <summary>
+    /// `DEVICE-EXCHANGE` item FB: whether this device holds its own key and its own record, as the server lists it, carries
+    /// `e2eKey`. The application writes it when a directory frame arrives and clears it when the session ends; it is false
+    /// until then, which is the "cannot tell" the contract allows - an unsealed endpoint then reads as `e2e-missing`.
+    /// </summary>
+    public static bool OwnKeyListed
+    {
+        get => _ownKeyListed;
+        set => _ownKeyListed = value;
+    }
 
     /// <summary>How many ids hold keys and how many hold a failed state; for the bound's test.</summary>
     internal static (int Held, int Failed) Counts => (Held.Count, Failed.Count);
@@ -301,7 +314,10 @@ public static class ExchangeBroadcastKeys
 
         if (endpoint.Seal is not { IsKnown: true } seal)
         {
-            return ExchangeEndpointDecision.Refused(ExchangeSealedState.E2eMissing);
+            // Item FB: with this device's own key listed, the content did not come sealed because its source could not seal
+            // it, so the person is told to look at the other device; when this device cannot tell, it is `e2e-missing`.
+            return ExchangeEndpointDecision.Refused(
+                endpoint.Seal is null && _ownKeyListed ? ExchangeSealedState.E2eMissingPeer : ExchangeSealedState.E2eMissing);
         }
 
         var broadcastId = BroadcastIdOf(endpoint.Url);

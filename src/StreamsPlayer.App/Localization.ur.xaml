@@ -371,6 +371,9 @@
     <sys:String x:Key="PlayerPinControlsName">پلے بیک کنٹرولز کو پن کریں</sys:String>
     <sys:String x:Key="SettingsGeneralBasics">بنیادی ترتیبات</sys:String>
     <sys:String x:Key="SettingsGeneralView">کیٹلاگ کی شکل</sys:String>
+    <sys:String x:Key="SettingsGeneralCommands">دوسرے پروگراموں سے کمانڈز</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommands">دوسرے پروگراموں کو اجازت دیں کہ وہ STREAMS Player سے میری فائلوں، اسکرین، کلپ بورڈ یا نیٹ ورک کے ساتھ کام کروائیں</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommandsHint">بند: اسکرپٹس اور دوسرے پروگرام STREAMS Player کو دکھا اور بند کر سکتے ہیں، نشریات چلا سکتے ہیں، انہیں وقفہ دے سکتے ہیں، دوبارہ شروع کر سکتے اور روک سکتے ہیں، آواز مقرر کر سکتے ہیں، نشریات شامل کر سکتے ہیں اور اس کی حالت پوچھ سکتے ہیں۔ چالو: وہ یہ فہرست بھی لے سکتے ہیں کہ ابھی کیا چل رہا ہے اور اپنے بتائے ہوئے فولڈر میں ریکارڈ بھی کر سکتے ہیں، جو آپ کا ڈیٹا پڑھتا یا لکھتا ہے۔ اسے صرف آپ، یہیں بدل سکتے ہیں۔</sys:String>
     <sys:String x:Key="SettingsGeneralInterface">انٹرفیس</sys:String>
     <sys:String x:Key="InterfaceSizeLabel">انٹرفیس کا سائز</sys:String>
     <sys:String x:Key="InterfaceSizeHint">متن، آئیکنز، فاصلوں اور کلک کے علاقوں کا سائز طے کرتا ہے۔</sys:String>
@@ -637,8 +640,8 @@
     <sys:String x:Key="FmsBroadcastAdded">براہ راست نشریات درآمد ہو گئی: {0}۔</sys:String>
     <sys:String x:Key="FmsBroadcastUpdated">براہ راست نشریات تازہ ہو گئی: {0}۔</sys:String>
     <sys:String x:Key="FmsBroadcastUnsupportedMode">یہ نشریاتی موڈ ابھی معاون نہیں ہے۔ آپ کی فہرست نہیں بدلی۔</sys:String>
-    <sys:String x:Key="FmsBroadcastInvalid">یہ FastMediaSorter نشریات کی درست تفصیل نہیں ہے۔ آپ کی فہرست نہیں بدلی۔</sys:String>
-    <sys:String x:Key="FmsBroadcastTooLarge">یہ نشریاتی تفصیل 64 KiB سے بڑی ہے۔ آپ کی فہرست نہیں بدلی۔</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">یہ FastMediaSorter نشریات کا درست ڈسکرپٹر نہیں ہے۔ آپ کی فہرست نہیں بدلی۔</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">یہ نشریاتی ڈسکرپٹر 64 KiB سے بڑا ہے۔ آپ کی فہرست نہیں بدلی۔</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer ایک اور عمل میں مصروف ہے۔ جب وہ عمل مکمل ہو جائے تو نشریات دوبارہ درآمد کریں۔ آپ کی فہرست نہیں بدلی۔</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} پر ناظرین اور سامعین کی زیادہ سے زیادہ تعداد پہلے ہی پوری ہو چکی ہے۔ کسی دوسرے کے منقطع ہونے پر دوبارہ کوشش کریں۔</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} نے نشریات بند کر دی ہیں یا اب اس نیٹ ورک پر دستیاب نہیں ہے۔</sys:String>
@@ -762,6 +765,7 @@
     <sys:String x:Key="ExchangeTlsRequired">سرور اسے صرف محفوظ کنکشن پر قبول کرتا ہے، اور یہ کنکشن محفوظ نہیں ہے۔</sys:String>
     <sys:String x:Key="ExchangeIdCollision">سرور اس ڈیوائس کے نمبر پر پہلے سے ایک اور ڈیوائس کو جانتا ہے۔ اس سرور کو فہرست سے ہٹا کر دوبارہ شامل کریں۔</sys:String>
     <sys:String x:Key="ExchangeStateE2eMissing">یہ ڈیوائس ابھی محفوظ مواد وصول نہیں کر سکتی، اس لیے سرور کے ذریعے اسے کچھ نہیں بھیجا جاتا۔</sys:String>
+    <sys:String x:Key="ExchangeStateE2eMissingPeer">جس ڈیوائس پر یہ مواد ہے وہ ابھی اسے محفوظ طور پر نہیں بھیج سکتی، اس لیے سرور کے ذریعے اس سے کچھ نہیں آتا۔</sys:String>
     <sys:String x:Key="ExchangeStateKeyChanged">اس ڈیوائس کی حفاظتی کلید بدل گئی ہے، اس لیے اسے کچھ نہیں بھیجا جاتا۔ ڈیوائس کو اکاؤنٹ سے ہٹا کر دوبارہ شامل کریں۔</sys:String>
     <sys:String x:Key="ExchangeStateServerNoE2e">یہ سرور محفوظ مواد منتقل نہیں کر سکتا، اس لیے فولڈر، نشریات اور کلپ بورڈ اس سے نہیں گزرتے۔</sys:String>
     <sys:String x:Key="ExchangeStateSealedFailed">اسے اس ڈیوائس پر کھولا نہیں جا سکا۔ دوسری ڈیوائس سے دوبارہ کوشش کریں۔</sys:String>
@@ -817,8 +821,8 @@
     <sys:String x:Key="ExchangeReplacePrompt">یہ پی سی {0} میں سائن اِن ہے۔ اگر نیا اکاؤنٹ آپ کا اپنا یا خاندان کا اکاؤنٹ ہے تو وہ اس سائن اِن کی جگہ لے گا: اس پی سی کی نشریات ختم ہو جائیں گی اور یہ {0} سے سائن آؤٹ ہو جائے گا۔ مہمان اکاؤنٹ کی صورت میں اسے اس کے بجائے برابر میں شامل کیا جاتا ہے۔ جاری رکھیں؟</sys:String>
     <sys:String x:Key="ExchangeForgottenOffline">اس ڈیوائس پر سائن آؤٹ ہو گیا۔ سرور کو اطلاع نہیں دی جا سکی، اس لیے جب تک کوئی دوسری ڈیوائس اسے نہ ہٹائے یہ ڈیوائس فہرست میں رہ سکتی ہے۔ دوبارہ کوشش نہیں ہوگی۔</sys:String>
     <sys:String x:Key="ExchangeReplacementRequired">دوسرے اکاؤنٹ میں شامل ہونے سے پہلے موجودہ اکاؤنٹ سے نکلنے کی تصدیق کریں۔</sys:String>
-    <sys:String x:Key="BroadcastCertificateUntrusted">نشریات کے سرور نے ایسا سرٹیفکیٹ پیش کیا جس کی یہ کمپیوٹر تصدیق نہیں کر سکتا، اور تفصیل میں فنگرپرنٹ موجود نہیں۔ نشریات کرنے والے سے تازہ تفصیل مانگیں۔</sys:String>
-    <sys:String x:Key="BroadcastCertificateMismatch">نشریات کے سرور کا سرٹیفکیٹ تفصیل میں دیے گئے فنگرپرنٹ سے مطابقت نہیں رکھتا۔ پلے بیک مسترد کر دیا گیا۔</sys:String>
+    <sys:String x:Key="BroadcastCertificateUntrusted">نشریات کے سرور نے ایسا سرٹیفکیٹ پیش کیا جس کی یہ کمپیوٹر تصدیق نہیں کر سکتا، اور ڈسکرپٹر میں فنگرپرنٹ موجود نہیں۔ نشریات کرنے والے سے تازہ ڈسکرپٹر مانگیں۔</sys:String>
+    <sys:String x:Key="BroadcastCertificateMismatch">نشریات کے سرور کا سرٹیفکیٹ ڈسکرپٹر میں دیے گئے فنگرپرنٹ سے مطابقت نہیں رکھتا۔ پلے بیک مسترد کر دیا گیا۔</sys:String>
     <sys:String x:Key="BroadcastPasswordTitle">براڈکاسٹ پاس ورڈ</sys:String>
     <sys:String x:Key="BroadcastPasswordPrompt">{0} محفوظ ہے۔ نشر کرنے والے نے جو پاس ورڈ دیا ہے وہ درج کریں۔</sys:String>
     <sys:String x:Key="BroadcastPasswordRequired">یہ نشری نشست پاس ورڈ مانگتی ہے اور اس کمپیوٹر پر کوئی پاس ورڈ محفوظ نہیں۔ پاس ورڈ درج کرنے کے لیے اسے دوبارہ کھولیں۔</sys:String>
@@ -892,7 +896,7 @@
     <sys:String x:Key="BroadcastQrTitle">نشر کا QR کوڈ</sys:String>
     <sys:String x:Key="BroadcastQrHint">نشر کھولنے کے لیے اس کوڈ کو فون سے اسکین کریں۔ کوڈ میں پاس ورڈ نہیں ہے - اسے الگ سے بتائیں۔</sys:String>
     <sys:String x:Key="BroadcastQrImageName">نشر کے لنک کا QR کوڈ</sys:String>
-    <sys:String x:Key="BroadcastQrTooLong">اس نشر کی تفصیل QR کوڈ کے لیے بہت لمبی ہے۔ اس کے بجائے لنک کاپی کریں یا فائل محفوظ کریں۔</sys:String>
+    <sys:String x:Key="BroadcastQrTooLong">اس نشر کا ڈسکرپٹر QR کوڈ کے لیے بہت لمبا ہے۔ اس کے بجائے لنک کاپی کریں یا فائل محفوظ کریں۔</sys:String>
     <sys:String x:Key="BroadcastGuestRefused">مہمان کے طور پر سائن ان ہونے کی وجہ سے یہ پی سی نشر نہیں کرتا۔</sys:String>
     <sys:String x:Key="BroadcastIndicatorLive">نشر: {0}</sys:String>
     <sys:String x:Key="BroadcastIndicatorName">لائیو نشر کا اشارہ</sys:String>
@@ -902,8 +906,8 @@
     <sys:String x:Key="BroadcastCastUnsupported">دوسری ڈیوائس اس قسم کی نشریات نہیں چلا سکتی۔</sys:String>
     <sys:String x:Key="BroadcastShareMenu">شیئر</sys:String>
     <sys:String x:Key="BroadcastCopyLink">لنک کاپی کریں</sys:String>
-    <sys:String x:Key="BroadcastSaveFile">وضاحتی فائل محفوظ کریں</sys:String>
-    <sys:String x:Key="BroadcastFileFilter">نشری وضاحت (*.fmsbcast)|*.fmsbcast</sys:String>
+    <sys:String x:Key="BroadcastSaveFile">ڈسکرپٹر فائل محفوظ کریں</sys:String>
+    <sys:String x:Key="BroadcastFileFilter">نشری ڈسکرپٹر (*.fmsbcast)|*.fmsbcast</sys:String>
     <sys:String x:Key="BroadcastNotAllowed">پہلے ترتیبات میں نشر کی اجازت دیں۔</sys:String>
     <sys:String x:Key="BroadcastTooManySources">ایک ساتھ بہت زیادہ نشریات۔</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">یہ ذریعہ پہلے سے لائیو ہے۔</sys:String>

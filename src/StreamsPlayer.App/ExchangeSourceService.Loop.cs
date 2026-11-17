@@ -180,7 +180,11 @@ internal sealed partial class ExchangeSourceService
             try
             {
                 await ExchangeProtocol.WriteAsync(connection.Stream, envelope, true, token).ConfigureAwait(false);
-                _lastEnvelopeType = ExchangeProtocol.String(JsonSerializer.SerializeToElement(envelope, ExchangeProtocol.JsonOptions), "type");
+                // SP-0263 (S9-1): a password frame is serialised once, by WriteAsync, and zeroed there; naming it must not
+                // serialise a second copy of both passwords into a heap buffer nobody clears.
+                _lastEnvelopeType = envelope is ExchangePasswordChange
+                    ? ExchangePasswordChange.EnvelopeType
+                    : ExchangeProtocol.String(JsonSerializer.SerializeToElement(envelope, ExchangeProtocol.JsonOptions), "type");
             }
             finally
             {

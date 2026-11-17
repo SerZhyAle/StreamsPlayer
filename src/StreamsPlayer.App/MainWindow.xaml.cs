@@ -340,6 +340,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             await RunStartupStepAsync(nameof(StartRequestedPlaybackAsync), StartRequestedPlaybackAsync);
             await RunStartupStepAsync(nameof(HandOverStagedRecordingsAsync), HandOverStagedRecordingsAsync);
 
+            // SP-0274: a start verb that started this copy runs once the catalog is in memory and the window is not busy.
+            if (StartupCommand is { } startupCommand)
+            {
+                await RunStartupStepAsync(nameof(StartupCommand), startupCommand);
+            }
+
             // SP-0132: both through the gate. A named launch or a resume starts a station above, which makes
             // the panel reachable before these questions are asked.
             if (_cleanInstall)
@@ -995,7 +1001,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // system decision that supersedes a hunt in flight. Cancelling here rather than in StopAudioPlayback
     // is deliberate: that funnel is also the hunt's own between-attempt stop, so a hook there would make
     // the hunt cancel itself after its first attempt.
-    private async Task PlayChannelAsync(StreamChannel channel, bool rememberSelection, bool startFullscreen = false, bool quiet = false, bool randomHunt = false)
+    // SP-0272: background is set only by a play command that asked not to take the focus; it reaches the one place
+    // that shows a window, and the audio route has no window to show.
+    private async Task PlayChannelAsync(StreamChannel channel, bool rememberSelection, bool startFullscreen = false, bool quiet = false, bool randomHunt = false, bool background = false)
     {
         if (!randomHunt && channel.MediaKind == MediaKind.Audio && _playingAudio?.Channel.Id == channel.Id)
         {
@@ -1066,7 +1074,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
             if (resolved.PlaylistItems is { } playlistItems)
             {
-                OpenIndependentPlayerWindow(resolved.Channel, startFullscreen, quiet, playlistItems);
+                OpenIndependentPlayerWindow(resolved.Channel, startFullscreen, quiet, playlistItems, background: background);
                 return;
             }
 
@@ -1124,7 +1132,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
         else
         {
-            OpenIndependentPlayerWindow(channel, startFullscreen, quiet, broadcastCredentials: broadcastCredentials);
+            OpenIndependentPlayerWindow(channel, startFullscreen, quiet, broadcastCredentials: broadcastCredentials, background: background);
         }
     }
 
@@ -1132,6 +1140,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // session for the channel. The caller sets the Connecting/Reconnecting now-playing label.
     private void StartAudioPlayback(StreamChannel channel, bool reconnecting)
     {
+        _audioHeard = false; // SP-0272: every leg is buffering until sound is proven again
         _log.Event(reconnecting ? "AUDIO RECONNECT" : "AUDIO OPEN", $"url={channel.Url}");
         if (reconnecting)
         {
@@ -1359,6 +1368,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         PlaybackReachability reachability = PlaybackReachability.NotProbed)
     {
         NoteAudioTerminalFailure(); // before the stop, which is what closes and records the session
+        SettleCommandWatch(channel.Id, new PlaybackSettlement(false, reason, reachability)); // SP-0272: a waiting play command
         var quiet = _audioQuiet; // the stop below reassigns nothing, but the next play would
         // SP-0169: not StopAudio. A station that could not be brought back is not the user stopping: the sleep
         // timer's deadline is theirs, and SP-0022 lets only a manual Stop, Cancel or exit clear it - so after
@@ -1591,6 +1601,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // keeps the Windows media session visible as Paused so a later system Play can resume the channel.
     private void StopAudioPlayback(bool clearSystemSession)
     {
+        _audioHeard = false; // SP-0272
         StopAudioRecording();
         EndAudioSession(); // SP-0040: this is the one funnel every stop, switch, pause and failure passes through
         // SP-0062: and therefore the one place a station leaves the resume record - including the SP-0021
@@ -1633,7 +1644,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     }
 
     private PlayerWindow OpenIndependentPlayerWindow(StreamChannel channel, bool startFullscreen = false, bool quiet = false,
-        IReadOnlyList<string>? playlistItems = null, BroadcastCredentialsSession? broadcastCredentials = null)
+        IReadOnlyList<string>? playlistItems = null, BroadcastCredentialsSession? broadcastCredentials = null, bool background = false)
     {
         var window = new PlayerWindow(
             channel,
@@ -1662,6 +1673,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             playlistItems,
             broadcastCredentials) { Owner = this };
         AttachTvSchedule(window, channel);
+        window.PlaybackSettled += OnPlayerSettled; // SP-0272: what a waiting play command is told
+        window.ShowActivated = !background;
         _openPlayerWindows++;
         _playerWindows.Add(window);
         _ = SuspendPreviewsAsync();

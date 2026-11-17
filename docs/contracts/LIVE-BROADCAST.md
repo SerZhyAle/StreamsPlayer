@@ -3,10 +3,19 @@
 | | |
 | --- | --- |
 | **Id** | `LIVE-BROADCAST` |
-| **Version** | 1.3 read 2026-10-22 (SP-0232); prior edition 1.2 (active since 1.0 on 2026-10-15; read in full on 2026-10-21, SP-0228 - the paragraphs below dated 2026-10-07 and 2026-10-15 were written against 0.18 and 0.19) |
+| **Version** | 1.8 read 2026-11-15 (SP-0278); 1.3 read 2026-10-22 (SP-0232); prior edition 1.2 (active since 1.0 on 2026-10-15; read in full on 2026-10-21, SP-0228 - the paragraphs below dated 2026-10-07 and 2026-10-15 were written against 0.18 and 0.19) |
 | **Home** | `Contracts/live-broadcast/README.md`, with the detail in `11_live_broadcast_contract.md` and `13_contract_amendment_2026-10-07.md`; the exchange wire is `DEVICE-EXCHANGE` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | **consumer** of every kind and of the exchange endpoints, and **producer of audio** (microphone and system sound, SP-0217; screen and camera are SP-0223, not built, so the video branches of the writer are unreachable) |
+
+**SP-0281, 2026-11-15:** items V and W of 1.8 are built as a reader, and nothing is claimed beyond that. Item V: `BroadcastLiveCache` reads an
+endpoint's own `targetLatencyMs`, then the descriptor's top-level figure for a LAN endpoint only (never a `RELAY` or a `TUNNEL`), then the default of
+the endpoint's transport (`RTSP` 200, `HTTP` 1000, `RELAY` and `TUNNEL` 2000, `P2P` 1000); the floor and the ceiling of item L bound every result, a
+default included. Item W: `FastMediaSorterBroadcastAttempts` derives an endpoint's effective transport (declared; else `RTSP` for an `rtsp` address
+and `HTTP` for an `http` one; none under a `seal` or for any other scheme) and effective mode (declared; else the descriptor's) in one place, so
+every attempt carries them; a descriptor with no endpoint list is one endpoint of `RTSP` or `HTTP`. Playback only: no persisted value and no wire
+byte changes. Not built, not tested until the release; the registry rows are not moved until the release suite has passed, and the diff is the
+owner's to review.
 
 ## What this repository must do to stay conformant
 
@@ -21,7 +30,7 @@ incoming broadcast plays in a window of its own with its own state, bounded at `
 reading FMS_Win filed in `PROPOSAL-2026-10-20-sealed-outward-descriptor-without-auth.md`), and no consumer leg answers Digest, so a protected LAN or
 tunnel endpoint cannot play and only the relay can (SP-0215); the FlyleafLib engine holds a broadcast 6 to 10 s behind live (the live-edge corridor, rule
 1; LibVLC, the default, does not); a failed video slot has no reconnect in the window itself (amendment of 2026-10-19); the producer starts capture without
-a reachable endpoint and a LAN-only broadcast has no description to hand out (producer rules 1 and 3); item N's screen and camera sources (SP-0223).
+a reachable endpoint and a LAN-only broadcast has no description to hand out (producer rules 1 and 3); item N's screen and camera sources (SP-0223); section 5.2 item 5, the video window's LAN end-of-broadcast probe, one short connection made before the player opens (SP-0264, until 2027-03-31).
 Owed and not run: every handshake of section 6 against a live phone or second PC, and the reconnect-delay and steady-state numbers of SP-0208.
 
 The consumer rules are in the home page. Repo-local: the descriptor reader is

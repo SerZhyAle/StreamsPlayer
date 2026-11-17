@@ -1177,35 +1177,24 @@
                         </Style>
                     </Button.Style>
                     <StackPanel Orientation="Horizontal">
-                        <!-- SP-0113: nav.collapse while open, nav.expand while collapsed - the action a click takes. -->
-                        <Viewbox Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0" FlowDirection="LeftToRight">
-                        <Grid Width="24" Height="24">
-                            <Path Data="{StaticResource Icon.nav.collapse}" Width="24" Height="24" Fill="{DynamicResource TextBrush}">
-                                <Path.Style>
-                                    <Style TargetType="Path">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding PinnedSectionCollapsed}" Value="True">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Path.Style>
-                            </Path>
-                            <Path Data="{StaticResource Icon.nav.expand}" Width="24" Height="24" Fill="{DynamicResource TextBrush}">
-                                <Path.Style>
-                                    <Style TargetType="Path">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding PinnedSectionCollapsed}" Value="True">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Path.Style>
-                            </Path>
-                        </Grid>
-                        </Viewbox>
+                        <!-- SP-0280 (COLLAPSIBLE-GROUP 1.3 rule 2): the state triangle of a section header, not the action chevron. Turned down while the section is open; mirrored by the flow direction. -->
+                        <Path Data="{StaticResource Chrome.group-state}" Width="10" Height="10" Margin="0,0,6,0" VerticalAlignment="Center"
+                              Fill="{DynamicResource TextBrush}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                            <Path.Style>
+                                <Style TargetType="Path">
+                                    <Setter Property="RenderTransform">
+                                        <Setter.Value><RotateTransform Angle="90" /></Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding PinnedSectionCollapsed}" Value="True">
+                                            <Setter Property="RenderTransform">
+                                                <Setter.Value><RotateTransform Angle="0" /></Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Path.Style>
+                        </Path>
                         <TextBlock Text="{DynamicResource PinnedSectionHeader}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" />
                     </StackPanel>
@@ -1288,35 +1277,24 @@
                         </Style>
                     </Button.Style>
                     <StackPanel Orientation="Horizontal">
-                        <!-- SP-0113: nav.collapse while open, nav.expand while collapsed - the action a click takes. -->
-                        <Viewbox Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,6,0" FlowDirection="LeftToRight">
-                        <Grid Width="24" Height="24">
-                            <Path Data="{StaticResource Icon.nav.collapse}" Width="24" Height="24" Fill="{DynamicResource TextBrush}">
-                                <Path.Style>
-                                    <Style TargetType="Path">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding MainSectionCollapsed}" Value="True">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Path.Style>
-                            </Path>
-                            <Path Data="{StaticResource Icon.nav.expand}" Width="24" Height="24" Fill="{DynamicResource TextBrush}">
-                                <Path.Style>
-                                    <Style TargetType="Path">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding MainSectionCollapsed}" Value="True">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Path.Style>
-                            </Path>
-                        </Grid>
-                        </Viewbox>
+                        <!-- SP-0280 (COLLAPSIBLE-GROUP 1.3 rule 2): the state triangle of a section header, not the action chevron. Turned down while the section is open; mirrored by the flow direction. -->
+                        <Path Data="{StaticResource Chrome.group-state}" Width="10" Height="10" Margin="0,0,6,0" VerticalAlignment="Center"
+                              Fill="{DynamicResource TextBrush}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                            <Path.Style>
+                                <Style TargetType="Path">
+                                    <Setter Property="RenderTransform">
+                                        <Setter.Value><RotateTransform Angle="90" /></Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding MainSectionCollapsed}" Value="True">
+                                            <Setter Property="RenderTransform">
+                                                <Setter.Value><RotateTransform Angle="0" /></Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Path.Style>
+                        </Path>
                         <TextBlock x:Name="MainHeaderText" Text="{DynamicResource MainSectionHeader}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" />
                     </StackPanel>

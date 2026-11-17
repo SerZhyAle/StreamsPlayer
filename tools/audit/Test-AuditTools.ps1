@@ -210,7 +210,7 @@ try {
 }
 
 if ($failures.Count -eq 0) {
-    "audit-tools: PASS ($passed checks)"
+    "audit-tools: PASS (run=$passed skipped=0)"
     exit 0
 }
 "audit-tools: FAIL ($($failures.Count) of $($passed + $failures.Count) checks)"

@@ -29,12 +29,16 @@ public partial class MainWindow
                     {
                         if (_shuttingDown) return Task.CompletedTask;
                         new ExchangeFailureWindow(ExchangeFailureRows.SignedOut) { Owner = DialogOwner }.ShowDialog();
-                        if (!_busy)
-                        {
-                            OpenSettings(SettingsWindow.ExchangePageIndex);
-                        }
-
-                        return Task.CompletedTask;
+                        // SP-0263 (S8-1): Settings is owned by the catalog, which is hidden in compact mode - a modal over
+                        // it would render behind the topmost panel - so it waits for the next expand, as every other
+                        // question raised after an await does; and a Settings window already open is not stacked on.
+                        return !_busy && !Application.Current.Windows.OfType<SettingsWindow>().Any()
+                            ? WhenCatalogShownAsync(() =>
+                            {
+                                OpenSettings(SettingsWindow.ExchangePageIndex);
+                                return Task.CompletedTask;
+                            })
+                            : Task.CompletedTask;
                     }));
             }
         }
@@ -194,15 +198,18 @@ public partial class MainWindow
             return null;
         }
 
+        // SP-0263 (S8-2): the account is read here, not inside the mutation - a lambda that reads Exchange captures this window,
+        // and the DEBUG guard against a catalog mutation that holds a WPF object throws on it.
+        var entry = listingEntry ?? Exchange.Account;
+        var directoryEntryIdentity = ExchangeAccountIdentity.Key(entry.Host, entry.Port, entry.Login);
         FastMediaSorterBroadcastApplyResult? applied = null;
         await PersistAsync(state =>
         {
             // Playing or keeping one is the explicit act that creates the channel (Option A); the record's
             // broadcastId is what makes the row the directory's, and therefore the one a leaving record marks.
-            var entry = listingEntry ?? Exchange.Account;
             applied = FastMediaSorterBroadcastImport.Apply(
                 state.Channels, descriptor, DateTimeOffset.UtcNow, view.Record.BroadcastId,
-                directoryEntryIdentity: ExchangeAccountIdentity.Key(entry.Host, entry.Port, entry.Login));
+                directoryEntryIdentity: directoryEntryIdentity);
             return state with { Channels = [.. applied.Channels] };
         });
         if (applied is null)
@@ -348,12 +355,14 @@ public partial class MainWindow
             var cast = _activeCasts.Track(offer.BroadcastId, offer.CastId, IsChannelPlaying);
             try
             {
+                // SP-0263 (S8-2): read before the mutation, so the lambda captures no WPF object (see ImportExchangeBroadcastAsync).
+                var directoryEntryIdentity = ExchangeAccountIdentity.Key(Exchange.Account.Host, Exchange.Account.Port, Exchange.Account.Login);
                 FastMediaSorterBroadcastApplyResult? applied = null;
                 await PersistAsync(state =>
                 {
                     applied = FastMediaSorterBroadcastImport.Apply(
                         state.Channels, offer.Descriptor, DateTimeOffset.UtcNow, offer.BroadcastId,
-                        directoryEntryIdentity: ExchangeAccountIdentity.Key(Exchange.Account.Host, Exchange.Account.Port, Exchange.Account.Login));
+                        directoryEntryIdentity: directoryEntryIdentity);
                     return state with { Channels = [.. applied.Channels] };
                 });
 

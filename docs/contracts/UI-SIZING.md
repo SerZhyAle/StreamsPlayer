@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `UI-SIZING` |
-| **Version** | 1.1 (active), read 2026-10-22 for SP-0231 |
+| **Version** | 1.2 (active), read 2026-11-15 (SP-0278); 1.1 read 2026-10-22 for SP-0231 |
 | **Home** | `Contracts/ui-sizing/README.md` |
 | **Owner** | shared (portfolio) |
 | **This product's role** | **consumer**; migration SP-0231, dated plan with deadline 2027-03-31 recorded in the registry's "StreamsPlayer unified UI migration" entry |

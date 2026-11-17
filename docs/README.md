@@ -21,10 +21,12 @@ Index of this tree. Two very different things live here, and the split matters:
   neither writes nor reads it.
 - **Hand-written documentation** - everything below. Edit these directly.
 
-Every document in the repository - these, the generated pages above, and every other `*.md` - has one
-entry in [`DOCUMENT_REGISTRY.jsonl`](../DOCUMENT_REGISTRY.jsonl) at the root. `scripts/check-docs.ps1`
-fails on an undeclared document, a broken link or anchor, and house-style breaks (SP-0140), so a new
-document lands with its entry.
+[`DOCUMENT_REGISTRY.jsonl`](../DOCUMENT_REGISTRY.jsonl) at the root declares the roots of the maintained
+corpus (a directory ends in `/`, a file is named whole) and its reasoned ignores. Every document under a
+root - these, the generated pages above, and every other `*.md` - has one entry there. `scripts/check-docs.ps1`
+fails on an undeclared document under a root, a broken link or anchor, and house-style breaks (SP-0140,
+SP-0287), so a new document lands with its entry and a new documentation folder with its root. A file under
+no root is outside the corpus: the gate names it in a `note:` line and does not judge it.
 
 ## Maintainer documentation
 
@@ -35,6 +37,8 @@ document lands with its entry.
 | [fastmediasorter-playback-recommendations.md](fastmediasorter-playback-recommendations.md) | The reverse direction: what this player could adopt from FastMediaSorter's Media3 playback. |
 | [localization/glossary.md](localization/glossary.md) | Translation glossary for the shipped interface languages. |
 | [contracts/](contracts/README.md) | One pointer per shared contract this product consumes or owes. Pointers, never copies. |
+| [cli-commands.json](cli-commands.json) | The command manifest (`APP-COMMANDS` rule 18): every command `StreamsPlayer.exe` accepts from scripts and other programs. The one source of truth - embedded in the build and printed by `commands --json`; each command's `exe` names the executable that serves it, and `StreamsPlayerCli.exe` is the console companion a pipeline reads. |
+| [CLI.md](CLI.md) | The command-line reference, **generated** from `cli-commands.json` by `tools/Build-CliDoc.ps1` (`APP-COMMANDS` rule 20; never edit by hand): the command table and, per command, its synopsis, options, risk, exit codes and `cmd` and PowerShell examples. `scripts/check-fast.ps1` fails when it is stale. |
 
 ## Agent workflow
 

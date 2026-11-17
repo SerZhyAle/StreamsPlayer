@@ -55,8 +55,13 @@ internal enum SegmentFate
     Empty
 }
 
-/// <summary>What became of one segment. <see cref="Skipped"/> is the folder that refused it when it was saved to a fallback.</summary>
-internal sealed record SegmentResult(SegmentFate Fate, string? Path, TimeSpan Length, string? Error = null, string? Skipped = null);
+/// <summary>
+/// What became of one segment. <see cref="Skipped"/> is the folder that refused it when it was saved to a fallback.
+/// <see cref="NoSpace"/> (SP-0273) says a stranded segment was refused because the volume is full, which a command answers as
+/// exit 13 and not 14.
+/// </summary>
+internal sealed record SegmentResult(
+    SegmentFate Fate, string? Path, TimeSpan Length, string? Error = null, string? Skipped = null, bool NoSpace = false);
 
 /// <summary>
 /// SP-0121: finishes a segment - waits, bounded, for the engine to release its file and then moves it into the
@@ -143,7 +148,8 @@ internal static class RecordingFinisher
         catch (Exception exception) when (CaptureFolders.IsFolderRefusal(exception))
         {
             log.Event("RECORD FINISH", $"engine={segment.Engine}", "fate=stranded", $"path={file}", $"err={exception.Message}");
-            return new SegmentResult(SegmentFate.Stranded, file, segment.Length, exception.GetType().Name);
+            return new SegmentResult(SegmentFate.Stranded, file, segment.Length, exception.GetType().Name,
+                NoSpace: AppRecordCommands.ClassifyWrite(exception) == AppRecordWriteProblem.NoSpace);
         }
     }
 

@@ -128,9 +128,10 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             _sessionCancellation?.Cancel();
             StopLegLocked();
             ReleaseFollowLocked();
+            SetStateLocked(BroadcastLegState.Stopped, null);
         }
 
-        SetState(BroadcastLegState.Stopped, null);
+        Changed?.Invoke();
     }
 
     public void Dispose()
@@ -175,9 +176,10 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             playback.Ended += Playback_Ended;
             playback.Failed += Playback_Failed;
             playback.RelayFailed += failure => HandleFailure(playback, generation, token, failure, null);
+            SetStateLocked(reconnecting ? BroadcastLegState.Reconnecting : BroadcastLegState.Connecting, null);
         }
 
-        SetState(reconnecting ? BroadcastLegState.Reconnecting : BroadcastLegState.Connecting, null);
+        Changed?.Invoke();
         _ = OpenAsync(playback, generation, token);
     }
 
@@ -206,7 +208,7 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             _log?.Invoke("FMS AUDIO FAULT", [$"err={exception.GetType().Name}"]);
             if (IsCurrent(playback, generation))
             {
-                End(BroadcastLegState.Failed, IncomingBroadcastFailure.NoLongerAvailableKey);
+                End(BroadcastLegState.Failed, IncomingBroadcastFailure.NoLongerAvailableKey, token);
             }
         }
     }
@@ -230,9 +232,13 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             {
                 WatchForStallLocked((FastMediaSorterAudioLeg)sender!, _generation, readBytes, cancellation.Token);
             }
+
+            // SP-0263 (S5-4): the state is written under the lock that just proved this leg current, so a Playing that lost
+            // the race to Stop cannot land after its Stopped.
+            SetStateLocked(BroadcastLegState.Playing, null);
         }
 
-        SetState(BroadcastLegState.Playing, null);
+        Changed?.Invoke();
     }
 
     private void Playback_Ended(object? sender, FastMediaSorterAudioPlaybackEventArgs e)
@@ -308,7 +314,7 @@ internal sealed partial class BroadcastAudioSession : IDisposable
                 _needsPasswordAgain = true;
             }
 
-            End(BroadcastLegState.Failed, terminalKey);
+            End(BroadcastLegState.Failed, terminalKey, token);
             return;
         }
 
@@ -340,6 +346,10 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             StopLegLocked();
             _policy.NotifyLegPlayed(played);
             decision = _policy.Decide(new PlaybackFailureSignal(reason, HttpStatusCode: status, EndReached: endReached, Stall: stall));
+            if (decision.Kind != RecoveryActionKind.HardFail)
+            {
+                SetStateLocked(BroadcastLegState.Reconnecting, null);
+            }
         }
 
         _log?.Invoke("FMS AUDIO RECOVER", [$"trigger={decision.Trigger}", $"action={decision.Kind}",
@@ -351,11 +361,11 @@ internal sealed partial class BroadcastAudioSession : IDisposable
                 _log?.Invoke(EndTag, [$"cause={BroadcastEndCauses.Name(_end.NoteBudgetExhausted().Cause)}", "kind=audio"]);
             }
 
-            End(endReached ? BroadcastLegState.Ended : BroadcastLegState.Failed, IncomingBroadcastFailure.NoLongerAvailableKey);
+            End(endReached ? BroadcastLegState.Ended : BroadcastLegState.Failed, IncomingBroadcastFailure.NoLongerAvailableKey, token);
             return;
         }
 
-        SetState(BroadcastLegState.Reconnecting, null);
+        Changed?.Invoke();
         _ = ReconnectAfterAsync(decision.Delay, token);
     }
 
@@ -373,15 +383,22 @@ internal sealed partial class BroadcastAudioSession : IDisposable
         BeginLeg(reconnecting: true, token);
     }
 
-    private void End(BroadcastLegState state, string? messageKey)
+    private void End(BroadcastLegState state, string? messageKey, CancellationToken token)
     {
         lock (_gate)
         {
+            // SP-0263 (S5-4): a Stop (or an end already read) that got in first owns the state; this end then has nothing to say.
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
             StopLegLocked();
             ReleaseFollowLocked();
+            SetStateLocked(state, messageKey);
         }
 
-        SetState(state, messageKey);
+        Changed?.Invoke();
     }
 
     /// <summary>The follower's word that the broadcast left the directory (on the UI thread, once per absence).</summary>
@@ -420,10 +437,11 @@ internal sealed partial class BroadcastAudioSession : IDisposable
             _sessionCancellation?.Cancel();
             StopLegLocked();
             ReleaseFollowLocked();
+            SetStateLocked(BroadcastLegState.Ended, IncomingBroadcastFailure.EndedKey);
         }
 
         _log?.Invoke(EndTag, [$"cause={BroadcastEndCauses.Name(verdict.Cause)}", "kind=audio"]);
-        SetState(BroadcastLegState.Ended, IncomingBroadcastFailure.EndedKey);
+        Changed?.Invoke();
         return true;
     }
 
@@ -504,10 +522,11 @@ internal sealed partial class BroadcastAudioSession : IDisposable
         }
     }
 
-    private void SetState(BroadcastLegState state, string? messageKey)
+    // SP-0263 (S5-4): every state write happens under _gate, in the same section that checked the leg or the session was
+    // still current; Changed is raised after the lock is released, so a handler can never re-enter it.
+    private void SetStateLocked(BroadcastLegState state, string? messageKey)
     {
         State = state;
         MessageKey = messageKey;
-        Changed?.Invoke();
     }
 }

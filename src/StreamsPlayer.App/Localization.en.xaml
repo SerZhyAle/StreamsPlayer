@@ -387,6 +387,9 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="PlayerPinControlsName">Pin the playback controls</sys:String>
     <sys:String x:Key="SettingsGeneralBasics">Basic settings</sys:String>
     <sys:String x:Key="SettingsGeneralView">Catalog view</sys:String>
+    <sys:String x:Key="SettingsGeneralCommands">Commands from other programs</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommands">Let other programs ask STREAMS Player to work with my files, screen, clipboard or the network</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommandsHint">Off: scripts and other programs can show and close STREAMS Player, play, pause, resume and stop streams, set the volume, add a stream and ask about its state. On: they may also list what is playing now and record into a folder they name, which reads or writes your data. Only you can change this, here.</sys:String>
     <sys:String x:Key="SettingsGeneralInterface">Interface</sys:String>
     <sys:String x:Key="InterfaceSizeLabel">Interface size</sys:String>
     <sys:String x:Key="InterfaceSizeHint">Sets how large text, icons, spacing and click targets are.</sys:String>
@@ -653,8 +656,8 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="FmsBroadcastAdded">Live broadcast imported: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUpdated">Live broadcast updated: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUnsupportedMode">This broadcast mode is not supported yet. Your list was not changed.</sys:String>
-    <sys:String x:Key="FmsBroadcastInvalid">This is not a valid FastMediaSorter broadcast description. Your list was not changed.</sys:String>
-    <sys:String x:Key="FmsBroadcastTooLarge">This broadcast description is larger than 64 KiB. Your list was not changed.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">This is not a valid FastMediaSorter broadcast descriptor. Your list was not changed.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">This broadcast descriptor is larger than 64 KiB. Your list was not changed.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer is busy with another operation. Import the broadcast again once it finishes. Your list was not changed.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0} already has the maximum number of viewers and listeners. Try again when another one disconnects.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} stopped broadcasting or is no longer reachable on this network.</sys:String>
@@ -778,6 +781,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="ExchangeTlsRequired">The server accepts this only over a protected connection, and this one is not protected.</sys:String>
     <sys:String x:Key="ExchangeIdCollision">The server already knows another device under this device's number. Remove this server from the list and add it again.</sys:String>
     <sys:String x:Key="ExchangeStateE2eMissing">This device cannot receive protected content yet, so nothing is sent to it through the server.</sys:String>
+    <sys:String x:Key="ExchangeStateE2eMissingPeer">The device that has this content cannot send it protected yet, so nothing from it comes through the server.</sys:String>
     <sys:String x:Key="ExchangeStateKeyChanged">The protection key of this device has changed, so nothing is sent to it. Remove the device from the account and add it again.</sys:String>
     <sys:String x:Key="ExchangeStateServerNoE2e">This server cannot carry protected content, so folders, broadcasts and the clipboard do not go through it.</sys:String>
     <sys:String x:Key="ExchangeStateSealedFailed">This could not be opened on this device. Try again from the other device.</sys:String>
@@ -833,8 +837,8 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="ExchangeReplacePrompt">This PC is signed in to {0}. If the new account is your own or a family account, it replaces that sign-in: this PC's broadcasts end and it signs out of {0}. A guest account is added beside it instead. Continue?</sys:String>
     <sys:String x:Key="ExchangeForgottenOffline">Signed out on this device. The server could not be told, so this device may remain listed until another device removes it. No retry will run.</sys:String>
     <sys:String x:Key="ExchangeReplacementRequired">Confirm leaving the current account before joining another one.</sys:String>
-    <sys:String x:Key="BroadcastCertificateUntrusted">The broadcast’s server presents a certificate this PC cannot verify, and the description gives no fingerprint. Ask the broadcaster for an updated description.</sys:String>
-    <sys:String x:Key="BroadcastCertificateMismatch">The broadcast’s server certificate does not match the fingerprint in its description. Playback was refused.</sys:String>
+    <sys:String x:Key="BroadcastCertificateUntrusted">The broadcast’s server presents a certificate this PC cannot verify, and the descriptor gives no fingerprint. Ask the broadcaster for an updated descriptor.</sys:String>
+    <sys:String x:Key="BroadcastCertificateMismatch">The broadcast’s server certificate does not match the fingerprint in its descriptor. Playback was refused.</sys:String>
     <sys:String x:Key="BroadcastPasswordTitle">Broadcast password</sys:String>
     <sys:String x:Key="BroadcastPasswordPrompt">{0} is protected. Enter the password its broadcaster gave you.</sys:String>
     <sys:String x:Key="BroadcastPasswordRequired">This broadcast asks for a password, and none is stored on this PC. Open it again to enter the password.</sys:String>
@@ -908,7 +912,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="BroadcastQrTitle">Broadcast QR code</sys:String>
     <sys:String x:Key="BroadcastQrHint">Scan this code with a phone to open the broadcast. The code does not hold the password - tell it separately.</sys:String>
     <sys:String x:Key="BroadcastQrImageName">QR code of the broadcast link</sys:String>
-    <sys:String x:Key="BroadcastQrTooLong">This broadcast's description is too long for a QR code. Copy the link or save the file instead.</sys:String>
+    <sys:String x:Key="BroadcastQrTooLong">This broadcast's descriptor is too long for a QR code. Copy the link or save the file instead.</sys:String>
     <sys:String x:Key="BroadcastGuestRefused">Signed in as a guest, this PC does not broadcast.</sys:String>
     <sys:String x:Key="BroadcastIndicatorLive">Broadcasting: {0}</sys:String>
     <sys:String x:Key="BroadcastIndicatorName">Live broadcast indicator</sys:String>
@@ -918,8 +922,8 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="BroadcastCastUnsupported">The other device cannot play this kind of broadcast.</sys:String>
     <sys:String x:Key="BroadcastShareMenu">Share</sys:String>
     <sys:String x:Key="BroadcastCopyLink">Copy link</sys:String>
-    <sys:String x:Key="BroadcastSaveFile">Save description file</sys:String>
-    <sys:String x:Key="BroadcastFileFilter">Broadcast description (*.fmsbcast)|*.fmsbcast</sys:String>
+    <sys:String x:Key="BroadcastSaveFile">Save descriptor file</sys:String>
+    <sys:String x:Key="BroadcastFileFilter">Broadcast descriptor (*.fmsbcast)|*.fmsbcast</sys:String>
     <sys:String x:Key="BroadcastNotAllowed">Allow broadcasting in Settings first.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">Too many broadcasts at once.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">This source is already live.</sys:String>

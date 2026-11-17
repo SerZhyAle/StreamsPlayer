@@ -42,9 +42,13 @@ public sealed class ActivationPipeListener : IAsyncDisposable
     private readonly string _pipeName;
     private readonly Action<IReadOnlyList<string>> _onRequest;
     private readonly Action<string, Exception?> _onRejected;
+    private readonly Func<AppCommandRequest, CancellationToken, Task<AppCommandResponse>>? _onCommand;
     private readonly CancellationTokenSource _stop = new();
     private Task? _loop;
     private volatile bool _accepting = true;
+
+    /// <summary>How long a response line has to be written once the command has its answer.</summary>
+    private static readonly TimeSpan ResponseWriteTimeout = TimeSpan.FromSeconds(2);
 
     public ActivationPipeListener(
         string pipeName,
@@ -55,6 +59,22 @@ public sealed class ActivationPipeListener : IAsyncDisposable
         _pipeName = pipeName;
         _onRequest = onRequest ?? throw new ArgumentNullException(nameof(onRequest));
         _onRejected = onRejected ?? throw new ArgumentNullException(nameof(onRejected));
+    }
+
+    /// <summary>
+    /// SP-0271: a listener that also answers the <c>APP-COMMANDS</c> rule 7 profile. A line that carries a
+    /// <c>requestId</c> goes to <paramref name="onCommand"/> and is answered with one JSON response line on the same
+    /// connection; every other line takes the frozen launch path above, answered <see cref="AcceptedReply"/> or
+    /// <see cref="RefusedReply"/> exactly as before.
+    /// </summary>
+    public ActivationPipeListener(
+        string pipeName,
+        Action<IReadOnlyList<string>> onRequest,
+        Action<string, Exception?> onRejected,
+        Func<AppCommandRequest, CancellationToken, Task<AppCommandResponse>> onCommand)
+        : this(pipeName, onRequest, onRejected)
+    {
+        _onCommand = onCommand ?? throw new ArgumentNullException(nameof(onCommand));
     }
 
     public void Start() => _loop ??= Task.Run(() => RunAsync(_stop.Token));
@@ -134,15 +154,33 @@ public sealed class ActivationPipeListener : IAsyncDisposable
         deadline.CancelAfter(ReadTimeout);
         try
         {
-            var line = await ReadLineAsync(server, deadline.Token).ConfigureAwait(false);
-            var accepted = false;
-            if (line is null)
+            var read = await ReadLineAsync(server, deadline.Token).ConfigureAwait(false);
+            if (read.Oversized)
             {
                 Reject("payload exceeded the size limit", null);
+                if (_onCommand is not null)
+                {
+                    // SP-0279, APP-COMMANDS item I.3: a request line over the bound is answered, not dropped. It is not a
+                    // request this side could read, so the answer carries no request id (the second process reads that as
+                    // unreadable and exits 2); a listener without the profile keeps the silence it always had.
+                    await WriteResponseAsync(server,
+                        AppCommandResponse.Refused(string.Empty, AppCommandReason.TooLarge, AppCommandExit.Usage, AppCommandMessages.TooLarge),
+                        stopping, closing: false).ConfigureAwait(false);
+                }
+
+                return;
             }
-            else if (line.Length == 0)
+
+            var line = read.Bytes;
+            var accepted = false;
+            if (line.Length == 0)
             {
                 Reject("empty connection", null);
+            }
+            else if (_onCommand is not null && AppCommandRequest.Read(line) is { Kind: not AppCommandLineKind.Legacy } command)
+            {
+                await AnswerCommandAsync(server, command, stopping).ConfigureAwait(false);
+                return;
             }
             else if (!ActivationMessage.TryParse(line, out var arguments))
             {
@@ -178,6 +216,95 @@ public sealed class ActivationPipeListener : IAsyncDisposable
     }
 
     /// <summary>
+    /// SP-0271: one profile request, one response line. A closing listener answers <c>busy</c> without asking the
+    /// handler (rule 10); a handler that throws is answered <c>failed</c>, and the loop goes on either way.
+    /// </summary>
+    private async Task AnswerCommandAsync(NamedPipeServerStream server, AppCommandLineRead command, CancellationToken stopping)
+    {
+        AppCommandResponse response;
+        var closing = false;
+        switch (command.Kind)
+        {
+            case AppCommandLineKind.NewerSchema:
+                Reject("command of a newer schema", null);
+                response = AppCommandResponse.Refused(command.RequestId, AppCommandReason.Schema, AppCommandExit.NotProven,
+                    AppCommandMessages.Schema);
+                break;
+            case AppCommandLineKind.Request when !_accepting:
+                Reject("listener is closing", null);
+                response = AppCommandResponse.Busy(command.RequestId, AppCommandMessages.Busy);
+                break;
+            case AppCommandLineKind.Request:
+                try
+                {
+                    response = await _onCommand!(command.Request!, stopping).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (stopping.IsCancellationRequested)
+                {
+                    // SP-0279, item K: a hang-up with no line now reads as an older copy, so a listener that is closing
+                    // under a running command says busy instead of going quiet.
+                    Reject("listener stopped during a command", null);
+                    response = AppCommandResponse.Busy(command.RequestId, AppCommandMessages.Busy);
+                    closing = true;
+                }
+                catch (Exception exception)
+                {
+                    Reject("command handler failed", exception);
+                    response = AppCommandResponse.Failed(command.RequestId, AppCommandReason.Error, AppCommandExit.Failed,
+                        AppCommandMessages.Failed);
+                }
+
+                break;
+            default:
+                Reject("malformed command", null);
+                response = AppCommandResponse.Refused(command.RequestId, AppCommandReason.BadArgument, AppCommandExit.Usage,
+                    AppCommandMessages.BadArgument);
+                break;
+        }
+
+        await WriteResponseAsync(server, response, stopping, closing).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Writes one response line and waits for the caller to hang up. A line over the bound of <c>APP-COMMANDS</c> item L is
+    /// replaced by <c>response-too-large</c>. <paramref name="closing"/> gives the write a deadline of its own, because the
+    /// listener's own token is already cancelled then and the busy answer would never be written.
+    /// </summary>
+    private async Task WriteResponseAsync(
+        NamedPipeServerStream server, AppCommandResponse response, CancellationToken stopping, bool closing)
+    {
+        var bytes = response.Serialize();
+        if (bytes.Length - 1 > AppCommandLimits.MaximumResponseBytes)
+        {
+            Reject("response exceeded the size limit", null);
+            bytes = AppCommandResponse.Failed(response.RequestId, AppCommandReason.ResponseTooLarge, AppCommandExit.Failed,
+                AppCommandMessages.ResponseTooLarge).Serialize();
+        }
+
+        using var deadline = closing ? new CancellationTokenSource() : CancellationTokenSource.CreateLinkedTokenSource(stopping);
+        deadline.CancelAfter(ResponseWriteTimeout);
+        try
+        {
+            await server.WriteAsync(bytes, deadline.Token).ConfigureAwait(false);
+            await server.FlushAsync(deadline.Token).ConfigureAwait(false);
+            var buffer = new byte[16];
+            while (await server.ReadAsync(buffer, deadline.Token).ConfigureAwait(false) > 0)
+            {
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The caller did not hang up in time, or the listener is stopping: the answer was written or is moot.
+        }
+        catch (IOException)
+        {
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+    }
+
+    /// <summary>
     /// SP-0170: writes the verdict, then waits for the sender to hang up - closing first could discard a reply
     /// the sender has not read yet. A sender that is already gone (an older copy never reads) is not a fault.
     /// </summary>
@@ -202,31 +329,51 @@ public sealed class ActivationPipeListener : IAsyncDisposable
     }
 
     /// <summary>
-    /// The bytes up to the first newline or the end of the stream; <see langword="null"/> when that is
-    /// more than <see cref="ActivationMessage.MaximumPayloadBytes"/>.
+    /// A line as <see cref="ReadLineAsync"/> read it: the bytes, or <see cref="Oversized"/> when it was more than
+    /// <see cref="ActivationMessage.MaximumPayloadBytes"/> (the bytes are then empty).
     /// </summary>
-    private static async Task<byte[]?> ReadLineAsync(Stream stream, CancellationToken cancellationToken)
+    private readonly record struct LineRead(byte[] Bytes, bool Oversized);
+
+    /// <summary>
+    /// SP-0279: how much of an oversized line is read and thrown away after the bound, looking for its newline, so that a
+    /// sender that is still writing has finished by the time it is answered. Past this the answer is written anyway.
+    /// </summary>
+    private const int MaximumDrainBytes = 1024 * 1024;
+
+    /// <summary>
+    /// The bytes up to the first newline or the end of the stream; <see cref="LineRead.Oversized"/> when that is more than
+    /// <see cref="ActivationMessage.MaximumPayloadBytes"/>. An oversized line is read on to its newline (bounded by
+    /// <see cref="MaximumDrainBytes"/> and the caller's deadline) and not kept.
+    /// </summary>
+    private static async Task<LineRead> ReadLineAsync(Stream stream, CancellationToken cancellationToken)
     {
         var line = new MemoryStream();
         var buffer = new byte[4096];
+        var oversized = false;
+        long discarded = 0;
         while (true)
         {
             var read = await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
             if (read == 0)
             {
-                return line.ToArray();
+                return oversized ? new LineRead([], true) : new LineRead(line.ToArray(), false);
             }
 
             var newline = Array.IndexOf(buffer, (byte)'\n', 0, read);
-            line.Write(buffer, 0, newline < 0 ? read : newline);
-            if (line.Length > ActivationMessage.MaximumPayloadBytes)
+            var length = newline < 0 ? read : newline;
+            if (oversized)
             {
-                return null;
+                discarded += length;
+            }
+            else
+            {
+                line.Write(buffer, 0, length);
+                oversized = line.Length > ActivationMessage.MaximumPayloadBytes;
             }
 
-            if (newline >= 0)
+            if (newline >= 0 || (oversized && discarded > MaximumDrainBytes))
             {
-                return line.ToArray();
+                return oversized ? new LineRead([], true) : new LineRead(line.ToArray(), false);
             }
         }
     }

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -37,6 +38,17 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
     private readonly object _mediaGate = new();
     private Media? _media;
     private string _lastUrl = string.Empty;
+
+    // SP-0263 (S3-2): the loopback route of a relay or digest leg is http://127.0.0.1:<port>/<32 hex>, and that path is the
+    // leg's own token. The sink's URL redaction only knows userinfo, secret query names and capability paths, so the
+    // address that reaches every STATE and THUMB line is masked here, before it is kept.
+    private static readonly Regex LoopbackRouteToken = new(
+        @"^(?<head>[A-Za-z][A-Za-z0-9+.\-]*://(?:127\.0\.0\.1|\[::1\]|localhost)(?::\d+)?/)[0-9A-Fa-f]{32}(?=[/?#]|$)",
+        RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+
+    private static string LogForm(Uri url) =>
+        LoopbackRouteToken.Replace(url.ToString(), "${head}" + CatalogUrlIdentity.RedactedMarker);
+
     // The output device last sent to the player; empty is the system default a new player starts on. UI thread only.
     private string _outputDevice = string.Empty;
     // Baselines for the per-second rates published by LogStats, reset per open so a reconnect does not report
@@ -232,7 +244,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             // to the player rather than dropped with its path (C-03). The player starts the next one once live.
             var endedSegment = _recording.End(null, "reopen");
 
-            _lastUrl = url.ToString();
+            _lastUrl = LogForm(url);
             var leg = Interlocked.Increment(ref _openedLegs);
             _mediaPlayer.NetworkCaching = cacheMilliseconds;
             // SP-0069: the field takes ownership only once Play has returned. Assigning it first and

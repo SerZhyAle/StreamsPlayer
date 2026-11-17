@@ -193,6 +193,7 @@ public partial class SettingsWindow : Window
         HideAdultContentCheckBox.IsChecked = _mainWindow.State.HideAdultContent;
         UpdatePreviewsCheckBox.IsChecked = _mainWindow.State.UpdateStreamPreviews;
         AnimatedBackdropOption.IsChecked = _mainWindow.State.AnimatedBackdrop;
+        AcceptsRestrictedCommandsOption.IsChecked = _mainWindow.State.AcceptsRestrictedCommands;
         KeepAwakeCheckBox.IsChecked = _mainWindow.State.KeepAwakeDuringPlayback;
         SystemMediaControlsCheckBox.IsChecked = _mainWindow.State.SystemMediaControls;
         ResumePlaybackCheckBox.IsChecked = _mainWindow.State.ResumePlaybackOnStartup;
@@ -337,6 +338,17 @@ public partial class SettingsWindow : Window
 
         HandlerBoundary.Run(nameof(AnimatedBackdropOption_Toggled),
             () => _mainWindow.ApplyAnimatedBackdropFromSettingsAsync(AnimatedBackdropOption.IsChecked));
+    }
+
+    private void AcceptsRestrictedCommandsOption_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_initializing)
+        {
+            return;
+        }
+
+        HandlerBoundary.Run(nameof(AcceptsRestrictedCommandsOption_Toggled),
+            () => _mainWindow.ApplyAcceptsRestrictedCommandsFromSettingsAsync(AcceptsRestrictedCommandsOption.IsChecked));
     }
 
     private void HideAdultContentCheckBox_Click(object sender, RoutedEventArgs e)

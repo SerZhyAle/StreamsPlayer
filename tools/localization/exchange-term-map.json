@@ -282,6 +282,7 @@
     ],
     "DEVICE-EXCHANGE 27 DR: sealed states (SP-0226)": [
       "ExchangeStateE2eMissing",
+      "ExchangeStateE2eMissingPeer",
       "ExchangeStateKeyChanged",
       "ExchangeStateSealedFailed",
       "ExchangeStateServerNoE2e"

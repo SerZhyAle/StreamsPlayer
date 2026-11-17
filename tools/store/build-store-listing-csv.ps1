@@ -65,6 +65,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 . "$PSScriptRoot/../InterfaceLanguages.ps1"
+. "$PSScriptRoot/ListingCsvDialect.ps1"
 
 $root = Get-RepositoryRoot
 if (-not $Export) { $Export = Join-Path $root 'msix/store-listing-export.sample.csv' }
@@ -173,6 +174,8 @@ function Write-ListingCsv {
 
     # New imports use the accepted no-BOM dialect; a no-change run keeps the export's dialect.
     $content = $lines -join "`r`n"
+    # WINDOWS-STORE rule 8 and rung 2: nothing is written, not even the folder, until the finished text passes.
+    Assert-ListingCsvDialect -Content $content -WithBom:$WithBom
     $directory = [System.IO.Path]::GetDirectoryName($Path)
     if ($directory -and -not (Test-Path -LiteralPath $directory)) {
         New-Item -ItemType Directory -Path $directory -Force | Out-Null

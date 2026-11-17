@@ -7,7 +7,21 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StreamsPlayer.Core\StreamsPlayer.Core.csproj" />
+    <!-- SP-0275 (APP-COMMANDS rule 9): the console companion ships beside the player. The reference only builds it before
+         this project (no assembly reference: the player never loads it); the target below puts it in the publish folder. -->
+    <ProjectReference Include="..\StreamsPlayer.Cli\StreamsPlayer.Cli.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
+
+  <!-- SP-0275: every publish of this project - build.ps1, msix\build-msix.ps1, release.yml, the smoke gate, the installer
+       build - makes the one folder that the zip, the installer's recursive [Files] line and the MSIX stage copy are taken
+       from, so publishing the companion into it here reaches all of them with no change to any script. NoBuild: the
+       reference above built it with the same configuration, runtime and version this publish carries. The folder is made
+       absolute first, because the companion's project lives in another directory. -->
+  <Target Name="PublishConsoleCompanion" AfterTargets="Publish">
+    <MSBuild Projects="..\StreamsPlayer.Cli\StreamsPlayer.Cli.csproj"
+             Targets="Publish"
+             Properties="NoBuild=true;PublishDir=$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(PublishDir)'))" />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="LibVLCSharp" Version="3.10.0" />
@@ -83,6 +97,10 @@
          Should a runtime ever need holding back again, SP-0093 records the one mechanism that works - a
          KnownFrameworkReference update in a root Directory.Build.targets - and the two that silently do not. -->
     <AssemblyName>StreamsPlayer</AssemblyName>
+    <!-- SP-0271 (APP-COMMANDS rule 6): the entry point is Program.Main, which decides a second process's role before
+         the WPF Application and its dictionaries exist. App.xaml stays the ApplicationDefinition; its generated Main is
+         simply not the one that runs. -->
+    <StartupObject>StreamsPlayer.App.Program</StartupObject>
     <ApplicationIcon Condition="Exists('..\..\assets\streamsplayer.ico')">..\..\assets\streamsplayer.ico</ApplicationIcon>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

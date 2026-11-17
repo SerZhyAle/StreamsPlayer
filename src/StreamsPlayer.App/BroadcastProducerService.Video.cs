@@ -117,7 +117,7 @@ internal sealed partial class BroadcastProducerService
         }
         Diagnose(source, "capture-opened");
         state.AudioTime100ns = video.CurrentTime100ns;
-        if (state.Capture is { } audioCapture && await audioCapture.StartAsync().ConfigureAwait(false) is { } audioFailure)
+        if (state.Capture is { } audioCapture && await audioCapture.StartAsync(cancel).ConfigureAwait(false) is { } audioFailure)
         {
             await StopCoreAsync(source, BroadcastStopCause.CaptureLoss).ConfigureAwait(false);
             return FailStart(source, CaptureFailureKey(audioFailure));

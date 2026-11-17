@@ -1,0 +1,441 @@
+{
+  "schemaVersion": 1,
+  "product": "StreamsPlayer",
+  "exe": "StreamsPlayer.exe",
+  "cliVersion": "1.0",
+  "environment": [
+    {
+      "name": "STREAMSPLAYER_DATA_DIRECTORY",
+      "selectsInstance": true,
+      "description": "A fully qualified folder. The process then keeps its state there and is an instance of its own (its lock and pipe names carry a profile hash), so commands reach only the copy that runs with the same value."
+    }
+  ],
+  "commands": [
+    {
+      "name": "commands",
+      "aliases": [],
+      "forward": "never",
+      "summary": "Print the list of commands this product accepts.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe commands [--json]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the manifest itself as JSON." }
+      ],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [ { "code": 0, "meaning": "printed" } ],
+      "examples": [
+        { "shell": "powershell", "line": "StreamsPlayerCli.exe commands --json | ConvertFrom-Json", "expect": "the manifest as an object; exit 0, no window opens and no running copy is needed" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "version",
+      "aliases": [],
+      "forward": "never",
+      "summary": "Print the product name, its version and the version of its command set.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe version [--json]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself instead of a sentence." }
+      ],
+      "returns": [
+        { "name": "product", "kind": "string", "description": "StreamsPlayer" },
+        { "name": "version", "kind": "string", "description": "the build version, YY.MMDD.HHmm" },
+        { "name": "cliVersion", "kind": "string", "description": "MAJOR.MINOR of this command set" }
+      ],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [ { "code": 0, "meaning": "printed" } ],
+      "examples": [
+        { "shell": "powershell", "line": "(StreamsPlayerCli.exe version --json | ConvertFrom-Json).data.version", "expect": "the build version; exit 0" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "status",
+      "aliases": [],
+      "summary": "Say whether StreamsPlayer is running and ready to take commands.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe status [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "version", "kind": "string", "description": "the running copy's version" },
+        { "name": "pid", "kind": "int", "description": "its process id" },
+        { "name": "acceptsRestrictedCommands", "kind": "bool", "description": "whether the setting that lets other programs ask for more than the safe commands is on" },
+        { "name": "activeSessions", "kind": "int", "description": "how many streams play now (a count only)" },
+        { "name": "profile", "kind": "enum", "description": "default, or relocated when STREAMSPLAYER_DATA_DIRECTORY is in force" }
+      ],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 2000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "running and ready" },
+        { "code": 11, "meaning": "not running, or busy (a dialog is open or the app is closing)" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "StreamsPlayerCli.exe status --json | ConvertFrom-Json; $LASTEXITCODE", "expect": "the response object, then 0 while the app runs and is ready, 11 otherwise" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "show",
+      "aliases": [ { "spelling": "", "legacy": true, "answers": false } ],
+      "summary": "Bring the main window forward; started with no arguments the app opens (or comes forward) and plays nothing.",
+      "synopsis": "StreamsPlayer.exe show",
+      "args": [],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "start",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the window is forward" },
+        { "code": 11, "meaning": "busy (a dialog is open or the app is closing)" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait StreamsPlayer.exe show", "expect": "exit 0 (errorlevel 0)" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "quit",
+      "aliases": [],
+      "summary": "Close the running StreamsPlayer cleanly; with none running there is nothing to do.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe quit",
+      "args": [],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 10000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "closed, or was not running" },
+        { "code": 2, "meaning": "the close has not finished within the bound; the app may still be closing" },
+        { "code": 11, "meaning": "busy (a dialog is open)" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "StreamsPlayerCli.exe quit", "expect": "exit 0 (errorlevel 0) once the app has closed, or at once when it was not running" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "play",
+      "aliases": [
+        { "spelling": "--url {url}", "maps": { "url": "url" }, "legacy": true },
+        { "spelling": "--id {id}", "maps": { "id": "id" }, "legacy": true },
+        { "spelling": "--id {id} --url {url}", "maps": { "id": "id", "url": "url" }, "legacy": true },
+        { "spelling": "{file}", "maps": { "file": "file" }, "legacy": true }
+      ],
+      "summary": "Play a saved channel, a stream address or a StreamsPlayer broadcast resource file.",
+      "synopsis": "StreamsPlayer.exe play (--id <guid> [--url <address> | --url-file <path>] | --url <address> | --url-file <path> | --file <path.spres>) [--background] [--json] [--result <path>]",
+      "args": [
+        { "name": "id", "kind": "guid", "required": false, "description": "A saved channel's id. Exactly one target is required: --id (optionally with --url or --url-file), --url, --url-file, or --file." },
+        { "name": "url", "kind": "string", "required": false, "sensitive": true, "description": "A stream address (http, https or rtsp). With --id it is the fallback that finds the channel again after a catalog refresh replaced its row. May carry a credential; never logged or returned." },
+        { "name": "url-file", "kind": "path", "required": false, "description": "A file whose one UTF-8 line is the stream address, for an address that carries a credential and must stay out of the command line and the shell history. Taken in place of --url; a relative path is taken from the caller's working folder." },
+        { "name": "file", "kind": "path", "required": false, "description": "A .spres broadcast resource document: it is imported, then played." },
+        { "name": "background", "kind": "bool", "required": false, "default": false, "description": "Do not bring the window forward." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "channelId", "kind": "guid", "description": "the channel that plays" },
+        { "name": "title", "kind": "string", "description": "its title" },
+        { "name": "kind", "kind": "enum", "description": "audio or video" },
+        { "name": "state", "kind": "enum", "description": "playing" }
+      ],
+      "risk": "safe",
+      "coldStart": "start",
+      "wait": "done",
+      "timeoutMs": 30000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "playing: the first sound or picture arrived, or the stream already played" },
+        { "code": 1, "meaning": "the stream did not open (reason stream-failed)" },
+        { "code": 2, "meaning": "no sound or picture within the bound; the app may still be trying" },
+        { "code": 10, "meaning": "no target, two targets, an address that is not http, https or rtsp, an empty --url-file, or an unreadable .spres" },
+        { "code": 11, "meaning": "busy, --id is not in the catalog and no --url was given, or the file of --url-file does not exist (reason target-missing)" },
+        { "code": 12, "meaning": "the broadcast needs a link password that is not stored on this PC (reason needs-person); the command never asks for it" },
+        { "code": 14, "meaning": "the file of --url-file cannot be read (reason io-error)" },
+        { "code": 15, "meaning": "the stream's host could not be reached" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "start /wait StreamsPlayer.exe play --url https://example.org/live.mp3 --background", "expect": "exit 0 once the radio is audible" },
+        { "shell": "powershell", "line": "(Start-Process .\\StreamsPlayer.exe -ArgumentList 'play','--id','<channel-guid>' -Wait -PassThru).ExitCode", "expect": "0 while the saved channel plays" },
+        { "shell": "powershell", "line": "(Start-Process .\\StreamsPlayer.exe -ArgumentList 'play','--url-file','.\\camera-address.txt' -Wait -PassThru).ExitCode", "expect": "0 once the stream of the address on the first line of the file plays; the address never appears on the command line or in the log" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "playback stop",
+      "aliases": [],
+      "summary": "Stop the playing stream (all of them with --all); nothing playing is already the goal.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe playback stop [--id <guid> | --all] [--result <path>]",
+      "args": [
+        { "name": "id", "kind": "guid", "required": false, "description": "The channel to stop. Required (or --all) when more than one stream plays." },
+        { "name": "all", "kind": "bool", "required": false, "default": false, "description": "Stop every playing stream." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "stopped", "kind": "int", "description": "how many sessions were stopped" }
+      ],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 10000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "stopped, or nothing was playing" },
+        { "code": 10, "meaning": "several streams play and neither --id nor --all was given, or both were" },
+        { "code": 11, "meaning": "busy (a modal dialog is open)" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "StreamsPlayerCli.exe playback stop --all", "expect": "exit 0 (errorlevel 0)" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "playback pause",
+      "aliases": [],
+      "summary": "Pause the playing radio (the audio session). Video windows have no pause.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe playback pause",
+      "args": [],
+      "returns": [],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "paused, or already paused" },
+        { "code": 11, "meaning": "not running, busy, or no radio is playing" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "StreamsPlayerCli.exe playback pause", "expect": "exit 0 while a radio plays" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "playback resume",
+      "aliases": [],
+      "summary": "Resume the paused radio.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe playback resume",
+      "args": [],
+      "returns": [
+        { "name": "channelId", "kind": "guid", "description": "the radio that plays again" },
+        { "name": "state", "kind": "enum", "description": "playing" }
+      ],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 30000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "playing again, or was not paused" },
+        { "code": 1, "meaning": "the stream did not open again" },
+        { "code": 2, "meaning": "no sound within the bound" },
+        { "code": 11, "meaning": "not running, busy, or there is no radio session to resume" },
+        { "code": 15, "meaning": "the stream's host could not be reached" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "StreamsPlayerCli.exe playback resume", "expect": "exit 0 once the radio is audible" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "playback status",
+      "aliases": [],
+      "summary": "List what plays now: kind, channel, title, state and whether it is being recorded.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe playback status [--json] [--result <path>]",
+      "args": [
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "sessions", "kind": "array", "description": "one object per open stream: kind (audio or video), channelId, title, state (playing, paused, buffering, failed), recording (bool). The stream address is never included." }
+      ],
+      "risk": "reads-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "listed (an empty list when nothing plays)" },
+        { "code": 1, "meaning": "the list is over the 64 KiB bound of an answer (reason response-too-large)" },
+        { "code": 11, "meaning": "not running, or busy" },
+        { "code": 12, "meaning": "the setting of rule 13 is off" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "(StreamsPlayerCli.exe playback status --json | ConvertFrom-Json).data.sessions", "expect": "one object per open stream while the setting is on" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "volume set",
+      "aliases": [],
+      "summary": "Set the volume of the radio or of the video players, and mute or unmute video.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe volume set --level <0-100> [--target audio|video] [--muted <true|false>]",
+      "args": [
+        { "name": "level", "kind": "int", "required": true, "description": "0 to 100." },
+        { "name": "target", "kind": "enum", "required": false, "default": "audio", "values": [ "audio", "video" ], "description": "Which volume: the radio's or the video players'." },
+        { "name": "muted", "kind": "bool", "required": false, "description": "Mute or unmute; accepted for video only." }
+      ],
+      "returns": [
+        { "name": "level", "kind": "int", "description": "the volume now in force" }
+      ],
+      "risk": "safe",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 5000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "set" },
+        { "code": 10, "meaning": "level outside 0-100, or --muted with the audio target" },
+        { "code": 11, "meaning": "not running, or busy" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "StreamsPlayerCli.exe volume set --level 30", "expect": "exit 0 (errorlevel 0)" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "record start",
+      "aliases": [],
+      "summary": "Start recording a playing stream into a folder the caller names; nothing is ever written anywhere else.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe record start --out <folder> [--id <guid>] [--result <path>]",
+      "args": [
+        { "name": "out", "kind": "path", "required": true, "description": "The folder the recording is written into: an existing folder, which this command never creates. A relative path is taken from the caller's working folder. The file name inside it is the product's own (CAPTURE-OUTPUT: kind, prefix, name) and an existing file is never replaced." },
+        { "name": "id", "kind": "guid", "required": false, "description": "The playing channel to record; optional when exactly one stream is open." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "folder", "kind": "path", "description": "the folder the recording is written into, as the caller named it, in full" },
+        { "name": "kind", "kind": "enum", "description": "audio or video" },
+        { "name": "file", "kind": "path", "description": "the file being written, inside the folder; given for a radio recording only - a video file is named when it ends, see record stop" }
+      ],
+      "risk": "writes-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 15000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "recording: the first recorded data was seen (a second start on the same stream into the same folder answers the same recording)" },
+        { "code": 1, "meaning": "the stream cannot be recorded (reason not-recordable: a StreamsPlayer broadcast, a format a byte copy cannot record) or the recording could not start (error, stream-failed)" },
+        { "code": 2, "meaning": "no recorded data was seen within the bound; the recording may still be starting - run the command again, or record stop" },
+        { "code": 10, "meaning": "no --out, a doubled --out or --id, several streams open and no --id, or --out is a file and not a folder" },
+        { "code": 11, "meaning": "not running, busy, no stream is open or the named one is not, the radio is paused or the stream failed, the stream is already recorded into another folder, or the folder of --out does not exist (reason target-missing)" },
+        { "code": 12, "meaning": "the setting of rule 13 is off" },
+        { "code": 13, "meaning": "no space for the recording (reason no-space)" },
+        { "code": 14, "meaning": "the folder of --out cannot be written (reason io-error)" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "StreamsPlayerCli.exe record start --out D:\\Recordings; $LASTEXITCODE", "expect": "0 while a stream plays and the setting is on" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "record stop",
+      "aliases": [],
+      "summary": "Finish the recording and report the file, its size and its length.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe record stop [--id <guid>] [--result <path>]",
+      "args": [
+        { "name": "id", "kind": "guid", "required": false, "description": "The channel being recorded; optional when exactly one recording runs." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "file", "kind": "path", "description": "the finished file in the folder of record start; the first one when parts is above 1" },
+        { "name": "bytes", "kind": "int", "description": "its size in bytes, all parts together" },
+        { "name": "seconds", "kind": "int", "description": "the recorded length, all parts together" },
+        { "name": "parts", "kind": "int", "description": "how many files the recording is in: more than 1 only when the stream dropped and was opened again while recording" }
+      ],
+      "risk": "writes-user-data",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 30000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "the file is finished" },
+        { "code": 1, "meaning": "the recording ended with nothing saved" },
+        { "code": 2, "meaning": "finishing has not ended within the bound; the file may still be completing" },
+        { "code": 10, "meaning": "a doubled --id, or several recordings run and no --id" },
+        { "code": 11, "meaning": "not running, busy, nothing is being recorded or the named stream is not, or the recording is already being finished" },
+        { "code": 12, "meaning": "the setting of rule 13 is off" },
+        { "code": 13, "meaning": "no space to finish the recording (reason no-space)" },
+        { "code": 14, "meaning": "the file could not be written or moved into the folder (reason io-error)" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "StreamsPlayerCli.exe record stop --result C:\\temp\\rec.json; Get-Content C:\\temp\\rec.json -Raw | ConvertFrom-Json", "expect": "an object with file, bytes, seconds and parts" }
+      ],
+      "since": "1.0"
+    },
+    {
+      "name": "channel add",
+      "aliases": [],
+      "summary": "Add a stream address to the user's own list (a Manual channel that a catalog refresh never touches).",
+      "synopsis": "StreamsPlayer.exe channel add (--url <address> | --url-file <path>) [--title <text>] [--collection <name>] [--result <path>]",
+      "oneOf": [ [ "url", "url-file" ] ],
+      "args": [
+        { "name": "url", "kind": "string", "required": false, "sensitive": true, "description": "A stream address (http, https or rtsp). May carry a credential; never logged or returned. Exactly one of --url and --url-file is required." },
+        { "name": "url-file", "kind": "path", "required": false, "description": "A file whose one UTF-8 line is the stream address, for an address that carries a credential and must stay out of the command line and the shell history. A relative path is taken from the caller's working folder." },
+        { "name": "title", "kind": "string", "required": false, "description": "The channel's title; the address's host when absent." },
+        { "name": "collection", "kind": "string", "required": false, "description": "An existing collection to put the channel in (never created by this command)." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "channelId", "kind": "guid", "description": "the new channel's id, or the existing one" },
+        { "name": "created", "kind": "bool", "description": "false when the address was already in the list" }
+      ],
+      "risk": "safe",
+      "coldStart": "start",
+      "wait": "done",
+      "timeoutMs": 10000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "added, or already there" },
+        { "code": 10, "meaning": "no address, both --url and --url-file, an empty --url-file, an address that is not http, https or rtsp, or a repeated option" },
+        { "code": 11, "meaning": "busy (a catalog refresh or a dialog is open), --collection names no collection, or the file of --url-file does not exist (reason target-missing)" },
+        { "code": 14, "meaning": "the catalog could not be saved, or the file of --url-file cannot be read (reason io-error)" }
+      ],
+      "examples": [
+        { "shell": "powershell", "line": "Start-Process .\\StreamsPlayer.exe -ArgumentList 'channel','add','--url','https://example.org/live.mp3','--title','Example' -Wait", "expect": "exit 0; the channel is in My streams" }
+      ],
+      "since": "1.0"
+    }
+  ]
+}

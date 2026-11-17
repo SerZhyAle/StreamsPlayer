@@ -42,6 +42,21 @@
         </uap:Extension>
       </Extensions>
     </Application>
+    <!-- SP-0275 (APP-COMMANDS rule 9): the console companion of the command line. A console-subsystem executable, so a
+         caller that pipes reads its standard output and exit code; it serves the commands that need no window of their own
+         (the manifest names them with exe). A second Application, hidden from the Start list, so the first one - its
+         alias, its tile and the file association above - stays exactly as it shipped. Its alias puts StreamsPlayerCli.exe
+         on the PATH of a packaged install. -->
+    <Application Id="StreamsPlayerCli" Executable="StreamsPlayerCli.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="Streams Player command line" Description="Run Streams Player commands from a script or a console." BackgroundColor="transparent" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" AppListEntry="none" />
+      <Extensions>
+        <uap5:Extension Category="windows.appExecutionAlias" Executable="StreamsPlayerCli.exe" EntryPoint="Windows.FullTrustApplication">
+          <uap5:AppExecutionAlias>
+            <uap5:ExecutionAlias Alias="StreamsPlayerCli.exe" />
+          </uap5:AppExecutionAlias>
+        </uap5:Extension>
+      </Extensions>
+    </Application>
   </Applications>
   <!-- SP-0229, SP-0223: the camera is used for two things, each only when the person starts it - reading a connection QR
        after "Scan with the camera", and sending the chosen camera's picture as a broadcast after "Broadcast camera".

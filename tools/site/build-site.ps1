@@ -23,8 +23,8 @@
                                                                # its source (tools/site/site-facts.json,
                                                                # POSITIONING.md); write nothing
 
-    The language count and the minimum Windows are rendered into the copy decks from their sources (SP-0198):
-    a deck carries [[languages]] and [[windows]], never the number.
+    The language count, the minimum Windows and the command count are rendered into the copy decks from their sources
+    (SP-0198, SP-0276): a deck carries [[languages]], [[windows]] and [[commands]], never the number.
 
     The deck reader and parity check, the structured data, sitemap, robots.txt and verification tags, the
     not-found page and the release-notes reader live in SiteDecks.ps1, SiteDiscovery.ps1, SiteNotFound.ps1 and
@@ -234,6 +234,7 @@ $languages = Get-InterfaceLanguages
 $siteFacts = Get-SiteFactValue -Root $root -LanguageCount $languages.Count
 $inlineMarkup['[[languages]]'] = [string] $siteFacts.Languages
 $inlineMarkup['[[windows]]'] = $siteFacts.Windows
+if ($null -ne $siteFacts.Commands) { $inlineMarkup['[[commands]]'] = [string] $siteFacts.Commands }
 
 # The recorded release notes (ReleaseNotes.ps1), read once: What's new renders them per language code, and the
 # release manifest must name one of their versions. A malformed notes file or manifest fails the build here,
@@ -515,7 +516,7 @@ if ($Check) {
     if ($defects.Count) { Write-Host "site-sync: FAIL ($($defects -join '; '))"; exit 1 }
     Write-Host "docs/ is up to date." -ForegroundColor Green
     Write-Host ("Held addresses: {0} listed, all resolve." -f (@((Get-Content -LiteralPath (Join-Path $root 'tools/site/held-addresses.json') -Raw | ConvertFrom-Json).addresses).Count)) -ForegroundColor Green
-    Write-Host ("Site facts: {0} languages, {1} - rendered from their sources; the typed language counts, channels and pillars hold on every surface." -f $siteFacts.Languages, $siteFacts.Windows) -ForegroundColor Green
+    Write-Host ("Site facts: {0} languages, {1}, {2} commands - rendered from their sources; the typed language counts, channels and pillars hold on every surface." -f $siteFacts.Languages, $siteFacts.Windows, $siteFacts.Commands) -ForegroundColor Green
     Write-Host "site-sync: PASS ($($languages.Count) languages x $($pages.Count) pages in sync; held addresses and site facts hold)"
     exit 0
 }

@@ -67,8 +67,14 @@
         // PAGE-STYLE amendment 2026-10-17: explicit shipped locales override remembered choices,
         // including on child/locale pages; a valid canonical query wins over the legacy spelling.
         var query = new URLSearchParams(window.location.search);
-        var canonical = query.get("lang");
-        var legacy = query.get("l");
+        // PAGE-STYLE 3.5 item 1: `ua` in a query is read as `uk`, the code the page ships; the stored
+        // sza-lang value stays `ua`.
+        function queryLocale(name) {
+          var value = query.get(name);
+          return value === "ua" ? "uk" : value;
+        }
+        var canonical = queryLocale("lang");
+        var legacy = queryLocale("l");
         var requested = Object.prototype.hasOwnProperty.call(urls, canonical) ? canonical
           : Object.prototype.hasOwnProperty.call(urls, legacy) ? legacy : null;
         if (requested) {
@@ -295,6 +301,7 @@
               <li>Um histórico privado, Reproduzidos recentemente, com os seus últimos 100 canais e a faixa que estava no ar - guardado no seu PC e apagado quando você pedir.</li>
               <li>Importe canais de um arquivo M3U ou de uma URL de lista de reprodução, com uma pré-visualização antes de qualquer coisa ser adicionada, e exporte para M3U os seus próprios canais ou os fixados.</li>
               <li>Entre em um servidor de troca próprio: a janela «Minhas transmissões» lista o que os seus outros dispositivos transmitem, cada transmissão toca na sua própria janela, e «Verificar a conexão» indica o primeiro passo que falha. A entrada com Google para encontrar transmissões é opcional, e a mídia nunca passa pelo Drive.</li>
+              <li>É controlado por scripts, atalhos e outros programas com 14 comandos na linha de comando: reproduzir, pausar, retomar e parar, ajustar o volume, adicionar uma transmissão, gravar em uma pasta que você indicar e perguntar o que está tocando. Os comandos que leem ou gravam seus dados só funcionam depois que você os permitir nas configurações.</li>
             </ul>
           </article>
           <article class="card cap">
@@ -399,7 +406,7 @@ As transmissões dos seus próprios arquivos vêm do Fast Media Sorter &amp; Sha
         <h2 class="footer-heading">Mais ferramentas</h2>
         <div class="tools-grid">
           <a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/"><b>Fast Media Sorter &amp; Organizer</b><span>Organizador de mídia para Android</span></a>
-          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter &amp; Sharing for Windows</b><span>Organizador de mídia para Windows</span></a>
+          <a href="https://serzhyale.github.io/FastMediaSorter_Lite/"><b>Fast Media Sorter &amp; Sharing for Windows</b><span>Gerenciador de mídia e arquivos para Windows</span></a>
           <a href="https://serzhyale.github.io/CyrFlip/"><b>CyrFlip</b><span>Corretor de layout de teclado para Windows</span></a>
           <a href="https://serzhyale.github.io/doc-html-translate/"><b>doc-html-translate</b><span>Conversor de e-books para Windows</span></a>
           <a href="https://serzhyale.github.io/FileDO/"><b>FileDO</b><span>Ferramenta de linha de comando de armazenamento para Windows</span></a>

@@ -83,6 +83,16 @@ public sealed class ExchangeDeviceTrust
     /// <summary>Drops the kept key of a grant that was withdrawn.</summary>
     public bool ForgetGrant(string grantId) => Forget(_grants, grantId);
 
+    /// <summary>
+    /// SP-0263 (RRC-1): sets the kept key of a device to <paramref name="point"/> in one step, whatever it held. The book's
+    /// merge of a re-read file uses it where it used to forget and then observe, two lock acquisitions between which another
+    /// thread could pin the session's own key. Marks the trust dirty only when the key actually changed.
+    /// </summary>
+    public void ReplaceDevice(string deviceId, ReadOnlySpan<byte> point) => Replace(_devices, deviceId, point);
+
+    /// <summary>The same single step for a grant's key.</summary>
+    public void ReplaceGrant(string grantId, ReadOnlySpan<byte> point) => Replace(_grants, grantId, point);
+
     public ExchangeDeviceTrustData ToData()
     {
         lock (_lock)
@@ -115,6 +125,20 @@ public sealed class ExchangeDeviceTrust
             }
 
             return CryptographicOperations.FixedTimeEquals(kept, point) ? ExchangeKeyObservation.Trusted : ExchangeKeyObservation.KeyChanged;
+        }
+    }
+
+    private void Replace(Dictionary<string, byte[]> book, string id, ReadOnlySpan<byte> point)
+    {
+        lock (_lock)
+        {
+            if (book.TryGetValue(id, out var kept) && CryptographicOperations.FixedTimeEquals(kept, point))
+            {
+                return;
+            }
+
+            book[id] = point.ToArray();
+            _isDirty = true;
         }
     }
 

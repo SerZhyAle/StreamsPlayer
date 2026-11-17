@@ -16,11 +16,16 @@ release, submit winget manifests, upload to Partner Center, or publish Pages unl
 asks. The build-versus-release rule itself has one home in the canon
 (`RELEASE_AND_DISTRIBUTION.md` §1); only this repo's verdict is local.
 
+## Command line
+
+StreamsPlayer has a command line for scripts and agents - read docs/CLI.md; list the commands with `commands --json`; any command above risk `safe` needs the setting 'let other programs ask this app'.
+
 ## Project layout
 
 - `src/StreamsPlayer.Core` - platform-neutral catalog contracts, parsing, merge
   and persistence.
 - `src/StreamsPlayer.App` - WPF Windows desktop application.
+- `src/StreamsPlayer.Cli` - the console companion of the command line (SP-0275, `APP-COMMANDS` rule 9): `StreamsPlayerCli.exe`, a console-subsystem executable that references `StreamsPlayer.Core` only (never WPF or App) and is only a `Main` over `AppCommandConsole` in Core. The App project builds it and publishes it into its own publish folder, so the zip, the installer and the MSIX carry it; `scripts/Assert-ConsoleCompanion.ps1` judges that folder. The manifest's per-command `exe` says which executable serves which verb (the ones that need no window of their own go to the companion).
 - `tests/StreamsPlayer.Core.Tests` - unit and contract tests.
 - `tools/StreamsPlayer.CatalogHarness` - live-bank diagnostic harness.
 - `tools/InterfaceLanguages.ps1` - the single shipped-language list, read from the built assembly and dot-sourced by the site and Store tooling.
@@ -48,14 +53,23 @@ changed, and reported as "not built, not tested until the release"; a slower run
 in its audit, naming the command below that the release runs.
 
 - **Fast tier:** `pwsh -NoProfile -File ./scripts/check-fast.ps1 [-Area docs|help|site|release-scripts|snapshot]`
-  - the checks below marked fast, in parallel; `all` (the default) took 3.71 s, one area 0.83-3.00 s (2026-10-30,
-  timed around the whole call). Push CI and `scripts/build-local.ps1` run it and nothing else.
+  - the checks below marked fast, in parallel; `all` (the default) takes 3.6 s timed around the call (14 checks,
+  2026-11-15 after SP-0290, twelve runs 3.4 to 3.9 s, mean 3.64 s; its own verdict line read 3.1 to 3.6 s), 1.1 s
+  inside the 5 s cap (it was 4.9 s before, and one run in six crossed the cap). An area took 0.9 s (help), 1.7 s (snapshot),
+  1.9 s (site), 2.3 s (docs) and 1.9 s (release-scripts), each the mean of 3 timed around the whole call on
+  2026-11-15. **Between releases call the area of what changed**, it is the cheapest; `all` is inside the cap too and
+  is the call when the touched area is unclear. Push CI and `scripts/build-local.ps1` run `all` and nothing else.
 - **Release tier:** `pwsh -NoProfile -File ./scripts/check.ps1` (Release restore, build, the suite and every check
   of both tiers), `./scripts/smoke-playback.ps1`, `./msix/build-msix.ps1 -SelfSign` - run by the release checklist
   (`scripts/release.ps1` items 3, 4, 6); `release.yml` builds and tests the tag's own tree and runs the
   documentation gate, the site-sync check and the fixtures push CI no longer carries; `pages.yml` runs the
   documentation gate and the site-sync check on the commit it deploys, after a successful release run or on an
   explicit run, never on push.
+- **Contract catch-up, the first step of every release** (canon `CONTRACTS.md` section 6; SP-0278): before the
+  version is cut, generate the spec with the canon's `contract-lag.ps1 -Product StreamsPlayer -EmitSpec`, read each
+  log entry since the product's synchronized version against the tree, and move the product's own registry rows and
+  exceptions; the last record is [the 2026-11-15 audit](docs/audits/SP-0278-contract-catchup.md). A release is not
+  cut on a row that is stale or behind without a dated reason.
 
 Measured list. Method: one direct `pwsh -NoProfile -File <script>` call, wall time around the child process, on
 the owner's machine on 2026-10-30, unless the CI step time of run 40234064360 (2026-10-25) or 38010697651
@@ -65,12 +79,14 @@ check into the fast tier needs a time of 5 s or less recorded here first.
 | Check | Seconds | Tier |
 | --- | --- | --- |
 | `scripts/check-docs.ps1` | 1.60 (CI 2-3) | fast |
+| `tools/Build-CliDoc.ps1 -Check` | 0.39 (2026-11-14, mean of 3) | fast |
+| `tools/Test-CliDoc.ps1` | 1.79 (2026-11-15, mean of 3, SP-0290; 3.03 before) | fast |
 | `scripts/check-help.ps1` | 0.47 | fast |
 | `scripts/Test-TestResultSummary.ps1` | 0.45 (CI 1) | fast |
 | `scripts/Test-ExistingReleaseState.ps1` | 0.40 | fast |
-| `scripts/Test-ReleaseVersion.ps1` | 2.59 | fast |
+| `scripts/Test-ReleaseVersion.ps1` | 1.31 (2026-11-15, mean of 3, SP-0290; 2.47 before) | fast |
 | `msix/Test-MsixIdentity.ps1` | 0.72 (2026-11-12, mean of 3) | fast |
-| `scripts/Test-StorePreflightCall.ps1` | 2.8 (2026-11-12, mean of 3) | fast |
+| `scripts/Test-StorePreflightCall.ps1` | 1.17 (2026-11-15, mean of 3, SP-0290; 2.85 before) | fast |
 | `tools/site/Test-HeldAddresses.ps1` | 0.85 | fast |
 | `tools/site/Test-ReleaseNotes.ps1` | 0.95 | fast |
 | `tools/site/Test-SiteDiscovery.ps1` | 1.40 | fast |
@@ -101,17 +117,20 @@ the release or for a run the owner names (section above).
 - `pwsh -NoProfile -File ./build.ps1 -Deploy` - build a self-contained Release EXE and copy it to the local SZA app folders; this is not a release.
 - `pwsh -NoProfile -File ./run.ps1` - restore, build and launch the app in Debug, never deploying. `build.ps1 -Run` deploys first and runs Release.
 - `pwsh -NoProfile -File ./scripts/check.ps1` - the release-parity gate: Release restore, build, test, the documentation gate and the site sync check; ends in one `check: PASS|FAIL|COULD NOT VERIFY` line.
-- `pwsh -NoProfile -File ./scripts/smoke-playback.ps1` - plays a live radio station and a live video stream through the shipping binary. Mandatory before a release; `check.ps1` cannot cover it, because it tests this repository's code and SP-0093 broke the runtime beneath it while all 858 tests stayed green.
+- `pwsh -NoProfile -File ./scripts/smoke-playback.ps1` - plays a live radio station and a live video stream through the shipping binary, then drives the console companion `StreamsPlayerCli.exe` from the same folder (`scripts/SmokeCompanionRound.ps1`, SP-0277). Mandatory before a release; `check.ps1` cannot cover it, because it tests this repository's code and SP-0093 broke the runtime beneath it while all 858 tests stayed green.
 - `dotnet format StreamsPlayer.sln --verify-no-changes` - formatting diagnostic; it currently reports a pre-existing line-ending/encoding baseline and is not a passing gate until that baseline is normalized.
 - `dotnet run --project src/StreamsPlayer.App` - run the desktop application.
 - `dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png`
   - check the live catalog contract.
 - `pwsh -NoProfile -File ./msix/build-msix.ps1 -SelfSign` - build and locally test an MSIX package; use only for package work.
 - `pwsh -NoProfile -File ./scripts/release.ps1` - print the manual release checklist only; it changes no remote state.
+- `pwsh -NoProfile -File ./scripts/New-ReleaseDossier.ps1` - after a release: gathers its assets, the unsigned Store package (built from the tag in a scratch clone and copied to `msix/dist`), the winget manifests, the verdicts and the What's new texts into `artifacts/release-<version>/`, reads the state of every channel and writes the README of what is left by hand. Changes nothing on a remote.
 - `pwsh -NoProfile -File ./tools/site/build-site.ps1 -Check` - fail if `docs/` is stale against the generator, a held site address does not resolve, or a fact the copy states (language count, minimum Windows, channels) or a pillar of `POSITIONING.md` disagrees with its source; writes nothing. The language count and the minimum Windows are placeholders (`[[languages]]`, `[[windows]]`) in the copy decks, never typed.
-- `pwsh -NoProfile -File ./scripts/check-docs.ps1` - the documentation gate (`DOC-INTERNAL-QUALITY`, SP-0140): every `*.md` and generated `docs/**/*.html` declared in `DOCUMENT_REGISTRY.jsonl`, relative links, anchors and images resolve to tracked files, house style in prose, no `http://` or remote embeds. A new document needs its registry entry in the same change. It also holds the portal contribution (`docs/portal/streamsplayer*.md`, `DOC-EXTERNAL-QUALITY`): every **bold** or «guillemet» control name must be exactly a string of that locale's `Localization.<code>.xaml`, and the registry entry of each ru/uk mirror records `mirrorOf` and `mirrorOfHash`, the fingerprint of the English page it was rebuilt from - change the English page and the mirror fails until it is rebuilt and the hash re-recorded.
+- `pwsh -NoProfile -File ./scripts/check-docs.ps1` - the documentation gate (`DOC-INTERNAL-QUALITY`, SP-0140): `DOCUMENT_REGISTRY.jsonl` declares the roots of the maintained corpus (`{"root":"<directory>/","reason":..}` or `{"root":"<file>","reason":..}`, SP-0287) and its reasoned ignores, and every `*.md` and generated `docs/**/*.html` under a root is declared there; a file under no root is outside the corpus, named in a `note:` line and not judged. Relative links, anchors and images resolve to tracked files, house style in prose, no `http://` or remote embeds. A new document needs its registry entry in the same change, and a new documentation folder needs its root record. It also holds the portal contribution (`docs/portal/streamsplayer*.md`, `DOC-EXTERNAL-QUALITY`): every **bold** or «guillemet» control name must be exactly a string of that locale's `Localization.<code>.xaml`, and the registry entry of each ru/uk mirror records `mirrorOf` and `mirrorOfHash`, the fingerprint of the English page it was rebuilt from - change the English page and the mirror fails until it is rebuilt and the hash re-recorded.
 
 - `pwsh -NoProfile -File ./tools/help/build-help.ps1` (`-Check` writes nothing and fails on a stale file) - regenerate `docs/help/` from `help/` and the dictionaries; `pwsh -NoProfile -File ./scripts/check-help.ps1` - hold the generated help pages to `CONTEXT-HELP` (SP-0230). Both run inside `scripts/check.ps1`.
+
+- `pwsh -NoProfile -File ./tools/Build-CliDoc.ps1` (`-Check` writes nothing and fails on a stale file or a manifest entry that lacks a member of `APP-COMMANDS` rule 18) - regenerate the command-line reference from `docs/cli-commands.json` (SP-0276); never edit the generated file by hand, and extend the manifest when a command ships, then run this.
 
 Never run `scripts/build-local.ps1` unless the user explicitly requests a commit: it runs the fast tier (`scripts/check-fast.ps1`), then `git add --all` and commits.
 
@@ -129,7 +148,7 @@ Never run `scripts/build-local.ps1` unless the user explicitly requests a commit
 - Build with `dotnet build StreamsPlayer.sln -c Release` and test with
   `dotnet test StreamsPlayer.sln -c Release --no-build` as part of a release
   (`scripts/check.ps1` runs both), never between releases unless the owner
-  names that run; between releases run `scripts/check-fast.ps1`.
+  names that run; between releases run `scripts/check-fast.ps1 -Area <the area of what changed>`.
 
 ## Git conventions
 

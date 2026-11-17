@@ -371,6 +371,9 @@
     <sys:String x:Key="PlayerPinControlsName">تثبيت عناصر التحكم في التشغيل</sys:String>
     <sys:String x:Key="SettingsGeneralBasics">الإعدادات الأساسية</sys:String>
     <sys:String x:Key="SettingsGeneralView">مظهر الدليل</sys:String>
+    <sys:String x:Key="SettingsGeneralCommands">أوامر من برامج أخرى</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommands">السماح لبرامج أخرى بأن تطلب من STREAMS Player العمل مع ملفاتي أو الشاشة أو الحافظة أو الشبكة</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommandsHint">إيقاف: يمكن للبرامج النصية والبرامج الأخرى إظهار STREAMS Player وإغلاقه، وتشغيل البث وإيقافه مؤقتًا واستئنافه وإنهائه، وضبط مستوى الصوت، وإضافة بث، والسؤال عن حالته. تشغيل: يمكنها أيضًا سرد ما يُشغَّل الآن والتسجيل في مجلد تسميه، وهذا يقرأ بياناتك أو يكتبها. أنت وحدك من يمكنه تغيير ذلك، هنا.</sys:String>
     <sys:String x:Key="SettingsGeneralInterface">الواجهة</sys:String>
     <sys:String x:Key="InterfaceSizeLabel">حجم الواجهة</sys:String>
     <sys:String x:Key="InterfaceSizeHint">يحدد حجم النص والرموز والمسافات ومناطق النقر.</sys:String>
@@ -637,8 +640,8 @@
     <sys:String x:Key="FmsBroadcastAdded">تم استيراد البث المباشر: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUpdated">تم تحديث البث المباشر: {0}.</sys:String>
     <sys:String x:Key="FmsBroadcastUnsupportedMode">وضع البث هذا غير مدعوم بعد. لم تتغير قائمتك.</sys:String>
-    <sys:String x:Key="FmsBroadcastInvalid">هذا ليس وصف بث صالحًا من FastMediaSorter. لم تتغير قائمتك.</sys:String>
-    <sys:String x:Key="FmsBroadcastTooLarge">وصف البث هذا أكبر من 64 KiB. لم تتغير قائمتك.</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">هذا ليس واصف بث صالحًا من FastMediaSorter. لم تتغير قائمتك.</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">واصف البث هذا أكبر من 64 KiB. لم تتغير قائمتك.</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer مشغول بعملية أخرى. استورد البث مرة أخرى بعد انتهاء العملية. لم تتغير قائمتك.</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">وصل {0} بالفعل إلى الحد الأقصى لعدد المشاهدين والمستمعين. أعد المحاولة عندما يغادر أحدهم.</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">توقف {0} عن البث أو لم يعد متاحًا على هذه الشبكة.</sys:String>
@@ -762,6 +765,7 @@
     <sys:String x:Key="ExchangeTlsRequired">لا يقبل الخادم هذا إلا عبر اتصال محمي، وهذا الاتصال غير محمي.</sys:String>
     <sys:String x:Key="ExchangeIdCollision">يعرف الخادم بالفعل جهازًا آخر يحمل رقم هذا الجهاز. أزل هذا الخادم من القائمة ثم أضفه من جديد.</sys:String>
     <sys:String x:Key="ExchangeStateE2eMissing">لا يستطيع هذا الجهاز استقبال المحتوى المحمي بعد، لذلك لا يُرسَل إليه أي شيء عبر الخادم.</sys:String>
+    <sys:String x:Key="ExchangeStateE2eMissingPeer">لا يستطيع الجهاز الذي يحتوي على هذا المحتوى إرساله محميًا بعد، لذلك لا يصل منه أي شيء عبر الخادم.</sys:String>
     <sys:String x:Key="ExchangeStateKeyChanged">تغيّر مفتاح الحماية لهذا الجهاز، لذلك لا يُرسَل إليه أي شيء. أزل الجهاز من الحساب ثم أضفه من جديد.</sys:String>
     <sys:String x:Key="ExchangeStateServerNoE2e">لا يستطيع هذا الخادم نقل المحتوى المحمي، لذلك لا تمر عبره المجلدات ولا البث ولا الحافظة.</sys:String>
     <sys:String x:Key="ExchangeStateSealedFailed">تعذّر فتح هذا على هذا الجهاز. حاول مرة أخرى من الجهاز الآخر.</sys:String>
@@ -817,8 +821,8 @@
     <sys:String x:Key="ExchangeReplacePrompt">هذا الحاسوب مسجّل الدخول إلى {0}. إذا كان الحساب الجديد حسابك الخاص أو حساب عائلة فسيحل محل هذا الدخول: تنتهي بثوث هذا الحاسوب ويسجّل الخروج من {0}. أما حساب الضيف فيُضاف بجانبه. هل تتابع؟</sys:String>
     <sys:String x:Key="ExchangeForgottenOffline">تم تسجيل الخروج على هذا الجهاز. تعذّر إبلاغ الخادم، لذا قد يبقى هذا الجهاز في القائمة إلى أن يزيله جهاز آخر. لن تُجرى إعادة محاولة.</sys:String>
     <sys:String x:Key="ExchangeReplacementRequired">أكّد مغادرة الحساب الحالي قبل الانضمام إلى حساب آخر.</sys:String>
-    <sys:String x:Key="BroadcastCertificateUntrusted">يقدم خادم البث شهادة لا يستطيع هذا الكمبيوتر التحقق منها، ولا يتضمن الوصف بصمة. اطلب من صاحب البث وصفًا محدثًا.</sys:String>
-    <sys:String x:Key="BroadcastCertificateMismatch">شهادة خادم البث لا تطابق البصمة في وصفه. تم رفض التشغيل.</sys:String>
+    <sys:String x:Key="BroadcastCertificateUntrusted">يقدم خادم البث شهادة لا يستطيع هذا الكمبيوتر التحقق منها، ولا يتضمن الواصف بصمة. اطلب من صاحب البث واصفًا محدثًا.</sys:String>
+    <sys:String x:Key="BroadcastCertificateMismatch">شهادة خادم البث لا تطابق البصمة في واصفه. تم رفض التشغيل.</sys:String>
     <sys:String x:Key="BroadcastPasswordTitle">كلمة مرور البث</sys:String>
     <sys:String x:Key="BroadcastPasswordPrompt">البث {0} محمي. أدخل كلمة المرور التي أعطاها صاحب البث.</sys:String>
     <sys:String x:Key="BroadcastPasswordRequired">هذا البث يطلب كلمة مرور، ولا توجد كلمة مرور محفوظة على هذا الكمبيوتر. افتحه مرة أخرى لإدخال كلمة المرور.</sys:String>
@@ -892,7 +896,7 @@
     <sys:String x:Key="BroadcastQrTitle">رمز QR للبث</sys:String>
     <sys:String x:Key="BroadcastQrHint">امسح هذا الرمز بهاتف لفتح البث. لا يحتوي الرمز على كلمة المرور - أبلغها بشكل منفصل.</sys:String>
     <sys:String x:Key="BroadcastQrImageName">رمز QR لرابط البث</sys:String>
-    <sys:String x:Key="BroadcastQrTooLong">وصف هذا البث أطول من أن يتّسع له رمز QR. انسخ الرابط أو احفظ الملف بدلًا من ذلك.</sys:String>
+    <sys:String x:Key="BroadcastQrTooLong">واصف هذا البث أطول من أن يتّسع له رمز QR. انسخ الرابط أو احفظ الملف بدلًا من ذلك.</sys:String>
     <sys:String x:Key="BroadcastGuestRefused">هذا الحاسوب مسجّل الدخول كضيف ولا يبث.</sys:String>
     <sys:String x:Key="BroadcastIndicatorLive">بث: {0}</sys:String>
     <sys:String x:Key="BroadcastIndicatorName">مؤشر البث المباشر</sys:String>
@@ -902,8 +906,8 @@
     <sys:String x:Key="BroadcastCastUnsupported">لا يستطيع الجهاز الآخر تشغيل هذا النوع من البث.</sys:String>
     <sys:String x:Key="BroadcastShareMenu">مشاركة</sys:String>
     <sys:String x:Key="BroadcastCopyLink">نسخ الرابط</sys:String>
-    <sys:String x:Key="BroadcastSaveFile">حفظ ملف الوصف</sys:String>
-    <sys:String x:Key="BroadcastFileFilter">وصف البث (*.fmsbcast)|*.fmsbcast</sys:String>
+    <sys:String x:Key="BroadcastSaveFile">حفظ ملف الواصف</sys:String>
+    <sys:String x:Key="BroadcastFileFilter">واصف البث (*.fmsbcast)|*.fmsbcast</sys:String>
     <sys:String x:Key="BroadcastNotAllowed">اسمح بالبث في الإعدادات أولًا.</sys:String>
     <sys:String x:Key="BroadcastTooManySources">بث كثير في وقت واحد.</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">هذا المصدر مباشر بالفعل.</sys:String>

@@ -297,6 +297,7 @@ internal sealed partial class ExchangeSourceService
     private void ClearDirectory()
     {
         _directoryFresh = false;
+        ExchangeBroadcastKeys.OwnKeyListed = false;
         Directory = null;
         DirectoryChanged?.Invoke();
         // The session is over in every direction this method is reached from; the producer's own

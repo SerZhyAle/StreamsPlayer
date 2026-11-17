@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `DIAGNOSTIC-REPORT` |
-| **Version** | 0.13 (draft) |
+| **Version** | 0.15 (draft), read 2026-11-15 (SP-0278) |
 | **Home** | `Contracts/diagnostic-report/README.md` |
 | **Owner** | **this product**. StreamsPlayer defines the diagnostic bundle format, environment summary, and redaction invariants |
 | **This product's role** | **producer and consumer** |

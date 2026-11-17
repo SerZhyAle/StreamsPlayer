@@ -55,13 +55,15 @@ public partial class MainWindow
             return;
         }
         var changed = false;
+        // SP-0263 (S8-2): the account and its directory are read here, not inside the mutation - a lambda that reads Exchange
+        // captures this window, and the DEBUG guard against a catalog mutation that holds a WPF object throws on it.
+        var ownEntry = Exchange.HasAccount
+            ? ExchangeAccountIdentity.Key(Exchange.Account.Host, Exchange.Account.Port, Exchange.Account.Login) : null;
+        var server = Exchange.Directory;
         await PersistAsync(state =>
         {
-            var ownEntry = Exchange.HasAccount
-                ? ExchangeAccountIdentity.Key(Exchange.Account.Host, Exchange.Account.Port, Exchange.Account.Login) : null;
             var managed = state.Channels.Where(channel => channel.FastMediaSorterBroadcast?.DirectoryEntryIdentity is { } bound
                 && (bound == identity || bound == ownEntry)).ToList();
-            var server = Exchange.Directory;
             var driveViews = snapshot.Groups.SelectMany(group => group.Broadcasts).Where(view =>
                 server?.LiveBroadcastIds.Contains(view.Record.BroadcastId) != true
                 && (view.Record.Descriptor?.SourceId is not { } id || server?.LiveSourceIds.Contains(id) != true)).ToList();

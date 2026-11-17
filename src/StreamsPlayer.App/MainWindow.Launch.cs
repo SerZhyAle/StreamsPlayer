@@ -149,6 +149,12 @@ public partial class MainWindow
     /// catalog is hidden behind it (SP-0080 keeps exactly one of the two on screen), otherwise this
     /// window, restored first when minimized. Whichever monitor it is on, it stays there.
     /// </summary>
+    /// <summary>SP-0271: the <c>show</c> command - the same bring-forward a forwarded launch gets.</summary>
+    internal string BringForwardForCommand() => BringApplicationToFront();
+
+    /// <summary>SP-0271: whether the catalog's own audio player is playing, for the <c>status</c> command's count.</summary>
+    internal bool IsPlayingAudio => _playingAudio is not null;
+
     private string BringApplicationToFront()
     {
         if (_compactPanel is { } panel)

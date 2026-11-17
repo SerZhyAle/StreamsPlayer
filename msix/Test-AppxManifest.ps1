@@ -13,6 +13,8 @@
     packs        makeappx accepts the filled template (exit 0)
     placeholders no __PLACEHOLDER__ is left after the fill (a new placeholder needs this script and build-msix.ps1)
     association  the staged manifest still declares the .spres file type association (SP-0196)
+    aliases      SP-0275: the player's alias StreamsPlayer.exe and the console companion's alias StreamsPlayerCli.exe are
+                 each declared exactly once, each for the executable of the same name
     control      the same stage with an attribute the schema does not define is refused - the gate is not vacuous
 
   Exit codes (CHECK-VERDICT): 0 passed, 1 a check failed, 2 could not verify (no Windows SDK, no built Core assembly).
@@ -90,6 +92,8 @@ try {
         $stage = Join-Path $work $Name
         New-Item -ItemType Directory -Path (Join-Path $stage 'Assets') -Force | Out-Null
         [System.IO.File]::WriteAllText((Join-Path $stage 'StreamsPlayer.exe'), 'MZ')
+        # SP-0275: the package holds the console companion too, and makeappx refuses an Executable that is not staged.
+        [System.IO.File]::WriteAllText((Join-Path $stage 'StreamsPlayerCli.exe'), 'MZ')
         foreach ($logo in 'Square44x44Logo.png', 'Square71x71Logo.png', 'Square150x150Logo.png', 'StoreLogo.png') {
             Copy-Item -LiteralPath (Join-Path $root "assets/msix/$logo") -Destination (Join-Path $stage "Assets/$logo") -Force
         }
@@ -113,6 +117,14 @@ try {
     $association = $xml.SelectNodes("//*[local-name()='FileType']") | Where-Object { $_.InnerText -ceq '.spres' }
     Check (@($association).Count -eq 1) 'association: the manifest declares the .spres file type exactly once'
 
+    # SP-0275: one alias per executable, and each extension runs the executable its alias is named for.
+    foreach ($executable in 'StreamsPlayer.exe', 'StreamsPlayerCli.exe') {
+        $aliasNodes = $xml.SelectNodes("//*[local-name()='ExecutionAlias']") | Where-Object { $_.GetAttribute('Alias') -ceq $executable }
+        Check (@($aliasNodes).Count -eq 1) "aliases: $executable is declared exactly once"
+        $extension = @($aliasNodes)[0].ParentNode.ParentNode
+        Check ($null -ne $extension -and $extension.GetAttribute('Executable') -ceq $executable) "aliases: the extension of $executable runs $executable"
+    }
+
     # Negative control: an attribute no schema defines (the shape of the SP-0238 defect) must stop the pack.
     $broken = $filled -replace '(<uap:FileTypeAssociation Name="spres")', '$1 AllowOn="desktop"'
     Check ($broken -cne $filled) 'control: the broken fixture differs from the template'
@@ -122,6 +134,6 @@ try {
 }
 finally { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue }
 
-if ($failures.Count -eq 0) { Write-Host "msix-manifest: PASS ($checks checks)"; exit 0 }
+if ($failures.Count -eq 0) { Write-Host "msix-manifest: PASS (run=$checks skipped=0)"; exit 0 }
 Write-Host "msix-manifest: FAIL ($($failures -join '; '))"
 exit 1

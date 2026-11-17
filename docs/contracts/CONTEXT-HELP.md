@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CONTEXT-HELP` |
-| **Version** | 0.1 (draft) - read 2026-10-21 |
+| **Version** | 0.4 (draft) - read 2026-11-15 (SP-0278); 0.1 read 2026-10-21 |
 | **Home** | `Contracts/in-app-help/README.md` |
 | **Owner** | shared, the catalog owner working through the canon session |
 | **This product's role** | **consumer** - amends by `PROPOSAL-*` beside the contract, never by edit |
@@ -28,6 +28,10 @@ This repository keeps no copy of the contract. Its side of it (SP-0230):
 Decisions the contract leaves to the product (SP-0230): every non-trivial surface is a `page`, opened in the system
 browser from the copy beside the executable; no `layer` surface exists; Settings has one page with a section per
 settings page; pages are authored in en, ru and uk and the other ten locales open the English page.
+
+Item G (SP-0282): `tools/help/build-help.ps1` writes `<meta name="robots" content="noindex">` in the one head
+template, `scripts/check-help.ps1` fails a page without it, and `docs/help/` was regenerated; the pages stay out of
+the sitemap and `robots.txt` does not block them. The same gate holds the baseline against its copy at `HEAD`.
 
 Conformance and dated exceptions: the StreamsPlayer row of `Contracts/_meta/REGISTRY.md`. Held at rung 1 for
 slice S1; rungs 2 (generated pictures) and 3 (the walk) are open, and so are the pages of slices S2 to S4.

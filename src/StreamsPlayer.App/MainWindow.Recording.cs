@@ -37,7 +37,11 @@ public partial class MainWindow
         }
     }
 
-    private void StartAudioRecording()
+    /// <param name="folders">
+    /// SP-0273: the chain a recording command hands over - exactly the folder the caller named, with no fallback. Null for the
+    /// Record button, which reads the settings chain.
+    /// </param>
+    private void StartAudioRecording(IReadOnlyList<string>? folders = null)
     {
         if (_playingAudio is not { } playing)
         {
@@ -51,9 +55,9 @@ public partial class MainWindow
         }
 
         // SP-0179: the smoke gate's folder is a chain of one - its check reads the file from exactly there.
-        IReadOnlyList<string> chain = _smokeAudioRecording && SmokeRecording.Folder is { } smokeFolder
+        IReadOnlyList<string> chain = folders ?? (_smokeAudioRecording && SmokeRecording.Folder is { } smokeFolder
             ? new[] { smokeFolder }
-            : CaptureFolders.Chain(CaptureKind.StreamAudio, CaptureFolderChoices.For(_state, CaptureKind.StreamAudio));
+            : CaptureFolders.Chain(CaptureKind.StreamAudio, CaptureFolderChoices.For(_state, CaptureKind.StreamAudio)));
         _audioRecordingFolder = chain[0];
         var recorder = StreamAudioRecorder.Start(playing.Channel, chain, _log, AudioRecorder_Redirected);
         // Before subscribing: an end delivered at the subscribe point must still find the session (SP-0164).
@@ -69,19 +73,37 @@ public partial class MainWindow
     /// </summary>
     private void StopAudioRecording()
     {
-        if (_audioRecorder is not { } recorder)
+        if (DetachAudioRecorder() is not { } recorder)
         {
             return;
+        }
+
+        HandlerBoundary.Run(nameof(StopAudioRecording), () => FinishAudioRecordingAsync(recorder));
+    }
+
+    /// <summary>Lets the running recorder go at once - the button is free again - and returns it, or null when none runs.</summary>
+    private StreamAudioRecorder? DetachAudioRecorder()
+    {
+        if (_audioRecorder is not { } recorder)
+        {
+            return null;
         }
 
         _audioRecorder = null;
         recorder.Ended -= AudioRecorder_Ended;
         ApplyAudioTransportState();
-        HandlerBoundary.Run(nameof(StopAudioRecording), async () =>
-        {
-            var outcome = await recorder.StopAsync();
-            ReportAudioRecording(outcome);
-        });
+        return recorder;
+    }
+
+    /// <summary>
+    /// Stops a recorder taken by <see cref="DetachAudioRecorder"/> and reports its outcome in the status line. Shared by the
+    /// button and the <c>record stop</c> command (SP-0273), which also answers with the outcome.
+    /// </summary>
+    private async Task<AudioRecordingOutcome> FinishAudioRecordingAsync(StreamAudioRecorder recorder)
+    {
+        var outcome = await recorder.StopAsync();
+        ReportAudioRecording(outcome);
+        return outcome;
     }
 
     /// <summary>

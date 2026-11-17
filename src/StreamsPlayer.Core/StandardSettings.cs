@@ -38,7 +38,8 @@ public static class StandardSettings
     {
         "audioOutputDevice", "frameFolder", "videoRecordingFolder", "audioRecordingFolder", "captureFoldersSchema",
         "resumePlaybackOnStartup", "resumeChannelIds", "listeningHistory", "lastSelectedChannelId", "catalogScrollAnchorId",
-        "window", "windowBounds", "deviceKey", "deviceToken", "token", "password", "pin", "port", "host"
+        "window", "windowBounds", "deviceKey", "deviceToken", "token", "password", "pin", "port", "host",
+        "acceptsRestrictedCommands"
     });
 
     /// <summary>One exchangeable setting: its group, its key, how it is read from the state and how a value is applied.</summary>

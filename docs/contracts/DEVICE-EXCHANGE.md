@@ -3,10 +3,22 @@
 | | |
 | --- | --- |
 | **Id** | `DEVICE-EXCHANGE` |
-| **Version** | 1.7 read 2026-10-22 (SP-0232); prior edition 1.5 (active since 1.0 on 2026-10-15; read in full on 2026-10-21, SP-0228 - the sections below dated before that were written against the versions they name) |
+| **Version** | 1.15 read 2026-11-15 (SP-0278); 1.7 read 2026-10-22 (SP-0232); prior edition 1.5 (active since 1.0 on 2026-10-15; read in full on 2026-10-21, SP-0228 - the sections below dated before that were written against the versions they name) |
 | **Home** | `Contracts/device-exchange/README.md`; the brief for this product is `CONSUMER_PROMPT_streamsplayer.md` beside it |
 | **Owner** | FastMediaSorter Android |
-| **This product's role** | **receiver** and **broadcaster** (`product` `streamsplayer-windows`, items CE and BI; the role table of section 3 has said so since 0.23). It finds a user's broadcasts through the account's exchange server (and the optional Google Drive source, SP-0202; its joint broadcast runs remain open), plays them and accepts casts, and broadcasts the PC's audio to the one exchange server of its own account behind a Settings permission that is off by default (SP-0217; screen and camera are SP-0223, not built). It signs in only (`enroll`, never `register`), publishes no resource, takes no part in the clipboard, is no administration client and implements no server and no P2P. Broadcasts of other users reach it by their description, through whichever server the description names (SP-0215). |
+| **This product's role** | **receiver** and **broadcaster** (`product` `streamsplayer-windows`, items CE and BI; the role table of section 3 has said so since 0.23). It finds a user's broadcasts through the account's exchange server (and the optional Google Drive source, SP-0202; its joint broadcast runs remain open), plays them and accepts casts, and broadcasts the PC's audio to the one exchange server of its own account behind a Settings permission that is off by default (SP-0217; screen and camera are SP-0223, not built). It signs in only (`enroll`, never `register`), publishes no resource, takes no part in the clipboard, is no administration client and implements no server and no P2P. Broadcasts of other users reach it by their descriptor, through whichever server the descriptor names (SP-0215). |
+
+**SP-0281, 2026-11-15:** the 1.15 items the reading of SP-0278 found open are built, and nothing is claimed beyond that. Item FB: a fifth local
+sealed state `e2e-missing-peer` (`ExchangeSealedState.E2eMissingPeer`, key `ExchangeStateE2eMissingPeer`; the catalog's English, Russian and
+Ukrainian sentences word for word, ten more written in the pattern of `ExchangeStateE2eMissing`). An unsealed exchange endpoint is refused with it
+only while this device holds its own key and its own listed record carries `e2eKey` (`ExchangeBroadcastKeys.OwnKeyListed`, written from the
+directory frame already in hand and cleared when the session ends; no request is added), and with `e2e-missing` whenever it cannot tell. Item DY: the
+`ended` row (`ExchangeFailureRows.Ended`, key `BroadcastEnded`, no step) is the 29th row of the vendored table, which
+`tools/localization/check-exchange-terms.ps1` now reads from `BROADCAST-END-TUNNEL-2026-10-26.md`. Items CW and CX: "broadcast description" and
+"description file" read "descriptor" and "descriptor file" in the thirteen dictionaries, the in-app help and the three READMEs; SP-0286 carried the same word to the site decks,
+the store listing, the two certificate refusals, the portal page and every help or README sentence that said "description" for the descriptor. Item ED: no code change - host:port inside the details control and the
+login outside it stay the dated exceptions on the sign-in surface (item BN bullets 2 and 3), which item ED reaffirms over item AZ. Not built, not
+tested until the release; the registry rows are not moved until the release suite and a live exchange run (a server and a second device) have passed.
 
 **SP-0260, 2026-11-12:** 1.12 items EN to ER (`SETTINGS-STANDARD-2026-11-12.md`) are implemented as a client: `appId`
 `streamsplayer`, groups `appearance`, `playback` and `interface`, the four frames on the control stream behind the
@@ -247,11 +259,11 @@ to the real `ExchangeSourceService` over TLS loopback. Not replayed, and why: th
 (`closes-the-stream`, bucket exhaustion, the cast timeout, the HTTP dialogs); `broadcast-start`, `-update`, `-end`,
 `upload`, `cast` and `cast-stop`, built inline in `BroadcastProducerService`, which no test project compiles; `register`
 and `account-delete`, which this product never sends; `vectors/records-v1.json` and `vectors/drive-packets-v1.json`, the
-Drive corpora (sections 6, 8.1 and 24) - this product reads no Drive file, SP-0202 is gated by the premise experiment of 8.2
+Drive corpora (sections 6, 8.1 and 24) - replayed since SP-0285, see below; SP-0202 is gated by the premise experiment of 8.2
 and item CU gives it the announcement only; `fmsw-229` (clipboard) and `fmsw-245` (administration), roles it does not
 declare. The vendored folder `tests/StreamsPlayer.Core.Tests/Vectors/server/` records the file-name difference between the
 generator's `PROVENANCE.txt` and the catalog. The negative-access run of 17 item AL is the producer's joint client/server
-evidence, not this product's to produce; the handshake reports of rungs 4 and 5 are due when a producer exists.
+evidence, not this product's to produce; the handshake reports of rungs 4 and 5 are due when a producer exists. **SP-0285, 2026-11-15:** the two Drive corpora are vendored under `Vectors/drive-v1/` and replayed by `DriveVectorsReplayTests`. `records-v1.json` (sections 6 and 8.1, rung 1) runs through the Drive record reader and the Drive directory. `drive-packets-v1.json` (section 24, rung 3) is replayed as a boundary only: this product has no packet codec and section 24 binds nothing built here, so no round trip is claimed. Two cases disagree with the reader - a device wrapper without `ttlSeconds` is listed where the corpus skips it, and a device's own offline presence is shown online until it expires - and are skipped as known reds under SP-0289; the registry rows are not moved by this.
 
 ## Original resource PIN boundary (0.19)
 

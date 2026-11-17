@@ -1,0 +1,10 @@
+Drive vectors of DEVICE-EXCHANGE, vendored byte for byte from the contract store (device-exchange/vectors/) on 2026-11-15 (SP-0285).
+The files are the producer's. They are never edited here; a changed file is a new vendoring with a new hash, not a patch.
+
+  records-v1.json          ccd59c550503c87470f4568829c35fc5487e4b603b5b54dead1efc45d73b5e39
+      producer: FastMediaSorter Android (SftpRendezvousCodec); sections 6 and 8.1; rung 1
+
+  drive-packets-v1.json    3a3461bb1385645242799a818f6f514cfce65bbbce4af6aa70644622357a98f5
+      producer: FastMediaSorter Android S4231 (CrossDevicePacketCodecTest); section 24, items CN, CO, CP and CR; rung 3
+
+records-v1.json is not the server corpus of Vectors/server/ (server-records-v1.json, sha256 2b0edd5d...), which is FMS_Win's file.

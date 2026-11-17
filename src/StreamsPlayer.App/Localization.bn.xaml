@@ -371,6 +371,9 @@
     <sys:String x:Key="PlayerPinControlsName">প্লেব্যাক নিয়ন্ত্রণ পিন করুন</sys:String>
     <sys:String x:Key="SettingsGeneralBasics">মূল সেটিংস</sys:String>
     <sys:String x:Key="SettingsGeneralView">ক্যাটালগ চেহারা</sys:String>
+    <sys:String x:Key="SettingsGeneralCommands">অন্য প্রোগ্রাম থেকে আদেশ</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommands">অন্য প্রোগ্রামকে STREAMS Player-কে আমার ফাইল, স্ক্রিন, ক্লিপবোর্ড বা নেটওয়ার্ক নিয়ে কাজ করতে বলার অনুমতি দিন</sys:String>
+    <sys:String x:Key="AcceptsRestrictedCommandsHint">বন্ধ: স্ক্রিপ্ট ও অন্য প্রোগ্রাম STREAMS Player দেখাতে ও বন্ধ করতে, স্ট্রিম চালাতে, বিরতি দিতে, আবার শুরু করতে ও থামাতে, ভলিউম ঠিক করতে, স্ট্রিম যোগ করতে এবং তার অবস্থা জানতে পারে। চালু: তারা এখন কী চলছে তার তালিকাও নিতে পারে এবং নিজেদের বলা ফোল্ডারে রেকর্ড করতে পারে, যা আপনার ডেটা পড়ে বা লেখে। এটি শুধু আপনি, এখানেই বদলাতে পারেন।</sys:String>
     <sys:String x:Key="SettingsGeneralInterface">ইন্টারফেস</sys:String>
     <sys:String x:Key="InterfaceSizeLabel">ইন্টারফেসের আকার</sys:String>
     <sys:String x:Key="InterfaceSizeHint">টেক্সট, আইকন, ফাঁকা জায়গা এবং ক্লিক এলাকার আকার ঠিক করে।</sys:String>
@@ -637,8 +640,8 @@
     <sys:String x:Key="FmsBroadcastAdded">সরাসরি সম্প্রচার আমদানি করা হয়েছে: {0}।</sys:String>
     <sys:String x:Key="FmsBroadcastUpdated">সরাসরি সম্প্রচার হালনাগাদ করা হয়েছে: {0}।</sys:String>
     <sys:String x:Key="FmsBroadcastUnsupportedMode">এই সম্প্রচার মোড এখনও সমর্থিত নয়। আপনার তালিকা বদলানো হয়নি।</sys:String>
-    <sys:String x:Key="FmsBroadcastInvalid">এটি বৈধ FastMediaSorter সম্প্রচার বর্ণনা নয়। আপনার তালিকা বদলানো হয়নি।</sys:String>
-    <sys:String x:Key="FmsBroadcastTooLarge">এই সম্প্রচার বর্ণনা 64 KiB-এর বেশি। আপনার তালিকা বদলানো হয়নি।</sys:String>
+    <sys:String x:Key="FmsBroadcastInvalid">এটি বৈধ FastMediaSorter সম্প্রচার ডিস্ক্রিপ্টর নয়। আপনার তালিকা বদলানো হয়নি।</sys:String>
+    <sys:String x:Key="FmsBroadcastTooLarge">এই সম্প্রচার ডিস্ক্রিপ্টর 64 KiB-এর বেশি। আপনার তালিকা বদলানো হয়নি।</sys:String>
     <sys:String x:Key="FmsBroadcastBusy">StreamsPlayer আরেকটি কাজে ব্যস্ত। কাজটি শেষ হলে সম্প্রচারটি আবার ইমপোর্ট করুন। আপনার তালিকা বদলানো হয়নি।</sys:String>
     <sys:String x:Key="FmsBroadcastListenerLimit">{0}-এ দর্শক ও শ্রোতার সর্বোচ্চ সংখ্যা ইতিমধ্যে পূর্ণ। অন্য কেউ সংযোগ বিচ্ছিন্ন করলে আবার চেষ্টা করুন।</sys:String>
     <sys:String x:Key="FmsBroadcastStopped">{0} সম্প্রচার বন্ধ করেছে অথবা এই নেটওয়ার্কে আর পৌঁছানো যাচ্ছে না।</sys:String>
@@ -762,6 +765,7 @@
     <sys:String x:Key="ExchangeTlsRequired">সার্ভার এটি শুধু সুরক্ষিত সংযোগের মাধ্যমে গ্রহণ করে, আর এই সংযোগটি সুরক্ষিত নয়।</sys:String>
     <sys:String x:Key="ExchangeIdCollision">সার্ভার এই ডিভাইসের নম্বরে আগে থেকেই আরেকটি ডিভাইস চেনে। তালিকা থেকে এই সার্ভারটি সরিয়ে আবার যোগ করুন।</sys:String>
     <sys:String x:Key="ExchangeStateE2eMissing">এই ডিভাইস এখনও সুরক্ষিত কনটেন্ট গ্রহণ করতে পারে না, তাই সার্ভারের মাধ্যমে এতে কিছু পাঠানো হয় না।</sys:String>
+    <sys:String x:Key="ExchangeStateE2eMissingPeer">যে ডিভাইসে এই কনটেন্ট আছে, সেটি এখনও এটি সুরক্ষিতভাবে পাঠাতে পারে না, তাই সার্ভারের মাধ্যমে সেটি থেকে কিছু আসে না।</sys:String>
     <sys:String x:Key="ExchangeStateKeyChanged">এই ডিভাইসের সুরক্ষা কী বদলে গেছে, তাই এতে কিছু পাঠানো হয় না। ডিভাইসটি অ্যাকাউন্ট থেকে সরিয়ে আবার যোগ করুন।</sys:String>
     <sys:String x:Key="ExchangeStateServerNoE2e">এই সার্ভার সুরক্ষিত কনটেন্ট বহন করতে পারে না, তাই ফোল্ডার, সম্প্রচার ও ক্লিপবোর্ড এর মধ্য দিয়ে যায় না।</sys:String>
     <sys:String x:Key="ExchangeStateSealedFailed">এটি এই ডিভাইসে খোলা যায়নি। অন্য ডিভাইস থেকে আবার চেষ্টা করুন।</sys:String>
@@ -817,8 +821,8 @@
     <sys:String x:Key="ExchangeReplacePrompt">এই পিসি {0}-এ সাইন ইন করা আছে। নতুন অ্যাকাউন্টটি আপনার নিজের বা পরিবারের হলে সেটি এই সাইন-ইনের জায়গা নেবে: এই পিসির সম্প্রচার শেষ হবে এবং এটি {0} থেকে সাইন আউট করবে। অতিথি অ্যাকাউন্ট হলে তার বদলে পাশে যোগ করা হবে। চালিয়ে যাবেন?</sys:String>
     <sys:String x:Key="ExchangeForgottenOffline">এই ডিভাইসে সাইন আউট হয়েছে। সার্ভারকে জানানো যায়নি, তাই অন্য কোনো ডিভাইস না সরানো পর্যন্ত এই ডিভাইস তালিকায় থেকে যেতে পারে। আর কোনো পুনঃচেষ্টা হবে না।</sys:String>
     <sys:String x:Key="ExchangeReplacementRequired">অন্য অ্যাকাউন্টে যোগ দেওয়ার আগে বর্তমান অ্যাকাউন্ট ছাড়ার বিষয়টি নিশ্চিত করুন।</sys:String>
-    <sys:String x:Key="BroadcastCertificateUntrusted">সম্প্রচারের সার্ভার এমন একটি শংসাপত্র দিয়েছে যা এই কম্পিউটার যাচাই করতে পারে না, এবং বিবরণে কোনো ফিঙ্গারপ্রিন্ট নেই। সম্প্রচারকারীর কাছে হালনাগাদ বিবরণ চান।</sys:String>
-    <sys:String x:Key="BroadcastCertificateMismatch">সম্প্রচারের সার্ভারের শংসাপত্র বিবরণের ফিঙ্গারপ্রিন্টের সঙ্গে মেলে না। প্লেব্যাক প্রত্যাখ্যান করা হয়েছে।</sys:String>
+    <sys:String x:Key="BroadcastCertificateUntrusted">সম্প্রচারের সার্ভার এমন একটি শংসাপত্র দিয়েছে যা এই কম্পিউটার যাচাই করতে পারে না, এবং ডিস্ক্রিপ্টরে কোনো ফিঙ্গারপ্রিন্ট নেই। সম্প্রচারকারীর কাছে হালনাগাদ ডিস্ক্রিপ্টর চান।</sys:String>
+    <sys:String x:Key="BroadcastCertificateMismatch">সম্প্রচারের সার্ভারের শংসাপত্র ডিস্ক্রিপ্টরের ফিঙ্গারপ্রিন্টের সঙ্গে মেলে না। প্লেব্যাক প্রত্যাখ্যান করা হয়েছে।</sys:String>
     <sys:String x:Key="BroadcastPasswordTitle">সম্প্রচারের পাসওয়ার্ড</sys:String>
     <sys:String x:Key="BroadcastPasswordPrompt">{0} সুরক্ষিত। সম্প্রচারকারী যে পাসওয়ার্ড দিয়েছেন তা লিখুন।</sys:String>
     <sys:String x:Key="BroadcastPasswordRequired">এই সম্প্রচার একটি পাসওয়ার্ড চায়, আর এই কম্পিউটারে কোনো পাসওয়ার্ড সংরক্ষিত নেই। পাসওয়ার্ড লেখার জন্য এটি আবার খুলুন।</sys:String>
@@ -892,7 +896,7 @@
     <sys:String x:Key="BroadcastQrTitle">সম্প্রচারের QR কোড</sys:String>
     <sys:String x:Key="BroadcastQrHint">সম্প্রচার খুলতে এই কোডটি ফোনে স্ক্যান করুন। কোডে পাসওয়ার্ড নেই - আলাদাভাবে জানান।</sys:String>
     <sys:String x:Key="BroadcastQrImageName">সম্প্রচারের লিঙ্কের QR কোড</sys:String>
-    <sys:String x:Key="BroadcastQrTooLong">এই সম্প্রচারের বিবরণ QR কোডের জন্য খুব দীর্ঘ। এর বদলে লিঙ্ক কপি করুন বা ফাইল সংরক্ষণ করুন।</sys:String>
+    <sys:String x:Key="BroadcastQrTooLong">এই সম্প্রচারের ডিস্ক্রিপ্টর QR কোডের জন্য খুব দীর্ঘ। এর বদলে লিঙ্ক কপি করুন বা ফাইল সংরক্ষণ করুন।</sys:String>
     <sys:String x:Key="BroadcastGuestRefused">অতিথি হিসেবে সাইন ইন থাকায় এই পিসি সম্প্রচার করে না।</sys:String>
     <sys:String x:Key="BroadcastIndicatorLive">সম্প্রচার: {0}</sys:String>
     <sys:String x:Key="BroadcastIndicatorName">লাইভ সম্প্রচার নির্দেশক</sys:String>
@@ -902,8 +906,8 @@
     <sys:String x:Key="BroadcastCastUnsupported">অন্য ডিভাইসটি এই ধরনের সম্প্রচার চালাতে পারে না।</sys:String>
     <sys:String x:Key="BroadcastShareMenu">শেয়ার</sys:String>
     <sys:String x:Key="BroadcastCopyLink">লিঙ্ক কপি করুন</sys:String>
-    <sys:String x:Key="BroadcastSaveFile">বিবরণ ফাইল সংরক্ষণ</sys:String>
-    <sys:String x:Key="BroadcastFileFilter">সম্প্রচার বিবরণ (*.fmsbcast)|*.fmsbcast</sys:String>
+    <sys:String x:Key="BroadcastSaveFile">ডিস্ক্রিপ্টর ফাইল সংরক্ষণ</sys:String>
+    <sys:String x:Key="BroadcastFileFilter">সম্প্রচার ডিস্ক্রিপ্টর (*.fmsbcast)|*.fmsbcast</sys:String>
     <sys:String x:Key="BroadcastNotAllowed">আগে সেটিংসে সম্প্রচারের অনুমতি দিন।</sys:String>
     <sys:String x:Key="BroadcastTooManySources">একসঙ্গে অনেক সম্প্রচার।</sys:String>
     <sys:String x:Key="BroadcastAlreadyRunning">এই উৎস আগেই লাইভ।</sys:String>

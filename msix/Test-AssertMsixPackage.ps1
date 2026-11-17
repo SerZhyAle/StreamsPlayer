@@ -87,7 +87,7 @@ try {
     # --- accepted ------------------------------------------------------------------------------------------
     $upload = New-Package 'StreamsPlayer-26.1003.0030-windows-x64.msix' $good
     $r = Invoke-Assert $upload
-    Check ($r.Exit -eq 0 -and $r.Output -match 'msix-package: PASS \(9 assertions, upload-ready\)') 'a correct unsigned upload passes'
+    Check ($r.Exit -eq 0 -and $r.Output -match 'msix-package: PASS \(run=9 skipped=0 scope=upload-ready\)') 'a correct unsigned upload passes'
     $verdictLines = @($r.Output -split "`n" | Where-Object { $_ -match '^msix-package: (PASS|FAIL) \S+ - ' })
     Check ($verdictLines.Count -eq 9) "one verdict line per assertion (got $($verdictLines.Count) of 9)"
     foreach ($assertion in 'name', 'archive', 'manifest', 'identity-name', 'identity-publisher', 'display-name', 'version', 'signature', 'notices') {
@@ -174,6 +174,6 @@ catch {
 }
 finally { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue }
 
-if ($failures.Count -eq 0) { Write-Output "msix-package-tests: PASS ($passed checks)"; exit 0 }
+if ($failures.Count -eq 0) { Write-Output "msix-package-tests: PASS (run=$passed skipped=0)"; exit 0 }
 Write-Output "msix-package-tests: FAIL ($($failures.Count) of $($passed + $failures.Count) checks)"
 exit 1

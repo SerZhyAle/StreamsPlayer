@@ -205,6 +205,48 @@ public sealed partial class ExchangeLoopRecoveryTests
         Assert.Empty(new ExchangeTrustBook(scope.Path).For("entry").DeviceIds);
     }
 
+    // SP-0263 (RRC-2): the unreadable-file branch of the book (S3-1, RRB-3, RRB-4). A file held open without sharing cannot be
+    // read; the book works in memory, never writes over it, and once it can be read again keeps what the session learned,
+    // lets the file's key win where the two disagree, and does not bring back an entry that was forgotten meanwhile.
+    [Fact]
+    public void AnUnreadableTrustFileIsNotWrittenOverAndMergesWhenItCanBeReadAgain()
+    {
+        using var scope = new TestDirectory();
+        var path = Path.Combine(scope.Path, "exchange-trust.bin");
+        using var stored = ExchangeE2eKeyPair.Generate();
+        using var session = ExchangeE2eKeyPair.Generate();
+        using var conflicting = ExchangeE2eKeyPair.Generate();
+        using var forgotten = ExchangeE2eKeyPair.Generate();
+        var first = new ExchangeTrustBook(scope.Path);
+        first.For("entry").ObserveDevice("stored-device", stored.PublicPoint);
+        first.For("gone-entry").ObserveDevice("gone-device", forgotten.PublicPoint);
+        first.SaveIfDirty();
+        var before = File.ReadAllBytes(path);
+
+        var book = new ExchangeTrustBook(scope.Path);
+        using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            book.For("entry").ObserveDevice("session-device", session.PublicPoint);
+            book.For("entry").ObserveDevice("stored-device", conflicting.PublicPoint);
+            book.Forget("gone-entry");
+            book.SaveIfDirty();
+        }
+
+        Assert.Equal(before, File.ReadAllBytes(path));
+        typeof(ExchangeTrustBook).GetField("_retryLoadAfter", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(book, 0L);
+
+        var entry = book.For("entry");
+        Assert.Equal(stored.PublicPoint, entry.TrustedDevice("stored-device"));
+        Assert.Equal(session.PublicPoint, entry.TrustedDevice("session-device"));
+        Assert.Empty(book.For("gone-entry").DeviceIds);
+        book.SaveIfDirty();
+
+        var reread = new ExchangeTrustBook(scope.Path);
+        Assert.Equal(stored.PublicPoint, reread.For("entry").TrustedDevice("stored-device"));
+        Assert.Equal(session.PublicPoint, reread.For("entry").TrustedDevice("session-device"));
+        Assert.Empty(reread.For("gone-entry").DeviceIds);
+    }
+
     [Fact]
     public void ScreenUploadQueue_BuffersUntilHandshakeAcceptance_AndStartsAtKeyframe()
     {

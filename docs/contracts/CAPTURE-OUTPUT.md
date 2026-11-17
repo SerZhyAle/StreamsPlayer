@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `CAPTURE-OUTPUT` |
-| **Version** | 0.6, 2026-10-22 (SP-0232) |
+| **Version** | 0.8, 2026-11-15 (SP-0278) |
 | **Home** | `Contracts/capture-output/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | Producer of video_frame, stream_video and stream_audio |

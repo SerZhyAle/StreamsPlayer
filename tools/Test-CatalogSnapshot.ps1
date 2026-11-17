@@ -150,6 +150,6 @@ finally {
     }
 }
 
-if ($failures.Count -eq 0) { "catalog-snapshot-tool: PASS ($passed checks)"; exit 0 }
+if ($failures.Count -eq 0) { "catalog-snapshot-tool: PASS (run=$passed skipped=0)"; exit 0 }
 "catalog-snapshot-tool: FAIL ($($failures.Count) of $($passed + $failures.Count) checks)"
 exit 1

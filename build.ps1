@@ -80,6 +80,14 @@ function Assert-PinnedNatives {
     & (Join-Path $PSScriptRoot 'scripts\Assert-PinnedNatives.ps1') -Folder $Folder -ProjectPath $ProjectPath
 }
 
+# SP-0275: the console companion of the command line ships in the same folder; one check, one home, applied by the
+# release workflow and the MSIX packager as well.
+function Assert-ConsoleCompanion {
+    param([Parameter(Mandatory)] [string] $Folder)
+
+    & (Join-Path $PSScriptRoot 'scripts\Assert-ConsoleCompanion.ps1') -Folder $Folder
+}
+
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
     throw '.NET SDK not found. Install the .NET 10 SDK and try again.'
 }
@@ -222,6 +230,7 @@ try {
             throw "Published executable was not created: $localExePath"
         }
         Assert-PinnedNatives -Folder $localOutputPath -ProjectPath $appProjectPath
+        Assert-ConsoleCompanion -Folder $localOutputPath
 
         foreach ($target in $deployTargets) {
             # /MIR deletes whatever the source lacks, so it is only ever pointed at a folder of our own name.
@@ -231,6 +240,7 @@ try {
             if ($LASTEXITCODE -ge 8) { throw "robocopy failed (exit $LASTEXITCODE) mirroring into $target." }
             $global:LASTEXITCODE = 0 # robocopy's 1-7 are success codes; do not let one become this script's exit code
             Assert-PinnedNatives -Folder $target -ProjectPath $appProjectPath
+            Assert-ConsoleCompanion -Folder $target
             Write-Host "Local build deployed: $(Join-Path $target 'StreamsPlayer.exe')" -ForegroundColor Green
         }
 

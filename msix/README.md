@@ -94,6 +94,17 @@ stages it with a placeholder executable and the product logos, and runs the Wind
 then repeats the pack with an attribute no schema defines to prove the gate refuses one. It runs inside
 `scripts/check.ps1` as `msix-manifest` and answers `COULD NOT VERIFY` (exit 2) when the SDK is not installed.
 
+## The console companion (SP-0275)
+
+The package carries a second executable, `StreamsPlayerCli.exe`, the console companion of the command line
+(`APP-COMMANDS` rule 9): a caller that pipes reads its standard output and its exit code. The template declares it as a
+second `Application` (`StreamsPlayerCli`, hidden from the Start list) with its own execution alias, so a packaged install
+puts `StreamsPlayerCli.exe` on the PATH; the first `Application`, its alias `StreamsPlayer.exe`, its tile and the `.spres`
+association are as they shipped, and so is the `Identity`. The file reaches the package with no edit to the stage copy:
+the application project publishes it into its own publish folder, which `build-msix.ps1` copies whole.
+`scripts/Assert-ConsoleCompanion.ps1` judges that folder before it is packed, and `msix/Test-AppxManifest.ps1` stages the
+second executable and asserts that each alias is declared once, for the executable of the same name.
+
 ## Google sign-in in the package
 
 The package must carry the Google Desktop client, or Google sign-in is unavailable in the Store build. `build-msix.ps1` loads it the way `build.ps1` does: the process values `SP_DRIVE_CLIENT_ID` and `SP_DRIVE_CLIENT_SECRET` first, then the JSON named by `-DriveClientFile` or `SP_DRIVE_CLIENT_JSON`, then `~/.fms-secrets/google-oauth/streamsplayer-desktop.json`. The values live in the environment of the build only and are restored afterwards. After the publish the script reads the client id key back out of `StreamsPlayer.dll` and fails the build when it is missing; `-AllowNoDriveClient` accepts a package without it and is for local sideload tests only, never for a package that is uploaded.

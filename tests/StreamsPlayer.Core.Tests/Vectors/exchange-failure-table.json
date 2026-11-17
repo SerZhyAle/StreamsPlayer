@@ -1,5 +1,5 @@
 {
-  "source": "DEVICE-EXCHANGE 1.5 section 9 items CZ (messages) and CY (ladder), the amendment of 2026-10-17 (format-unsupported) and 1.12 item EP (settings refusals); SP-0225, SP-0260",
+  "source": "DEVICE-EXCHANGE 1.5 section 9 items CZ (messages) and CY (ladder), the amendment of 2026-10-17 (format-unsupported), 1.12 item EP (settings refusals) and the amendment of 2026-10-26 item DY (ended); SP-0225, SP-0260, SP-0281",
   "rows": [
     {
       "code": "bad-credentials",
@@ -224,6 +224,14 @@
       "en": "The server does not support this version of the settings format.",
       "ru": "Сервер не поддерживает эту версию формата настроек.",
       "uk": "Сервер не підтримує цю версію формату налаштувань."
+    },
+    {
+      "code": "ended",
+      "kind": "wire",
+      "step": null,
+      "en": "The broadcast has ended.",
+      "ru": "Трансляция закончилась.",
+      "uk": "Трансляція закінчилася."
     }
   ],
   "steps": [

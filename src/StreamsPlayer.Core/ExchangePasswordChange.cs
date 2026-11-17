@@ -11,6 +11,9 @@ namespace StreamsPlayer.Core;
 [JsonConverter(typeof(ExchangePasswordChangeConverter))]
 public sealed class ExchangePasswordChange(char[] oldPassword, char[] newPassword)
 {
+    /// <summary>The envelope's <c>type</c>; known here so a sender can name the frame without serialising it a second time.</summary>
+    public const string EnvelopeType = "password-change";
+
     internal char[] Old { get; } = oldPassword;
     internal char[] New { get; } = newPassword;
 
@@ -30,7 +33,7 @@ internal sealed class ExchangePasswordChangeConverter : JsonConverter<ExchangePa
     {
         writer.WriteStartObject();
         writer.WriteNumber("schemaVersion", 2);
-        writer.WriteString("type", "password-change");
+        writer.WriteString("type", ExchangePasswordChange.EnvelopeType);
         writer.WriteString("oldPassword", value.Old);
         writer.WriteString("newPassword", value.New);
         writer.WriteEndObject();

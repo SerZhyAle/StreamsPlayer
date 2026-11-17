@@ -76,6 +76,18 @@
           "next": "The background starts or stops at once."
         },
         {
+          "id": "accepts-restricted-commands",
+          "nameKey": "AcceptsRestrictedCommands",
+          "control": "AcceptsRestrictedCommandsOption",
+          "one": "Decides whether other programs may ask the app to read or write your data, beyond controlling it.",
+          "full": [
+            "Scripts, scheduled tasks and other programs can give the app commands on its command line, such as **StreamsPlayer.exe status**; **StreamsPlayer.exe commands** lists them. Showing and closing the app, playing, pausing, resuming and stopping streams, setting the volume, adding a stream and asking whether it is running always work. This switch decides the rest: commands that read your data, such as listing what is playing now, or write it, such as recording into a folder the caller names.",
+            "It is off until you turn it on, and only you can change it, here - no command can. While it is off, such a command is refused with a message that names this setting."
+          ],
+          "why": "Turn it on when a script of yours needs one of those commands.",
+          "next": "The next command is answered by the new value."
+        },
+        {
           "id": "search",
           "nameKey": "SettingsSearchWatermark",
           "control": "SettingsSearchBox",
@@ -705,7 +717,7 @@
           "full": [
             "Sending what this PC captures to the exchange server of your account takes two steps: first allow it here, then start a source yourself. Nothing is captured until both are done. It is off by default, and while it is off the rest of this group stays hidden.",
             "While this PC is signed in to a server only as a guest, it cannot broadcast and no source is offered.",
-            "A broadcast starts only when a viewer or listener can reach it over the enabled local network or a connected exchange server. A local-only broadcast still has a description you can copy or save."
+            "A broadcast starts only when a viewer or listener can reach it over the enabled local network or a connected exchange server. A local-only broadcast still has a descriptor you can copy or save."
           ],
           "next": "The other controls of the group appear."
         },

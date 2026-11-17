@@ -511,6 +511,11 @@ try {
     $generatorFiles = @($generator.Pages | ForEach-Object { $_.File })
     Check ($deckCodes -contains 'en' -and $deckCodes.Count -gt 1) 'the copy decks name the English root and at least one other language'
     Check (($generatorFiles -contains 'whats-new.html') -and ($generatorFiles -contains 'support.html')) 'the generator''s page table holds the What''s new and the Support pages'
+    # PAGE-STYLE 3.5 item 1 (SP-0282): the head template reads `ua` in a language query as `uk`, for both spellings. Held on the
+    # template; the pages carry it once the generator has run.
+    $headTemplate = [System.IO.File]::ReadAllText((Join-Path $PSScriptRoot 'templates/_head.html'))
+    Check ($headTemplate.Contains('return value === "ua" ? "uk" : value;')) 'the head template reads ua in a language query as uk'
+    Check ($headTemplate.Contains('var canonical = queryLocale("lang");') -and $headTemplate.Contains('var legacy = queryLocale("l");')) 'both query spellings go through that reading'
     $realProblems = @(Get-GeneratedSiteProblem -DocsDirectory $docs -LanguageCode $deckCodes -PageFile $generatorFiles -BaseUrl $generator.BaseUrl)
     Write-Output "generated pages: $($deckCodes.Count) languages x $($generatorFiles.Count) pages + 404.html judged under $docs, $($realProblems.Count) problem(s)"
     if ($realProblems.Count) {
@@ -535,5 +540,5 @@ if ($failures.Count) {
     Write-Output "site-discovery: FAIL ($($failures.Count) of $($passed + $failures.Count))"
     exit 1
 }
-Write-Output "site-discovery: PASS ($passed checks)"
+Write-Output "site-discovery: PASS (run=$passed skipped=0)"
 exit 0

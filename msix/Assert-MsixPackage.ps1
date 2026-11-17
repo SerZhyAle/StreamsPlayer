@@ -11,7 +11,8 @@
   One verdict line per assertion, then one summary line:
       msix-package: PASS <assertion> - <evidence>
       msix-package: FAIL <assertion> - <what was found>
-      msix-package: PASS|FAIL (<n> assertions)
+      msix-package: scope - <what the package is, in words>
+      msix-package: PASS (run=<n> skipped=0 scope=<upload-ready|self-signed|test-identity>) | FAIL (<k> of <n> assertions)
   Fail closed: a missing archive, an unreadable manifest or an absent value is a FAIL, never a pass. Exit 0 only
   when every assertion passed; any failure exits 1.
 
@@ -185,8 +186,10 @@ finally { if ($archive) { $archive.Dispose() } }
 
 $failed = @($verdicts | Where-Object { -not $_ }).Count
 if ($failed -eq 0) {
-    $scope = if ($TestIdentity) { 'a test-identity package, not Store-valid' } elseif ($SelfSigned) { 'a local test package, never uploaded' } else { 'upload-ready' }
-    Write-Host "msix-package: PASS ($($verdicts.Count) assertions, $scope)" -ForegroundColor Green
+    $scope = if ($TestIdentity) { 'test-identity' } elseif ($SelfSigned) { 'self-signed' } else { 'upload-ready' }
+    $scopeText = switch ($scope) { 'test-identity' { 'a test-identity package, not Store-valid' } 'self-signed' { 'a local test package, never uploaded' } default { 'upload-ready' } }
+    Write-Host "msix-package: scope - $scopeText"
+    Write-Host "msix-package: PASS (run=$($verdicts.Count) skipped=0 scope=$scope)" -ForegroundColor Green
     exit 0
 }
 Write-Host "msix-package: FAIL ($failed of $($verdicts.Count) assertions)" -ForegroundColor Red

@@ -19,6 +19,9 @@
                 as UTF-8 with a BOM and LF endings; names the tokens left open; refuses an impossible tag, a non-empty
                 output folder and release notes holding ': '
 
+    The renderer cases run in this process (SP-0290: a pwsh start per case was over half of the check); one refusal,
+    the impossible tag, still runs as a real process so the exit code a caller reads is proven.
+
     Exit 0 when every check passes, 1 otherwise, 2 when the run could not be completed. The last line is
     `release-version-tests: PASS|FAIL|COULD NOT VERIFY (..)`.
 #>
@@ -43,12 +46,23 @@ function ThrowsLike([scriptblock] $Action, [string] $Pattern) {
     try { & $Action | Out-Null } catch { return [bool] ($_.Exception.Message -match $Pattern) }
     return $false
 }
-function Invoke-Renderer([string[]] $Arguments) {
-    $out = & pwsh -NoProfile -File $script:renderer @Arguments 2>&1 | ForEach-Object { "$_" }
+function ConvertTo-FlatText([string[]] $Lines) {
     # A refusal is rendered with colour codes and wrapped across lines that start with a pipe; all three are flattened
     # so a phrase cannot be cut in half by the console width.
-    $flat = ((($out -join ' ') -replace "`e\[[0-9;]*[A-Za-z]", ' ') -replace '\s*\|\s*', ' ') -replace '\s+', ' '
-    [pscustomobject]@{ Exit = $LASTEXITCODE; Text = $flat }
+    return ((($Lines -join ' ') -replace "`e\[[0-9;]*[A-Za-z]", ' ') -replace '\s*\|\s*', ' ') -replace '\s+', ' '
+}
+# SP-0290: the renderer runs in this process. A pwsh start cost 0.3 s a case and five cases were over half of the check.
+# A refusal is a throw, which `pwsh -File` reports as exit 1, so a throw reads as Exit 1 here; Invoke-RendererProcess
+# proves the exit code of a real process on one refusal.
+function Invoke-Renderer([hashtable] $Arguments) {
+    $exit = 0
+    try { $out = @(& $script:renderer @Arguments *>&1 | ForEach-Object { "$_" }) }
+    catch { $exit = 1; $out = @($_.Exception.Message) }
+    [pscustomobject]@{ Exit = $exit; Text = (ConvertTo-FlatText $out) }
+}
+function Invoke-RendererProcess([string[]] $Arguments) {
+    $out = & pwsh -NoProfile -File $script:renderer @Arguments 2>&1 | ForEach-Object { "$_" }
+    [pscustomobject]@{ Exit = $LASTEXITCODE; Text = (ConvertTo-FlatText $out) }
 }
 
 $work = Join-Path ([System.IO.Path]::GetTempPath()) ('sp0247-version-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
@@ -135,8 +149,8 @@ try {
     New-Item -ItemType Directory -Path $work -Force | Out-Null
     $full = Join-Path $work 'full'
     $sha = 'ab' * 32
-    $r = Invoke-Renderer @('-Tag', 'v26.0719.0131', '-OutputDirectory', $full, '-InstallerSha256', $sha, '-ReleaseDate', '2026-07-19',
-        '-ReleaseNotes', 'Fixture notes - en', '-ReleaseNotesRu', 'Fixture notes - ru', '-ReleaseNotesUk', 'Fixture notes - uk')
+    $r = Invoke-Renderer @{ Tag = 'v26.0719.0131'; OutputDirectory = $full; InstallerSha256 = $sha; ReleaseDate = '2026-07-19'
+        ReleaseNotes = 'Fixture notes - en'; ReleaseNotesRu = 'Fixture notes - ru'; ReleaseNotesUk = 'Fixture notes - uk' }
     Check ($r.Exit -eq 0) 'the renderer writes a complete set' "exit $($r.Exit)"
     $files = @(Get-ChildItem -LiteralPath $full -File -ErrorAction SilentlyContinue)
     Check ($files.Count -eq 5) 'five manifests are written' "$($files.Count)"
@@ -157,16 +171,16 @@ try {
     else { Check $false 'the installer manifest exists' }
 
     $partial = Join-Path $work 'partial'
-    $r = Invoke-Renderer @('-Tag', 'v26.0719.0131', '-OutputDirectory', $partial)
+    $r = Invoke-Renderer @{ Tag = 'v26.0719.0131'; OutputDirectory = $partial }
     Check ($r.Exit -eq 0 -and $r.Text -match 'Still to fill by hand: REPLACE_RELEASE_DATE, REPLACE_RELEASE_NOTES, REPLACE_RELEASE_NOTES_RU, REPLACE_RELEASE_NOTES_UK, REPLACE_SHA256\.') 'a set without the optional values names every token left open' $r.Text
     $versionFile = Join-Path $partial 'SerZhyAle.StreamsPlayer.yaml'
     Check ((Test-Path -LiteralPath $versionFile) -and -not ([System.IO.File]::ReadAllText($versionFile)).Contains('REPLACE_VERSION')) 'the version is filled even when nothing else is'
 
-    $r = Invoke-Renderer @('-Tag', 'v26.0230.1200', '-OutputDirectory', (Join-Path $work 'impossible'))
+    $r = Invoke-RendererProcess @('-Tag', 'v26.0230.1200', '-OutputDirectory', (Join-Path $work 'impossible'))
     Check ($r.Exit -ne 0 -and $r.Text -match 'DateTime' -and -not (Test-Path -LiteralPath (Join-Path $work 'impossible'))) 'an impossible tag writes nothing' $r.Text
-    $r = Invoke-Renderer @('-Tag', 'v26.0719.0131', '-OutputDirectory', $full)
+    $r = Invoke-Renderer @{ Tag = 'v26.0719.0131'; OutputDirectory = $full }
     Check ($r.Exit -ne 0 -and $r.Text -match 'is not empty') 'a non-empty output folder is refused' $r.Text
-    $r = Invoke-Renderer @('-Tag', 'v26.0719.0131', '-OutputDirectory', (Join-Path $work 'colon'), '-ReleaseNotes', 'Fixed: playback')
+    $r = Invoke-Renderer @{ Tag = 'v26.0719.0131'; OutputDirectory = (Join-Path $work 'colon'); ReleaseNotes = 'Fixed: playback' }
     Check ($r.Exit -ne 0 -and $r.Text -match "contains ': '") "release notes holding ': ' are refused" $r.Text
 }
 catch {
@@ -178,6 +192,6 @@ catch {
 }
 finally { if (Test-Path -LiteralPath $work) { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue } }
 
-if ($failures.Count -eq 0) { Write-Output "release-version-tests: PASS ($passed checks)"; exit 0 }
+if ($failures.Count -eq 0) { Write-Output "release-version-tests: PASS (run=$passed skipped=0)"; exit 0 }
 Write-Output "release-version-tests: FAIL ($($failures.Count) of $($passed + $failures.Count) checks)"
 exit 1

@@ -78,6 +78,20 @@ internal sealed partial class BroadcastProducerService
         }
     }
 
+    /// <summary>
+    /// SP-0263 (S13-1): true while the system sound of this live source still carries the application's own output, because the
+    /// process loopback was refused on a Windows build that supports it and the capture fell back to the full mix. The capture
+    /// settles the flag before its first frame, so it is read after the start has returned.
+    /// </summary>
+    internal bool OwnOutputAudible(BroadcastSource source)
+    {
+        lock (_gate)
+        {
+            return source == BroadcastSource.SystemSound && _running.TryGetValue(source, out var state)
+                && state.CaptureReady && state.Capture is { OwnOutputExcluded: false };
+        }
+    }
+
     /// <summary>Owner decision 1 of SP-0252: the header button's warning mark.</summary>
     internal bool ServerNeededButUnreachable
     {

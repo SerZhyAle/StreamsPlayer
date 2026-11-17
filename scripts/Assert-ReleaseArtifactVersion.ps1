@@ -19,7 +19,7 @@
   One verdict line per assertion, then one summary line:
       release-version: PASS <assertion> - <evidence>
       release-version: FAIL <assertion> - <what was found>
-      release-version: PASS (<n> assertions) | FAIL (<k> of <n> assertions) | COULD NOT VERIFY (<reason>)
+      release-version: PASS (run=<n> skipped=0) | FAIL (<k> of <n> assertions) | COULD NOT VERIFY (<reason>)
   Exit 0 when every assertion passed, 1 when one failed, 2 when nothing could be judged (a version that is no
   vYY.MMDD.HHmm instant, no artifact named, or an unexpected error before any failure).
 
@@ -118,6 +118,6 @@ finally {
 }
 
 $failed = @($verdicts | Where-Object { -not $_ }).Count
-if ($failed -eq 0) { Write-Host "release-version: PASS ($($verdicts.Count) assertions)"; exit 0 }
+if ($failed -eq 0) { Write-Host "release-version: PASS (run=$($verdicts.Count) skipped=0)"; exit 0 }
 Write-Host "release-version: FAIL ($failed of $($verdicts.Count) assertions)"
 exit 1

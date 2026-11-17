@@ -10,8 +10,9 @@ namespace StreamsPlayer.App;
 /// AA). An entry is an account of kind <c>guest</c>: it never broadcasts, announces nothing and is never left
 /// when the own entry joins another server. They live in one DPAPI file of their own, so the own entry's file -
 /// and every test and tool that reads it - is unchanged, and losing this one costs the guest sign-ins and
-/// nothing else. Mutations run under <see cref="ExchangeSourceService"/>'s operations gate; the list a reader
-/// sees is an immutable snapshot.
+/// nothing else. Mutations mostly run under <see cref="ExchangeSourceService"/>'s operations gate, but the control
+/// loop's guest move does not (SP-0263, S9-2), so every read-modify-write also takes this class's own lock; the list a
+/// reader sees is an immutable snapshot.
 /// </summary>
 internal sealed class ExchangeGuestEntries
 {
@@ -19,6 +20,9 @@ internal sealed class ExchangeGuestEntries
     private readonly string _directory;
     private readonly string _path;
     private ExchangeAccount[] _entries = [];
+
+    // SP-0263 (S9-2): one writer at a time over the read-modify-write of _entries, whichever thread it is on.
+    private readonly object _mutation = new();
 
     // S2-5: the file exists but could not be read just now (a sharing violation, a locked folder). That is not
     // an empty list: writing from it would destroy every stored guest token and key, which are single-use.
@@ -57,31 +61,37 @@ internal sealed class ExchangeGuestEntries
     /// <summary>Adds the entry, or replaces the one with the same identity (a re-sign-in rotates the token, same device id).</summary>
     internal void Upsert(ExchangeAccount entry)
     {
-        RequireReadable();
-        var existing = Find(entry.Host, entry.Port, entry.Login);
-        if (existing is null && IsFull)
+        lock (_mutation)
         {
-            throw new InvalidOperationException("The guest entries are full.");
-        }
+            RequireReadable();
+            var existing = Find(entry.Host, entry.Port, entry.Login);
+            if (existing is null && IsFull)
+            {
+                throw new InvalidOperationException("The guest entries are full.");
+            }
 
-        var next = _entries.Where(item => item != existing).Append(entry).ToArray();
-        Save(next);
-        _entries = next;
+            var next = _entries.Where(item => item != existing).Append(entry).ToArray();
+            Save(next);
+            _entries = next;
+        }
     }
 
     internal bool Remove(string host, int port, string login)
     {
-        RequireReadable();
-        var existing = Find(host, port, login);
-        if (existing is null)
+        lock (_mutation)
         {
-            return false;
-        }
+            RequireReadable();
+            var existing = Find(host, port, login);
+            if (existing is null)
+            {
+                return false;
+            }
 
-        var next = _entries.Where(item => item != existing).ToArray();
-        Save(next);
-        _entries = next;
-        return true;
+            var next = _entries.Where(item => item != existing).ToArray();
+            Save(next);
+            _entries = next;
+            return true;
+        }
     }
 
     /// <summary>

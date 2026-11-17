@@ -215,10 +215,11 @@ public partial class BroadcastWindow : Window
         _ => "BroadcastSoundStart"
     });
 
-    private static string? NoteOf(BroadcastSource source) => source switch
+    private string? NoteOf(BroadcastSource source) => source switch
     {
         BroadcastSource.Screen => LocalizationService.Get("BroadcastScreenPrivacy"),
-        BroadcastSource.SystemSound when !WindowsAudioCapture.OwnOutputExclusionAvailable => LocalizationService.Get("BroadcastOwnOutputRisk"),
+        BroadcastSource.SystemSound when !WindowsAudioCapture.OwnOutputExclusionAvailable || _producer.OwnOutputAudible(source) =>
+            LocalizationService.Get("BroadcastOwnOutputRisk"),
         _ => null
     };
 

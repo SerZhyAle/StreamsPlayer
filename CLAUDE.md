@@ -12,11 +12,11 @@ Run from the repository root. A human types these in PowerShell; an **agent must
 
 **Between releases only the fast tier runs** (SP-0256, canon `TESTING_AND_QA.md` §2): no full build, no test run and no check above 5 s unless the owner names that run. Every command below except `check-fast.ps1` is release tier; a rung skipped for this reason is a `RELEASE` item in the audit, and the report says "not built, not tested until the release". The measured list (check, seconds, date, method) is in `AGENTS.md` "Fast checks and the release tier".
 
-- `pwsh -NoProfile -File ./scripts/check-fast.ps1 [-Area docs|help|site|release-scripts|snapshot]` - the fast tier: every check measured at 5 s or less, in parallel, 3.71 s for all of them (2026-10-30). Push CI and `scripts/build-local.ps1` run this and nothing else.
+- `pwsh -NoProfile -File ./scripts/check-fast.ps1 [-Area docs|help|site|release-scripts|snapshot]` - the fast tier: every check measured at 5 s or less, run in parallel. `all` takes 3.6 s timed around the call (twelve runs 3.4 to 3.9 s, 2026-11-15, SP-0290), inside the cap; between releases the call is the area of what changed (0.9 to 2.3 s), or `all` when the touched area is unclear. Push CI and `scripts/build-local.ps1` run `all` and nothing else.
 - `pwsh -NoProfile -File ./build.ps1 -Test -Deploy:$false` - restore, build, run tests (Debug by default; add `-Configuration Release` to match the release). **`-Deploy` defaults to `$true`**, so a bare `-Test` forces Release *and* deploys to the local machine folders; `-Configuration Debug` then throws.
 - `pwsh -NoProfile -File ./run.ps1` - restore, build (Debug), launch the app; it always passes `-Deploy:$false`. `build.ps1 -Run` is *not* the same thing: it deploys first and runs Release.
-- `pwsh -NoProfile -File ./scripts/check.ps1` - the release-parity gate: Release restore + build + `dotnet test`, then the documentation gate `scripts/check-docs.ps1` (every document declared in `DOCUMENT_REGISTRY.jsonl`; links, anchors, house style, offline safety - SP-0140) and `tools/site/build-site.ps1 -Check`. `release.yml` runs the same two on the tag's own tree and `pages.yml` on the commit it deploys; push CI runs only the documentation gate, inside `check-fast.ps1`. Run this before proposing a release.
-- `pwsh -NoProfile -File ./scripts/smoke-playback.ps1` - the gate `check.ps1` structurally cannot be: it publishes the tree and plays a live radio station (the audio-only LibVLC engine, `StandardAudioPlayback`) and a live video stream (the LibVLC player) through the shipping binary. **Green tests are not evidence the product plays** - SP-0093 was a runtime defect underneath our code, 858 tests stayed green, and a release shipped that played nothing. Mandatory before any release (`release.ps1` step 2b), and after any change to media, packaging or a native-shipping dependency.
+- `pwsh -NoProfile -File ./scripts/check.ps1` - the release-parity gate: Release restore + build + `dotnet test`, then the documentation gate `scripts/check-docs.ps1` (`DOCUMENT_REGISTRY.jsonl` declares the roots of the maintained corpus and every document under a root is declared there - SP-0287; links, anchors, house style, offline safety - SP-0140) and `tools/site/build-site.ps1 -Check`. `release.yml` runs the same two on the tag's own tree and `pages.yml` on the commit it deploys; push CI runs only the documentation gate, inside `check-fast.ps1`. Run this before proposing a release.
+- `pwsh -NoProfile -File ./scripts/smoke-playback.ps1` - the gate `check.ps1` structurally cannot be: it publishes the tree and plays a live radio station (the audio-only LibVLC engine, `StandardAudioPlayback`) and a live video stream (the LibVLC player) through the shipping binary, then runs the console companion `StreamsPlayerCli.exe` from the same folder against its own isolated profile (SP-0277: `commands --json` parses, `status` exits 11 with nothing running and 0 with the launched copy, a start verb exits 10) and keeps what it saw in the verdict's `companion` member. **Green tests are not evidence the product plays** - SP-0093 was a runtime defect underneath our code, 858 tests stayed green, and a release shipped that played nothing. Mandatory before any release (`release.ps1` step 2b), and after any change to media, packaging or a native-shipping dependency.
 - `dotnet test StreamsPlayer.sln -c Release --no-build` - run all tests.
 - Run one test: `dotnet test tests/StreamsPlayer.Core.Tests -c Release --filter "FullyQualifiedName~CatalogMergerTests"` (all tests live in `StreamsPlayer.Core.Tests`; the App and tools have no tests).
 - `dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png` - validate the live stream-bank contract against the network.
@@ -29,12 +29,15 @@ Run from the repository root. A human types these in PowerShell; an **agent must
 - Never run `scripts/build-local.ps1` unless the user explicitly requests a commit - it `git add --all` then commits.
 - `build.ps1` never releases. This repo's autonomy verdict is **ask first** for every publishing action; the rule it applies has one home in the canon (`RELEASE_AND_DISTRIBUTION.md` §1).
 
+StreamsPlayer has a command line for scripts and agents - read docs/CLI.md; list the commands with `commands --json`; any command above risk `safe` needs the setting 'let other programs ask this app'.
+
 ## Architecture
 
-Four projects with a strict one-way dependency graph - **Core must never reference WPF, App, tools, or tests**:
+Five projects with a strict one-way dependency graph - **Core must never reference WPF, App, Cli, tools, or tests**; the console companion `src/StreamsPlayer.Cli` (SP-0275) references Core only and is a `Main` over `AppCommandConsole`:
 
 ```
 StreamsPlayer.App (WPF UI) ─┐
+StreamsPlayer.Cli (console) ─┤
 StreamsPlayer.CatalogHarness ┤──► StreamsPlayer.Core (platform-neutral)
 StreamsPlayer.Core.Tests ────┘
 ```

@@ -36,6 +36,30 @@ public sealed class ExchangeDeviceTrustTests
         Assert.Equal(second, trust.TrustedDevice("d1"));
     }
 
+    // SP-0263 (RRC-1): the book's merge sets a key in one step, so no key can be pinned between a forget and an observe.
+    [Fact]
+    public void ReplacingAKeyIsOneStepAndMarksTheTrustDirtyOnlyWhenTheKeyChanged()
+    {
+        var trust = new ExchangeDeviceTrust();
+        var first = Point();
+        var second = Point();
+        trust.ReplaceDevice("d1", first);
+        Assert.True(trust.IsDirty);
+        Assert.Equal(first, trust.TrustedDevice("d1"));
+        _ = trust.ToData();
+
+        trust.ReplaceDevice("d1", first);
+        Assert.False(trust.IsDirty);
+
+        trust.ReplaceDevice("d1", second);
+        Assert.True(trust.IsDirty);
+        Assert.Equal(second, trust.TrustedDevice("d1"));
+        Assert.Equal(ExchangeKeyObservation.Trusted, trust.ObserveDevice("d1", second));
+        trust.ReplaceGrant("g1", first);
+        Assert.Equal(first, trust.TrustedGrant("g1"));
+        Assert.Null(trust.TrustedGrant("d1"));
+    }
+
     [Fact]
     public void DevicesAndGrantsAreSeparateBooks()
     {
@@ -130,7 +154,7 @@ public sealed class ExchangeDeviceTrustTests
     public void SealedStates_HaveTheirContractCodesAndOneMessageKeyEach()
     {
         foreach (var state in new[] { ExchangeSealedState.E2eMissing, ExchangeSealedState.KeyChanged,
-                     ExchangeSealedState.ServerNoE2e, ExchangeSealedState.SealedFailed })
+                     ExchangeSealedState.ServerNoE2e, ExchangeSealedState.SealedFailed, ExchangeSealedState.E2eMissingPeer })
         {
             Assert.Equal(state, ExchangeSealedStates.FromCode(state.Code()));
             Assert.StartsWith("ExchangeState", state.MessageKey());
@@ -141,9 +165,12 @@ public sealed class ExchangeDeviceTrustTests
         Assert.Equal("key-changed", ExchangeSealedState.KeyChanged.Code());
         Assert.Equal("server-no-e2e", ExchangeSealedState.ServerNoE2e.Code());
         Assert.Equal("sealed-failed", ExchangeSealedState.SealedFailed.Code());
+        Assert.Equal("e2e-missing-peer", ExchangeSealedState.E2eMissingPeer.Code());
+        Assert.Equal("ExchangeStateE2eMissingPeer", ExchangeSealedState.E2eMissingPeer.MessageKey());
     }
     private static readonly ExchangeSealedState[] SaidStates =
-        [ExchangeSealedState.E2eMissing, ExchangeSealedState.KeyChanged, ExchangeSealedState.ServerNoE2e, ExchangeSealedState.SealedFailed];
+        [ExchangeSealedState.E2eMissing, ExchangeSealedState.KeyChanged, ExchangeSealedState.ServerNoE2e, ExchangeSealedState.SealedFailed,
+            ExchangeSealedState.E2eMissingPeer];
 
     [Fact]
     public void EveryStateIsSaidInEveryLanguage_AndTheContractsOwnWordsAreUsedForEnglishRussianAndUkrainian()
@@ -162,12 +189,16 @@ public sealed class ExchangeDeviceTrustTests
         var english = LocalizationDictionary.LoadAll().Single(dictionary => dictionary.Code == "en").Values;
         Assert.Equal("This device cannot receive protected content yet, so nothing is sent to it through the server.", english["ExchangeStateE2eMissing"]);
         Assert.Equal("This could not be opened on this device. Try again from the other device.", english["ExchangeStateSealedFailed"]);
+        // Item FB: the catalog's three sentences for the fifth state, word for word.
+        Assert.Equal("The device that has this content cannot send it protected yet, so nothing from it comes through the server.", english["ExchangeStateE2eMissingPeer"]);
         Assert.StartsWith("The exchange server connects your devices, so it knows the names of your account, devices, folders and broadcasts,", english["ExchangeHonestText"]);
         Assert.EndsWith("and it would appear in your list of devices.", english["ExchangeHonestText"]);
         var russian = LocalizationDictionary.LoadAll().Single(dictionary => dictionary.Code == "ru").Values;
         Assert.StartsWith("Сервер обмена соединяет ваши устройства, поэтому знает имена вашего аккаунта, устройств, папок и трансляций,", russian["ExchangeHonestText"]);
+        Assert.Equal("Устройство, на котором это содержимое, пока не умеет передавать его защищённым, поэтому через сервер от него ничего не приходит.", russian["ExchangeStateE2eMissingPeer"]);
         var ukrainian = LocalizationDictionary.LoadAll().Single(dictionary => dictionary.Code == "uk").Values;
         Assert.StartsWith("Сервер обміну з'єднує ваші пристрої, тому знає імена вашого акаунта, пристроїв, папок і трансляцій,", ukrainian["ExchangeHonestText"]);
+        Assert.Equal("Пристрій, на якому цей вміст, поки не вміє передавати його захищеним, тому через сервер від нього нічого не надходить.", ukrainian["ExchangeStateE2eMissingPeer"]);
     }
 
     [Theory]
@@ -175,6 +206,7 @@ public sealed class ExchangeDeviceTrustTests
     [InlineData("key-changed", "ExchangeStateKeyChanged")]
     [InlineData("server-no-e2e", "ExchangeStateServerNoE2e")]
     [InlineData("sealed-failed", "ExchangeStateSealedFailed")]
+    [InlineData("e2e-missing-peer", "ExchangeStateE2eMissingPeer")]
     public void ASealedReasonEndsALegOnceInWords_WithNoRetry(string reason, string messageKey)
     {
         // The reason string the playback legs carry maps to the sentence the person reads, through the same table

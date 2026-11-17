@@ -361,5 +361,5 @@ if ($failures.Count) {
     Write-Output "release-notes: FAIL ($($failures.Count) of $($passed + $failures.Count))"
     exit 1
 }
-Write-Output "release-notes: PASS ($passed checks)"
+Write-Output "release-notes: PASS (run=$passed skipped=0)"
 exit 0

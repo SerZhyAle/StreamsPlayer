@@ -81,12 +81,14 @@ internal static class ExchangeTunnelBridge
         idle.CancelAfter(idleTimeout);
         // CancelAfter on a source that has not fired replaces the pending deadline, so a chunk in either direction pushes it out.
         void Moved() => idle.CancelAfter(idleTimeout);
-        // Either direction ending is the tunnel's end; the other copy finishes with it.
-        await Task.WhenAll(CopyToAsync(remote, local, Moved, idle.Token),
-            CopyToAsync(local, remote, Moved, idle.Token)).ConfigureAwait(false);
+        // SP-0263 (S3-3): either direction ending, by a clean end or by a reset, is the tunnel's end; the other copy is
+        // cancelled with it instead of waiting out the idle timeout while the per-broadcast tunnel slot stays held.
+        void End() => idle.Cancel();
+        await Task.WhenAll(CopyToAsync(remote, local, Moved, End, idle.Token),
+            CopyToAsync(local, remote, Moved, End, idle.Token)).ConfigureAwait(false);
     }
 
-    private static async Task CopyToAsync(Stream from, Stream to, Action moved, CancellationToken cancellationToken)
+    private static async Task CopyToAsync(Stream from, Stream to, Action moved, Action ended, CancellationToken cancellationToken)
     {
         var buffer = new byte[16 * 1024];
         try
@@ -108,6 +110,10 @@ internal static class ExchangeTunnelBridge
         catch (Exception exception) when (IsConnectionFailure(exception))
         {
             // Either side closing is the tunnel's own end, never a fault to report.
+        }
+        finally
+        {
+            ended();
         }
     }
 

@@ -274,7 +274,11 @@
                                                 <ColumnDefinition Width="*" MaxWidth="300" />
                                             </Grid.ColumnDefinitions>
                                             <StackPanel>
-                                                <TextBlock Text="{DynamicResource ThemeLabel}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Path Style="{StaticResource NavIcon}" FlowDirection="LeftToRight"
+                                                          Data="{StaticResource Icon.app.theme}" Fill="{DynamicResource NavInkGeneral}" />
+                                                    <TextBlock Text="{DynamicResource ThemeLabel}" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                                </StackPanel>
                                                 <TextBlock Text="{DynamicResource ThemeHint}" Foreground="{DynamicResource MutedBrush}"
                                                            TextWrapping="Wrap" Margin="0,2,12,0" />
                                             </StackPanel>
@@ -349,6 +353,20 @@
                                                                 Caption="{DynamicResource AnimatedBackdrop}"
                                                                 Explanation="{DynamicResource AnimatedBackdropHint}"
                                                                 Toggled="AnimatedBackdropOption_Toggled" />
+                                    </StackPanel>
+                                </Expander>
+
+                                <!-- SP-0271, APP-COMMANDS rule 13: the one switch for commands above risk safe, off until the person
+                                     turns it on. The explanation names both states, so no help button, as for the row above. -->
+                                <Expander Style="{StaticResource SettingsGroup}" local:SettingsUiProperties.GroupId="general.commands" IsExpanded="True">
+                                    <Expander.Header>
+                                        <TextBlock Text="{DynamicResource SettingsGeneralCommands}" TextWrapping="Wrap" />
+                                    </Expander.Header>
+                                    <StackPanel>
+                                        <local:BooleanOptionRow x:Name="AcceptsRestrictedCommandsOption" local:HelpAnchor.Id="e-accepts-restricted-commands"
+                                                                Caption="{DynamicResource AcceptsRestrictedCommands}"
+                                                                Explanation="{DynamicResource AcceptsRestrictedCommandsHint}"
+                                                                Toggled="AcceptsRestrictedCommandsOption_Toggled" />
                                     </StackPanel>
                                 </Expander>
                             </StackPanel>
@@ -777,7 +795,7 @@
                                         <TextBlock x:Name="ExchangeInvitationText" TextWrapping="Wrap" Visibility="Collapsed" />
                                     </StackPanel>
                                     <Expander x:Name="ExchangeDetailsExpander" local:HelpAnchor.Id="e-exchange-details" local:SettingsUiProperties.GroupId="library.exchange.details"
-                                              IsExpanded="False" Margin="0,0,0,8"
+                                              Style="{StaticResource SettingsGroup}" IsExpanded="False" Margin="0,0,0,8"
                                               AutomationProperties.Name="{DynamicResource ExchangeDetails}">
                                         <Expander.Header><TextBlock Text="{DynamicResource ExchangeDetails}" TextWrapping="Wrap" /></Expander.Header>
                                         <StackPanel>

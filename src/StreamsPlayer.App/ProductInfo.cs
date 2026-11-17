@@ -17,9 +17,7 @@ public static class ProductInfo
     public const string PrivacyUrl = "https://serzhyale.github.io/StreamsPlayer/privacy.html";
     public const string LicenceUrl = "https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE";
 
-    public static string Version =>
-        (Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-        ?? "Unknown").Split('+')[0];
+    public static string Version => BuildVersion.Of(Assembly.GetEntryAssembly());
 
     // The media exchange portal is one page set several products link to, hosted on the FastMediaSorter
     // Android site (shared pages proposal 2026-10-10). It has three editions - English, Russian, Ukrainian.

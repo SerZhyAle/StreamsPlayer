@@ -93,6 +93,36 @@ $result = Invoke-Builder @('-Export', $foreign, '-Out', $out, '-DeckDirectory', 
 Check ($result.ExitCode -ne 0 -and $result.Output -match 'ja-jp: search terms contain 28 words') 'retained unshipped language cells are validated too'
 Check ([System.IO.File]::ReadAllText($out) -eq 'keep foreign output') 'foreign-column overflow writes nothing'
 
+# SP-0282, WINDOWS-STORE rule 8 and rung 2: the writer refuses an output the rule forbids and writes nothing. A BOM and an open
+# cell cannot be reached through the builder's command line, so the dialect function is called directly; the bare line feed
+# is also driven through a no-change round trip of an export that holds one.
+. (Join-Path $PSScriptRoot 'ListingCsvDialect.ps1')
+function Get-Refusal([string] $Content, [switch] $WithBom) {
+    try { Assert-ListingCsvDialect -Content $Content -WithBom:$WithBom; return $null }
+    catch { return $_.Exception.Message }
+}
+$crlf = "`r`n"
+$dialectOk = '"a","b"' + $crlf + '"1","two' + $crlf + 'lines"'
+$bom = [string] [char] 0xFEFF
+Check ($null -eq (Get-Refusal $dialectOk)) 'dialect: CRLF between records and inside a cell is accepted'
+Check ($null -eq (Get-Refusal $dialectOk -WithBom)) 'dialect: the export''s own BOM, written by the encoder, is accepted'
+Check ((Get-Refusal ($bom + $dialectOk)) -match 'starts with a BOM \(none was asked for\)') 'dialect: a BOM nobody asked for is refused'
+Check ((Get-Refusal ($bom + $dialectOk) -WithBom) -match 'starts with a BOM \(the encoder already writes') 'dialect: a second BOM on top of the encoder''s is refused'
+Check ((Get-Refusal ('"a","b"' + "`n" + '"1","2"')) -match 'a bare line feed in record 1') 'dialect: a bare LF between records is refused and names the record'
+Check ((Get-Refusal ('"a","b"' + $crlf + '"x' + "`n" + 'y","2"')) -match 'a bare line feed in record 2') 'dialect: a bare LF inside a quoted cell is refused'
+Check ((Get-Refusal ('"a","b"' + $crlf + '"1","2"' + "`n")) -match 'a bare line feed') 'dialect: one bare LF closing the last row is refused (the 2026-08-07 failure)'
+Check ((Get-Refusal ('"a","b"' + "`r" + '"1","2"')) -match 'a bare carriage return in record 1') 'dialect: a bare CR is refused'
+Check ((Get-Refusal ('"a","b"' + $crlf + '"1","2')) -match 'the last quoted cell is left open') 'dialect: an open last cell is refused'
+Check ((Get-Refusal ('"a","b"' + $crlf + '"1","2"' + $crlf)) -match 'ends with a line break') 'dialect: a trailing line break is refused'
+Check ((Get-Refusal "") -eq $null) 'dialect: an empty text has nothing to refuse'
+
+$lfExport = Join-Path $fixture 'bare-lf.csv'
+$lfOut = Join-Path $fixture 'bare-lf-roundtrip.csv'
+[System.IO.File]::WriteAllText($lfExport, '"Field","ID","Type","default","en-us"' + $crlf + '"Description","","Text","","line one' + "`n" + 'line two"', $utf8)
+$result = Invoke-Builder @('-Export', $lfExport, '-Out', $lfOut, '-FillNothing')
+Check ($result.ExitCode -ne 0 -and $result.Output -match 'a bare line feed in record 2') 'a round trip of an export with a bare LF is refused and names the record'
+Check (-not (Test-Path -LiteralPath $lfOut)) 'a refused round trip writes nothing'
+
 if ($failures.Count) { Write-Host "store-listing: FAIL run=$run skipped=0"; exit 1 }
 Write-Host "store-listing: PASS run=$run skipped=0"
 exit 0

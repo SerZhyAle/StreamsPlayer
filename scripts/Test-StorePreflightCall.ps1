@@ -19,6 +19,9 @@
                an identifier-looking field in the stub's output reaches neither the record nor the console
     boundary   the script holds no msstore call of its own (the shared script owns the read-only allow-list)
 
+  The calls that start a stub child are made together, one thread per fixture case (SP-0290: each child is a pwsh start
+  of 0.22 s, nine of them in a row were most of the check); the checks then read each answer in their written order.
+
   Exit 0 when every check passes, 1 otherwise, 2 when a setup step threw before anything was judged. The last line is
   `store-preflight-call: PASS|FAIL|COULD NOT VERIFY (..)`.
 #>
@@ -62,6 +65,26 @@ function Invoke-Call([object] $Case, [hashtable] $Extra = @{}, [string] $Preflig
     $text = (& $call -Root $Case.Dir -PreflightPath $PreflightPath @Extra *>&1 | Out-String)
     return @{ Exit = $LASTEXITCODE; Text = $text }
 }
+# SP-0290: every call that reaches its stub starts one pwsh child (0.22 s). The calls of different fixture cases share
+# nothing, so each runs on its own thread and the children overlap; Wait-Call hands back the same answer Invoke-Call
+# does, at the point the checks need it. A case called twice is waited for before its second call, so the stub's
+# called.txt and the record file are read in the order the checks were written.
+$started = [System.Collections.Generic.List[object]]::new()
+function Start-Call([object] $Case) {
+    $job = Start-ThreadJob -ThrottleLimit 16 -ArgumentList $call, $Case -ScriptBlock {
+        param($Call, $Case)
+        $global:LASTEXITCODE = 0
+        $text = (& $Call -Root $Case.Dir -PreflightPath $Case.Stub *>&1 | Out-String)
+        @{ Exit = $LASTEXITCODE; Text = $text }
+    }
+    $script:started.Add($job)
+    return $job
+}
+function Wait-Call([object] $Job) {
+    $answer = @(Receive-Job -Job $Job -Wait -AutoRemoveJob)
+    if ($answer.Count -ne 1 -or $answer[0] -isnot [hashtable]) { throw "a call answered $($answer.Count) values instead of one result" }
+    return $answer[0]
+}
 function Get-Records([object] $Case, [string] $Version = '26.0723.0957') {
     $path = Join-Path $Case.Dir "release-verdicts/$Version.store-preflight.jsonl"
     if (-not (Test-Path -LiteralPath $path)) { return , @() }
@@ -78,10 +101,28 @@ try {
     $identity = Get-Content -LiteralPath (Join-Path $root 'msix/identity.json') -Raw | ConvertFrom-Json
     $allowed = 'kind', 'storeId', 'packageVersion', 'exit', 'mode', 'checkedAt', 'refusal', 'submission', 'pricing'
 
-    # passes: the arguments, the remap, the record, and a field that must not travel
+    # Every case whose first call reaches a stub is set up and called now, together; the checks below wait for its answer.
     $ready = '{"mode":"ready","checkedAt":"2026-11-12T10:00:00.0000000+01:00","submission":"published","pricing":"Free","sellerId":"SELLER-1234","storeId":"LEAKED12345"}'
-    $case = New-Case 'ready' 0 $ready
-    $r = Invoke-Call $case
+    $stubbed = [ordered]@{
+        'ready'           = @(0, $ready)
+        'pending'         = @(1, '{"mode":"refused","refusal":"pending-submission","submission":"non-published"}')
+        'stale'           = @(1, '{"mode":"refused","refusal":"version-not-greater"}')
+        'price'           = @(1, '{"mode":"refused","refusal":"pricing","pricing":"other"}')
+        'refused-garbage' = @(1, 'not json at all')
+        'manual'          = @(2, '{"mode":"manual"}')
+        'success-garbage' = @(0, 'not json at all')
+        'odd-exit'        = @(7, '{"mode":"ready"}')
+    }
+    $cases = @{}
+    $jobs = @{}
+    foreach ($name in $stubbed.Keys) {
+        $cases[$name] = New-Case $name $stubbed[$name][0] $stubbed[$name][1]
+        $jobs[$name] = Start-Call $cases[$name]
+    }
+
+    # passes: the arguments, the remap, the record, and a field that must not travel
+    $case = $cases['ready']
+    $r = Wait-Call $jobs['ready']
     Check ($r.Exit -eq 0 -and $r.Text -match 'passed') "a ready result exits 0 and says it passed (exit $($r.Exit))"
     Check ($r.Text -match 'Not tested here') 'the pass line says what the preflight does not test'
     $called = Get-Called $case
@@ -105,36 +146,32 @@ try {
     Check ((Get-Called $case) -match 'CredentialExpiry=2027-06-30') 'a given credential expiry reaches the shared preflight'
 
     # stops: the channel refuses
-    $case = New-Case 'pending' 1 '{"mode":"refused","refusal":"pending-submission","submission":"non-published"}'
-    $r = Invoke-Call $case
+    $case = $cases['pending']
+    $r = Wait-Call $jobs['pending']
     Check ($r.Exit -eq 1 -and $r.Text -match 'STOP' -and $r.Text -match 'pending') "a pending submission stops the release step (exit $($r.Exit))"
     $records = Get-Records $case
     Check ($records.Count -eq 1 -and $records[0].mode -ceq 'refused' -and $records[0].refusal -ceq 'pending-submission' -and $records[0].exit -eq 1) 'the refusal is recorded with its category'
-    $case = New-Case 'stale' 1 '{"mode":"refused","refusal":"version-not-greater"}'
-    $r = Invoke-Call $case
+    $r = Wait-Call $jobs['stale']
     Check ($r.Exit -eq 1 -and $r.Text -match 'not greater than every live package version' -and $r.Text -match '26\.723\.957\.0') 'a version that is not greater stops and names the version'
-    $case = New-Case 'price' 1 '{"mode":"refused","refusal":"pricing","pricing":"other"}'
-    $r = Invoke-Call $case
+    $r = Wait-Call $jobs['price']
     Check ($r.Exit -eq 1 -and $r.Text -match 'Free') 'a price that is not Free stops'
-    $case = New-Case 'refused-garbage' 1 'not json at all'
-    $r = Invoke-Call $case
+    $r = Wait-Call $jobs['refused-garbage']
     Check ($r.Exit -eq 1 -and $r.Text -match 'STOP') 'a refusal whose evidence cannot be read still stops (fail closed)'
 
     # manual: the Store step goes on by hand, never a failure and never a pass
-    $case = New-Case 'manual' 2 '{"mode":"manual"}'
-    $r = Invoke-Call $case
+    $case = $cases['manual']
+    $r = Wait-Call $jobs['manual']
     Check ($r.Exit -eq 0 -and (Get-ManualLines $r.Text).Count -eq 1) "an unavailable channel prints one manual line and exits 0 (exit $($r.Exit), lines $((Get-ManualLines $r.Text).Count))"
     Check ((Get-Records $case)[0].mode -ceq 'manual') 'the manual run is recorded as manual'
     $r = Invoke-Call $case -PreflightPath (Join-Path $work 'no-such-folder/Store-Preflight.ps1')
     Check ($r.Exit -eq 0 -and (Get-ManualLines $r.Text).Count -eq 1 -and $r.Text -match 'was not found') 'a missing shared preflight is a manual Store step, not a failure'
     $records = Get-Records $case
     Check ($records.Count -eq 2 -and $records[1].mode -ceq 'manual' -and $null -eq $records[1].exit) 'a run that could not ask the Store is recorded with no exit code'
-    $case = New-Case 'success-garbage' 0 'not json at all'
-    $r = Invoke-Call $case
+    $case = $cases['success-garbage']
+    $r = Wait-Call $jobs['success-garbage']
     Check ($r.Exit -eq 0 -and (Get-ManualLines $r.Text).Count -eq 1 -and $r.Text -notmatch 'passed') 'success without readable ready evidence is manual, not a pass'
     Check ((Get-Records $case)[0].mode -ceq 'manual') 'that run is recorded as manual'
-    $case = New-Case 'odd-exit' 7 '{"mode":"ready"}'
-    $r = Invoke-Call $case
+    $r = Wait-Call $jobs['odd-exit']
     Check ($r.Exit -eq 0 -and (Get-ManualLines $r.Text).Count -eq 1 -and $r.Text -notmatch 'passed') 'an exit code the preflight does not define is manual, not a pass'
 
     # refuses: nothing is asked of the Store when the repository's own inputs are unusable
@@ -159,8 +196,12 @@ catch {
     if ($failures.Count -eq 0) { Write-Output "store-preflight-call: COULD NOT VERIFY ($reason)"; exit 2 }
     Write-Output "store-preflight-call: the run stopped early: $reason"
 }
-finally { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue }
+finally {
+    # A call still running when a check threw must stop before its folder goes.
+    foreach ($job in $started) { Remove-Job -Job $job -Force -ErrorAction SilentlyContinue }
+    Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
+}
 
-if ($failures.Count -eq 0) { Write-Output "store-preflight-call: PASS ($passed checks)"; exit 0 }
+if ($failures.Count -eq 0) { Write-Output "store-preflight-call: PASS (run=$passed skipped=0)"; exit 0 }
 Write-Output "store-preflight-call: FAIL ($($failures.Count) of $($passed + $failures.Count) checks)"
 exit 1

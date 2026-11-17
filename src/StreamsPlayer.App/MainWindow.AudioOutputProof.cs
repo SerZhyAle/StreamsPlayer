@@ -51,6 +51,10 @@ public partial class MainWindow
                 $"played_buffers={output.PlayedBuffers}", $"decoded_blocks={output.DecodedBlocks}",
                 $"lost_buffers={output.LostBuffers}", $"after_live_ms={clock.ElapsedMilliseconds}", $"url={url}");
             StopWatchingAudibleOutput();
+            if (heard)
+            {
+                NoteAudioHeard(); // SP-0272: the first audible output is what a play command waits for
+            }
         };
         _audioOutputTimer = timer;
         timer.Start();

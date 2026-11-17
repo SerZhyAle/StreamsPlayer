@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Id** | `WAVE-PARTICLES` |
-| **Version** | 0.15 (draft) |
+| **Version** | 0.16 (draft), read 2026-11-15 (SP-0278) |
 | **Home** | `Contracts/animated-backdrop/README.md` |
 | **Owner** | FastMediaSorter Android |
 | **This product's role** | **consumer** - one more implementation of the "particles and lines" backdrop |
@@ -53,5 +53,4 @@ both motion and utilization resume on return, with the stream alive throughout. 
 day by the owner's ruling recorded above. SP-0210 is Implemented; the evidence is in the ticket.
 
 **Update, 2026-10-26 (SP-0247).** The owner's 2026-10-11 ruling on rule 9 is filed in the catalog as a proposal to the
-contract's owner (`animated-backdrop/PROPOSAL-2026-10-26-own-switch-off-removes-backdrop.md`); the registry exception stays
-until the owner accepts or rejects it.
+contract's owner (`animated-backdrop/PROPOSAL-2026-10-26-own-switch-off-removes-backdrop.md`); the registry exception closed on 2026-11-15 (SP-0278): the proposal was accepted in 0.16 and the code does what 0.16 permits. Open: the high-contrast case, which 0.16 does not list.

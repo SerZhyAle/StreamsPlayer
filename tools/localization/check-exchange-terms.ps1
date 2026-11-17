@@ -133,6 +133,15 @@ foreach ($code in @('not-found', 'invalid-payload', 'app-id-mismatch', 'version-
     $exported.Add($ep[$code])
 }
 
+# SP-0281: the row of an ended broadcast at a tunnel, in the amendment of 2026-10-26 (item DY): `ended`, a wire reason of 7.10.
+$endAmendment = Join-Path $CatalogRoot 'device-exchange/BROADCAST-END-TUNNEL-2026-10-26.md'
+$endRows = @(Get-Content -LiteralPath $endAmendment -Encoding utf8 | Where-Object { $_ -match '^\| `ended` \| wire \|' })
+if ($endRows.Count -ne 1) { throw "Item DY should hold one 'ended' row; found $($endRows.Count)." }
+$endCells = $endRows[0].Split('|')
+$endStep = $endCells[3].Trim().Trim('`')
+$exported.Add([ordered]@{ code = 'ended'; kind = 'wire'; step = $(if ($endStep -eq '-') { $null } else { $endStep })
+    en = $endCells[4].Trim(); ru = $endCells[5].Trim(); uk = $endCells[6].Trim() })
+
 $ci = $rows | Select-String -Pattern '^\*\*CY \[NEW\]' | Select-Object -First 1
 $da = $rows | Select-String -Pattern '^\*\*DA \[NEW\]' | Select-Object -First 1
 $steps = [System.Collections.Generic.List[object]]::new()
@@ -145,12 +154,12 @@ foreach ($line in $rows[($ci.LineNumber - 1)..($da.LineNumber - 2)]) {
 if ($steps.Count -ne 15) { throw "Item CY should hold 15 steps; found $($steps.Count)." }
 
 $vector = [ordered]@{
-    source = 'DEVICE-EXCHANGE 1.5 section 9 items CZ (messages) and CY (ladder), the amendment of 2026-10-17 (format-unsupported) and 1.12 item EP (settings refusals); SP-0225, SP-0260'
+    source = 'DEVICE-EXCHANGE 1.5 section 9 items CZ (messages) and CY (ladder), the amendment of 2026-10-17 (format-unsupported), 1.12 item EP (settings refusals) and the amendment of 2026-10-26 item DY (ended); SP-0225, SP-0260, SP-0281'
     rows = $exported
     steps = $steps
 }
 $vectorPath = Join-Path $repository 'tests/StreamsPlayer.Core.Tests/Vectors/exchange-failure-table.json'
-$json = ($vector | ConvertTo-Json -Depth 6) + "`n"
+$json = (($vector | ConvertTo-Json -Depth 6) + "`n").ReplaceLineEndings("`n")
 if ($ExportFailureTable) {
     [System.IO.File]::WriteAllText($vectorPath, $json, [System.Text.UTF8Encoding]::new($false))
     Write-Output "exported: $($exported.Count) rows and $($steps.Count) steps to tests/StreamsPlayer.Core.Tests/Vectors/exchange-failure-table.json"
@@ -169,7 +178,7 @@ $keyOf = @{ 'bad-credentials' = 'ExchangeBadCredentials'; 'bad-credentials-code'
     'unreachable-server' = 'ExchangeUnreachable'; 'unanswered' = 'ExchangeUnanswered'; 'tls-failed' = 'ExchangeTlsFailed'
     'certificate-changed' = 'ExchangeCertificateChanged'; 'empty-credential' = 'ExchangeEmptyCredential'; 'format-unsupported' = 'ExchangeFormatUnsupported'
     'not-found' = 'ExchangeSettingsNotFound'; 'invalid-payload' = 'ExchangeSettingsInvalidPayload'; 'app-id-mismatch' = 'ExchangeSettingsAppIdMismatch'
-    'version-incompatible' = 'ExchangeSettingsVersionIncompatible' }
+    'version-incompatible' = 'ExchangeSettingsVersionIncompatible'; 'ended' = 'BroadcastEnded' }
 $tableCount = 0
 foreach ($code in @('en', 'ru', 'uk')) {
     $values = Read-Dictionary $code

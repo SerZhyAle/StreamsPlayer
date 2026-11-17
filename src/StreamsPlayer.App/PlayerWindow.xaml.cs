@@ -252,7 +252,12 @@ public partial class PlayerWindow : Window
     /// <summary>Re-renders the text this window cannot express as a <c>DynamicResource</c>.</summary>
     internal void RefreshLocalization()
     {
-        ApplyPlaylistTitle();
+        // SP-0263 (S6-4): the same Count > 1 test the constructor applies - a one-item playlist keeps its plain title.
+        if (_playlistItems is { Count: > 1 })
+        {
+            ApplyPlaylistTitle();
+        }
+
         RefreshBroadcastFailure();
         RefreshWindowTitle();
         if (_waitResourceKey is { } key)
@@ -730,6 +735,7 @@ public partial class PlayerWindow : Window
             _health.NotifyLive();
             ApplySignalHealth();
             _log.Event("PLAYBACK LIVE", $"ttff_ms={_playbackClock.ElapsedMilliseconds}", $"url={_channel.Url}");
+            NotifySettled(live: true); // SP-0272: what a waiting play command is told
             if (_firstLiveMs < 0)
             {
                 _firstLiveMs = _sessionClock.ElapsedMilliseconds;
@@ -1104,6 +1110,7 @@ public partial class PlayerWindow : Window
         ApplySignalHealth();
         _sessionOutcome = "failed";
         _log.Event("PLAYBACK FAIL", $"reason={reason}", $"at_ms={_playbackClock.ElapsedMilliseconds}", $"kind={_channel.MediaKind}", $"url={_channel.Url}");
+        NotifySettled(live: false, reason, reachability); // SP-0272: what a waiting play command is told
         if (!_terminalFailureRecorded)
         {
             _terminalFailureRecorded = true;

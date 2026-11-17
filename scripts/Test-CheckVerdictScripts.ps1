@@ -95,6 +95,24 @@ try {
     $r = Invoke-Script (Join-Path $repo 'scripts/test.ps1') @('-ResultsDirectory', $existing)
     Expect $r 2 '^tests: COULD NOT VERIFY run=0 skipped=0$' 'test.ps1: a results directory that is not new could not be verified'
 
+    # --- SP-0282, CHECK-VERDICT item A.1: the pass line of a self-test or an operation proof ----------------------------
+    # A script that runs a fixed list of its own assertions prints `PASS (run=N skipped=M)`; the legacy `PASS (N checks)`
+    # spelling stays readable for a reader but no writer of this product prints it. Held statically: the source of each
+    # script is read, never run.
+    $testLinePaths = @(
+        'tools/Test-CliDoc.ps1', 'tools/Test-CatalogSnapshot.ps1', 'tools/audit/Test-AuditVerdictGate.ps1', 'tools/audit/Test-AuditTools.ps1',
+        'msix/Test-MsixIdentity.ps1', 'msix/Test-AssertMsixPackage.ps1', 'msix/Test-AppxManifest.ps1', 'msix/Assert-MsixPackage.ps1',
+        'tools/site/Test-SiteFacts.ps1', 'tools/site/Test-SiteDiscovery.ps1', 'tools/site/Test-ReleaseNotes.ps1', 'tools/site/Test-HeldAddresses.ps1',
+        'scripts/Test-ReleaseArtifactVersion.ps1', 'scripts/Test-ReleaseVersion.ps1', 'scripts/Test-StorePreflightCall.ps1',
+        'scripts/Test-SmokeVerdictGate.ps1', 'scripts/Test-ExistingReleaseState.ps1', 'scripts/Assert-ReleaseArtifactVersion.ps1')
+    $legacyPass = [regex]::new('PASS \(\$[\w().$]+ (checks|assertions|scenarios)')
+    $grammarPass = [regex]::new('PASS \(run=\$[\w().$]+ skipped=0')
+    foreach ($testLinePath in $testLinePaths) {
+        $testLineSource = [System.IO.File]::ReadAllText((Join-Path $repo $testLinePath))
+        Check (-not $legacyPass.IsMatch($testLineSource)) "$($testLinePath): no pass line prints the legacy 'PASS (N checks)' spelling"
+        Check ($grammarPass.IsMatch($testLineSource)) "$($testLinePath): the pass line prints 'PASS (run=N skipped=0)'"
+    }
+
     # --- the fixture runners: a throw inside the try body -------------------------------------------------------
     # Each runner is copied with `$PSScriptRoot` redirected to its own folder and a throw injected as the first statement
     # of its try block, so the catch is reached without breaking the runner's real inputs. Nothing was judged: exit 2 and
@@ -151,9 +169,12 @@ try {
     Remove-Item Env:SP0239_PROBE_ROOT -ErrorAction SilentlyContinue
 
     # --- scripts/check-docs.ps1 --------------------------------------------------------------------------------------
+    # SP-0287: a registry declares the roots of the maintained corpus (item V); the base tree declares its one document.
+    $fixtureRoot = '{"root":"README.md","reason":"fixture"}'
+    $fixtureReadme = '{"path":"README.md","topic":"fixture","area":"fixture","triggers":["fixture"],"role":"source"}'
     function New-DocsTree([string] $Name) {
         $tree = Join-Path $work $Name
-        Write-File (Join-Path $tree 'DOCUMENT_REGISTRY.jsonl') '{"path":"README.md","topic":"fixture","area":"fixture","triggers":["fixture"],"role":"source"}'
+        Write-File (Join-Path $tree 'DOCUMENT_REGISTRY.jsonl') ($script:fixtureRoot + "`n" + $script:fixtureReadme)
         Write-File (Join-Path $tree 'README.md') "# Fixture`n"
         New-Item -ItemType Directory -Path (Join-Path $tree 'scripts') -Force | Out-Null
         foreach ($name in 'check-docs.ps1', 'SourceFingerprint.ps1') {
@@ -167,21 +188,79 @@ try {
 
     $tree = New-DocsTree 'docs-duplicate'
     $registry = Join-Path $tree 'DOCUMENT_REGISTRY.jsonl'
-    [System.IO.File]::AppendAllText($registry, "`n" + [System.IO.File]::ReadAllText($registry))
+    [System.IO.File]::AppendAllText($registry, "`n" + $fixtureReadme)
     $r = Invoke-Script (Join-Path $tree 'scripts/check-docs.ps1')
     Expect $r 1 '^docs-quality: FAIL \(' 'duplicate registry ownership fails'
-    Check ($r.Text -match 'DOCUMENT_REGISTRY.jsonl:1, DOCUMENT_REGISTRY.jsonl:2' -and $r.Text -notmatch 'Where\(') 'duplicate ownership names the registry rows, not a Where method signature'
+    Check ($r.Text -match 'DOCUMENT_REGISTRY.jsonl:2, DOCUMENT_REGISTRY.jsonl:3' -and $r.Text -notmatch 'Where\(') "duplicate ownership names the registry rows, not a Where method signature (expected: DOCUMENT_REGISTRY.jsonl:2, DOCUMENT_REGISTRY.jsonl:3 | actual: '$($r.Text)')"
 
+    # An undeclared document is judged where a root covers it: the fixture declares notes/ and leaves notes/extra.md out.
     $tree = New-DocsTree 'docs-finding'
-    Write-File (Join-Path $tree 'extra.md') "# Undeclared`n"
-    Expect (Invoke-Script (Join-Path $tree 'scripts/check-docs.ps1')) 1 '^docs-quality: FAIL \(1 finding\(s\)\)$' 'check-docs.ps1: an undeclared document fails'
+    [System.IO.File]::AppendAllText((Join-Path $tree 'DOCUMENT_REGISTRY.jsonl'), "`n" + '{"root":"notes/","reason":"fixture"}')
+    Write-File (Join-Path $tree 'notes/extra.md') "# Undeclared`n"
+    Expect (Invoke-Script (Join-Path $tree 'scripts/check-docs.ps1')) 1 '^docs-quality: FAIL \(1 finding\(s\)\)$' 'check-docs.ps1: an undeclared document under a root fails'
+
+    # SP-0282, DOC-INTERNAL-QUALITY item W: a render is recorded with its generator and its check, and the check's script is a
+    # file of the tree. The render below is generated by and checked with scripts the fixture tree holds.
+    function New-RenderTree([string] $Name, [string] $RenderRecord) {
+        $renderTree = New-DocsTree $Name
+        Write-File (Join-Path $renderTree 'docs/page.html') '<!doctype html><title>x</title>'
+        [System.IO.File]::AppendAllText((Join-Path $renderTree 'DOCUMENT_REGISTRY.jsonl'), "`n" + '{"root":"docs/","reason":"fixture"}' + "`n" + $RenderRecord)
+        return $renderTree
+    }
+    $renderHead = '{"path":"docs/page.html","topic":"fixture","area":"fixture","triggers":["fixture"],"role":"render","generator":"scripts/SourceFingerprint.ps1"'
+    $tree = New-RenderTree 'docs-render-clean' ($renderHead + ',"check":"scripts/check-docs.ps1 -Check"}')
+    Expect (Invoke-Script (Join-Path $tree 'scripts/check-docs.ps1')) 0 '^docs-quality: PASS \(' 'check-docs.ps1: a render with a generator and a check passes'
+    $tree = New-RenderTree 'docs-render-no-check' ($renderHead + '}')
+    $r = Invoke-Script (Join-Path $tree 'scripts/check-docs.ps1')
+    Expect $r 1 '^docs-quality: FAIL \(1 finding\(s\)\)$' 'check-docs.ps1: a render that names no check fails'
+    Check ($r.Text -match 'render entry docs/page\.html names no check') "check-docs.ps1: the finding names the render (expected: render entry docs/page.html names no check | actual: '$($r.Text)')"
+    $tree = New-RenderTree 'docs-render-missing-check' ($renderHead + ',"check":"scripts/nothing-here.ps1 -Check"}')
+    $r = Invoke-Script (Join-Path $tree 'scripts/check-docs.ps1')
+    Expect $r 1 '^docs-quality: FAIL \(1 finding\(s\)\)$' 'check-docs.ps1: a render whose check names a script the tree does not hold fails'
+    Check ($r.Text -match 'its script is not a file of the tree') "check-docs.ps1: the finding says the script is missing (expected: its script is not a file of the tree | actual: '$($r.Text)')"
+
+    # SP-0287, DOC-INTERNAL-QUALITY item V: the maintained corpus is what the declared roots cover, and the ignores are explicit.
+    # Each case starts from the base tree (root README.md, record README.md), appends its records and writes its files; `Replace`
+    # starts from the records alone. The first line of the output is judged by exit code and last line, the finding by its words.
+    $notesRoot = '{"root":"notes/","reason":"fixture"}'
+    $notesIgnore = '{"ignore":"notes/n.md","reason":"fixture"}'
+    $notesRecord = '{"path":"notes/n.md","topic":"fixture","area":"fixture","triggers":["fixture"],"role":"source"}'
+    $subRecord = '{"path":"notes/sub/m.md","topic":"fixture","area":"fixture","triggers":["fixture"],"role":"source"}'
+    $oneFinding = '^docs-quality: FAIL \(1 finding\(s\)\)$'
+    $note = @{ 'notes/n.md' = "# Note`n" }
+    $rootCases = @(
+        @{ Name = 'no-root'; Replace = $true; Records = @($fixtureReadme); Files = @{}; Exit = 1; Last = $oneFinding; Text = 'declares no root of the maintained corpus'; Label = 'a registry with no root record fails' }
+        @{ Name = 'root-no-reason'; Records = @('{"root":"notes/"}', $notesRecord); Files = $note; Exit = 1; Last = $oneFinding; Text = "root 'notes/' has no reason"; Label = 'a root with no reason fails' }
+        @{ Name = 'root-missing'; Records = @('{"root":"gone/","reason":"fixture"}'); Files = @{}; Exit = 1; Last = $oneFinding; Text = "root 'gone/' names no tracked directory"; Label = 'a root that names no tracked directory fails' }
+        @{ Name = 'root-empty'; Records = @('{"root":"empty/","reason":"fixture"}'); Files = @{ 'empty/x.txt' = 'x' }; Exit = 1; Last = $oneFinding; Text = "root 'empty/' covers no documentation file"; Label = 'a root that holds no documentation file fails' }
+        @{ Name = 'root-twice'; Records = @('{"root":"README.md","reason":"again"}'); Files = @{}; Exit = 1; Last = $oneFinding; Text = "root 'README.md' is declared twice"; Label = 'a root declared twice fails' }
+        @{ Name = 'root-nested'; Records = @($notesRoot, '{"root":"notes/sub/","reason":"fixture"}', $notesRecord, $subRecord); Files = @{ 'notes/n.md' = "# Note`n"; 'notes/sub/m.md' = "# Sub`n" }; Exit = 1; Last = $oneFinding; Text = "root 'notes/sub/' lies inside root 'notes/'"; Label = 'a root inside another root fails' }
+        @{ Name = 'two-kinds'; Records = @('{"root":"notes/","path":"notes/n.md","reason":"fixture"}'); Files = $note; Exit = 1; Last = $oneFinding; Text = 'record carries path and root'; Label = 'a record that declares two things fails' }
+        @{ Name = 'root-bad-path'; Records = @('{"root":"../notes/","reason":"fixture"}'); Files = @{}; Exit = 1; Last = $oneFinding; Text = "root '\.\./notes/' is not a repository-relative path"; Label = 'a root that leaves the repository fails' }
+        @{ Name = 'outside'; Records = @(); Files = $note; Exit = 0; Last = '^docs-quality: PASS \(.*1 outside every root, '; Text = 'note: notes/n\.md lies under no declared root'; Label = 'a document under no root is outside the corpus, noted and not judged' }
+        @{ Name = 'outside-recorded'; Records = @($notesRecord); Files = $note; Exit = 1; Last = $oneFinding; Text = 'records notes/n\.md, which lies under no declared root'; Label = 'a record for a document under no root fails' }
+        @{ Name = 'ignore-excludes'; Records = @($notesRoot, $notesIgnore); Files = $note; Exit = 0; Last = '^docs-quality: PASS \('; Text = ''; Label = 'a document under a root that a reasoned ignore excludes needs no record' }
+        @{ Name = 'ignore-and-record'; Records = @($notesRoot, $notesIgnore, $notesRecord); Files = $note; Exit = 1; Last = $oneFinding; Text = 'recorded by DOCUMENT_REGISTRY\.jsonl:\d+ and excluded by the ignore'; Label = 'a document both recorded and excluded fails' }
+        @{ Name = 'ignore-no-reason'; Records = @($notesRoot, '{"ignore":"notes/n.md"}'); Files = $note; Exit = 1; Last = $oneFinding; Text = "ignore entry 'notes/n\.md' has no reason"; Label = 'an ignore with no reason fails' }
+        @{ Name = 'ignore-nothing'; Records = @($notesRoot, '{"ignore":"notes/none.md","reason":"fixture"}', $notesRecord); Files = $note; Exit = 1; Last = $oneFinding; Text = "ignore 'notes/none\.md' matches no documentation file under a declared root"; Label = 'an ignore that excludes nothing fails' }
+    )
+    foreach ($case in $rootCases) {
+        $tree = New-DocsTree "docs-v-$($case.Name)"
+        $lines = if ($case['Replace']) { $case.Records } else { @($fixtureRoot, $fixtureReadme) + $case.Records }
+        Write-File (Join-Path $tree 'DOCUMENT_REGISTRY.jsonl') ($lines -join "`n")
+        foreach ($file in $case.Files.Keys) { Write-File (Join-Path $tree $file) $case.Files[$file] }
+        $r = Invoke-Script (Join-Path $tree 'scripts/check-docs.ps1')
+        Expect $r $case.Exit $case.Last "check-docs.ps1 item V: $($case.Label)"
+        if ($case.Text) { Check ($r.Text -match $case.Text) "check-docs.ps1 item V: $($case.Label) - the output says it (expected: /$($case.Text)/ | actual: '$($r.Text)')" }
+    }
 
     $tree = New-DocsTree 'docs-locked'
     $r = Invoke-Locked @((Join-Path $tree 'README.md')) { Invoke-Script (Join-Path $tree 'scripts/check-docs.ps1') }
     Expect $r 2 '^docs-quality: COULD NOT VERIFY \(' 'check-docs.ps1: a document that cannot be read could not be verified'
 
     $tree = New-DocsTree 'docs-finding-then-locked'
-    Write-File (Join-Path $tree 'extra.md') "# Undeclared`n"
+    [System.IO.File]::AppendAllText((Join-Path $tree 'DOCUMENT_REGISTRY.jsonl'), "`n" + '{"root":"notes/","reason":"fixture"}')
+    Write-File (Join-Path $tree 'notes/extra.md') "# Undeclared`n"
     $r = Invoke-Locked @((Join-Path $tree 'README.md')) { Invoke-Script (Join-Path $tree 'scripts/check-docs.ps1') }
     Expect $r 1 '^docs-quality: FAIL \(1 finding\(s\)\)$' 'check-docs.ps1: a finding recorded before the stop outranks could-not-verify'
 
@@ -208,7 +287,7 @@ try {
         $recorded = if ($Fingerprint -eq '') { Get-SourceFingerprint (Join-Path $tree 'docs/portal/guide.md') } else { $Fingerprint }
         $mirror = if ($Fingerprint -eq 'none') { '' } else { ",`"mirrorOf`":`"docs/portal/guide.md`",`"mirrorOfHash`":`"$recorded`"" }
         $row = '{{"path":"{0}","topic":"fixture","area":"fixture","triggers":["fixture"],"role":"source"{1}}}'
-        Write-File (Join-Path $tree 'DOCUMENT_REGISTRY.jsonl') ((($row -f 'README.md', ''), ($row -f 'docs/portal/guide.md', ''), ($row -f 'docs/portal/guide.ru.md', $mirror)) -join "`n")
+        Write-File (Join-Path $tree 'DOCUMENT_REGISTRY.jsonl') (($script:fixtureRoot, '{"root":"docs/","reason":"fixture"}', ($row -f 'README.md', ''), ($row -f 'docs/portal/guide.md', ''), ($row -f 'docs/portal/guide.ru.md', $mirror)) -join "`n")
         return $tree
     }
     $docsGate = 'scripts/check-docs.ps1'
@@ -251,6 +330,8 @@ try {
     # --- scripts/check-help.ps1 --------------------------------------------------------------------------------------
     $helpPage = '<!doctype html><html lang="{0}" dir="ltr"><head>{1}</head><body><h1>x</h1><p class="lead">x</p><ul class="related"></ul><footer class="help-foot"></footer></body></html>'
     $referrer = '<meta name="referrer" content="no-referrer">'
+    $robots = '<meta name="robots" content="noindex">'
+    $headMeta = $referrer + $robots
     function New-HelpTree([string] $Name) {
         $tree = Join-Path $work $Name
         Write-File (Join-Path $tree 'help/help-map.json') '{"sourceLocale":"en","index":"index","surfaces":[]}'
@@ -258,7 +339,7 @@ try {
         Write-File (Join-Path $tree 'docs/assets/sza-kit.css') 'kit'
         Write-File (Join-Path $tree 'docs/help/help.css') 'layer'
         Write-File (Join-Path $tree 'docs/help/sza-kit.css') 'kit'
-        Write-File (Join-Path $tree 'docs/help/en/index.html') ($script:helpPage -f 'en', $script:referrer)
+        Write-File (Join-Path $tree 'docs/help/en/index.html') ($script:helpPage -f 'en', $script:headMeta)
         return $tree
     }
     $checkHelp = Join-Path $repo 'scripts/check-help.ps1'
@@ -274,15 +355,22 @@ try {
     Expect (Invoke-Script $checkHelp @('-Root', $tree)) 2 '^help: COULD NOT VERIFY \(no .*help\.css' 'check-help.ps1: a missing source layer could not be verified'
 
     $tree = New-HelpTree 'help-defect'
-    Write-File (Join-Path $tree 'docs/help/en/index.html') ($helpPage -f 'en', '')
+    Write-File (Join-Path $tree 'docs/help/en/index.html') ($helpPage -f 'en', $robots)
     Expect (Invoke-Script $checkHelp @('-Root', $tree)) 1 '^help: FAIL \(1 problem\(s\)' 'check-help.ps1: a page that does not withhold the referrer fails'
+
+    # SP-0282, CONTEXT-HELP item G: a help page carries noindex; the one defect here is its absence, named with the page.
+    $tree = New-HelpTree 'help-no-noindex'
+    Write-File (Join-Path $tree 'docs/help/en/index.html') ($helpPage -f 'en', $referrer)
+    $r = Invoke-Script $checkHelp @('-Root', $tree)
+    Expect $r 1 '^help: FAIL \(1 problem\(s\)' 'check-help.ps1: a page with no noindex fails'
+    Check ($r.Text -match 'FAIL  search: en/index\.html carries no noindex') "check-help.ps1: the noindex failure names the page (expected: search: en/index.html carries no noindex | actual: '$($r.Text)')"
 
     $tree = New-HelpTree 'help-locked'
     $r = Invoke-Locked @((Join-Path $tree 'docs/help/en/index.html')) { Invoke-Script $checkHelp @('-Root', $tree) }
     Expect $r 2 '^help: COULD NOT VERIFY \(' 'check-help.ps1: a page that cannot be read could not be verified'
 
     $tree = New-HelpTree 'help-defect-then-locked'
-    Write-File (Join-Path $tree 'docs/help/de/index.html') ($helpPage -f 'de', '')
+    Write-File (Join-Path $tree 'docs/help/de/index.html') ($helpPage -f 'de', $robots)
     $r = Invoke-Locked @((Join-Path $tree 'docs/help/en/index.html')) { Invoke-Script $checkHelp @('-Root', $tree) }
     Expect $r 1 '^help: FAIL \(1 problem\(s\)\)$' 'check-help.ps1: a problem recorded before the stop outranks could-not-verify'
 
@@ -295,14 +383,38 @@ try {
         Write-File (Join-Path $tree 'help/help-map.json') '{"sourceLocale":"en","index":"index","surfaces":[{"id":"main","form":"page","help":"main"}]}'
         Write-File (Join-Path $tree 'help/help-baseline.txt') "shot main`n"
         $link = '<li><a href="main.html">m</a></li>'
-        Write-File (Join-Path $tree 'docs/help/en/index.html') ($script:indexPage -f 'en', $script:referrer, $link)
-        Write-File (Join-Path $tree 'docs/help/en/main.html') ($script:mainPage -f 'en', $script:referrer)
-        Write-File (Join-Path $tree 'docs/help/de/index.html') ($script:indexPage -f 'de', $script:referrer, $GermanIndexLinks)
-        Write-File (Join-Path $tree 'docs/help/de/main.html') ($script:mainPage -f 'de', $script:referrer)
+        Write-File (Join-Path $tree 'docs/help/en/index.html') ($script:indexPage -f 'en', $script:headMeta, $link)
+        Write-File (Join-Path $tree 'docs/help/en/main.html') ($script:mainPage -f 'en', $script:headMeta)
+        Write-File (Join-Path $tree 'docs/help/de/index.html') ($script:indexPage -f 'de', $script:headMeta, $GermanIndexLinks)
+        Write-File (Join-Path $tree 'docs/help/de/main.html') ($script:mainPage -f 'de', $script:headMeta)
         return $tree
     }
     $tree = New-IndexedHelpTree 'help-index-complete' '<li><a href="main.html">m</a></li>'
     Expect (Invoke-Script $checkHelp @('-Root', $tree)) 0 '^help: PASS \(4 pages in 2 locales' 'check-help.ps1 index: every index links the written page of its locale'
+
+    # SP-0282, CHECK-BASELINE item B: the baseline is held against its copy at HEAD. A tree with no git is not compared and
+    # the verdict line says so; a tree with a commit judges the lines the working file added.
+    $r = Invoke-Script $checkHelp @('-Root', $tree)
+    Expect $r 0 '^help: PASS \(.*baseline not compared with HEAD, no committed copy\)$' 'check-help.ps1 baseline: a tree with no git is not compared and says so'
+    function New-CommittedHelpTree([string] $Name, [string] $Committed, [string] $Working) {
+        $committedTree = New-IndexedHelpTree $Name '<li><a href="main.html">m</a></li>'
+        Write-File (Join-Path $committedTree 'help/help-baseline.txt') $Committed
+        & git -C $committedTree init --quiet 2>&1 | Out-Null
+        & git -C $committedTree add --all 2>&1 | Out-Null
+        & git -C $committedTree -c user.name=fixture -c user.email=fixture@example.test -c commit.gpgsign=false commit --quiet -m fixture 2>&1 | Out-Null
+        Write-File (Join-Path $committedTree 'help/help-baseline.txt') $Working
+        return $committedTree
+    }
+    $tree = New-CommittedHelpTree 'help-baseline-same' "shot main`n" "shot main`n"
+    Expect (Invoke-Script $checkHelp @('-Root', $tree)) 0 '^help: PASS \(.*baseline held against HEAD\)$' 'check-help.ps1 baseline: a baseline equal to its committed copy passes'
+    $tree = New-CommittedHelpTree 'help-baseline-raised' "shot main`n" "button foo`nshot main`n"
+    $r = Invoke-Script $checkHelp @('-Root', $tree)
+    Expect $r 1 '^help: FAIL \(1 problem\(s\); ' 'check-help.ps1 baseline: a line the working file added fails'
+    Check ($r.Text -match 'FAIL  baseline: help/help-baseline\.txt gained 1 line\(s\) that the copy at HEAD does not hold: button foo - ') "check-help.ps1 baseline: the failure names the added line (expected: gained 1 line(s) ... button foo | actual: '$($r.Text)')"
+    $tree = New-CommittedHelpTree 'help-baseline-paid' "button gone`nshot main`n" "shot main`n"
+    Expect (Invoke-Script $checkHelp @('-Root', $tree)) 0 '^help: PASS \(.*baseline held against HEAD\)$' 'check-help.ps1 baseline: a line the working file removed passes (paying debt down)'
+    $tree = New-CommittedHelpTree 'help-baseline-commented' "shot main`n" "# a reason beside the line`nshot main`n"
+    Expect (Invoke-Script $checkHelp @('-Root', $tree)) 0 '^help: PASS \(.*baseline held against HEAD\)$' 'check-help.ps1 baseline: a comment line is not an identifier'
 
     $tree = New-IndexedHelpTree 'help-index-incomplete' ''
     $r = Invoke-Script $checkHelp @('-Root', $tree)
