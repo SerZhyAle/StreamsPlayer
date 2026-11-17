@@ -63,6 +63,49 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.1117.1644
+
+Supersedes nothing: 26.1112.1622 is prepared below. This is the package that adds the command line for scripts and other
+programs with its console companion and the "Commands from other programs" settings group, the pinned section's state
+triangle and the exchange page's explanation for a peer that cannot send protected content yet. The three blocks below are
+the files `msix/listing/release-notes/26.1117.1644.*.txt`.
+
+```text
+Version 26.1117.1644
+
+- Scripts, shortcuts and other programs can give StreamsPlayer commands: show and close it, play, pause, resume and stop streams, set the volume, add a stream to your list and ask about its state. A command goes to the running copy and never opens a dialog.
+- StreamsPlayerCli.exe, a console companion installed beside the app, prints to a pipe and returns an exit code. StreamsPlayerCli.exe commands lists every command.
+- Settings has a "Commands from other programs" group. Commands that read or write your data, such as listing what plays now or recording into a folder, are refused until you turn its switch on. The switch is off by default and only you can change it.
+- The header of the pinned channels section shows a triangle that points down while the section is open and right while it is collapsed.
+- When the device that has the content cannot send it protected yet, the exchange server page explains why nothing from it comes through.
+- A broadcast you stopped can no longer switch back to "playing" afterwards.
+- The offline help (F1) describes the new settings group.
+```
+
+```text
+Версия 26.1117.1644
+
+- Скрипты, ярлыки и другие программы могут давать StreamsPlayer команды: показать и закрыть его, воспроизвести, поставить на паузу, продолжить и остановить трансляцию, задать громкость, добавить трансляцию в ваш список и узнать состояние. Команда идёт в уже запущенную копию и никогда не открывает диалог.
+- Консольный помощник StreamsPlayerCli.exe устанавливается рядом с приложением, пишет в канал и возвращает код выхода. «StreamsPlayerCli.exe commands» перечисляет все команды.
+- В «Настройках» появилась группа «Команды от других программ». Команды, которые читают или пишут ваши данные, например список того, что играет сейчас, или запись в папку, отклоняются, пока вы не включите её переключатель. По умолчанию он выключен, и менять его можете только вы.
+- В заголовке раздела закреплённых каналов стоит треугольник: он смотрит вниз, пока раздел открыт, и вправо, когда раздел свёрнут.
+- Если устройство, у которого есть содержимое, ещё не может отправить его защищённым, страница сервера обмена объясняет, почему от него ничего не приходит.
+- Остановленная вами трансляция больше не может снова стать «играет».
+- Встроенная справка (F1) описывает новую группу настроек.
+```
+
+```text
+Версія 26.1117.1644
+
+- Скрипти, ярлики та інші програми можуть давати StreamsPlayer команди: показати й закрити його, відтворити, поставити на паузу, продовжити й зупинити потік, задати гучність, додати потік до вашого списку й дізнатися стан. Команда йде до вже запущеної копії й ніколи не відкриває діалог.
+- Консольний помічник StreamsPlayerCli.exe встановлюється поруч із застосунком, пише в канал і повертає код виходу. «StreamsPlayerCli.exe commands» перелічує всі команди.
+- У «Налаштуваннях» з’явилася група «Команди від інших програм». Команди, що читають або пишуть ваші дані, наприклад перелік того, що грає зараз, чи запис до теки, відхиляються, доки ви не ввімкнете її перемикач. За замовчуванням він вимкнений, і змінити його можете лише ви.
+- У заголовку розділу закріплених каналів стоїть трикутник: він дивиться вниз, поки розділ відкритий, і праворуч, коли розділ згорнутий.
+- Якщо пристрій, що має вміст, ще не може надіслати його захищеним, сторінка сервера обміну пояснює, чому від нього нічого не надходить.
+- Зупинена вами трансляція більше не може знову стати «грає».
+- Вбудована довідка (F1) описує нову групу налаштувань.
+```
+
 ### Prepared for 26.1112.1622
 
 Supersedes nothing: 26.1025.1927 is prepared below. This is the package that adds the Broadcast window with a card per source, the end-of-broadcast message with Reconnect, password broadcasts over the local network and through the exchange server, the standard settings saved on and read from the exchange server, the icon header with separate Exchange server and Broadcasting pages, and the fix for radio left silent by a muted video player. The three blocks below are the files

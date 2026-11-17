@@ -237,7 +237,7 @@ below only after reading it.
 | `Stall` | 3 | **0.5 s** |
 | `StreamEnded` | **2** | **0.5 s** |
 | `OpenTimeout` | 1 | **0.5 s** |
-| `HardFail` | - | no reconnect; straight to the verdict |
+| `HardFail` | - | no reconnect; straight to the verdict (a refused certificate, SP-0284, is one) |
 
 The table departs from the brief twice, and both departures are recorded only here.
 
@@ -268,6 +268,29 @@ the engine (SP-0096, §3a). One re-open, because it only ever fires after a full
 already been spent staring at black, so every extra attempt costs another twenty seconds of exactly the
 thing being fixed. Its backoff is a flat half second rather than the transient ladder, for the same
 reason: the waiting has already happened.
+
+### A refused certificate is not a lost connection - SP-0284
+
+`STREAM-BANK` 2.10 (item AB, 2026-11-15) owes the listener a failure at once when a stream's security
+certificate cannot be trusted: it stays untrusted on the next open, so the ladder would only delay the
+verdict. On both LibVLC paths the engine says so itself, and says it the same way - before it raises its
+error event it logs, at error level, `gnutls | Certificate verification failure: The certificate is NOT
+trusted. The certificate issuer is unknown.` (measured 2026-11-17, LibVLC 3.0.23, against a local
+self-signed https endpoint). `EngineFailureTrail.UntrustedCertificate` (radio, from the shared engine's
+log) and `IVideoBackend.RejectedCertificate` (video, from the backend's own log callback, cleared by every
+`Play`) carry that finding into `PlaybackFailureSignal.UntrustedCertificate`, and
+`PlaybackRecoveryClassifier` answers it with `HardFail` ahead of the HTTP-status rules and every substring
+rule - the engine's own error token, `encountered_error`, would otherwise be read as an ordinary transient.
+
+The finding is the TLS module's own verdict line and nothing else, so a host or station name inside some
+other line can never set it. It travels with the reason token `untrusted_certificate`, which the failure
+dialog and the compact status line turn into a sentence naming the failure (`PlaybackUntrustedCertificate`),
+and both probes of the connectivity gate are skipped: the engine reached the host and read its certificate,
+so the verdict follows the error with no wait. A refusal spends no attempt of any budget. Before the rule a
+self-signed radio stream spent its whole transient budget (three legs, a 1 s and a 2 s pause), and a video
+stream was re-opened once and then given up as a dead source at 8.7 s (both measured 2026-11-17 on a local
+endpoint). `FlyleafVideoBackend` reports no finding - its FFmpeg trail is a different one - and keeps the
+ordinary ladder.
 
 ### A broadcast that ended is not a lost connection - SP-0250
 
@@ -518,7 +541,9 @@ Full evidence: `PLAN/SP-0071_adaptive_quality_ceiling/05_validation.md`.
 - **"Reconnecting" is shown only for an actual reconnect** - never for ordinary buffering, and never for
   a quality change, which is why `ApplyQualityDecision` deliberately does not go through `RecoverAsync`.
 - **The terminal verdict** is `PlaybackFailureDialog`, with Retry and (only when the channel itself is at
-  fault) an offer to hide or delete it.
+  fault) an offer to hide or delete it. A stream whose security certificate this computer does not trust
+  says so in its own sentence (SP-0284, `PlaybackUntrustedCertificate`) instead of the generic "could not be
+  played".
 - **A caption over the video whenever there is no picture** (SP-0072, `PlaybackInterruptionTracker`,
   `PlayerWindow.Notice.cs`). This is the answer to the field report "экран много раз моргает": a quality
   re-open used to be a silent black screen of 3-18 s, and the status line that could have explained it
@@ -601,7 +626,7 @@ Core (platform-neutral, all unit-tested)
   PlaybackFailureSignal.cs           the input record
   BroadcastEnd.cs                §4  an ended broadcast or a lost connection - the watch, the causes, the answers (SP-0250)
   BroadcastLanProbe.cs           §4  what a producer's LAN address answers to the reconnect (SP-0250)
-  EngineFailureTrail.cs          §4  what the engine said about a failed open - the AUDIO FAIL cause (SP-0189)
+  EngineFailureTrail.cs          §4  what the engine said about a failed open - the AUDIO FAIL cause (SP-0189), and a refused certificate (SP-0284)
   SignalHealthMonitor.cs         §6  green / yellow / red
   PlaybackInterruption.cs        §6  what the caption says, and when it may appear
   StreamQualityLadder.cs         §5  HLS master playlist -> rungs
@@ -674,6 +699,7 @@ App (forwards observations, applies answers, owns all I/O)
 | `SP-0096` | a stream that never opens is given up on | **Implemented** - the run-and-observe phase is not done |
 | `DONE/SP-0189` | a radio failure keeps its cause and is not judged final by its wrapper | **Implemented** |
 | `SP-0250` | a broadcast that ended is shown as ended, not reconnected to | **In Progress** - the joint run with a real phone is not done |
+| `SP-0284` | a refused certificate is a hard failure, not a retry | **Implemented** - the verdict dialog is not yet seen on screen |
 
 Three of those headers disagree with the folder they sit in. Status comes from the header, never from the
 path - recorded here so the disagreement is visible rather than inherited.

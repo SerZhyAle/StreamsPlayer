@@ -21,4 +21,5 @@ the conformance authority; a read version does not upgrade an implementation cla
 
 STREAM-BANK 2.11 item AB resolves the scope for this player. The first-connection bound is a dated
 variant in the product's catalog registry row and [playback resilience](../PLAYBACK_RESILIENCE.md);
-an untrusted-certificate failure is still owed by SP-0284. This reading does not claim full 2.11 adoption.
+an untrusted-certificate failure surfaces as a hard failure without a retry on both LibVLC paths (SP-0284,
+`EngineFailureTrail.UntrustedCertificate`, `PlaybackRecoveryClassifier`). This reading does not claim full 2.11 adoption.
