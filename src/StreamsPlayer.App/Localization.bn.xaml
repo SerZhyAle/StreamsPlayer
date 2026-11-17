@@ -266,6 +266,7 @@
     <sys:String x:Key="PlayerUnsupported">এই স্ট্রিম ফরম্যাট Windows মিডিয়া ব্যাকএন্ড সমর্থন করে না।</sys:String>
     <sys:String x:Key="FailureDialogMessage">"{0}" চালানো গেল না।</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">"{0}" চালানো যাবে না: এর ঠিকানা http, https বা rtsp স্ট্রিম নয়।</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">"{0}" চালানো যাবে না: এই কম্পিউটার স্ট্রিমের নিরাপত্তা সনদে বিশ্বাস করে না।</sys:String>
     <sys:String x:Key="FailureRegionRestricted">তালিকা এই চ্যানেলকে অঞ্চলে সীমিত বলে চিহ্নিত করেছে: রক্ষণকারীর দেশ থেকে এটি সাড়া দেয়নি। যে অঞ্চলে এটি সম্প্রচারিত হয়, আপনি সেখানে থাকলে এটি কাজ করতে পারে।</sys:String>
     <sys:String x:Key="FailureNoNetwork">কোনো নেটওয়ার্ক সংযোগ নেই, তাই এই চ্যানেলে পৌঁছানোই যায়নি। এটি হয়তো ঠিকই আছে - আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</sys:String>
     <sys:String x:Key="FailureRetry">আবার চেষ্টা</sys:String>

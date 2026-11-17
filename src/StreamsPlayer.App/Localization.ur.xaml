@@ -266,6 +266,7 @@
     <sys:String x:Key="PlayerUnsupported">یہ نشریاتی فارمیٹ Windows کے میڈیا انجن کو قبول نہیں۔</sys:String>
     <sys:String x:Key="FailureDialogMessage">”{0}“ نہیں چل سکا۔</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">”{0}“ نہیں چلایا جا سکتا: اس کا پتا http، https یا rtsp اسٹریم نہیں ہے۔</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">”{0}“ نہیں چلایا جا سکتا: یہ کمپیوٹر اسٹریم کے سیکیورٹی سرٹیفکیٹ پر بھروسا نہیں کرتا۔</sys:String>
     <sys:String x:Key="FailureRegionRestricted">فہرست اس چینل کو علاقے تک محدود بتاتی ہے: مرتب کرنے والے کے ملک سے اس نے جواب نہیں دیا۔ اگر آپ اُس علاقے میں ہیں جہاں یہ نشر ہوتا ہے تو یہ کام کر سکتا ہے۔</sys:String>
     <sys:String x:Key="FailureNoNetwork">نیٹ ورک کنکشن موجود نہیں، اس لیے اس چینل تک رسائی ہی نہیں ہوئی۔ ہو سکتا ہے یہ ٹھیک ہو - اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔</sys:String>
     <sys:String x:Key="FailureRetry">دوبارہ کوشش</sys:String>

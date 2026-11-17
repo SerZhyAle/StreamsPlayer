@@ -194,6 +194,14 @@ internal interface IVideoBackend
     /// </summary>
     event Action<RecordingSegment> RecordingInterrupted;
 
+    /// <summary>
+    /// SP-0284 (STREAM-BANK 2.10): whether the engine's own log, since the last <see cref="Play"/>, said it refused
+    /// the stream's security certificate. Read where <see cref="EncounteredError"/> is raised - the engine logs the
+    /// refusal first - and never afterwards, because the next open starts the question again. An engine whose
+    /// certificate refusals are not measured answers false and keeps the ordinary recovery.
+    /// </summary>
+    bool RejectedCertificate { get; }
+
     /// <summary>Buffer fill percentage 0..100.</summary>
     event Action<float> BufferingChanged;
     event Action EndReached;

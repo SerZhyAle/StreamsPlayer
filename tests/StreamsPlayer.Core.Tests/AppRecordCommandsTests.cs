@@ -43,9 +43,12 @@ public sealed class AppRecordCommandsTests
     [InlineData("record", "start", "--out")]
     [InlineData("record", "start", "--out", "")]
     [InlineData("record", "start", "--out", "   ")]
-    // The parser's path check is Path.GetInvalidPathChars(), which on .NET Core does not list a double quote; a folder with one in
-    // its name is refused later by the app's probe (CommandRecordingFolder: Missing), so it is not a parser case.
+    // SP-0291 (R1): the parser refuses every character a folder name cannot carry, which GetInvalidPathChars() alone
+    // does not list - the double quote is the case the release dropped, and the app's write probe never answers for
+    // them as 'missing' (exit 11) again.
     [InlineData("record", "start", "--out", "bad|folder")]
+    [InlineData("record", "start", "--out", "with\"quote")]
+    [InlineData("record", "start", "--out", "C:\\<no>*such?name>")]
     [InlineData("record", "start", "--out", "C:\\one", "--out", "C:\\two")]
     [InlineData("record", "start", "--out", "C:\\one", "--id", Guid1, "--id", Guid2)]
     [InlineData("record", "start", "--out", "C:\\one", "--id", "not-a-guid")]

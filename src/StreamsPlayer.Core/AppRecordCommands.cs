@@ -376,8 +376,13 @@ public static class AppRecordCommands
     private static AppPlaybackCommands.Violation? CheckStop(IReadOnlyDictionary<string, IReadOnlyList<string>> options) =>
         Count(options, "id") > 1 ? Bad(AppRecordMessages.StopOptionsOnce) : null;
 
+    // SP-0291 (R1): GetInvalidPathChars() carries only '|' and the control characters, so a name Windows refuses
+    // in every folder ('"' among them) reached the app's write probe, which answered the weaker 'missing' (exit 11)
+    // for a folder that can never exist. The parser names as unusable every character a folder name cannot carry.
+    private static readonly char[] UnusableFolderChars = [.. Path.GetInvalidPathChars(), '"', '<', '>', '?', '*'];
+
     private static bool IsUsablePathText(string value) =>
-        !string.IsNullOrWhiteSpace(value) && value.IndexOfAny(Path.GetInvalidPathChars()) < 0;
+        !string.IsNullOrWhiteSpace(value) && value.IndexOfAny(UnusableFolderChars) < 0;
 
     private static string Normalize(string folder) => Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder));
 

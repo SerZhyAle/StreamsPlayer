@@ -266,6 +266,7 @@
     <sys:String x:Key="PlayerUnsupported">Цей формат потоку не підтримується медіарушієм Windows.</sys:String>
     <sys:String x:Key="FailureDialogMessage">Не вдалося відтворити «{0}».</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">«{0}» не можна відтворити: його адреса не є потоком http, https чи rtsp.</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">«{0}» не можна відтворити: цей комп'ютер не довіряє сертифікату безпеки потоку.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">Каталог позначає цей канал як доступний лише у своєму регіоні: із країни упорядника він не відповідав. Він може працювати, якщо ви перебуваєте в регіоні мовлення.</sys:String>
     <sys:String x:Key="FailureNoNetwork">Немає підключення до мережі, тому канал так і не вдалося відкрити. Можливо, з ним усе гаразд - перевірте підключення й повторіть спробу.</sys:String>
     <sys:String x:Key="FailureRetry">Повторити</sys:String>

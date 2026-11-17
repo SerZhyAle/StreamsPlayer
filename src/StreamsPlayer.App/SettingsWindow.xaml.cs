@@ -347,8 +347,26 @@ public partial class SettingsWindow : Window
             return;
         }
 
-        HandlerBoundary.Run(nameof(AcceptsRestrictedCommandsOption_Toggled),
-            () => _mainWindow.ApplyAcceptsRestrictedCommandsFromSettingsAsync(AcceptsRestrictedCommandsOption.IsChecked));
+        HandlerBoundary.Run(nameof(AcceptsRestrictedCommandsOption_Toggled), async () =>
+        {
+            await _mainWindow.ApplyAcceptsRestrictedCommandsFromSettingsAsync(AcceptsRestrictedCommandsOption.IsChecked);
+            // SP-0291 (RA-B-2): the save refused the toggle's value (the committed state kept the old one), so the
+            // box goes back to what the app actually answers with - the live guard, not the click. The suppressed
+            // events are the same _initializing pattern the window's own reloads use.
+            if (AcceptsRestrictedCommandsOption.IsChecked != _mainWindow.AcceptsRestrictedCommands)
+            {
+                var wasInitializing = _initializing;
+                _initializing = true;
+                try
+                {
+                    AcceptsRestrictedCommandsOption.IsChecked = _mainWindow.AcceptsRestrictedCommands;
+                }
+                finally
+                {
+                    _initializing = wasInitializing;
+                }
+            }
+        });
     }
 
     private void HideAdultContentCheckBox_Click(object sender, RoutedEventArgs e)

@@ -72,6 +72,13 @@ public partial class PlayerWindow
             return PlayerRecordingStart.Unavailable;
         }
 
+        if (_recordingSession is not null)
+        {
+            // SP-0291 (S7-1): a session already runs: the button's own start comes here only with none. A second one
+            // would orphan the engine's live file into a session nobody finishes.
+            return PlayerRecordingStart.Busy;
+        }
+
         if (_recordingBusy || _closing || _failureShown || !_reachedLive)
         {
             return _recordingBusy ? PlayerRecordingStart.Busy : PlayerRecordingStart.NotLive;
@@ -94,6 +101,13 @@ public partial class PlayerWindow
             if (_failureShown || !_reachedLive)
             {
                 return PlayerRecordingStart.NotLive; // the source changed while the folder probe was in flight
+            }
+
+            if (_recordingSession is not null)
+            {
+                // SP-0291 (S7-1): the person started a recording while the folder probe was in flight. Their session
+                // stays: answering busy lets the caller see the real one instead of Started for a folder nobody writes.
+                return PlayerRecordingStart.Busy;
             }
 
             if (destination is null)

@@ -263,6 +263,7 @@
     <sys:String x:Key="PlayerUnsupported">Этот формат потока не поддерживается медиабэкендом Windows.</sys:String>
     <sys:String x:Key="FailureDialogMessage">Не удалось воспроизвести «{0}».</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">«{0}» нельзя воспроизвести: его адрес не является потоком http, https или rtsp.</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">«{0}» нельзя воспроизвести: этот компьютер не доверяет сертификату безопасности потока.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">Каталог отмечает этот канал как доступный только в своём регионе: из страны составителя он не отвечал. Он может работать, если вы находитесь в регионе вещания.</sys:String>
     <sys:String x:Key="FailureNoNetwork">Нет подключения к сети, поэтому канал так и не удалось открыть. Возможно, с ним всё в порядке - проверьте подключение и повторите попытку.</sys:String>
     <sys:String x:Key="FailureRetry">Повторить</sys:String>

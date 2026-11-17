@@ -1277,7 +1277,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
             // Stop the failed session but keep the recovery policy/CTS alive so this channel can reconnect.
             _standardAudioPlayback.StopPlayback();
-            await RecoverAudioAsync(row.Channel, reason, localEngineFailure: e.LocalEngineFailure);
+            await RecoverAudioAsync(row.Channel, reason, localEngineFailure: e.LocalEngineFailure,
+                untrustedCertificate: e.UntrustedCertificate);
         })), DispatcherPriority.Normal);
     }
 
@@ -1404,6 +1405,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             message = terminalKey == IncomingBroadcastFailure.BoundReachedKey
                 ? LocalizationService.Format(IncomingBroadcastFailure.BoundReachedKey, ExchangeBroadcastResources.MaximumForwarders)
                 : LocalizationService.Get(terminalKey);
+        // SP-0284 (STREAM-BANK 2.10): the engine refused the stream's certificate, which no retry mends - the
+        // verdict says so, in the dialog and on the compact line, instead of the generic "could not be played".
+        var certificateRefused = reason == PlaybackFailureSignal.UntrustedCertificateReason;
+        if (certificateRefused)
+        {
+            message = LocalizationService.Format("PlaybackUntrustedCertificate", displayTitle);
+        }
         if (IsCompact)
         {
             if (terminalKey is not null)
@@ -1420,7 +1428,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                     SetStatus("FmsBroadcastStopped", displayTitle);
                     break;
                 default:
-                    SetStatus("CompactPanelStreamFailed", displayTitle);
+                    SetStatus(certificateRefused ? "PlaybackUntrustedCertificate" : "CompactPanelStreamFailed", displayTitle);
                     break;
             }
 

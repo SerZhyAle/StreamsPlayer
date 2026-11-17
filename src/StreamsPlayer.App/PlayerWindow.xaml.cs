@@ -794,12 +794,17 @@ public partial class PlayerWindow : Window
         // SP-0203: the attempt the engine raised this under, read before the hop - a duplicate or a late
         // error of an attempt the leg has already moved past must not fail the endpoint that replaced it.
         var epoch = ReadAttemptEpoch();
+        // SP-0284: read here for the same reason - the engine logged the refusal before it raised this error, and
+        // the next open clears the finding, so a read after the hop could be answering a later leg's question.
+        var certificateRefused = source.RejectedCertificate;
         Dispatcher.BeginInvoke(() =>
         {
             if (!_closing && !_failureShown && ReferenceEquals(source, _backend) &&
                 IsCurrentAttemptReport(epoch, "engine_error"))
             {
-                AdvanceOrRecover("engine_error", new PlaybackFailureSignal("encountered_error"));
+                AdvanceOrRecover("engine_error", certificateRefused
+                    ? new PlaybackFailureSignal(PlaybackFailureSignal.UntrustedCertificateReason, UntrustedCertificate: true)
+                    : new PlaybackFailureSignal("encountered_error"));
             }
         });
     }
@@ -931,10 +936,12 @@ public partial class PlayerWindow : Window
             // already playing (stall, end, behind-live) is never gated and gains no latency (Decision 6).
             // SP-0203 (rule 5): a broadcast address is one listener slot - the probe pair never opens a
             // second request to it; the recovery policy runs on the signal the leg itself produced.
+            // SP-0284: a certificate the engine refused is the same case - it reached the host and read the
+            // certificate, so both probes would repeat what it found and delay a verdict that is already final.
             var enriched = signal;
             var reachability = PlaybackReachability.NotProbed;
             if (signal.HttpStatusCode is null && !signal.Stall && !signal.EndReached && !signal.BehindLiveWindow && !signal.OpenTimedOut &&
-                !FastMediaSorterBroadcastImport.IsFastMediaSorterBroadcast(_channel))
+                !signal.UntrustedCertificate && !FastMediaSorterBroadcastImport.IsFastMediaSorterBroadcast(_channel))
             {
                 reachability = await StreamReachabilityProbe.ProbeAsync(_channel.Url, _sessionCts.Token);
                 if (_closing)
@@ -1137,12 +1144,17 @@ public partial class PlayerWindow : Window
             _channel.MediaKind,
             PlaybackErrorClassifier.Classify(reason)));
         var unlaunchable = reason == "unsupported_address";
+        // SP-0284 (STREAM-BANK 2.10): the verdict names the failure - a certificate this computer does not trust -
+        // instead of the generic "could not be played"; a retry cannot mend it.
+        var certificateRefused = reason == PlaybackFailureSignal.UntrustedCertificateReason;
         var dialog = new PlaybackFailureDialog(
             _channel.Title, _channel.SourceOrigin, report, _channel.Access,
             message: unlaunchable
                 ? LocalizationService.Format("PlaybackAddressNotLaunchable", StreamTitleFormatter.Display(_channel.Title))
-                : (ExchangeBroadcastCertificateException.MessageKey(reason) ?? ExchangeBroadcastAuth.MessageKey(reason)) is { } refusalKey
-                    ? LocalizationService.Get(refusalKey) : null,
+                : certificateRefused
+                    ? LocalizationService.Format("PlaybackUntrustedCertificate", StreamTitleFormatter.Display(_channel.Title))
+                    : (ExchangeBroadcastCertificateException.MessageKey(reason) ?? ExchangeBroadcastAuth.MessageKey(reason)) is { } refusalKey
+                        ? LocalizationService.Get(refusalKey) : null,
             canRetry: !unlaunchable,
             reachability: reachability) { Owner = this };
         dialog.ShowDialog();

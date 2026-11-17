@@ -15,6 +15,14 @@ public static class PlaybackRecoveryClassifier
             return RecoveryTrigger.HardFail;
         }
 
+        // SP-0284 (STREAM-BANK 2.10, item AB): a certificate this computer does not trust stays untrusted on
+        // the next open, so the ladder would only delay the verdict. Ahead of the HTTP-status rules and every
+        // substring rule: it is the engine's own finding, and the reason text it travels with says nothing.
+        if (signal.UntrustedCertificate)
+        {
+            return RecoveryTrigger.HardFail;
+        }
+
         if (signal.Stall)
         {
             return RecoveryTrigger.Stall;

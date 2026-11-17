@@ -224,6 +224,12 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         }
     }
 
+    // SP-0284: set by the engine's log callback (an engine thread) when its TLS module refuses a certificate, cleared
+    // by each Play; read on the thread that raises EncounteredError, which the engine does after logging the refusal.
+    private volatile bool _certificateRefused;
+
+    public bool RejectedCertificate => _certificateRefused;
+
     public event Action<float>? BufferingChanged;
     public event Action? EndReached;
     public event Action? EncounteredError;
@@ -245,6 +251,7 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
             var endedSegment = _recording.End(null, "reopen");
 
             _lastUrl = LogForm(url);
+            _certificateRefused = false; // the new open's own answer, not the last one's
             var leg = Interlocked.Increment(ref _openedLegs);
             _mediaPlayer.NetworkCaching = cacheMilliseconds;
             // SP-0069: the field takes ownership only once Play has returned. Assigning it first and
@@ -906,6 +913,13 @@ internal sealed class LibVlcVideoBackend : IVideoBackend
         if (e.Level is not (LogLevel.Warning or LogLevel.Error))
         {
             return;
+        }
+
+        // SP-0284: taken before the noise filter below, which only decides what is written - a repeated refusal is
+        // still a refusal.
+        if (e.Level == LogLevel.Error && EngineFailureTrail.IsCertificateRefusal(e.Module, e.Message))
+        {
+            _certificateRefused = true;
         }
 
         // SP-0097: direct3d11 taskbar preview clip adjustment is known harmless noise; suppress it

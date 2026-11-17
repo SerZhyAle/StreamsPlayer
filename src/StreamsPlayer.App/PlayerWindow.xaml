@@ -22,8 +22,10 @@
                 Background="#E0000000" CornerRadius="6" Padding="20" Margin="24" Visibility="Collapsed">
             <StackPanel MaxWidth="600">
                 <TextBlock x:Name="BroadcastFailureText" Foreground="White" TextWrapping="Wrap" />
-                <Expander x:Name="BroadcastFailureDetails" Style="{StaticResource SettingsGroup}" Foreground="White" Margin="0,10,0,0">
-                    <Expander.Header><TextBlock Text="{DynamicResource ExchangeDiagnosisDetails}" TextWrapping="Wrap" Foreground="White" /></Expander.Header>
+                <Expander x:Name="BroadcastFailureDetails" Style="{StaticResource SettingsGroup}" Margin="0,10,0,0">
+                    <!-- SP-0291 (S7-2): the group style paints its own themed header bar, so the header takes the themed ink
+                         with it; the body keeps its own light text over the panel's dark backing. -->
+                    <Expander.Header><TextBlock Text="{DynamicResource ExchangeDiagnosisDetails}" TextWrapping="Wrap" /></Expander.Header>
                     <TextBlock x:Name="BroadcastFailureCode" Foreground="White" TextWrapping="Wrap" />
                 </Expander>
                 <WrapPanel HorizontalAlignment="Center" Margin="0,12,0,0">

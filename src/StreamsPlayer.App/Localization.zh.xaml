@@ -266,6 +266,7 @@
     <sys:String x:Key="PlayerUnsupported">Windows 媒体后端不支持此流格式。</sys:String>
     <sys:String x:Key="FailureDialogMessage">无法播放“{0}”。</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">无法播放“{0}”：其地址不是 http、https 或 rtsp 流。</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">无法播放“{0}”：此计算机不信任该流的安全证书。</sys:String>
     <sys:String x:Key="FailureRegionRestricted">目录将此频道标记为限定地区：它没有从维护者所在的国家作出响应。如果您位于它播出的地区，可能可以使用。</sys:String>
     <sys:String x:Key="FailureNoNetwork">没有网络连接，因此从未连接到此频道。频道本身可能正常 - 请检查网络连接后重试。</sys:String>
     <sys:String x:Key="FailureRetry">重试</sys:String>

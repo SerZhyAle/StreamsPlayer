@@ -16,13 +16,22 @@ namespace StreamsPlayer.Core;
 /// </para>
 /// <para>
 /// The text is for the log only and is never classified: an engine line names the host, and a host called
-/// "codec-fm" must not turn a refused connection into a hard failure. Not thread-safe by design, matching
+/// "codec-fm" must not turn a refused connection into a hard failure. The one exception is
+/// <see cref="UntrustedCertificate"/> (SP-0284), which reads no free text: it matches the engine's TLS module and
+/// the fixed opening of its certificate verdict, a line that carries no host or address, measured identically on
+/// the radio and the video engine against a self-signed endpoint. Not thread-safe by design, matching
 /// <see cref="EngineLogNoiseFilter"/>: engine log callbacks arrive on engine threads, and the engine that owns
 /// this trail owns the lock.
 /// </para>
 /// </remarks>
 public sealed class EngineFailureTrail
 {
+    // SP-0284, measured 2026-11-17 on LibVLC 3.0.23 against a local self-signed https endpoint: both engines log,
+    // at error level and before the error event, `module=gnutls | Certificate verification failure: The
+    // certificate is NOT trusted. The certificate issuer is unknown.` followed by `TLS session handshake error`.
+    private const string TlsModule = "gnutls";
+    private const string CertificateVerdict = "Certificate verification failure";
+
     /// <summary>How many distinct lines are kept: the most recent ones, which are the ones nearest the failure.</summary>
     public const int MaximumLines = 4;
 
@@ -39,12 +48,37 @@ public sealed class EngineFailureTrail
 
     private readonly List<string> _lines = [];
 
+    /// <summary>
+    /// SP-0284: whether the engine has said, on this connection, that it refused the stream's security certificate -
+    /// untrusted issuer, expired, wrong name, whatever its TLS module found. Permanent for the connection: a retry
+    /// meets the same certificate, so the answer is a hard failure, not a reconnect.
+    /// </summary>
+    public bool UntrustedCertificate { get; private set; }
+
+    /// <summary>
+    /// Whether one error-level engine line is the TLS module refusing a certificate. Shared with the video
+    /// engine's log callback, which keeps no trail of its own, so the match has one home.
+    /// </summary>
+    public static bool IsCertificateRefusal(string? module, string? message) =>
+        string.Equals(module, TlsModule, StringComparison.OrdinalIgnoreCase)
+        && message is not null
+        && message.TrimStart().StartsWith(CertificateVerdict, StringComparison.OrdinalIgnoreCase);
+
     /// <summary>Forgets every line; called as a new connection opens, so one connection's words never explain another's failure.</summary>
-    public void Clear() => _lines.Clear();
+    public void Clear()
+    {
+        _lines.Clear();
+        UntrustedCertificate = false;
+    }
 
     /// <summary>Records one error-level engine line, unless it is one that never explains a failed open.</summary>
     public void Observe(string? module, string? message)
     {
+        if (IsCertificateRefusal(module, message))
+        {
+            UntrustedCertificate = true;
+        }
+
         var line = Flatten(message);
         if (line is null || IsNoise(module, line))
         {

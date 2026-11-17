@@ -266,6 +266,7 @@ Usare invece la copia integrata dell'elenco dei canali? Funziona senza internet 
     <sys:String x:Key="PlayerUnsupported">Questo formato di flusso non è supportato dal backend multimediale di Windows.</sys:String>
     <sys:String x:Key="FailureDialogMessage">Non è stato possibile riprodurre «{0}».</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">Impossibile riprodurre «{0}»: il suo indirizzo non è un flusso http, https o rtsp.</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">Impossibile riprodurre «{0}»: questo computer non considera attendibile il certificato di sicurezza del flusso.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">Il catalogo segnala questo canale come bloccato per regione: non ha risposto dal paese del curatore. Potrebbe funzionare se ti trovi nella regione in cui trasmette.</sys:String>
     <sys:String x:Key="FailureNoNetwork">Non c'è connessione di rete, quindi questo canale non è mai stato raggiunto. Potrebbe funzionare - controlla la connessione e riprova.</sys:String>
     <sys:String x:Key="FailureRetry">Riprova</sys:String>

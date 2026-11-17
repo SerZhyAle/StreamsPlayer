@@ -20,4 +20,18 @@ public sealed record PlaybackFailureSignal(
     // engine, its player or its media could not be created - so no re-open can succeed. A flag for the same
     // reason as OpenTimedOut: the radio used to say this with an exception type name it stamped on every engine
     // error, network ones included, and the classifier could not tell the two apart.
-    bool LocalEngineFailure = false);
+    bool LocalEngineFailure = false,
+    // SP-0284 (STREAM-BANK 2.10, item AB): the engine itself refused the stream's security certificate - the
+    // measured trail of both LibVLC paths names it (EngineFailureTrail.UntrustedCertificate) - so no re-open can
+    // succeed and the listener is told at once. A flag for the same reason as the two above: the reason token of
+    // an engine error is the fixed "encountered_error", which the substring rules read as an ordinary transient.
+    bool UntrustedCertificate = false)
+{
+    /// <summary>
+    /// SP-0284: the reason token a certificate refusal travels under, from the failure signal to the verdict
+    /// dialog and to <see cref="PlaybackErrorClassifier"/>. A token and a flag, because the flag decides the
+    /// recovery and the token names the failure everywhere that only reads a reason (the log, the report, a
+    /// waiting command's answer).
+    /// </summary>
+    public const string UntrustedCertificateReason = "untrusted_certificate";
+}

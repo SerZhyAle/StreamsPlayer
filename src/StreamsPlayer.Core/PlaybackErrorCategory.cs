@@ -45,6 +45,12 @@ public static class PlaybackErrorClassifier
             return PlaybackErrorCategory.MediaError;
         }
 
+        // SP-0284: the engine refused the stream's TLS certificate - a failure of the connection, not of the media.
+        if (value.Equals(PlaybackFailureSignal.UntrustedCertificateReason, StringComparison.OrdinalIgnoreCase))
+        {
+            return PlaybackErrorCategory.Network;
+        }
+
         // Exception type names and free-text hints (first written for WPF MediaElement, which radio used
         // before SP-0104; still matched against the LibVLC and HTTP failure reasons).
         if (Contains(value, "format") || Contains(value, "codec") || Contains(value, "notsupported") || Contains(value, "unsupported"))

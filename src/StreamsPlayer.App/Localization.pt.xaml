@@ -266,6 +266,7 @@ Usar no lugar a cópia integrada da lista de canais? Ela funciona sem internet e
     <sys:String x:Key="PlayerUnsupported">O mecanismo de mídia do Windows não suporta este formato de transmissão.</sys:String>
     <sys:String x:Key="FailureDialogMessage">Não foi possível reproduzir “{0}”.</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">Não é possível reproduzir “{0}”: o endereço não é um fluxo http, https ou rtsp.</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">Não é possível reproduzir “{0}”: este computador não confia no certificado de segurança do fluxo.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">O catálogo marca este canal como restrito à região: ele não respondeu do país de quem mantém o catálogo. Pode funcionar se você estiver na região para a qual ele transmite.</sys:String>
     <sys:String x:Key="FailureNoNetwork">Não há conexão de rede, então este canal nunca foi alcançado. Ele pode estar funcionando - verifique sua conexão e tente novamente.</sys:String>
     <sys:String x:Key="FailureRetry">Tentar novamente</sys:String>

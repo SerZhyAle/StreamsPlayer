@@ -279,6 +279,10 @@ internal sealed class FlyleafVideoBackend : IVideoBackend
         }
     }
 
+    // SP-0284: FFmpeg's TLS trail was not measured, so this engine reports no certificate finding and keeps the
+    // ordinary recovery for a refused certificate.
+    public bool RejectedCertificate => false;
+
     public event Action<float>? BufferingChanged;
     public event Action? EndReached;
     public event Action? EncounteredError;

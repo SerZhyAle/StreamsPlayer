@@ -1485,7 +1485,7 @@
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="18" />
                                                     </Grid.ColumnDefinitions>
-                                                    <ContentPresenter VerticalAlignment="Center" Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                    <ContentPresenter x:Name="FaceContent" VerticalAlignment="Center" Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                                                                       ContentTemplate="{Binding SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType=ComboBox}}" />
                                                     <!-- SP-0113: nav.dropdown, the small solid triangle - a chevron here would be nav.expand. -->
                                                     <Viewbox Grid.Column="1" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Right"
@@ -1499,7 +1499,11 @@
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsEnabled" Value="False">
                                                     <Setter TargetName="Face" Property="Background" Value="{DynamicResource ControlBrush}" />
-                                                    <Setter TargetName="Face" Property="TextElement.Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                                                    <!-- SP-0291 (S6-3): the row dims instead of taking an ink from the Border: the app-wide
+                                                         implicit TextBlock style outranks a value the Face only passes on, so an inherited
+                                                         foreground cannot recolour the selection text. The dim is the group style's own
+                                                         unavailable answer (the Expander template dims 0.55 too). -->
+                                                    <Setter TargetName="FaceContent" Property="Opacity" Value="0.55" />
                                                     <Setter TargetName="Arrow" Property="Fill" Value="{DynamicResource DisabledTextBrush}" />
                                                 </Trigger>
                                             </ControlTemplate.Triggers>

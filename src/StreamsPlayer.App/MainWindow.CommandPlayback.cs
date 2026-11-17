@@ -126,6 +126,14 @@ public partial class MainWindow
     internal async Task<AppCommandResponse> PlayForCommandAsync(
         string requestId, AppCommandParse parse, AppCommandRequest request, CancellationToken cancellationToken)
     {
+        // SP-0291 (S4-2): the guard channel add uses. The window is loaded before its catalog and saved preferences are
+        // in memory, so a play that slips in there answers for a target that cannot be missing and takes the default
+        // volume for the saved one; busy is the answer a caller retries (APP-COMMANDS rule 10).
+        if (!_preferencesLoaded || _busy || _catalogStateUnreadable || _shuttingDown)
+        {
+            return AppCommandResponse.Busy(requestId, AppCommandMessages.Busy);
+        }
+
         // SP-0279, item H: an address from --url-file is read off the UI thread and runs as if --url had carried it.
         var resolved = await AppUrlFile.ResolveAsync(requestId, parse.Options, request.WorkingDir,
             AppPlaybackMessages.PlayFileAddressNotLaunchable);
@@ -379,6 +387,13 @@ public partial class MainWindow
     /// </summary>
     internal async Task<AppCommandResponse> SetVolumeForCommandAsync(string requestId, AppCommandParse parse)
     {
+        // SP-0291 (S4-2): the guard channel add uses - before its load the slider's save is refused and the command
+        // would answer done anyway; busy is the answer a caller retries (APP-COMMANDS rule 10).
+        if (!_preferencesLoaded || _busy || _catalogStateUnreadable || _shuttingDown)
+        {
+            return AppCommandResponse.Busy(requestId, AppCommandMessages.Busy);
+        }
+
         var level = int.Parse(parse.Value("level")!, CultureInfo.InvariantCulture);
         if (parse.Value("target") == "video")
         {

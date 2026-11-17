@@ -1,12 +1,4 @@
 $ErrorActionPreference = 'Stop'
-. (Join-Path $PSScriptRoot 'Get-ExistingReleaseState.ps1')
-$version = '26.1001.0140'
-$assets = @(
-    "StreamsPlayer-$version-windows-x64.zip",
-    "StreamsPlayer-$version-windows-x64.zip.sha256",
-    "StreamsPlayer-$version-windows-x64-setup.exe",
-    "StreamsPlayer-$version-windows-x64-setup.exe.sha256"
-) | ForEach-Object { [pscustomobject]@{ name = $_; size = 100; state = 'uploaded' } }
 
 $scenarios = 0
 $failures = 0
@@ -26,6 +18,18 @@ function Refuses([object[]] $Fixture) {
     return ThrowsLike { Get-ExistingReleaseState -Version $version -Assets $Fixture } 'Release assets are incomplete or invalid'
 }
 try {
+    # SP-0291 (S2-2): the helper is sourced inside the try, so a missing one is a COULD NOT VERIFY with its own
+    # verdict line, never a bare exit 1 with an error block. Sourced before $version is set: the helper's own
+    # unbound -Version parameter lands in this scope with the source, and it must not clobber the caller's value.
+    . (Join-Path $PSScriptRoot 'Get-ExistingReleaseState.ps1')
+    $version = '26.1001.0140'
+    $assets = @(
+        "StreamsPlayer-$version-windows-x64.zip",
+        "StreamsPlayer-$version-windows-x64.zip.sha256",
+        "StreamsPlayer-$version-windows-x64-setup.exe",
+        "StreamsPlayer-$version-windows-x64-setup.exe.sha256"
+    ) | ForEach-Object { [pscustomobject]@{ name = $_; size = 100; state = 'uploaded' } }
+
     Check ((Get-ExistingReleaseState -Version $version) -eq 'empty') 'no assets permits a fresh build'
     Check ((Get-ExistingReleaseState -Version $version -Assets $assets) -eq 'complete') 'all published assets skip rebuilding'
     Check (Refuses @($assets[0])) 'partial publication is refused without deleting assets'
@@ -44,6 +48,11 @@ try {
     Check (-not (Test-DraftReleaseExists -Tag 'v2')) 'an empty list holds no draft'
 }
 catch {
+    # SP-0291 (S2-2): a scenario that failed before the error outranks it (CHECK-VERDICT 2.14).
+    if ($failures) {
+        Write-Host "existing-release: FAIL ($failures of $scenarios scenarios failed; the run stopped early: $($_.Exception.Message))"
+        exit 1
+    }
     Write-Host "existing-release: COULD NOT VERIFY ($($_.Exception.Message))"
     exit 2
 }

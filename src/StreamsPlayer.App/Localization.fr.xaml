@@ -266,6 +266,7 @@ Utiliser à la place la copie intégrée de la liste des chaînes ? Elle fonctio
     <sys:String x:Key="PlayerUnsupported">Ce format de flux n'est pas pris en charge par le moteur multimédia de Windows.</sys:String>
     <sys:String x:Key="FailureDialogMessage">« {0} » n'a pas pu être lu.</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">« {0} » ne peut pas être lu : son adresse n'est pas un flux http, https ou rtsp.</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">« {0} » ne peut pas être lu : cet ordinateur ne fait pas confiance au certificat de sécurité du flux.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">Le catalogue signale cette chaîne comme bloquée par région : elle n'a pas répondu depuis le pays du responsable. Elle peut fonctionner si vous êtes dans la région où elle est diffusée.</sys:String>
     <sys:String x:Key="FailureNoNetwork">Aucune connexion réseau : cette chaîne n'a jamais été atteinte. Elle fonctionne peut-être - vérifiez votre connexion et réessayez.</sys:String>
     <sys:String x:Key="FailureRetry">Réessayer</sys:String>

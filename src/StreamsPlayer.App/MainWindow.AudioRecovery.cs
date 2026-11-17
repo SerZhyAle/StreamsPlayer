@@ -62,7 +62,8 @@ public partial class MainWindow
         int? firstResponseStatusCode = null,
         bool hasFirstResponseStatus = false,
         FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure = null,
-        bool localEngineFailure = false)
+        bool localEngineFailure = false,
+        bool untrustedCertificate = false)
     {
         var policy = _audioRecovery;
         var cts = _audioRecoveryCts;
@@ -85,7 +86,8 @@ public partial class MainWindow
         try
         {
             await RecoverAudioInFlightAsync(channel, reason, policy, cts, endReached, openTimedOut, stall,
-                firstResponseStatusCode, hasFirstResponseStatus, fastMediaSorterFailure, localEngineFailure);
+                firstResponseStatusCode, hasFirstResponseStatus, fastMediaSorterFailure, localEngineFailure,
+                untrustedCertificate);
         }
         finally
         {
@@ -107,7 +109,8 @@ public partial class MainWindow
         int? firstResponseStatusCode,
         bool hasFirstResponseStatus,
         FastMediaSorterPlaybackFailureKind? fastMediaSorterFailure,
-        bool localEngineFailure)
+        bool localEngineFailure,
+        bool untrustedCertificate)
     {
         // SP-0169: the leg that just ended hands back the budget only if it played long enough. Settled here,
         // once per recovery (the in-flight guard above admits one), and before the policy is consulted so the
@@ -121,9 +124,11 @@ public partial class MainWindow
         // asking it again buys nothing but more of the wait that budget exists to end.
         // SP-0041: the same fresh-open condition selects the connectivity gate, in the same order as the
         // video path - an already-playing stream (end, open verdict, a status already in hand) is not gated.
+        // SP-0284 is the third such case: the engine reached the host and read its certificate, so both probes
+        // would only repeat what it already found, and the listener is to be told at once.
         var reachability = PlaybackReachability.NotProbed;
         int? status = hasFirstResponseStatus ? firstResponseStatusCode : null;
-        if (!hasFirstResponseStatus && !endReached && !openTimedOut && !stall)
+        if (!hasFirstResponseStatus && !endReached && !openTimedOut && !stall && !untrustedCertificate)
         {
             reachability = await StreamReachabilityProbe.ProbeAsync(channel.Url, cts.Token);
             if (cts.IsCancellationRequested || _playingAudio?.Channel.Id != channel.Id)
@@ -152,7 +157,7 @@ public partial class MainWindow
         }
 
         var decision = policy.Decide(new PlaybackFailureSignal(reason, EndReached: endReached, HttpStatusCode: status, OpenTimedOut: openTimedOut, Stall: stall,
-            LocalEngineFailure: localEngineFailure));
+            LocalEngineFailure: localEngineFailure, UntrustedCertificate: untrustedCertificate));
         _log.Event("AUDIO RECOVER",
             $"trigger={decision.Trigger}",
             $"action={decision.Kind}",

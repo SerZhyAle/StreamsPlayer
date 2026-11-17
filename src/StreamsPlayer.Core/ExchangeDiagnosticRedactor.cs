@@ -51,6 +51,18 @@ public static partial class ExchangeDiagnosticRedactor
     private static partial Regex DescriptorAddresses();
 
     /// <summary>
+    /// SP-0293: the loopback route of a relay or digest leg - an address on 127.0.0.1, ::1 or localhost whose
+    /// first path segment is exactly 32 hex characters, the token Core mints for the leg (<c>ExchangeRelayProxy</c>,
+    /// <c>BroadcastDigestProxy</c>). The shape the video backend has masked anchored since SP-0263 (S3-2); here it
+    /// is masked wherever it sits in free text, because an engine can echo the MRL inside its own error message
+    /// and no per-call-site mask can see that coming. The head (scheme, loopback host, port) is kept - masked
+    /// whole it would say nothing about which leg failed - and over-masking a same-shaped path costs one token
+    /// of a diagnostic, as with <see cref="DescriptorAddresses"/>.
+    /// </summary>
+    [GeneratedRegex(@"(?i)([a-z][a-z0-9+.\-]*://(?:127\.0\.0\.1|\[::1\]|localhost)(?::\d+)?/)[0-9a-f]{32}(?![0-9a-f])", RegexOptions.CultureInvariant, 100)]
+    private static partial Regex LoopbackRouteTokens();
+
+    /// <summary>
     /// Masks the broadcast id of every <c>/b/&lt;id&gt;</c> segment in <paramref name="text"/>, wherever it
     /// sits. For the free text of a log line, and for an address already known to be a capability address.
     /// </summary>
@@ -86,7 +98,8 @@ public static partial class ExchangeDiagnosticRedactor
     public static string Redact(string text)
     {
         if (!PrivateMarkers.Any(marker => text.Contains(marker, StringComparison.OrdinalIgnoreCase))
-            && !ContainsConnectionFields(text))
+            && !ContainsConnectionFields(text)
+            && !ContainsLoopbackRouteTokens(text))
         {
             return text;
         }
@@ -106,6 +119,7 @@ public static partial class ExchangeDiagnosticRedactor
             var redacted = PrivateFields().Replace(text, "$1[REDACTED]");
             redacted = ConnectionFields().Replace(redacted, "$1[REDACTED]");
             redacted = Fingerprints().Replace(redacted, "[REDACTED]");
+            redacted = LoopbackRouteTokens().Replace(redacted, "$1[REDACTED]");
             redacted = DescriptorAddresses().Replace(redacted, "[REDACTED]");
             return RedactBroadcastPaths(redacted);
         }
@@ -120,6 +134,18 @@ public static partial class ExchangeDiagnosticRedactor
         try
         {
             return ConnectionFields().IsMatch(text);
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            return true;
+        }
+    }
+
+    private static bool ContainsLoopbackRouteTokens(string text)
+    {
+        try
+        {
+            return LoopbackRouteTokens().IsMatch(text);
         }
         catch (RegexMatchTimeoutException)
         {

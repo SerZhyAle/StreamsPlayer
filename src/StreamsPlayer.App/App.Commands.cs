@@ -50,7 +50,20 @@ public partial class App
     internal async Task RunStartCommandAsync(AppStartCommand start)
     {
         ArgumentNullException.ThrowIfNull(start);
-        var response = await OnCommandAsync(start.Request, CancellationToken.None);
+        AppCommandResponse response;
+        try
+        {
+            response = await OnCommandAsync(start.Request, CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // SP-0291 (S6-2): the same answer the pipe listener gives a faulting command (rule 16): the throw reaches
+            // the owner instead of a silent success - an output line, the failed exit code, never a green process.
+            response = Logged(start.Request, AppCommandResponse.Failed(start.Request.RequestId, AppCommandReason.Error,
+                AppCommandExit.Failed, AppCommandMessages.Failed));
+            _log?.Error("Command failed", exception);
+        }
+
         StartCommandExitCode = CommandConsole.Report(response, start.Json, start.ResultPath);
     }
 

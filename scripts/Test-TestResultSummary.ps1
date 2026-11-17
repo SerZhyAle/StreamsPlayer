@@ -1,6 +1,5 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-. "$PSScriptRoot/TestResultSummary.ps1"
 $root = Split-Path $PSScriptRoot -Parent
 $fixture = Join-Path $root ('temp/SP-0232/trx-' + [guid]::NewGuid().ToString('N'))
 $path = Join-Path $fixture 'test.trx'
@@ -12,6 +11,9 @@ $exitCode = 2
 # SP-0263 (S2-2): the fixture folder is removed in the finally whatever happened, and an unexpected error is a
 # COULD NOT VERIFY (exit 2) with its own verdict line, never a bare exit 1 with an error block.
 try {
+    # SP-0291 (S2-2): the helper is sourced inside the try, so a missing one is that same verdict; a case that already
+    # failed outranks the throw (CHECK-VERDICT 2.14) - the line says FAIL and the exit is 1.
+    . "$PSScriptRoot/TestResultSummary.ps1"
     New-Item -ItemType Directory -Path $fixture -Force | Out-Null
     function Check([int] $Total, [int] $Executed, [int] $Passed, [int] $Failed, [int] $Runner, [int] $Expected, [string] $Outcome = 'Completed') {
         $text = '<TestRun xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010"><ResultSummary outcome="{0}"><Counters total="{1}" executed="{2}" passed="{3}" failed="{4}"/></ResultSummary></TestRun>' -f $Outcome, $Total, $Executed, $Passed, $Failed
@@ -84,8 +86,15 @@ try {
     $exitCode = if ($failures) { 1 } else { 0 }
 }
 catch {
-    Write-Host "test-result-summary: COULD NOT VERIFY ($($_.Exception.Message))"
-    $exitCode = 2
+    # SP-0291 (S2-2): a case that failed before the error outranks it (CHECK-VERDICT 2.14).
+    if ($script:failures -gt 0) {
+        Write-Host "test-result-summary: FAIL run=$run skipped=0 (the run stopped early: $($_.Exception.Message))"
+        $exitCode = 1
+    }
+    else {
+        Write-Host "test-result-summary: COULD NOT VERIFY ($($_.Exception.Message))"
+        $exitCode = 2
+    }
 }
 finally {
     if (Test-Path -LiteralPath $fixture) { Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue }

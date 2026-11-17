@@ -266,6 +266,7 @@
     <sys:String x:Key="PlayerUnsupported">यह स्ट्रीम प्रारूप Windows मीडिया बैकएंड द्वारा समर्थित नहीं है।</sys:String>
     <sys:String x:Key="FailureDialogMessage">"{0}" चलाया नहीं जा सका।</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">"{0}" चलाया नहीं जा सकता: इसका पता http, https या rtsp स्ट्रीम नहीं है।</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">"{0}" चलाया नहीं जा सकता: यह कंप्यूटर स्ट्रीम के सुरक्षा प्रमाणपत्र पर भरोसा नहीं करता।</sys:String>
     <sys:String x:Key="FailureRegionRestricted">सूची इस चैनल को क्षेत्र तक सीमित बताती है: संकलनकर्ता के देश से इसने उत्तर नहीं दिया। जिस क्षेत्र के लिए यह प्रसारित होता है, वहाँ आप हों तो यह काम कर सकता है।</sys:String>
     <sys:String x:Key="FailureNoNetwork">नेटवर्क कनेक्शन नहीं है, इसलिए इस चैनल तक पहुँचा ही नहीं गया। यह ठीक हो सकता है - अपना कनेक्शन जाँचें और फिर से कोशिश करें।</sys:String>
     <sys:String x:Key="FailureRetry">फिर कोशिश करें</sys:String>

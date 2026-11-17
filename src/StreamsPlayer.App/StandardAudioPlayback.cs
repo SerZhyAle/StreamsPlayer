@@ -217,6 +217,14 @@ internal sealed class StandardAudioPlayback : IDisposable
         }
     }
 
+    private (string? Cause, bool UntrustedCertificate) DescribeEngineFailure()
+    {
+        lock (_logFailureTrailGate)
+        {
+            return (_logFailureTrail.Describe(), _logFailureTrail.UntrustedCertificate);
+        }
+    }
+
     /// <summary>
     /// SP-0133: what <paramref name="connection"/> has actually produced - decoded audio blocks and buffers the audio
     /// output played - or null once it is no longer the connection playing. The engine reports Playing before a
@@ -402,8 +410,13 @@ internal sealed class StandardAudioPlayback : IDisposable
             _playing = (_, _) => owner.Playing?.Invoke(owner, new StandardAudioEventArgs(connection));
             _ended = (_, _) => owner.Ended?.Invoke(owner, new StandardAudioEventArgs(connection));
             // SP-0189: the engine logs its cause before it raises this event, so the trail already holds it.
-            _error = (_, _) => owner.Failed?.Invoke(owner, StandardAudioFailedEventArgs.EngineError(
-                connection, owner.DescribeEngineErrors()));
+            // SP-0284: a refused certificate is read from the same trail, in the same lock, so the cause and the
+            // finding that ends the retries always describe one connection.
+            _error = (_, _) =>
+            {
+                var (cause, untrustedCertificate) = owner.DescribeEngineFailure();
+                owner.Failed?.Invoke(owner, StandardAudioFailedEventArgs.EngineError(connection, cause, untrustedCertificate));
+            };
             player.Playing += _playing;
             player.EndReached += _ended;
             player.EncounteredError += _error;
@@ -449,12 +462,14 @@ internal sealed class StandardAudioFailedEventArgs : StandardAudioEventArgs
     /// <summary>The engine refused to start the connection at all.</summary>
     public const string PlayRejectedReason = "play_rejected";
 
-    private StandardAudioFailedEventArgs(PlaybackConnectionId connection, string reason, string? cause, bool localEngineFailure)
+    private StandardAudioFailedEventArgs(
+        PlaybackConnectionId connection, string reason, string? cause, bool localEngineFailure, bool untrustedCertificate = false)
         : base(connection)
     {
         Reason = reason;
         Cause = cause;
         LocalEngineFailure = localEngineFailure;
+        UntrustedCertificate = untrustedCertificate;
     }
 
     /// <summary>The token the recovery and report classifiers read.</summary>
@@ -466,8 +481,17 @@ internal sealed class StandardAudioFailedEventArgs : StandardAudioEventArgs
     /// <summary>Established here: the engine itself could not start, so no re-open of the stream can succeed.</summary>
     public bool LocalEngineFailure { get; }
 
-    public static StandardAudioFailedEventArgs EngineError(PlaybackConnectionId connection, string? cause) =>
-        new(connection, EngineErrorReason, cause, localEngineFailure: false);
+    /// <summary>
+    /// SP-0284: the engine's own log named a refused certificate before it raised the error, so the failure carries
+    /// that finding and the token that names it, in place of the fixed engine token.
+    /// </summary>
+    public bool UntrustedCertificate { get; }
+
+    public static StandardAudioFailedEventArgs EngineError(
+        PlaybackConnectionId connection, string? cause, bool untrustedCertificate = false) =>
+        new(connection,
+            untrustedCertificate ? PlaybackFailureSignal.UntrustedCertificateReason : EngineErrorReason,
+            cause, localEngineFailure: false, untrustedCertificate);
 
     public static StandardAudioFailedEventArgs Local(PlaybackConnectionId connection, string reason, string? cause) =>
         new(connection, reason, cause, localEngineFailure: true);

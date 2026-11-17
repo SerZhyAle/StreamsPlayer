@@ -266,6 +266,7 @@
     <sys:String x:Key="PlayerUnsupported">تنسيق هذا البث غير مدعوم من محرك وسائط Windows.</sys:String>
     <sys:String x:Key="FailureDialogMessage">تعذر تشغيل «{0}».</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">لا يمكن تشغيل «{0}»: عنوانه ليس بثًا من نوع http أو https أو rtsp.</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">لا يمكن تشغيل «{0}»: هذا الجهاز لا يثق بشهادة الأمان الخاصة بالبث.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">يشير الكتالوج إلى أن هذه القناة مقيَّدة بمنطقة: لم تستجب من بلد القائم على الكتالوج. قد تعمل إذا كنت في المنطقة التي تبث إليها.</sys:String>
     <sys:String x:Key="FailureNoNetwork">لا يوجد اتصال بالشبكة، لذلك لم يتم الوصول إلى هذه القناة أصلًا. قد تكون سليمة - تحقّق من اتصالك وأعد المحاولة.</sys:String>
     <sys:String x:Key="FailureRetry">إعادة المحاولة</sys:String>

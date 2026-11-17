@@ -266,6 +266,7 @@ Stattdessen die mitgelieferte Kopie der Kanalliste verwenden? Sie funktioniert o
     <sys:String x:Key="PlayerUnsupported">Dieses Stream-Format wird vom Windows-Medien-Backend nicht unterstützt.</sys:String>
     <sys:String x:Key="FailureDialogMessage">„{0}“ konnte nicht abgespielt werden.</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">„{0}“ kann nicht abgespielt werden: Die Adresse ist kein http-, https- oder rtsp-Stream.</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">„{0}“ kann nicht abgespielt werden: Dieser Computer vertraut dem Sicherheitszertifikat des Streams nicht.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">Der Katalog kennzeichnet diesen Kanal als regional gesperrt: aus dem Land des Betreuers hat er nicht geantwortet. Er kann funktionieren, wenn Sie in der Senderegion sind.</sys:String>
     <sys:String x:Key="FailureNoNetwork">Es besteht keine Netzwerkverbindung, daher wurde dieser Kanal nie erreicht. Er ist möglicherweise in Ordnung - prüfen Sie Ihre Verbindung und versuchen Sie es erneut.</sys:String>
     <sys:String x:Key="FailureRetry">Wiederholen</sys:String>

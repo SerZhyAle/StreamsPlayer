@@ -282,6 +282,7 @@ Use the built-in copy of the channel list instead? It works without the internet
     <sys:String x:Key="PlayerUnsupported">This stream format is not supported by the Windows media backend.</sys:String>
     <sys:String x:Key="FailureDialogMessage">"{0}" could not be played.</sys:String>
     <sys:String x:Key="PlaybackAddressNotLaunchable">"{0}" cannot be played: its address is not an http, https or rtsp stream.</sys:String>
+    <sys:String x:Key="PlaybackUntrustedCertificate">"{0}" cannot be played: this computer does not trust the stream's security certificate.</sys:String>
     <sys:String x:Key="FailureRegionRestricted">The catalog marks this channel as region-locked: it did not respond from the maintainer's country. It may work if you are in the region it broadcasts to.</sys:String>
     <sys:String x:Key="FailureNoNetwork">There is no network connection, so this channel was never reached. It may be fine - check your connection and retry.</sys:String>
     <sys:String x:Key="FailureRetry">Retry</sys:String>

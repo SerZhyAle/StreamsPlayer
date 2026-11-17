@@ -33,6 +33,9 @@
       make-demo.ps1     -Check passes three good files, fails a missing one (was exit 3), could not verify a locked one
       check.ps1         all-pass counts the skipped check on the verdict line; a child that answers 4 reads as 2; a
                         defect outranks it; a missing `dotnet` could not verify instead of throwing
+      SP-0291 fixtures  the summary and existing-release self-tests answer in CHECK-VERDICT too: a throw inside the
+                        run could not be verified, a case that already failed outranks it (rule 2.14), and a missing
+                        helper is a verdict line, never a bare exit 1 with an error block
 
     Exit 0 when every case passes, 1 when one fails, 2 when the fixture itself could not run. The last line is
     `check-verdict-scripts: PASS|FAIL|COULD NOT VERIFY run=N skipped=M`.
@@ -164,6 +167,43 @@ try {
             Expect $r 2 '^test-measure-capture-times: COULD NOT VERIFY run=0 skipped=0$' 'capture-time fixture setup failure has a verdict'
         } else {
             Expect $r 1 '^test-measure-capture-times: FAIL run=0 skipped=0$' 'capture-time fixture preserves an earlier failure verdict'
+        }
+    }
+    Remove-Item Env:SP0239_PROBE_ROOT -ErrorAction SilentlyContinue
+
+    # --- SP-0291 (S2-2): the two scripted self-tests the fast tier re-runs --------------------------------------------
+    # A throw inside the run could not be verified (exit 2). A case that already failed outranks the throw (rule 2.14):
+    # the line says FAIL and the exit is 1. Both scripts source their helper inside the try, so a probe root that holds
+    # no helper is the third case: a verdict line and exit 2, never a bare exit 1 with an error block.
+    $sp0291Cases = @(
+        @{ Path = 'scripts/Test-TestResultSummary.ps1'; Subject = 'test-result-summary'; Helper = 'TestResultSummary.ps1' }
+        @{ Path = 'scripts/Test-ExistingReleaseState.ps1'; Subject = 'existing-release'; Helper = 'Get-ExistingReleaseState.ps1' }
+    )
+    foreach ($sp0291Case in $sp0291Cases) {
+        $sp0291Source = [System.IO.File]::ReadAllText((Join-Path $repo $sp0291Case.Path)).Replace('$PSScriptRoot', '$env:SP0239_PROBE_ROOT')
+        Check ($tryOpen.IsMatch($sp0291Source)) "$($sp0291Case.Path): the fixture found the try block to inject into"
+        foreach ($sp0291Variant in 'plain', 'earlier-failure', 'no-helper') {
+            $sp0291Inject = if ($sp0291Variant -eq 'plain') { "throw 'synthetic setup failure'" }
+                elseif ($sp0291Variant -eq 'earlier-failure') { "`$failures = 1; throw 'synthetic setup failure'" }
+                else { '' }
+            $sp0291Probe = Join-Path $work ("sp0291-$($sp0291Case.Subject)-$sp0291Variant.ps1")
+            Write-File $sp0291Probe ($(if ($sp0291Inject) { $tryOpen.Replace($sp0291Source, "try {`n    $sp0291Inject", 1) } else { $sp0291Source }))
+            if ($sp0291Variant -eq 'no-helper') {
+                $env:SP0239_PROBE_ROOT = New-Item -ItemType Directory -Path (Join-Path $work 'no-helper-root') -Force | Select-Object -ExpandProperty FullName
+            }
+            else {
+                $env:SP0239_PROBE_ROOT = Join-Path $repo (Split-Path $sp0291Case.Path -Parent)
+            }
+            $r = Invoke-Script $sp0291Probe
+            if ($sp0291Variant -eq 'plain') {
+                Expect $r 2 "^$($sp0291Case.Subject): COULD NOT VERIFY \(synthetic setup failure\)$" "$($sp0291Case.Path): a throw inside the run could not be verified"
+            }
+            elseif ($sp0291Variant -eq 'earlier-failure') {
+                Expect $r 1 "^$($sp0291Case.Subject): FAIL .*the run stopped early" "$($sp0291Case.Path): a case that failed before the throw outranks could-not-verify (rule 2.14)"
+            }
+            else {
+                Check ($r.Exit -eq 2 -and $r.Text -match "$($sp0291Case.Subject): COULD NOT VERIFY") "$($sp0291Case.Path): a missing helper is a verdict line, not a bare exit 1 (the reason is the command word itself, a multi-line error record, so the text carries the verdict line)"
+            }
         }
     }
     Remove-Item Env:SP0239_PROBE_ROOT -ErrorAction SilentlyContinue
