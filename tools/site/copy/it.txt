@@ -615,6 +615,9 @@ Strumento da riga di comando per l'archiviazione su Windows
 @@type-tray-launcher
 Avvio dall'area di notifica per Windows
 
+@@type-web-sorter
+Ordinatore di file multimediali nel browser
+
 @@type-windows-sorter
 Gestore di media e file per Windows
 

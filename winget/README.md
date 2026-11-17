@@ -72,12 +72,14 @@ was never the symptom. The template changes: on 2026-08-09 it carried
 `This PR only modifies one (1) manifest` box that did not exist in July. Fetch it; do not reproduce
 the version quoted here.
 
-**Release notes must not contain `": "`.** Every `REPLACE_...` token sits in a plain YAML scalar, so
-a colon-plus-space anywhere in the substituted text makes the YAML scanner read it as a nested
-mapping and `winget validate` fails with "mapping values are not allowed in this context". Use a
-spaced hyphen instead - the `Description` fields already do, which is why they survive the same
-substitution. This is the failure mode to check first when validation rejects a manifest that looks
-fine (2026-07-27).
+**Release notes are written as double-quoted YAML scalars** (2026-11-17). In a plain scalar a
+colon-plus-space anywhere in the text makes the YAML scanner read it as a nested mapping, and
+`winget validate` fails with "mapping values are not allowed in this context" (2026-07-27); the notes
+of most releases hold one. `New-WingetManifests.ps1` therefore quotes the three `ReleaseNotes` values
+and escapes `\` and `"`, so any one-line note renders as written; it refuses a line break or another
+control character. Every other token still lands in a plain scalar, which is why a hand-typed value
+there (a `Description` edit) keeps to a spaced hyphen instead of `": "`. This is the failure mode to
+check first when validation rejects a manifest that looks fine.
 
 Either way, winget can only be refreshed **after** an approved GitHub Release
 exists. The package is live; use the flow above to submit each subsequent version.

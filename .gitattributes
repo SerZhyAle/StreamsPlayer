@@ -27,8 +27,9 @@ msix/store-listing-export.sample.csv -text
 assets/glyphs/**/*.svg -text
 docs/assets/glyphs/*.svg -text
 # SP-0234 (EXCHANGE-MARK rule 6): the vendored mark is byte-for-byte too, pinned in assets/exchange-mark/PROVENANCE.txt.
-# Its PNG steps are binary by the *.png rule below; its one-tone glyph is assets/glyphs/own/source.exchange-server.svg,
-# covered by the line above, because a line-ending conversion would change the bytes and break the hash.
+# Its PNG steps are binary by the *.png rule below; its one-tone glyph is assets/glyphs/source.exchange-server.svg
+# (vendored by tools/Sync-IconGlyphs.ps1, pinned in assets/glyphs/PROVENANCE.txt), covered by the glyph lines above,
+# because a line-ending conversion would change the bytes and break the hash.
 
 *.ico binary
 *.png binary

@@ -615,6 +615,9 @@ Windows स्टोरेज कमांड-लाइन टूल
 @@type-tray-launcher
 Windows ट्रे लॉन्चर
 
+@@type-web-sorter
+ब्राउज़र मीडिया सॉर्टर
+
 @@type-windows-sorter
 Windows मीडिया और फ़ाइल प्रबंधक
 

@@ -15,6 +15,8 @@ type: project
 - **Microsoft Partner Center listing rules (SP-0034, SP-0092):**
   - CSV listings must use CRLF endings and valid UTF-8 BOM.
   - Import is all-or-nothing per language: an error in one language drops that entire locale silently while importing others. Always re-export before importing.
+- **The Store MSIX declares one Application (2026-11-17):** Partner Center refused the 26.1117.1838 package because the console companion's hidden second Application (`AppListEntry="none"`) is a headless app and the account has no `HeadlessAppBypass` waiver. `msix/build-msix.ps1` leaves the companion block out unless `-Companion`; the waiver was requested on 2026-11-17 (support request 2611170050005443). One Application cannot carry the second alias: `makeappx` allows one `windows.appExecutionAlias` extension per Application.
+- **Partner Center copies What's new forward (2026-11-17):** the 26.1117.1838 submission went out with the 26.1010.0106 text in all 13 languages. `scripts/New-ReleaseDossier.ps1` reads the submission and marks it STALE.
 - **Release sequencing & Pages deployment:**
   - Pages deploys only after a successful release run (or an explicit `gh workflow run pages.yml`), never on push, so the site and the release can share one commit; the older two-step push is retired (SP-0256, 2026-10-30).
 - **`build.ps1` defaults:**

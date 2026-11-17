@@ -615,6 +615,9 @@ Windows storage CLI
 @@type-tray-launcher
 Windows tray launcher
 
+@@type-web-sorter
+Browser media sorter
+
 @@type-windows-sorter
 Windows media and file manager
 

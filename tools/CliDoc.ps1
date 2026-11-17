@@ -245,7 +245,7 @@ function ConvertTo-CliDocMarkdown {
     $out.Add("- **The running copy does the work.** A command is carried to the copy of $product that is already running, and the process you start waits for the answer and exits with the answer's exit code. A command never opens a dialog and waits for a person.")
     if ($others.Count -gt 0) {
         $quoted = ($others | ForEach-Object { '`' + $_ + '`' }) -join ', '
-        $out.Add("- **Two executables.** ``$exe`` is the window application. $quoted is its console companion, for pipes and for scripts that read standard output; the ``Executable`` column below says which one serves each command. Both are installed side by side.")
+        $out.Add("- **Two executables.** ``$exe`` is the window application. $quoted is its console companion, for pipes and for scripts that read standard output; the ``Executable`` column below says which one serves each command. The zip, the installer and winget install both side by side; the Microsoft Store package puts only ``$exe`` on the PATH.")
     }
     $out.Add("- **A window application has no console of its own.** The two channels a caller can always rely on are the exit code and the ``--result <path>`` file. To read the exit code of ``$exe``, wait for it: ``start /wait $exe ..`` in cmd, ``Start-Process -Wait -PassThru`` in PowerShell. The examples below use that form.")
     if ($listing.Count -gt 0) {

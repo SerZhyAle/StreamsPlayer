@@ -7,7 +7,8 @@
   The PackageVersion and the version inside the release URLs are derived from the tag by ConvertFrom-ReleaseTag -
   the derivation release.yml uses - so no version is typed by hand. The installer hash, the release date and the three
   locale release notes are parameters; a value left out keeps its REPLACE_ token, the script names every token still
-  open, and winget/README.md says how to fill it. The files are written as winget-pkgs stores them: UTF-8 with a BOM
+  open, and winget/README.md says how to fill it. The release notes are written as double-quoted YAML scalars, so
+  any one-line text survives, ': ' included. The files are written as winget-pkgs stores them: UTF-8 with a BOM
   and LF line endings.
 
   This script writes only into -OutputDirectory, which must be new or empty. It submits nothing and never touches
@@ -40,20 +41,26 @@ if ($ReleaseDate) {
         throw "-ReleaseDate must be an ISO date YYYY-MM-DD: '$ReleaseDate'."
     }
 }
-# Every token sits in a plain YAML scalar: a colon followed by a space makes the scanner read a nested mapping, and
-# winget validate fails with "mapping values are not allowed in this context" (winget/README.md, 2026-07-27).
 foreach ($notes in @{ ReleaseNotes = $ReleaseNotes; ReleaseNotesRu = $ReleaseNotesRu; ReleaseNotesUk = $ReleaseNotesUk }.GetEnumerator()) {
-    if ($notes.Value -and $notes.Value.Contains(': ')) { throw "-$($notes.Key) contains ': ', which breaks the plain YAML scalar it lands in; use a spaced hyphen instead." }
-    if ($notes.Value -and $notes.Value -match '[\r\n]') { throw "-$($notes.Key) spans several lines; the template holds it as a one-line scalar." }
+    if ($notes.Value -and $notes.Value -match '[\x00-\x1F\x7F]') { throw "-$($notes.Key) holds a line break or another control character; the template holds it as a one-line scalar." }
+}
+
+# The release notes are prose, so they land in a double-quoted YAML scalar: in a plain one, a colon followed by a space
+# makes the scanner read a nested mapping and winget validate fails with "mapping values are not allowed in this
+# context" (winget/README.md, 2026-07-27). Inside double quotes only the backslash and the double quote need escaping;
+# control characters are refused above.
+function ConvertTo-YamlDoubleQuoted([string] $Value) {
+    if (-not $Value) { return $null }
+    '"' + $Value.Replace('\', '\\').Replace('"', '\"') + '"'
 }
 
 $values = @{
     REPLACE_VERSION          = $version
     REPLACE_SHA256           = $(if ($InstallerSha256) { $InstallerSha256.ToUpperInvariant() } else { $null })
     REPLACE_RELEASE_DATE     = $ReleaseDate
-    REPLACE_RELEASE_NOTES    = $ReleaseNotes
-    REPLACE_RELEASE_NOTES_RU = $ReleaseNotesRu
-    REPLACE_RELEASE_NOTES_UK = $ReleaseNotesUk
+    REPLACE_RELEASE_NOTES    = ConvertTo-YamlDoubleQuoted $ReleaseNotes
+    REPLACE_RELEASE_NOTES_RU = ConvertTo-YamlDoubleQuoted $ReleaseNotesRu
+    REPLACE_RELEASE_NOTES_UK = ConvertTo-YamlDoubleQuoted $ReleaseNotesUk
 }
 
 $templates = @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'templates') -File -Filter '*.yaml' | Sort-Object Name)

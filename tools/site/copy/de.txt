@@ -615,6 +615,9 @@ Speicher-Kommandozeilenwerkzeug für Windows
 @@type-tray-launcher
 Tray-Starter für Windows
 
+@@type-web-sorter
+Medien-Sortierer im Browser
+
 @@type-windows-sorter
 Medien- und Dateimanager für Windows
 

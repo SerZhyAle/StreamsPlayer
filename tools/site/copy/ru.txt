@@ -624,6 +624,9 @@ Windows вас предупредила
 @@type-tray-launcher
 Запуск из трея для Windows
 
+@@type-web-sorter
+Сортировщик медиа в браузере
+
 @@type-windows-sorter
 Менеджер медиа и файлов для Windows
 

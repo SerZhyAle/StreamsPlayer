@@ -52,6 +52,12 @@ individual developer account is free.
 ./msix/build-msix.ps1 -SelfSign -Version <YY.MMDD.HHmm>.0
 ```
 
+The package declares one `Application`. The console companion's `Application` and its alias `StreamsPlayerCli.exe`
+are left out unless the build runs with `-Companion`, because Partner Center refuses a second `Application` hidden
+from the Start list from an account without the `HeadlessAppBypass` waiver (it rejected 26.1117.1838 for it; the
+waiver was requested on 2026-11-17, support request 2611170050005443). Pass `-Companion` only once the waiver is on
+the account - `msix/README.md`, "The console companion (SP-0275)".
+
 
 Output: `msix/dist/StreamsPlayer-<version>-windows-x64.msix`.
 The package bundles `LICENSE.txt` (MIT) **and** the repo-root `THIRD-PARTY-NOTICES.txt`
@@ -210,6 +216,11 @@ infringing-content policy. Pre-empt it:
 5. **Pricing and availability** → Free, markets.
 6. Submit for certification (a few business days). For an update, *Create new
    submission*, replace the package (same identity, higher version), refresh copy, submit.
+   **What's new in this version is copied forward from the last submission, in every language, and nothing
+   replaces it but a person.** The submission of 26.1117.1838 went out with the text of 26.1010.0106 in all
+   thirteen listings. Paste the version's three texts (the ten machine-translated languages take the English one)
+   before submitting; `scripts/New-ReleaseDossier.ps1` reads the pending or live submission and names every
+   language whose text does not start with the released version.
 
 > The upload, the listing and the submit stay in the Partner Center web UI. The Microsoft Store
 > Developer CLI (`msstore`) answers read-only calls for this account once the owner has configured it in

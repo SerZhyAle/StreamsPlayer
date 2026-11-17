@@ -40,7 +40,10 @@ site's lead screenshot, via `tools/site/export-site-screenshots.ps1`.
 Leave blank for a first submission. For an update, replace the version and keep the text within 1,500
 characters. Written per submission, in the same three languages the release notes use elsewhere
 (English, Russian, Ukrainian) - the ten machine-translated languages get the English text, because a
-release note is dated prose nobody proofreads twice.
+release note is dated prose nobody proofreads twice. Partner Center copies the previous submission's text forward
+in every language, so a text left alone names an older version (STORE_PUBLISHING.md, Phase 7). The Store package
+puts only `StreamsPlayer.exe` on the PATH (msix/README.md, "The console companion"), so a line about
+`StreamsPlayerCli.exe` names the channels that install it: the zip, the installer and winget.
 
 ```text
 Version REPLACE_VERSION

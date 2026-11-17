@@ -42,6 +42,12 @@
         </uap:Extension>
       </Extensions>
     </Application>
+    <!-- The companion block below is left out of the package unless build-msix.ps1 runs with -Companion
+         (msix/MsixManifest.ps1). Partner Center treats a second Application with AppListEntry="none" as a headless app
+         and refuses it from an account without the HeadlessAppBypass waiver - it rejected 26.1117.1838 for it; the
+         waiver was requested on 2026-11-17 (support request 2611170050005443). One Application cannot carry the second
+         alias instead: the schema allows one windows.appExecutionAlias extension per Application. -->
+    <!-- companion:begin -->
     <!-- SP-0275 (APP-COMMANDS rule 9): the console companion of the command line. A console-subsystem executable, so a
          caller that pipes reads its standard output and exit code; it serves the commands that need no window of their own
          (the manifest names them with exe). A second Application, hidden from the Start list, so the first one - its
@@ -57,6 +63,7 @@
         </uap5:Extension>
       </Extensions>
     </Application>
+    <!-- companion:end -->
   </Applications>
   <!-- SP-0229, SP-0223: the camera is used for two things, each only when the person starts it - reading a connection QR
        after "Scan with the camera", and sending the chosen camera's picture as a broadcast after "Broadcast camera".

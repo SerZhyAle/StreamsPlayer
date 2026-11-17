@@ -25,6 +25,12 @@
   live in the process environment only for the publish and are never printed. The published StreamsPlayer.dll
   is then read back; a build that carries no client fails unless -AllowNoDriveClient is passed (local test
   packages only - the Store package must offer Google sign-in).
+
+  The package declares one Application unless -Companion is passed: the console companion's Application and its alias
+  StreamsPlayerCli.exe (SP-0275) are left out of the manifest, because Partner Center refuses a hidden second
+  Application from an account without the HeadlessAppBypass waiver (msix/MsixManifest.ps1, msix/README.md). The file
+  StreamsPlayerCli.exe still sits in the package folder - the publish is the one the zip and the installer ship - but
+  no alias puts it on the PATH.
 #>
 # SP-0261: the PERMANENT reserved Partner Center identity (Store ID 9NBTD5SXB8TB) is read from msix/identity.json,
 # not kept here as parameter defaults; a run that finds no such file stops before it builds. Every Store update
@@ -43,7 +49,10 @@ param(
     # S1-3: the Desktop OAuth client JSON; the same fallbacks as build.ps1 apply when it is not given.
     [string] $DriveClientFile = '',
     # S1-3: accept a package that carries no Google Drive client. For local test packages, never the Store upload.
-    [switch] $AllowNoDriveClient
+    [switch] $AllowNoDriveClient,
+    # Declare the console companion's Application and its alias StreamsPlayerCli.exe. Only for an account that holds
+    # the HeadlessAppBypass waiver: without it Partner Center refuses the package.
+    [switch] $Companion
 )
 
 $ErrorActionPreference = 'Stop'
@@ -179,8 +188,9 @@ if (-not ($hasDriveClientId -and $hasDriveClientSecret)) {
 # the native tree present and byte-identical to the package the project pins, not merely present.
 & (Join-Path $root 'scripts/Assert-PinnedNatives.ps1') -Folder $publish -ProjectPath (Join-Path $root 'src/StreamsPlayer.App/StreamsPlayer.App.csproj')
 
-# SP-0275: the Store package carries the console companion beside the player (the application project publishes it into this
-# folder) and it is still a console program with no window toolkit behind it. The manifest's second alias needs the file.
+# SP-0275: the application project publishes the console companion into this folder, so the package carries the file with
+# or without -Companion; it is still a console program with no window toolkit behind it. With -Companion the manifest's
+# second alias runs it.
 & (Join-Path $root 'scripts/Assert-ConsoleCompanion.ps1') -Folder $publish
 
 # SP-0157: the stage is overlaid below, so whatever survives this removal is packed. A locked file from an earlier
@@ -201,14 +211,16 @@ foreach ($logo in 'Square44x44Logo.png', 'Square71x71Logo.png', 'Square150x150Lo
     Copy-Item $source (Join-Path $stage "Assets\$logo") -Force
 }
 
-$manifest = Get-Content (Join-Path $msix 'AppxManifest.xml') -Raw
 . (Join-Path $root 'tools/InterfaceLanguages.ps1')
 $languageResources = (Get-InterfaceLanguages -Configuration Release | ForEach-Object {
     '<Resource Language="' + $_.ListingCode + '" />'
 }) -join ''
-$manifest = $manifest.Replace('__LANGUAGE_RESOURCES__', $languageResources)
-$manifest = $manifest.Replace('__IDENTITY_NAME__', $IdentityName).Replace('__PUBLISHER__', $Publisher).Replace('__PUBLISHER_DISPLAY_NAME__', $PublisherDisplayName).Replace('__VERSION__', $msixVersion)
+# Dot-sourced here, not at the top: a run with no identity file must stop before it needs anything else.
+. (Join-Path $msix 'MsixManifest.ps1')
+$manifest = Get-MsixManifestText -TemplatePath (Join-Path $msix 'AppxManifest.xml') -LanguageResources $languageResources -IdentityName $IdentityName -Publisher $Publisher -PublisherDisplayName $PublisherDisplayName -Version $msixVersion -Companion:$Companion
 Set-Content -Path (Join-Path $stage 'AppxManifest.xml') -Value $manifest -Encoding utf8
+$applicationNote = if ($Companion) { 'two Applications - the console companion and its alias StreamsPlayerCli.exe are declared (needs the HeadlessAppBypass waiver)' } else { 'one Application - the console companion is not declared (-Companion declares it once the HeadlessAppBypass waiver is on the account)' }
+Write-Host "Manifest: $applicationNote"
 
 # SP-0190: the signed test build has a name of its own, so neither build can overwrite or stand in for the other.
 $packageName = if ($SelfSign) { "StreamsPlayer-$appVersion-windows-x64-selfsigned.msix" } else { "StreamsPlayer-$appVersion-windows-x64.msix" }

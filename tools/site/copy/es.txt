@@ -615,6 +615,9 @@ Herramienta de línea de comandos de almacenamiento para Windows
 @@type-tray-launcher
 Lanzador en la bandeja para Windows
 
+@@type-web-sorter
+Clasificador de medios en el navegador
+
 @@type-windows-sorter
 Gestor de medios y archivos para Windows
 

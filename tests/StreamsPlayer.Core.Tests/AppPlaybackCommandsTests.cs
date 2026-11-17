@@ -281,6 +281,31 @@ public sealed class AppPlaybackCommandsTests
     }
 
     [Fact]
+    public void TheResumeAnswerDropsTheTitleTheCallerDidNotName()
+    {
+        var radio = Audio(title: "Radio One");
+        var playing = AppPlaybackCommands.Playing("id", radio);
+
+        var response = AppPlaybackCommands.Resumed(playing);
+
+        Assert.Equal(AppCommandStatus.Done, response.Status);
+        Assert.Equal(AppCommandExit.Done, response.ExitCode);
+        Assert.Equal(playing.Message, response.Message);
+        Assert.False(response.Data!.ContainsKey("title"));
+        Assert.Equal(radio.ChannelId.ToString("D"), (string?)response.Data["channelId"]);
+        Assert.Equal("playing", (string?)response.Data["state"]);
+        Assert.Equal("Radio One", (string?)playing.Data!["title"]);
+    }
+
+    [Fact]
+    public void TheResumeAnswerPassesAFailureUnchanged()
+    {
+        var failed = AppPlaybackCommands.OpenFailed("id", PlaybackReachability.NameNotResolved);
+
+        Assert.Same(failed, AppPlaybackCommands.Resumed(failed));
+    }
+
+    [Fact]
     public void TheNeedsPersonAndStreamFailedTokensAreShortLowerCaseWords()
     {
         Assert.Equal("needs-person", AppCommandReason.NeedsPerson);

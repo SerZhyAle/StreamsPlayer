@@ -615,6 +615,9 @@ Outil en ligne de commande pour le stockage sous Windows
 @@type-tray-launcher
 Lanceur de la zone de notification pour Windows
 
+@@type-web-sorter
+Trieur de médias dans le navigateur
+
 @@type-windows-sorter
 Gestionnaire de médias et de fichiers pour Windows
 

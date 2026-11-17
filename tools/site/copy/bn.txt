@@ -615,6 +615,9 @@ Windows স্টোরেজ কমান্ড-লাইন টুল
 @@type-tray-launcher
 Windows ট্রে লঞ্চার
 
+@@type-web-sorter
+ব্রাউজারে মিডিয়া সর্টার
+
 @@type-windows-sorter
 Windows মিডিয়া ও ফাইল ম্যানেজার
 

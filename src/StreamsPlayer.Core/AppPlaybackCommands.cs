@@ -262,6 +262,24 @@ public static class AppPlaybackCommands
             ["state"] = session.State
         });
 
+    /// <summary>
+    /// The answer of a <c>playback resume</c>: the answer it got from the play path, without <c>title</c>. APP-COMMANDS 0.3
+    /// item W: a member that repeats what the caller named keeps a <c>safe</c> verb safe (<c>play</c> names its channel), and
+    /// one that tells the caller what it did not name is the user's data - <c>playback resume</c> names nothing, so its
+    /// answer carries what the manifest lists for it (channelId, state) and no title. Any other answer passes unchanged.
+    /// </summary>
+    public static AppCommandResponse Resumed(AppCommandResponse answer)
+    {
+        if (answer.Data is not { } data || !data.ContainsKey("title"))
+        {
+            return answer;
+        }
+
+        var withoutTitle = data.DeepClone().AsObject();
+        withoutTitle.Remove("title");
+        return answer with { Data = withoutTitle };
+    }
+
     /// <summary>The <c>data</c> of <c>playback status</c>.</summary>
     public static JsonObject SessionsData(IEnumerable<AppPlaybackSession> sessions)
     {

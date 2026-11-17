@@ -615,6 +615,9 @@ Windows 存储命令行工具
 @@type-tray-launcher
 Windows 托盘启动器
 
+@@type-web-sorter
+浏览器媒体整理工具
+
 @@type-windows-sorter
 Windows 媒体与文件管理器
 

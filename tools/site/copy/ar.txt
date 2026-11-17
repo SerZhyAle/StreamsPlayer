@@ -615,6 +615,9 @@ Serhii Zhyhunenko
 @@type-tray-launcher
 مشغّل في علبة النظام لنظام Windows
 
+@@type-web-sorter
+فارز وسائط في المتصفح
+
 @@type-windows-sorter
 مدير الوسائط والملفات لنظام Windows
 

@@ -8,7 +8,9 @@
     A release leaves its results in six places: the GitHub Release, the winget pull request, the Store package, the
     verdict files, the release notes and the site. This script is the one place that answers "where is it and what is
     its state". It changes nothing on any remote: it reads the release, the site, the winget pull request and (when
-    msstore is configured) the Store submission status, and it writes only under artifacts/release-<version>/ and a
+    msstore is configured) the Store submission - its status, its package and the What's new of every listing, which
+    is STALE when the submission carries this version's package but a language's text does not name the version
+    (scripts/StoreSubmission.ps1) - and it writes only under artifacts/release-<version>/ and a
     copy of the Store package into msix/dist/ (the folder a person looks in first).
 
     The Store package is built in a scratch CLONE of the tag, never in the working tree: a tag's package must be the
@@ -153,9 +155,8 @@ Step 'winget' 'manifests' {
     function Notes([string] $lang) {
         $p = Join-Path $dossier "store/whats-new.$lang.txt"
         if (-not (Test-Path $p)) { throw "whats-new.$lang.txt is missing." }
-        $text = (Get-Content $p -Encoding utf8 | Select-Object -Skip 2 | Where-Object { $_.StartsWith('- ') } | ForEach-Object { $_.Substring(2).Trim() }) -join ' '
-        if ($text.Contains(': ')) { throw "The $lang notes hold ': ', which breaks the plain YAML scalar; use a spaced hyphen." }
-        $text
+        # winget/New-WingetManifests.ps1 writes the text as a double-quoted YAML scalar, so ': ' in a note is safe.
+        (Get-Content $p -Encoding utf8 | Select-Object -Skip 2 | Where-Object { $_.StartsWith('- ') } | ForEach-Object { $_.Substring(2).Trim() }) -join ' '
     }
     $out = Join-Path $dossier 'winget'
     Get-ChildItem $out -File -ErrorAction SilentlyContinue | Remove-Item -Force
@@ -192,17 +193,35 @@ Step 'site' 'Pages' {
 # --- the Store submission, read only --------------------------------------------------------------------------------------
 $storeId = $null
 try { $storeId = (Get-Content (Join-Path $root 'msix/identity.json') -Raw | ConvertFrom-Json).StoreId } catch { }
+. (Join-Path $root 'scripts/StoreSubmission.ps1')
 Step 'store' 'submission status' {
     if (-not $storeId) { Add-Item 'store' 'submission status' 'n/a' '' 'msix/identity.json names no StoreId'; return }
     if (-not (Get-Command msstore -ErrorAction SilentlyContinue)) { Add-Item 'store' 'submission status' 'n/a' '' 'msstore is not configured here; read the console'; return }
-    $text = (msstore submission status $storeId 2>&1 | ForEach-Object { "$_" }) -join ' '
-    $status = if ($text -match 'Submission Status = (\w+)') { $Matches[1] } else { 'unknown' }
-    $note = if ($text -match 'Could not find a Pending Submission') { 'nothing pending, this is the last published submission' } else { 'a submission is pending' }
-    Add-Item 'store' 'submission status' $status.ToLowerInvariant() "https://partner.microsoft.com/en-us/dashboard/products/$storeId/overview" $note
+    # One read-only call answers both lines: the status and the listings of the pending (or last published) submission.
+    $read = ConvertFrom-MsstoreSubmissionText ((msstore submission get $storeId 2>&1 | ForEach-Object { "$_" }) -join "`n")
+    $console = "https://partner.microsoft.com/en-us/dashboard/products/$storeId/overview"
+    if (-not $read.Submission) {
+        Add-Item 'store' 'submission status' 'unknown' $console 'msstore printed no submission; read the console'
+        Add-Item 'store' "What's new (listing)" 'n/a' $console 'no submission to read'
+        return
+    }
+    $status = if ($read.Submission.Status) { ([string] $read.Submission.Status).ToLowerInvariant() } else { 'unknown' }
+    $note = if ($read.Pending) { 'a submission is pending' } else { 'nothing pending, this is the last published submission' }
+    Add-Item 'store' 'submission status' $status $console $note
+
+    $state = Get-StoreWhatsNewState -Submission $read.Submission -Version $Version
+    if (-not $state.HasPackage) {
+        Add-Item 'store' "What's new (listing)" 'TODO' $console "the submission read holds package(s) $($state.PackageVersions -join ', '), not $($state.MsixVersion); read again after the upload"
+    }
+    elseif ($state.Stale.Count) {
+        $named = ($state.Stale | ForEach-Object { "$($_.Language) ($($_.Head))" }) -join ', '
+        Add-Item 'store' "What's new (listing)" 'STALE' $console "$($state.Stale.Count) of $($state.Languages) languages do not name $Version in What's new: $named. Replace the text in Partner Center (STORE_PUBLISHING.md, Phase 7)"
+    }
+    else { Add-Item 'store' "What's new (listing)" 'ok' $console "all $($state.Languages) languages name $Version" }
 }
 
 # --- README -------------------------------------------------------------------------------------------------------------------
-$bad = @($items | Where-Object { $_.State -in 'FAIL', 'MISSING' })
+$bad = @($items | Where-Object { $_.State -in 'FAIL', 'MISSING', 'STALE' })
 $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine("# Release $Version")
 [void]$sb.AppendLine('')

@@ -97,13 +97,26 @@ then repeats the pack with an attribute no schema defines to prove the gate refu
 ## The console companion (SP-0275)
 
 The package carries a second executable, `StreamsPlayerCli.exe`, the console companion of the command line
-(`APP-COMMANDS` rule 9): a caller that pipes reads its standard output and its exit code. The template declares it as a
-second `Application` (`StreamsPlayerCli`, hidden from the Start list) with its own execution alias, so a packaged install
-puts `StreamsPlayerCli.exe` on the PATH; the first `Application`, its alias `StreamsPlayer.exe`, its tile and the `.spres`
-association are as they shipped, and so is the `Identity`. The file reaches the package with no edit to the stage copy:
-the application project publishes it into its own publish folder, which `build-msix.ps1` copies whole.
-`scripts/Assert-ConsoleCompanion.ps1` judges that folder before it is packed, and `msix/Test-AppxManifest.ps1` stages the
-second executable and asserts that each alias is declared once, for the executable of the same name.
+(`APP-COMMANDS` rule 9): a caller that pipes reads its standard output and its exit code. The file reaches the package
+with no edit to the stage copy: the application project publishes it into its own publish folder, which `build-msix.ps1`
+copies whole, and `scripts/Assert-ConsoleCompanion.ps1` judges that folder before it is packed.
+
+**The Store package does not declare it.** The template holds the companion's `Application` (`StreamsPlayerCli`, hidden
+from the Start list with `AppListEntry="none"`) and its execution alias between the lines `<!-- companion:begin -->` and
+`<!-- companion:end -->`, and `build-msix.ps1` leaves that block out unless it runs with `-Companion`
+(`msix/MsixManifest.ps1` does the fill for the build and for the gate alike). Partner Center treats a hidden second
+`Application` as a headless app and refuses the package from an account without the `HeadlessAppBypass` waiver: it
+rejected the package of 26.1117.1838 with "specifies a headless app. You don't have permission to create a headless
+app", and the 26.1117.1838 Store submission went out without the block. The waiver was requested on 2026-11-17 (support
+request 2611170050005443). So a Store install puts only `StreamsPlayer.exe` on the PATH, and its first `Application`,
+alias, tile, `.spres` association and `Identity` are as they shipped. Pass `-Companion` only once the waiver is on the
+account; it adds the second `Application` and the alias `StreamsPlayerCli.exe`, with the first one untouched. One
+`Application` cannot carry the companion's alias instead: the schema allows one `windows.appExecutionAlias` extension per
+`Application`, and `makeappx` refuses a second one ("must only be declared once").
+
+`msix/Test-AppxManifest.ps1` packs both manifests: the default one must declare one `Application`, none hidden from the
+Start list, and no alias `StreamsPlayerCli.exe`; the `-Companion` one must declare two, each alias once, for the
+executable of the same name.
 
 ## Google sign-in in the package
 

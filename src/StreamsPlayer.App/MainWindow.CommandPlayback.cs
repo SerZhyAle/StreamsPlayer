@@ -362,13 +362,15 @@ public partial class MainWindow
     internal async Task<AppCommandResponse> ResumeForCommandAsync(
         string requestId, AppCommandEntry entry, CancellationToken cancellationToken)
     {
+        // APP-COMMANDS 0.3 item W: the caller named no channel, so the answer carries no title (AppPlaybackCommands.Resumed).
         if (_playingAudio is not null)
         {
-            return AppPlaybackCommands.Playing(requestId, CommandSessions().First(session => session.Kind == AppPlaybackSession.AudioKind));
+            return AppPlaybackCommands.Resumed(
+                AppPlaybackCommands.Playing(requestId, CommandSessions().First(session => session.Kind == AppPlaybackSession.AudioKind)));
         }
 
         return PausedAudioChannel is { } paused
-            ? await PlayAndWaitAsync(requestId, entry, paused, background: true, cancellationToken)
+            ? AppPlaybackCommands.Resumed(await PlayAndWaitAsync(requestId, entry, paused, background: true, cancellationToken))
             : AppCommandResponse.Failed(requestId, AppCommandReason.TargetMissing, AppCommandExit.NotReady,
                 AppPlaybackMessages.NoRadioToResume);
     }

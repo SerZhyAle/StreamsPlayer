@@ -7,14 +7,22 @@
   build-msix.ps1 is the only other thing that runs makeappx over the template, and it refuses a dirty tree and a HEAD
   off a tag - so a schema error in the template stays invisible until the day a Store package is cut (the .spres file
   association carried two invalid attributes from SP-0196 until SP-0238). This gate closes that gap: it fills the
-  template the way build-msix.ps1 does, stages it with a placeholder executable and the product logos, and runs the
-  Windows SDK's own `makeappx pack` over it. The SDK is the authority on the manifest schema; nothing here restates it.
+  template with the function build-msix.ps1 fills it with (msix/MsixManifest.ps1), stages it with placeholder
+  executables and the product logos, and runs the Windows SDK's own `makeappx pack` over it. The SDK is the authority on
+  the manifest schema; nothing here restates it. Both manifests a build can produce are judged: the default one (no
+  companion - the one Partner Center accepts without the HeadlessAppBypass waiver) and the one -Companion produces.
 
-    packs        makeappx accepts the filled template (exit 0)
-    placeholders no __PLACEHOLDER__ is left after the fill (a new placeholder needs this script and build-msix.ps1)
-    association  the staged manifest still declares the .spres file type association (SP-0196)
-    aliases      SP-0275: the player's alias StreamsPlayer.exe and the console companion's alias StreamsPlayerCli.exe are
-                 each declared exactly once, each for the executable of the same name
+    packs        makeappx accepts each filled manifest (exit 0)
+    placeholders no __PLACEHOLDER__ and no companion marker is left after the fill (a new placeholder needs this script
+                 and MsixManifest.ps1)
+    association  each manifest still declares the .spres file type association (SP-0196)
+    store        the default manifest declares one Application, no Application with AppListEntry="none" (the headless
+                 app Partner Center refuses without the waiver), the alias StreamsPlayer.exe once, for StreamsPlayer.exe,
+                 and no alias StreamsPlayerCli.exe
+    companion    SP-0275: the -Companion manifest declares two Applications, and the player's alias StreamsPlayer.exe and
+                 the console companion's alias StreamsPlayerCli.exe each exactly once, each for the executable of the same
+                 name
+    markers      a template that has lost its companion:end line is refused by the fill, not packed
     control      the same stage with an attribute the schema does not define is refused - the gate is not vacuous
 
   Exit codes (CHECK-VERDICT): 0 passed, 1 a check failed, 2 could not verify (no Windows SDK, no built Core assembly).
@@ -79,10 +87,9 @@ function Check([bool] $Condition, [string] $Label, [string] $Detail = '') {
 }
 
 # The values only need to be schema-valid; the reserved identity is judged by Assert-MsixPackage.ps1 on the real package.
-function Get-FilledManifest {
-    $text = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'AppxManifest.xml') -Raw
-    $text = $text.Replace('__LANGUAGE_RESOURCES__', $languageResources)
-    $text.Replace('__IDENTITY_NAME__', 'SZA.StreamsPlayer').Replace('__PUBLISHER__', 'CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD').Replace('__PUBLISHER_DISPLAY_NAME__', 'SZA').Replace('__VERSION__', '26.1.1.0')
+. (Join-Path $PSScriptRoot 'MsixManifest.ps1')
+function Get-FilledManifest([string] $TemplatePath = (Join-Path $PSScriptRoot 'AppxManifest.xml'), [switch] $Companion) {
+    Get-MsixManifestText -TemplatePath $TemplatePath -LanguageResources $languageResources -IdentityName 'SZA.StreamsPlayer' -Publisher 'CN=F98ACEDB-1E22-4C39-AF63-F9FCFE807DCD' -PublisherDisplayName 'SZA' -Version '26.1.1.0' -Companion:$Companion
 }
 
 $work = Join-Path ([System.IO.Path]::GetTempPath()) ('sp0238-msix-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
@@ -106,24 +113,53 @@ try {
         [pscustomobject]@{ Exit = $LASTEXITCODE; Output = ($output -join "`n") }
     }
 
-    $filled = Get-FilledManifest
-    Check ($filled -notmatch '__[A-Z_]+__') 'placeholders: none left after the fill' ($filled | Select-String '__[A-Z_]+__' -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Unique | Out-String)
-
-    $stage = New-Stage 'template' $filled
-    $pack = Invoke-Pack $stage 'template'
-    Check ($pack.Exit -eq 0) 'packs: makeappx accepts the filled template' "makeappx exit $($pack.Exit):`n$($pack.Output)"
-
-    $xml = [xml] $filled
-    $association = $xml.SelectNodes("//*[local-name()='FileType']") | Where-Object { $_.InnerText -ceq '.spres' }
-    Check (@($association).Count -eq 1) 'association: the manifest declares the .spres file type exactly once'
-
-    # SP-0275: one alias per executable, and each extension runs the executable its alias is named for.
-    foreach ($executable in 'StreamsPlayer.exe', 'StreamsPlayerCli.exe') {
-        $aliasNodes = $xml.SelectNodes("//*[local-name()='ExecutionAlias']") | Where-Object { $_.GetAttribute('Alias') -ceq $executable }
-        Check (@($aliasNodes).Count -eq 1) "aliases: $executable is declared exactly once"
-        $extension = @($aliasNodes)[0].ParentNode.ParentNode
-        Check ($null -ne $extension -and $extension.GetAttribute('Executable') -ceq $executable) "aliases: the extension of $executable runs $executable"
+    function Get-AliasNode([xml] $Xml, [string] $Executable) {
+        @($Xml.SelectNodes("//*[local-name()='ExecutionAlias']") | Where-Object { $_.GetAttribute('Alias') -ceq $Executable })
     }
+    # One alias per executable, and its extension runs the executable the alias is named for.
+    function Test-Alias([xml] $Xml, [string] $Executable, [string] $Label) {
+        $aliasNodes = @(Get-AliasNode $Xml $Executable)
+        Check ($aliasNodes.Count -eq 1) "${Label}: $Executable is declared exactly once"
+        $extension = if ($aliasNodes.Count -ge 1) { $aliasNodes[0].ParentNode.ParentNode } else { $null }
+        Check ($null -ne $extension -and $extension.GetAttribute('Executable') -ceq $Executable) "${Label}: the extension of $Executable runs $Executable"
+    }
+
+    $variants = [ordered]@{ store = (Get-FilledManifest); companion = (Get-FilledManifest -Companion) }
+    $documents = @{}
+    foreach ($name in $variants.Keys) {
+        $filled = $variants[$name]
+        Check ($filled -notmatch '__[A-Z_]+__') "placeholders: none left after the $name fill" ($filled | Select-String '__[A-Z_]+__' -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Unique | Out-String)
+        Check ($filled -notmatch 'companion:(begin|end)') "placeholders: no companion marker left in the $name manifest"
+
+        $pack = Invoke-Pack (New-Stage $name $filled) $name
+        Check ($pack.Exit -eq 0) "packs: makeappx accepts the $name manifest" "makeappx exit $($pack.Exit):`n$($pack.Output)"
+
+        $documents[$name] = [xml] $filled
+        $association = $documents[$name].SelectNodes("//*[local-name()='FileType']") | Where-Object { $_.InnerText -ceq '.spres' }
+        Check (@($association).Count -eq 1) "association: the $name manifest declares the .spres file type exactly once"
+    }
+
+    $storeApplications = @($documents.store.SelectNodes("//*[local-name()='Application']"))
+    Check ($storeApplications.Count -eq 1) "store: the default manifest declares one Application (found $($storeApplications.Count))"
+    $headless = @($documents.store.SelectNodes("//*[local-name()='VisualElements']") | Where-Object { $_.GetAttribute('AppListEntry') -ceq 'none' })
+    Check ($headless.Count -eq 0) 'store: no Application of the default manifest is hidden from the Start list (AppListEntry="none")'
+    Test-Alias $documents.store 'StreamsPlayer.exe' 'store'
+    Check (@(Get-AliasNode $documents.store 'StreamsPlayerCli.exe').Count -eq 0) 'store: the default manifest declares no alias StreamsPlayerCli.exe'
+
+    # SP-0275: with -Companion both executables have their alias.
+    $companionApplications = @($documents.companion.SelectNodes("//*[local-name()='Application']"))
+    Check ($companionApplications.Count -eq 2) "companion: the -Companion manifest declares two Applications (found $($companionApplications.Count))"
+    foreach ($executable in 'StreamsPlayer.exe', 'StreamsPlayerCli.exe') { Test-Alias $documents.companion $executable 'companion' }
+
+    # A template that has lost a marker is refused by the fill, so it can neither ship the companion nor drop it unseen.
+    $template = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'AppxManifest.xml') -Raw
+    $unmarked = Join-Path $work 'unmarked.xml'
+    [System.IO.File]::WriteAllText($unmarked, ($template -replace '(?m)^[ \t]*<!-- companion:end -->[ \t]*\r?\n', ''), [System.Text.UTF8Encoding]::new($false))
+    $refused = $false
+    try { $null = Get-FilledManifest -TemplatePath $unmarked } catch { $refused = $_.Exception.Message -match 'companion block' }
+    Check $refused 'markers: a template without its companion:end line is refused by the fill'
+
+    $filled = $variants.store
 
     # Negative control: an attribute no schema defines (the shape of the SP-0238 defect) must stop the pack.
     $broken = $filled -replace '(<uap:FileTypeAssociation Name="spres")', '$1 AllowOn="desktop"'

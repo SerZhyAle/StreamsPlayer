@@ -101,7 +101,7 @@ check into the fast tier needs a time of 5 s or less recorded here first.
 | `msix/Test-AssertMsixPackage.ps1` | 21.51 | release |
 | `tools/Test-CatalogSnapshot.ps1` | above 30 (stopped) | release |
 | `dotnet restore` + `dotnet build StreamsPlayer.sln -c Release` | CI 30 + 30 | release |
-| `scripts/test.ps1` (the whole suite; a `--filter` run still builds first) | CI 417 | release |
+| `scripts/test.ps1` (the whole suite; a `--filter` run still builds first) | CI 457 (Test step of release run 44142247477, 2026-11-17, the test projects one at a time with Core.Tests first; 417 before, in parallel) | release |
 | `scripts/Test-CheckVerdictScripts.ps1`, `scripts/Test-SmokeVerdictGate.ps1`, `scripts/Test-ReleaseArtifactVersion.ps1`, `msix/Test-AppxManifest.ps1`, `tools/site/make-demo.ps1 -Check`, `scripts/smoke-playback.ps1` | not measured | release |
 
 ## Development commands

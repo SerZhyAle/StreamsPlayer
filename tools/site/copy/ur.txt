@@ -615,6 +615,9 @@ Windows اسٹوریج کمانڈ لائن ٹول
 @@type-tray-launcher
 Windows ٹرے لانچر
 
+@@type-web-sorter
+براؤزر میڈیا سارٹر
+
 @@type-windows-sorter
 Windows میڈیا اور فائل مینیجر
 

@@ -16,8 +16,9 @@
       order     P2: for consecutive releases across a minute, hour, day, month and year boundary, the canonical
                 version (as text and as a number) and the MSIX remap both order the later release above the earlier
       winget    winget/New-WingetManifests.ps1 writes the five manifests with the tag's version and no REPLACE_VERSION,
-                as UTF-8 with a BOM and LF endings; names the tokens left open; refuses an impossible tag, a non-empty
-                output folder and release notes holding ': '
+                as UTF-8 with a BOM and LF endings; names the tokens left open; writes release notes holding ': ', a
+                double quote or a backslash as a double-quoted scalar; refuses an impossible tag, a non-empty output
+                folder and release notes that span lines
 
     The renderer cases run in this process (SP-0290: a pwsh start per case was over half of the check); one refusal,
     the impossible tag, still runs as a real process so the exit code a caller reads is proven.
@@ -180,8 +181,16 @@ try {
     Check ($r.Exit -ne 0 -and $r.Text -match 'DateTime' -and -not (Test-Path -LiteralPath (Join-Path $work 'impossible'))) 'an impossible tag writes nothing' $r.Text
     $r = Invoke-Renderer @{ Tag = 'v26.0719.0131'; OutputDirectory = $full }
     Check ($r.Exit -ne 0 -and $r.Text -match 'is not empty') 'a non-empty output folder is refused' $r.Text
-    $r = Invoke-Renderer @{ Tag = 'v26.0719.0131'; OutputDirectory = (Join-Path $work 'colon'); ReleaseNotes = 'Fixed: playback' }
-    Check ($r.Exit -ne 0 -and $r.Text -match "contains ': '") "release notes holding ': ' are refused" $r.Text
+    # Release notes land in a double-quoted scalar: ': ' renders as written, a backslash and a double quote are escaped.
+    $colon = Join-Path $work 'colon'
+    $r = Invoke-Renderer @{ Tag = 'v26.0719.0131'; OutputDirectory = $colon; ReleaseNotes = 'Fixed: playback of "C:\radio"'; ReleaseNotesRu = 'Новое: запись' }
+    $locale = Join-Path $colon 'SerZhyAle.StreamsPlayer.locale.en-US.yaml'
+    $localeText = if (Test-Path -LiteralPath $locale) { [System.IO.File]::ReadAllText($locale) } else { '' }
+    Check ($r.Exit -eq 0 -and $localeText.Contains('ReleaseNotes: "Fixed: playback of \"C:\\radio\""' + "`n")) "release notes holding ': ', a double quote and a backslash render as a quoted scalar" $r.Text
+    $localeRu = Join-Path $colon 'SerZhyAle.StreamsPlayer.locale.ru-RU.yaml'
+    Check ((Test-Path -LiteralPath $localeRu) -and ([System.IO.File]::ReadAllText($localeRu)).Contains('ReleaseNotes: "Новое: запись"' + "`n")) 'Russian release notes with ": " render as a quoted scalar'
+    $r = Invoke-Renderer @{ Tag = 'v26.0719.0131'; OutputDirectory = (Join-Path $work 'multiline'); ReleaseNotes = "line one`nline two" }
+    Check ($r.Exit -ne 0 -and $r.Text -match 'line break') 'release notes that span lines are refused' $r.Text
 }
 catch {
     # A setup step or a subject threw instead of answering: nothing was judged past this point, so the run could not

@@ -437,7 +437,7 @@ StreamsPlayerCli.exe playback stop --all
 (Start-Process .\StreamsPlayer.exe -ArgumentList 'play','--url','https://example.org/live.mp3' -Wait -PassThru).ExitCode
 ```
 
-`StreamsPlayerCli.exe` is the console companion installed beside `StreamsPlayer.exe`; it prints the answer on standard output for pipelines. Commands that only control the player work at once. Commands that read your data (`playback status`) or write it (`record start`, `record stop`) are refused until you turn on **Let other programs ask STREAMS Player to work with my files, screen, clipboard or the network** in Settings. It is off by default and no command can turn it on.
+`StreamsPlayerCli.exe` is the console companion that the zip, the installer and winget install beside `StreamsPlayer.exe`; it prints the answer on standard output for pipelines. The Microsoft Store package puts only `StreamsPlayer.exe` on the PATH. Commands that only control the player work at once. Commands that read your data (`playback status`) or write it (`record start`, `record stop`) are refused until you turn on **Let other programs ask STREAMS Player to work with my files, screen, clipboard or the network** in Settings. It is off by default and no command can turn it on.
 
 ## Development
 
