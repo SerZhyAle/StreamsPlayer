@@ -125,7 +125,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             var service = new ExchangeSourceService(scope.Path);
 
             await service.EnrollAsync("127.0.0.1", port, "test-login", false, DiagnosisSecret.ToArray(), null);
-            await accepting.WaitAsync(TimeSpan.FromSeconds(10));
+            await accepting.WaitAsync(TimeSpan.FromSeconds(30));
 
             Assert.Equal("ExchangeTlsFailed", service.EnrollmentOutcomeKey);
             var result = await Walk(service.EnrollmentOutcomeKey, "127.0.0.1", port);

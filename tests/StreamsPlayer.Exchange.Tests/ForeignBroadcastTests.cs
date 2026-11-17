@@ -43,7 +43,7 @@ public sealed class ForeignBroadcastTests
             for (var index = 0; index < 6; index++)
             {
                 var proxy = ExchangeRelayProxy.Start(relay.RelayUrl, relay.Pin);
-                using (var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) })
+                using (var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) })
                     Assert.Equal("media-body", await http.GetStringAsync(proxy.LoopbackUrl));
                 var relayPort = proxy.BoundPort;
                 proxy.Dispose();
@@ -56,7 +56,7 @@ public sealed class ForeignBroadcastTests
                 {
                     await client.ConnectAsync(IPAddress.Loopback, forwarder.BoundPort);
                     var bytes = new byte[10];
-                    await client.GetStream().ReadExactlyAsync(bytes).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+                    await client.GetStream().ReadExactlyAsync(bytes).AsTask().WaitAsync(TimeSpan.FromSeconds(30));
                     Assert.Equal("media-body", Encoding.ASCII.GetString(bytes));
                 }
                 var tunnelPort = forwarder.BoundPort;
@@ -103,7 +103,7 @@ public sealed class ForeignBroadcastTests
         await client.ConnectAsync(IPAddress.Loopback, forwarder.BoundPort);
         Assert.Equal(wrongPin ? ExchangeBroadcastCertificateException.Refused
             : ExchangeBroadcastCertificateException.UntrustedWithoutFingerprint,
-            await refusal.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+            await refusal.Task.WaitAsync(TimeSpan.FromSeconds(30)));
         Assert.Empty(server.Envelopes);
         Assert.Equal(1, forwarder.ConnectAttempts);
     }
@@ -139,7 +139,7 @@ public sealed class ForeignBroadcastTests
                 { TargetHost = host, CertificateChainPolicy = chainPolicy }, token);
             return ssl;
         });
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         Assert.Equal("media-body", await http.GetStringAsync(proxy.LoopbackUrl));
         Assert.Null(proxy.LastFailure);
     }
@@ -189,7 +189,7 @@ public sealed class ForeignBroadcastTests
         using var relay = new TlsFixture(tunnel: false, "listener", "the-link-password");
         using var proxy = ExchangeRelayProxy.Start(relay.RelayUrl, relay.Pin,
             credentials: new ExchangeRelayCredentials("listener", "the-link-password"));
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         Assert.Equal("media-body", await http.GetStringAsync(proxy.LoopbackUrl));
         Assert.Null(proxy.LastFailure);
         Assert.Equal(1, relay.Requests);
@@ -203,11 +203,11 @@ public sealed class ForeignBroadcastTests
             credentials: new ExchangeRelayCredentials("listener", "a-wrong-password"));
         var refusal = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
         proxy.Failed += reason => refusal.TrySetResult(reason);
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         // The player sees the proxy's own 502; the named refusal is what the leg reports.
         using var refusedAnswer = await http.GetAsync(proxy.LoopbackUrl);
         Assert.Equal(HttpStatusCode.BadGateway, refusedAnswer.StatusCode);
-        Assert.Equal(ExchangeBroadcastAuth.PasswordRefusedReason, await refusal.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+        Assert.Equal(ExchangeBroadcastAuth.PasswordRefusedReason, await refusal.Task.WaitAsync(TimeSpan.FromSeconds(30)));
         // The explicit deny: one request, one refusal - nothing retries in the background.
         Assert.Equal(1, relay.Requests);
     }
@@ -219,10 +219,10 @@ public sealed class ForeignBroadcastTests
         using var proxy = ExchangeRelayProxy.Start(relay.RelayUrl, relay.Pin);
         var refusal = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
         proxy.Failed += reason => refusal.TrySetResult(reason);
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         using var refusedAnswer = await http.GetAsync(proxy.LoopbackUrl);
         Assert.Equal(HttpStatusCode.BadGateway, refusedAnswer.StatusCode);
-        Assert.Equal(ExchangeBroadcastAuth.PasswordRequiredReason, await refusal.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+        Assert.Equal(ExchangeBroadcastAuth.PasswordRequiredReason, await refusal.Task.WaitAsync(TimeSpan.FromSeconds(30)));
         Assert.Equal(1, relay.Requests);
     }
 
@@ -271,7 +271,7 @@ public sealed class ForeignBroadcastTests
             using var log = new CurrentLog(directory);
             using var proxy = ExchangeRelayProxy.Start(relay.RelayUrl, relay.Pin,
                 credentials: new ExchangeRelayCredentials("listener", "secret-link-password"));
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
             Assert.Equal("media-body", await http.GetStringAsync(proxy.LoopbackUrl));
             log.Event("FOREIGN RELAY PROTECTED", $"url={relay.RelayUrl}");
             log.Dispose();

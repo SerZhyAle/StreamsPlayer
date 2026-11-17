@@ -9,6 +9,10 @@ public sealed class FFmpegComponentsInstallerTests
 {
     private static readonly TimeSpan ShortIdle = TimeSpan.FromMilliseconds(300);
 
+    // How long a stalled install may take before the test calls the idle bound broken. The stall never ends by itself,
+    // so only a working bound can meet it, and the guard turns a missing one into a failure instead of a hang.
+    private static readonly TimeSpan StallLimit = TimeSpan.FromSeconds(30);
+
     [Fact]
     public async Task Install_ExtractsEveryRequiredLibraryFromTheNestedBuildFolder()
     {
@@ -178,9 +182,9 @@ public sealed class FFmpegComponentsInstallerTests
             var installer = new FFmpegComponentsInstaller(httpClient, SourceFor(archive), ShortIdle);
 
             var started = DateTime.UtcNow;
-            await Assert.ThrowsAsync<TimeoutException>(() => installer.InstallAsync(directory));
+            await Assert.ThrowsAsync<TimeoutException>(() => installer.InstallAsync(directory).WaitAsync(StallLimit));
 
-            Assert.True(DateTime.UtcNow - started < TimeSpan.FromSeconds(10));
+            Assert.True(DateTime.UtcNow - started < StallLimit);
             Assert.False(Directory.Exists(FFmpegComponents.ResolveFolder(directory)));
             AssertNothingStaged(directory);
         });

@@ -60,7 +60,7 @@ internal sealed class DirectoryFixtureServer : IAsyncDisposable
 
     internal static async Task UntilAsync(Func<bool> condition, string? context = null)
     {
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         while (!condition())
         {
             try

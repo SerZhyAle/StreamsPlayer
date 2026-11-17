@@ -15,17 +15,17 @@ public sealed class BroadcastAudioRecorderTests
         {
             var recorder = new BroadcastAudioRecorder(new RecordingTarget(directory, null, [], CaptureKind.StreamAudio),
                 Path.Combine(directory, "staging"), ".flac", [], _ => [], length => length, log, _ => file);
-            await file.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await file.Entered.Task.WaitAsync(TimeSpan.FromSeconds(30));
             // A large codec frame still must respect the queue's byte ceiling, rather than count as one block.
             var frame = new byte[1024 * 1024];
             await Task.Run(() =>
             {
                 for (var count = 0; count < 9; count++) recorder.Offer(frame);
-            }).WaitAsync(TimeSpan.FromSeconds(5));
+            }).WaitAsync(TimeSpan.FromSeconds(30));
             Assert.True(recorder.Failed);
             Assert.False(recorder.Completion.IsCompleted);
             file.Release.TrySetResult();
-            var segment = await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(5));
+            var segment = await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(30));
             Assert.Equal(8 * 1024 * 1024, file.Written);
             Assert.True(segment.ClosedByEngine);
         }

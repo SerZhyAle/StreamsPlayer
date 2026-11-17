@@ -152,7 +152,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             await Until(() => service.StatusKey == "ExchangeOnline");
             var oldPassword = "Passw0rdTest".ToCharArray();
             var newPassword = "Vector-new-pw-2".ToCharArray();
-            var result = await service.ChangePasswordAsync(oldPassword, newPassword).WaitAsync(TimeSpan.FromSeconds(10));
+            var result = await service.ChangePasswordAsync(oldPassword, newPassword).WaitAsync(TimeSpan.FromSeconds(30));
             Assert.False(result.Changed);
             Assert.Equal(key, result.Key);
             Assert.Equal(new[] { "Passw0rdTest|Vector-new-pw-2" }, changes);
@@ -201,7 +201,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         {
             await Until(() => service.StatusKey == "ExchangeOnline");
             var result = await service.ChangePasswordAsync("Passw0rdTest".ToCharArray(), "Vector-new-pw-2".ToCharArray())
-                .WaitAsync(TimeSpan.FromSeconds(10));
+                .WaitAsync(TimeSpan.FromSeconds(30));
             Assert.True(result.Changed);
             Assert.Equal("ExchangePasswordChanged", result.Key);
             Assert.Equal(NewToken, service.Account.Token);
@@ -574,7 +574,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             await service.EnrollAsync("localhost", server.Port, "guest-login", false, "Passw0rdTest".ToCharArray(),
                 ExchangeProtocol.Fingerprint(certificate.RawData));
             Assert.Equal("ExchangeGuestLimit", service.EnrollmentOutcomeKey);
-            Assert.Equal(freshId, await revoked.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+            Assert.Equal(freshId, await revoked.Task.WaitAsync(TimeSpan.FromSeconds(30)));
             Assert.Equal(ExchangeEntryLimits.MaximumGuestEntries, service.Guests.Entries.Count);
             Assert.Null(service.Guests.Find("localhost", server.Port, "guest-login"));
         }
@@ -606,7 +606,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         new ExchangeGuestEntries(scope.Path).Upsert(entry);
         var service = new ExchangeSourceService(scope.Path);
         await service.SignOutGuestAsync(entry);
-        Assert.Equal(entry.DeviceId, await revokedId.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+        Assert.Equal(entry.DeviceId, await revokedId.Task.WaitAsync(TimeSpan.FromSeconds(30)));
         Assert.Equal(new[] { "hello", "revoke" }, order);
         Assert.Empty(service.Guests.Entries);
         Assert.Equal("ExchangeGuestSignedOut", service.GuestOutcomeKey);

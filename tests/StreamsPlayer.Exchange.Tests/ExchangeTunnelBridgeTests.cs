@@ -10,8 +10,18 @@ namespace StreamsPlayer.Exchange.Tests;
 /// </summary>
 public sealed class ExchangeTunnelBridgeTests
 {
+    // The idle bound of a bridge nothing is sent through; short, because the test only waits for it to end the pump.
     private static readonly TimeSpan Idle = TimeSpan.FromMilliseconds(700);
-    private static readonly TimeSpan Gap = TimeSpan.FromMilliseconds(200);
+
+    // The idle bound of a bridge that keeps moving bytes, and the gap between those bytes. Task.Delay is a floor, never a
+    // ceiling, so a loaded machine stretches the gap and cannot stretch the duration below its floor: the gap is a twentieth
+    // of the bound, and the chunks together last longer than the bound. (A 200 ms gap against 0.7 s was a 3.5x margin.)
+    private static readonly TimeSpan LiveIdle = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan Gap = TimeSpan.FromMilliseconds(100);
+    private const int Chunks = 25;
+
+    // How long an ending pump may take before the test calls the idle bound broken; the pump has no other end here.
+    private static readonly TimeSpan Limit = TimeSpan.FromSeconds(20);
 
     private static async Task<(NetworkStream Peer, NetworkStream Bridged)> PairAsync()
     {
@@ -36,23 +46,23 @@ public sealed class ExchangeTunnelBridgeTests
         var (remotePeer, remoteBridged) = await PairAsync();
         var (localPeer, localBridged) = await PairAsync();
         using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        var pump = ExchangeTunnelBridge.PumpAsync(remoteBridged, localBridged, Idle, cancellation.Token);
+        var pump = ExchangeTunnelBridge.PumpAsync(remoteBridged, localBridged, LiveIdle, cancellation.Token);
         var sender = fromRemote ? remotePeer : localPeer;
         var receiver = fromRemote ? localPeer : remotePeer;
 
-        // Eight chunks over 1.6 s: far past the 0.7 s timeout, never a gap as long as it.
+        // Chunks over 2.5 s: past the 2 s timeout, never a gap as long as it.
         var buffer = new byte[1];
-        for (var chunk = 0; chunk < 8; chunk++)
+        for (var chunk = 0; chunk < Chunks; chunk++)
         {
             await sender.WriteAsync(new byte[] { (byte)chunk });
-            Assert.Equal(1, await receiver.ReadAsync(buffer).AsTask().WaitAsync(TimeSpan.FromSeconds(5)));
+            Assert.Equal(1, await receiver.ReadAsync(buffer).AsTask().WaitAsync(TimeSpan.FromSeconds(30)));
             Assert.Equal((byte)chunk, buffer[0]);
             Assert.False(pump.IsCompleted, $"the bridge was cut with traffic still moving (chunk {chunk})");
             await Task.Delay(Gap);
         }
 
         // Silence: the same timeout now ends it, on its own.
-        await pump.WaitAsync(TimeSpan.FromSeconds(10));
+        await pump.WaitAsync(TimeSpan.FromSeconds(30));
         foreach (var stream in new[] { remotePeer, localPeer, remoteBridged, localBridged })
         {
             stream.Dispose();
@@ -76,7 +86,7 @@ public sealed class ExchangeTunnelBridgeTests
         resetPeer.Client.LingerState = new LingerOption(true, 0);
         resetPeer.Close();
 
-        await pump.WaitAsync(TimeSpan.FromSeconds(10));
+        await pump.WaitAsync(TimeSpan.FromSeconds(30));
         otherPeer.Dispose();
         otherBridged.Dispose();
     }
@@ -89,9 +99,9 @@ public sealed class ExchangeTunnelBridgeTests
         using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var started = System.Diagnostics.Stopwatch.StartNew();
 
-        await ExchangeTunnelBridge.PumpAsync(remoteBridged, localBridged, Idle, cancellation.Token).WaitAsync(TimeSpan.FromSeconds(10));
+        await ExchangeTunnelBridge.PumpAsync(remoteBridged, localBridged, Idle, cancellation.Token).WaitAsync(TimeSpan.FromSeconds(30));
 
-        Assert.InRange(started.Elapsed, Idle - TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(5));
+        Assert.InRange(started.Elapsed, Idle - TimeSpan.FromMilliseconds(100), Limit);
         foreach (var stream in new[] { remotePeer, localPeer, remoteBridged, localBridged })
         {
             stream.Dispose();

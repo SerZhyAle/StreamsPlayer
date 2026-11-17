@@ -25,7 +25,7 @@ public sealed class StreamAudioRecorderTests
         AudioRecordingOutcome? received = null;
         recorder.Ended += (_, outcome) => received = outcome; // the worker may already have ended here
 
-        await WaitUntil(() => received is not null, TimeSpan.FromSeconds(10));
+        await WaitUntil(() => received is not null, TimeSpan.FromSeconds(30));
         Assert.Equal(AudioRecordingEnd.NotConnected, received!.End);
         Assert.Null(received.Path);
         Assert.Empty(Directory.GetFiles(folder));
@@ -42,7 +42,7 @@ public sealed class StreamAudioRecorderTests
         AudioRecordingOutcome? received = null;
         recorder.Ended += (_, outcome) => received = outcome;
 
-        await WaitUntil(() => received is not null, TimeSpan.FromSeconds(10));
+        await WaitUntil(() => received is not null, TimeSpan.FromSeconds(30));
         Assert.Equal(AudioRecordingEnd.ConnectionLost, received!.End); // the station sent nothing and closed
         Assert.Null(received.Path);
         Assert.Empty(Directory.GetFiles(folder));
@@ -60,7 +60,7 @@ public sealed class StreamAudioRecorderTests
         AudioRecordingOutcome? received = null;
         recorder.Ended += (_, outcome) => received = outcome;
 
-        await WaitUntil(() => received is not null, TimeSpan.FromSeconds(10));
+        await WaitUntil(() => received is not null, TimeSpan.FromSeconds(30));
         Assert.Equal(AudioRecordingEnd.WriteFailed, received!.End);
         Assert.Null(received.Path);
     }
@@ -74,13 +74,13 @@ public sealed class StreamAudioRecorderTests
         using var log = new CurrentLog(NewFolder());
         var recorder = StreamAudioRecorder.Start(Channel(server.Url), [folder], log, null);
 
-        var file = await recorder.FirstBytes.WaitAsync(TimeSpan.FromSeconds(10));
+        var file = await recorder.FirstBytes.WaitAsync(TimeSpan.FromSeconds(30));
 
         Assert.NotNull(file);
         Assert.Equal(folder, recorder.RequestedFolder);
         Assert.Equal(folder, Path.GetDirectoryName(file), ignoreCase: true);
         Assert.True(File.Exists(file));
-        var outcome = await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        var outcome = await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(30));
         Assert.Equal(file, outcome.Path);
         Assert.False(outcome.NoSpace);
     }
@@ -93,8 +93,8 @@ public sealed class StreamAudioRecorderTests
         using var log = new CurrentLog(NewFolder());
         var recorder = StreamAudioRecorder.Start(Channel(server.Url), [folder], log, null);
 
-        Assert.Null(await recorder.FirstBytes.WaitAsync(TimeSpan.FromSeconds(10)));
-        var outcome = await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Null(await recorder.FirstBytes.WaitAsync(TimeSpan.FromSeconds(30)));
+        var outcome = await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(30));
 
         Assert.Equal(AudioRecordingEnd.NotConnected, outcome.End);
         Assert.Null(outcome.Path);

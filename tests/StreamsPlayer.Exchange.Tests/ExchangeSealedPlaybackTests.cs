@@ -168,11 +168,11 @@ public sealed class ExchangeSealedPlaybackTests
         });
         using var slowProxy = Proxy(slow, key);
         var slowPlay = PlayAsync(slowProxy);
-        await stalled.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await stalled.Task.WaitAsync(TimeSpan.FromSeconds(30));
         try
         {
             using var healthyProxy = Proxy(healthy, key);
-            var (_, played) = await PlayAsync(healthyProxy).WaitAsync(TimeSpan.FromSeconds(5));
+            var (_, played) = await PlayAsync(healthyProxy).WaitAsync(TimeSpan.FromSeconds(30));
             Assert.Equal(media, played);
             Assert.False(slowPlay.IsCompleted);
         }
@@ -180,7 +180,7 @@ public sealed class ExchangeSealedPlaybackTests
         {
             slowProxy.Dispose();
             stopStall.Cancel();
-            await slowPlay.WaitAsync(TimeSpan.FromSeconds(3));
+            await slowPlay.WaitAsync(TimeSpan.FromSeconds(30));
         }
     }
 
@@ -750,7 +750,7 @@ public sealed class ExchangeSealedPlaybackTests
 
     private static async Task Until(Func<bool> condition)
     {
-        var deadline = DateTime.UtcNow.AddSeconds(10);
+        var deadline = DateTime.UtcNow.AddSeconds(30);
         while (!condition())
         {
             if (DateTime.UtcNow > deadline)

@@ -33,7 +33,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             Assert.Equal(first.PublicPoint, service.Trust.TrustedDevice("phone"));
 
             using var ask = service.AcquireDirectory(false);
-            var refreshed = service.WaitForDirectoryAsync(TimeSpan.FromSeconds(5));
+            var refreshed = service.WaitForDirectoryAsync(TimeSpan.FromSeconds(30));
             Assert.False(refreshed.IsCompleted);
             await server.SendAsync(KeyDirectory(3, replacement.Kem));
             Assert.True(await refreshed);
@@ -150,7 +150,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         using var certificate = Certificate();
         var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
         var serve = Task.Run(async () =>
         {
@@ -311,10 +311,10 @@ public sealed partial class ExchangeLoopRecoveryTests
         try
         {
             exchange.Start();
-            await online.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await online.Task.WaitAsync(TimeSpan.FromSeconds(30));
             var establish = (Task)typeof(BroadcastProducerService).GetMethod("EstablishOnExchangeAsync",
                 System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(producer, [state])!;
-            await establish.WaitAsync(TimeSpan.FromSeconds(10));
+            await establish.WaitAsync(TimeSpan.FromSeconds(30));
 
             Assert.True(state.ExchangeStarted);
             Assert.True(sealing.Sealer.Relay.Epoch > oldEpoch);

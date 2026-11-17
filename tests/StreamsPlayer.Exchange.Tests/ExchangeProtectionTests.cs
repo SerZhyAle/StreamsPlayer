@@ -107,7 +107,7 @@ public sealed class ExchangeProtectionTests
                     "localhost", port, "test-login", new string('t', 43), ExchangeProtocol.Fingerprint(certificate.RawData), true));
                 service = new ExchangeSourceService(directory);
                 service.Start();
-                using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
                 while (service.StatusKey != expectedKey)
                 {
                     await Task.Delay(20, deadline.Token);
@@ -154,7 +154,7 @@ public sealed class ExchangeProtectionTests
     {
         using var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var serve = ServeAsync();
         try
         {

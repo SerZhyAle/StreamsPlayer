@@ -11,7 +11,7 @@ public sealed class IcyMetadataReaderTests
     [Fact]
     public async Task ReadAsync_ReportsChangedStreamTitlesFromIcyStreamInOrder()
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;
@@ -22,7 +22,7 @@ public sealed class IcyMetadataReaderTests
         var reader = new IcyMetadataReader(client);
         var readTask = reader.ReadAsync($"http://127.0.0.1:{port}/", recorder, cts.Token);
 
-        await recorder.Expected.WaitAsync(TimeSpan.FromSeconds(12), cts.Token);
+        await recorder.Expected.WaitAsync(TimeSpan.FromSeconds(50), cts.Token);
         cts.Cancel();
         try
         {
@@ -41,7 +41,7 @@ public sealed class IcyMetadataReaderTests
     [Fact]
     public async Task ReadAsync_WithoutMetaIntHeaderReportsNothing()
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
         var port = ((IPEndPoint)listener.LocalEndpoint).Port;

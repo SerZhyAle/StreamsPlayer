@@ -34,7 +34,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         await stream.WriteAsync(Encoding.ASCII.GetBytes($"GET {path} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n"));
         var buffer = new byte[4096];
         var head = new StringBuilder();
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         while (!head.ToString().Contains("\r\n\r\n", StringComparison.Ordinal))
         {
             var read = await stream.ReadAsync(buffer, timeout.Token);

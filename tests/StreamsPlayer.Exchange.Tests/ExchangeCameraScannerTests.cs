@@ -113,12 +113,12 @@ public sealed class ExchangeCameraScannerTests
         {
             Interlocked.Increment(ref decoded);
             entered.Set();
-            release.Wait(TimeSpan.FromSeconds(10));
+            release.Wait(TimeSpan.FromSeconds(30));
             return new ExchangeQrOutcome(ExchangeQrOutcomeKind.None);
         });
 
         var first = scanner.OfferAsync(QrPictures.Blank(64, 64, 128));
-        Assert.True(entered.Wait(TimeSpan.FromSeconds(10)));
+        Assert.True(entered.Wait(TimeSpan.FromSeconds(30)));
         var second = await scanner.OfferAsync(QrPictures.Blank(64, 64, 128));
         release.Set();
 

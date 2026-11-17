@@ -95,7 +95,7 @@ public sealed class ExchangeDirectoryLoopTests
 
     private static async Task Until(Func<bool> condition, string? context = null)
     {
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         while (!condition())
         {
             try

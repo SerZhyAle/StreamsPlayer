@@ -177,7 +177,7 @@ public sealed class ExchangeCastSeamTests
             },
             test: async (_, script) =>
             {
-                await promptOpened.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                await promptOpened.Task.WaitAsync(TimeSpan.FromSeconds(30));
                 await Until(() => directoryApplied);
                 Assert.False(prompt.Task.IsCompleted);
                 prompt.SetResult(true);
@@ -239,8 +239,8 @@ public sealed class ExchangeCastSeamTests
             },
             test: async (_, _) =>
             {
-                await promptOpened.Task.WaitAsync(TimeSpan.FromSeconds(10));
-                await running!.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+                await promptOpened.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                await running!.StopAsync().WaitAsync(TimeSpan.FromSeconds(30));
                 Assert.True(promptToken.IsCancellationRequested);
             },
             server: async (tls, token) =>
@@ -356,7 +356,7 @@ public sealed class ExchangeCastSeamTests
                 observedStop = stop;
                 stopHandled.TrySetResult(true);
             },
-            test: async (_, _) => await stopHandled.Task.WaitAsync(TimeSpan.FromSeconds(10)),
+            test: async (_, _) => await stopHandled.Task.WaitAsync(TimeSpan.FromSeconds(30)),
             server: async (tls, token) =>
             {
                 await DoHandshakeAsync(tls, token);
@@ -424,7 +424,7 @@ public sealed class ExchangeCastSeamTests
 
     private static async Task Until(Func<bool> condition)
     {
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         while (!condition())
         {
             await Task.Delay(20, deadline.Token);
@@ -485,7 +485,7 @@ public sealed class ExchangeCastSeamTests
                 service = new ExchangeSourceService(directory);
                 configure(service);
                 service.Start();
-                await test(service, script.Task.WaitAsync(TimeSpan.FromSeconds(10)));
+                await test(service, script.Task.WaitAsync(TimeSpan.FromSeconds(30)));
             }, async (tls, token) =>
             {
                 try

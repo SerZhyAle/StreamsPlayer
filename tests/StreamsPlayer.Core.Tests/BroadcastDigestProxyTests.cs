@@ -7,7 +7,7 @@ namespace StreamsPlayer.Core.Tests;
 
 public sealed class BroadcastDigestProxyTests
 {
-    private static readonly TimeSpan Budget = TimeSpan.FromSeconds(8);
+    private static readonly TimeSpan Budget = TimeSpan.FromSeconds(30);
 
     [Theory]
     [InlineData(false, "SHA-256", true)]

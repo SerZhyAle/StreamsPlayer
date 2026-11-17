@@ -54,7 +54,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         }
         finally
         {
-            await service.ForgetAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await service.ForgetAsync().WaitAsync(TimeSpan.FromSeconds(30));
         }
 
         Assert.Null(service.Account.Token);
@@ -92,7 +92,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         }
         finally
         {
-            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(30));
         }
 
         server.ThrowIfScriptFailed();
@@ -127,7 +127,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         }
         finally
         {
-            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(30));
         }
 
         server.ThrowIfScriptFailed();
@@ -170,12 +170,12 @@ public sealed partial class ExchangeLoopRecoveryTests
             Assert.Equal("ExchangeBadCredentials", service.EnrollmentOutcomeKey);
             Assert.NotNull(service.Account.Token);
 
-            await service.SetEnabledAsync(true).WaitAsync(TimeSpan.FromSeconds(10));
+            await service.SetEnabledAsync(true).WaitAsync(TimeSpan.FromSeconds(30));
             Assert.Null(service.EnrollmentOutcomeKey);
         }
         finally
         {
-            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(30));
         }
 
         server.ThrowIfScriptFailed();
@@ -227,7 +227,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         }
         finally
         {
-            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(30));
         }
 
         server.ThrowIfScriptFailed();
@@ -260,7 +260,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         }
         finally
         {
-            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(30));
         }
     }
     [Fact]
@@ -348,7 +348,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         }
         finally
         {
-            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await service.StopAsync().WaitAsync(TimeSpan.FromSeconds(30));
         }
     }
 
@@ -416,7 +416,7 @@ public sealed partial class ExchangeLoopRecoveryTests
 
     private static async Task Until(Func<bool> condition)
     {
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         while (!condition())
         {
             try

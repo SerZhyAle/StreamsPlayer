@@ -188,7 +188,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         {
             service.Start();
             await Until(() => frames.Any(frame => FrameType(frame) == "keepalive"));
-            await service.ForgetAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await service.ForgetAsync().WaitAsync(TimeSpan.FromSeconds(30));
             await Until(() => frames.Any(frame => FrameType(frame) == "revoke"));
         }
         finally

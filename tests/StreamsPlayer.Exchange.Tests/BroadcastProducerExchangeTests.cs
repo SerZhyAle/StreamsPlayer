@@ -42,7 +42,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             service.Start();
             await Until(() => seen.Contains("keepalive"));
 
-            var answer = service.WaitForBroadcastStartAnswerAsync("test-broadcast", TimeSpan.FromSeconds(10), CancellationToken.None);
+            var answer = service.WaitForBroadcastStartAnswerAsync("test-broadcast", TimeSpan.FromSeconds(30), CancellationToken.None);
             Assert.True(await service.PostControlEnvelopeAsync(new
             {
                 schemaVersion = 2, type = "broadcast-start",
@@ -96,7 +96,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             service.Start();
             await Until(() => seen.Contains("keepalive"));
 
-            var refused = service.WaitForBroadcastStartAnswerAsync("refused-broadcast", TimeSpan.FromSeconds(10), CancellationToken.None);
+            var refused = service.WaitForBroadcastStartAnswerAsync("refused-broadcast", TimeSpan.FromSeconds(30), CancellationToken.None);
             Assert.True(await service.PostControlEnvelopeAsync(new
             {
                 schemaVersion = 2, type = "broadcast-start",
@@ -106,7 +106,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             Assert.Equal("capacity", await refused);
 
             // The session survived the refusal: a second start on the same stream is answered.
-            var started = service.WaitForBroadcastStartAnswerAsync("second-broadcast", TimeSpan.FromSeconds(10), CancellationToken.None);
+            var started = service.WaitForBroadcastStartAnswerAsync("second-broadcast", TimeSpan.FromSeconds(30), CancellationToken.None);
             Assert.True(await service.PostControlEnvelopeAsync(new
             {
                 schemaVersion = 2, type = "broadcast-start",
@@ -170,12 +170,12 @@ public sealed partial class ExchangeLoopRecoveryTests
             service.Start();
             await Until(() => seen.Contains("keepalive"));
 
-            var refused = service.WaitForBroadcastStartAnswerAsync("refused-broadcast", TimeSpan.FromSeconds(10), CancellationToken.None);
+            var refused = service.WaitForBroadcastStartAnswerAsync("refused-broadcast", TimeSpan.FromSeconds(30), CancellationToken.None);
             Assert.True(await service.PostControlEnvelopeAsync(StartEnvelope(service, "refused-broadcast"), CancellationToken.None));
             Assert.Equal("capacity", await refused);
             Assert.Equal("ExchangeOnline", service.StatusKey);
 
-            var started = service.WaitForBroadcastStartAnswerAsync("second-broadcast", TimeSpan.FromSeconds(10), CancellationToken.None);
+            var started = service.WaitForBroadcastStartAnswerAsync("second-broadcast", TimeSpan.FromSeconds(30), CancellationToken.None);
             Assert.True(await service.PostControlEnvelopeAsync(StartEnvelope(service, "second-broadcast"), CancellationToken.None));
             Assert.Null(await started);
             Assert.Equal(1, server.Connections);
@@ -292,11 +292,11 @@ public sealed partial class ExchangeLoopRecoveryTests
             await Until(() => seen.Contains("keepalive"));
 
             Assert.True(await service.PostBroadcastUpdateAsync(StartEnvelope(service, "updated-broadcast", "broadcast-update"), CancellationToken.None));
-            await refusalSent.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            await refusalSent.Task.WaitAsync(TimeSpan.FromSeconds(30));
             await Task.Delay(500);
 
             Assert.Equal("ExchangeOnline", service.StatusKey);
-            var started = service.WaitForBroadcastStartAnswerAsync("after-update", TimeSpan.FromSeconds(10), CancellationToken.None);
+            var started = service.WaitForBroadcastStartAnswerAsync("after-update", TimeSpan.FromSeconds(30), CancellationToken.None);
             Assert.True(await service.PostControlEnvelopeAsync(StartEnvelope(service, "after-update"), CancellationToken.None));
             Assert.Null(await started);
             Assert.Equal(1, server.Connections);
@@ -348,7 +348,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             };
 
             await service.ForgetAsync().WaitAsync(TimeSpan.FromSeconds(15));
-            await revoked.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await revoked.Task.WaitAsync(TimeSpan.FromSeconds(30));
 
             var sequence = order.ToArray();
             Assert.Contains("broadcast-end", sequence);
@@ -407,8 +407,8 @@ public sealed partial class ExchangeLoopRecoveryTests
             }, CancellationToken.None));
 
             var stopping = service.StopAsync();
-            await bye.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            await stopping.WaitAsync(TimeSpan.FromSeconds(10));
+            await bye.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            await stopping.WaitAsync(TimeSpan.FromSeconds(30));
 
             var sequence = order.ToArray();
             var end = Array.IndexOf(sequence, "broadcast-end");
@@ -446,7 +446,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         {
             service.CastResult += received => result.TrySetResult(received);
             service.Start();
-            var cast = await result.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            var cast = await result.Task.WaitAsync(TimeSpan.FromSeconds(30));
             Assert.False(cast.Accepted);
             Assert.Equal("BroadcastCastDeclined", cast.MessageKey);
         }
@@ -479,7 +479,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         {
             service.TunnelRequested += (tunnel, _) => opened.TrySetResult(tunnel);
             service.Start();
-            var tunnel = await opened.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            var tunnel = await opened.Task.WaitAsync(TimeSpan.FromSeconds(30));
             Assert.Equal("tunnel-1", tunnel.TunnelId);
             Assert.Equal("b1", tunnel.BroadcastId);
             Assert.Equal("http", tunnel.Scheme);

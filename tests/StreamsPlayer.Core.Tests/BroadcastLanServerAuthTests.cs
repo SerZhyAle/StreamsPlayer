@@ -14,7 +14,8 @@ public sealed class BroadcastLanServerAuthTests
 {
     private const string AudioPath = "/live-audio.aac";
     private static readonly ExchangeRelayCredentials Listener = new("listener", "link password");
-    private static readonly TimeSpan Wait = TimeSpan.FromSeconds(10);
+    // Only guards a hung test; the replies arrive in milliseconds, and a loaded machine has taken seconds.
+    private static readonly TimeSpan Wait = TimeSpan.FromSeconds(30);
 
     private const string UnprotectedHead =
         "HTTP/1.1 200 OK\r\nContent-Type: audio/aac\r\nTransfer-Encoding: chunked\r\nAccept-Ranges: none\r\nCache-Control: no-cache\r\n"
@@ -391,7 +392,9 @@ public sealed class BroadcastLanServerAuthTests
     [Fact]
     public async Task ARefusedGuessIsHeldBackWithoutHoldingUpAnotherConnection()
     {
-        var (server, port) = StartServer(new BroadcastAttemptDamper(step: TimeSpan.FromSeconds(3), ceiling: TimeSpan.FromSeconds(3)));
+        // The guess is held for the whole test and released by the server's stop, so the hold has to outlast anything a loaded
+        // machine can spend between the guess and the stop; a three-second hold could elapse first and answer the guess.
+        var (server, port) = StartServer(new BroadcastAttemptDamper(step: TimeSpan.FromSeconds(20), ceiling: TimeSpan.FromSeconds(20)));
         await using var running = server;
         server.SetCredentials([Listener]);
         var challenge = await ChallengeAsync(port);

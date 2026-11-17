@@ -12,7 +12,12 @@ namespace StreamsPlayer.Core.Tests;
 /// </summary>
 public sealed class IcyReadOutcomeTests
 {
-    private static readonly TimeSpan TestDeadline = TimeSpan.FromSeconds(20);
+    // Only a guard against a hung test; every read here ends by its own outcome long before.
+    private static readonly TimeSpan TestDeadline = TimeSpan.FromSeconds(60);
+
+    // The reader's bounds where the server answers: far beyond what a loaded machine needs to start the loopback server, so
+    // the reader's own timeout never decides a test about something else. A test about a stall gives the stalled bound only.
+    private static readonly TimeSpan Patient = TimeSpan.FromSeconds(30);
     private static readonly Encoding Windows1251 = CodePagesEncodingProvider.Instance.GetEncoding(1251)!;
 
     [Fact]
@@ -133,7 +138,9 @@ public sealed class IcyReadOutcomeTests
         var recorder = new TitleRecorder();
         using var cts = new CancellationTokenSource(TestDeadline);
 
-        var result = await NewReader().ReadAsync(server.Url, recorder, cts.Token);
+        // The silence bound is the one under test, and it must outlast the server's burst of head, audio and title - so it is
+        // not the one-second bound of the tests that report nothing.
+        var result = await NewReader(silence: TimeSpan.FromSeconds(3)).ReadAsync(server.Url, recorder, cts.Token);
 
         Assert.Equal(IcyReadOutcome.TimedOut, result.Outcome);
         Assert.True(result.TitlesReported);
@@ -165,7 +172,7 @@ public sealed class IcyReadOutcomeTests
         listener.Stop();
         // Windows retries a refused loopback SYN for about two seconds before reporting it, so this
         // attempt needs a deadline longer than that or it reads as a timeout.
-        var reader = new IcyMetadataReader(SharedClient, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(1));
+        var reader = new IcyMetadataReader(SharedClient, Patient, TimeSpan.FromSeconds(1));
         using var cts = new CancellationTokenSource(TestDeadline);
 
         var result = await reader.ReadAsync($"http://127.0.0.1:{port}/", new TitleRecorder(), cts.Token);
@@ -179,7 +186,7 @@ public sealed class IcyReadOutcomeTests
     {
         using var server = LoopbackServer.Start((_, token) => Task.Delay(Timeout.Infinite, token));
 
-        Assert.Equal(IcyReadOutcome.TimedOut, await OutcomeOf(server.Url));
+        Assert.Equal(IcyReadOutcome.TimedOut, await OutcomeOf(server.Url, NewReader(connect: TimeSpan.FromSeconds(1))));
     }
 
     [Fact]
@@ -191,29 +198,30 @@ public sealed class IcyReadOutcomeTests
             await Task.Delay(Timeout.Infinite, token);
         });
 
-        Assert.Equal(IcyReadOutcome.TimedOut, await OutcomeOf(server.Url));
+        Assert.Equal(IcyReadOutcome.TimedOut, await OutcomeOf(server.Url, NewReader(silence: TimeSpan.FromSeconds(1))));
     }
 
     private const string MetaIntHead =
         "HTTP/1.1 200 OK\r\nContent-Type: audio/mpeg\r\nicy-metaint: 16\r\nConnection: close\r\n\r\n";
 
-    private static IcyMetadataReader NewReader() =>
-        new(SharedClient, connectTimeout: TimeSpan.FromSeconds(1), silenceTimeout: TimeSpan.FromSeconds(1));
+    /// <summary>A reader whose bounds are patient except the one a test names, so a slow start never reads as that stall.</summary>
+    private static IcyMetadataReader NewReader(TimeSpan? connect = null, TimeSpan? silence = null) =>
+        new(SharedClient, connectTimeout: connect ?? Patient, silenceTimeout: silence ?? Patient);
 
     private static readonly HttpClient SharedClient = new() { Timeout = Timeout.InfiniteTimeSpan };
 
     /// <summary>The outcome of a read expected to have reported nothing; the flag is checked here.</summary>
-    private static async Task<IcyReadOutcome> OutcomeOf(string url)
+    private static async Task<IcyReadOutcome> OutcomeOf(string url, IcyMetadataReader? reader = null)
     {
-        var result = await ReadResult(url);
+        var result = await ReadResult(url, reader ?? NewReader());
         Assert.False(result.TitlesReported);
         return result.Outcome;
     }
 
-    private static async Task<IcyReadResult> ReadResult(string url)
+    private static async Task<IcyReadResult> ReadResult(string url, IcyMetadataReader reader)
     {
         using var cts = new CancellationTokenSource(TestDeadline);
-        return await NewReader().ReadAsync(url, new TitleRecorder(), cts.Token);
+        return await reader.ReadAsync(url, new TitleRecorder(), cts.Token);
     }
 
     private static Task WriteAsciiAsync(Stream stream, string text, CancellationToken token) =>

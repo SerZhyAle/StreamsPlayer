@@ -10,33 +10,44 @@ namespace StreamsPlayer.Core.Tests;
 /// </summary>
 public sealed class HttpClientTimeoutPremiseTests
 {
-    private static readonly TimeSpan ClientTimeout = TimeSpan.FromSeconds(1);
-    private static readonly TimeSpan Observation = TimeSpan.FromSeconds(4);
+    // The stall the client has to cut. Short, because the server never answers and the test only waits for it.
+    private static readonly TimeSpan SilentHeadTimeout = TimeSpan.FromSeconds(1);
+
+    // The longest the cut may take before the test calls the client's timeout broken (see NetworkDeadlineTests.Limit).
+    private static readonly TimeSpan Limit = TimeSpan.FromSeconds(30);
+
+    // The timeout of a client whose server DOES send its head: long enough for a loaded machine to start the loopback
+    // server, so the head is never what the timeout cuts. Only the body read that follows is under test.
+    private static readonly TimeSpan HeadTimeout = TimeSpan.FromSeconds(3);
+
+    // How long a stalled body read is watched, past HeadTimeout by enough that "the timeout still applies" and "it does
+    // not" cannot be confused. Time only ever makes the read end later, so a loaded machine cannot shorten it.
+    private static readonly TimeSpan Observation = TimeSpan.FromSeconds(6);
 
     [Fact]
     public async Task ClientTimeout_BoundsTheWaitForHeaders()
     {
         await using var server = LoopbackHttpServer.SilentBeforeHeaders();
-        using var client = new HttpClient { Timeout = ClientTimeout };
+        using var client = new HttpClient { Timeout = SilentHeadTimeout };
         var clock = Stopwatch.StartNew();
 
         await Assert.ThrowsAsync<TaskCanceledException>(
-            () => client.GetAsync(server.Url, HttpCompletionOption.ResponseHeadersRead));
+            () => client.GetAsync(server.Url, HttpCompletionOption.ResponseHeadersRead).WaitAsync(Limit));
 
-        Assert.True(clock.Elapsed < Observation, $"took {clock.Elapsed}");
+        Assert.True(clock.Elapsed < Limit, $"took {clock.Elapsed}");
     }
 
     /// <summary>
     /// The answer the product relies on: once <c>SendAsync</c> has returned the headers, the client's
     /// timeout no longer applies. A stalled body read runs until the caller's own token ends it - here the
-    /// observation window, four times the client timeout - so a body is bounded only by a token the
+    /// observation window, twice the client timeout - so a body is bounded only by a token the
     /// caller passes to the read.
     /// </summary>
     [Fact]
     public async Task ClientTimeout_DoesNotBoundABodyReadAfterHeaders()
     {
         await using var server = LoopbackHttpServer.StallAfterHeaders("application/octet-stream", declaredLength: 4096, firstBytes: 16);
-        using var client = new HttpClient { Timeout = ClientTimeout };
+        using var client = new HttpClient { Timeout = HeadTimeout };
         using var response = await client.GetAsync(server.Url, HttpCompletionOption.ResponseHeadersRead);
         await using var body = await response.Content.ReadAsStreamAsync();
         using var observation = new CancellationTokenSource(Observation);

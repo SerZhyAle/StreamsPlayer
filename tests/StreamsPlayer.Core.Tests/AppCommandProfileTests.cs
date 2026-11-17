@@ -9,8 +9,14 @@ namespace StreamsPlayer.Core.Tests;
 // and the frozen launch line answered as before beside it.
 public sealed class AppCommandProfileTests
 {
-    private static readonly TimeSpan Connect = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan Completion = TimeSpan.FromSeconds(5);
+    // Waits that only guard against a hung test: the pipe appears and the answer arrives in milliseconds, and a loaded
+    // machine has taken seconds. The tests that prove a bound pass their own short one.
+    private static readonly TimeSpan Connect = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan Completion = TimeSpan.FromSeconds(30);
+
+    // How long a call that the product must cut short may take before the test calls the product's bound broken. The
+    // stalls below last a minute or never end, so a bound that does not work cannot meet it.
+    private static readonly TimeSpan Limit = TimeSpan.FromSeconds(20);
 
     [Fact]
     public async Task AForwardedCommandGetsItsAnswerOnTheSameConnection()
@@ -73,16 +79,16 @@ public sealed class AppCommandProfileTests
     {
         await using var harness = Harness.Start(async (request, cancellation) =>
         {
-            await Task.Delay(TimeSpan.FromSeconds(3), cancellation);
+            await Task.Delay(TimeSpan.FromMinutes(1), cancellation);
             return AppCommandResponse.Done(request.RequestId, "late");
         });
 
         var clock = System.Diagnostics.Stopwatch.StartNew();
-        var exchange = AppCommandClient.Send(harness.PipeName, AppCommandRequest.Create("status", []), Connect,
-            TimeSpan.FromMilliseconds(300));
+        var exchange = await Task.Run(() => AppCommandClient.Send(harness.PipeName, AppCommandRequest.Create("status", []), Connect,
+            TimeSpan.FromMilliseconds(300))).WaitAsync(Limit);
 
         Assert.Equal(AppCommandDelivery.NoAnswer, exchange.Delivery);
-        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(2.5), $"waited {clock.Elapsed}");
+        Assert.True(clock.Elapsed < Limit, $"waited {clock.Elapsed}");
     }
 
     [Fact]
@@ -96,11 +102,11 @@ public sealed class AppCommandProfileTests
         var clock = System.Diagnostics.Stopwatch.StartNew();
         var send = Task.Run(() => AppCommandClient.Send(pipeName, AppCommandRequest.Create("status", []), Connect,
             TimeSpan.FromMilliseconds(500)));
-        await connected;
-        var exchange = await send;
+        await connected.WaitAsync(Limit);
+        var exchange = await send.WaitAsync(Limit);
 
         Assert.Equal(AppCommandDelivery.NoAnswer, exchange.Delivery);
-        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(3), $"waited {clock.Elapsed}");
+        Assert.True(clock.Elapsed < Limit, $"waited {clock.Elapsed}");
     }
 
     [Fact]
@@ -119,6 +125,7 @@ public sealed class AppCommandProfileTests
         var pipeName = "sp-test-old-" + Guid.NewGuid().ToString("N");
         await using var older = new ActivationPipeListener(pipeName, requests.Add, (_, _) => { });
         older.Start();
+        NamedPipeReadiness.WaitUntilListed(pipeName);
 
         var exchange = AppCommandClient.Send(pipeName, AppCommandRequest.Create("status", []), Connect, Completion);
 
@@ -250,7 +257,7 @@ public sealed class AppCommandProfileTests
         });
 
         var send = Task.Run(() => AppCommandClient.Send(harness.PipeName, AppCommandRequest.Create("status", []), Connect, Completion));
-        for (var wait = 0; wait < 100 && harness.Commands.IsEmpty; wait++)
+        for (var wait = 0; wait < 600 && harness.Commands.IsEmpty; wait++)
         {
             await Task.Delay(50);
         }
@@ -346,6 +353,7 @@ public sealed class AppCommandProfileTests
         {
             var harness = new Harness(handler);
             harness.Listener.Start();
+            NamedPipeReadiness.WaitUntilListed(harness.PipeName);
             return harness;
         }
 

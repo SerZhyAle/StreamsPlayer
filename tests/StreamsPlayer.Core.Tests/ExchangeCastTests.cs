@@ -291,7 +291,7 @@ public sealed class ExchangeCastTests
         {
             promptToken = token;
             return new TaskCompletionSource<bool>().Task;
-        }, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10));
+        }, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(30));
 
         Assert.Equal(ExchangeCastDecision.TimedOut, decision);
         Assert.True(promptToken.IsCancellationRequested);
@@ -307,7 +307,7 @@ public sealed class ExchangeCastTests
             {
                 await Task.Delay(Timeout.Infinite, token);
                 return true;
-            }, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(10));
+            }, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(30));
 
         Assert.Equal(ExchangeCastDecision.TimedOut, decision);
     }
@@ -321,8 +321,8 @@ public sealed class ExchangeCastTests
         var first = coordinator.RequestDecisionAsync(Offered("c1", "b1"), neverAnswers, CancellationToken.None);
         var second = coordinator.RequestDecisionAsync(Offered("c2", "b2"), neverAnswers, CancellationToken.None);
 
-        Assert.Equal(ExchangeCastDecision.TimedOut, await first.WaitAsync(TimeSpan.FromSeconds(10)));
-        Assert.Equal(ExchangeCastDecision.TimedOut, await second.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(ExchangeCastDecision.TimedOut, await first.WaitAsync(TimeSpan.FromSeconds(30)));
+        Assert.Equal(ExchangeCastDecision.TimedOut, await second.WaitAsync(TimeSpan.FromSeconds(30)));
     }
 
     [Fact]
@@ -349,11 +349,11 @@ public sealed class ExchangeCastTests
             await Task.Delay(Timeout.Infinite, token);
             return true;
         }, session.Token);
-        await promptOpen.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await promptOpen.Task.WaitAsync(TimeSpan.FromSeconds(30));
 
         await session.CancelAsync();
 
-        Assert.Equal(ExchangeCastDecision.Declined, await pending.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(ExchangeCastDecision.Declined, await pending.WaitAsync(TimeSpan.FromSeconds(30)));
     }
 
     [Fact]
@@ -368,14 +368,14 @@ public sealed class ExchangeCastTests
             promptOpen.SetResult();
             return await release.Task;
         }, CancellationToken.None);
-        await promptOpen.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await promptOpen.Task.WaitAsync(TimeSpan.FromSeconds(30));
         var folded = coordinator.RequestDecisionAsync(Offered("c2", "b1"), (_, _) => Task.FromResult(true), CancellationToken.None);
 
         coordinator.CancelAll();
 
-        Assert.Equal(ExchangeCastDecision.Declined, await folded.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(ExchangeCastDecision.Declined, await folded.WaitAsync(TimeSpan.FromSeconds(30)));
         release.SetResult(true);
-        await primary.WaitAsync(TimeSpan.FromSeconds(10));
+        await primary.WaitAsync(TimeSpan.FromSeconds(30));
     }
 
     [Fact]
@@ -400,12 +400,12 @@ public sealed class ExchangeCastTests
         }
 
         var leader = coordinator.RequestDecisionAsync(Offered("leader", "b1"), Prompt, CancellationToken.None);
-        await leaderAsked.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await leaderAsked.Task.WaitAsync(TimeSpan.FromSeconds(30));
         await Task.Delay(1000);
         var repeat = coordinator.RequestDecisionAsync(Offered("repeat", "b1"), Prompt, CancellationToken.None);
 
-        Assert.Equal(ExchangeCastDecision.TimedOut, await leader.WaitAsync(TimeSpan.FromSeconds(10)));
-        Assert.Equal(ExchangeCastDecision.Accepted, await repeat.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(ExchangeCastDecision.TimedOut, await leader.WaitAsync(TimeSpan.FromSeconds(30)));
+        Assert.Equal(ExchangeCastDecision.Accepted, await repeat.WaitAsync(TimeSpan.FromSeconds(30)));
     }
 
     [Fact]
@@ -426,14 +426,14 @@ public sealed class ExchangeCastTests
         }
 
         var blocker = coordinator.RequestDecisionAsync(Offered("blocker", "b0"), Prompt, CancellationToken.None);
-        await blockerAsked.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await blockerAsked.Task.WaitAsync(TimeSpan.FromSeconds(30));
         var leader = coordinator.RequestDecisionAsync(Offered("leader", "b1"), Prompt, CancellationToken.None);
         await Task.Delay(1000);
         var repeat = coordinator.RequestDecisionAsync(Offered("repeat", "b1"), Prompt, CancellationToken.None);
 
-        Assert.Equal(ExchangeCastDecision.TimedOut, await blocker.WaitAsync(TimeSpan.FromSeconds(10)));
-        Assert.Equal(ExchangeCastDecision.TimedOut, await leader.WaitAsync(TimeSpan.FromSeconds(10)));
-        Assert.Equal(ExchangeCastDecision.Accepted, await repeat.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(ExchangeCastDecision.TimedOut, await blocker.WaitAsync(TimeSpan.FromSeconds(30)));
+        Assert.Equal(ExchangeCastDecision.TimedOut, await leader.WaitAsync(TimeSpan.FromSeconds(30)));
+        Assert.Equal(ExchangeCastDecision.Accepted, await repeat.WaitAsync(TimeSpan.FromSeconds(30)));
     }
 
     [Fact]
@@ -451,12 +451,12 @@ public sealed class ExchangeCastTests
         }
 
         var leader = coordinator.RequestDecisionAsync(Offered("leader", "b1"), Prompt, CancellationToken.None);
-        await asked.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await asked.Task.WaitAsync(TimeSpan.FromSeconds(30));
         var repeat = coordinator.RequestDecisionAsync(Offered("repeat", "b1"), Prompt, CancellationToken.None);
         answer.SetResult(false);
 
-        Assert.Equal(ExchangeCastDecision.Declined, await leader.WaitAsync(TimeSpan.FromSeconds(10)));
-        Assert.Equal(ExchangeCastDecision.Declined, await repeat.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.Equal(ExchangeCastDecision.Declined, await leader.WaitAsync(TimeSpan.FromSeconds(30)));
+        Assert.Equal(ExchangeCastDecision.Declined, await repeat.WaitAsync(TimeSpan.FromSeconds(30)));
         Assert.Equal(1, Volatile.Read(ref calls));
     }
 
@@ -611,7 +611,7 @@ public sealed class ExchangeCastTests
     }
     private static async Task Until(Func<bool> condition)
     {
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         while (!condition())
         {
             await Task.Delay(10, deadline.Token);

@@ -89,7 +89,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             {
                 // SP-0222: the session lists only when a lease asks, so the test is the list that is open.
                 using var lease = service.AcquireDirectory(follow: true);
-                await listed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                await listed.Task.WaitAsync(TimeSpan.FromSeconds(30));
                 await Until(() => service.Directory is not null);
                 Assert.Equal(pin, service.Account.Pin);
                 Assert.DoesNotContain(new string('k', 43), Encoding.UTF8.GetString(File.ReadAllBytes(Path.Combine(scope.Path, "exchange-account.bin"))));
@@ -139,9 +139,9 @@ public sealed partial class ExchangeLoopRecoveryTests
         var secret = "private-password".ToCharArray();
         var joining = service.EnrollAsync("localhost", server.Port, "private-login", false, secret, pin,
             cancellationToken: cancellation.Token, requireImportedPin: true);
-        await pending.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        await pending.Task.WaitAsync(TimeSpan.FromSeconds(30));
         cancellation.Cancel();
-        await joining.WaitAsync(TimeSpan.FromSeconds(5));
+        await joining.WaitAsync(TimeSpan.FromSeconds(30));
         Assert.All(secret, c => Assert.Equal('\0', c));
         Assert.Null(service.Account.Token);
         Assert.Equal("ExchangeJoinCancelled", service.EnrollmentOutcomeKey);
@@ -228,7 +228,7 @@ public sealed partial class ExchangeLoopRecoveryTests
             Assert.Equal(service.Account.DeviceId, new ExchangeAccountStore(scope.Path).Load().DeviceId);
             // SP-0222: the session lists only when a lease asks, so the test is the list that is open.
             using var lease = service.AcquireDirectory(follow: true);
-            await listed.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            await listed.Task.WaitAsync(TimeSpan.FromSeconds(30));
         }
         finally { await service.StopAsync(); }
         Assert.Equal(2, server.Connections);

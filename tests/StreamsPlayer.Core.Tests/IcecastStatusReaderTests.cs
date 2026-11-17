@@ -12,8 +12,12 @@ namespace StreamsPlayer.Core.Tests;
 /// </summary>
 public sealed class IcecastStatusReaderTests
 {
-    private static readonly TimeSpan TestDeadline = TimeSpan.FromSeconds(20);
-    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(5);
+    // Only a guard against a hung test; every scenario here ends by its own outcome long before.
+    private static readonly TimeSpan TestDeadline = TimeSpan.FromSeconds(60);
+
+    // Every scripted server here answers at once, so the request deadline only has to be out of reach of a loaded machine.
+    // The tests that prove the deadline give up are in NetworkDeadlineTests, against a server that stalls.
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan FastPoll = TimeSpan.FromMilliseconds(25);
 
     [Fact]

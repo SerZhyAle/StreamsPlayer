@@ -143,7 +143,7 @@ public sealed class ExchangeDirectoryLeaseTests
             {
                 await DirectoryFixtureServer.UntilAsync(() => server.Seen().Contains("list"), "no list after the ask");
                 await server.SendAsync(Directory(1, "phone", "b1"));
-                Assert.True(await service.WaitForDirectoryAsync(TimeSpan.FromSeconds(5)));
+                Assert.True(await service.WaitForDirectoryAsync(TimeSpan.FromSeconds(30)));
                 Assert.Contains("b1", service.Directory!.LiveBroadcastIds);
 
                 // Asked, not followed: a push changes nothing.
@@ -201,11 +201,11 @@ public sealed class ExchangeDirectoryLeaseTests
             await DirectoryFixtureServer.UntilAsync(() => service.Directory is not null && service.IsDirectoryFresh, "directory not fresh");
 
             // Explicit refresh asks for list again
-            var refreshTask = service.RefreshDirectoryAsync(TimeSpan.FromSeconds(3));
+            var refreshTask = service.RefreshDirectoryAsync(TimeSpan.FromSeconds(30));
             Assert.False(service.IsDirectoryFresh);
 
             // Concurrent call returns immediately without error
-            var concurrentTask = service.RefreshDirectoryAsync(TimeSpan.FromSeconds(3));
+            var concurrentTask = service.RefreshDirectoryAsync(TimeSpan.FromSeconds(30));
             Assert.True(await concurrentTask);
 
             // Server responds with revision 2

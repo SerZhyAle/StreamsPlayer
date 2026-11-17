@@ -15,7 +15,11 @@ namespace StreamsPlayer.Core.Tests;
 public sealed class ExchangeTunnelForwarderTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromMilliseconds(200);
-    private static readonly TimeSpan Limit = TimeSpan.FromSeconds(5);
+
+    // The stalled connect never completes by itself, so without the deadline this read never ends; the limit only has to be
+    // out of reach of a loaded machine (seven seconds were measured for a one-second bound on a CI runner) and far below
+    // that, and the guard on the read turns the hang into a failure at the limit.
+    private static readonly TimeSpan Limit = TimeSpan.FromSeconds(30);
 
     [Fact]
     public async Task AStalledConnectEndsWithinTheConnectDeadline()
@@ -38,7 +42,7 @@ public sealed class ExchangeTunnelForwarderTests
             await client.ConnectAsync(IPAddress.Loopback, forwarder.BoundPort);
             using var stream = client.GetStream();
             var clock = Stopwatch.StartNew();
-            var read = await stream.ReadAsync(new byte[16]);
+            var read = await stream.ReadAsync(new byte[16]).AsTask().WaitAsync(Limit);
             Assert.Equal(0, read); // the refused-under-deadline connect closes the client side
             Assert.True(clock.Elapsed < Limit, $"the connect took {clock.Elapsed} to give up; the deadline is {Deadline}");
             Assert.Equal(1, forwarder.ConnectAttempts);

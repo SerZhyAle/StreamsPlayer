@@ -20,7 +20,7 @@ public sealed class BroadcastAudioReadStreamTests
             await tap.ReadExactlyAsync(decoded.AsMemory(0, 4096));
             Assert.True(tap.StartRecording(new RecordingTarget(directory, null, [], CaptureKind.StreamAudio), log));
             var recorder = Assert.IsType<BroadcastAudioRecorder>(tap.EndRecording());
-            await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(5));
+            await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(30));
             Assert.True(recorder.Failed);
             await tap.ReadExactlyAsync(decoded.AsMemory(4096));
             Assert.Equal(source, decoded);
@@ -86,7 +86,7 @@ public sealed class BroadcastAudioReadStreamTests
             while (await tap.ReadAsync(buffer) != 0) { }
             Assert.False(tap.CanRecord);
             var recorder = Assert.IsType<BroadcastAudioRecorder>(tap.EndRecording());
-            await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(5));
+            await recorder.Completion.WaitAsync(TimeSpan.FromSeconds(30));
             Assert.False(recorder.Failed);
         }
         finally

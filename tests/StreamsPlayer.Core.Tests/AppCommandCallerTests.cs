@@ -131,7 +131,7 @@ public sealed class AppCommandCallerTests
             IsBackground = true
         };
         holder.Start();
-        Assert.True(ready.Wait(TimeSpan.FromSeconds(5)));
+        Assert.True(ready.Wait(TimeSpan.FromSeconds(30)));
         try
         {
             var closing = AppCommandCaller.AwaitClose(identity, Id, TimeSpan.FromMilliseconds(200));
@@ -142,7 +142,7 @@ public sealed class AppCommandCallerTests
         finally
         {
             release.Set();
-            holder.Join(TimeSpan.FromSeconds(5));
+            holder.Join(TimeSpan.FromSeconds(30));
         }
     }
 

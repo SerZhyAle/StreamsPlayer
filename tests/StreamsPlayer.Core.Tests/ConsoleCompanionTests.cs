@@ -291,7 +291,7 @@ public sealed class ConsoleCompanionTests
                 IsBackground = true
             };
             _thread.Start();
-            Assert.True(ready.Wait(TimeSpan.FromSeconds(5)), "the lock holder did not start");
+            Assert.True(ready.Wait(TimeSpan.FromSeconds(30)), "the lock holder did not start");
             Assert.True(acquired, "the lock holder could not take the lock");
         }
 
@@ -300,7 +300,7 @@ public sealed class ConsoleCompanionTests
         public void Dispose()
         {
             _release.Set();
-            _thread.Join(TimeSpan.FromSeconds(5));
+            _thread.Join(TimeSpan.FromSeconds(30));
             _release.Dispose();
         }
     }
@@ -321,6 +321,10 @@ public sealed class ConsoleCompanionTests
                 return Task.FromResult(answer(request, this));
             });
             _listener.Start();
+
+            // Start() only schedules the accept loop. The companion gives a pipe one second to appear and answers 11 when
+            // it does not, so the test must not begin before the listener has really created its pipe.
+            NamedPipeReadiness.WaitUntilListed(Identity.PipeName);
         }
 
         public SingleInstanceIdentity Identity { get; }

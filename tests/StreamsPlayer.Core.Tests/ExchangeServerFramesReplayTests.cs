@@ -325,7 +325,7 @@ public sealed class ExchangeServerFramesReplayTests
             certFingerprint: null, maxConnections: 1, streamConnector: (_, _, _, _) => Task.FromResult<Stream>(exchange));
         using var client = new TcpClient();
         await client.ConnectAsync(IPAddress.Loopback, forwarder.BoundPort);
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         while (forwarder.ConnectedCount == 0)
         {
             await Task.Delay(10, deadline.Token);

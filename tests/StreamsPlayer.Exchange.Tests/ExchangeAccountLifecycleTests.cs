@@ -44,8 +44,8 @@ public sealed partial class ExchangeLoopRecoveryTests
                 await Until(() => frames.Contains("keepalive"));
             }
 
-            await service.ForgetAsync().WaitAsync(TimeSpan.FromSeconds(10));
-            Assert.Equal(original.DeviceId, await revoked.Task.WaitAsync(TimeSpan.FromSeconds(5)));
+            await service.ForgetAsync().WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.Equal(original.DeviceId, await revoked.Task.WaitAsync(TimeSpan.FromSeconds(30)));
             Assert.DoesNotContain("bye", frames);
             Assert.Equal("revoke", frames.Last());
             Assert.Equal(1, server.Connections);
@@ -73,7 +73,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         scope.Save(original);
         var service = new ExchangeSourceService(scope.Path);
         service.Start();
-        await service.ForgetAsync().WaitAsync(TimeSpan.FromSeconds(10));
+        await service.ForgetAsync().WaitAsync(TimeSpan.FromSeconds(30));
         Assert.Equal("ExchangeForgottenOffline", service.StatusKey);
         AssertForgotten(scope.Path, original.DeviceId);
         service.Start();
@@ -97,7 +97,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         var original = Account(server.Port, oldCertificate) with { Enabled = false };
         scope.Save(original);
         var service = new ExchangeSourceService(scope.Path);
-        await service.ForgetAsync().WaitAsync(TimeSpan.FromSeconds(10));
+        await service.ForgetAsync().WaitAsync(TimeSpan.FromSeconds(30));
         // Schannel may finish the server side of TLS even though the client refused the leaf.
         // The security boundary is the opening frame, not the server's TLS connection count.
         Assert.False(credentialsSent);
@@ -290,7 +290,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         try
         {
             await service.EnrollAsync("localhost", server.Port, "another-login", false, ['p', 'w'], original.Pin, original);
-            await revoked.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await revoked.Task.WaitAsync(TimeSpan.FromSeconds(30));
             Assert.Equal(new[] { "enroll", "revoke" }, order);
             Assert.Equal("another-login", service.Account.Login);
             Assert.NotEqual(original.DeviceId, service.Account.DeviceId);

@@ -256,7 +256,7 @@ public sealed class BroadcastResourceTests
         using var client = new HttpClient();
 
         // The DEAD address is stored first: the race must still find the live one.
-        var winner = await BroadcastUrl.RaceAsync(client, [dead, live.Url], TimeSpan.FromSeconds(10));
+        var winner = await BroadcastUrl.RaceAsync(client, [dead, live.Url], TimeSpan.FromSeconds(30));
         Assert.Equal(live.Url, winner);
     }
 
@@ -265,7 +265,7 @@ public sealed class BroadcastResourceTests
     {
         using var server = new MinimalHttpServer(allowHead: false);
         using var client = new HttpClient();
-        var winner = await BroadcastUrl.RaceAsync(client, [server.Url], TimeSpan.FromSeconds(10));
+        var winner = await BroadcastUrl.RaceAsync(client, [server.Url], TimeSpan.FromSeconds(30));
         Assert.Equal(server.Url, winner);
     }
 
