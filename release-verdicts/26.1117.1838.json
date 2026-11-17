@@ -1,0 +1,16 @@
+{
+  "gate": "smoke-playback",
+  "result": "PASS",
+  "version": "26.1117.1838",
+  "commit": "acc20336b8efa51c62e5e3cbcdb075dcb7b205dc",
+  "when": "2026-11-17T18:53:19+01:00",
+  "skipped": [],
+  "companion": {
+    "commandsJsonExit": 0,
+    "commandsListed": 14,
+    "statusNoneRunningExit": 11,
+    "startVerbExit": 10,
+    "statusRunningExit": 0,
+    "answeredBySmokeCopy": true
+  }
+}
