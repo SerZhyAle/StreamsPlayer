@@ -173,11 +173,25 @@ jobs:
           $v = $env:RELEASE_VERSION
           dotnet build StreamsPlayer.sln -c Release --no-restore "-p:Version=$v" "-p:AssemblyVersion=$v" "-p:FileVersion=$v" "-p:InformationalVersion=$v"
           if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
+      # The owner may waive the suite for one named version (release-verdicts/<version>.waiver.json); the run then
+      # carries a warning saying the tests did not run. Without that file the Test step is mandatory.
+      - name: Read the test-suite waiver for this version
+        id: waiver
+        if: steps.existing.outputs.complete != 'true'
+        run: |
+          . ./scripts/ReleaseWaiver.ps1
+          $waiver = Get-ReleaseWaiver -Version $env:RELEASE_VERSION -Root $PWD.Path -Gate 'test-suite'
+          if ($waiver) {
+            Write-ReleaseWaiverNotice -Waiver $waiver -Gate 'test-suite'
+            "tests=waived" | Out-File $env:GITHUB_OUTPUT -Append
+          } else {
+            "tests=required" | Out-File $env:GITHUB_OUTPUT -Append
+          }
       - name: Test
         # BUILD-EVIDENCE rule 8, binding 1 - tests in the publishing job: this job builds the artifacts and runs
         # the suite on the same tree, and reads the version back from what it built. The binding is stated in
         # docs/contracts/CHECK-VERDICT.md.
-        if: steps.existing.outputs.complete != 'true'
+        if: steps.existing.outputs.complete != 'true' && steps.waiver.outputs.tests != 'waived'
         run: |
           pwsh -NoProfile -File scripts/test.ps1 -Configuration Release -NoBuild
           if ($LASTEXITCODE -ne 0) { throw "Tests failed (exit $LASTEXITCODE)." }

@@ -66,6 +66,52 @@ Version REPLACE_VERSION
 - REPLACE_USER_VISIBLE_CHANGE
 ```
 
+### Prepared for 26.1127.1125
+
+The package that adds control from the account's other devices with the External control window, the `broadcast start` and
+`broadcast stop` commands, the untrusted-certificate verdict and the command-line fixes of the 26.1117 audit. Published
+without the smoke, audit and test gates on the owner's decision (`release-verdicts/26.1127.1125.waiver.json`). The three
+blocks below are the files `msix/listing/release-notes/26.1127.1125.*.txt`.
+
+```text
+Version 26.1127.1125
+
+- Control StreamsPlayer from your other devices through your own exchange server: show it, play, pause, resume and stop streams, set the volume and close it. Off until you turn it on.
+- The new External control window chooses which devices may send commands, which kinds run at once or ask you first, and lists recent requests.
+- Scripts can start and stop a broadcast of the microphone, system sound, screen or camera. StreamsPlayerCli.exe, installed by the zip, the installer and winget, has the commands broadcast start and broadcast stop.
+- A stream whose security certificate this computer does not trust now says so at once instead of retrying.
+- Settings: an unavailable option says why, a narrow window moves the pages into a menu, and About links to support and downloads.
+- Fixed: commands sent while the app is still loading answer "busy", a failed command no longer reports success, and a setting that cannot be saved switches back.
+- Logs hide the access tokens of local broadcast links.
+- The offline help (F1) has a page on External control.
+```
+
+```text
+Версия 26.1127.1125
+
+- Управляйте StreamsPlayer с других своих устройств через собственный сервер обмена: показать окно, воспроизвести, поставить на паузу, продолжить и остановить трансляцию, задать громкость и закрыть программу. Выключено, пока вы не включите.
+- Новое окно «Внешнее управление»: какие устройства могут присылать команды, какие выполняются сразу, а какие сначала спрашивают вас, и список последних запросов.
+- Скрипты могут запускать и останавливать трансляцию микрофона, звука системы, экрана или камеры. В StreamsPlayerCli.exe, который ставят zip, установщик и winget, появились команды broadcast start и broadcast stop.
+- Если компьютер не доверяет сертификату безопасности трансляции, программа сразу говорит об этом и не повторяет попытки.
+- Настройки: недоступная опция объясняет причину, в узком окне страницы уходят в меню, а в «О программе» есть ссылки на поддержку и загрузки.
+- Исправлено: команды во время загрузки программы отвечают «занято», неудачная команда больше не сообщает об успехе, а настройка, которую не удалось сохранить, возвращается назад.
+- В журналах скрыты ключи доступа локальных ссылок трансляций.
+- Во встроенной справке (F1) есть страница о внешнем управлении.
+```
+
+```text
+Версія 26.1127.1125
+
+- Керуйте StreamsPlayer з інших своїх пристроїв через власний сервер обміну: показати вікно, відтворити, поставити на паузу, продовжити й зупинити потік, задати гучність і закрити програму. Вимкнено, доки ви не ввімкнете.
+- Нове вікно «Зовнішнє керування»: які пристрої можуть надсилати команди, які виконуються одразу, а які спершу питають вас, і перелік останніх запитів.
+- Скрипти можуть запускати й зупиняти трансляцію мікрофона, звуку системи, екрана або камери. У StreamsPlayerCli.exe, який встановлюють zip, інсталятор і winget, з’явилися команди broadcast start і broadcast stop.
+- Якщо комп’ютер не довіряє сертифікату безпеки потоку, програма одразу про це каже й не повторює спроби.
+- Налаштування: недоступна опція пояснює причину, у вузькому вікні сторінки переходять до меню, а в «Про програму» є посилання на підтримку й завантаження.
+- Виправлено: команди під час завантаження програми відповідають «зайнято», невдала команда більше не повідомляє про успіх, а налаштування, яке не вдалося зберегти, повертається назад.
+- У журналах приховано ключі доступу локальних посилань трансляцій.
+- У вбудованій довідці (F1) є сторінка про зовнішнє керування.
+```
+
 ### Prepared for 26.1117.1838
 
 Supersedes nothing: 26.1112.1622 is prepared below. This is the package that adds the command line for scripts and other

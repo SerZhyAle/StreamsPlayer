@@ -1,0 +1,10 @@
+Version 26.1127.1125
+
+- Control StreamsPlayer from your other devices through your own exchange server: show it, play, pause, resume and stop streams, set the volume and close it. Off until you turn it on.
+- The new External control window chooses which devices may send commands, which kinds run at once or ask you first, and lists recent requests.
+- Scripts can start and stop a broadcast of the microphone, system sound, screen or camera. StreamsPlayerCli.exe, installed by the zip, the installer and winget, has the commands broadcast start and broadcast stop.
+- A stream whose security certificate this computer does not trust now says so at once instead of retrying.
+- Settings: an unavailable option says why, a narrow window moves the pages into a menu, and About links to support and downloads.
+- Fixed: commands sent while the app is still loading answer "busy", a failed command no longer reports success, and a setting that cannot be saved switches back.
+- Logs hide the access tokens of local broadcast links.
+- The offline help (F1) has a page on External control.

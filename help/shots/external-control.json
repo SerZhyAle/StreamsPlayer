@@ -1,0 +1,270 @@
+{
+  "version": "26.1127.1125",
+  "shots": [
+    {
+      "locale": "en",
+      "theme": "light",
+      "width": 720,
+      "height": 760,
+      "markers": [
+        {
+          "id": "remote-listening",
+          "x": 30,
+          "y": 104,
+          "width": 672,
+          "height": 51.96
+        },
+        {
+          "id": "remote-consent",
+          "x": 18,
+          "y": 193.92000000000002,
+          "width": 684,
+          "height": 145.84
+        },
+        {
+          "id": "remote-controllers",
+          "x": 18,
+          "y": 347.76,
+          "width": 684,
+          "height": 71
+        },
+        {
+          "id": "remote-commands",
+          "x": 18,
+          "y": 426.76,
+          "width": 684,
+          "height": 32
+        },
+        {
+          "id": "remote-log",
+          "x": 18,
+          "y": 466.76,
+          "width": 684,
+          "height": 89.96000000000001
+        }
+      ],
+      "sha256": "D965835AE9BF868291B59B78FF7F8E90753F80939551936BACAAA1A135FE3F89"
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "width": 720,
+      "height": 760,
+      "markers": [
+        {
+          "id": "remote-listening",
+          "x": 30,
+          "y": 104,
+          "width": 672,
+          "height": 51.96
+        },
+        {
+          "id": "remote-consent",
+          "x": 18,
+          "y": 193.92000000000002,
+          "width": 684,
+          "height": 145.84
+        },
+        {
+          "id": "remote-controllers",
+          "x": 18,
+          "y": 347.76,
+          "width": 684,
+          "height": 71
+        },
+        {
+          "id": "remote-commands",
+          "x": 18,
+          "y": 426.76,
+          "width": 684,
+          "height": 32
+        },
+        {
+          "id": "remote-log",
+          "x": 18,
+          "y": 466.76,
+          "width": 684,
+          "height": 89.96000000000001
+        }
+      ],
+      "sha256": "B745B5156084E02A06382CC70A2110A4517EB1408F969C3C24584C48257D9255"
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "width": 720,
+      "height": 760,
+      "markers": [
+        {
+          "id": "remote-listening",
+          "x": 30,
+          "y": 104,
+          "width": 672,
+          "height": 51.96
+        },
+        {
+          "id": "remote-consent",
+          "x": 18,
+          "y": 193.92000000000002,
+          "width": 684,
+          "height": 145.84
+        },
+        {
+          "id": "remote-controllers",
+          "x": 18,
+          "y": 347.76,
+          "width": 684,
+          "height": 71
+        },
+        {
+          "id": "remote-commands",
+          "x": 18,
+          "y": 426.76,
+          "width": 684,
+          "height": 32
+        },
+        {
+          "id": "remote-log",
+          "x": 18,
+          "y": 466.76,
+          "width": 684,
+          "height": 89.96000000000001
+        }
+      ],
+      "sha256": "419AE830D5746944FFB57FEF5FA38BCFF39730EDEDE6D85AED98C3E3EC007494"
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "width": 720,
+      "height": 760,
+      "markers": [
+        {
+          "id": "remote-listening",
+          "x": 30,
+          "y": 104,
+          "width": 672,
+          "height": 51.96
+        },
+        {
+          "id": "remote-consent",
+          "x": 18,
+          "y": 193.92000000000002,
+          "width": 684,
+          "height": 145.84
+        },
+        {
+          "id": "remote-controllers",
+          "x": 18,
+          "y": 347.76,
+          "width": 684,
+          "height": 71
+        },
+        {
+          "id": "remote-commands",
+          "x": 18,
+          "y": 426.76,
+          "width": 684,
+          "height": 32
+        },
+        {
+          "id": "remote-log",
+          "x": 18,
+          "y": 466.76,
+          "width": 684,
+          "height": 89.96000000000001
+        }
+      ],
+      "sha256": "75C1BDBBC27B1DD2E281FDAC609EB006E5712D386FFB6A809DB0471E37A91B47"
+    },
+    {
+      "locale": "uk",
+      "theme": "light",
+      "width": 720,
+      "height": 760,
+      "markers": [
+        {
+          "id": "remote-listening",
+          "x": 30,
+          "y": 104,
+          "width": 672,
+          "height": 51.96
+        },
+        {
+          "id": "remote-consent",
+          "x": 18,
+          "y": 193.92000000000002,
+          "width": 684,
+          "height": 145.84
+        },
+        {
+          "id": "remote-controllers",
+          "x": 18,
+          "y": 347.76,
+          "width": 684,
+          "height": 71
+        },
+        {
+          "id": "remote-commands",
+          "x": 18,
+          "y": 426.76,
+          "width": 684,
+          "height": 32
+        },
+        {
+          "id": "remote-log",
+          "x": 18,
+          "y": 466.76,
+          "width": 684,
+          "height": 89.96000000000001
+        }
+      ],
+      "sha256": "B62836FFB62E817D44F664B59EE0F3085E697FAC6B6840F71F29387598515FA9"
+    },
+    {
+      "locale": "uk",
+      "theme": "dark",
+      "width": 720,
+      "height": 760,
+      "markers": [
+        {
+          "id": "remote-listening",
+          "x": 30,
+          "y": 104,
+          "width": 672,
+          "height": 51.96
+        },
+        {
+          "id": "remote-consent",
+          "x": 18,
+          "y": 193.92000000000002,
+          "width": 684,
+          "height": 145.84
+        },
+        {
+          "id": "remote-controllers",
+          "x": 18,
+          "y": 347.76,
+          "width": 684,
+          "height": 71
+        },
+        {
+          "id": "remote-commands",
+          "x": 18,
+          "y": 426.76,
+          "width": 684,
+          "height": 32
+        },
+        {
+          "id": "remote-log",
+          "x": 18,
+          "y": 466.76,
+          "width": 684,
+          "height": 89.96000000000001
+        }
+      ],
+      "sha256": "5625FB45CF36E46EC2BE1BBCAFAD08304DA655648450CA19DF0650D86C336F9E"
+    }
+  ],
+  "date": "2026-11-27"
+}

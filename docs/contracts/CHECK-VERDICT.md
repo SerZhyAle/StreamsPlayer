@@ -23,6 +23,11 @@ decisions: the first-failure stop at restore/build, the `Assert-*` throwers' oth
 verdict line. Adoption stays partial; smoke-playback evidence remains independently mandatory for release. None of
 this was run to the release tier: the registry rows move after the release suite.
 
+Release waiver (2026-11-27): the owner may waive `smoke-playback`, `code-audit` and `test-suite` for one named
+version through `release-verdicts/<version>.waiver.json` (`scripts/ReleaseWaiver.ps1`). The gate then warns that it
+did not run; a recorded verdict is never covered, and a version without the file is gated as before. First used for
+`26.1127.1125`, which therefore does not meet BUILD-EVIDENCE rule 8 (dated exception in the catalog registry).
+
 CHECK-PLACEMENT (0.11), since STRWIN-0239 P6 (2026-11-23): `scripts/check-placement.jsonl` holds one judged
 record per check (50 records: 19 per-change, 8 release, 4 build, 19 hand-run; the repo has a per-change runner -
 ci.yml runs the fast tier on every push - so no "none" declaration is owed), and

@@ -54,6 +54,9 @@ if ($Version -notmatch '^\d{2}\.\d{4}\.\d{4}$') { throw "Version '$Version' must
 
 $path = Join-Path $Root "release-verdicts/$Version.audit.json"
 if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+    . (Join-Path $PSScriptRoot 'ReleaseWaiver.ps1')
+    $waiver = Get-ReleaseWaiver -Version $Version -Root $Root -Gate 'code-audit'
+    if ($waiver) { Write-ReleaseWaiverNotice -Waiver $waiver -Gate 'code-audit'; return }
     throw "No code-audit verdict for $Version at release-verdicts/$Version.audit.json. Audit the candidate (docs/agent/CODE_AUDIT.md), run scripts/Write-AuditVerdict.ps1 on a clean committed tree, and commit the file before tagging."
 }
 try { $v = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json -ErrorAction Stop }

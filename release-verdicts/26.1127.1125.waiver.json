@@ -1,0 +1,16 @@
+{
+  "record": "release-waiver",
+  "version": "26.1127.1125",
+  "decidedBy": "Serhii Zhyhunenko (SerZhyAle), owner",
+  "decidedOn": "2026-11-27",
+  "decision": "The owner ordered a build and publication to all channels without long full testing and without UI runs (those move to the next release). Told that release.yml requires a playback smoke verdict, a code-audit verdict and the CI test suite, and that a release once shipped a player that played nothing while its tests were green, the owner chose to waive all checks.",
+  "waived": ["smoke-playback", "code-audit", "test-suite"],
+  "notRun": [
+    "scripts/smoke-playback.ps1",
+    "the code-audit campaign of docs/agent/CODE_AUDIT.md (97 audited files changed since the 26.1117.1838 audit)",
+    "scripts/check.ps1",
+    "scripts/test.ps1, locally and in release.yml",
+    "installation of the self-signed MSIX and of the setup EXE"
+  ],
+  "deferredTo": "the next release"
+}

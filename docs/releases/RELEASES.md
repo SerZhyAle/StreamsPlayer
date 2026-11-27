@@ -17,7 +17,7 @@ What each package was built as last, what each channel carries, and every public
 | Package | Flavor | Kind | Version | Built | Artifact |
 | --- | --- | --- | --- | --- | --- |
 | app | win-x64 | debug | 26.1123.0218 | 2026-11-23 02:19:01+01:00 | - |
-| app | win-x64 | test | 26.1123.0210 | 2026-11-23 02:10:34+01:00 | artifacts/local/win-x64/StreamsPlayer.exe |
+| app | win-x64 | test | 26.1127.1120 | 2026-11-27 11:20:19+01:00 | - |
 
 ## History
 

@@ -32,6 +32,9 @@ if (-not $Root) { $Root = Split-Path $PSScriptRoot -Parent }
 
 $verdictPath = Join-Path $Root (Join-Path 'release-verdicts' "$Version.json")
 if (-not (Test-Path -LiteralPath $verdictPath)) {
+    . (Join-Path $PSScriptRoot 'ReleaseWaiver.ps1')
+    $waiver = Get-ReleaseWaiver -Version $Version -Root $Root -Gate 'smoke-playback'
+    if ($waiver) { Write-ReleaseWaiverNotice -Waiver $waiver -Gate 'smoke-playback'; return }
     throw "No smoke verdict for $Version at $verdictPath in this tree. Run scripts/smoke-playback.ps1 on a clean committed tree, commit release-verdicts/$Version.json, and put the tag on that commit."
 }
 $verdict = Get-Content -LiteralPath $verdictPath -Raw | ConvertFrom-Json
