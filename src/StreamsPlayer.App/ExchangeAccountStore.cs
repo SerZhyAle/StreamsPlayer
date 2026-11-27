@@ -16,7 +16,7 @@ namespace StreamsPlayer.App;
 internal sealed record ExchangeAccount(string DeviceId, string Host = "", int Port = 0, string Login = "",
     string? Token = null, string? Pin = null, bool Enabled = false, bool AutoAcceptCasts = false,
     string? PinKey = null, bool Guest = false, bool SignedOut = false,
-    string? E2ePrivateKey = null, string? E2eKem = null)
+    string? E2ePrivateKey = null, string? E2eKem = null, bool DeclaresCommands = false)
 {
     /// <summary>
     /// SP-0226 / item DF: this entry's device key pair, or null for an entry made before sealing existed (the

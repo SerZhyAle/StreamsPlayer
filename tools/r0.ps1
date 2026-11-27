@@ -44,8 +44,8 @@
     (`& .\r0.ps1 -ChildArgs @(..)`) or edit the default.
 
 .PARAMETER WorkStatuses
-    The statuses that still have work left. Block* statuses, Verified and Archived are not in it, so a
-    parked or finished ticket is never picked.
+    The statuses that still have work left. Block* statuses, Implemented, Verified and Archived are not
+    in it, so a parked or finished ticket is never picked.
 
 .PARAMETER ClearOnStart
     Directories whose CONTENTS are removed once at start. Pass an empty array when the project keeps none.
@@ -73,7 +73,7 @@ Exit codes:
 param(
     [string]   $Root           = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path,
     [string]   $Journal        = 'PLAN/spec-catalog.jsonl',
-    [string]   $Queue          = 'PLAN/PQ_QUEUE.md',
+    [string]   $Queue          = 'PLAN/RELEASE_QUEUE.md',
     [string]   $RunsDir        = 'temp/spec-queue',
     [string]   $StopFile       = 'temp/STOP-SPEC-QUEUE',
     [string]   $Instance       = 'mono',
@@ -84,7 +84,7 @@ param(
     [string]   $Model          = '',
     [string[]] $ChildArgs      = @(),
     [string]   $IdRegex        = 'SP-\d{4}',
-    [string[]] $WorkStatuses   = @('Draft', 'Approved', 'Tactical', 'In Progress', 'Implemented', 'Partial', 'Broken'),
+    [string[]] $WorkStatuses   = @('Draft', 'Approved', 'Tactical', 'In Progress', 'Partial', 'Broken'),
     [string[]] $ClearOnStart   = @('temp/SPEC-TICKET.LEASES'),
     [string]   $LocksDir       = 'temp',
     [int]      $MaxTickets     = 0,

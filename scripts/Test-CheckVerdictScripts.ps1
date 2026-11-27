@@ -96,7 +96,7 @@ try {
     $existing = Join-Path $work 'results'
     New-Item -ItemType Directory -Path $existing | Out-Null
     $r = Invoke-Script (Join-Path $repo 'scripts/test.ps1') @('-ResultsDirectory', $existing)
-    Expect $r 2 '^tests: COULD NOT VERIFY run=0 skipped=0$' 'test.ps1: a results directory that is not new could not be verified'
+    Expect $r 2 '^tests: COULD NOT VERIFY \(Release, run=0 skipped=0\)$' 'test.ps1: a results directory that is not new could not be verified'
 
     # --- SP-0282, CHECK-VERDICT item A.1: the pass line of a self-test or an operation proof ----------------------------
     # A script that runs a fixed list of its own assertions prints `PASS (run=N skipped=M)`; the legacy `PASS (N checks)`
@@ -469,7 +469,11 @@ try {
     function New-HelpBuildTree([string] $Name) {
         $tree = Join-Path $work $Name
         New-Item -ItemType Directory -Path (Join-Path $tree 'tools/help') -Force | Out-Null
-        Copy-Item -LiteralPath (Join-Path $repo 'tools/help/build-help.ps1') -Destination (Join-Path $tree 'tools/help/build-help.ps1')
+        foreach ($helpScript in 'build-help.ps1', 'HelpGlyphIndex.ps1', 'HelpShots.ps1') {
+            Copy-Item -LiteralPath (Join-Path $repo "tools/help/$helpScript") -Destination (Join-Path $tree "tools/help/$helpScript")
+        }
+        Write-File (Join-Path $tree 'src/StreamsPlayer.App/Glyphs.map.json') '{"meanings":[]}'
+        foreach ($size in 48, 96) { Write-Bytes (Join-Path $tree "assets/identity/out/help-head-$size.png") ([byte[]]@(1, 2, 3)) }
         New-Item -ItemType Directory -Path (Join-Path $tree 'scripts') -Force | Out-Null
         Copy-Item -LiteralPath (Join-Path $repo 'scripts/SourceFingerprint.ps1') -Destination (Join-Path $tree 'scripts/SourceFingerprint.ps1')
         Write-File (Join-Path $tree 'help/help-map.json') '{"sourceLocale":"en","index":"index","surfaces":[]}'
@@ -609,19 +613,22 @@ try {
         return Invoke-Script (Join-Path $Tree 'scripts/check.ps1') @() ("$(Join-Path $Tree 'shim')$([System.IO.Path]::PathSeparator)$env:PATH")
     }
     $tree = New-CheckTree 'check-pass'
-    Expect (Invoke-Check $tree) 0 "^check: PASS \($($children.Count - 1) checks, 1 skipped\)$" 'check.ps1: all children pass and the skipped demo check is counted'
+    Expect (Invoke-Check $tree) 0 "^check: PASS \(Release, $($children.Count - 1) checks, 1 skipped\)$" 'check.ps1: all children pass and the skipped demo check is counted'
     $tree = New-CheckTree 'check-pass-demo' -WithDemo
-    Expect (Invoke-Check $tree) 0 "^check: PASS \($($children.Count) checks, 0 skipped\)$" 'check.ps1: all children pass with the demo check run'
+    Expect (Invoke-Check $tree) 0 "^check: PASS \(Release, $($children.Count) checks, 0 skipped\)$" 'check.ps1: all children pass with the demo check run'
     $tree = New-CheckTree 'check-busy' @{ 'scripts/check-docs.ps1' = 4 }
-    Expect (Invoke-Check $tree) 2 '^check: COULD NOT VERIFY \(docs-quality; 1 skipped\)$' 'check.ps1: a child that answers 4 reads as 2'
+    Expect (Invoke-Check $tree) 2 '^check: COULD NOT VERIFY \(Release, docs-quality; 1 skipped\)$' 'check.ps1: a child that answers 4 reads as 2'
     $tree = New-CheckTree 'check-busy-and-failed' @{ 'scripts/check-docs.ps1' = 4; 'tools/site/build-site.ps1' = 1 }
-    Expect (Invoke-Check $tree) 1 '^check: FAIL \(site-sync; 1 skipped\)$' 'check.ps1: a defect outranks a child that answers 4'
+    Expect (Invoke-Check $tree) 1 '^check: FAIL \(Release, site-sync; 1 skipped\)$' 'check.ps1: a defect outranks a child that answers 4'
     $tree = New-CheckTree 'check-odd-code' @{ 'scripts/check-docs.ps1' = 7 }
-    Expect (Invoke-Check $tree) 1 '^check: FAIL \(docs-quality; 1 skipped\)$' 'check.ps1: a child code outside 0 to 4 is read as a defect (rule 2.14)'
+    Expect (Invoke-Check $tree) 1 '^check: FAIL \(Release, docs-quality; 1 skipped\)$' 'check.ps1: a child code outside 0 to 4 is read as a defect (rule 2.14)'
+    # BUILD-EVIDENCE rule 1: the verdict names the configuration a Debug call judged as well.
+    $tree = New-CheckTree 'check-pass-debug'
+    Expect (Invoke-Script (Join-Path $tree 'scripts/check.ps1') @('-Configuration', 'Debug') "$(Join-Path $tree 'shim')$([System.IO.Path]::PathSeparator)$env:PATH") 0 "^check: PASS \(Debug, $($children.Count - 1) checks, 1 skipped\)$" 'check.ps1: a Debug run names Debug on its verdict line'
     $tree = New-CheckTree 'check-no-dotnet'
     $emptyPath = Join-Path $work 'empty-path'
     New-Item -ItemType Directory -Path $emptyPath -Force | Out-Null
-    Expect (Invoke-Script (Join-Path $tree 'scripts/check.ps1') @() $emptyPath) 2 '^check: COULD NOT VERIFY \(.*dotnet' 'check.ps1: a missing dotnet could not be verified instead of throwing'
+    Expect (Invoke-Script (Join-Path $tree 'scripts/check.ps1') @() $emptyPath) 2 '^check: COULD NOT VERIFY \(Release, .*dotnet' 'check.ps1: a missing dotnet could not be verified instead of throwing'
 }
 catch {
     # The fixture itself could not run (a tool it needs is missing, a temp folder was refused): nothing was judged past

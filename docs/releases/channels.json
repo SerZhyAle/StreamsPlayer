@@ -1,0 +1,29 @@
+{
+  "schema": "1",
+  "packages": [
+    {
+      "id": "app",
+      "title": "StreamsPlayer"
+    }
+  ],
+  "channels": [
+    {
+      "key": "github",
+      "channel": "github",
+      "package": "app",
+      "repo": "SerZhyAle/StreamsPlayer"
+    },
+    {
+      "key": "winget",
+      "channel": "winget",
+      "package": "app",
+      "id": "SerZhyAle.StreamsPlayer"
+    },
+    {
+      "key": "msstore",
+      "channel": "msstore",
+      "package": "app",
+      "storeId": "9NBTD5SXB8TB"
+    }
+  ]
+}

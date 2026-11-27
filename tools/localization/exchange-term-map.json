@@ -132,6 +132,7 @@
       "BroadcastTitle"
     ],
     "DEVICE-EXCHANGE 2 CW: exchange server": [
+      "ExchangeAccountDeletionLink",
       "ExchangeAddress",
       "ExchangeHint",
       "ExchangeTitle"
@@ -210,6 +211,7 @@
       "ExchangeLeavePrompt",
       "ExchangeLimitReached",
       "ExchangeLogin",
+      "ExchangeNeedsSignIn",
       "ExchangeNotPermitted",
       "ExchangeOff",
       "ExchangeOnline",
@@ -353,6 +355,7 @@
       "ExchangeImportCamera"
     ],
     "DEVICE-EXCHANGE settings profile (SP-0260)": [
+      "ExchangeBusy",
       "ExchangeSettingsAppIdMismatch",
       "ExchangeSettingsBusy",
       "ExchangeSettingsChooseGroup",

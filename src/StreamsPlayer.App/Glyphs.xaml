@@ -87,6 +87,8 @@
     <PathGeometry x:Key="Icon.nav.collapse" FillRule="Nonzero" Figures="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z" />
     <!-- catalog copy -->
     <PathGeometry x:Key="Icon.nav.dropdown" FillRule="Nonzero" Figures="M7,10l5,5 5,-5z" />
+    <!-- catalog copy: the drawer trigger of the settings rail's narrow layout (SP-0231, SETTINGS-NAVIGATION 2.6). -->
+    <PathGeometry x:Key="Icon.nav.menu" FillRule="Nonzero" Figures="M3,18h18v-2H3v2zm0,-5h18v-2H3v2zm0,-7v2h18V6H3z" />
     <!-- catalog copy -->
     <PathGeometry x:Key="Icon.app.info" FillRule="Nonzero" Figures="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
     <!-- catalog copy -->

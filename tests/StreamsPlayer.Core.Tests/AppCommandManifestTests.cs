@@ -43,9 +43,11 @@ public sealed class AppCommandManifestTests
             manifest.Commands.Skip(5).Take(6).Select(command => command.Name));
         Assert.Equal("reads-user-data", manifest.Find("playback status")!.Risk);
         // SP-0273: the two record verbs write the user's files and are the only other verbs above safe.
-        Assert.All(manifest.Commands.Where(command => command.Name is not ("playback status" or "record start" or "record stop")),
+        // STRWIN-0305: "broadcast start" sends the screen, a camera or the sound off the PC.
+        Assert.All(manifest.Commands.Where(command => command.Name is not ("playback status" or "record start" or "record stop" or "broadcast start")),
             command => Assert.Equal("safe", command.Risk));
         Assert.All(new[] { "record start", "record stop" }, verb => Assert.Equal("writes-user-data", manifest.Find(verb)!.Risk));
+        Assert.Equal("leaves-machine", manifest.Find("broadcast start")!.Risk);
         Assert.Equal("start", manifest.Find("play")!.ColdStart);
         Assert.Equal("oneshot", manifest.Find("playback stop")!.ColdStart);
         Assert.All(new[] { "playback pause", "playback resume", "playback status", "volume set" },

@@ -4,22 +4,29 @@
     SP-0139: create one self-contained audit ticket per slice of the campaign manifest, in risk order.
 
 .DESCRIPTION
-    Reads the manifest written by New-AuditSlices.ps1 and, for every slice that has no ticket yet, writes:
+    Reads the manifest written by New-AuditSlices.ps1 and, for every slice that has no ticket yet, creates:
 
-      PLAN/SP-NNNN_<slug>.md                      the ticket: goal, audited files, triage policy, the slice
-                                                  procedure copied from docs/agent/CODE_AUDIT.md, inline phases
-      PLAN/SP-NNNN_<slug>/research/slice.md       files, lines, signals, context, siblings, known findings
-      PLAN/SP-NNNN_<slug>/research/findings.md    the coverage and findings tables the audit fills in
+      PLAN/<id>_<slug>.md                      the ticket: goal, audited files, triage policy, the slice
+                                               procedure copied from docs/agent/CODE_AUDIT.md, inline phases
+      PLAN/<id>_<slug>/research/slice.md       files, lines, signals, context, siblings, known findings
+      PLAN/<id>_<slug>/research/findings.md    the coverage and findings tables the audit fills in
 
-    Idempotent by slice name: a ticket under PLAN/ or PLAN/DONE/ that carries `**Audit slice:** <name>` is that
-    slice's ticket, and a second run creates nothing. New ids continue after the highest SP id in PLAN/ and
-    PLAN/DONE/. Status is `Tactical`, because the plan is inside the ticket.
+    The id is never chosen here. The harness's capture-draft.ps1 allocates it inside the catalog lock, writes the
+    ledger row (source `campaign`) and the spec file; this script then replaces the file's body with the slice
+    ticket, writes the research files, and moves the ticket to `Tactical` with update.ps1 (the plan is inside the
+    ticket) and a title. The id shape is the project profile's (grammar.ticketIdPattern).
 
-    The script never edits the release queue - the owner orders it. It prints the queue rows for the slices,
-    in manifest order, for pasting.
+    Idempotent by campaign and slice: a ticket under PLAN/ or PLAN/DONE/ that carries `**Audit slice:** <name>`
+    and this campaign's `**Campaign:** <parent>` line is that slice's ticket. A ticket of another campaign that
+    repeats the slice name is not, because the next campaign slices the same files into the same names. A second
+    run creates nothing. A run that stops half-way (the harness refused a slice) leaves the tickets already made;
+    run it again after the cause is gone.
+
+    The script never edits the release queue: PLAN/RELEASE_QUEUE.md is a projection of the ledger, which the new
+    rows reach by themselves, in risk order, and the owner orders the queue.
 
 .PARAMETER Parent
-    The umbrella ticket id.
+    The umbrella ticket id, in the shape the project profile declares (or one of its legacy shapes).
 
 .PARAMETER Manifest
     One or more manifests (the first slicing, then any tail manifests). Defaults to the parent ticket's
@@ -32,19 +39,29 @@
     The creation date written into the tickets (default: today, yyyy-MM-dd).
 
 .PARAMETER DryRun
-    Print what would be created; write nothing.
+    Print what would be created; write nothing and start no harness script.
+
+.PARAMETER CaptureScript
+    The harness's capture-draft.ps1. Default: found by Find-AuditHarnessScript (CLAUDE_PLUGIN_ROOT, then the newest
+    installed sza plugin). The fixture test passes a stand-in.
+
+.PARAMETER StatusScript
+    The harness's update.ps1. Default: the one next to the capture script.
 
 .OUTPUTS
-    Exit 0 - done (created or nothing to create); 2 - cannot (manifest or procedure missing).
+    Exit 0 - done (created or nothing to create); 2 - cannot (manifest, procedure, profile or harness missing, or
+    the harness refused a slice; the message names the ticket left behind, if any).
 #>
 [CmdletBinding()]
 param(
-    [string] $Parent = 'SP-0139',
+    [Parameter(Mandatory)][string] $Parent,
     [string] $RepoRoot = (Join-Path $PSScriptRoot '..' '..'),
     [string[]] $Manifest,
     [string] $TriagePolicy = 'Every finding, at every severity, ends in a specification: a new `Draft` ticket, or an added requirement on the ticket that already owns the symptom. No finding is fixed inside the slice (owner decision of 2026-09-26: "need the specifications for any issue").',
     [string] $Date = (Get-Date -Format 'yyyy-MM-dd'),
-    [switch] $DryRun
+    [switch] $DryRun,
+    [string] $CaptureScript,
+    [string] $StatusScript
 )
 
 Set-StrictMode -Version Latest
@@ -59,6 +76,8 @@ function Fail([string] $Message) {
 $root = (Resolve-Path -LiteralPath $RepoRoot).Path
 $planRoot = Join-Path $root 'PLAN'
 if (-not (Test-Path -LiteralPath $planRoot -PathType Container)) { Fail 'no PLAN folder' }
+try { $grammar = Get-AuditTicketGrammar -RepoRoot $root } catch { Fail $_.Exception.Message }
+if (-not (Test-AuditTicketId -Grammar $grammar -Id $Parent)) { Fail "parent '$Parent' is not a ticket id of this repository ($($grammar.Display))" }
 
 if (-not $Manifest) {
     $parentTicket = Get-ChildItem -LiteralPath $planRoot -Filter "${Parent}_*.md" -File | Select-Object -First 1
@@ -83,18 +102,13 @@ if (-not $pm.Success) { Fail 'the slice procedure markers are missing from docs/
 $procedure = $pm.Groups[1].Value.TrimEnd() -replace '(?m)^### Slice procedure', '## Procedure'
 
 # --- existing tickets --------------------------------------------------------------------------------------
+# Keyed by campaign and slice name ("<campaign>|<slice>"): a name alone would hand this campaign the closed
+# tickets of an earlier campaign that sliced the same files into the same names.
 $existing = @{}
-$maxId = 0
-foreach ($dir in @($planRoot, (Join-Path $planRoot 'DONE'))) {
-    if (-not (Test-Path -LiteralPath $dir)) { continue }
-    foreach ($item in Get-ChildItem -LiteralPath $dir) {
-        $idm = [regex]::Match($item.Name, '^SP-(\d{4})')
-        if ($idm.Success) { $maxId = [Math]::Max($maxId, [int]$idm.Groups[1].Value) }
-        if (-not $item.PSIsContainer -and $item.Name -like 'SP-*.md') {
-            $line = Select-String -LiteralPath $item.FullName -Pattern '^\*\*Audit slice:\*\*\s*(.+?)\s*$' | Select-Object -First 1
-            if ($line) { $existing[$line.Matches[0].Groups[1].Value] = [pscustomobject]@{ Id = $item.Name.Substring(0, 7); File = $item.Name; Dir = $dir } }
-        }
-    }
+foreach ($t in Get-AuditPlanTickets -PlanRoot $planRoot -Grammar $grammar) {
+    $line = Select-String -LiteralPath $t.Path -Pattern '^\*\*Audit slice:\*\*\s*(.+?)\s*$' | Select-Object -First 1
+    $campaign = Select-String -LiteralPath $t.Path -Pattern '^\*\*Campaign:\*\*\s*(\S+)' | Select-Object -First 1
+    if ($line -and $campaign) { $existing["$($campaign.Matches[0].Groups[1].Value)|$($line.Matches[0].Groups[1].Value)"] = [pscustomobject]@{ Id = $t.Id } }
 }
 
 # --- known findings from earlier dossiers ------------------------------------------------------------------
@@ -107,7 +121,7 @@ if (Test-Path -LiteralPath $tempRoot) {
         $ticket = ''
         $current = $null
         foreach ($line in [System.IO.File]::ReadAllLines($file)) {
-            $h = [regex]::Match($line, '^## (SP-\d{4})\b')
+            $h = [regex]::Match($line, '^## (' + $grammar.Fragment + ')\b')
             if ($h.Success) { $ticket = $h.Groups[1].Value; $current = $null; continue }
             $b = [regex]::Match($line, '^- \*\*([A-Z]-\d{2}(?:\s*/\s*[A-Z]-\d{2})*)[^(]*\(([HML])')
             if ($b.Success) {
@@ -132,22 +146,67 @@ function Format-Signals($Signals) {
     return ($parts -join ', ')
 }
 
+# --- harness -----------------------------------------------------------------------------------------------
+# A harness script runs as a child with the repository as its project root and the ticket source `campaign`
+# (update.ps1 has no -ProjectRoot, and capture-draft.ps1 has no -Source; both read these variables). The
+# caller's values are put back afterwards.
+function Invoke-Harness([string] $Script, [string[]] $Arguments) {
+    $variables = [ordered]@{ SZA_PROJECT_ROOT = $root; SZA_TICKET_SOURCE = 'campaign' }
+    $saved = @{}
+    foreach ($name in $variables.Keys) {
+        $saved[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
+        [Environment]::SetEnvironmentVariable($name, $variables[$name], 'Process')
+    }
+    try {
+        $out = & (Get-Process -Id $PID).Path -NoProfile -File $Script @Arguments 2>&1 | ForEach-Object { "$_" }
+        return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = @($out) }
+    } finally {
+        foreach ($name in $variables.Keys) { [Environment]::SetEnvironmentVariable($name, $saved[$name], 'Process') }
+    }
+}
+
+# Not named like the parameters: variable names are case-insensitive, and a [string] parameter turns $null into an empty string.
+$captureTool = $null
+$statusTool = $null
+
 # --- create ------------------------------------------------------------------------------------------------
 $created = 0
-$rows = [System.Collections.Generic.List[string]]::new()
 foreach ($entry in $slices) {
     $s = $entry.Slice
-    if ($existing.ContainsKey($s.name)) {
-        $e = $existing[$s.name]
-        $rel = if ($e.Dir -like '*DONE') { "DONE/$($e.File)" } else { $e.File }
-        $rows.Add("| | [$($e.Id)]($rel) Audit slice - $($s.name) | Should | - | ``Tactical`` | ``/streamsplayer-spec-dev`` |")
+    $key = "$Parent|$($s.name)"
+    if ($existing.ContainsKey($key)) { continue }
+
+    if ($DryRun) {
+        "would create  $($s.name)"
+        $created++
+        $existing[$key] = [pscustomobject]@{ Id = '(dry run)' }
         continue
     }
-    $maxId++
-    $id = 'SP-{0:D4}' -f $maxId
+
+    if ($null -eq $captureTool) {
+        $captureTool = Find-AuditHarnessScript -RelativePath 'tools/harness/spec_catalog/capture-draft.ps1' -Explicit $CaptureScript
+        if (-not $captureTool -or -not (Test-Path -LiteralPath $captureTool -PathType Leaf)) {
+            Fail 'capture-draft.ps1 of the sza plugin was not found - install the plugin or pass -CaptureScript'
+        }
+        $statusTool = if ($StatusScript) { $StatusScript } else { Join-Path (Split-Path -Parent $captureTool) 'update.ps1' }
+        if (-not (Test-Path -LiteralPath $statusTool -PathType Leaf)) { Fail "update.ps1 not found at '$statusTool' - pass -StatusScript" }
+    }
+
+    # The ledger refuses an active ticket whose name repeats, and a Verified one is still active: the name
+    # carries the campaign so that the next campaign's slice of the same family does not clash with this one's.
+    $complexity = "medium - read-only audit of $($s.fileCount) files, $($s.lines) lines; findings become tickets, no source is edited"
+    $draft = Invoke-Harness $captureTool @(
+        '-Slug', $s.slug,
+        '-Name', "$($Parent.ToLowerInvariant())-$($s.slug)",
+        '-Text', "Audit slice $($s.name) of campaign $Parent. Created by tools/audit/New-AuditSliceTickets.ps1 on $Date; the generated slice ticket replaces this text.",
+        '-Complexity', $complexity)
+    if ($draft.Exit -ne 0) { Fail "capture-draft refused slice '$($s.name)' (exit $($draft.Exit)): $($draft.Output -join ' | ')" }
+    $id = @($draft.Output | ForEach-Object { $_.Trim() } | Where-Object { Test-AuditTicketId -Grammar $grammar -Id $_ }) | Select-Object -Last 1
+    if (-not $id) { Fail "capture-draft exited 0 but printed no ticket id for slice '$($s.name)': $($draft.Output -join ' | ')" }
     $base = "${id}_$($s.slug)"
     $ticketPath = Join-Path $planRoot "$base.md"
     $researchDir = Join-Path $planRoot $base 'research'
+    if (-not (Test-Path -LiteralPath $ticketPath -PathType Leaf)) { Fail "capture-draft created $id but not PLAN/$base.md" }
 
     $fileRows = foreach ($f in $s.files) { "| ``$($f.path)`` | $($f.lines) | $(Format-Signals $f.signals) |" }
     $context = if (@($s.context).Count) { (@($s.context) | ForEach-Object { "``$_``" }) -join ', ' } else { 'none' }
@@ -163,7 +222,9 @@ foreach ($entry in $slices) {
     $ticket = @"
 # ${id}: Audit slice - $($s.name)
 
-**Status:** Tactical - plan inline; created by the $Parent fan-out on $Date.
+**Status:** Draft
+**Created:** $Date
+**Complexity:** $complexity
 **Audit slice:** $($s.name)
 **Campaign:** $Parent (full code audit before the next release). Context only - this ticket is executable on its own.
 **Risk:** $($s.risk) ($rank)
@@ -208,8 +269,9 @@ $procedure
 ### Phase 3 - Triage
 
 - [ ] 3.1 Dedup search per finding across ``PLAN/``, ``PLAN/DONE/`` and ``temp/audit-*/FINDINGS.md``. Verify: every
-  findings row's Spec column names an SP id.
-- [ ] 3.2 Every named SP id exists, and each new ticket has a release-queue row. Verify:
+  findings row's Spec column names a ticket id.
+- [ ] 3.2 Every named ticket id exists, and each new ticket was created through the ledger (``capture-draft.ps1``),
+  which gives it its release-queue row. Verify:
   ``pwsh -NoProfile -File tools/audit/Get-AuditCampaign.ps1 -Parent $Parent`` reports no unknown ticket for this
   slice.
 
@@ -217,7 +279,8 @@ $procedure
 
 - [ ] 4.1 ``## Last Audit`` in the fixed shape of procedure step 5. Verify: the summary lists this slice with its
   counts.
-- [ ] 4.2 Status ``Verified``; the ticket and its folder move to ``PLAN/DONE/``; the queue row is updated.
+- [ ] 4.2 Status ``Verified``, set with the status tool (``update.ps1``); it moves the ticket and its folder to
+  ``PLAN/DONE/`` and updates the queue row.
 
 ## Done criteria
 
@@ -270,24 +333,27 @@ $($coverage -join "`n")
 | --- | --- | --- | --- | --- | --- | --- |
 "@
 
-    if ($DryRun) {
-        "would create $id  $($s.name)"
-    } else {
+    # The ledger row exists from here on: a failure below leaves it, and the message names the repair.
+    try {
         New-Item -ItemType Directory -Path $researchDir -Force | Out-Null
         $utf8 = [System.Text.UTF8Encoding]::new($false)
         [System.IO.File]::WriteAllText($ticketPath, $ticket.Replace("`r`n", "`n") + "`n", $utf8)
         [System.IO.File]::WriteAllText((Join-Path $researchDir 'slice.md'), $sliceDoc.Replace("`r`n", "`n") + "`n", $utf8)
         [System.IO.File]::WriteAllText((Join-Path $researchDir 'findings.md'), $findingsDoc.Replace("`r`n", "`n") + "`n", $utf8)
-        "created $id  $($s.name)"
+    } catch {
+        Fail "$id is in the ledger but its slice files were not written ($($_.Exception.Message -replace '\s+', ' ')); write PLAN/$base.md by hand or retire the row with delete.ps1 -Id $id -Confirm"
     }
+    $title = "Audit slice - $($s.name)"
+    if ($title.Length -gt 80) { $title = $title.Substring(0, 80).TrimEnd() }
+    $move = Invoke-Harness $statusTool @('-Id', $id, '-Status', 'Tactical', '-Title', $title)
+    if ($move.Exit -ne 0) {
+        Fail "$id exists with its files but update.ps1 refused Tactical (exit $($move.Exit): $($move.Output -join ' | ')); run update.ps1 -Id $id -Status Tactical"
+    }
+    "created $id  $($s.name)"
     $created++
-    $existing[$s.name] = [pscustomobject]@{ Id = $id; File = "$base.md"; Dir = $planRoot }
-    $rows.Add("| | [$id]($base.md) Audit slice - $($s.name) | Should | - | ``Tactical`` | ``/streamsplayer-spec-dev`` |")
+    $existing[$key] = [pscustomobject]@{ Id = $id }
 }
 
-''
-'Release-queue rows (manifest order; the owner places and orders them):'
-$rows
 ''
 $verb = if ($DryRun) { 'would create' } else { 'created' }
 "audit-tickets: OK ($verb $created, $($sliceCount - $created) already had a ticket)"

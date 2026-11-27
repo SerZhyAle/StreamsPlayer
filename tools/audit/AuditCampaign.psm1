@@ -186,18 +186,94 @@ function Get-AuditTicketStatus {
 
 <#
 .SYNOPSIS
-    Find every ticket file under PLAN/ and PLAN/DONE/ (strategic tickets only, not tactical folders).
+    Find every ticket file under PLAN/ and PLAN/DONE/ whose name starts with an id of the grammar (strategic
+    tickets only, not tactical folders). Ids of the legacy shapes count: closed tickets keep them.
 #>
 function Get-AuditPlanTickets {
-    param([Parameter(Mandatory)][string] $PlanRoot)
+    param(
+        [Parameter(Mandatory)][string] $PlanRoot,
+        [Parameter(Mandatory)] $Grammar
+    )
+    $namePattern = '^(' + $Grammar.Fragment + ')_'
     $dirs = @($PlanRoot, (Join-Path $PlanRoot 'DONE')) | Where-Object { Test-Path -LiteralPath $_ -PathType Container }
     foreach ($dir in $dirs) {
-        Get-ChildItem -LiteralPath $dir -Filter 'SP-*.md' -File | ForEach-Object {
-            $m = [regex]::Match($_.Name, '^(SP-\d{4})_')
+        Get-ChildItem -LiteralPath $dir -Filter '*.md' -File | ForEach-Object {
+            $m = [regex]::Match($_.Name, $namePattern)
             if ($m.Success) { [pscustomobject]@{ Id = $m.Groups[1].Value; Path = $_.FullName; Name = $_.Name } }
         }
     }
 }
 
+<#
+.SYNOPSIS
+    The ticket-id grammar of a repository: grammar.ticketIdPattern first, then grammar.legacyTicketIdPatterns,
+    read from <RepoRoot>/.sza-profile.json - the two keys the canon harness reads, so a prefix migration is a
+    profile edit and never a change to these tools.
+
+.OUTPUTS
+    Patterns  every anchored pattern, current first; Current  the first; Fragment  the unanchored alternation,
+    for embedding in a larger regex; Display  the patterns as a person reads them.
+    Throws when the profile is absent, unreadable or declares no ticketIdPattern: a default shape would be the
+    hard-coded prefix this function exists to remove.
+#>
+function Get-AuditTicketGrammar {
+    param([Parameter(Mandatory)][string] $RepoRoot)
+    $path = Join-Path $RepoRoot '.sza-profile.json'
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "no .sza-profile.json in $RepoRoot, so the ticket id shape is unknown" }
+    try { $profile = Get-Content -LiteralPath $path -Raw -Encoding utf8 | ConvertFrom-Json }
+    catch { throw ".sza-profile.json is not valid JSON ($($_.Exception.Message -replace '\s+', ' '))" }
+    $section = $profile.PSObject.Properties['grammar']
+    $grammar = if ($section) { $section.Value } else { $null }
+    $current = if ($grammar -and $grammar.PSObject.Properties['ticketIdPattern']) { [string]$grammar.ticketIdPattern } else { '' }
+    if (-not $current) { throw '.sza-profile.json declares no grammar.ticketIdPattern' }
+    $patterns = [System.Collections.Generic.List[string]]::new()
+    $patterns.Add($current)
+    if ($grammar.PSObject.Properties['legacyTicketIdPatterns']) {
+        foreach ($legacy in @($grammar.legacyTicketIdPatterns)) {
+            if ($legacy -and -not $patterns.Contains([string]$legacy)) { $patterns.Add([string]$legacy) }
+        }
+    }
+    $cores = @($patterns | ForEach-Object { ($_ -replace '^\^', '') -replace '\$$', '' })
+    [pscustomobject]@{
+        Patterns = [string[]]$patterns.ToArray()
+        Current  = $current
+        Fragment = if ($cores.Count -eq 1) { $cores[0] } else { '(?:' + ($cores -join '|') + ')' }
+        Display  = ($patterns -join ' or ')
+    }
+}
+
+<#
+.SYNOPSIS
+    Whether a string is a whole ticket id of any shape in the grammar. Case-insensitive, like the harness's check.
+#>
+function Test-AuditTicketId {
+    param([Parameter(Mandatory)] $Grammar, [AllowNull()][AllowEmptyString()][string] $Id)
+    foreach ($p in $Grammar.Patterns) {
+        if ([regex]::IsMatch([string]$Id, $p, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)) { return $true }
+    }
+    return $false
+}
+
+<#
+.SYNOPSIS
+    Find a script of the sza plugin's harness: the explicit path, then CLAUDE_PLUGIN_ROOT, then the newest installed
+    plugin in the cache (the order scripts/Invoke-ReleaseLedger.ps1 uses). $null when none exists.
+#>
+function Find-AuditHarnessScript {
+    param([Parameter(Mandatory)][string] $RelativePath, [string] $Explicit)
+    if ($Explicit) { return $Explicit }
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    if ($env:CLAUDE_PLUGIN_ROOT) { $candidates.Add((Join-Path $env:CLAUDE_PLUGIN_ROOT $RelativePath)) }
+    $cache = Join-Path ([Environment]::GetFolderPath('UserProfile')) '.claude/plugins/cache/sza-unified-rules/sza'
+    if (Test-Path -LiteralPath $cache -PathType Container) {
+        $newestFirst = Get-ChildItem -LiteralPath $cache -Directory | Sort-Object -Descending -Property {
+            $parsed = $null
+            if ([version]::TryParse($_.Name, [ref]$parsed)) { $parsed } else { [version]'0.0' }
+        }
+        foreach ($directory in $newestFirst) { $candidates.Add((Join-Path $directory.FullName $RelativePath)) }
+    }
+    return $candidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+}
+
 Export-ModuleMember -Function Get-AuditFileSet, Measure-AuditFile, Get-AuditSignalTable, Get-AuditLineBudget,
-    Get-AuditTicketStatus, Get-AuditPlanTickets
+    Get-AuditTicketStatus, Get-AuditPlanTickets, Get-AuditTicketGrammar, Test-AuditTicketId, Find-AuditHarnessScript

@@ -19,16 +19,17 @@ public partial class MainWindow
             // the broadcast window, and the header's warning mark follows the session, so it is refreshed here.
             BroadcastsButton.Visibility = source.IsActive || drive.SignedIn ? Visibility.Visible : Visibility.Collapsed;
             RefreshBroadcastIndicator();
-            if (source.SignedOutNotice)
+            if (source.SignInEndedNotice is { } endedBy)
             {
-                // SP-0221 requirement 7: the account ended this sign-in. One message that says which, then the
-                // prompt with the server and login kept; nothing retries in the background. Shown once.
-                source.AcknowledgeSignedOutNotice();
+                // SP-0221 requirement 7: the account ended this sign-in - a password changed or reset, or this
+                // device removed. One message that says which, then the prompt with the server and login kept;
+                // nothing retries in the background. Shown once.
+                source.AcknowledgeSignInEndedNotice();
                 Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, () =>
                     HandlerBoundary.Run(nameof(InitializeExchangeStatus), () =>
                     {
                         if (_shuttingDown) return Task.CompletedTask;
-                        new ExchangeFailureWindow(ExchangeFailureRows.SignedOut) { Owner = DialogOwner }.ShowDialog();
+                        new ExchangeFailureWindow(endedBy) { Owner = DialogOwner }.ShowDialog();
                         // SP-0263 (S8-1): Settings is owned by the catalog, which is hidden in compact mode - a modal over
                         // it would render behind the topmost panel - so it waits for the next expand, as every other
                         // question raised after an await does; and a Settings window already open is not stacked on.

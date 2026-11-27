@@ -49,6 +49,9 @@ public class BooleanOptionRow : Control
     public static readonly DependencyProperty HelpDetailProperty = DependencyProperty.Register(
         nameof(HelpDetail), typeof(string), typeof(BooleanOptionRow), new PropertyMetadata(string.Empty, OnPartTextChanged));
 
+    public static readonly DependencyProperty DisabledReasonProperty = DependencyProperty.Register(
+        nameof(DisabledReason), typeof(string), typeof(BooleanOptionRow), new PropertyMetadata(string.Empty, OnPartTextChanged));
+
     public static readonly RoutedEvent ToggledEvent = EventManager.RegisterRoutedEvent(
         nameof(Toggled), RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(BooleanOptionRow));
 
@@ -63,6 +66,12 @@ public class BooleanOptionRow : Control
     static BooleanOptionRow()
     {
         DefaultStyleKeyProperty.OverrideMetadata(typeof(BooleanOptionRow), new FrameworkPropertyMetadata(typeof(BooleanOptionRow)));
+    }
+
+    public BooleanOptionRow()
+    {
+        // Once per row, not per template: a re-applied template would stack another subscription.
+        IsEnabledChanged += (_, _) => SyncDisabledReason();
     }
 
     public bool IsChecked
@@ -104,6 +113,13 @@ public class BooleanOptionRow : Control
     {
         get => (string)GetValue(HelpDetailProperty);
         set => SetValue(HelpDetailProperty, value);
+    }
+
+    /// <summary>Why the option cannot be used right now; shown only while the row is disabled, never while it is usable.</summary>
+    public string DisabledReason
+    {
+        get => (string)GetValue(DisabledReasonProperty);
+        set => SetValue(DisabledReasonProperty, value);
     }
 
     /// <summary>Puts the keyboard focus on the option's checkbox - the one editor of the row.</summary>
@@ -211,6 +227,14 @@ public class BooleanOptionRow : Control
         _detailClose = null;
     }
 
+    private void SyncDisabledReason()
+    {
+        if (GetTemplateChild("PART_DisabledReason") is UIElement reason)
+        {
+            reason.Visibility = !IsEnabled && !string.IsNullOrWhiteSpace(DisabledReason) ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
     private static void OnCaptionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
         ((BooleanOptionRow)d).SyncParts();
 
@@ -229,6 +253,11 @@ public class BooleanOptionRow : Control
         {
             explanation.Visibility = string.IsNullOrWhiteSpace(Explanation) ? Visibility.Collapsed : Visibility.Visible;
         }
+
+        // Shown from IsEnabledChanged, not a template trigger: the reason must appear when a whole panel goes
+        // disabled (a long operation holds the window) exactly as when the option alone is unusable, and an empty
+        // reason stays hidden in both.
+        SyncDisabledReason();
 
         if (_help is not null)
         {

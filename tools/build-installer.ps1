@@ -151,4 +151,5 @@ Write-Host "Installer: $expected"
 Write-Host ("Size:      {0:N0} bytes ({1:N1} MB)" -f $size, ($size / 1MB))
 Write-Host "SHA256:    $hash"
 Write-Host ""
+& (Join-Path $root 'scripts/Invoke-ReleaseLedger.ps1') -Verb build -Package 'app' -Kind 'release' -Flavor 'installer' -Version $Version -Artifact $expected -BestEffort
 Write-Host "This built an installer. It released nothing."

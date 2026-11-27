@@ -1,6 +1,7 @@
 <Window x:Class="StreamsPlayer.App.AddStreamWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:StreamsPlayer.App"
         FlowDirection="{DynamicResource UiFlowDirection}" Title="{DynamicResource AddWindowTitle}" Width="560" SizeToContent="Height" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" Background="{DynamicResource WindowBackground}">
     <Grid Margin="18">
@@ -58,11 +59,10 @@
         <TextBlock Grid.Row="10" Grid.Column="0" Text="{DynamicResource FieldBitrate}" VerticalAlignment="Center" Margin="0,0,10,0" />
         <TextBox x:Name="BitrateBox" Grid.Row="10" Grid.Column="1" Margin="0,5" Padding="7" />
 
-        <!-- SP-0191: the Boolean convention (WINDOWS-UI 4) - the checkbox at the reading start with its
-             caption immediately beside it, not a lone checkbox opposite its label. -->
-        <CheckBox x:Name="LiveBox" Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="2" IsChecked="True"
-                  VerticalAlignment="Center" Margin="0,8"
-                  Content="{DynamicResource LiveLabel}" />
+        <!-- SP-0231 (BOOLEAN-OPTION 2.2): the live flag is one option row - the checkbox at the reading start,
+             the caption beside it - instead of a bare CheckBox opposite its own label. -->
+        <local:BooleanOptionRow x:Name="LiveOption" Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="2" IsChecked="True" Margin="0,8"
+                                Caption="{DynamicResource LiveLabel}" />
 
         <!-- SP-0218: the answers are one row of whole buttons - same height, an 8 px gap (4 + 4), order
              unchanged - that wraps rather than clips a long caption. The acting button keeps its accent

@@ -10,17 +10,24 @@ document does, for a pre-release campaign or any audit of existing code. It was 
 2. The **slicer** cuts the audited files into slices and writes a manifest: each slice's files, lines, read-for-
    context files, sibling slices, risk signals and risk score. It is deterministic; re-running it on the same tree
    writes the same bytes.
-3. The **fan-out** creates one self-contained ticket per slice, in risk order, idempotent by slice name.
+3. The **fan-out** creates one self-contained ticket per slice, in risk order, idempotent by slice name. It never
+   picks an id: each ticket is created through the ledger (the harness's `capture-draft.ps1`, source `campaign`) and
+   moved to `Tactical` with `update.ps1`, so the id has the shape the project profile declares and the ticket reaches
+   the release queue like any other.
 4. Each slice ticket runs the **slice procedure** below and closes with a `## Last Audit` block in a fixed shape.
 5. The **summary** reads the manifest and the slice tickets and prints coverage, slices by status, findings by
    severity and the tickets the campaign produced. Its exit code says whether the campaign is closed.
 
 ```powershell
-pwsh -NoProfile -File tools/audit/New-AuditSlices.ps1 -Parent SP-NNNN            # manifest (exit 0 / 2)
-pwsh -NoProfile -File tools/audit/New-AuditSliceTickets.ps1 -Parent SP-NNNN      # tickets (idempotent)
-pwsh -NoProfile -File tools/audit/Get-AuditCampaign.ps1 -Parent SP-NNNN          # state (exit 0 closed / 1 open / 2)
-pwsh -NoProfile -File tools/audit/Test-AuditTools.ps1                            # the tools' own fixture tests
+pwsh -NoProfile -File tools/audit/New-AuditSlices.ps1 -Parent <umbrella id>            # manifest (exit 0 / 2)
+pwsh -NoProfile -File tools/audit/New-AuditSliceTickets.ps1 -Parent <umbrella id>      # tickets (idempotent)
+pwsh -NoProfile -File tools/audit/Get-AuditCampaign.ps1 -Parent <umbrella id>          # state (exit 0 closed / 1 open / 2)
+pwsh -NoProfile -File tools/audit/Test-AuditTools.ps1                                  # the tools' own fixture tests
 ```
+
+`<umbrella id>` is a ticket id of this project's grammar - `grammar.ticketIdPattern` in `.sza-profile.json`, or one of
+its `legacyTicketIdPatterns` that closed tickets keep. The tools read both from the profile, so a prefix change is a
+profile edit and never an edit of the tools; a repository without a profile has no id shape and the tools stop.
 
 Files added after slicing show up in the summary as uncovered; `New-AuditSlices.ps1 -FileList` slices them into
 a tail manifest that the fan-out and the summary accept like the first.
@@ -98,7 +105,7 @@ a tail manifest that the fan-out and the summary accept like the first.
    **Date:** YYYY-MM-DD
    **Coverage:** <read> of <audited> audited files read in full
    **Findings:** High <n> | Medium <n> | Low <n>
-   **Tickets:** SP-NNNN, SP-NNNN   (every ticket created or extended; `none` when there are no findings)
+   **Tickets:** <ticket id>, <ticket id>   (every ticket created or extended; `none` when there are no findings)
    **Inline fixes:** none   (or each fix with its `expected: X | actual: Y` evidence)
    ```
 
@@ -114,7 +121,7 @@ the gate that makes it a precondition, and it reads only the working tree, becau
 1. Finish the candidate's code. Run a campaign over it (a new umbrella ticket, a new manifest); a change to audited
    code after the audit invalidates it.
 2. Resolve every High and Medium finding: **fixed** (with `expected: X | actual: Y` evidence) or **exception** (the
-   owner's recorded decision to ship with it). A Low finding may instead be **ticketed** (`SP-NNNN`). Nothing is
+   owner's recorded decision to ship with it). A Low finding may instead be **ticketed** (naming its ticket id). Nothing is
    left undispositioned.
 3. Run `scripts/check.ps1` on the result, then, on a clean committed tree, write the verdict from a findings file:
 

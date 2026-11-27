@@ -16,7 +16,10 @@ internal sealed partial class BroadcastProducerService
     private Task<bool>? _videoAvailable;
 
     /// <summary>Whether Windows' H.264 encoder starts on this PC, asked once; where it does not, the screen and the camera are not offered (requirement 2).</summary>
-    internal Task<bool> VideoAvailableAsync() => _videoAvailable ??= WindowsVideoBroadcast.EncoderAvailableAsync();
+    internal Task<bool> VideoAvailableAsync()
+    {
+        lock (_gate) return _videoAvailable ??= WindowsVideoBroadcast.EncoderAvailableAsync();
+    }
 
     // Each source keeps the contract's fixed paths on its own deterministic port, with no fallback on conflict.
     private int SourcePort(BroadcastSource source)

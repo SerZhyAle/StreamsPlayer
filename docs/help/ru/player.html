@@ -6,6 +6,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex">
 <title>Справка - Видео - Трансляции</title>
+<link rel="icon" type="image/png" sizes="48x48" href="../product-48.png">
 <script>
 (function () {
   try {
@@ -26,7 +27,7 @@
   </nav>
   <header class="hero">
     <p class="kicker">Справка по окну</p>
-    <h1>Видео - Трансляции</h1>
+    <h1><img class="product" src="../product-48.png" srcset="../product-48.png 1x, ../product-96.png 2x" width="48" height="48" alt="">Видео - Трансляции</h1>
     <p class="lead">В этом окне играет один видеоканал или канал RTSP. Изображение занимает всё окно, а у его нижнего края лежит панель управления: слева - звук, посередине - название канала и его состояние, справа - кнопки дорожек, снимка кадра, записи, полноэкранного режима и других действий. Панель прячется через четыре секунды после последнего обращения к ней и возвращается щелчком по изображению, а надписи поверх изображения объясняют, почему оно тёмное. Основные действия есть и на клавишах, а <kbd>F1</kbd> открывает эту страницу. Движок, который рисует изображение, VLC или FlyleafLib, выбирается в пункте <b>Движок воспроизведения видео и RTSP</b> на странице <b>Воспроизведение</b> настроек, и изменение действует для следующего открытого окна.</p>
   </header>
 
@@ -53,7 +54,7 @@
       </div>
     </details>
     <details class="el" id="e-mute">
-      <summary><span><span class="name">Без звука</span><span class="one">Выключает и включает звук видео.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.mute" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M16.5,12c0,-1.77 -1.02,-3.29 -2.5,-4.03v2.21l2.45,2.45c0.03,-0.2 0.05,-0.41 0.05,-0.63zM19,12c0,0.94 -0.2,1.82 -0.54,2.64l1.51,1.51C20.63,14.91 21,13.5 21,12c0,-4.28 -2.99,-7.86 -7,-8.77v2.06c2.89,0.86 5,3.54 5,6.71zM4.27,3L3,4.27 7.73,9H3v6h4l5,5v-6.73l4.25,4.25c-0.67,0.52 -1.42,0.93 -2.25,1.18v2.06c1.38,-0.31 2.63,-0.95 3.69,-1.81L19.73,21 21,19.73l-9,-9L4.27,3zM12,4L9.91,6.09 12,8.18V4z" fill="currentColor"/></svg><span><span class="name">Без звука</span><span class="one">Выключает и включает звук видео.</span></span></summary>
       <div class="full">
         <p>После нажатия видео замолкает, а кнопка получает подпись <b>Включить звук</b>; повторное нажатие возвращает звук на уровне, который показывает ползунок громкости. Состояние сохраняется вместе с громкостью, поэтому следующее окно видео открывается так же.</p>
         <dl class="facts">
@@ -107,7 +108,7 @@
       </div>
     </details>
     <details class="el" id="e-audio-tracks">
-      <summary><span><span class="name">Аудио</span><span class="one">Открывает список звуковых дорожек, если в потоке их больше одной.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.audio-track" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M12,3v9.28c-0.47,-0.17 -0.97,-0.28 -1.5,-0.28C8.01,12 6,14.01 6,16.5S8.01,21 10.5,21c2.31,0 4.2,-1.75 4.45,-4H15V6h4V3h-7z" fill="currentColor"/></svg><span><span class="name">Аудио</span><span class="one">Открывает список звуковых дорожек, если в потоке их больше одной.</span></span></summary>
       <div class="full">
         <p>Кнопка есть только тогда, когда поток предлагает больше одной звуковой дорожки. В меню дорожки перечислены по названию, а безымянная - по номеру; используемая отмечена галочкой, и выбор другой переключает на неё сразу.</p>
         <dl class="facts">
@@ -116,13 +117,13 @@
       </div>
     </details>
     <details class="el" id="e-subtitles">
-      <summary><span><span class="name">Субтитры</span><span class="one">Открывает список дорожек субтитров, если в потоке их больше одной.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.subtitles" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M19,4H5C3.89,4 3,4.9 3,6v12c0,1.1 0.89,2 2,2h14c1.1,0 2,-0.9 2,-2V6C21,4.9 20.1,4 19,4zM11,11H9.5v-0.5h-2v3h2V13H11v1c0,0.55 -0.45,1 -1,1H7c-0.55,0 -1,-0.45 -1,-1v-4c0,-0.55 0.45,-1 1,-1h3c0.55,0 1,0.45 1,1V11zM18,11h-1.5v-0.5h-2v3h2V13H18v1c0,0.55 -0.45,1 -1,1h-3c-0.55,0 -1,-0.45 -1,-1v-4c0,-0.55 0.45,-1 1,-1h3c0.55,0 1,0.45 1,1V11z" fill="currentColor"/></svg><span><span class="name">Субтитры</span><span class="one">Открывает список дорожек субтитров, если в потоке их больше одной.</span></span></summary>
       <div class="full">
         <p>Работает как кнопка <a href="#e-audio-tracks">Аудио</a>, только для субтитров: кнопка есть лишь тогда, когда поток предлагает больше одной дорожки субтитров, меню перечисляет их с отмеченной используемой, и выбор другой переключает на неё сразу.</p>
       </div>
     </details>
     <details class="el" id="e-save-frame">
-      <summary><span><span class="name">Сохранить кадр</span><span class="one">Сохраняет изображение на экране в файл и как значок этого канала.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.capture-frame" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M3 4h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm1 2v12h16V6H4zM12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7z" fill="currentColor" fill-rule="evenodd"/></svg><span><span class="name">Сохранить кадр</span><span class="one">Сохраняет изображение на экране в файл и как значок этого канала.</span></span></summary>
       <div class="full">
         <p>Одно нажатие делает два дела: текущий кадр записывается в файл изображения в разрешении самого потока, а тот же кадр становится значком этого канала в главном окне.</p>
         <p>Файл попадает в папку, заданную как <b>Папка кадров</b> на странице <b>Файлы</b> настроек. Если в эту папку записать нельзя, приложение использует запасную папку, и сообщение называет обе.</p>
@@ -134,7 +135,7 @@
       </div>
     </details>
     <details class="el" id="e-record">
-      <summary><span><span class="name">Запись</span><span class="one">Записывает прямой эфир в файл; повторное нажатие останавливает запись.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.record" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z" fill="currentColor"/></svg><span><span class="name">Запись</span><span class="one">Записывает прямой эфир в файл; повторное нажатие останавливает запись.</span></span></summary>
       <div class="full">
         <p>Нажатие начинает сохранять поток в файл в папке, заданной как <b>Папка видеозаписей</b> на странице <b>Файлы</b> настроек. Во время записи кнопка получает подпись <b>Остановить запись</b>, а элемент <a href="#e-rec-badge">Значок записи</a> показывает прошедшее время. Запись относится к каналу, а не к одному соединению: при переподключении плеера прежняя часть закрывается, а следующая начинается, когда изображение возвращается, поэтому долгая запись может оказаться несколькими файлами.</p>
         <p>Когда запись заканчивается, элемент <a href="#e-toast">Сообщение поверх изображения</a> называет сохранённый файл либо число частей и их папку. Если в папку записать нельзя, запись идёт в запасную папку, и сообщение говорит, в какую. Если воспроизведение остановилось насовсем, запись заканчивается вместе с ним, и сообщение начинается словами «Запись завершилась вместе с воспроизведением.» Закрытие окна тоже заканчивает запись.</p>
@@ -146,7 +147,7 @@
       </div>
     </details>
     <details class="el" id="e-pin">
-      <summary><span><span class="name">Закрепить панель управления</span><span class="one">Оставляет панель управления на экране вместо того, чтобы прятать её через четыре секунды.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="action.pin--off" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M14,4v5c0,1.12 0.37,2.16 1,3H9c0.65,-0.86 1,-1.9 1,-3V4h4M17,2H7C6.45,2 6,2.45 6,3c0,0.55 0.45,1 1,1l1,0v5c0,1.66 -1.34,3 -3,3v2h5.97v7l1,1 1,-1v-7H19v-2c-1.66,0 -3,-1.34 -3,-3V4l1,0c0.55,0 1,-0.45 1,-1 0,-0.55 -0.45,-1 -1,-1z" fill="currentColor"/></svg><span><span class="name">Закрепить панель управления</span><span class="one">Оставляет панель управления на экране вместо того, чтобы прятать её через четыре секунды.</span></span></summary>
       <div class="full">
         <p>У закреплённой панели отсчёт не идёт, и она остаётся над нижним краем изображения. Значок кнопки меняется вместе с состоянием; подсказка и доступное имя остаются прежними.</p>
         <p>Выбор действует для всех окон видео, в том числе открытых после изменения, и сохраняется до следующего запуска приложения.</p>
@@ -157,7 +158,7 @@
       </div>
     </details>
     <details class="el" id="e-fullscreen">
-      <summary><span><span class="name">Во весь экран</span><span class="one">Разворачивает окно на весь экран; та же кнопка затем выводит из полноэкранного режима.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.fullscreen" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M7,14H5v5h5v-2H7V14zM5,10h2V7h3V5H5V10zM17,17h-3v2h5v-5h-2V17zM14,5v2h3v3h2V5H14z" fill="currentColor"/></svg><span><span class="name">Во весь экран</span><span class="one">Разворачивает окно на весь экран; та же кнопка затем выводит из полноэкранного режима.</span></span></summary>
       <div class="full">
         <p>В полноэкранном режиме окно теряет рамку и разворачивается, а кнопка получает подпись <b>Выйти из полноэкранного режима</b>. Двойной щелчок по изображению делает то же, что кнопка; двойной щелчок по панели управления - нет. Канал, открытый пунктом <b>Открыть во весь экран</b> в главном окне, запускается в полноэкранном режиме. Панель управления прячется и возвращается как обычно.</p>
         <dl class="facts">
@@ -167,7 +168,7 @@
       </div>
     </details>
     <details class="el" id="e-actions">
-      <summary><span><span class="name">Другие действия проигрывателя</span><span class="one">Открывает меню действий, у которых нет своей кнопки.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="nav.more" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg><span><span class="name">Другие действия проигрывателя</span><span class="one">Открывает меню действий, у которых нет своей кнопки.</span></span></summary>
       <div class="full">
         <p>Меню открывается вверх от кнопки и содержит по порядку: <a href="#e-always-on-top">Всегда сверху</a>, <a href="#e-pin-channel">Закрепить</a>, <a href="#e-about-channel">О канале</a>, <a href="#e-collections">Добавить в подборку</a> и <a href="#e-new-collection">Добавить в новую коллекцию</a>. При открытом меню панель управления остаётся на экране.</p>
       </div>
@@ -209,7 +210,7 @@
       </div>
     </details>
     <details class="el" id="e-close">
-      <summary><span><span class="name">Закрыть</span><span class="one">Закрывает окно видео и останавливает поток.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="nav.close" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5 12,10.59 6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 12,13.41 17.59,19 19,17.59 13.41,12z" fill="currentColor"/></svg><span><span class="name">Закрыть</span><span class="one">Закрывает окно видео и останавливает поток.</span></span></summary>
       <div class="full">
         <p>Закрытие окна завершает воспроизведение и освобождает видеодвижок; идущая запись завершается и дописывается в фоне. Окно запоминает своё место и размер для этого канала и в следующий раз открывается там же. Окно, закрытое в полноэкранном режиме, оставляет запомненное место прежним.</p>
       </div>

@@ -25,8 +25,9 @@ public partial class SettingsWindow
         };
         InitializeExchangeCamera();
         InitializeExchangeSettings();
+        InitializeRemoteControl();
         ShowExchange();
-        if (Exchange.Account is { SignedOut: true, Token: null })
+        if (Exchange.Account is { Token: null } && Exchange.HasAccount)
         {
             // Item AT: the entry kept its server and login, so the one thing left to type is the password.
             Loaded += (_, _) => ExchangeSecretBox.Focus();
@@ -44,10 +45,10 @@ public partial class SettingsWindow
     private void ShowExchange()
     {
         _showingExchange = true;
-        ExchangeEnabledCheckBox.IsChecked = Exchange.Account.Enabled;
-        ExchangeEnabledCheckBox.IsEnabled = !_exchangeBusy && Exchange.Account.Token is not null;
-        ExchangeAutoAcceptCastsCheckBox.IsChecked = Exchange.Account.AutoAcceptCasts;
-        ExchangeAutoAcceptCastsCheckBox.IsEnabled = !_exchangeBusy && Exchange.Account.Token is not null;
+        ExchangeEnabledOption.IsChecked = Exchange.Account.Enabled;
+        ExchangeEnabledOption.IsEnabled = !_exchangeBusy && Exchange.Account.Token is not null;
+        ExchangeAutoAcceptCastsOption.IsChecked = Exchange.Account.AutoAcceptCasts;
+        ExchangeAutoAcceptCastsOption.IsEnabled = !_exchangeBusy && Exchange.Account.Token is not null;
         ExchangeEnrollButton.IsEnabled = !_exchangeBusy;
         ExchangeForgetButton.IsEnabled = !_exchangeBusy && Exchange.HasAccount;
         // Item AT: a password is changed from a device that is signed in; with no session the dialog would only fail.
@@ -235,7 +236,7 @@ public partial class SettingsWindow
 
         // S15-1: read the box before RunExchangeActionAsync - its first ShowExchange() resets IsChecked to the stored value,
         // so reading it inside the delegate would save the old value again.
-        var autoAccept = ExchangeAutoAcceptCastsCheckBox.IsChecked == true;
+        var autoAccept = ExchangeAutoAcceptCastsOption.IsChecked == true;
         await RunExchangeActionAsync(() => Exchange.SetAutoAcceptCastsAsync(autoAccept));
     }
 
@@ -378,7 +379,7 @@ public partial class SettingsWindow
     {
         if (!_showingExchange)
         {
-            var enabled = ExchangeEnabledCheckBox.IsChecked == true;
+            var enabled = ExchangeEnabledOption.IsChecked == true;
             await RunExchangeActionAsync(() => Exchange.SetEnabledAsync(enabled));
         }
     }

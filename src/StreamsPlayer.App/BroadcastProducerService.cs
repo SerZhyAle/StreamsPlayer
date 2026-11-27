@@ -178,7 +178,7 @@ internal sealed partial class BroadcastProducerService : IDisposable
     /// The user's explicit start of one source (requirement 1). The LAN share and the capture start
     /// without the server; the exchange half starts when the session is up, and follows it back.
     /// </summary>
-    internal async Task<bool> StartAsync(BroadcastSource source, CancellationToken cancel = default)
+    internal async Task<bool> StartAsync(BroadcastSource source, CancellationToken cancel = default, bool checkVideoEncoder = false)
     {
         CancellationTokenSource own;
         lock (_gate)
@@ -197,6 +197,16 @@ internal sealed partial class BroadcastProducerService : IDisposable
             await _sourceOperations.WaitAsync(token).ConfigureAwait(false);
             holdsOperations = true;
             OutcomeKey = null;
+            // The command's probe belongs to the pending start so a stop can cancel it before capture opens.
+            if (checkVideoEncoder && !BroadcastSources.IsAudioOnly(source))
+            {
+                if (!await VideoAvailableAsync().WaitAsync(token).ConfigureAwait(false))
+                {
+                    return FailStart(source, "BroadcastVideoUnavailable");
+                }
+
+                token.ThrowIfCancellationRequested();
+            }
             var started = await StartCoreAsync(source, token).ConfigureAwait(false);
             BroadcastRunningSource? state;
             lock (_gate) _running.TryGetValue(source, out state);

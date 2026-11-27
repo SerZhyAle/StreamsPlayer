@@ -140,7 +140,7 @@ internal sealed partial class ExchangeSourceService
 
                 await ExchangeProtocol.WriteEnrollmentAsync(connection.Stream, ExchangeEnrollmentFields.Build(
                     login, deviceId, "STREAMS Player", "streamsplayer-windows", ProductInfo.Version, "windows", Roles(),
-                    ExchangeCapabilities.Receiver, 30, deviceKey),
+                    ExchangeCapabilities.Receiver, 30, deviceKey, takesCommands: deviceKey is not null),
                     pairingCode ? "pairingCode" : "password", regenerated ? retrySecret! : secret, deadline.Token).ConfigureAwait(false);
                 _lastEnvelopeType = "enroll";
                 response = await ExchangeHandshake.ReadAsync(connection.Stream, "enrolled", deadline.Token).ConfigureAwait(false);
@@ -204,7 +204,11 @@ internal sealed partial class ExchangeSourceService
 
             RememberServerFacts(accepted);
             var enrolled = new ExchangeAccount(deviceId, host, port, login, token, connection.Fingerprint, true,
-                Account.AutoAcceptCasts, connection.PublicKeyFingerprint).WithE2eKey(deviceKey);
+                Account.AutoAcceptCasts, connection.PublicKeyFingerprint).WithE2eKey(deviceKey) with
+            {
+                // STRWIN-0303 / item GC: command-v1 is declared with the key, and a capability is declared only at enroll.
+                DeclaresCommands = deviceKey is not null
+            };
             savingAccount = true;
             _store.Save(enrolled);
             if (guestEntry is not null)
@@ -216,7 +220,7 @@ internal sealed partial class ExchangeSourceService
             savingAccount = false;
             Account = enrolled;
             ClearPendingCertificate();
-            SignedOutNotice = false;
+            SignInEndedNotice = null;
             resumePrevious = false;
             StartLoop(connection, interval);
             connection = null;

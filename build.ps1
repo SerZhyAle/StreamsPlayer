@@ -254,6 +254,20 @@ try {
         }
     }
 
+    # RELEASE-LEDGER rule 4: record the last local/test/debug build without ever failing the build on a ledger error.
+    $ledgerKind = if ($Test) { 'test' } elseif ($Configuration -eq 'Debug') { 'debug' } else { 'test' }
+    $ledgerArgs = @{
+        Verb       = 'build'
+        Package    = 'app'
+        Kind       = $ledgerKind
+        Flavor     = $Runtime
+        Version    = $buildStamp
+        BestEffort = $true
+    }
+    if ($Deploy) { $ledgerArgs['Artifact'] = Join-Path $localOutputPath 'StreamsPlayer.exe' }
+    elseif ($Publish) { $ledgerArgs['Artifact'] = Join-Path $OutputPath 'StreamsPlayer.exe' }
+    & (Join-Path $PSScriptRoot 'scripts/Invoke-ReleaseLedger.ps1') @ledgerArgs
+
     if ($Run) {
         Write-Host 'Launching StreamsPlayer...' -ForegroundColor Green
         # Interactive launch: the app's own exit code must not be treated as a build failure.

@@ -11,8 +11,7 @@
     only - no translated sentence - so a single image stays honest on all thirteen locale pages and
     the generator never has to pick a language for a shared asset.
 
-    Palette is taken from docs/style.css (--bg #0a0f0a, --accent #3fb950) so the card matches the
-    site it previews.
+    The background is the identity master's declared background.
 
     Usage:
       pwsh -NoProfile -File tools/site/make-og-image.ps1
@@ -33,7 +32,8 @@ Add-Type -AssemblyName System.Drawing
 . "$PSScriptRoot/../InterfaceLanguages.ps1"
 
 $root = Get-RepositoryRoot
-$iconPath = Join-Path $root 'docs/assets/streamsplayer-icon-256.png'
+$iconPath = Join-Path $root 'assets/identity/out/mark-1254.png'
+if (-not (Test-Path -LiteralPath $iconPath)) { $iconPath = Join-Path $root 'docs/assets/streamsplayer-icon-256.png' }
 
 # The reference canvas the coordinates below are written for. 1200x630 is the Open Graph size every
 # major consumer crops to 1.91:1 around; the other card scales its height and centres the width.
@@ -100,7 +100,7 @@ if ($Check) {
 }
 
 if (-not (Test-Path -LiteralPath $iconPath)) {
-    throw "Source icon not found: docs/assets/streamsplayer-icon-256.png"
+    throw "Source icon not found: $iconPath"
 }
 
 function Write-SocialCard {
@@ -110,10 +110,8 @@ function Write-SocialCard {
         [Parameter(Mandatory)] [string] $Path
     )
 
-    $bg = [System.Drawing.Color]::FromArgb(10, 15, 10)      # --bg
-    $accent = [System.Drawing.Color]::FromArgb(63, 185, 80)  # --accent
+    $bg = [System.Drawing.Color]::FromArgb(9, 39, 73)
     $ink = [System.Drawing.Color]::White
-    $muted = [System.Drawing.Color]::FromArgb(154, 168, 156)
 
     # The layout derives from the canvas height; the width only decides the horizontal margin.
     $unit = $Height / $DesignHeight
@@ -135,27 +133,6 @@ function Write-SocialCard {
         $graphics.TranslateTransform([single] $offsetX, 0)
         $graphics.ScaleTransform([single] $unit, [single] $unit)
 
-        # A soft accent glow behind the mark, echoing the page's .background-glow.
-        $glowRect = New-Object System.Drawing.Rectangle(60, 150, 620, 620)
-        $glowPath = New-Object System.Drawing.Drawing2D.GraphicsPath
-        $glowPath.AddEllipse($glowRect)
-        $glow = New-Object System.Drawing.Drawing2D.PathGradientBrush($glowPath)
-        $glow.CenterColor = [System.Drawing.Color]::FromArgb(70, $accent)
-        $glow.SurroundColors = @([System.Drawing.Color]::FromArgb(0, $accent))
-        $graphics.FillEllipse($glow, $glowRect)
-        $glow.Dispose()
-        $glowPath.Dispose()
-
-        # Accent rule along the bottom, the one strong brand cue at thumbnail size. It spans the whole
-        # canvas, so it is drawn in canvas coordinates, not reference ones.
-        $graphics.ResetTransform()
-        $rule = New-Object System.Drawing.SolidBrush($accent)
-        $ruleHeight = [single] (12 * $unit)
-        $graphics.FillRectangle($rule, 0, [single] ($Height - $ruleHeight), $Width, $ruleHeight)
-        $rule.Dispose()
-        $graphics.TranslateTransform([single] $offsetX, 0)
-        $graphics.ScaleTransform([single] $unit, [single] $unit)
-
         $icon = [System.Drawing.Image]::FromFile($iconPath)
         try {
             $graphics.DrawImage($icon, 96, 175, 280, 280)
@@ -164,24 +141,12 @@ function Write-SocialCard {
         }
 
         $titleFont = New-Object System.Drawing.Font('Segoe UI', 74, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
-        $kickerFont = New-Object System.Drawing.Font('Segoe UI', 34, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
-        $footFont = New-Object System.Drawing.Font('Segoe UI', 27, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
-
         $inkBrush = New-Object System.Drawing.SolidBrush($ink)
-        $accentBrush = New-Object System.Drawing.SolidBrush($accent)
-        $mutedBrush = New-Object System.Drawing.SolidBrush($muted)
         try {
-            $graphics.DrawString('STREAMS', $titleFont, $inkBrush, 440, 208)
-            $graphics.DrawString('Player', $titleFont, $accentBrush, 440, 292)
-            $graphics.DrawString('Internet radio, live video and RTSP', $kickerFont, $mutedBrush, 446, 400)
-            $graphics.DrawString('Windows desktop  -  free  -  no telemetry', $footFont, $mutedBrush, 446, 452)
+            $graphics.DrawString('STREAMS Player', $titleFont, $inkBrush, 400, 270)
         } finally {
             $inkBrush.Dispose()
-            $accentBrush.Dispose()
-            $mutedBrush.Dispose()
             $titleFont.Dispose()
-            $kickerFont.Dispose()
-            $footFont.Dispose()
         }
 
         $bitmap.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png)

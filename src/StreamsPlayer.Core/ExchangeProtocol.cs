@@ -76,7 +76,9 @@ public static class ExchangeProtocol
         "attach", "connected", "upload", "upload-accepted", "cast", "cast-offer", "cast-answer", "cast-result", "cast-stop",
         "password-change", "password-changed",
         // SP-0260 / items EN to ER (1.12): snake case on the wire, as the amendment keeps them.
-        "settings_save_standard", "settings_saved", "settings_get_standard", "settings_standard_payload"
+        "settings_save_standard", "settings_saved", "settings_get_standard", "settings_standard_payload",
+        // STRWIN-0303 / items GC to GF (1.18): a command to this program from another device of the account.
+        ExchangeCommandFrames.RequestType, ExchangeCommandFrames.ResultType
     };
     public static JsonSerializerOptions JsonOptions { get; } = new(JsonSerializerDefaults.Web);
 

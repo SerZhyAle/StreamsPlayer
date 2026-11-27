@@ -1,5 +1,5 @@
 {
-  "sourceHash": "sha256:5a9bd290e0d42a30",
+  "sourceHash": "sha256:be781ccfe5fd2456",
   "kicker": "Довідка щодо вікна",
   "titlePrefix": "Довідка",
   "breadcrumb": "Навігація",
@@ -14,7 +14,8 @@
   "tip": "Порада",
   "pillWindow": "Вікно",
   "pillSite": "Сайт",
-  "site": { "use": "Як користуватися", "support": "Підтримка", "privacy": "Конфіденційність" },
+  "pillGuide": "Посібник",
+  "site": { "use": "Як користуватися", "support": "Підтримка", "privacy": "Конфіденційність" , "account-deletion": "Як видалити акаунт" },
   "support": "Поставити запитання або повідомити про проблему",
   "footerWritten": "Написано для версії {version} застосунку «{product}», {date}.",
   "indexTitle": "Довідка",

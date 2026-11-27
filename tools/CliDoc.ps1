@@ -132,6 +132,12 @@ function Get-CliManifestProblem {
                 $problems.Add("${label}: a forward never command must have coldStart oneshot and wait done (item C).")
             }
         }
+        # STRWIN-0303, REMOTE-CONTROL rule 7: remote is an object whose confirm is grant or device; since is MAJOR.MINOR.
+        if (Test-CliHas $command 'remote') {
+            $remote = Get-CliProp $command 'remote'
+            if (-not (Test-CliHas $remote 'confirm') -or @('grant', 'device') -cnotcontains (Get-CliProp $remote 'confirm')) { $problems.Add("${label}: remote confirm is not grant or device (REMOTE-CONTROL rule 7).") }
+            elseif ((Test-CliHas $remote 'since') -and (Get-CliProp $remote 'since') -notmatch $version) { $problems.Add("${label}: remote since is not MAJOR.MINOR.") }
+        }
         # SP-0279, rule 18 oneOf: groups of option names; every name is an option of the command.
         if (Test-CliHas $command 'oneOf') {
             foreach ($group in @($command.oneOf)) {
@@ -252,6 +258,10 @@ function ConvertTo-CliDocMarkdown {
         $out.Add("- **List the commands.** ``$($listing[0].synopsis)``. It needs no running copy and opens no window; with ``--json`` it prints the manifest itself.")
     }
     $out.Add('- **The risk setting.** A command whose risk is above `safe` is refused with exit `12` and reason `switch-off` until the person turns on **Let other programs ask STREAMS Player to work with my files, screen, clipboard or the network** in Settings. The setting is off by default and no command can change it. Where an exit code below says "the setting of rule 13", it means this setting.')
+    $remoteCount = @($commands | Where-Object { Test-CliHas $_ 'remote' }).Count
+    if ($remoteCount -gt 0) {
+        $out.Add("- **From another device.** $remoteCount commands below say that another device of the person's exchange account may ask for them, sealed end to end through the exchange server. Nothing is accepted until the person turns on **Accept commands from my other devices** in Settings, Exchange server, and only from the devices ticked there. That switch and the risk setting below are separate: neither one opens the other's door.")
+    }
     $out.Add('- **Strict.** An unknown command, an unknown option, a missing value or a value of the wrong kind is refused with exit `10` and nothing is executed. Commands and options are matched without regard to case; values never are.')
     $out.Add('- **Reserved words.** The first word of a command line is a command, or one of the spellings listed under a command as also accepted; either one wins over a file of the same name. To reach such a file, give it as a path with a folder in it (`.\show`) or to the command that opens a file (`play --file`).')
     $out.Add('')
@@ -301,6 +311,14 @@ function ConvertTo-CliDocMarkdown {
         $forwarding = if ((Get-CliProp $command 'forward') -ceq 'never') { '; done by the process you start, never carried to a running copy' } else { '' }
         $out.Add("Risk ``$($command.risk)``; with nothing running ``$($command.coldStart)``; waits for ``$($command.wait)`` up to $timeout s; $interactive; $idempotent; executable ``$serves``$forwarding; since $($command.since).")
         $out.Add('')
+        $remote = Get-CliProp $command 'remote'
+        if ($null -ne $remote) {
+            $confirm = if ((Get-CliProp $remote 'confirm') -ceq 'device') { 'the person confirms every request on this PC' } else { 'the grants the person gave that device decide' }
+            $remoteSince = Get-CliProp $remote 'since'
+            $sinceText = if ($remoteSince) { "; since $remoteSince" } else { '' }
+            $out.Add("Another device of the account may ask for it (confirm ``$($remote.confirm)``: $confirm$sinceText); a ``path`` option and ``--json`` are not taken from another device.")
+            $out.Add('')
+        }
         $aliases = @($command.aliases)
         if ($aliases.Count -gt 0) {
             $out.Add('Also accepted, as shipped spellings of this command:')

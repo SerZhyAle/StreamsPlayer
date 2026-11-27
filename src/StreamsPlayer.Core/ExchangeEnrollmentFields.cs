@@ -13,6 +13,9 @@ public static class ExchangeEnrollmentFields
 {
     public const string Capability = "e2e-v1";
 
+    /// <summary>STRWIN-0303 / item GC: the capability of a program that takes commands; only a device that holds a key declares it.</summary>
+    public const string CommandCapability = "command-v1";
+
     /// <summary>AM bounds before opening a connection: UTF-8 bytes for passwords, Unicode characters for pairing codes.</summary>
     public static bool IsValidSecret(ReadOnlySpan<char> secret, bool pairingCode)
     {
@@ -40,7 +43,8 @@ public static class ExchangeEnrollmentFields
 
     public static Dictionary<string, object> Build(
         string login, string deviceId, string deviceName, string product, string productVersion, string platform,
-        IReadOnlyList<string> roles, object receiver, int keepaliveSeconds, ExchangeE2eKeyPair? deviceKey)
+        IReadOnlyList<string> roles, object receiver, int keepaliveSeconds, ExchangeE2eKeyPair? deviceKey,
+        bool takesCommands = false)
     {
         var fields = new Dictionary<string, object>
         {
@@ -58,7 +62,7 @@ public static class ExchangeEnrollmentFields
         };
         if (deviceKey is not null)
         {
-            fields["capabilities"] = new[] { Capability };
+            fields["capabilities"] = takesCommands ? new[] { Capability, CommandCapability } : new[] { Capability };
             fields["e2eKey"] = new Dictionary<string, object> { ["v"] = 1, ["kem"] = deviceKey.Kem };
         }
 

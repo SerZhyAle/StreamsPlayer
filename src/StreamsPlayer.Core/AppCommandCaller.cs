@@ -90,6 +90,8 @@ public static class AppCommandCaller
             "quit" => AppCommandResponse.Done(requestId, AppCommandMessages.NothingToQuit),
             AppPlaybackCommands.StopVerb => AppCommandResponse.Done(requestId, AppPlaybackMessages.NothingPlaying,
                 new JsonObject { ["stopped"] = 0 }),
+            // STRWIN-0305: nothing running is nothing broadcast.
+            AppBroadcastCommands.StopVerb => AppBroadcastCommands.Stopped(requestId, 0),
             _ => AppCommandPolicy.NotRunning(requestId)
         };
     }

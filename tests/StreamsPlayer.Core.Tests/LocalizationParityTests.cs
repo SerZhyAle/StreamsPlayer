@@ -49,7 +49,9 @@ public sealed class LocalizationParityTests
             "VideoBackendFlyleaf",
             "VideoBackendLibVlc",
             // Brand name / audio technology.
-            "AudioChannelDolby"
+            "AudioChannelDolby",
+            // The related product's brand name, written the same way in every language we ship.
+            "FastMediaSorterName"
         },
         // Endonyms are identical in all dictionaries on purpose: a picker that renamed a language when
         // you switched locale would be unusable for the person trying to get back.

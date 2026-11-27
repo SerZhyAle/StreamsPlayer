@@ -160,9 +160,15 @@ public sealed class HelpGateTests
     [Fact]
     public void A_written_page_without_a_generated_picture_is_on_the_picture_baseline_and_nothing_else_is()
     {
-        var written = WrittenPages().Select(surface => surface.Help!).Order(StringComparer.Ordinal);
+        var written = WrittenPages().Select(surface => surface.Help!).ToHashSet(StringComparer.Ordinal);
+        var missing = Baselined("shot");
+        var shots = Path.Combine(HelpDirectory, "shots");
+        var generated = Directory.Exists(shots)
+            ? Directory.EnumerateFiles(shots, "*.json").Select(path => Path.GetFileNameWithoutExtension(path)!).ToArray()
+            : Array.Empty<string>();
 
-        Assert.Equal(written, Baselined("shot").Order(StringComparer.Ordinal));
+        Assert.All(missing, id => Assert.Contains(id, written));
+        Assert.Equal(written.Except(missing).Order(StringComparer.Ordinal), generated.Order(StringComparer.Ordinal));
     }
 
     [Fact]

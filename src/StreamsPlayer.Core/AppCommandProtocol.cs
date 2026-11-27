@@ -83,6 +83,15 @@ public static class AppCommandReason
     /// copy cannot record, a video engine with no recording). Failed, exit 1.
     /// </summary>
     public const string NotRecordable = "not-recordable";
+
+    /// <summary>
+    /// STRWIN-0305, <c>APP-COMMANDS</c> item M: the module the verb belongs to is switched off in the product's settings
+    /// (broadcasting not allowed); the message names the setting. Refused, exit 11.
+    /// </summary>
+    public const string ModuleOff = "module-off";
+
+    /// <summary>STRWIN-0305, <c>APP-COMMANDS</c> item M: the network or the server the verb needed did not answer. Failed, exit 15.</summary>
+    public const string Network = "network";
 }
 
 /// <summary>How a line that arrived on the activation pipe reads (SP-0271).</summary>

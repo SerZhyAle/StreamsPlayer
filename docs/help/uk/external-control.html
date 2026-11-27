@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="uk" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Довідка - Зовнішнє керування</title>
+<link rel="icon" type="image/png" sizes="48x48" href="../product-48.png">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <nav class="help-crumbs" aria-label="Навігація">
+    <a href="index.html">Зміст довідки</a><span class="sep" aria-hidden="true">/</span><span>Зовнішнє керування</span>
+  </nav>
+  <header class="hero">
+    <p class="kicker">Довідка щодо вікна</p>
+    <h1><img class="product" src="../product-48.png" srcset="../product-48.png 1x, ../product-96.png 2x" width="48" height="48" alt="Трансляції">Зовнішнє керування</h1>
+    <p class="lead">Відкрийте вікно з групи «Зовнішнє керування» на сторінці «Сервер обміну» в налаштуваннях. Воно відкривається до входу в обліковий запис і з вимкненим прийманням команд. Зміни діють одразу після збереження.</p>
+  </header>
+
+  <h2>По порядку</h2>
+  <ol class="order">
+    <li>Увімкніть <a href="#e-remote-listening">Приймати команди з моїх інших пристроїв</a> на цьому комп’ютері.</li>
+    <li>Знайдіть інший пристрій у розділі <a href="#e-remote-controllers">Хто може керувати цим пристроєм</a> і дозвольте йому доступ.</li>
+    <li>Укажіть, чи потрібно питати вас перед виконанням команди.</li>
+    <li>Дайте відповідь у розділі <a href="#e-remote-consent">Чекає на вашу відповідь</a> або перегляньте результат у розділі <a href="#e-remote-log">Останні запити</a>.</li>
+  </ol>
+
+  <h2>Елементи</h2>
+  <div class="elements">
+    <details class="el" id="e-remote-listening">
+      <summary><span><span class="name">Приймати команди з моїх інших пристроїв</span><span class="one">Вмикає або вимикає приймання команд на цьому комп’ютері.</span></span></summary>
+      <div class="full">
+        <p>Приймання команд спочатку вимкнено. Це той самий перемикач, що й у налаштуваннях. Поки він вимкнений, команди з інших пристроїв відхиляються. Приймання можна вимкнути будь-коли. Список дозволених пристроїв зберігається.</p>
+        <p>Рядок під перемикачем повідомляє, чи передає сервер обміну команди та чи потрібно ввійти знову.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-consent">
+      <summary><span><span class="name">Чекає на вашу відповідь</span><span class="one">Показує запит, на який потрібно відповісти на цьому комп’ютері.</span></span></summary>
+      <div class="full">
+        <p>Запит також з’являється в невеликому вікні. Дозвольте або відхиліть його в будь-якому з двох місць. Якщо за 60 секунд відповіді немає, запит відхиляється.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-controllers">
+      <summary><span><span class="name">Хто може керувати цим пристроєм</span><span class="one">Дає змогу вибрати, які з ваших пристроїв можуть надсилати команди.</span></span></summary>
+      <div class="full">
+        <p>Увімкніть приймання команд і ввійдіть на іншому пристрої в той самий обліковий запис. Дозволений пристрій отримує доступ до безпечних команд із вибором «Дозволяти завжди». Щоб забрати доступ до виду команд, виберіть «Немає доступу». Для підтвердження на цьому комп’ютері виберіть «Питати щоразу».</p>
+        <p>Пристрій втрачає доступ, якщо виходить з облікового запису або змінює свій ключ.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-commands">
+      <summary><span><span class="name">Команди, які приймає ця програма</span><span class="one">Перелічує команди, які можна надіслати цьому плеєру з іншого пристрою.</span></span></summary>
+      <div class="full">
+        <p>Розгорніть розділ, щоб побачити кожну команду та її вид. Для команд, які завжди потребують відповіді на цьому комп’ютері, це зазначено у списку.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-log">
+      <summary><span><span class="name">Останні запити</span><span class="one">Показує останні 20 запитів, починаючи з найновішого.</span></span></summary>
+      <div class="full">
+        <p>Щоб побачити всі запити, які ще зберігаються на цьому комп’ютері, відкрийте весь журнал. У журналі до 500 записів. Він показує результат без значень аргументів, наприклад адреси трансляції. Журнал залишається на цьому комп’ютері.</p>
+      </div>
+    </details>
+  </div>
+
+  <h2>Дивіться також</h2>
+  <ul class="related">
+    <li><a href="settings.html"><b>Налаштування «Трансляцій»</b><span class="pill">Вікно</span><small>Де під’єднуються до сервера обміну.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Написано для версії 26.1021 застосунку «Трансляції», 2026-10-21.</span>
+    <a href="index.html">Зміст довідки</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/uk/support.html">Поставити запитання або повідомити про проблему</a>
+  </footer>
+
+</main>
+<script>
+/* Progressive enhancement only: the page is complete without it. */
+(function () {
+  function openHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === 'DETAILS') { el.open = true; }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+})();
+</script>
+</body>
+</html>

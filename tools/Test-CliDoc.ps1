@@ -147,6 +147,8 @@ try {
     Check (Has (Get-Problems $changed) 'timeoutMs is missing or not an integer') 'a text timeout fails'
     $changed = New-Manifest 0; $changed.commands[0].interactive = 'no'
     Check (Has (Get-Problems $changed) 'interactive is missing or not true or false') 'a text flag fails'
+    $changed = New-Manifest 0; $changed.commands[0] | Add-Member -NotePropertyName remote -NotePropertyValue ([pscustomobject]@{ confirm = 'maybe' }) -Force
+    Check (Has (Get-Problems $changed) 'remote confirm is not grant or device') 'a remote member without confirm grant or device fails'
     $changed = New-Manifest 0; $changed.commands[0].since = 'one'
     Check (Has (Get-Problems $changed) 'since is missing or is not MAJOR.MINOR') 'a since that is not a version fails'
     $changed = New-Manifest 0; $changed.commands[0].name = 'Commands'

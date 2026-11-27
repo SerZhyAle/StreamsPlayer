@@ -1,0 +1,65 @@
+{
+  "summary": "Choose which devices in your account can control this player, answer requests and read the recent history.",
+  "lead": "Open this window from External control on the Exchange server page of Settings. You can open it before you sign in or turn on listening. Changes take effect as soon as they are saved.",
+  "order": [
+    "Turn on {@remote-listening} on this PC.",
+    "Find your other device under {@remote-controllers} and allow it.",
+    "Choose whether the device must ask you before it sends a command.",
+    "Use {@remote-consent} to answer a request, or {@remote-log} to see how it ended."
+  ],
+  "elements": [
+    {
+      "id": "remote-listening",
+      "nameKey": "RemoteListening",
+      "control": "RemoteListeningOption",
+      "one": "Turns listening on or off on this PC.",
+      "full": [
+        "Listening starts off. This is the same switch as the one in Settings. While it is off, commands from other devices are refused. Turn it off at any time to stop accepting commands. The devices you allowed stay remembered.",
+        "The line below the switch tells you whether the exchange server can carry commands and whether you need to sign in again."
+      ]
+    },
+    {
+      "id": "remote-consent",
+      "nameKey": "RemoteWaiting",
+      "control": "ConsentSection",
+      "one": "Shows the request that needs your answer on this PC.",
+      "full": [
+        "The request also appears in a small window. Allow or decline it in either place. If you leave it unanswered for 60 seconds, it is declined."
+      ]
+    },
+    {
+      "id": "remote-controllers",
+      "nameKey": "RemoteControllersTitle",
+      "control": "ControllersSection",
+      "one": "Chooses which of your devices may send commands.",
+      "full": [
+        "Listening must be on and the other device must be signed in to the same account. Allow a device to give it Safe commands with Always allow. Choose No access to take away a kind of command, or Ask each time to approve it on this PC.",
+        "A device that leaves the account or changes its key loses its access."
+      ]
+    },
+    {
+      "id": "remote-commands",
+      "nameKey": "RemoteCommandsTitle",
+      "control": "CommandsSection",
+      "one": "Lists the commands that another device can ask this player to run.",
+      "full": [
+        "Open the section to see each command and its kind. Commands that always need an answer on this PC say so."
+      ]
+    },
+    {
+      "id": "remote-log",
+      "nameKey": "RemoteLogTitle",
+      "control": "LogSection",
+      "one": "Shows the newest 20 requests, most recent first.",
+      "full": [
+        "Open the full log to see all the requests still kept on this PC. The log keeps up to 500 entries. It records what happened and omits the values of the arguments, such as a stream address. The log stays on this PC."
+      ]
+    }
+  ],
+  "related": [
+    {
+      "help": "settings",
+      "note": "Where you connect to your exchange server."
+    }
+  ]
+}

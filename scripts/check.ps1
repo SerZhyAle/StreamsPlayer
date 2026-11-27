@@ -28,6 +28,8 @@
       store-preflight-call-test scripts/Test-StorePreflightCall.ps1 - the release flow's call of the shared read-only Store
                     preflight, against a stub: exit mapping, the manual line, the record, no msstore call of its own
                     (SP-0261 Part 2; also in check-fast.ps1)
+      release-ledger-test scripts/Test-ReleaseLedger.ps1 - the release-ledger wrapper, -BestEffort resilience, -CheckRender
+                    and channels.json coverage against .sza-canon.json (SP-0292; also in check-fast.ps1)
       msix-manifest msix/Test-AppxManifest.ps1 - the committed manifest template packs under the Windows SDK's own
                     makeappx, from any tree state (build-msix.ps1 refuses a dirty tree, so it cannot be the
                     first to find a schema error) (SP-0238); COULD NOT VERIFY without the SDK
@@ -60,10 +62,11 @@
     Exit codes (CHECK-VERDICT): 0 passed, 1 a check failed, 2 a check could not verify. A child that answers 4
     ("not looked at yet": a lock another run holds) is read as 2, and an exit nothing above anticipated (dotnet
     missing from PATH, ..) as 2 as well. A failed restore or build stops the run (nothing after it can be
-    judged); every later check runs even when an earlier one fails, and the last line names all of them:
-        check: PASS (<n> checks, <m> skipped)
-        check: FAIL (<names>[; <m> skipped])
-        check: COULD NOT VERIFY (<names>[; <m> skipped])
+    judged); every later check runs even when an earlier one fails, and the last line names the configuration it judged
+    (BUILD-EVIDENCE rule 1) and all of the children:
+        check: PASS (<configuration>, <n> checks, <m> skipped)
+        check: FAIL (<configuration>, <names>[; <m> skipped])
+        check: COULD NOT VERIFY (<configuration>, <names>[; <m> skipped])
 #>
 [CmdletBinding()]
 param(
@@ -76,9 +79,9 @@ $root = Split-Path $PSScriptRoot -Parent
 Push-Location $root
 try {
     dotnet restore StreamsPlayer.sln
-    if ($LASTEXITCODE -ne 0) { Write-Host "check: restore failed (exit $LASTEXITCODE)"; Write-Host 'check: FAIL (restore)'; exit 1 }
+    if ($LASTEXITCODE -ne 0) { Write-Host "check: restore failed (exit $LASTEXITCODE)"; Write-Host "check: FAIL ($Configuration, restore)"; exit 1 }
     dotnet build StreamsPlayer.sln -c $Configuration --no-restore
-    if ($LASTEXITCODE -ne 0) { Write-Host "check: build failed (exit $LASTEXITCODE)"; Write-Host 'check: FAIL (build)'; exit 1 }
+    if ($LASTEXITCODE -ne 0) { Write-Host "check: build failed (exit $LASTEXITCODE)"; Write-Host "check: FAIL ($Configuration, build)"; exit 1 }
 
     $results = [ordered]@{}
     pwsh -NoProfile -File (Join-Path $root 'scripts/test.ps1') -Configuration $Configuration -NoBuild
@@ -111,6 +114,8 @@ try {
     $results['msix-identity'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'scripts/Test-StorePreflightCall.ps1')
     $results['store-preflight-call-test'] = $LASTEXITCODE
+    pwsh -NoProfile -File (Join-Path $root 'scripts/Test-ReleaseLedger.ps1')
+    $results['release-ledger-test'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'msix/Test-AppxManifest.ps1') -Configuration $Configuration
     $results['msix-manifest'] = $LASTEXITCODE
     pwsh -NoProfile -File (Join-Path $root 'tools/store/Test-StoreListing.ps1')
@@ -153,16 +158,18 @@ try {
     $unverified = @($results.Keys | Where-Object { $results[$_] -in 2, 4 })
     $skippedNote = if ($skipped.Count) { "; $($skipped.Count) skipped" } else { '' }
     foreach ($name in $results.Keys) { Write-Host ("check: {0} exit {1}" -f $name, $results[$name]) }
-    if ($failed.Count) { Write-Host "check: FAIL ($($failed -join ', ')$skippedNote)"; exit 1 }
-    if ($unverified.Count) { Write-Host "check: COULD NOT VERIFY ($($unverified -join ', ')$skippedNote)"; exit 2 }
-    Write-Host "check: PASS ($($results.Count) checks, $($skipped.Count) skipped)"
+    # BUILD-EVIDENCE rule 1: the verdict names the configuration it judged, so a Debug run is never quoted as
+    # evidence about Release.
+    if ($failed.Count) { Write-Host "check: FAIL ($Configuration, $($failed -join ', ')$skippedNote)"; exit 1 }
+    if ($unverified.Count) { Write-Host "check: COULD NOT VERIFY ($Configuration, $($unverified -join ', ')$skippedNote)"; exit 2 }
+    Write-Host "check: PASS ($Configuration, $($results.Count) checks, $($skipped.Count) skipped)"
     exit 0
 }
 catch {
     # An exception nothing above anticipated (dotnet or pwsh missing from PATH, ..): nothing was judged, so the run could not
     # verify - a verdict line and exit 2, not a stack trace and exit 1 (CHECK-VERDICT 2.1, 2.5, 2.11). Every check runs in a
     # child process and answers with an exit code, so no judged result is lost here.
-    Write-Host "check: COULD NOT VERIFY ($($_.Exception.Message -replace '\s+', ' '))"
+    Write-Host "check: COULD NOT VERIFY ($Configuration, $($_.Exception.Message -replace '\s+', ' '))"
     exit 2
 }
 finally { Pop-Location }

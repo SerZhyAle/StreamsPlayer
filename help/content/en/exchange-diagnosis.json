@@ -90,6 +90,7 @@
     { "help": "broadcasts", "note": "The list that offers Check the connection when part of it cannot be read." },
     { "help": "broadcast-audio", "note": "The window of an audio broadcast, which can offer Check the connection after a failure." },
     { "help": "settings", "note": "The Exchange server page, which has its own Check the connection button." },
-    { "site": "use", "note": "The whole task, from the first start to your own playlists." }
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." },
+    { "portal": "account-deletion", "note": "Where an account is deleted; this program offers no way to." }
   ]
 }

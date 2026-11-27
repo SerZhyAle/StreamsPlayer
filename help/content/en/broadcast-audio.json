@@ -102,6 +102,7 @@
     { "help": "broadcasts", "note": "The list where Play opens a broadcast in a window like this one." },
     { "help": "exchange-diagnosis", "note": "The connection check that Check the connection opens." },
     { "help": "settings", "note": "Where the radio recordings folder is chosen." },
-    { "site": "use", "note": "The whole task, from the first start to your own playlists." }
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." },
+    { "portal": "account-deletion", "note": "Where an account is deleted; this program offers no way to." }
   ]
 }

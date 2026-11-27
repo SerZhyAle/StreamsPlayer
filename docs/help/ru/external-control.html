@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ru" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Справка - Внешнее управление</title>
+<link rel="icon" type="image/png" sizes="48x48" href="../product-48.png">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <nav class="help-crumbs" aria-label="Навигация">
+    <a href="index.html">Оглавление справки</a><span class="sep" aria-hidden="true">/</span><span>Внешнее управление</span>
+  </nav>
+  <header class="hero">
+    <p class="kicker">Справка по окну</p>
+    <h1><img class="product" src="../product-48.png" srcset="../product-48.png 1x, ../product-96.png 2x" width="48" height="48" alt="Трансляции">Внешнее управление</h1>
+    <p class="lead">Откройте окно из группы «Внешнее управление» на странице «Сервер обмена» в настройках. Оно открывается до входа в учётную запись и при выключенном приёме команд. Изменения действуют сразу после сохранения.</p>
+  </header>
+
+  <h2>По порядку</h2>
+  <ol class="order">
+    <li>Включите <a href="#e-remote-listening">Принимать команды с моих других устройств</a> на этом компьютере.</li>
+    <li>Найдите другое устройство в разделе <a href="#e-remote-controllers">Кто может управлять этим устройством</a> и разрешите ему доступ.</li>
+    <li>Укажите, нужно ли спрашивать вас перед выполнением команды.</li>
+    <li>Ответьте на запрос в разделе <a href="#e-remote-consent">Ждёт вашего ответа</a> или посмотрите его результат в разделе <a href="#e-remote-log">Последние запросы</a>.</li>
+  </ol>
+
+  <h2>Элементы</h2>
+  <div class="elements">
+    <details class="el" id="e-remote-listening">
+      <summary><span><span class="name">Принимать команды с моих других устройств</span><span class="one">Включает или выключает приём команд на этом компьютере.</span></span></summary>
+      <div class="full">
+        <p>Приём команд изначально выключен. Это тот же переключатель, что и в настройках. Пока он выключен, команды с других устройств отклоняются. Приём можно отключить в любой момент. Список разрешённых устройств сохраняется.</p>
+        <p>Строка под переключателем сообщает, передаёт ли сервер обмена команды и нужен ли повторный вход.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-consent">
+      <summary><span><span class="name">Ждёт вашего ответа</span><span class="one">Показывает запрос, на который нужно ответить на этом компьютере.</span></span></summary>
+      <div class="full">
+        <p>Запрос также появляется в небольшом окне. Разрешите или отклоните его в любом из двух мест. Если за 60 секунд ответа нет, запрос отклоняется.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-controllers">
+      <summary><span><span class="name">Кто может управлять этим устройством</span><span class="one">Позволяет выбрать, какие из ваших устройств могут присылать команды.</span></span></summary>
+      <div class="full">
+        <p>Включите приём команд и войдите на другом устройстве в ту же учётную запись. Разрешённое устройство получает доступ к безопасным командам с выбором «Разрешать всегда». Чтобы отозвать доступ к виду команд, выберите «Нет доступа». Для подтверждения на этом компьютере выберите «Спрашивать каждый раз».</p>
+        <p>Устройство теряет доступ, если выходит из учётной записи или меняет свой ключ.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-commands">
+      <summary><span><span class="name">Команды, которые принимает эта программа</span><span class="one">Перечисляет команды, которые можно прислать этому плееру с другого устройства.</span></span></summary>
+      <div class="full">
+        <p>Раскройте раздел, чтобы увидеть каждую команду и её вид. Для команд, которые всегда требуют ответа на этом компьютере, это указано в списке.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-log">
+      <summary><span><span class="name">Последние запросы</span><span class="one">Показывает последние 20 запросов, начиная с самого нового.</span></span></summary>
+      <div class="full">
+        <p>Чтобы увидеть все запросы, которые ещё хранятся на этом компьютере, откройте весь журнал. В журнале до 500 записей. Он показывает результат без значений аргументов, например адреса трансляции. Журнал остаётся на этом компьютере.</p>
+      </div>
+    </details>
+  </div>
+
+  <h2>Смотрите также</h2>
+  <ul class="related">
+    <li><a href="settings.html"><b>Настройки Трансляции</b><span class="pill">Окно</span><small>Где подключаются к серверу обмена.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Написано для версии 26.1021 программы «Трансляции», 2026-10-21.</span>
+    <a href="index.html">Оглавление справки</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/ru/support.html">Задать вопрос или сообщить о проблеме</a>
+  </footer>
+
+</main>
+<script>
+/* Progressive enhancement only: the page is complete without it. */
+(function () {
+  function openHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === 'DETAILS') { el.open = true; }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+})();
+</script>
+</body>
+</html>

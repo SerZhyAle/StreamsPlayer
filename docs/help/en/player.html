@@ -6,6 +6,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex">
 <title>Help - STREAMS Player video</title>
+<link rel="icon" type="image/png" sizes="48x48" href="../product-48.png">
 <script>
 (function () {
   try {
@@ -26,7 +27,7 @@
   </nav>
   <header class="hero">
     <p class="kicker">Window help</p>
-    <h1>STREAMS Player video</h1>
+    <h1><img class="product" src="../product-48.png" srcset="../product-48.png 1x, ../product-96.png 2x" width="48" height="48" alt="">STREAMS Player video</h1>
     <p class="lead">This window plays one video or RTSP channel. The picture fills the window, and a control panel lies over its bottom edge: the sound controls at the left end, the channel's name and state in the middle, and the buttons for tracks, capture, recording, full screen and more actions at the right end. The panel hides four seconds after you last used it and comes back with a click on the picture, and captions written over the picture say why it is dark. Keys cover the common actions, and <kbd>F1</kbd> opens this page. The engine that draws the picture, VLC or FlyleafLib, is chosen under <b>Video and RTSP playback engine</b> on the <b>Playback</b> page of Settings, and a change applies to the next window you open.</p>
   </header>
 
@@ -53,7 +54,7 @@
       </div>
     </details>
     <details class="el" id="e-mute">
-      <summary><span><span class="name">Mute</span><span class="one">Switches the video sound off and on.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.mute" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M16.5,12c0,-1.77 -1.02,-3.29 -2.5,-4.03v2.21l2.45,2.45c0.03,-0.2 0.05,-0.41 0.05,-0.63zM19,12c0,0.94 -0.2,1.82 -0.54,2.64l1.51,1.51C20.63,14.91 21,13.5 21,12c0,-4.28 -2.99,-7.86 -7,-8.77v2.06c2.89,0.86 5,3.54 5,6.71zM4.27,3L3,4.27 7.73,9H3v6h4l5,5v-6.73l4.25,4.25c-0.67,0.52 -1.42,0.93 -2.25,1.18v2.06c1.38,-0.31 2.63,-0.95 3.69,-1.81L19.73,21 21,19.73l-9,-9L4.27,3zM12,4L9.91,6.09 12,8.18V4z" fill="currentColor"/></svg><span><span class="name">Mute</span><span class="one">Switches the video sound off and on.</span></span></summary>
       <div class="full">
         <p>Pressing it silences the video, and the button then reads <b>Unmute</b>; pressing it again brings the sound back at the level the volume slider shows. The state is saved together with the volume, so the next video window opens the same way.</p>
         <dl class="facts">
@@ -107,7 +108,7 @@
       </div>
     </details>
     <details class="el" id="e-audio-tracks">
-      <summary><span><span class="name">Audio</span><span class="one">Opens the list of audio tracks when the stream has more than one.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.audio-track" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M12,3v9.28c-0.47,-0.17 -0.97,-0.28 -1.5,-0.28C8.01,12 6,14.01 6,16.5S8.01,21 10.5,21c2.31,0 4.2,-1.75 4.45,-4H15V6h4V3h-7z" fill="currentColor"/></svg><span><span class="name">Audio</span><span class="one">Opens the list of audio tracks when the stream has more than one.</span></span></summary>
       <div class="full">
         <p>The button is there only when the stream offers more than one audio track. The menu lists the tracks by name, or by number when a track has no name; the one in use carries a check mark, and choosing another switches to it at once.</p>
         <dl class="facts">
@@ -116,13 +117,13 @@
       </div>
     </details>
     <details class="el" id="e-subtitles">
-      <summary><span><span class="name">Subtitles</span><span class="one">Opens the list of subtitle tracks when the stream has more than one.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.subtitles" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M19,4H5C3.89,4 3,4.9 3,6v12c0,1.1 0.89,2 2,2h14c1.1,0 2,-0.9 2,-2V6C21,4.9 20.1,4 19,4zM11,11H9.5v-0.5h-2v3h2V13H11v1c0,0.55 -0.45,1 -1,1H7c-0.55,0 -1,-0.45 -1,-1v-4c0,-0.55 0.45,-1 1,-1h3c0.55,0 1,0.45 1,1V11zM18,11h-1.5v-0.5h-2v3h2V13H18v1c0,0.55 -0.45,1 -1,1h-3c-0.55,0 -1,-0.45 -1,-1v-4c0,-0.55 0.45,-1 1,-1h3c0.55,0 1,0.45 1,1V11z" fill="currentColor"/></svg><span><span class="name">Subtitles</span><span class="one">Opens the list of subtitle tracks when the stream has more than one.</span></span></summary>
       <div class="full">
         <p>Works like <a href="#e-audio-tracks">Audio</a>, for subtitles: the button is there only when the stream offers more than one subtitle track, the menu lists them with the one in use checked, and choosing another switches to it at once.</p>
       </div>
     </details>
     <details class="el" id="e-save-frame">
-      <summary><span><span class="name">Save frame</span><span class="one">Saves the picture on screen as a file and as the icon of this channel.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.capture-frame" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M3 4h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm1 2v12h16V6H4zM12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7z" fill="currentColor" fill-rule="evenodd"/></svg><span><span class="name">Save frame</span><span class="one">Saves the picture on screen as a file and as the icon of this channel.</span></span></summary>
       <div class="full">
         <p>One press does two things: the current frame is written to a picture file at the resolution of the stream itself, and the same frame becomes the icon of this channel in the main window.</p>
         <p>The file goes to the folder set as <b>Frames folder</b> on the <b>Files</b> page of Settings. If that folder cannot be written, the app uses a fallback folder, and the message names both.</p>
@@ -134,7 +135,7 @@
       </div>
     </details>
     <details class="el" id="e-record">
-      <summary><span><span class="name">Record</span><span class="one">Records the live stream into a file; press it again to stop.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.record" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z" fill="currentColor"/></svg><span><span class="name">Record</span><span class="one">Records the live stream into a file; press it again to stop.</span></span></summary>
       <div class="full">
         <p>Pressing it starts saving the stream to a file in the folder set as <b>Video recordings folder</b> on the <b>Files</b> page of Settings. While it records, the button reads <b>Stop recording</b> and <a href="#e-rec-badge">Recording badge</a> shows the elapsed time. A recording belongs to the channel, not to one connection: when the player reconnects, the part so far is closed and the next part starts when the picture is back, so a long recording can end up as several files.</p>
         <p>When the recording ends, <a href="#e-toast">Message over the picture</a> names the saved file, or the number of parts and their folder. If the folder cannot be written, the recording goes to a fallback folder and the message says which. If the playback stops for good, the recording ends with it and the message starts with &quot;Recording ended with playback.&quot; Closing the window ends the recording too.</p>
@@ -146,7 +147,7 @@
       </div>
     </details>
     <details class="el" id="e-pin">
-      <summary><span><span class="name">Pin the playback controls</span><span class="one">Keeps the control panel on screen instead of hiding it after four seconds.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="action.pin--off" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M14,4v5c0,1.12 0.37,2.16 1,3H9c0.65,-0.86 1,-1.9 1,-3V4h4M17,2H7C6.45,2 6,2.45 6,3c0,0.55 0.45,1 1,1l1,0v5c0,1.66 -1.34,3 -3,3v2h5.97v7l1,1 1,-1v-7H19v-2c-1.66,0 -3,-1.34 -3,-3V4l1,0c0.55,0 1,-0.45 1,-1 0,-0.55 -0.45,-1 -1,-1z" fill="currentColor"/></svg><span><span class="name">Pin the playback controls</span><span class="one">Keeps the control panel on screen instead of hiding it after four seconds.</span></span></summary>
       <div class="full">
         <p>While the panel is pinned it stays over the bottom of the picture and the countdown does not run. The icon of the button changes with the state; its tooltip and accessible name stay the same.</p>
         <p>The choice applies to every video window, including the ones opened after the change, and is kept for the next start of the app.</p>
@@ -157,7 +158,7 @@
       </div>
     </details>
     <details class="el" id="e-fullscreen">
-      <summary><span><span class="name">Fullscreen</span><span class="one">Makes the window fill the screen; the same button then leaves full screen.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.fullscreen" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M7,14H5v5h5v-2H7V14zM5,10h2V7h3V5H5V10zM17,17h-3v2h5v-5h-2V17zM14,5v2h3v3h2V5H14z" fill="currentColor"/></svg><span><span class="name">Fullscreen</span><span class="one">Makes the window fill the screen; the same button then leaves full screen.</span></span></summary>
       <div class="full">
         <p>In full screen the window loses its frame and is maximized, and the button reads <b>Exit fullscreen</b>. A double-click on the picture does the same as the button; a double-click on the control panel does not. A channel opened with <b>Open fullscreen</b> in the main window starts in full screen. The control panel hides and returns as usual.</p>
         <dl class="facts">
@@ -167,7 +168,7 @@
       </div>
     </details>
     <details class="el" id="e-actions">
-      <summary><span><span class="name">More player actions</span><span class="one">Opens a menu of the actions that have no button of their own.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="nav.more" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z" fill="currentColor"/></svg><span><span class="name">More player actions</span><span class="one">Opens a menu of the actions that have no button of their own.</span></span></summary>
       <div class="full">
         <p>The menu opens upward from the button and holds, in this order: <a href="#e-always-on-top">Always on top</a>, <a href="#e-pin-channel">Pin</a>, <a href="#e-about-channel">About channel</a>, <a href="#e-collections">Add to collection</a> and <a href="#e-new-collection">Add to new collection</a>. The control panel stays on screen while the menu is open.</p>
       </div>
@@ -209,7 +210,7 @@
       </div>
     </details>
     <details class="el" id="e-close">
-      <summary><span><span class="name">Close</span><span class="one">Closes the video window and stops the stream.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="nav.close" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5 12,10.59 6.41,5 5,6.41 10.59,12 5,17.59 6.41,19 12,13.41 17.59,19 19,17.59 13.41,12z" fill="currentColor"/></svg><span><span class="name">Close</span><span class="one">Closes the video window and stops the stream.</span></span></summary>
       <div class="full">
         <p>Closing the window ends the playback and releases the video engine; a recording that is running is ended and finished in the background. The window remembers its place and size for this channel and opens there next time. A window closed in full screen leaves the remembered place as it was.</p>
       </div>

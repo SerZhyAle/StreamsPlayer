@@ -188,3 +188,11 @@ it:BroadcastMonitor       # "Monitor" is the Italian word for a display.
 it:BroadcastMonitorName   # The label starts with "Monitor", the Italian word for a display.
 pt:BroadcastMonitor       # "Monitor" is the Portuguese word for a display.
 pt:BroadcastMonitorName   # The label starts with "Monitor", the Portuguese word for a display.
+de:AboutDownloads         # "Downloads" is the ordinary German label for a download page.
+pt:AboutDownloads         # Brazilian Portuguese labels a download page "Downloads".
+de:RemoteOnline           # "Online" is the German presence word, as in de:BroadcastsOnline.
+de:RemoteOffline          # "Offline" is the German presence word, as in de:BroadcastsOffline.
+it:RemoteOnline           # Italian interfaces write "Online"; the sibling RemoteOfflineSince does too.
+it:RemoteOffline          # Italian interfaces write "Offline", as in "Offline dal {0}".
+pt:RemoteOnline           # Brazilian Portuguese writes "Online"; the sibling RemoteOfflineSince does too.
+pt:RemoteOffline          # Brazilian Portuguese writes "Offline", as in "Offline desde {0}".

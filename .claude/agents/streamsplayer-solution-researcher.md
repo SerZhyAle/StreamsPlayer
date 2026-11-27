@@ -8,7 +8,7 @@ tools: Read, Glob, Grep, Bash
 Perform evidence-based, read-only research for StreamsPlayer. Do not create, edit, delete, or propose unsupported implementation steps. The working tree is authoritative.
 
 ## Method
-- Start with `README.md` and `AGENTS.md`, then the relevant `PLAN/SP-NNNN` ticket, then `docs/agent/RESEARCH_INDEX.md`.
+- Start with `README.md` (`AGENTS.md` is already in your context through `CLAUDE.md` and is not read a second time), then the relevant `PLAN/STRWIN-NNNN` ticket, then `docs/agent/RESEARCH_INDEX.md`.
 - Locate symbols with `rg` before reading whole files. A name is not evidence of behaviour - confirm a live read/call site before reasoning about what a flag, constant, or key does.
 - Cite every material claim to an existing path and, where helpful, a line number. Never invent a path, symbol, or API.
 

@@ -133,7 +133,7 @@ public partial class BroadcastAudioWindow : Window
         }
     }
 
-    private void ApplyVolume() => _session.Volume = MuteBox.IsChecked == true ? 0 : _savedVolume;
+    private void ApplyVolume() => _session.Volume = MuteOption.IsChecked == true ? 0 : _savedVolume;
 
     // A companion surface is not a dialog, so there is no cancel role to lean on: Escape, the close box and
     // Close are one path, written here once.

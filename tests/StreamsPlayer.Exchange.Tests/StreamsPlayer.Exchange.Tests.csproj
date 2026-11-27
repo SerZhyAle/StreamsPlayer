@@ -42,6 +42,8 @@
     <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Sealed.cs" Link="ExchangeSourceService.Sealed.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Loop.cs" Link="ExchangeSourceService.Loop.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Frames.cs" Link="ExchangeSourceService.Frames.cs" />
+    <!-- STRWIN-0303: the command transport half lives in its own partial; the frames file reads it. -->
+    <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Commands.cs" Link="ExchangeSourceService.Commands.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeSourceService.Casts.cs" Link="ExchangeSourceService.Casts.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeTrustBook.cs" Link="ExchangeTrustBook.cs" />
     <Compile Include="../../src/StreamsPlayer.App/ExchangeGuestDirectoryViewer.cs" Link="ExchangeGuestDirectoryViewer.cs" />

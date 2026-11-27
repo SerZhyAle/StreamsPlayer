@@ -63,6 +63,12 @@ public sealed record AppCommandEntry(
     /// </summary>
     public string Forward { get; init; } = AppCommandManifest.ForwardAlways;
 
+    /// <summary>
+    /// STRWIN-0303, <c>REMOTE-CONTROL</c> rule 7: how another device of the account may ask for the command, or
+    /// <see langword="null"/> when it may not - a verb without the member is never run from another device.
+    /// </summary>
+    public AppCommandRemote? Remote { get; init; }
+
     public AppCommandArgument? FindArgument(string name) =>
         Args.FirstOrDefault(argument => string.Equals(argument.Name, name, StringComparison.OrdinalIgnoreCase));
 }
@@ -236,7 +242,8 @@ public sealed class AppCommandManifest
             Summary = RequiredString(command, "summary"),
             Exe = command.TryGetProperty("exe", out var exe) && exe.ValueKind == JsonValueKind.String ? exe.GetString()! : string.Empty,
             AliasDetails = aliases,
-            Forward = forward
+            Forward = forward,
+            Remote = AppCommandRemote.Read(command, name)
         };
     }
 

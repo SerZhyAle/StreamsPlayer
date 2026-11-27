@@ -96,7 +96,9 @@ function Find-SdkTool([string] $Name) {
 # locally and before it is pushed.
 Push-Location $root
 try {
-    $dirty = git status --porcelain
+    # Exclude docs/releases so a self-signed build (checklist step 6) updating builds.json/RELEASES.md does not block
+    # the unsigned Store build (checklist step 10) on the same tagged commit; docs/releases is never packed into the MSIX.
+    $dirty = git status --porcelain -- ':(exclude)docs/releases'
     if ($LASTEXITCODE -ne 0) { throw 'git status failed.' }
     if ($dirty) {
         throw "The working tree is not clean - the package would pack edits no commit carries. Build the Store package from a clean checkout at the version tag: git worktree add <dir> v<version> (msix/README.md)."
@@ -256,6 +258,10 @@ if ($readBackFailure) {
     Remove-Item -LiteralPath $package -Force -ErrorAction SilentlyContinue
     throw "The packed archive failed the Store read-back ($readBackFailure); $package was removed. A different identity needs -TestIdentity."
 }
+
+$ledgerKind = if ($SelfSign -or $TestIdentity) { 'test' } else { 'release' }
+$ledgerFlavor = if ($SelfSign) { 'msix-selfsigned' } elseif ($TestIdentity) { 'msix-test' } else { 'msix' }
+& (Join-Path $root 'scripts/Invoke-ReleaseLedger.ps1') -Verb build -Package 'app' -Kind $ledgerKind -Flavor $ledgerFlavor -Version $appVersion -Artifact $package -BestEffort
 
 if ($SelfSign) {
     Write-Host "Local test package (never upload it): $package" -ForegroundColor Green

@@ -57,11 +57,11 @@ public partial class SettingsWindow
     {
         _showingBroadcast = true;
         var guestOnly = Broadcast.IsGuestOnly;
-        BroadcastAllowedCheckBox.IsChecked = Broadcast.Settings.Allowed;
+        BroadcastAllowedOption.IsChecked = Broadcast.Settings.Allowed;
         // SP-0223 requirement 4: a guest session is offered no source at all, so nothing below the permission shows.
         BroadcastControls.Visibility = Broadcast.Settings.Allowed && !guestOnly ? Visibility.Visible : Visibility.Collapsed;
-        BroadcastStartWithAppCheckBox.IsChecked = Broadcast.Settings.StartWithApplication;
-        BroadcastLanCheckBox.IsChecked = Broadcast.Settings.LanListening;
+        BroadcastStartWithAppOption.IsChecked = Broadcast.Settings.StartWithApplication;
+        BroadcastLanOption.IsChecked = Broadcast.Settings.LanListening;
         if (discardPortEdit || !BroadcastLanPortBox.IsKeyboardFocused)
         {
             BroadcastLanPortBox.Text = Broadcast.Settings.LanPort.ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -103,7 +103,7 @@ public partial class SettingsWindow
             return;
         }
 
-        if (BroadcastAllowedCheckBox.IsChecked != true && !ConfirmLiveBroadcastChange("BroadcastConfirmStopAll"))
+        if (BroadcastAllowedOption.IsChecked != true && !ConfirmLiveBroadcastChange("BroadcastConfirmStopAll"))
         {
             ShowBroadcasting();
             return;
@@ -111,7 +111,7 @@ public partial class SettingsWindow
 
         HandlerBoundary.Run(nameof(BroadcastAllowed_Click), async () =>
         {
-                await Broadcast.SetAllowedAsync(BroadcastAllowedCheckBox.IsChecked == true);
+                await Broadcast.SetAllowedAsync(BroadcastAllowedOption.IsChecked == true);
         });
     }
 
@@ -124,7 +124,7 @@ public partial class SettingsWindow
 
         // S15-2: the change delegate may run off the UI thread, after the producer's semaphore wait, and after
         // ShowBroadcasting has reset the box; the control is read here, on the UI thread, and only the value is captured.
-        var startWithApplication = BroadcastStartWithAppCheckBox.IsChecked == true;
+        var startWithApplication = BroadcastStartWithAppOption.IsChecked == true;
         HandlerBoundary.Run(nameof(BroadcastStartWithApp_Click), async () =>
         {
                 await Broadcast.UpdateSettingsAsync(settings => settings with
@@ -142,7 +142,7 @@ public partial class SettingsWindow
         }
 
         // S15-2: read on the UI thread, as in BroadcastStartWithApp_Click.
-        var lanListening = BroadcastLanCheckBox.IsChecked == true;
+        var lanListening = BroadcastLanOption.IsChecked == true;
         if (!lanListening && !ConfirmLiveBroadcastChange("BroadcastConfirmLanOff"))
         {
             ShowBroadcasting();

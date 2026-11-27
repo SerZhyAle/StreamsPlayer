@@ -123,7 +123,7 @@ public sealed class ConsoleCompanionProjectTests
         var served = document.RootElement.GetProperty("commands").EnumerateArray()
             .Where(command => command.TryGetProperty("exe", out _)).ToArray();
 
-        Assert.Equal(11, served.Length);
+        Assert.Equal(13, served.Length);
         Assert.All(served, command =>
         {
             Assert.Equal(AppCommandConsole.ExecutableName, command.GetProperty("exe").GetString());

@@ -40,7 +40,7 @@ function Check([bool] $Condition, [string] $Name, [object] $Result = $null) {
 function Invoke-Assert([string[]] $Arguments) {
     $out = & pwsh -NoProfile -File $script:assert @Arguments 2>&1 | ForEach-Object { "$_" }
     $lines = @($out | ForEach-Object { $_ -replace "`e\[[0-9;]*[A-Za-z]", '' } | Where-Object { $_.Trim() })
-    [pscustomobject]@{ Exit = $LASTEXITCODE; Last = $(if ($lines.Count) { $lines[-1] } else { '' }); Text = ($lines -join "`n") }
+    [pscustomobject]@{ Exit = $LASTEXITCODE; Last = $(if ($lines.Count) { $lines[-1] } else { '' }); Text = ($lines -join "`n"); Lines = $lines }
 }
 function New-Zip([string] $Path, [hashtable] $Members) {
     $zip = [System.IO.Compression.ZipFile]::Open($Path, 'Create')
@@ -83,6 +83,8 @@ try {
     # --- accepted ------------------------------------------------------------------------------------------------
     $r = Invoke-Assert @('-Version', $version, '-ExePath', $exe)
     Check ($r.Exit -eq 0 -and $r.Last -ceq 'release-version: PASS (run=3 skipped=0)' -and $r.Text -match 'binary file version 26\.719\.131\.0 ') 'the exe passes and its binary version is the remap 26.719.131.0' $r
+    # BUILD-EVIDENCE rules 1 and 8: the subject banner names the version and the artifacts, first line.
+    Check ($r.Lines.Count -ge 2 -and $r.Lines[0] -ceq "release-version: subject = $version (exe)") 'the first line is the subject banner naming the version and the artifact' $r
     $r = Invoke-Assert @('-Version', $version, '-ZipPath', $zip)
     Check ($r.Exit -eq 0 -and $r.Last -ceq 'release-version: PASS (run=4 skipped=0)') 'the exe inside the zip passes' $r
     $r = Invoke-Assert @('-Version', $version, '-SetupPath', $exe)

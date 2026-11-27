@@ -131,7 +131,7 @@ description: Cross-cutting project learnings, corrections, and non-obvious conte
   "Sports") appear even without the term in their name - this looks "unfiltered"
   but is by design. User confirmed keeping the broad match (2026-07-20). Do not
   narrow it to name-only without a new product decision.
-- A strategic `PLAN/SP-NNNN_*.md` ticket moves to `PLAN/DONE/` with its
+- A strategic `PLAN/STRWIN-NNNN_*.md` ticket moves to `PLAN/DONE/` with its
   tactical folder once it reads `Verified`, `Archived`, `Implemented` or
   `BlockNeedUserTest` (owner decision 2026-09-26: implemented-and-awaiting-test
   work leaves the queue folder). Draft, Approved, Tactical, In Progress,

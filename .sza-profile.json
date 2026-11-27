@@ -1,15 +1,17 @@
 {
-  "$comment": "Project profile for the canon-shipped harness (tools/harness in the sza plugin). Only what differs from the canon defaults is written here. StreamsPlayer numbers its tickets SP-0001 (declared in AGENTS.md); the hand-kept tickets before SP-0255 are registered as spent ids in PLAN/spec-catalog-burned-ids.jsonl and are not in the ledger. The harness queue is PLAN/PQ_QUEUE.md; PLAN/RELEASE_QUEUE.md stays the owner's own table and no tool writes it. Run harness scripts through the plugin, never by copying them.",
+  "$comment": "Project profile for the canon-shipped harness (tools/harness in the sza plugin). Only what differs from the canon defaults is written here. StreamsPlayer numbers its tickets STRWIN-0001 (declared in AGENTS.md); on 2026-11-19 the prefix moved from SP to STRWIN (canon TASK-FLOW 0.37, rename-prefix.ps1): every ticket still open then kept its number under the new prefix and lists its old SP id in formerIds, the closed ones keep their SP ids (grammar.legacyTicketIdPatterns). The hand-kept tickets before SP-0255 are registered as spent ids in PLAN/spec-catalog-burned-ids.jsonl (append-only, never edited, so they stay SP ids); the nine of them still open on 2026-11-19 (now STRWIN-0039, 0219, 0221, 0224, 0225, 0230, 0231, 0239, 0254) were also registered in the ledger that day and sit under hold in the portfolio queue until the owner releases them, the rest are not in the ledger. The queue is the canon default PLAN/RELEASE_QUEUE.md, kept by the plan tool: every open ticket is a row there and its status and time follow each ledger write. Run harness scripts through the plugin, never by copying them.",
   "version": "1",
   "projectName": "StreamsPlayer",
   "envPrefix": "SZA",
   "paths": {
-    "specArchiveDir": "PLAN/DONE",
-    "releaseQueue": "PLAN/PQ_QUEUE.md"
+    "specArchiveDir": "PLAN/DONE"
   },
   "grammar": {
-    "ticketIdPattern": "^SP-\\d{4}$",
-    "specFilePattern": "^PLAN/(DONE/)?SP-\\d{4}_(?!spec_)"
+    "ticketIdPattern": "^STRWIN-\\d{4}$",
+    "specFilePattern": "^PLAN/(DONE/)?(?:STRWIN-\\d{4}|SP-\\d{4})_(?!spec_)",
+    "legacyTicketIdPatterns": [
+      "^SP-\\d{4}$"
+    ]
   },
   "probes": {
     "enabled": false

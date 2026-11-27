@@ -10,17 +10,14 @@
         KeyDown="Window_KeyDown">
     <Window.Resources>
         <!-- SP-0191: a nav destination's glyph, drawn in that destination's identity ink (one table:
-             ThemeService's NavInk* pairs; ICON-RENDER 0.16 section 11, WINDOWS-UI 6.6). The 24 grid at
-             the 20 tier, never mirrored (SP-0113). -->
+             ThemeService's NavInk* pairs; ICON-RENDER 0.16 section 11, WINDOWS-UI 6.6). Never mirrored
+             (SP-0113). SP-0231 (SETTINGS-NAVIGATION 2.2): the glyph and its gap come from the shared
+             tokens, so the rail follows the chosen interface size. -->
         <Style x:Key="NavIcon" TargetType="Path">
-            <Setter Property="Width" Value="24" />
-            <Setter Property="Height" Value="24" />
-            <Setter Property="LayoutTransform">
-                <Setter.Value>
-                    <ScaleTransform ScaleX="0.8333" ScaleY="0.8333" />
-                </Setter.Value>
-            </Setter>
-            <Setter Property="Margin" Value="0,0,9,0" />
+            <Setter Property="Width" Value="{DynamicResource UiNavGlyphSize}" />
+            <Setter Property="Height" Value="{DynamicResource UiNavGlyphSize}" />
+            <Setter Property="Stretch" Value="Uniform" />
+            <Setter Property="Margin" Value="{DynamicResource UiMarkerMargin}" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="FlowDirection" Value="LeftToRight" />
         </Style>
@@ -100,7 +97,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Grid Grid.Column="0" Margin="12,14,6,12" MinWidth="170">
+                <Grid x:Name="NavRailHost" Grid.Column="0" Margin="12,14,6,12" MinWidth="170">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
@@ -117,7 +114,7 @@
                                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                                 <Setter Property="FocusVisualStyle" Value="{StaticResource ThemedFocusVisualInset}" />
                                 <Setter Property="Padding" Value="1" />
-                                <Setter Property="MinHeight" Value="28" />
+                                <Setter Property="MinHeight" Value="{DynamicResource UiNavRowHeight}" />
                                 <Setter Property="Margin" Value="2,1" />
                                 <Setter Property="Template">
                                     <Setter.Value>
@@ -125,12 +122,16 @@
                                             <Border x:Name="RowBorder" Background="Transparent" CornerRadius="3"
                                                     BorderThickness="3,0,0,0" BorderBrush="Transparent"
                                                     Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
-                                                <ContentPresenter VerticalAlignment="Center" />
+                                                <ContentPresenter x:Name="RowContent" VerticalAlignment="Center" TextElement.FontWeight="Normal" />
                                             </Border>
                                             <ControlTemplate.Triggers>
+                                                <!-- SP-0231 (SETTINGS-NAVIGATION 2.2): the selected destination is not
+                                                     told by colour alone - the row also sets its name to semibold beside the
+                                                     start-side bar, and the ListBoxItem peer exposes the selection state. -->
                                                 <Trigger Property="IsSelected" Value="True">
                                                     <Setter TargetName="RowBorder" Property="Background" Value="{DynamicResource CardSelectedBrush}" />
                                                     <Setter TargetName="RowBorder" Property="BorderBrush" Value="{DynamicResource AccentMarkBrush}" />
+                                                    <Setter TargetName="RowContent" Property="TextElement.FontWeight" Value="SemiBold" />
                                                 </Trigger>
                                                 <MultiTrigger>
                                                     <MultiTrigger.Conditions>
@@ -222,6 +223,12 @@
                             <TextBlock x:Name="PageDescText" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="12,0,0,0">
+                            <!-- SP-0231 (SETTINGS-NAVIGATION 2.6): below the documented narrow width the side rail
+                                 folds into this drawer trigger; the same NavList re-parents into the drawer's flyout,
+                                 so selection, keyboard and the remembered page are one control in both layouts. -->
+                            <Button x:Name="NavDrawerButton" Style="{StaticResource GlyphOnlyButton}" local:Glyph.Geometry="{StaticResource Icon.nav.menu}"
+                                    Margin="0,0,6,0" Visibility="Collapsed" Click="NavDrawerButton_Click"
+                                    AutomationProperties.Name="{DynamicResource SettingsNavMenu}" />
                             <!-- SP-0230: the help button leads the pane's commands, on the reading-start side of
                                  the search box, so each existing control keeps its place (CONTEXT-HELP rule 2). -->
                             <Button x:Name="HelpButton" Style="{StaticResource HelpGlyphButton}" Margin="0,0,6,0"
@@ -377,19 +384,18 @@
                                         <TextBlock Text="{DynamicResource SettingsContentFilters}" TextWrapping="Wrap" />
                                     </Expander.Header>
                                     <StackPanel>
-                                        <CheckBox x:Name="HideAdultContentCheckBox" local:HelpAnchor.Id="e-hide-adult" Click="HideAdultContentCheckBox_Click"
-                                                  Content="{DynamicResource HideAdultContent}"
-                                                  ToolTip="{DynamicResource HideAdultContentTip}"
-                                                  AutomationProperties.Name="{DynamicResource HideAdultContent}" />
-                                        <TextBlock Text="{DynamicResource HideAdultContentHint}" Foreground="{DynamicResource MutedBrush}"
-                                                   TextWrapping="Wrap" Margin="22,4,0,10" />
+                                        <!-- SP-0231 (BOOLEAN-OPTION 2.2): every remaining Settings option moves onto the shared
+                                             row; the old inline label plus a separate hint TextBlock becomes caption + explanation,
+                                             so the hint is no longer outside the activation target's own row. -->
+                                        <local:BooleanOptionRow x:Name="HideAdultContentOption" local:HelpAnchor.Id="e-hide-adult"
+                                                                Caption="{DynamicResource HideAdultContent}"
+                                                                Explanation="{DynamicResource HideAdultContentHint}"
+                                                                Toggled="HideAdultContentCheckBox_Click" />
 
-                                        <CheckBox x:Name="UpdatePreviewsCheckBox" local:HelpAnchor.Id="e-update-previews" Click="UpdatePreviewsCheckBox_Click"
-                                                  Content="{DynamicResource UpdateStreamPreviews}"
-                                                  ToolTip="{DynamicResource UpdateStreamPreviewsTip}"
-                                                  AutomationProperties.Name="{DynamicResource UpdateStreamPreviews}" />
-                                        <TextBlock Text="{DynamicResource UpdateStreamPreviewsHint}" Foreground="{DynamicResource MutedBrush}"
-                                                   TextWrapping="Wrap" Margin="22,4,0,4" />
+                                        <local:BooleanOptionRow x:Name="UpdatePreviewsOption" local:HelpAnchor.Id="e-update-previews"
+                                                                Caption="{DynamicResource UpdateStreamPreviews}"
+                                                                Explanation="{DynamicResource UpdateStreamPreviewsHint}"
+                                                                Toggled="UpdatePreviewsCheckBox_Click" />
 
                                         <Button x:Name="ManageHiddenButton" local:HelpAnchor.Id="e-hidden" Style="{StaticResource HiddenGlyphButton}"
                                                 HorizontalAlignment="Left" Margin="0,10,0,4"
@@ -498,29 +504,20 @@
                                         <TextBlock Text="{DynamicResource SettingsPlayback}" TextWrapping="Wrap" />
                                     </Expander.Header>
                                     <StackPanel>
-                                        <CheckBox x:Name="KeepAwakeCheckBox" local:HelpAnchor.Id="e-keep-awake" Click="KeepAwakeCheckBox_Click"
-                                                  ToolTip="{DynamicResource KeepAwakeDuringPlaybackTip}"
-                                                  AutomationProperties.Name="{DynamicResource KeepAwakeDuringPlayback}">
-                                            <TextBlock Text="{DynamicResource KeepAwakeDuringPlayback}" TextWrapping="Wrap" />
-                                        </CheckBox>
-                                        <TextBlock Text="{DynamicResource KeepAwakeHint}" Foreground="{DynamicResource MutedBrush}"
-                                                   TextWrapping="Wrap" Margin="22,4,0,10" />
+                                        <local:BooleanOptionRow x:Name="KeepAwakeOption" local:HelpAnchor.Id="e-keep-awake"
+                                                                Caption="{DynamicResource KeepAwakeDuringPlayback}"
+                                                                Explanation="{DynamicResource KeepAwakeHint}"
+                                                                Toggled="KeepAwakeCheckBox_Click" />
 
-                                        <CheckBox x:Name="SystemMediaControlsCheckBox" local:HelpAnchor.Id="e-media-controls" Click="SystemMediaControlsCheckBox_Click"
-                                                  ToolTip="{DynamicResource SystemMediaControlsTip}"
-                                                  AutomationProperties.Name="{DynamicResource SystemMediaControls}">
-                                            <TextBlock Text="{DynamicResource SystemMediaControls}" TextWrapping="Wrap" />
-                                        </CheckBox>
-                                        <TextBlock Text="{DynamicResource SmtcHint}" Foreground="{DynamicResource MutedBrush}"
-                                                   TextWrapping="Wrap" Margin="22,4,0,10" />
+                                        <local:BooleanOptionRow x:Name="SystemMediaControlsOption" local:HelpAnchor.Id="e-media-controls"
+                                                                Caption="{DynamicResource SystemMediaControls}"
+                                                                Explanation="{DynamicResource SmtcHint}"
+                                                                Toggled="SystemMediaControlsCheckBox_Click" />
 
-                                        <CheckBox x:Name="ResumePlaybackCheckBox" local:HelpAnchor.Id="e-resume" Click="ResumePlaybackCheckBox_Click"
-                                                  ToolTip="{DynamicResource ResumePlaybackOnStartupTip}"
-                                                  AutomationProperties.Name="{DynamicResource ResumePlaybackOnStartup}">
-                                            <TextBlock Text="{DynamicResource ResumePlaybackOnStartup}" TextWrapping="Wrap" />
-                                        </CheckBox>
-                                        <TextBlock Text="{DynamicResource ResumePlaybackHint}" Foreground="{DynamicResource MutedBrush}"
-                                                   TextWrapping="Wrap" Margin="22,4,0,4" />
+                                        <local:BooleanOptionRow x:Name="ResumePlaybackOption" local:HelpAnchor.Id="e-resume"
+                                                                Caption="{DynamicResource ResumePlaybackOnStartup}"
+                                                                Explanation="{DynamicResource ResumePlaybackHint}"
+                                                                Toggled="ResumePlaybackCheckBox_Click" />
                                     </StackPanel>
                                 </Expander>
 
@@ -732,6 +729,14 @@
                                                     Click="OpenLink_Click" ToolTip="{DynamicResource WebsiteTip}"
                                                     AutomationProperties.Name="{DynamicResource Website}"
                                                     Content="{DynamicResource Website}" />
+                                            <Button Style="{StaticResource SettingsLinkButton}" Tag="Support" Margin="0,0,18,0"
+                                                    Click="OpenLink_Click" ToolTip="{DynamicResource AboutSupportTip}"
+                                                    AutomationProperties.Name="{DynamicResource AboutSupport}"
+                                                    Content="{DynamicResource AboutSupport}" />
+                                            <Button Style="{StaticResource SettingsLinkButton}" Tag="Releases" Margin="0,0,18,0"
+                                                    Click="OpenLink_Click" ToolTip="{DynamicResource AboutDownloadsTip}"
+                                                    AutomationProperties.Name="{DynamicResource AboutDownloads}"
+                                                    Content="{DynamicResource AboutDownloads}" />
                                             <Button Style="{StaticResource SettingsLinkButton}" Tag="Privacy" Margin="0,0,18,0"
                                                     Click="OpenLink_Click" ToolTip="{DynamicResource PrivacyTip}"
                                                     AutomationProperties.Name="{DynamicResource Privacy}"
@@ -740,6 +745,12 @@
                                                     Click="OpenLink_Click" ToolTip="{DynamicResource MediaExchangeTip}"
                                                     AutomationProperties.Name="{DynamicResource MediaExchange}"
                                                     Content="{DynamicResource MediaExchange}" />
+                                            <!-- SP-0231: the related product of the About set - the launcher whose
+                                                 site also hosts the media exchange portal above. -->
+                                            <Button Style="{StaticResource SettingsLinkButton}" Tag="FastMediaSorter" Margin="0,0,18,0"
+                                                    Click="OpenLink_Click" ToolTip="{DynamicResource AboutRelatedTip}"
+                                                    AutomationProperties.Name="{DynamicResource FastMediaSorterName}"
+                                                    Content="{DynamicResource FastMediaSorterName}" />
                                             <Button Style="{StaticResource SettingsLinkButton}" Tag="Author"
                                                     Click="OpenLink_Click" ToolTip="{DynamicResource AuthorPageTip}"
                                                     AutomationProperties.Name="{DynamicResource AuthorPage}"
@@ -767,11 +778,16 @@
                                     <TextBlock Text="{DynamicResource ExchangeLoginOnly}" TextWrapping="Wrap" Margin="0,0,0,4" />
                                     <!-- SP-0226 / DEVICE-EXCHANGE item DE: wherever the product says protected, it says what the server still sees - in the contract's words. -->
                                     <TextBlock Text="{DynamicResource ExchangeHonestText}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,4" />
-                                    <!-- SP-0234, rule 10: a link to the page about the server may carry the mark; it stands beside the link, not in it. -->
+                                    <!-- SP-0234, rule 10: a link to the page about the server may carry the mark; it stands beside the link, not in it.
+                                         SP-0221 requirement 10: the page that says where an account is deleted sits beside it - this program
+                                         offers no "delete my account", so the way out is one line away from the way in. -->
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,8">
                                         <local:ExchangeMarkIcon DipSize="16" Margin="0,0,6,0" />
                                         <Button Style="{StaticResource SettingsLinkButton}" Tag="ExchangeAccount" Click="OpenLink_Click"
                                                 AutomationProperties.Name="{DynamicResource ExchangePortalLink}" Content="{DynamicResource ExchangePortalLink}" />
+                                        <Button x:Name="ExchangeAccountDeletionLinkButton" local:HelpAnchor.Id="e-exchange-account-deletion"
+                                                Style="{StaticResource SettingsLinkButton}" Tag="ExchangeAccountDeletion" Click="OpenLink_Click" Margin="12,0,0,0"
+                                                AutomationProperties.Name="{DynamicResource ExchangeAccountDeletionLink}" Content="{DynamicResource ExchangeAccountDeletionLink}" />
                                     </StackPanel>
                                     <WrapPanel>
                                         <Button x:Name="ExchangeImportStringButton" local:HelpAnchor.Id="e-exchange-import-string" Style="{StaticResource ImportGlyphButton}" Content="{DynamicResource ExchangeImportString}" Click="ExchangeImportString_Click" Margin="0,0,8,8" />
@@ -826,8 +842,16 @@
                                         </ComboBox>
                                         <PasswordBox x:Name="ExchangeSecretBox" local:HelpAnchor.Id="e-exchange-password" Grid.Column="1" MinHeight="28" AutomationProperties.Name="{DynamicResource ExchangePassword}" />
                                     </Grid>
-                                    <CheckBox x:Name="ExchangeEnabledCheckBox" local:HelpAnchor.Id="e-exchange-enabled" Content="{DynamicResource ExchangeEnabled}" Checked="ExchangeEnabled_Click" Unchecked="ExchangeEnabled_Click" Margin="0,0,0,8" />
-                                    <CheckBox x:Name="ExchangeAutoAcceptCastsCheckBox" local:HelpAnchor.Id="e-exchange-auto-accept" Content="{DynamicResource ExchangeAutoAcceptCasts}" Checked="ExchangeAutoAcceptCasts_Click" Unchecked="ExchangeAutoAcceptCasts_Click" Margin="0,0,0,8" />
+                                    <!-- The two exchange options say their own reason while the account is absent or busy
+                                         (BOOLEAN-OPTION 2.2): the reason is the row's DisabledReason, not a separate hint line. -->
+                                    <local:BooleanOptionRow x:Name="ExchangeEnabledOption" local:HelpAnchor.Id="e-exchange-enabled"
+                                                            Caption="{DynamicResource ExchangeEnabled}"
+                                                            DisabledReason="{DynamicResource ExchangeNeedsSignIn}"
+                                                            Toggled="ExchangeEnabled_Click" Margin="0,0,0,8" />
+                                    <local:BooleanOptionRow x:Name="ExchangeAutoAcceptCastsOption" local:HelpAnchor.Id="e-exchange-auto-accept"
+                                                            Caption="{DynamicResource ExchangeAutoAcceptCasts}"
+                                                            DisabledReason="{DynamicResource ExchangeNeedsSignIn}"
+                                                            Toggled="ExchangeAutoAcceptCasts_Click" Margin="0,0,0,8" />
                                     <WrapPanel>
                                         <Button x:Name="ExchangeEnrollButton" local:HelpAnchor.Id="e-exchange-enroll" Style="{StaticResource ExchangeConnectGlyphButton}" Content="{DynamicResource ExchangeEnroll}" Click="ExchangeEnroll_Click" Margin="0,0,8,8" />
                                         <Button x:Name="ExchangeChangePasswordButton" local:HelpAnchor.Id="e-exchange-change-password" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource ExchangeChangePassword}" Click="ExchangeChangePassword_Click" Margin="0,0,8,8" />
@@ -853,16 +877,35 @@
                                         <TextBlock x:Name="ExchangeStatusText" TextWrapping="Wrap" />
                                     </DockPanel>
                                     <TextBlock x:Name="ExchangeFingerprintText" TextWrapping="Wrap" FlowDirection="LeftToRight" Margin="0,8,0,0" />
+                                    <Expander Style="{StaticResource SettingsGroup}" local:SettingsUiProperties.GroupId="exchange.external-control"
+                                              IsExpanded="True" Margin="0,16,0,8">
+                                        <Expander.Header><TextBlock Text="{DynamicResource RemoteControlTitle}" TextWrapping="Wrap" /></Expander.Header>
+                                        <StackPanel>
+                                            <local:BooleanOptionRow x:Name="RemoteListeningOption" local:HelpAnchor.Id="e-remote-entry"
+                                                                    Caption="{DynamicResource RemoteListening}" Explanation="{DynamicResource RemoteListeningNote}"
+                                                                    Toggled="RemoteListening_Click" Margin="0,0,0,8" />
+                                            <Button x:Name="OpenExternalControlButton" local:HelpAnchor.Id="e-remote-entry" Style="{StaticResource SettingsLinkButton}"
+                                                    Content="{DynamicResource RemoteOpen}" Click="OpenExternalControl_Click" HorizontalAlignment="Left" />
+                                        </StackPanel>
+                                    </Expander>
                                     <!-- SP-0260 / DEVICE-EXCHANGE items EO, ER: the settings STANDARD. The actions show only while the
                                          session is up and its server lists `settings`; each asks before it sends. -->
                                     <StackPanel x:Name="ExchangeSettingsPanel" Margin="0,16,0,0" Visibility="Collapsed">
                                         <TextBlock Text="{DynamicResource ExchangeSettingsTitle}" FontWeight="SemiBold" Margin="0,0,0,6" />
                                         <TextBlock Text="{DynamicResource ExchangeSettingsHint}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" Margin="0,0,0,8" />
-                                        <WrapPanel x:Name="ExchangeSettingsGroupsPanel">
-                                            <CheckBox x:Name="ExchangeSettingsAppearanceCheckBox" local:HelpAnchor.Id="e-exchange-settings-groups" Content="{DynamicResource ExchangeSettingsGroupAppearance}" IsChecked="True" Margin="0,0,16,8" />
-                                            <CheckBox x:Name="ExchangeSettingsPlaybackCheckBox" local:HelpAnchor.Id="e-exchange-settings-groups" Content="{DynamicResource ExchangeSettingsGroupPlayback}" IsChecked="True" Margin="0,0,16,8" />
-                                            <CheckBox x:Name="ExchangeSettingsInterfaceCheckBox" local:HelpAnchor.Id="e-exchange-settings-groups" Content="{DynamicResource ExchangeSettingsGroupInterface}" IsChecked="True" Margin="0,0,16,8" />
-                                        </WrapPanel>
+                                        <!-- The three STANDARD group choices are options too (BOOLEAN-OPTION): one row each, the
+                                             shared hint above the stack already explains what choosing means. -->
+                                        <StackPanel x:Name="ExchangeSettingsGroupsPanel">
+                                            <local:BooleanOptionRow x:Name="ExchangeSettingsAppearanceOption" local:HelpAnchor.Id="e-exchange-settings-groups"
+                                                                    Caption="{DynamicResource ExchangeSettingsGroupAppearance}" IsChecked="True"
+                                                                    DisabledReason="{DynamicResource ExchangeBusy}" Margin="0,0,0,4" />
+                                            <local:BooleanOptionRow x:Name="ExchangeSettingsPlaybackOption" local:HelpAnchor.Id="e-exchange-settings-groups"
+                                                                    Caption="{DynamicResource ExchangeSettingsGroupPlayback}" IsChecked="True"
+                                                                    DisabledReason="{DynamicResource ExchangeBusy}" Margin="0,0,0,4" />
+                                            <local:BooleanOptionRow x:Name="ExchangeSettingsInterfaceOption" local:HelpAnchor.Id="e-exchange-settings-groups"
+                                                                    Caption="{DynamicResource ExchangeSettingsGroupInterface}" IsChecked="True"
+                                                                    DisabledReason="{DynamicResource ExchangeBusy}" Margin="0,0,0,4" />
+                                        </StackPanel>
                                         <WrapPanel x:Name="ExchangeSettingsActionsPanel">
                                             <Button x:Name="ExchangeSettingsSaveButton" local:HelpAnchor.Id="e-exchange-settings-save" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource ExchangeSettingsSave}" Click="ExchangeSettingsSave_Click" Margin="0,0,8,8" />
                                             <Button x:Name="ExchangeSettingsReadButton" local:HelpAnchor.Id="e-exchange-settings-read" Style="{StaticResource SettingsGlyphButton}" Content="{DynamicResource ExchangeSettingsRead}" Click="ExchangeSettingsRead_Click" Margin="0,0,8,8" />
@@ -914,11 +957,13 @@
                                     <!-- SP-0221 requirement 8: a guest announces nothing on its server, and says why here. -->
                                     <TextBlock x:Name="BroadcastGuestNoteText" Text="{DynamicResource BroadcastGuestOnly}" TextWrapping="Wrap"
                                                Visibility="Collapsed" Margin="0,0,0,8" />
-                                    <CheckBox x:Name="BroadcastAllowedCheckBox" local:HelpAnchor.Id="e-broadcast-allow" Content="{DynamicResource BroadcastAllow}"
-                                              Checked="BroadcastAllowed_Click" Unchecked="BroadcastAllowed_Click" Margin="0,0,0,8" />
+                                    <local:BooleanOptionRow x:Name="BroadcastAllowedOption" local:HelpAnchor.Id="e-broadcast-allow"
+                                                            Caption="{DynamicResource BroadcastAllow}"
+                                                            Toggled="BroadcastAllowed_Click" Margin="0,0,0,8" />
                                     <StackPanel x:Name="BroadcastControls" Visibility="Collapsed">
-                                        <CheckBox x:Name="BroadcastStartWithAppCheckBox" local:HelpAnchor.Id="e-broadcast-start-with-app" Content="{DynamicResource BroadcastStartWithApp}"
-                                                  Checked="BroadcastStartWithApp_Click" Unchecked="BroadcastStartWithApp_Click" Margin="0,0,0,8" />
+                                        <local:BooleanOptionRow x:Name="BroadcastStartWithAppOption" local:HelpAnchor.Id="e-broadcast-start-with-app"
+                                                                Caption="{DynamicResource BroadcastStartWithApp}"
+                                                                Toggled="BroadcastStartWithApp_Click" Margin="0,0,0,8" />
                                         <!-- SP-0252: a broadcast is started and watched in its own window; Settings keeps the permission, the network,
                                              the quality and the link password. -->
                                         <Button x:Name="BroadcastOpenWindowButton" local:HelpAnchor.Id="e-broadcast-window" Style="{StaticResource BroadcastingGlyphButton}"
@@ -934,11 +979,17 @@
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="Auto" />
                                             </Grid.RowDefinitions>
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{DynamicResource BroadcastLanListening}" VerticalAlignment="Center" Margin="0,0,8,8" />
-                                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
-                                                <CheckBox x:Name="BroadcastLanCheckBox" local:HelpAnchor.Id="e-broadcast-lan" Checked="BroadcastLan_Click" Unchecked="BroadcastLan_Click" VerticalAlignment="Center" />
-                                                <TextBlock x:Name="BroadcastLanPortLabel" Text="{DynamicResource BroadcastLanPort}" VerticalAlignment="Center" Margin="12,0,8,0" />
-                                                <TextBox x:Name="BroadcastLanPortBox" local:HelpAnchor.Id="e-broadcast-lan-port" Width="70" LostFocus="BroadcastLanPort_LostFocus" KeyDown="BroadcastLanPort_KeyDown" AutomationProperties.Name="{DynamicResource BroadcastLanPort}" />
+                                            <!-- The LAN option is a row of its own and owns its label; the port editor sits
+                                                 indented beneath it as the setting's dependent value, no longer inside the option's
+                                                 activation line (BOOLEAN-OPTION 2.2: the caption row toggles, the port box edits). -->
+                                            <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,8">
+                                                <local:BooleanOptionRow x:Name="BroadcastLanOption" local:HelpAnchor.Id="e-broadcast-lan"
+                                                                        Caption="{DynamicResource BroadcastLanListening}"
+                                                                        Toggled="BroadcastLan_Click" />
+                                                <StackPanel Orientation="Horizontal" Margin="28,0,0,0">
+                                                    <TextBlock x:Name="BroadcastLanPortLabel" Text="{DynamicResource BroadcastLanPort}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                    <TextBox x:Name="BroadcastLanPortBox" local:HelpAnchor.Id="e-broadcast-lan-port" Width="70" LostFocus="BroadcastLanPort_LostFocus" KeyDown="BroadcastLanPort_KeyDown" AutomationProperties.Name="{DynamicResource BroadcastLanPort}" />
+                                                </StackPanel>
                                             </StackPanel>
                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="{DynamicResource BroadcastCap}" VerticalAlignment="Top" Margin="0,0,8,8" />
                                             <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,8">
@@ -987,6 +1038,22 @@
                             </StackPanel>
                         </Grid>
                     </ScrollViewer>
+
+                    <!-- The narrow-layout drawer (SETTINGS-NAVIGATION 2.6): the flyout that receives the NavList
+                         itself while the window is narrow. Choosing a destination closes it and returns to the
+                         selected page; clicking or focusing elsewhere closes it like any flyout. -->
+                    <Popup x:Name="NavDrawerPopup" PlacementTarget="{Binding ElementName=NavDrawerButton}"
+                           Placement="Bottom" AllowsTransparency="True" StaysOpen="False" PopupAnimation="Fade"
+                           Closed="NavDrawerPopup_Closed">
+                        <Border Background="{DynamicResource ControlBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="6" Padding="6" MinWidth="200" MaxWidth="280" Margin="0,2,0,4">
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource ProductName}" FontWeight="SemiBold" FontSize="{DynamicResource UiFontProduct}"
+                                           Foreground="{DynamicResource TextBrush}" Margin="8,4,8,8" />
+                                <StackPanel x:Name="NavDrawerHost" MinWidth="180" />
+                            </StackPanel>
+                        </Border>
+                    </Popup>
 
                     <!-- The settings search's result list: the caption and the page and group it lives in
                          (WINDOWS-UI 3.5); activating one navigates - page, expanded group, scrolled and

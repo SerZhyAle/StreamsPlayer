@@ -38,7 +38,8 @@ public partial class MainWindow
     private void SettingsButton_Click(object sender, RoutedEventArgs e) =>
         OpenSettings();
 
-    internal void OpenSettings(int? initialPage = null, ExchangeConnectionString? exchangeConnection = null)
+    internal void OpenSettings(int? initialPage = null, ExchangeConnectionString? exchangeConnection = null,
+        bool focusExchangeSignIn = false)
     {
         try
         {
@@ -52,7 +53,18 @@ public partial class MainWindow
                 dialog.Loaded += (_, _) => MessageBox.Show(dialog, LocalizationService.Get("ExchangeStringOpened"),
                     LocalizationService.Get("ExchangeTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
             }
+            if (focusExchangeSignIn)
+            {
+                dialog.FocusExchangeSignIn();
+            }
+
             dialog.ShowDialog();
+            if (_externalControlAfterSettings is { } showControllers)
+            {
+                _externalControlAfterSettings = null;
+                HandlerBoundary.Run(nameof(OpenExternalControlAsync), () => OpenExternalControlAsync(showControllers));
+            }
+
             if (_broadcastWindowAfterSettings)
             {
                 _broadcastWindowAfterSettings = false;
@@ -62,6 +74,7 @@ public partial class MainWindow
         catch (Exception exception)
         {
             _broadcastWindowAfterSettings = false;
+            _externalControlAfterSettings = null;
             HandlerBoundary.Report(nameof(OpenSettings), exception);
         }
     }

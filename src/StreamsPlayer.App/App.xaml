@@ -1414,6 +1414,10 @@
                                     </WrapPanel>
                                     <TextBlock x:Name="PART_Explanation" Text="{TemplateBinding Explanation}" Foreground="{DynamicResource MutedBrush}"
                                                TextWrapping="Wrap" Margin="{DynamicResource UiOptionHeadingMargin}" Visibility="Collapsed" />
+                                    <!-- A disabled option says why (BOOLEAN-OPTION 2.2): the reason appears with the disabled
+                                         state and never while the option is usable, so nothing repeats the explanation. -->
+                                    <TextBlock x:Name="PART_DisabledReason" Text="{TemplateBinding DisabledReason}" Foreground="{DynamicResource DisabledTextBrush}"
+                                               TextWrapping="Wrap" Margin="{DynamicResource UiOptionHeadingMargin}" Visibility="Collapsed" />
                                     <!-- Hover and keyboard focus: a short summary that stays open while the pointer is on it. -->
                                     <Popup x:Name="PART_SummaryPopup" PlacementTarget="{Binding ElementName=PART_Help}" Placement="Bottom"
                                            StaysOpen="True" Focusable="False">

@@ -1,7 +1,7 @@
 <#
     Captures a real screenshot of the running StreamsPlayer window as a Store-ready
     1366x768 PNG (the Store minimum). Use this to produce genuine in-app shots that
-    replace or supplement the composed cards from make-store-images.ps1.
+    capture an application window for use as a real screenshot.
 
     Usage:
       1. Launch the app and arrange the window you want (e.g. catalog List mode,

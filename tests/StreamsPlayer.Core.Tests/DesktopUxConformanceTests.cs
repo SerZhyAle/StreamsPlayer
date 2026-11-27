@@ -83,6 +83,9 @@ public sealed class DesktopUxConformanceTests
         ["AudioDeviceBox_SelectionChanged"] = "applies the audio output device choice on touch",
         ["AudioChannelBox_SelectionChanged"] = "applies the audio channel mode on touch",
         ["NavList_SelectionChanged"] = "switches the visible settings page; private navigation context, commits nothing (SP-0191)",
+        ["NavDrawerButton_Click"] = "opens or closes the narrow layout's navigation drawer; commits nothing (SP-0231, SETTINGS-NAVIGATION 2.6)",
+        ["RemoteListening_Click"] = "turns listening for remote commands on or off on touch; the row then shows the saved value (STRWIN-0303)",
+        ["OpenExternalControl_Click"] = "closes Settings and opens the external control window; commits nothing (STRWIN-0303)",
         ["SettingsSearch_TextChanged"] = "filters the settings search inventory; private navigation, commits nothing (SP-0191, WINDOWS-UI 3.5)",
         ["SettingsSearchBox_KeyDown"] = "lets Escape leave the search before the window and Enter activate a result (SP-0191)",
         ["SearchResultsList_KeyDown"] = "keyboard activation of a search result (Enter/Space) and Escape back to the search box (SP-0191, WINDOWS-UI 3.4/3.5)",
@@ -202,8 +205,16 @@ public sealed class DesktopUxConformanceTests
             "The settings window's CheckBox style does not set MinHeight 28.");
         Assert.True(SetsFloor(style => style.Name.LocalName == "Style" && style.Attribute("TargetType")?.Value == "ComboBox"),
             "The settings window's ComboBox style does not set MinHeight 28.");
-        Assert.True(SetsFloor(style => style.Name.LocalName == "Style" && style.Attribute("TargetType")?.Value == "ListBoxItem"),
-            "The navigation row style does not set MinHeight 28.");
+        // SP-0231 (SETTINGS-NAVIGATION 2.2): the navigation row left the literal floor for the shared token -
+        // UiNavRowHeight, 32 at Standard and 48 on the touch profile, both at or above the floor the token
+        // resolver owns. The token declaration itself is held by UiFoundationGateTests.
+        Assert.True(markup.Descendants()
+                .Where(style => style.Name.LocalName == "Style" && style.Attribute("TargetType")?.Value == "ListBoxItem")
+                .SelectMany(style => style.Descendants())
+                .Any(setter => setter.Name.LocalName == "Setter"
+                    && setter.Attribute("Property")?.Value == "MinHeight"
+                    && setter.Attribute("Value")?.Value == "{DynamicResource UiNavRowHeight}"),
+            "The navigation row style does not set MinHeight from the UiNavRowHeight token.");
         // SP-0222: the link style is shared (App.xaml), because the broadcast list and both password prompts carry
         // the media-exchange link too and could not open while only the settings window defined it.
         var application = XDocument.Parse(Assert.Single(AppSourceFile.LoadAll("App.xaml")).Text, LoadOptions.SetLineInfo);

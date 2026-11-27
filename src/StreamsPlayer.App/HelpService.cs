@@ -106,7 +106,7 @@ internal static class HelpService
         }
     }
 
-    private static string? FindAnchor(DependencyObject? start, Window window)
+    internal static string? FindAnchor(DependencyObject? start, Window window)
     {
         for (var current = start; current is not null && !ReferenceEquals(current, window); current = ParentOf(current))
         {

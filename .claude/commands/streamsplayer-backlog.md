@@ -1,5 +1,5 @@
 ---
-description: Drain the StreamsPlayer backlog unattended, one eligible SP-NNNN ticket at a time.
+description: Drain the StreamsPlayer backlog unattended, one eligible STRWIN-NNNN ticket at a time.
 argument-hint: [task or ticket]
 ---
 Follow the procedure in `.agents/skills/streamsplayer-backlog/SKILL.md` exactly.

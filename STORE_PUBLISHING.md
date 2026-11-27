@@ -85,9 +85,9 @@ language, where the whole layout mirrors.
 | Shared rows, search terms, forbidden terms | `msix/listing/shared.txt`, `search-terms.txt`, `forbidden-terms.txt` |
 | Import-ready listing CSV (all thirteen columns) | built by `tools/store/build-store-listing-csv.ps1` - see "Listing import via CSV" below |
 | Real in-app screenshots, one per language - the lead image, the video-channel grid | `assets/store/app-<listing-code>.png` - regenerate with `tools/store/capture-store-screenshots.ps1`; the site's copy follows with `tools/site/export-site-screenshots.ps1` |
-| Screenshots (composed, 2732×1536) | `assets/store/screenshot-{en,ru}-2732x1536.png` - regenerate with `tools/store/make-store-images.ps1` |
+| Screenshots | `assets/store/app-<code>.png` - captured from the real build by `tools/store/capture-store-screenshots.ps1` |
 | Real in-app screenshots (recommended to add before submit) | `tools/store/capture-app.ps1 -Name <shot>` |
-| Banner / social preview | `assets/store/banner-1280x360.png`, `assets/store/social-preview-1280x640.png` |
+| Banner | `assets/store/banner-1280x360.png` |
 | Privacy policy | `docs/privacy.html` → `https://serzhyale.github.io/StreamsPlayer/privacy.html` |
 | Category | Primary **Entertainment**, secondary **Music** |
 | Price | Free (Retail price dropdown) |

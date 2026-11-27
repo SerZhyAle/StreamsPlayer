@@ -18,7 +18,7 @@
       read in full, each row's finding count matching the findings that name it;
     - every finding has a severity (High / Medium / Low), a summary and a disposition:
         fixed      needs evidence (`expected: X | actual: Y`)
-        ticketed   needs an SP-NNNN id; allowed for Low only - a High or Medium finding is release-blocking
+        ticketed   needs a STRWIN-NNNN id (a former SP-NNNN id also counts); allowed for Low only - a High or Medium finding is release-blocking
         exception  needs ownerDecision - the owner's recorded decision to ship with it (any severity)
       so an unresolved High or Medium finding can never sit behind a PASS;
     - the recorded baseline check (scripts/check.ps1) is PASS. The playback smoke verdict stays its own file and
@@ -125,7 +125,7 @@ foreach ($f in $findings) {
         'fixed' { if (-not (Text $f 'evidence')) { $problems.Add("$label is fixed without evidence.") } }
         'ticketed' {
             if ($s -ne 'Low') { $problems.Add("$label is $s and only ticketed - a High or Medium finding blocks the release until fixed or excepted by the owner.") }
-            if ((Text $f 'ticket') -notmatch '^SP-\d{4}$') { $problems.Add("$label is ticketed without an SP-NNNN ticket.") }
+            if ((Text $f 'ticket') -notmatch '^(?:STRWIN|SP)-\d{4}$') { $problems.Add("$label is ticketed without a STRWIN-NNNN (or former SP-NNNN) ticket.") }
         }
         'exception' { if (-not (Text $f 'ownerDecision')) { $problems.Add("$label is an exception without the owner's recorded decision.") } }
         default { $problems.Add("$label has disposition '$(Text $f 'disposition')' (fixed, ticketed or exception).") }

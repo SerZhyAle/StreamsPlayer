@@ -118,7 +118,7 @@
         {
           "id": "hide-adult",
           "nameKey": "HideAdultContent",
-          "control": "HideAdultContentCheckBox",
+          "control": "HideAdultContentOption",
           "one": "Keeps channels of the adult rubric out of the list, the filters and the search.",
           "full": [
             "When it is on, channels under the adult rubric are not shown in the catalog, in the filters or in search results. It is off by default."
@@ -129,7 +129,7 @@
         {
           "id": "update-previews",
           "nameKey": "UpdateStreamPreviews",
-          "control": "UpdatePreviewsCheckBox",
+          "control": "UpdatePreviewsOption",
           "one": "Lets the grid capture fresh thumbnails of the video streams it shows.",
           "full": [
             "While grid mode is on, the app periodically captures screenshots of the video streams visible in the grid, so the tiles show a recent picture. It is on by default."
@@ -289,7 +289,7 @@
         {
           "id": "keep-awake",
           "nameKey": "KeepAwakeDuringPlayback",
-          "control": "KeepAwakeCheckBox",
+          "control": "KeepAwakeOption",
           "one": "Stops the computer sleeping on its idle timer while a stream is playing.",
           "full": [
             "While a stream plays, Windows is asked not to go to sleep when its idle timer runs out; a video stream also keeps the display on. It is on by default."
@@ -300,7 +300,7 @@
         {
           "id": "media-controls",
           "nameKey": "SystemMediaControls",
-          "control": "SystemMediaControlsCheckBox",
+          "control": "SystemMediaControlsOption",
           "one": "Shows the playing station in the Windows media panel and answers media keys.",
           "full": [
             "Publishes the playing station to the Windows media overlay and the lock screen, so the hardware media keys - Play/Pause, Stop, Previous and Next - drive it. It is off by default."
@@ -311,7 +311,7 @@
         {
           "id": "resume",
           "nameKey": "ResumePlaybackOnStartup",
-          "control": "ResumePlaybackCheckBox",
+          "control": "ResumePlaybackOption",
           "one": "Plays again at startup whatever was playing when the app was last closed.",
           "full": [
             "When the app starts, the radio station and every player window that were playing when it was last closed start again. It is off by default."
@@ -445,6 +445,17 @@
           "next": "The page opens in your browser. If Windows cannot open it, a message says so."
         },
         {
+          "id": "exchange-account-deletion",
+          "nameKey": "ExchangeAccountDeletionLink",
+          "control": "ExchangeAccountDeletionLinkButton",
+          "mark": true,
+          "one": "Opens the page of the media-exchange guide that says where an account is deleted.",
+          "full": [
+            "This program offers no way to delete an account. An account is deleted on the server it lives on: in Fast Media Sorter & Organizer for Android, or by asking whoever runs the server. The page says so and shows the way."
+          ],
+          "next": "The page opens in your browser. Signing out on this device removes this device, not the account."
+        },
+        {
           "id": "exchange-import-string",
           "nameKey": "ExchangeImportString",
           "control": "ExchangeImportStringButton",
@@ -551,7 +562,7 @@
         {
           "id": "exchange-enabled",
           "nameKey": "ExchangeEnabled",
-          "control": "ExchangeEnabledCheckBox",
+          "control": "ExchangeEnabledOption",
           "one": "Switches the connection to the exchange server on or off for this PC.",
           "full": [
             "While it is on, the app keeps a connection to your server open. The box is available only once you are signed in, and the line under the buttons shows the state of the connection."
@@ -562,7 +573,7 @@
         {
           "id": "exchange-auto-accept",
           "nameKey": "ExchangeAutoAcceptCasts",
-          "control": "ExchangeAutoAcceptCastsCheckBox",
+          "control": "ExchangeAutoAcceptCastsOption",
           "one": "Plays what your own devices cast to this PC without asking first.",
           "full": [
             "A cast is a stream that another of your devices sends to this PC to play. By default the app asks you each time and your answer decides. With this on, a cast is accepted at once and starts playing. The box is available only once you are signed in."
@@ -631,6 +642,15 @@
           "undo": "Declining keeps the remembered certificate and changes nothing. Accepting replaces it with the new one."
         },
         {
+          "id": "remote-entry",
+          "nameKey": "RemoteOpen",
+          "control": "OpenExternalControlButton",
+          "one": "Opens the window where you choose devices, answer requests and read the log.",
+          "full": [
+            "Turn listening on here to open External control at the device list. You can open it with listening off or before you sign in."
+          ]
+        },
+        {
           "id": "exchange-guests",
           "nameKey": "ExchangeGuests",
           "mark": true,
@@ -644,7 +664,7 @@
         {
           "id": "exchange-settings-groups",
           "nameKey": "ExchangeSettingsTitle",
-          "control": "ExchangeSettingsAppearanceCheckBox",
+          "control": "ExchangeSettingsAppearanceOption",
           "one": "Chooses which settings Save as STANDARD and Read STANDARD act on: Appearance, Playback, Interface.",
           "full": [
             "**Appearance** is the theme, the tile size, the list or grid view, the animated background, hiding adult content, always on top and keeping the player controls visible. **Playback** is the volumes, mute, the audio channels, keeping the PC awake, the media keys, the video engine and updating previews. **Interface** is the interface language.",
@@ -712,7 +732,7 @@
         {
           "id": "broadcast-allow",
           "nameKey": "BroadcastAllow",
-          "control": "BroadcastAllowedCheckBox",
+          "control": "BroadcastAllowedOption",
           "one": "The permission that must be on before this PC can broadcast anything.",
           "full": [
             "Sending what this PC captures to the exchange server of your account takes two steps: first allow it here, then start a source yourself. Nothing is captured until both are done. It is off by default, and while it is off the rest of this group stays hidden.",
@@ -724,7 +744,7 @@
         {
           "id": "broadcast-start-with-app",
           "nameKey": "BroadcastStartWithApp",
-          "control": "BroadcastStartWithAppCheckBox",
+          "control": "BroadcastStartWithAppOption",
           "one": "Starts the sources you chose earlier when the application starts.",
           "full": [
             "With it on, the sources you started and have not stopped since are started again when the app starts, once the account is online. With it off, nothing starts by itself: every source is started by pressing its button."
@@ -744,7 +764,7 @@
         {
           "id": "broadcast-lan",
           "nameKey": "BroadcastLanListening",
-          "control": "BroadcastLanCheckBox",
+          "control": "BroadcastLanOption",
           "one": "Lets devices on your local network receive this PC's broadcast directly.",
           "full": [
             "When it is on, a broadcast is also offered on this PC's local-network address, on the port beside the box, so devices on the same network can receive it without the exchange server. It is off by default.",
@@ -925,6 +945,10 @@
   ],
   "related": [
     {
+      "help": "external-control",
+      "note": "Where you choose what other devices may ask this player to do."
+    },
+    {
       "help": "main",
       "note": "The main window, where the changes you make here show up."
     },
@@ -959,6 +983,10 @@
     {
       "site": "privacy",
       "note": "What stays on your computer and what goes over the network."
+    },
+    {
+      "portal": "account-deletion",
+      "note": "Where an account is deleted; this program offers no way to."
     }
   ]
 }

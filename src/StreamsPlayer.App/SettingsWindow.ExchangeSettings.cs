@@ -30,8 +30,8 @@ public partial class SettingsWindow
         ExchangeSettingsGroupsPanel.Visibility = ExchangeSettingsActionsPanel.Visibility =
             available ? Visibility.Visible : Visibility.Collapsed;
         ExchangeSettingsSaveButton.IsEnabled = ExchangeSettingsReadButton.IsEnabled = !_exchangeSettingsBusy;
-        ExchangeSettingsAppearanceCheckBox.IsEnabled = ExchangeSettingsPlaybackCheckBox.IsEnabled =
-            ExchangeSettingsInterfaceCheckBox.IsEnabled = !_exchangeSettingsBusy;
+        ExchangeSettingsAppearanceOption.IsEnabled = ExchangeSettingsPlaybackOption.IsEnabled =
+            ExchangeSettingsInterfaceOption.IsEnabled = !_exchangeSettingsBusy;
         ExchangeSettingsStatusText.Text = _exchangeSettingsKey is { } key
             ? ExchangeSettingsText(key, _exchangeSettingsMoment)
             : available ? "" : LocalizationService.Get("ExchangeSettingsUnavailable");
@@ -143,17 +143,17 @@ public partial class SettingsWindow
     private List<string> ChosenSettingsGroups()
     {
         var groups = new List<string>();
-        if (ExchangeSettingsAppearanceCheckBox.IsChecked == true)
+        if (ExchangeSettingsAppearanceOption.IsChecked == true)
         {
             groups.Add(StandardSettings.Appearance);
         }
 
-        if (ExchangeSettingsPlaybackCheckBox.IsChecked == true)
+        if (ExchangeSettingsPlaybackOption.IsChecked == true)
         {
             groups.Add(StandardSettings.Playback);
         }
 
-        if (ExchangeSettingsInterfaceCheckBox.IsChecked == true)
+        if (ExchangeSettingsInterfaceOption.IsChecked == true)
         {
             groups.Add(StandardSettings.Interface);
         }

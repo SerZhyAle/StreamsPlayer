@@ -21,12 +21,13 @@ internal sealed partial class ExchangeSourceService
     private TaskCompletionSource<ExchangePasswordChangeResult>? _pendingPasswordChange;
 
     /// <summary>
-    /// True from the moment a live session found this device signed out by its account until the user has been
-    /// told. The main window shows the message and the prompt once, then acknowledges.
+    /// The row whose text says how the account ended this device's sign-in (SP-0221 requirement 7), set from the
+    /// moment a live session found it until the user has been told. The main window shows the one message and the
+    /// prompt once, then acknowledges. Null while the sign-in stands.
     /// </summary>
-    internal bool SignedOutNotice { get; private set; }
+    internal ExchangeFailureRow? SignInEndedNotice { get; private set; }
 
-    internal void AcknowledgeSignedOutNotice() => SignedOutNotice = false;
+    internal void AcknowledgeSignInEndedNotice() => SignInEndedNotice = null;
 
     /// <summary>False for an own entry whose account is a guest's: the server would refuse every producer operation.</summary>
     internal bool MayBroadcast => !Account.Guest;

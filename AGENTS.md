@@ -20,29 +20,22 @@ asks. The build-versus-release rule itself has one home in the canon
 
 StreamsPlayer has a command line for scripts and agents - read docs/CLI.md; list the commands with `commands --json`; any command above risk `safe` needs the setting 'let other programs ask this app'.
 
-## Project layout
+## Read this before touching an area
 
-- `src/StreamsPlayer.Core` - platform-neutral catalog contracts, parsing, merge
-  and persistence.
-- `src/StreamsPlayer.App` - WPF Windows desktop application.
-- `src/StreamsPlayer.Cli` - the console companion of the command line (SP-0275, `APP-COMMANDS` rule 9): `StreamsPlayerCli.exe`, a console-subsystem executable that references `StreamsPlayer.Core` only (never WPF or App) and is only a `Main` over `AppCommandConsole` in Core. The App project builds it and publishes it into its own publish folder, so the zip, the installer and the MSIX carry it; `scripts/Assert-ConsoleCompanion.ps1` judges that folder. The manifest's per-command `exe` says which executable serves which verb (the ones that need no window of their own go to the companion).
-- `tests/StreamsPlayer.Core.Tests` - unit and contract tests.
-- `tools/StreamsPlayer.CatalogHarness` - live-bank diagnostic harness.
-- `tools/InterfaceLanguages.ps1` - the single shipped-language list, read from the built assembly and dot-sourced by the site and Store tooling.
-- `tools/site/` and `tools/store/` - generators for the GitHub Pages site and the Store listing/screenshot pipeline. `tools/site/site-facts.json` declares the facts the site copy states and the surfaces bound to `POSITIONING.md`.
-- `POSITIONING.md` - the positioning source: what the product is and its ordered pillars; the README, the site and the Store listing are written from it.
-- `help/` - the in-app help sources (SP-0230, `CONTEXT-HELP`): **`help/help-map.json` is the help map** (one row per `Window` class and settings page; embedded in `StreamsPlayer.Core`), `help/help-baseline.txt` (accepted debt, may only fall), `help/content/<locale>/` (copy), `help/templates/`. `tools/help/build-help.ps1` renders it into `docs/help/`, which ships beside the executable as `help\`. A new `Window` class owes a map row, and a changed label or control owes its copy, in the same edit; `HelpGateTests` and `scripts/check-help.ps1` fail otherwise.
-- `tools/audit/` - the code-audit campaign tools: slicer, slice-ticket fan-out, campaign summary and their fixture tests (`docs/agent/CODE_AUDIT.md`).
-- `scripts/` - the release-parity check, the release checklist, and the commit-and-build helper.
-- `docs/contracts/` - one pointer per shared contract this product consumes or owes: id, version, home, role.
-- `docs/agent/` - agent workflow and validation guidance.
-- `docs/` and `assets/` - GitHub Pages and product documentation assets.
-- `DOCS_SURFACES.md` - the ship-together list of every documentation surface: source, generator, languages.
-- `memory/` - the committed agent memory index.
-- `.github/` - CI, release automation, and contribution templates.
-- `msix/` - Store-ready package template and package-build guidance.
-- `winget/` - release-manifest templates and submission notes; `manifests/` holds a version-pinned copy of a submitted manifest set and is not the template source.
-- `PLAN/` - spec tickets. **Untracked** (`.gitignore`): a fresh clone, CI, or an outside contributor will not have it, so nothing outside this working tree may depend on a ticket's contents.
+This file is the core. The detail is in `.claude/rules/`: Claude Code loads a file by its `paths:` list; every other agent (Codex included) opens it **before** the first edit or command in that row. Method documents are in `docs/agent/`.
+
+| Touching | Read first |
+| --- | --- |
+| build, run, test, a check or its measured time: `build.ps1`, `run.ps1`, `scripts/`, workflows | [build-and-checks.md](.claude/rules/build-and-checks.md) |
+| a version, a release, `msix/`, `winget/`, `installer/`, the Store, frozen identities | [release-and-version.md](.claude/rules/release-and-version.md) |
+| catalog, merge, persistence, local state: `src/StreamsPlayer.Core`, its tests, the harness | [catalog-data.md](.claude/rules/catalog-data.md) |
+| code in `src/` or `tests/`, windows, media playback, localization, help, the CLI companion | [code.md](.claude/rules/code.md) |
+| `docs/`, site and help generators, `POSITIONING.md`, CLI reference, `DOCUMENT_REGISTRY.jsonl`, project layout | [docs-and-site.md](.claude/rules/docs-and-site.md) |
+| tickets, `/streamsplayer-*` skills, role agents, `memory/` | [agent-workflow.md](.claude/rules/agent-workflow.md) |
+
+- `PLAN/` (tickets) is **untracked** (`.gitignore`): nothing outside this working tree may depend on a ticket's contents.
+- Generated, never hand-edited: `docs/*.html` (`tools/site/build-site.ps1`), `docs/help/` (from `help/`), `docs/CLI.md` (from `docs/cli-commands.json`). A new `Window` class owes a row in `help/help-map.json`, and a changed label or control owes its copy, in the same edit.
+- Shared contracts have one pointer each in [docs/contracts/](docs/contracts/README.md); the first lines of `CLAUDE.md` name the store. A change to a contract surface is written in the store first and in this code second.
 
 ## Fast checks and the release tier
 
@@ -52,57 +45,10 @@ point fix or a small improvement is checked by static inspection, the fast tier 
 changed, and reported as "not built, not tested until the release"; a slower rung it skipped is a `RELEASE` item
 in its audit, naming the command below that the release runs.
 
-- **Fast tier:** `pwsh -NoProfile -File ./scripts/check-fast.ps1 [-Area docs|help|site|release-scripts|snapshot]`
-  - the checks below marked fast, in parallel; `all` (the default) takes 3.6 s timed around the call (14 checks,
-  2026-11-15 after SP-0290, twelve runs 3.4 to 3.9 s, mean 3.64 s; its own verdict line read 3.1 to 3.6 s), 1.1 s
-  inside the 5 s cap (it was 4.9 s before, and one run in six crossed the cap). An area took 0.9 s (help), 1.7 s (snapshot),
-  1.9 s (site), 2.3 s (docs) and 1.9 s (release-scripts), each the mean of 3 timed around the whole call on
-  2026-11-15. **Between releases call the area of what changed**, it is the cheapest; `all` is inside the cap too and
-  is the call when the touched area is unclear. Push CI and `scripts/build-local.ps1` run `all` and nothing else.
-- **Release tier:** `pwsh -NoProfile -File ./scripts/check.ps1` (Release restore, build, the suite and every check
-  of both tiers), `./scripts/smoke-playback.ps1`, `./msix/build-msix.ps1 -SelfSign` - run by the release checklist
-  (`scripts/release.ps1` items 3, 4, 6); `release.yml` builds and tests the tag's own tree and runs the
-  documentation gate, the site-sync check and the fixtures push CI no longer carries; `pages.yml` runs the
-  documentation gate and the site-sync check on the commit it deploys, after a successful release run or on an
-  explicit run, never on push.
-- **Contract catch-up, the first step of every release** (canon `CONTRACTS.md` section 6; SP-0278): before the
-  version is cut, generate the spec with the canon's `contract-lag.ps1 -Product StreamsPlayer -EmitSpec`, read each
-  log entry since the product's synchronized version against the tree, and move the product's own registry rows and
-  exceptions; the last record is [the 2026-11-15 audit](docs/audits/SP-0278-contract-catchup.md). A release is not
-  cut on a row that is stale or behind without a dated reason.
-
-Measured list. Method: one direct `pwsh -NoProfile -File <script>` call, wall time around the child process, on
-the owner's machine on 2026-10-30, unless the CI step time of run 40234064360 (2026-10-25) or 38010697651
-(2026-10-10) is named. A check with no measured time is release tier until a release run measures it; moving a
-check into the fast tier needs a time of 5 s or less recorded here first.
-
-| Check | Seconds | Tier |
-| --- | --- | --- |
-| `scripts/check-docs.ps1` | 1.60 (CI 2-3) | fast |
-| `tools/Build-CliDoc.ps1 -Check` | 0.39 (2026-11-14, mean of 3) | fast |
-| `tools/Test-CliDoc.ps1` | 1.79 (2026-11-15, mean of 3, SP-0290; 3.03 before) | fast |
-| `scripts/check-help.ps1` | 0.47 | fast |
-| `scripts/Test-TestResultSummary.ps1` | 0.45 (CI 1) | fast |
-| `scripts/Test-ExistingReleaseState.ps1` | 0.40 | fast |
-| `scripts/Test-ReleaseVersion.ps1` | 1.31 (2026-11-15, mean of 3, SP-0290; 2.47 before) | fast |
-| `msix/Test-MsixIdentity.ps1` | 0.72 (2026-11-12, mean of 3) | fast |
-| `scripts/Test-StorePreflightCall.ps1` | 1.17 (2026-11-15, mean of 3, SP-0290; 2.85 before) | fast |
-| `tools/site/Test-HeldAddresses.ps1` | 0.85 | fast |
-| `tools/site/Test-ReleaseNotes.ps1` | 0.95 | fast |
-| `tools/site/Test-SiteDiscovery.ps1` | 1.40 | fast |
-| `tools/site/Test-SiteFacts.ps1` | 0.92 | fast |
-| `tools/build-catalog-snapshot.ps1 -Check -Offline` | 1.28 | fast |
-| `tools/help/build-help.ps1 -Check` | 5.37 | release |
-| `tools/audit/Test-AuditTools.ps1` | 5.61 | release |
-| `tools/store/Test-StoreListing.ps1` | CI 6 | release |
-| `scripts/Test-MeasureCaptureTimes.ps1` | 7.66 | release |
-| `tools/audit/Test-AuditVerdictGate.ps1` | 10.21 | release |
-| `tools/site/build-site.ps1 -Check` | CI 15-20 | release |
-| `msix/Test-AssertMsixPackage.ps1` | 21.51 | release |
-| `tools/Test-CatalogSnapshot.ps1` | above 30 (stopped) | release |
-| `dotnet restore` + `dotnet build StreamsPlayer.sln -c Release` | CI 30 + 30 | release |
-| `scripts/test.ps1` (the whole suite; a `--filter` run still builds first) | CI 457 (Test step of release run 44142247477, 2026-11-17, the test projects one at a time with Core.Tests first; 417 before, in parallel) | release |
-| `scripts/Test-CheckVerdictScripts.ps1`, `scripts/Test-SmokeVerdictGate.ps1`, `scripts/Test-ReleaseArtifactVersion.ps1`, `msix/Test-AppxManifest.ps1`, `tools/site/make-demo.ps1 -Check`, `scripts/smoke-playback.ps1` | not measured | release |
+- **Fast tier:** `pwsh -NoProfile -File ./scripts/check-fast.ps1 [-Area docs|help|site|release-scripts|snapshot]` - between releases call the area of what changed; `all` (the default) when the touched area is unclear.
+- **Release tier:** every other build, test and check, among them `scripts/check.ps1` (the release-parity gate), `scripts/smoke-playback.ps1` and `msix/build-msix.ps1 -SelfSign`.
+- The measured list is in [build-and-checks.md](.claude/rules/build-and-checks.md): a check enters the fast tier only with a time of 5 s or less recorded there first.
+- Every release starts with the contract catch-up ([release-and-version.md](.claude/rules/release-and-version.md)).
 
 ## Development commands
 
@@ -112,36 +58,27 @@ with `pwsh -NoProfile -File`** - a bare `./build.ps1` in a Bash tool call is ref
 code instead of the build's. Every command below that builds, tests or runs a check of the release tier is for
 the release or for a run the owner names (section above).
 
-- `build.ps1` deploys by default: `-Deploy` is `$true` unless you pass `-Deploy:$false`. Deploying forces Release; it *throws* rather than silently coercing if `-Configuration` is bound to non-Release or `-Runtime` to anything but `win-x64`. Every `build.ps1` line below inherits that.
-- `pwsh -NoProfile -File ./build.ps1 -Test -Deploy:$false` - restore, build and run tests without touching the local app folders.
-- `pwsh -NoProfile -File ./build.ps1 -Deploy` - build a self-contained Release EXE and copy it to the local SZA app folders; this is not a release.
-- `pwsh -NoProfile -File ./run.ps1` - restore, build and launch the app in Debug, never deploying. `build.ps1 -Run` deploys first and runs Release.
-- `pwsh -NoProfile -File ./scripts/check.ps1` - the release-parity gate: Release restore, build, test, the documentation gate and the site sync check; ends in one `check: PASS|FAIL|COULD NOT VERIFY` line.
-- `pwsh -NoProfile -File ./scripts/smoke-playback.ps1` - plays a live radio station and a live video stream through the shipping binary, then drives the console companion `StreamsPlayerCli.exe` from the same folder (`scripts/SmokeCompanionRound.ps1`, SP-0277). Mandatory before a release; `check.ps1` cannot cover it, because it tests this repository's code and SP-0093 broke the runtime beneath it while all 858 tests stayed green.
-- `dotnet format StreamsPlayer.sln --verify-no-changes` - formatting diagnostic; it currently reports a pre-existing line-ending/encoding baseline and is not a passing gate until that baseline is normalized.
-- `dotnet run --project src/StreamsPlayer.App` - run the desktop application.
-- `dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png`
-  - check the live catalog contract.
-- `pwsh -NoProfile -File ./msix/build-msix.ps1 -SelfSign` - build and locally test an MSIX package; use only for package work.
-- `pwsh -NoProfile -File ./scripts/release.ps1` - print the manual release checklist only; it changes no remote state.
-- `pwsh -NoProfile -File ./scripts/New-ReleaseDossier.ps1` - after a release: gathers its assets, the unsigned Store package (built from the tag in a scratch clone and copied to `msix/dist`), the winget manifests, the verdicts and the What's new texts into `artifacts/release-<version>/`, reads the state of every channel and writes the README of what is left by hand. Changes nothing on a remote.
-- `pwsh -NoProfile -File ./tools/site/build-site.ps1 -Check` - fail if `docs/` is stale against the generator, a held site address does not resolve, or a fact the copy states (language count, minimum Windows, channels) or a pillar of `POSITIONING.md` disagrees with its source; writes nothing. The language count and the minimum Windows are placeholders (`[[languages]]`, `[[windows]]`) in the copy decks, never typed.
-- `pwsh -NoProfile -File ./scripts/check-docs.ps1` - the documentation gate (`DOC-INTERNAL-QUALITY`, SP-0140): `DOCUMENT_REGISTRY.jsonl` declares the roots of the maintained corpus (`{"root":"<directory>/","reason":..}` or `{"root":"<file>","reason":..}`, SP-0287) and its reasoned ignores, and every `*.md` and generated `docs/**/*.html` under a root is declared there; a file under no root is outside the corpus, named in a `note:` line and not judged. Relative links, anchors and images resolve to tracked files, house style in prose, no `http://` or remote embeds. A new document needs its registry entry in the same change, and a new documentation folder needs its root record. It also holds the portal contribution (`docs/portal/streamsplayer*.md`, `DOC-EXTERNAL-QUALITY`): every **bold** or «guillemet» control name must be exactly a string of that locale's `Localization.<code>.xaml`, and the registry entry of each ru/uk mirror records `mirrorOf` and `mirrorOfHash`, the fingerprint of the English page it was rebuilt from - change the English page and the mirror fails until it is rebuilt and the hash re-recorded.
-
-- `pwsh -NoProfile -File ./tools/help/build-help.ps1` (`-Check` writes nothing and fails on a stale file) - regenerate `docs/help/` from `help/` and the dictionaries; `pwsh -NoProfile -File ./scripts/check-help.ps1` - hold the generated help pages to `CONTEXT-HELP` (SP-0230). Both run inside `scripts/check.ps1`.
-
-- `pwsh -NoProfile -File ./tools/Build-CliDoc.ps1` (`-Check` writes nothing and fails on a stale file or a manifest entry that lacks a member of `APP-COMMANDS` rule 18) - regenerate the command-line reference from `docs/cli-commands.json` (SP-0276); never edit the generated file by hand, and extend the manifest when a command ships, then run this.
+- `build.ps1` **deploys to the local machine folders by default**: pass `-Deploy:$false` for an ordinary build.
+- `pwsh -NoProfile -File ./build.ps1 -Test -Deploy:$false` - restore, build, test. `pwsh -NoProfile -File ./run.ps1` - Debug build and launch, never deploying.
+- `dotnet format --verify-no-changes` fails on a pre-existing line-ending/encoding baseline and is **not** a passing gate.
+- Green tests are not evidence the product plays: `scripts/smoke-playback.ps1` is mandatory before any release, and a change to media, packaging or a native-shipping dependency owes it.
 
 Never run `scripts/build-local.ps1` unless the user explicitly requests a commit: it runs the fast tier (`scripts/check-fast.ps1`), then `git add --all` and commits.
+
+## Key data-flow contracts
+
+Do not break these without a product decision and updated tests. The bank is the shared `STREAM-BANK` contract: where it and the code disagree, the contract wins and the code is a ticket. Full text: [catalog-data.md](.claude/rules/catalog-data.md).
+
+- Preserve explicit catalog refresh: do not introduce automatic background
+  downloads without an explicit product decision.
+- Preserve the URL merge contract and the protection of `MANUAL` and `IMPORTED`
+  rows. Update tests with any contract change.
+- A catalog row the bank stops listing is deleted only when it carries nothing the user made; otherwise it is retired. A new per-channel user value is added to `UserAuthoredChannels` in the same change, or a refresh silently deletes it.
 
 ## Code and test conventions
 
 - Keep catalog and delivery rules in `StreamsPlayer.Core`; keep WPF concerns in
   `StreamsPlayer.App`.
-- Preserve explicit catalog refresh: do not introduce automatic background
-  downloads without an explicit product decision.
-- Preserve the URL merge contract and the protection of `MANUAL` and `IMPORTED`
-  rows. Update tests with any contract change.
 - Use nullable reference types and implicit usings already enabled by the
   projects. Follow standard C# naming: PascalCase for types/members,
   camelCase for locals and parameters.
@@ -149,6 +86,13 @@ Never run `scripts/build-local.ps1` unless the user explicitly requests a commit
   `dotnet test StreamsPlayer.sln -c Release --no-build` as part of a release
   (`scripts/check.ps1` runs both), never between releases unless the owner
   names that run; between releases run `scripts/check-fast.ps1 -Area <the area of what changed>`.
+- `StreamsPlayer.Core` never references WPF, App, Cli, tools or tests.
+- The interface languages are declared once (`InterfaceLanguages` in Core) - never restate the list.
+- Keep changes scoped. Avoid drive-by formatting and opportunistic refactors. Aim for files below ~500 lines and keep WPF windows focused on UI coordination.
+- Do not add raw logging to App or Core until a logging facade is deliberately introduced. `Console.WriteLine` is appropriate in the CatalogHarness.
+- Do not introduce trivial comments, broad/empty catches, duplicated values where a constant exists, lifecycle-unsafe async work, live-path stubs, or dead artifacts. Comments explain why, not visible mechanics.
+- Store temporary evidence and backups under `temp/`, organized by ticket (`temp/<ticket>/`, or `temp/scratch/` when none), never at the repository root. The legacy `tmp/` tree is historical local evidence referenced by closed tickets; do not rename it, do not add to it. Record checks as `expected: ... | actual: ...`, and rerun the narrowest meaningful check before declaring completion. A changed GUI action needs run-and-observe evidence, not merely a build.
+- Update user-facing documentation with user-visible behaviour changes. See `docs/agent/` for the lifecycle, research, quality, validation, memory, cost and code-audit disciplines.
 
 ## Git conventions
 
@@ -168,19 +112,9 @@ git config pull.rebase false
 
 ## Version convention
 
-- StreamsPlayer versions use the **author's local release time** (Europe/Malta) in `YY.MMDD.HHmm` form,
-  for example `26.0719.0131`. The version's purpose is to tell the owner when a build was made, read
-  against the clock on his wall; a stamp he has to convert does not serve that purpose. Versions up to
-  and including `26.0806.2131` were stamped in UTC, so they read two hours (one in winter) earlier than
-  the local time they were built at. The **shape** `YY.MMDD.HHmm` is frozen for the product's life and
-  does not change with this.
-- Accepted consequence: the autumn clock change repeats one local hour, so a release inside that hour
-  could carry a version lower than one already published. Deliberate - releases are not cut on the hour
-  boundary of a DST change, and the monotonicity check before a release is the real guard.
-- Git tags use the same value with a `v` prefix: `v26.0719.0131`.
-- **For a real release the version is not hand-edited.** `.github/workflows/release.yml` derives it from the `v*` tag (regex + a real `ParseExact`, so an impossible stamp fails the job) and passes it as `-p:Version=/-p:AssemblyVersion=/-p:FileVersion=/-p:InformationalVersion=`. The four fields in `Directory.Build.props` are the *local build* stamp only; the tag wins for anything published. The Settings window displays `InformationalVersion`.
-- MSIX package identity requires four components and its version schema forbids leading zeros, so `msix/build-msix.ps1` int-casts each component and appends `.0`: `26.0719.0131` → `26.719.131.0` (with a per-component `≤ 65535` ceiling guard). Winget and GitHub retain the canonical zero-padded three-component value.
-- A release version must be later than every published version. Do not reuse a timestamp for different package contents.
+- `YY.MMDD.HHmm` in the **author's local release time** (Europe/Malta); the shape is frozen and git tags add a `v`. Versions up to `26.0806.2131` were stamped in UTC.
+- A real release takes its version from the `v*` tag, never from a hand edit; it must be later than every published version, and a timestamp is never reused.
+- The rest (DST, the MSIX four-part form, the local build stamp): [release-and-version.md](.claude/rules/release-and-version.md).
 
 ## Universal Agent Kit workflow
 
@@ -189,23 +123,8 @@ git config pull.rebase false
 - Research in this order: `README.md`; relevant `PLAN/` ticket; symbols located with `rg` and their code/tests; official version-specific documentation. Never invent paths, symbols, APIs, or behaviour.
 - Open `memory/MEMORY.md` at session start, but verify remembered repository claims against the working tree before acting on them.
 - Dependency direction is App UI -> Core; CatalogHarness -> Core; Tests -> Core. Core must remain independent of WPF, App, tools, and tests.
-
-### Skill routing
-
-- `$streamsplayer-quick`: one trivial deterministic edit; `$streamsplayer-fix`: narrow, understood behaviour bug.
-- `$streamsplayer-research`: evidence-first investigation before non-trivial work.
-- `$streamsplayer-spec` -> `$streamsplayer-spec-tech` -> `$streamsplayer-spec-dev` -> `$streamsplayer-spec-check`: changes with real design decisions.
-- `$streamsplayer-spec-fix`, `$streamsplayer-spec-all`, `$streamsplayer-ui-clarify`, `$streamsplayer-verify`, `$streamsplayer-review`, `$streamsplayer-git`, `$streamsplayer-park`, `$streamsplayer-backlog`, and `streamsplayer-caveman*` follow their named procedures.
-
-### Specifications, quality, and validation
-
-- Ticket IDs use `SP-0001`, `SP-0002`, and so on. Strategic tickets are `PLAN/SP-0001_slug.md`; tactical plans live under `PLAN/SP-0001_slug/`.
-- Status comes from reality: `Draft -> Approved -> Tactical -> In Progress -> Implemented -> Verified`, with `Partial`, `Broken`, `Archived`, and documented `Block*` states. Strategic specs contain what/why; tactical plans contain dependency-ordered implementation steps with static checks.
-- Keep changes scoped. Avoid drive-by formatting and opportunistic refactors. Aim for files below ~500 lines and keep WPF windows focused on UI coordination.
-- Do not add raw logging to App or Core until a logging facade is deliberately introduced. `Console.WriteLine` is appropriate in the CatalogHarness.
-- Do not introduce trivial comments, broad/empty catches, duplicated values where a constant exists, lifecycle-unsafe async work, live-path stubs, or dead artifacts. Comments explain why, not visible mechanics.
-- Store temporary evidence and backups under `temp/`, organized by ticket (`temp/<ticket>/`, or `temp/scratch/` when none), never at the repository root. The legacy `tmp/` tree is historical local evidence referenced by closed tickets; do not rename it, do not add to it. Record checks as `expected: ... | actual: ...`, and rerun the narrowest meaningful check before declaring completion. A changed GUI action needs run-and-observe evidence, not merely a build.
-- Update user-facing documentation with user-visible behaviour changes. See `docs/agent/` for the lifecycle, research, quality, validation, memory, cost and code-audit disciplines.
+- Use the cheapest sufficient `/streamsplayer-*` rung; the spec pipeline is for changes with real design decisions.
+- Ticket IDs use the prefix `STRWIN` (`STRWIN-0001`), files under `PLAN/`; status comes from the working tree, never the filename.
 
 ## SZA Unified Rules (canon)
 
@@ -218,6 +137,5 @@ StreamsPlayer follows the portfolio-wide **SZA Unified Rules** for repository la
   session, and the restatement had already drifted (see the 2026-07-26 drift correction in the contrib
   record). Adoption is stamped in `.sza-canon.json`.
 - **This repo's record** lives in the canon at `contrib/streams_player.md` - the verified overlay facts, channel-matrix rows, and the legitimate divergences (DIVERGE deltas) specific to StreamsPlayer.
-- **Overlay shape:** Windows-desktop, *installer variant* (SP-0092, changed 2026-08-21 from the no-installer variant) - an Inno Setup per-user setup EXE and a portable ZIP in the same GitHub Release, plus winget-portable and Store MSIX. The installer and the archive are compiled from one publish, so their payloads never differ. winget deliberately stays on the ZIP (`InstallerType: zip` + `NestedInstallerType: portable`); moving it to `inno` is a separate submission. Frozen anchors: winget `PackageIdentifier`, the MSIX Identity `Name`/`Publisher`, and the Inno `AppId` `{15F4F08C-E78B-41B7-9039-6A3332D7D080}` - changing the last one does not upgrade an existing install, it creates a second parallel one on every machine that already has it.
-- **Coupling shape:** *consumed published release artifact* - StreamsPlayer depends at runtime on another SZA product's release output (the FastMediaSorter catalog ZIP at `StreamCatalogService.CatalogUrl`). This is neither a wire/config contract nor an edition/parity relationship; the merge protects user-owned `MANUAL`/`IMPORTED` rows and refresh is explicit-only.
+- **Frozen anchors, never changed:** winget `PackageIdentifier`, the MSIX Identity `Name`/`Publisher`, and the Inno `AppId` `{15F4F08C-E78B-41B7-9039-6A3332D7D080}` (a new one installs a second parallel copy). Overlay and coupling shape: [release-and-version.md](.claude/rules/release-and-version.md).
 - **Editing the canon:** universal-rule fixes land in the canon first, then spread back here. Never edit the canon from a StreamsPlayer session except its own `contrib/streams_player.md` record.

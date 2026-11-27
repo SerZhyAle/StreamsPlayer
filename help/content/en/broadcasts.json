@@ -117,6 +117,7 @@
     { "help": "exchange-diagnosis", "note": "The connection check that Check the connection opens." },
     { "help": "broadcast", "note": "Where a broadcast from this PC is started, shared and stopped." },
     { "help": "settings", "note": "Where the exchange server account is set up." },
-    { "site": "use", "note": "The whole task, from the first start to your own playlists." }
+    { "site": "use", "note": "The whole task, from the first start to your own playlists." },
+    { "portal": "account-deletion", "note": "Where an account is deleted; this program offers no way to." }
   ]
 }

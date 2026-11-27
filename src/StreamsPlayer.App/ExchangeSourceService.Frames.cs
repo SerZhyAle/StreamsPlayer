@@ -74,6 +74,12 @@ internal sealed partial class ExchangeSourceService
             case ExchangeSettingsFrames.PayloadType:
                 HandleSettingsAnswer(root, saved: false);
                 return false;
+            case ExchangeCommandFrames.RequestType:
+                HandleCommandRequest(root, session);
+                return false;
+            case ExchangeCommandFrames.ResultType:
+                // STRWIN-0303: this product is a target only and never awaits a command's answer.
+                return false;
             case "refused":
                 return HandleRefusedFrame(root);
             default:

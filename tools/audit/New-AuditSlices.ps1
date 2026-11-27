@@ -26,7 +26,8 @@
     numbered in risk order (descending; ties by name), which is the order the fan-out creates tickets in.
 
 .PARAMETER Parent
-    The umbrella ticket id (SP-NNNN). Names the manifest's parent and the default manifest location
+    The umbrella ticket id, in the shape the project profile declares (grammar.ticketIdPattern, or a legacy
+    shape of grammar.legacyTicketIdPatterns). Names the manifest's parent and the default manifest location
     (PLAN/<parent ticket folder>/research/audit-slices.json).
 
 .PARAMETER RepoRoot
@@ -53,7 +54,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $Parent = 'SP-0139',
+    [Parameter(Mandatory)][string] $Parent,
     [string] $RepoRoot = (Join-Path $PSScriptRoot '..' '..'),
     [ValidateRange(1, 1000)][int] $MaxFiles = 25,
     [ValidateRange(100, 1000000)][int] $MaxLines = 4000,
@@ -73,7 +74,8 @@ function Fail([string] $Message) {
 }
 
 $root = (Resolve-Path -LiteralPath $RepoRoot).Path
-if ($Parent -notmatch '^SP-\d{4}$') { Fail "parent '$Parent' is not an SP-NNNN id" }
+try { $grammar = Get-AuditTicketGrammar -RepoRoot $root } catch { Fail $_.Exception.Message }
+if (-not (Test-AuditTicketId -Grammar $grammar -Id $Parent)) { Fail "parent '$Parent' is not a ticket id of this repository ($($grammar.Display))" }
 
 # --- enumerate ---------------------------------------------------------------------------------------------
 $fileSet = @(Get-AuditFileSet -RepoRoot $root -IncludeClassB:$IncludeClassB)

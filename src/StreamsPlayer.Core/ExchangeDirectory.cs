@@ -18,7 +18,10 @@ public sealed record ExchangeDeviceRecord(
     /// <summary>SP-0226 / item DF: whether `capabilities` lists `e2e-v1`.</summary>
     bool HasE2eCapability = false,
     /// <summary>SP-0226 / item DH: `lastSeen`, which orders the devices a box cuts to forty.</summary>
-    DateTimeOffset? LastSeen = null);
+    DateTimeOffset? LastSeen = null)
+{
+    public string? Product { get; init; }
+}
 
 /// <summary>One live broadcast of the exchange directory (DEVICE-EXCHANGE 6.3).</summary>
 /// <remarks>
@@ -335,7 +338,10 @@ public sealed partial class ExchangeDirectoryState
             // The contract's tolerated shape: a presence outside the closed set reads as offline.
             var (hasCapability, e2eKey) = ReadE2e(device);
             devices[id] = new ExchangeDeviceRecord(id, name,
-                ReadString(device, "presence") == "online", ReadPlays(device), e2eKey, hasCapability, ReadLastSeen(device));
+                ReadString(device, "presence") == "online", ReadPlays(device), e2eKey, hasCapability, ReadLastSeen(device))
+            {
+                Product = ReadString(device, "product")
+            };
         }
     }
 

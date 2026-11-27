@@ -201,7 +201,8 @@ public static class AppCommandLine
 
         IReadOnlyDictionary<string, IReadOnlyList<string>> parsed = options.ToDictionary(
             pair => pair.Key, pair => (IReadOnlyList<string>)pair.Value.AsReadOnly(), StringComparer.OrdinalIgnoreCase);
-        if ((AppPlaybackCommands.Check(entry, parsed) ?? AppRecordCommands.Check(entry, parsed) ?? AppChannelCommands.Check(entry, parsed))
+        if ((AppPlaybackCommands.Check(entry, parsed) ?? AppRecordCommands.Check(entry, parsed) ?? AppChannelCommands.Check(entry, parsed)
+                ?? AppBroadcastCommands.Check(entry, parsed))
             is { } violation)
         {
             return Refuse(violation.Reason, violation.Message);

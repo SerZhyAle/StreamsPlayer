@@ -36,7 +36,8 @@
 param(
     [string] $Help,
     [string] $Root,
-    [string] $BaseUrl = 'https://serzhyale.github.io/StreamsPlayer/'
+    [string] $BaseUrl = 'https://serzhyale.github.io/StreamsPlayer/',
+    [string] $PortalBaseUrl = 'https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/'
 )
 
 Set-StrictMode -Version Latest
@@ -132,6 +133,29 @@ function Get-Ids([string] $Path) {
     return $idCache[$Path]
 }
 
+function Check-HelpShot([string] $Markup, [string] $Locale, [string] $Id) {
+    $where = "$Locale/$Id.html"
+    $figure = [regex]::Match($Markup, '<figure class="shot">(?<body>.*?)</figure>', 'Singleline')
+    if (!$figure.Success) { Fail "anatomy: $where has no help picture"; return }
+    $entryIds = @([regex]::Matches($Markup, '<details class="el" id="(e-[a-z0-9-]+)">') | ForEach-Object { $_.Groups[1].Value })
+    foreach ($theme in 'light', 'dark') {
+        $frames = [regex]::Matches($figure.Groups['body'].Value, "<div class=`"frame on-$theme`">(?<body>.*?)</div>", 'Singleline')
+        if ($frames.Count -ne 1) { Fail "anatomy: $where needs one $theme help picture"; continue }
+        $frame = $frames[0].Groups['body'].Value
+        $image = [regex]::Escape("../shot-$Id-$Locale-$theme.png")
+        if ($frame -cnotmatch "<img src=`"$image`" width=`"[1-9]\d*`" height=`"[1-9]\d*`" alt=`"[^`"]+`">") {
+            Fail "anatomy: $where does not show its $theme capture with alt text"
+        }
+        $pins = [regex]::Matches($frame, '<a class="pin" style="--x:\d+(?:\.\d+)?%;--y:\d+(?:\.\d+)?%" href="#(e-[a-z0-9-]+)" aria-label="[^"]+">([1-9]\d*)</a>')
+        $pinIds = @($pins | ForEach-Object { $_.Groups[1].Value })
+        $numbers = @($pins | ForEach-Object { $_.Groups[2].Value })
+        if (!$entryIds.Count -or ($pinIds -join ',') -cne ($entryIds -join ',') -or
+            ($numbers -join ',') -cne ((1..$entryIds.Count) -join ',')) {
+            Fail "anatomy: $where $theme picture needs one numbered marker per help entry in order"
+        }
+    }
+}
+
 $pageCount = 0
 $linkCount = 0
 foreach ($locale in $locales) {
@@ -171,7 +195,7 @@ foreach ($locale in $locales) {
             if ($index -lt 0) { Fail "anatomy: $where lacks '$part' in its place (CONTEXT-HELP rule 8)"; break }
             $at = $index
         }
-        if (-not $isIndex -and $id -notin $noPicture -and $html -notmatch 'class="on-dark"') { Fail "anatomy: $where is not on the picture baseline and has no picture" }
+        if (-not $isIndex -and $id -notin $noPicture) { Check-HelpShot $markup $locale $id }
         if (-not $isIndex -and $html -notmatch 'class="order"' -and $html -notmatch '</h2>\s*<p>') { Fail "anatomy: $where has neither an order list nor a note that it has none" }
 
         $pageIds = Get-Ids $file
@@ -185,6 +209,10 @@ foreach ($locale in $locales) {
                 continue
             }
             if ($target -like 'https://*') {
+                if ($target.StartsWith($PortalBaseUrl, [StringComparison]::Ordinal)) {
+                    # SP-0221 requirement 10: shared media-exchange portal page
+                    continue
+                }
                 if (-not $target.StartsWith($BaseUrl, [StringComparison]::Ordinal)) { Fail "links: $where links $target, an address that is neither relative nor the product site's"; continue }
                 $path, $fragment = ($target.Substring($BaseUrl.Length)) -split '#', 2
                 if ([string]::IsNullOrEmpty($path) -or $path.EndsWith('/')) { $path += 'index.html' }

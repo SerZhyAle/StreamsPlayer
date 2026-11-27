@@ -34,7 +34,9 @@ amendment is written in the store, not here.
 | [LAN-DISCOVERY.md](LAN-DISCOVERY.md) | `LAN-DISCOVERY` | Local Network Service Discovery (mDNS / DNS-SD) | Not bound; no browser or announcer, SP-0232 |
 | [APP-ACTIVATION.md](APP-ACTIVATION.md) | `APP-ACTIVATION` | Deep-Link URI Handling & Single-Instance Launch | Consumer |
 | [APP-COMMANDS.md](APP-COMMANDS.md) | `APP-COMMANDS` | What a running application does when another program tells it to: commands, answers, risk classes and the manifest (draft 0.2) | Consumer (read at 0.2 on 2026-11-15, SP-0278; built against 0.1, SP-0276; gaps are excepted, ticket SP-0279; C3 and C9 stay manual) |
+| [REMOTE-CONTROL.md](REMOTE-CONTROL.md) | `REMOTE-CONTROL` | A person or an agent asking a program on another device of the account to do one named thing, sealed end to end (draft 0.7) | Target (0.7 adoption in progress in STRWIN-0307; W1 to W7 and R12 pending on Windows) |
 | [ICON-SET.md](ICON-SET.md) | `ICON-SET`, `ICON-RENDER` | Unified Iconography & Accessible Control Labels | Consumer |
+| [PRODUCT-IDENTITY.md](PRODUCT-IDENTITY.md) | `PRODUCT-IDENTITY` | One picture of the product on every surface, generated from one master; diagrams kept as source (draft 0.4) | Consumer (STRWIN-0301: vector master, build-identity generator) |
 | [EXCHANGE-MARK.md](EXCHANGE-MARK.md) | `EXCHANGE-MARK` | The mark of the exchange server: the star, its two forms and the one-tone glyph (draft 0.3) | Consumer (vendored 0.3, SP-0234: `partial`, surfaces not yet walked on screen) |
 | [CONTEXT-HELP.md](CONTEXT-HELP.md) | `CONTEXT-HELP` | In-app help: F1, the `?` button, the help map and the help pages (draft 0.4) | Consumer (read at 0.4 on 2026-11-15, SP-0278; SP-0230: `partial`, slice S1) |
 | [PAGE-CONTENT.md](PAGE-CONTENT.md) | `PAGE-CONTENT`, `PAGE-STYLE`, `SITE-FAMILY-MAP` | GitHub Pages Design System & Family Navigation | Consumer |
@@ -44,6 +46,7 @@ amendment is written in the store, not here.
 | [DOC-QUALITY.md](DOC-QUALITY.md) | `DOC-INTERNAL-QUALITY`, `DOC-EXTERNAL-QUALITY` | Internal registry and scoped help/portal quality | Partial; read 0.13 / 0.14 on 2026-11-15, SP-0278 |
 | [CAPTURE-OUTPUT.md](CAPTURE-OUTPUT.md) | `CAPTURE-OUTPUT` | Produced Files: Kind, Prefix, Name, Folder and Format | Producer (read 2026-09-26; deviations by exception, aligned by SP-0179) |
 | [PACKAGE-VERSIONING.md](PACKAGE-VERSIONING.md) | `PACKAGE-VERSIONING` | Package Version Timestamping & Parity | Consumer |
+| [RELEASE-LEDGER.md](RELEASE-LEDGER.md) | `RELEASE-LEDGER` | Last builds, channel publication state, and append-only release history | Producer (adopted 0.1, SP-0292) |
 | [INPUT-PARITY.md](INPUT-PARITY.md) | `INPUT-PARITY` | Device Input Parity & Media Key Controls | Consumer (media keys contributor) |
 | [SITE-STRUCTURE.md](SITE-STRUCTURE.md) | `SITE-STRUCTURE` | Product Site Page Set, Reach, Addresses & Locales (0.4, partial) | Consumer, page tier (opted in 2026-10-06, SP-0192) |
 | [SITE-EXPERIENCE.md](SITE-EXPERIENCE.md) | `SITE-EXPERIENCE` | Product Site Look, Behaviour & Reach (0.6, partial) | Consumer, page tier (opted in 2026-10-06, SP-0192) |

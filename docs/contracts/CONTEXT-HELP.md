@@ -18,6 +18,10 @@ This repository keeps no copy of the contract. Its side of it (SP-0230):
 - `help/content/<locale>/<help-id>.json` - the copy of each page; names come from the UI dictionaries, prose from here.
 - `tools/help/build-help.ps1` - renders the copy into `docs/help/<locale>/`, the set that ships beside the
   executable (`help\`) and is published from the same files.
+- `tools/help/capture-help.ps1` - regenerates the External control pictures from the Windows release publish
+  into `docs/help/`, with their bounds, hashes and capture stamp in `help/shots/`. The help renderer links
+  each marker to its entry and serves the matching theme and language. The release checklist runs live
+  freshness, and the fast help checks judge the generated files offline.
 - `StreamsPlayer.Core` - `HelpMap`, `HelpResolver`, `HelpPageLocator`, `BrowserCommand`; `StreamsPlayer.App/HelpService.cs`,
   `BrowserLauncher.cs` and the one `ApplicationCommands.Help` binding on `Window` carry F1 and the `?` button
   (`HelpGlyphButton`, the `app.help` glyph of `ICON-SET`). The page opens in the default browser started from its

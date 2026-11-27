@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.IO;
+using System.IO.Compression;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography;
@@ -56,7 +57,7 @@ public sealed partial class ExchangeLoopRecoveryTests
         {
             service.Start();
             await Until(() => service.StatusKey == "ExchangeSignedOut");
-            Assert.True(service.SignedOutNotice);
+            Assert.Equal(ExchangeFailureRows.SignedOut, service.SignInEndedNotice);
             var stored = new ExchangeAccountStore(scope.Path).Load();
             Assert.Null(stored.Token);
             Assert.True(stored.SignedOut);
@@ -83,6 +84,50 @@ public sealed partial class ExchangeLoopRecoveryTests
         await Task.Delay(500);
         Assert.Equal("ExchangeSignedOut", restarted.StatusKey);
         Assert.Equal(1, server.Connections);
+        server.ThrowIfScriptFailed();
+    }
+
+    // SP-0221 requirement 7: an ending the account performs says which. A password the host reset (or a login
+    // that no longer matches) and a device deleted on the server each end the stored sign-in with their own
+    // message, the prompt keeps the server and the login, and nothing retries in the background.
+
+    [Theory]
+    [InlineData("bad-credentials", "ExchangeBadCredentials")]
+    [InlineData("device-revoked", "ExchangeDeviceRevoked")]
+    public async Task RefusedSignIn_SaysWhich_KeepsServerAndLogin_AndNeverRetries(string reason, string statusKey)
+    {
+        using var certificate = Certificate();
+        using var scope = new TestDirectory();
+        await using var server = new ScriptedServer(certificate, async (_, tls, token) =>
+        {
+            using var hello = await ExchangeProtocol.ReadAsync(tls, false, token);
+            Assert.Equal("hello", ExchangeProtocol.String(hello.RootElement, "type"));
+            await ExchangeProtocol.WriteAsync(tls, new { schemaVersion = 2, type = "refused", reason }, false, token);
+        });
+        var original = Account(server.Port, certificate);
+        scope.Save(original);
+        var service = new ExchangeSourceService(scope.Path);
+        try
+        {
+            service.Start();
+            await Until(() => service.StatusKey == statusKey);
+            Assert.Equal(ExchangeFailureRows.OfWire(reason), service.SignInEndedNotice);
+            var stored = new ExchangeAccountStore(scope.Path).Load();
+            // The prompt the person is offered reads the entry: the server and the login are the ones it had.
+            Assert.Null(stored.Token);
+            Assert.Equal(original.Host, stored.Host);
+            Assert.Equal(original.Port, stored.Port);
+            Assert.Equal(original.Login, stored.Login);
+            Assert.Equal(original.Pin, stored.Pin);
+            // The first retry of a backoff would be a second away: nothing is scheduled at all.
+            await Task.Delay(2500);
+            Assert.Equal(1, server.Connections);
+        }
+        finally
+        {
+            await service.StopAsync();
+        }
+
         server.ThrowIfScriptFailed();
     }
 
@@ -814,5 +859,50 @@ public sealed partial class ExchangeLoopRecoveryTests
         {
             await service.StopAsync();
         }
+    }
+
+    [Fact]
+    public void TheDoors_FillTheSameForm_DetailsShowBoth_AndAForeignOrEmptyQrRefuses()
+    {
+        const string host = "secret-cluster.internal.network";
+        const int port = 34567;
+        const string name = "ClusterAlpha";
+        const string login = "operator-alice";
+        var connectionString = $"FMSEXCH1:x={Uri.EscapeDataString(host)}%3A{port}&n={name}&u={login}&fp=SHA256%3AUl2rC03A44auS8B7ibLjJaAApHooIx%2F4R%2BSSgDTXUtY";
+
+        // 1. Pasted string import
+        var pastedImport = ExchangeConnectionImport.ReadText(connectionString);
+        Assert.NotNull(pastedImport.Data);
+        var data = pastedImport.Data!;
+
+        // 2. A QR image import fills the same form the pasted string fills (DEVICE-EXCHANGE 5.5)
+        var qrPixels = QrPictures.Draw(QrPictures.Matrix(connectionString));
+        var qrOutcome = ExchangeQrReader.Decode(qrPixels);
+        Assert.Equal(ExchangeQrOutcomeKind.Found, qrOutcome.Kind);
+        var qrImport = ExchangeConnectionImport.ReadQr(qrOutcome);
+        Assert.NotNull(qrImport.Data);
+        Assert.Equal(data.Host, qrImport.Data!.Host);
+        Assert.Equal(data.Port, qrImport.Data!.Port);
+        Assert.Equal(data.Name, qrImport.Data!.Name);
+        Assert.Equal(data.Login, qrImport.Data!.Login);
+
+        // 3. The details hold both address and port; the face shows neither - that half of the seam is
+        //    pinned over the window's own sources by ExchangePromptFaceSourceTests.
+        Assert.Equal(host, data.Host);
+        Assert.Equal(port, data.Port);
+
+        // 4. A picture with no QR refuses with its one message.
+        var emptyPixels = new byte[100 * 100 * 4];
+        var emptyOutcome = ExchangeQrReader.Decode(new ExchangePixels(emptyPixels, 100, 100));
+        Assert.Equal(ExchangeQrOutcomeKind.None, emptyOutcome.Kind);
+        Assert.Equal("ExchangeQrNone", ExchangeConnectionImport.ReadQr(emptyOutcome).MessageKey);
+
+        // 5. A QR that holds anything else is refused with the codec's one message.
+        var foreignQrPixels = QrPictures.Draw(QrPictures.Matrix("https://not-an-exchange-string.example.org"));
+        var foreignOutcome = ExchangeQrReader.Decode(foreignQrPixels);
+        Assert.Equal(ExchangeQrOutcomeKind.Found, foreignOutcome.Kind);
+        var foreignImport = ExchangeConnectionImport.ReadQr(foreignOutcome);
+        Assert.Null(foreignImport.Data);
+        Assert.Equal("ExchangeStringInvalid", foreignImport.MessageKey);
     }
 }

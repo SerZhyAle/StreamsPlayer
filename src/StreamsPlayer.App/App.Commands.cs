@@ -67,9 +67,19 @@ public partial class App
         StartCommandExitCode = CommandConsole.Report(response, start.Json, start.ResultPath);
     }
 
-    private async Task<AppCommandResponse> OnCommandAsync(AppCommandRequest request, CancellationToken cancellationToken)
+    private Task<AppCommandResponse> OnCommandAsync(AppCommandRequest request, CancellationToken cancellationToken) =>
+        OnCommandAsync(request, remote: false, cancellationToken);
+
+    /// <summary>
+    /// STRWIN-0303: a request another device sent and <see cref="RemoteCommandTarget"/> already let through rules 8 to 10.
+    /// The local setting of <c>APP-COMMANDS</c> rule 13 is not consulted for it (<c>REMOTE-CONTROL</c> rule 13).
+    /// </summary>
+    internal Task<AppCommandResponse> ExecuteRemoteAsync(AppCommandRequest request, CancellationToken cancellationToken) =>
+        OnCommandAsync(request, remote: true, cancellationToken);
+
+    private async Task<AppCommandResponse> OnCommandAsync(AppCommandRequest request, bool remote, CancellationToken cancellationToken)
     {
-        var operation = Dispatcher.InvokeAsync(() => ExecuteCommand(request, cancellationToken));
+        var operation = Dispatcher.InvokeAsync(() => ExecuteCommand(request, remote, cancellationToken));
         try
         {
             var started = await Task.WhenAny(operation.Task, Task.Delay(CommandStartBound, cancellationToken)).ConfigureAwait(false);
@@ -85,17 +95,17 @@ public partial class App
         }
 
         // Started on the UI thread. The base verbs are finished by now; play and resume wait for the first sound or
-        // picture, and the record verbs for the first recorded data or the finished file, inside the verb's own bound,
-        // off the UI thread, while the dispatcher goes on pumping.
+        // picture, the record verbs for the first recorded data or the finished file, and the broadcast verbs for the
+        // source live or ended, inside the verb's own bound, off the UI thread, while the dispatcher goes on pumping.
         var pending = await operation.Task.ConfigureAwait(false);
         return await pending.ConfigureAwait(false);
     }
 
     /// <summary>
     /// Runs on the UI thread up to its first wait and returns what finishes the command. Every verb but <c>play</c>,
-    /// <c>playback resume</c> and the two <c>record</c> verbs is finished before it returns.
+    /// <c>playback resume</c>, the two <c>record</c> verbs and the two <c>broadcast</c> verbs is finished before it returns.
     /// </summary>
-    private Task<AppCommandResponse> ExecuteCommand(AppCommandRequest request, CancellationToken cancellationToken)
+    private Task<AppCommandResponse> ExecuteCommand(AppCommandRequest request, bool remote, CancellationToken cancellationToken)
     {
         var words = request.Command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var parse = AppCommandLine.Parse([.. words, .. request.Args], AppCommandManifest.Embedded);
@@ -117,10 +127,10 @@ public partial class App
             return LoggedAsync(request, Task.FromResult(AppCommandResponse.Busy(request.RequestId, AppCommandMessages.Busy)));
         }
 
-        var refused = AppCommandPolicy.CheckRisk(request.RequestId, parse.Entry, window.AcceptsRestrictedCommands,
+        var refused = remote ? null : AppCommandPolicy.CheckRisk(request.RequestId, parse.Entry, window.AcceptsRestrictedCommands,
             LocalizationService.Get("AcceptsRestrictedCommands"));
         return LoggedAsync(request,
-            refused is not null ? Task.FromResult(refused) : Run(parse, request, window, cancellationToken));
+            refused is not null ? Task.FromResult(refused) : Run(parse, request, remote, window, cancellationToken));
     }
 
     /// <summary>Waits for what <see cref="ExecuteCommand"/> started, then logs the outcome - on the UI thread, where the log is written.</summary>
@@ -141,7 +151,7 @@ public partial class App
     }
 
     private Task<AppCommandResponse> Run(
-        AppCommandParse parse, AppCommandRequest request, MainWindow window, CancellationToken cancellationToken)
+        AppCommandParse parse, AppCommandRequest request, bool remote, MainWindow window, CancellationToken cancellationToken)
     {
         var verb = parse.Entry!.Name;
         var requestId = request.RequestId;
@@ -165,12 +175,16 @@ public partial class App
                 return window.RecordStopForCommandAsync(requestId, parse.Entry, parse, cancellationToken);
             case AppChannelCommands.AddVerb:
                 return window.ChannelAddForCommandAsync(requestId, parse, request.WorkingDir);
+            case AppBroadcastCommands.StartVerb:
+                return BroadcastStartForCommandAsync(requestId, parse, cancellationToken);
+            case AppBroadcastCommands.StopVerb:
+                return BroadcastStopForCommandAsync(requestId, parse);
             default:
-                return Task.FromResult(RunBase(verb, requestId, window));
+                return Task.FromResult(RunBase(verb, requestId, remote, window));
         }
     }
 
-    private AppCommandResponse RunBase(string verb, string requestId, MainWindow window)
+    private AppCommandResponse RunBase(string verb, string requestId, bool remote, MainWindow window)
     {
         switch (verb)
         {
@@ -181,7 +195,9 @@ public partial class App
                     ["pid"] = Environment.ProcessId,
                     ["acceptsRestrictedCommands"] = window.AcceptsRestrictedCommands,
                     ["activeSessions"] = Windows.OfType<PlayerWindow>().Count() + (window.IsPlayingAudio ? 1 : 0),
-                    ["profile"] = AppPaths.IsRelocated ? "relocated" : "default"
+                    ["profile"] = AppPaths.IsRelocated ? "relocated" : "default",
+                    // STRWIN-0303 / REMOTE-CONTROL rule 8: the state of the listening switch is part of the answer.
+                    ["remoteListening"] = RemoteTarget?.Settings.Listening ?? false
                 });
             case "show":
                 var foreground = window.BringForwardForCommand();
@@ -200,6 +216,10 @@ public partial class App
             case "version":
                 return AppCommandResponse.Done(requestId,
                     AppCommandMessages.Version(ProductInfo.Version, AppCommandManifest.Embedded.CliVersion));
+            case "commands" when remote:
+                // Rule 7: only the entries that carry remote, without the options another device may not pass.
+                return AppCommandResponse.Done(requestId, "The commands this program takes from another device.",
+                    RemoteCommandArguments.RemoteView(AppCommandManifest.EmbeddedBytes.Span));
             case "commands":
                 return AppCommandResponse.Done(requestId, "Run \"StreamsPlayer.exe commands\" for the list.");
             default:

@@ -53,6 +53,9 @@
     { "id": "log-archive-ready", "name": "Send logs to the author", "nameKey": "SendLogs", "form": "none", "class": "LogArchiveReadyWindow",
       "reason": "A confirmation that the log archive is ready, with its two answers named on their buttons; its text is the whole explanation (CONTEXT-HELP rule 4)." },
     { "id": "playback-failure", "name": "Stream unavailable", "nameKey": "StreamUnavailableTitle", "form": "none", "class": "PlaybackFailureDialog",
-      "reason": "A failure message that names the cause and offers answers on labelled buttons; the step-by-step diagnosis is the Connection check window (SP-0225), which has its own entry." }
+      "reason": "A failure message that names the cause and offers answers on labelled buttons; the step-by-step diagnosis is the Connection check window (SP-0225), which has its own entry." },
+    { "id": "external-control", "name": "External control", "nameKey": "RemoteControlTitle", "form": "page", "help": "external-control", "class": "ExternalControlWindow" },
+    { "id": "remote-command-prompt", "name": "A command from another device", "nameKey": "RemoteWaiting", "form": "none", "class": "RemoteCommandPrompt",
+      "reason": "A one-question prompt that names the device and the command, with its two answers on labelled buttons and the time left; its text is the whole explanation, and External control explains the switch, the devices and the log (CONTEXT-HELP rule 4)." }
   ]
 }

@@ -6,6 +6,7 @@
 .DESCRIPTION
     help/help-map.json                       the surfaces and their help ids (embedded in StreamsPlayer.Core too)
     help/stamp.json                          the version and date the pages were written against (rule 8 item 7)
+    help/shots/<help-id>.json                the capture stamp, image hashes and layout bounds (rule 14)
     help/content/<locale>/_chrome.json       the words around a page: headings, pills, footer, the index copy
     help/content/<locale>/<help-id>.json     the copy of one page; names come from the dictionary key it cites
     src/StreamsPlayer.App/Localization.<locale>.xaml    the UI strings (rule 13: one string source)
@@ -16,6 +17,12 @@
     docs/help/<locale>/<help-id>.html and index.html for each authored locale
     docs/help/help.css, docs/help/sza-kit.css
     docs/help/mark-24.png, docs/help/mark-48.png    the exchange mark an entry draws (EXCHANGE-MARK, SP-0234)
+    docs/help/product-48.png, product-96.png         the product picture beside each title and the page icon, copies
+                                                     of the help.head renditions of assets/identity (STRWIN-0300)
+
+    An entry about a control that draws an ICON-SET glyph shows it beside its name (CONTEXT-HELP 0.6 item R): read
+    from src/StreamsPlayer.App/Glyphs.map.json, the window's XAML and the user controls it places, drawn from
+    assets/glyphs (tools/help/HelpGlyphIndex.ps1).
 
     A locale with no folder under help/content/ is not generated: it opens the English page at run time
     (rule 13) and is a `locale` line of help/help-baseline.txt.
@@ -68,6 +75,8 @@ trap {
 
 # Only the freshness comparison of -Check needs the fingerprint; the generator run does not depend on the file.
 if ($Check) { . (Join-Path $root 'scripts/SourceFingerprint.ps1') }
+. (Join-Path $PSScriptRoot 'HelpGlyphIndex.ps1')
+. (Join-Path $PSScriptRoot 'HelpShots.ps1')
 
 function Read-Json([string] $Path) {
     if (-not (Test-Path -LiteralPath $Path)) { Stop-Unverified "missing $Path" }
@@ -75,8 +84,11 @@ function Read-Json([string] $Path) {
     catch { Stop-Unverified "$Path does not parse: $($_.Exception.Message -replace '\s+', ' ')" }
 }
 
+# A property lookup by name, not an enumeration of every name: the renderer asks this thousands of times a run.
 function Has([object] $Object, [string] $Name) {
-    return $null -ne $Object -and $Object.PSObject.Properties.Name -contains $Name -and $null -ne $Object.$Name
+    if ($null -eq $Object) { return $false }
+    $property = $Object.PSObject.Properties[$Name]
+    return $null -ne $property -and $null -ne $property.Value
 }
 
 function Get-Dictionary([string] $Code) {
@@ -103,17 +115,22 @@ function Format-Text([string] $Text) {
 # Copy syntax to HTML. $Names maps an entry id to the name shown for it, for {@id}.
 function Format-Inline([string] $Text, [hashtable] $Names, [string] $Where) {
     $html = Format-Text $Text
-    $html = [regex]::Replace($html, '\*\*(.+?)\*\*', '<b>$1</b>')
-    $html = [regex]::Replace($html, '\[\[(.+?)\]\]', {
-        param($m)
-        (($m.Groups[1].Value -split '\+') | ForEach-Object { '<kbd>' + $_.Trim() + '</kbd>' }) -join ' + '
-    })
-    $html = [regex]::Replace($html, '\{@([a-z0-9-]+)\}', {
-        param($m)
-        $id = $m.Groups[1].Value
-        if (-not $Names.ContainsKey($id)) { throw "$Where refers to {@$id}, which is no entry of the page" }
-        '<a href="#e-' + $id + '">' + (Format-Text $Names[$id]) + '</a>'
-    })
+    # Each pattern only where its opening marker occurs: most strings carry none, and a script-block evaluator is costly.
+    if ($html.Contains('**')) { $html = [regex]::Replace($html, '\*\*(.+?)\*\*', '<b>$1</b>') }
+    if ($html.Contains('[[')) {
+        $html = [regex]::Replace($html, '\[\[(.+?)\]\]', {
+            param($m)
+            (($m.Groups[1].Value -split '\+') | ForEach-Object { '<kbd>' + $_.Trim() + '</kbd>' }) -join ' + '
+        })
+    }
+    if ($html.Contains('{@')) {
+        $html = [regex]::Replace($html, '\{@([a-z0-9-]+)\}', {
+            param($m)
+            $id = $m.Groups[1].Value
+            if (-not $Names.ContainsKey($id)) { throw "$Where refers to {@$id}, which is no entry of the page" }
+            '<a href="#e-' + $id + '">' + (Format-Text $Names[$id]) + '</a>'
+        })
+    }
     return $html
 }
 
@@ -145,12 +162,31 @@ $baselineLines = if (Test-Path -LiteralPath (Join-Path $source 'help-baseline.tx
     Get-Content -LiteralPath (Join-Path $source 'help-baseline.txt') -Encoding utf8
 } else { @() }
 $unwritten = @($baselineLines | Where-Object { $_ -match '^page (\S+)$' } | ForEach-Object { $Matches[1] })
+$noPicture = @($baselineLines | Where-Object { $_ -match '^shot (\S+)$' } | ForEach-Object { $Matches[1] })
 
 $contentRoot = Join-Path $source 'content'
 $locales = @(Get-ChildItem -LiteralPath $contentRoot -Directory | ForEach-Object { $_.Name } | Sort-Object)
 if ($locales -notcontains $map.sourceLocale) { Stop-Unverified "the source locale $($map.sourceLocale) has no copy" }
 
 $pageSurfaces = @($map.surfaces | Where-Object { $_.form -in 'page', 'both' -and $_.help -notin $unwritten })
+$shotSets = @{}
+$captureFiles = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+foreach ($surface in ($pageSurfaces | Where-Object { $_.help -notin $noPicture })) {
+    $shotFile = Join-Path $source "shots/$($surface.help).json"
+    try {
+        if (-not (Test-Path -LiteralPath $shotFile -PathType Leaf)) { throw "Missing capture for $($surface.help)." }
+        $set = Get-Content -LiteralPath $shotFile -Raw -Encoding utf8 | ConvertFrom-Json
+        Assert-HelpShotSet $set $surface.help $locales $output
+        $shotSets[$surface.help] = $set
+        foreach ($shot in $set.shots) {
+            [void] $captureFiles.Add((Get-HelpShotName $surface.help $shot.locale $shot.theme))
+        }
+    } catch {
+        Write-Host "help-build: FAIL ($($_.Exception.Message) Run tools/help/capture-help.ps1 with the release publish.)"
+        exit 1
+    }
+}
+$glyphIndex = Get-GlyphIndex (Read-Json (Join-Path $root 'src/StreamsPlayer.App/Glyphs.map.json')) (Join-Path $root 'src/StreamsPlayer.App') (Join-Path $root 'assets/glyphs')
 $helpIds = @($map.surfaces | Where-Object { Has $_ 'help' } | ForEach-Object { $_.help })
 
 $themeScript = @'
@@ -190,6 +226,7 @@ function New-Head([string] $Locale, [string] $Title) {
         '<meta name="referrer" content="no-referrer">'
         '<meta name="robots" content="noindex">'
         "<title>$(Format-Text $Title)</title>"
+        '<link rel="icon" type="image/png" sizes="48x48" href="../product-48.png">'
         $themeScript.TrimEnd()
         '<link rel="stylesheet" href="../sza-kit.css">'
         '<link rel="stylesheet" href="../help.css">'
@@ -200,8 +237,17 @@ function New-Head([string] $Locale, [string] $Title) {
     ) -join "`n"
 }
 
-function New-Footer([string] $Locale, [object] $Chrome, [hashtable] $Dictionary) {
-    $line = ([string] $Chrome.footerWritten).Replace('{product}', $Dictionary['ProductName']).Replace('{version}', $stamp.version).Replace('{date}', $stamp.date)
+# PRODUCT-IDENTITY rule 8, CONTEXT-HELP 0.6 item Q (STRWIN-0300): the help.head rendition beside the page title, so a
+# page opened from a search result reads as the product before it is read. Rule 11: beside the product's name the
+# picture is decorative; beside any other title it carries the product's name.
+function Get-ProductPicture([string] $Title, [hashtable] $Dictionary) {
+    $product = [string] $Dictionary['ProductName']
+    $alt = if ($product -and -not $Title.Contains($product)) { Format-Text $product } else { '' }
+    return "<img class=`"product`" src=`"../product-48.png`" srcset=`"../product-48.png 1x, ../product-96.png 2x`" width=`"48`" height=`"48`" alt=`"$alt`">"
+}
+
+function New-Footer([string] $Locale, [object] $Chrome, [hashtable] $Dictionary, $PageStamp = $stamp) {
+    $line = ([string] $Chrome.footerWritten).Replace('{product}', $Dictionary['ProductName']).Replace('{version}', $PageStamp.version).Replace('{date}', $PageStamp.date)
     return @(
         '  <footer class="help-foot">'
         "    <span>$(Format-Text $line)</span>"
@@ -227,7 +273,7 @@ function Format-Facts([object] $Item, [object] $Chrome, [hashtable] $Names, [str
     return "        <dl class=`"facts`">`n$($rows -join "`n")`n        </dl>"
 }
 
-function Format-Entry([object] $Item, [object] $Chrome, [hashtable] $Dictionary, [hashtable] $Names, [string] $Page) {
+function Format-Entry([object] $Item, [object] $Chrome, [hashtable] $Dictionary, [hashtable] $Names, [string] $Page, [string] $WindowClass) {
     $where = "$Page entry '$($Item.id)'"
     $name = Format-Text (Get-Name $Item $Dictionary $where)
     $parts = [System.Collections.Generic.List[string]]::new()
@@ -236,6 +282,12 @@ function Format-Entry([object] $Item, [object] $Chrome, [hashtable] $Dictionary,
     # 24 px, the 48 px frame for a double-density screen. Decorative: the name beside it is the term (rule 14), and a
     # browser never mirrors an image, which is what rule 2 asks of a right-to-left page.
     $mark = if (Has $Item 'mark') { '<img src="../mark-24.png" srcset="../mark-24.png 1x, ../mark-48.png 2x" width="24" height="24" alt="">' } else { '' }
+    # Otherwise the control's ICON-SET glyph (item R), decorative for the same reason; the mark wins where both apply,
+    # because it is the picture the control shows.
+    if (-not $mark) {
+        $key = if (Has $Item 'key') { [string] $Item.key } elseif (Has $Item 'nameKey') { [string] $Item.nameKey } else { '' }
+        if ($key -and $glyphIndex.ContainsKey("$WindowClass|$key")) { $mark = $glyphIndex["$WindowClass|$key"] }
+    }
     $parts.Add("      <summary>$mark<span><span class=`"name`">$name</span><span class=`"one`">$(Format-Inline ([string] $Item.one) $Names $where)</span></span></summary>")
     $parts.Add('      <div class="full">')
     foreach ($paragraph in @($Item.full)) { $parts.Add("        <p>$(Format-Inline ([string] $paragraph) $Names $where)</p>") }
@@ -271,10 +323,18 @@ function New-Page([string] $Locale, [object] $Surface, [object] $Copy, [object] 
     $lines.Add('  </nav>')
     $lines.Add('  <header class="hero">')
     $lines.Add("    <p class=`"kicker`">$(Format-Text $Chrome.kicker)</p>")
-    $lines.Add("    <h1>$(Format-Text $title)</h1>")
+    $lines.Add("    <h1>$(Get-ProductPicture $title $Dictionary)$(Format-Text $title)</h1>")
     $lines.Add("    <p class=`"lead`">$(Format-Inline ([string] $Copy.lead) $names $page)</p>")
     $lines.Add('  </header>')
     $lines.Add('')
+
+    $pageStamp = $stamp
+    if ($shotSets.ContainsKey($Surface.help)) {
+        $pageStamp = $shotSets[$Surface.help]
+        $items = @($groups | ForEach-Object { $_.elements })
+        $lines.Add((Format-HelpShot $pageStamp $Surface.help $Locale $title $items $names ($rightToLeft -contains $Locale)))
+        $lines.Add('')
+    }
 
     $lines.Add("  <h2>$(Format-Text $Chrome.orderHeading)</h2>")
     if (Has $Copy 'order') {
@@ -299,7 +359,7 @@ function New-Page([string] $Locale, [object] $Surface, [object] $Copy, [object] 
             $lines.Add('  <div class="elements">')
         }
         foreach ($item in @($group.elements)) {
-            $lines.Add((Format-Entry $item $Chrome $Dictionary $names $page))
+            $lines.Add((Format-Entry $item $Chrome $Dictionary $names $page ([string] $Surface.class)))
         }
         if ($grouped) { $lines.Add('  </div>'); $lines.Add('  </section>') }
     }
@@ -319,11 +379,19 @@ function New-Page([string] $Locale, [object] $Surface, [object] $Copy, [object] 
         } elseif (Has $link 'site') {
             $siteFile = switch ($link.site) { 'use' { 'index.html#use' } 'support' { 'support.html' } 'privacy' { 'privacy.html' } default { throw "$page links the site page '$($link.site)', which the generator does not know" } }
             $lines.Add("    <li><a href=`"$(Get-SiteAddress $Locale $siteFile)`"><b>$(Format-Text $Chrome.site.($link.site))</b><span class=`"pill gold`">$(Format-Text $Chrome.pillSite)</span><small>$note</small></a></li>")
+        } elseif (Has $link 'portal') {
+            # SP-0221 requirement 10: the shared media-exchange portal's page that says where an account is
+            # deleted. One target, per language like the rest of the portal; the address is the same one
+            # ProductInfo.ExchangePortalUrl names for ExchangePortalPage.AccountDeletion.
+            if ($link.portal -ne 'account-deletion') { throw "$page links the portal page '$($link.portal)', which the generator does not know" }
+            $portalSuffix = switch ($Locale) { 'ru' { '-ru' } 'uk' { '-uk' } default { '' } }
+            $portalUrl = "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/account-deletion$portalSuffix.html"
+            $lines.Add("    <li><a href=`"$portalUrl`"><b>$(Format-Text $Chrome.site.($link.portal))</b><span class=`"pill gold`">$(Format-Text $Chrome.pillGuide)</span><small>$note</small></a></li>")
         } else { throw "$page has a related item with neither a help id nor a site page" }
     }
     $lines.Add('  </ul>')
     $lines.Add('')
-    $lines.Add((New-Footer $Locale $Chrome $Dictionary))
+    $lines.Add((New-Footer $Locale $Chrome $Dictionary $pageStamp))
     $lines.Add($entryScript.TrimEnd())
     $lines.Add('</body>')
     $lines.Add('</html>')
@@ -335,7 +403,7 @@ function New-Index([string] $Locale, [object] $Chrome, [hashtable] $Dictionary, 
     $lines.Add((New-Head $Locale $Chrome.indexTitle))
     $lines.Add('  <header class="hero">')
     $lines.Add("    <p class=`"kicker`">$(Format-Text $Chrome.kicker)</p>")
-    $lines.Add("    <h1>$(Format-Text $Chrome.indexTitle)</h1>")
+    $lines.Add("    <h1>$(Get-ProductPicture ([string] $Chrome.indexTitle) $Dictionary)$(Format-Text $Chrome.indexTitle)</h1>")
     $lines.Add("    <p class=`"lead`">$(Format-Inline ([string] $Chrome.indexLead) @{} 'index lead')</p>")
     $lines.Add('  </header>')
     $lines.Add('')
@@ -392,6 +460,10 @@ $generatedBytes['sza-kit.css'] = [System.IO.File]::ReadAllBytes((Join-Path $root
 foreach ($frame in 'mark-24.png', 'mark-48.png') {
     $generatedBytes[$frame] = [System.IO.File]::ReadAllBytes((Join-Path $root "assets/exchange-mark/png/$frame"))
 }
+# PRODUCT-IDENTITY rule 8 (STRWIN-0300): the help.head renditions of the identity manifest, byte for byte.
+foreach ($size in 48, 96) {
+    $generatedBytes["product-$size.png"] = [System.IO.File]::ReadAllBytes((Join-Path $root "assets/identity/out/help-head-$size.png"))
+}
 
 # ---------------------------------------------------------------------------------------- translation freshness
 
@@ -438,7 +510,7 @@ foreach ($path in $generatedBytes.Keys) {
 if (Test-Path -LiteralPath $output) {
     foreach ($file in Get-ChildItem -LiteralPath $output -Recurse -File) {
         $relative = [System.IO.Path]::GetRelativePath($output, $file.FullName).Replace('\', '/')
-        if ($generatedBytes.Contains($relative)) { continue }
+        if ($generatedBytes.Contains($relative) -or $captureFiles.Contains($relative)) { continue }
         if ($Check) { $problems.Add("docs/help/$relative is left over: nothing generates it"); continue }
         Remove-Item -LiteralPath $file.FullName -Force
         Write-Host "removed docs/help/$relative"

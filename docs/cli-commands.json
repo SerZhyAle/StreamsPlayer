@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "product": "StreamsPlayer",
   "exe": "StreamsPlayer.exe",
-  "cliVersion": "1.0",
+  "cliVersion": "1.2",
   "environment": [
     {
       "name": "STREAMSPLAYER_DATA_DIRECTORY",
@@ -32,6 +32,7 @@
       "examples": [
         { "shell": "powershell", "line": "StreamsPlayerCli.exe commands --json | ConvertFrom-Json", "expect": "the manifest as an object; exit 0, no window opens and no running copy is needed" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "since": "1.0"
     },
     {
@@ -59,6 +60,7 @@
       "examples": [
         { "shell": "powershell", "line": "(StreamsPlayerCli.exe version --json | ConvertFrom-Json).data.version", "expect": "the build version; exit 0" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "since": "1.0"
     },
     {
@@ -75,6 +77,7 @@
         { "name": "version", "kind": "string", "description": "the running copy's version" },
         { "name": "pid", "kind": "int", "description": "its process id" },
         { "name": "acceptsRestrictedCommands", "kind": "bool", "description": "whether the setting that lets other programs ask for more than the safe commands is on" },
+        { "name": "remoteListening", "kind": "bool", "description": "whether this copy accepts commands from the person's other devices (Settings, Exchange server)" },
         { "name": "activeSessions", "kind": "int", "description": "how many streams play now (a count only)" },
         { "name": "profile", "kind": "enum", "description": "default, or relocated when STREAMSPLAYER_DATA_DIRECTORY is in force" }
       ],
@@ -91,6 +94,7 @@
       "examples": [
         { "shell": "powershell", "line": "StreamsPlayerCli.exe status --json | ConvertFrom-Json; $LASTEXITCODE", "expect": "the response object, then 0 while the app runs and is ready, 11 otherwise" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "since": "1.0"
     },
     {
@@ -113,6 +117,7 @@
       "examples": [
         { "shell": "cmd", "line": "start /wait StreamsPlayer.exe show", "expect": "exit 0 (errorlevel 0)" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "since": "1.0"
     },
     {
@@ -137,6 +142,7 @@
       "examples": [
         { "shell": "cmd", "line": "StreamsPlayerCli.exe quit", "expect": "exit 0 (errorlevel 0) once the app has closed, or at once when it was not running" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "since": "1.0"
     },
     {
@@ -185,6 +191,7 @@
         { "shell": "powershell", "line": "(Start-Process .\\StreamsPlayer.exe -ArgumentList 'play','--id','<channel-guid>' -Wait -PassThru).ExitCode", "expect": "0 while the saved channel plays" },
         { "shell": "powershell", "line": "(Start-Process .\\StreamsPlayer.exe -ArgumentList 'play','--url-file','.\\camera-address.txt' -Wait -PassThru).ExitCode", "expect": "0 once the stream of the address on the first line of the file plays; the address never appears on the command line or in the log" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "since": "1.0"
     },
     {
@@ -215,6 +222,7 @@
       "examples": [
         { "shell": "cmd", "line": "StreamsPlayerCli.exe playback stop --all", "expect": "exit 0 (errorlevel 0)" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "since": "1.0"
     },
     {
@@ -238,6 +246,7 @@
       "examples": [
         { "shell": "cmd", "line": "StreamsPlayerCli.exe playback pause", "expect": "exit 0 while a radio plays" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "since": "1.0"
     },
     {
@@ -267,6 +276,7 @@
       "examples": [
         { "shell": "cmd", "line": "StreamsPlayerCli.exe playback resume", "expect": "exit 0 once the radio is audible" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "since": "1.0"
     },
     {
@@ -327,6 +337,7 @@
       "examples": [
         { "shell": "cmd", "line": "StreamsPlayerCli.exe volume set --level 30", "expect": "exit 0 (errorlevel 0)" }
       ],
+      "remote": { "confirm": "grant", "since": "1.1" },
       "since": "1.0"
     },
     {
@@ -436,6 +447,76 @@
         { "shell": "powershell", "line": "Start-Process .\\StreamsPlayer.exe -ArgumentList 'channel','add','--url','https://example.org/live.mp3','--title','Example' -Wait", "expect": "exit 0; the channel is in My streams" }
       ],
       "since": "1.0"
+    },
+    {
+      "name": "broadcast start",
+      "aliases": [],
+      "summary": "Broadcast this PC's microphone, its sound, its screen or a camera, as the source's start button in the Broadcast window does: to the local network and the exchange server Settings allow, with the link password chosen there.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe broadcast start --source <mic|system-audio|screen|camera> [--json] [--result <path>]",
+      "args": [
+        { "name": "source", "kind": "enum", "required": true, "values": [ "mic", "system-audio", "screen", "camera" ], "description": "What to broadcast: the microphone, the sound this PC plays, the screen or the camera chosen in Settings." },
+        { "name": "json", "kind": "bool", "required": false, "default": false, "description": "Print the response line itself." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "source", "kind": "enum", "description": "the source the command named" },
+        { "name": "already", "kind": "bool", "description": "true when the source was already live and nothing was restarted" },
+        { "name": "lan", "kind": "bool", "description": "whether the broadcast can be received on the local network" },
+        { "name": "exchange", "kind": "bool", "description": "whether the broadcast was announced through the exchange server" }
+      ],
+      "risk": "leaves-machine",
+      "coldStart": "refuse",
+      "wait": "done",
+      "timeoutMs": 30000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "live, or already live" },
+        { "code": 1, "meaning": "the broadcast could not start: the source's local network port is taken, or the Windows audio encoder is missing (reason error)" },
+        { "code": 10, "meaning": "no --source, a doubled one, or a value that is not a source" },
+        { "code": 11, "meaning": "not running, busy, the same source is being started, broadcasting is not allowed in Settings or this PC is signed in as a guest (reason module-off), or a picture source on a PC with no video encoder (reason target-missing)" },
+        { "code": 12, "meaning": "the setting of rule 13 is off" },
+        { "code": 13, "meaning": "too many broadcasts at once (reason no-space)" },
+        { "code": 14, "meaning": "the source's device is missing, held by another program, refused by the Windows privacy settings or failed (reason io-error)" },
+        { "code": 15, "meaning": "nothing can receive the broadcast, or the exchange server did not carry it (reason network)" },
+        { "code": 16, "meaning": "the caller stopped waiting before the broadcast went live (reason cancelled)" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "StreamsPlayerCli.exe broadcast start --source mic", "expect": "exit 0 while broadcasting and the setting are allowed" },
+        { "shell": "powershell", "line": "(StreamsPlayerCli.exe broadcast start --source screen --json | ConvertFrom-Json).data", "expect": "an object with source, already, lan and exchange" }
+      ],
+      "since": "1.2"
+    },
+    {
+      "name": "broadcast stop",
+      "aliases": [],
+      "summary": "Stop the live broadcast (all of them with --all); nothing broadcast is already the goal.",
+      "exe": "StreamsPlayerCli.exe",
+      "synopsis": "StreamsPlayerCli.exe broadcast stop [--source <mic|system-audio|screen|camera> | --all] [--result <path>]",
+      "args": [
+        { "name": "source", "kind": "enum", "required": false, "values": [ "mic", "system-audio", "screen", "camera" ], "description": "The source to stop. Required (or --all) when more than one is broadcast." },
+        { "name": "all", "kind": "bool", "required": false, "default": false, "description": "Stop every broadcast, the ones still starting included." },
+        { "name": "result", "kind": "path", "required": false, "description": "Where to write the response data as JSON." }
+      ],
+      "returns": [
+        { "name": "stopped", "kind": "int", "description": "how many broadcasts were stopped" }
+      ],
+      "risk": "safe",
+      "coldStart": "oneshot",
+      "wait": "done",
+      "timeoutMs": 10000,
+      "interactive": false,
+      "idempotent": true,
+      "exitCodes": [
+        { "code": 0, "meaning": "stopped, or nothing was broadcast" },
+        { "code": 10, "meaning": "several sources are broadcast and neither --source nor --all was given, both were, or a value that is not a source" },
+        { "code": 11, "meaning": "busy (a modal dialog is open)" }
+      ],
+      "examples": [
+        { "shell": "cmd", "line": "StreamsPlayerCli.exe broadcast stop --all", "expect": "exit 0 (errorlevel 0)" }
+      ],
+      "since": "1.2"
     }
   ]
 }

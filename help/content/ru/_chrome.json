@@ -1,5 +1,5 @@
 {
-  "sourceHash": "sha256:5a9bd290e0d42a30",
+  "sourceHash": "sha256:be781ccfe5fd2456",
   "kicker": "Справка по окну",
   "titlePrefix": "Справка",
   "breadcrumb": "Навигация",
@@ -14,7 +14,8 @@
   "tip": "Совет",
   "pillWindow": "Окно",
   "pillSite": "Сайт",
-  "site": { "use": "Как пользоваться", "support": "Поддержка", "privacy": "Конфиденциальность" },
+  "pillGuide": "Руководство",
+  "site": { "use": "Как пользоваться", "support": "Поддержка", "privacy": "Конфиденциальность" , "account-deletion": "Как удалить аккаунт" },
   "support": "Задать вопрос или сообщить о проблеме",
   "footerWritten": "Написано для версии {version} программы «{product}», {date}.",
   "indexTitle": "Справка",

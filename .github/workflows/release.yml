@@ -174,6 +174,9 @@ jobs:
           dotnet build StreamsPlayer.sln -c Release --no-restore "-p:Version=$v" "-p:AssemblyVersion=$v" "-p:FileVersion=$v" "-p:InformationalVersion=$v"
           if ($LASTEXITCODE -ne 0) { throw "Build failed (exit $LASTEXITCODE)." }
       - name: Test
+        # BUILD-EVIDENCE rule 8, binding 1 - tests in the publishing job: this job builds the artifacts and runs
+        # the suite on the same tree, and reads the version back from what it built. The binding is stated in
+        # docs/contracts/CHECK-VERDICT.md.
         if: steps.existing.outputs.complete != 'true'
         run: |
           pwsh -NoProfile -File scripts/test.ps1 -Configuration Release -NoBuild

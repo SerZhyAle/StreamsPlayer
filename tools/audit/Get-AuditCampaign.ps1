@@ -8,10 +8,11 @@
 
       coverage   audited files in the tree that no slice holds (uncovered), files two slices hold, and files a
                  slice holds that are gone from the tree (vanished - informational)
-      slices     each slice's ticket (the one carrying `**Audit slice:** <name>` in PLAN/ or PLAN/DONE/) and its
+      slices     each slice's ticket (the one carrying `**Audit slice:** <name>` and this campaign's `**Campaign:**`
+                 line, in PLAN/ or PLAN/DONE/) and its
                  first **Status:** line; a slice without a ticket is open
       findings   the `**Findings:** High n | Medium n | Low n` line of each slice's `## Last Audit`
-      tickets    every SP id on a slice's `**Tickets:**` line, with its status; an id with no ticket is an error
+      tickets    every ticket id on a slice's `**Tickets:**` line, with its status; an id with no ticket is an error
 
     The campaign is closed when every slice is Verified or Archived with a Last Audit, nothing is uncovered or
     held twice, every slice with a High or Medium finding names a ticket, and every named ticket exists.
@@ -28,7 +29,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $Parent = 'SP-0139',
+    [Parameter(Mandatory)][string] $Parent,
     [string] $RepoRoot = (Join-Path $PSScriptRoot '..' '..'),
     [string[]] $Manifest
 )
@@ -45,9 +46,10 @@ function Fail([string] $Message) {
 $root = (Resolve-Path -LiteralPath $RepoRoot).Path
 $planRoot = Join-Path $root 'PLAN'
 if (-not (Test-Path -LiteralPath $planRoot -PathType Container)) { Fail 'no PLAN folder' }
+try { $grammar = Get-AuditTicketGrammar -RepoRoot $root } catch { Fail $_.Exception.Message }
 
 if (-not $Manifest) {
-    $parentTicket = @(Get-AuditPlanTickets -PlanRoot $planRoot | Where-Object Id -eq $Parent) | Select-Object -First 1
+    $parentTicket = @(Get-AuditPlanTickets -PlanRoot $planRoot -Grammar $grammar | Where-Object Id -eq $Parent) | Select-Object -First 1
     if ($null -eq $parentTicket) { Fail "no ticket $Parent" }
     $research = Join-Path ([System.IO.Path]::GetDirectoryName($parentTicket.Path)) ([System.IO.Path]::GetFileNameWithoutExtension($parentTicket.Path)) 'research'
     $Manifest = @(Get-ChildItem -LiteralPath $research -Filter 'audit-slices*.json' -File -ErrorAction SilentlyContinue | Sort-Object Name | ForEach-Object FullName)
@@ -79,12 +81,15 @@ $uncovered = @($tree | Where-Object { -not $holder.ContainsKey($_) })
 $vanished = @($holder.Keys | Where-Object { -not $treeSet.Contains($_) } | Sort-Object)
 
 # --- tickets -----------------------------------------------------------------------------------------------
+# Keyed by campaign and slice name ("<campaign>|<slice>"), as New-AuditSliceTickets.ps1 keys them: a closed ticket of
+# an earlier campaign that repeats the slice name is not this campaign's slice.
 $tickets = @{}
 $sliceTicket = @{}
-foreach ($t in Get-AuditPlanTickets -PlanRoot $planRoot) {
+foreach ($t in Get-AuditPlanTickets -PlanRoot $planRoot -Grammar $grammar) {
     $tickets[$t.Id] = $t
     $line = Select-String -LiteralPath $t.Path -Pattern '^\*\*Audit slice:\*\*\s*(.+?)\s*$' | Select-Object -First 1
-    if ($line) { $sliceTicket[$line.Matches[0].Groups[1].Value] = $t }
+    $campaign = Select-String -LiteralPath $t.Path -Pattern '^\*\*Campaign:\*\*\s*(\S+)' | Select-Object -First 1
+    if ($line -and $campaign) { $sliceTicket["$($campaign.Matches[0].Groups[1].Value)|$($line.Matches[0].Groups[1].Value)"] = $t }
 }
 
 function Read-LastAudit([string] $Path) {
@@ -100,7 +105,7 @@ function Read-LastAudit([string] $Path) {
         High    = if ($f.Success) { [int]$f.Groups[1].Value } else { 0 }
         Medium  = if ($f.Success) { [int]$f.Groups[2].Value } else { 0 }
         Low     = if ($f.Success) { [int]$f.Groups[3].Value } else { 0 }
-        Tickets = [string[]]@(if ($t.Success) { [regex]::Matches($t.Groups[1].Value, 'SP-\d{4}') | ForEach-Object Value })
+        Tickets = [string[]]@(if ($t.Success) { [regex]::Matches($t.Groups[1].Value, $grammar.Fragment) | ForEach-Object Value })
         Read    = if ($c.Success) { [int]$c.Groups[1].Value } else { -1 }
         Of      = if ($c.Success) { [int]$c.Groups[2].Value } else { -1 }
     }
@@ -115,11 +120,11 @@ $open = [System.Collections.Generic.List[string]]::new()
 $rowsOut = [System.Collections.Generic.List[string]]::new()
 
 foreach ($s in ($slices | Sort-Object { [int]$_.index }, name)) {
-    $t = $sliceTicket[$s.name]
+    $t = $sliceTicket["$Parent|$($s.name)"]
     if ($null -eq $t) {
         $status = 'NoTicket'
         $open.Add($s.name)
-        $rowsOut.Add(('  {0,-9} {1,-12} {2}' -f '-', $status, $s.name))
+        $rowsOut.Add(('  {0,-11} {1,-12} {2}' -f '-', $status, $s.name))
     } else {
         $status = Get-AuditTicketStatus -TicketPath $t.Path
         if (-not $status) { $status = 'Unknown' }
@@ -142,7 +147,7 @@ foreach ($s in ($slices | Sort-Object { [int]$_.index }, name)) {
         } else {
             $open.Add("$($t.Id) $($s.name)")
         }
-        $rowsOut.Add(('  {0,-9} {1,-12} {2,-12} {3}' -f $t.Id, $status, $counts, $s.name))
+        $rowsOut.Add(('  {0,-11} {1,-12} {2,-12} {3}' -f $t.Id, $status, $counts, $s.name))
     }
     if (-not $byStatus.Contains($status)) { $byStatus[$status] = 0 }
     $byStatus[$status]++

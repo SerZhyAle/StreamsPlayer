@@ -66,7 +66,8 @@ public sealed partial class ExchangeLoopRecoveryTests
         var root = frame.RootElement;
         Assert.Contains("broadcaster", root.GetProperty("roles").EnumerateArray().Select(role => role.GetString()));
 
-        Assert.Equal(["e2e-v1"], root.GetProperty("capabilities").EnumerateArray().Select(c => c.GetString()).ToArray());
+        // STRWIN-0303 / item GC: a fresh sign-in that generates its key declares command-v1 beside e2e-v1.
+        Assert.Equal(["e2e-v1", "command-v1"], root.GetProperty("capabilities").EnumerateArray().Select(c => c.GetString()).ToArray());
         var key = root.GetProperty("e2eKey");
         Assert.Equal(1, key.GetProperty("v").GetInt32());
         Assert.True(ExchangeBase64Url.TryDecode(key.GetProperty("kem").GetString(), out var point));

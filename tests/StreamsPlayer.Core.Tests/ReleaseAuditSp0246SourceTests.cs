@@ -186,8 +186,9 @@ public sealed class ReleaseAuditSp0246SourceTests
     [Fact]
     public void S12_6_TheSignedOutNoticeIsOwnedByTheVisibleWindowAndSkippedOnceTheApplicationIsClosing()
     {
+        // SP-0221 requirement 7 widened the notice: the window now shows the row the account's ending maps to.
         var text = Source("MainWindow.Exchange.cs").Masked;
-        var notice = text.IndexOf("new ExchangeFailureWindow(ExchangeFailureRows.SignedOut)", StringComparison.Ordinal);
+        var notice = text.IndexOf("new ExchangeFailureWindow(endedBy)", StringComparison.Ordinal);
         Assert.True(notice > 0);
         var around = text[Math.Max(0, notice - 200)..(notice + 200)];
         Assert.Contains("_shuttingDown", around, StringComparison.Ordinal);

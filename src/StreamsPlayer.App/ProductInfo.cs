@@ -3,7 +3,7 @@ using StreamsPlayer.Core;
 
 namespace StreamsPlayer.App;
 
-public enum ExchangePortalPage { Home, Account, Broadcasts }
+public enum ExchangePortalPage { Home, Account, AccountDeletion, Broadcasts }
 
 public static class ProductInfo
 {
@@ -16,6 +16,14 @@ public static class ProductInfo
     public const string WebsiteUrl = "https://serzhyale.github.io/StreamsPlayer/";
     public const string PrivacyUrl = "https://serzhyale.github.io/StreamsPlayer/privacy.html";
     public const string LicenceUrl = "https://github.com/SerZhyAle/StreamsPlayer/blob/main/LICENSE";
+
+    // SP-0231 (SETTINGS-NAVIGATION 2.4, the About set): the support page is the site's own (contact address,
+    // bug reporting, how to send logs); the releases page is the official download and update record.
+    public const string SupportUrl = "https://serzhyale.github.io/StreamsPlayer/support.html";
+    public const string ReleasesUrl = "https://github.com/SerZhyAle/StreamsPlayer/releases";
+    // The related product of the set: the Android launcher whose site also hosts the media exchange portal
+    // this product's exchange feature is documented through.
+    public const string FastMediaSorterUrl = "https://serzhyale.github.io/FastMediaSorter_mob_v2/";
 
     public static string Version => BuildVersion.Of(Assembly.GetEntryAssembly());
 
@@ -31,6 +39,8 @@ public static class ProductInfo
         var stem = page switch
         {
             ExchangePortalPage.Account => "exchange-server",
+            // SP-0221 requirement 10: this product deletes no account; the portal page says where one is deleted.
+            ExchangePortalPage.AccountDeletion => "account-deletion",
             ExchangePortalPage.Broadcasts => "live-broadcast",
             _ => "index"
         };

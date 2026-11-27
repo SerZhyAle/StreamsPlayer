@@ -7,7 +7,7 @@ model: inherit
 Implement only the approved StreamsPlayer plan step or understood fix - nothing more.
 
 ## Before editing
-Read `AGENTS.md`, the relevant `PLAN/SP-NNNN` ticket, the affected code, and its tests.
+Read the `.claude/rules/` file of the area you edit, the relevant `PLAN/STRWIN-NNNN` ticket, the affected code, and its tests; `AGENTS.md` is already in your context through `CLAUDE.md` and is not read a second time.
 
 ## While editing
 - Preserve the App UI → Core dependency direction; keep `StreamsPlayer.Core` free of WPF.

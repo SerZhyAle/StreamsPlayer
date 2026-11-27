@@ -190,13 +190,13 @@ public partial class SettingsWindow : Window
         VideoBackendBox.ItemsSource = backends;
         VideoBackendBox.SelectedItem = backends.FirstOrDefault(item => item.Value == _mainWindow.State.VideoBackend.ToString()) ?? backends[0];
 
-        HideAdultContentCheckBox.IsChecked = _mainWindow.State.HideAdultContent;
-        UpdatePreviewsCheckBox.IsChecked = _mainWindow.State.UpdateStreamPreviews;
+        HideAdultContentOption.IsChecked = _mainWindow.State.HideAdultContent;
+        UpdatePreviewsOption.IsChecked = _mainWindow.State.UpdateStreamPreviews;
         AnimatedBackdropOption.IsChecked = _mainWindow.State.AnimatedBackdrop;
         AcceptsRestrictedCommandsOption.IsChecked = _mainWindow.AcceptsRestrictedCommands;
-        KeepAwakeCheckBox.IsChecked = _mainWindow.State.KeepAwakeDuringPlayback;
-        SystemMediaControlsCheckBox.IsChecked = _mainWindow.State.SystemMediaControls;
-        ResumePlaybackCheckBox.IsChecked = _mainWindow.State.ResumePlaybackOnStartup;
+        KeepAwakeOption.IsChecked = _mainWindow.State.KeepAwakeDuringPlayback;
+        SystemMediaControlsOption.IsChecked = _mainWindow.State.SystemMediaControls;
+        ResumePlaybackOption.IsChecked = _mainWindow.State.ResumePlaybackOnStartup;
 
         PopulateAudioDevices();
 
@@ -377,7 +377,7 @@ public partial class SettingsWindow : Window
         }
 
         HandlerBoundary.Run(nameof(HideAdultContentCheckBox_Click),
-            () => _mainWindow.ApplyHideAdultContentFromSettingsAsync(HideAdultContentCheckBox.IsChecked == true));
+            () => _mainWindow.ApplyHideAdultContentFromSettingsAsync(HideAdultContentOption.IsChecked == true));
     }
 
     private void UpdatePreviewsCheckBox_Click(object sender, RoutedEventArgs e)
@@ -388,7 +388,7 @@ public partial class SettingsWindow : Window
         }
 
         HandlerBoundary.Run(nameof(UpdatePreviewsCheckBox_Click),
-            () => _mainWindow.ApplyUpdatePreviewsFromSettingsAsync(UpdatePreviewsCheckBox.IsChecked == true));
+            () => _mainWindow.ApplyUpdatePreviewsFromSettingsAsync(UpdatePreviewsOption.IsChecked == true));
     }
 
     private void KeepAwakeCheckBox_Click(object sender, RoutedEventArgs e)
@@ -399,7 +399,7 @@ public partial class SettingsWindow : Window
         }
 
         HandlerBoundary.Run(nameof(KeepAwakeCheckBox_Click),
-            () => _mainWindow.ApplyKeepAwakeFromSettingsAsync(KeepAwakeCheckBox.IsChecked == true));
+            () => _mainWindow.ApplyKeepAwakeFromSettingsAsync(KeepAwakeOption.IsChecked == true));
     }
 
     private void SystemMediaControlsCheckBox_Click(object sender, RoutedEventArgs e)
@@ -410,7 +410,7 @@ public partial class SettingsWindow : Window
         }
 
         HandlerBoundary.Run(nameof(SystemMediaControlsCheckBox_Click),
-            () => _mainWindow.ApplySystemMediaControlsFromSettingsAsync(SystemMediaControlsCheckBox.IsChecked == true));
+            () => _mainWindow.ApplySystemMediaControlsFromSettingsAsync(SystemMediaControlsOption.IsChecked == true));
     }
 
     private void ResumePlaybackCheckBox_Click(object sender, RoutedEventArgs e)
@@ -421,7 +421,7 @@ public partial class SettingsWindow : Window
         }
 
         HandlerBoundary.Run(nameof(ResumePlaybackCheckBox_Click),
-            () => _mainWindow.ApplyResumePlaybackFromSettingsAsync(ResumePlaybackCheckBox.IsChecked == true));
+            () => _mainWindow.ApplyResumePlaybackFromSettingsAsync(ResumePlaybackOption.IsChecked == true));
     }
 
     private void VideoBackendBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -551,7 +551,13 @@ public partial class SettingsWindow : Window
             "Privacy" => ProductInfo.PrivacyUrl,
             "MediaExchange" => ProductInfo.ExchangePortalUrl(currentLanguage),
             "ExchangeAccount" => ProductInfo.ExchangePortalUrl(currentLanguage, ExchangePortalPage.Account),
+            // SP-0221 requirement 10: where an account is deleted is one line away from where the account lives.
+            "ExchangeAccountDeletion" => ProductInfo.ExchangePortalUrl(currentLanguage, ExchangePortalPage.AccountDeletion),
             "ExchangeBroadcasts" => ProductInfo.ExchangePortalUrl(currentLanguage, ExchangePortalPage.Broadcasts),
+            // SP-0231, the About set: support, the official download record, and the related product.
+            "Support" => ProductInfo.SupportUrl,
+            "Releases" => ProductInfo.ReleasesUrl,
+            "FastMediaSorter" => ProductInfo.FastMediaSorterUrl,
             "Author" => ProductInfo.AuthorUrl,
             "Licence" => ProductInfo.LicenceUrl,
             _ => null

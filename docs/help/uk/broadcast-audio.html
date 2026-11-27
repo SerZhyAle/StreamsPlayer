@@ -6,6 +6,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex">
 <title>Довідка - Пряма трансляція, звук</title>
+<link rel="icon" type="image/png" sizes="48x48" href="../product-48.png">
 <script>
 (function () {
   try {
@@ -26,7 +27,7 @@
   </nav>
   <header class="hero">
     <p class="kicker">Довідка щодо вікна</p>
-    <h1>Пряма трансляція, звук</h1>
+    <h1><img class="product" src="../product-48.png" srcset="../product-48.png 1x, ../product-96.png 2x" width="48" height="48" alt="Трансляції">Пряма трансляція, звук</h1>
     <p class="lead">Кожна вхідна звукова трансляція має це невелике вікно. Воно показує назву й стан трансляції, має власну гучність і дає змогу зупинити трансляцію, записати її та послухати знову. Заголовок вікна - власна назва трансляції, тож вікна різних трансляцій називаються по-різному, а виглядають однаково. Кілька вікон можуть бути відкриті одночасно, поруч із головним вікном і одне з одним. Закриття вікна, зокрема клавішею <kbd>Esc</kbd>, хрестиком або кнопкою <b>Закрити</b>, зупиняє цю трансляцію і більше нічого.</p>
   </header>
 
@@ -77,7 +78,7 @@
       </div>
     </details>
     <details class="el" id="e-record">
-      <summary><span><span class="name">Запис</span><span class="one">Зберігає те, що грає ця трансляція, у файл.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.record" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z" fill="currentColor"/></svg><span><span class="name">Запис</span><span class="one">Зберігає те, що грає ця трансляція, у файл.</span></span></summary>
       <div class="full">
         <p>У кнопки лише значок; наведіть на неї вказівник, щоб прочитати назву. Запис починається лише тоді, коли стан «грає». Під час запису кнопка стає <b>Зупинити запис</b>, а рядок під повзунком відлічує тривалість запису.</p>
         <p>Якщо формат трансляції записати не можна, кнопка недоступна, а її підказка каже «Формат потоку цієї станції не можна записати».</p>
@@ -99,7 +100,7 @@
       </div>
     </details>
     <details class="el" id="e-diagnose">
-      <summary><span><span class="name">Перевірити з'єднання</span><span class="one">Відкриває перевірку з’єднання для трансляції, яку не вдалося втримати.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="app.settings" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z" fill="currentColor"/></svg><span><span class="name">Перевірити з'єднання</span><span class="one">Відкриває перевірку з’єднання для трансляції, яку не вдалося втримати.</span></span></summary>
       <div class="full">
         <p>Показується, коли трансляція дала збій так, що вікно може описати його лише як недоступність, і відомий сервер для перевірки. Збій, який уже каже, що робити, наприклад відмова в паролі чи сертифікат, що не збігається, цю кнопку не пропонує.</p>
         <dl class="facts">
@@ -108,7 +109,7 @@
       </div>
     </details>
     <details class="el" id="e-stop">
-      <summary><span><span class="name">Стоп</span><span class="one">Припиняє слухати цю трансляцію.</span></span></summary>
+      <summary><svg xmlns="http://www.w3.org/2000/svg" class="glyph" data-glyph="media.stop" width="20" height="20" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M6,6h12v12H6z" fill="currentColor"/></svg><span><span class="name">Стоп</span><span class="one">Припиняє слухати цю трансляцію.</span></span></summary>
       <div class="full">
         <p>Показується, коли вікно підключається, грає або підключається повторно. Вікно лишається відкритим у стані «зупинено», а на місці цієї кнопки з’являється <b>Відтворити</b>.</p>
         <dl class="facts">
@@ -134,6 +135,7 @@
     <li><a href="exchange-diagnosis.html"><b>Перевірка з'єднання</b><span class="pill">Вікно</span><small>Перевірка з’єднання, яку відкриває «Перевірити з'єднання».</small></a></li>
     <li><a href="settings.html"><b>Налаштування «Трансляцій»</b><span class="pill">Вікно</span><small>Де вибирається тека записів радіо.</small></a></li>
     <li><a href="https://serzhyale.github.io/StreamsPlayer/uk/index.html#use"><b>Як користуватися</b><span class="pill gold">Сайт</span><small>Уся задача цілком: від першого запуску до власних плейлистів.</small></a></li>
+    <li><a href="https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/media-exchange-portal/account-deletion-uk.html"><b>Як видалити акаунт</b><span class="pill gold">Посібник</span><small>Де видаляють акаунт; ця програма цього не робить.</small></a></li>
   </ul>
 
   <footer class="help-foot">

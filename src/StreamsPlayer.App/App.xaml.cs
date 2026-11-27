@@ -20,6 +20,11 @@ public partial class App : Application
     internal ExchangeSourceService Exchange { get; private set; } = null!;
     internal DriveSourceService Drive { get; private set; } = null!;
 
+    /// <summary>STRWIN-0303: the target of commands from the account's other devices; null before start-up reaches it.</summary>
+    internal RemoteCommandTarget? RemoteTarget { get; private set; }
+
+    private readonly CancellationTokenSource _remoteCommands = new();
+
     /// <summary>SP-0217: this PC's own live broadcasts, behind the Settings permission. Null only before OnStartup.</summary>
     internal BroadcastProducerService Broadcast { get; private set; } = null!;
 
@@ -112,6 +117,13 @@ public partial class App : Application
         Drive = new DriveSourceService(AppPaths.DataDirectory);
         Broadcast = new BroadcastProducerService(AppPaths.DataDirectory, Exchange, Drive);
         BroadcastEnd = new BroadcastEndFollower(Exchange, Dispatcher);
+        // Subscribed before the account connects, so no request is lost; it waits in the queue until the documents load.
+        RemoteTarget = new RemoteCommandTarget(AppPaths.DataDirectory, Exchange, ExecuteRemoteAsync, _log);
+        // Rule 10: the question is asked on this PC's own screen, on the UI thread, over whatever is in front.
+        RemoteTarget.ShowConsent = question => Dispatcher.BeginInvoke(() =>
+            HandlerBoundary.Run(nameof(RemoteCommandPrompt.ShowQuestionAsync),
+                () => RemoteCommandPrompt.ShowQuestionAsync(_mainWindow, question)));
+        _ = RemoteTarget.StartAsync(_remoteCommands.Token);
         Exchange.Start();
 
         var window = new MainWindow(_log, StreamLaunchRequest.Parse(LaunchArguments ?? e.Args));
@@ -143,10 +155,13 @@ public partial class App : Application
     private async Task EndAfterCloseWorkAsync(MainWindow window)
     {
         _closeClock ??= Stopwatch.StartNew();
+        // STRWIN-0303: no remote request starts once the exit has begun; one already running is answered or abandoned.
+        _remoteCommands.Cancel();
         _mainWindowClosed = true;
+        var closeWork = Task.WhenAll(window.CloseWork, window.ExternalControlPlacementWrite);
         try
         {
-            if (await Task.WhenAny(window.CloseWork, Task.Delay(RemainingCloseTime)) != window.CloseWork)
+            if (await Task.WhenAny(closeWork, Task.Delay(RemainingCloseTime)) != closeWork)
             {
                 _log?.Event("SHUTDOWN DEADLINE", "path=quit", $"after_ms={CloseWorkDeadline.TotalMilliseconds:F0}");
             }
@@ -182,6 +197,8 @@ public partial class App : Application
 
         _sessionEnding = true;
         _closeClock ??= Stopwatch.StartNew();
+        // STRWIN-0303: no remote request starts once the exit has begun; one already running is answered or abandoned.
+        _remoteCommands.Cancel();
         _log?.Event("SESSION ENDING", $"reason={e.ReasonSessionEnding}");
         if (!_mainWindowClosed)
         {
@@ -239,6 +256,8 @@ public partial class App : Application
         }
 
         _closeClock ??= Stopwatch.StartNew();
+        // STRWIN-0303: no remote request starts once the exit has begun; one already running is answered or abandoned.
+        _remoteCommands.Cancel();
         // SP-0217 constraint 6: the broadcasts end before the account says goodbye - `broadcast-end`
         // precedes `bye`, on the control stream that is still alive at this point.
         if (Broadcast is not null)

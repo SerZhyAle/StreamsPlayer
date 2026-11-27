@@ -6,4 +6,4 @@ For StreamsPlayer, follow `AGENTS.md`, the applicable `docs/agent/` method docum
 
 1. Allocate an SP identifier and create a minimal Draft ticket with the observed symptom, location, and why it is out of scope.
 2. Do not investigate or implement the parked finding beyond enough evidence to make it actionable.
-3. Return `parked: SP-NNNN` and resume the original task.
+3. Return `parked: STRWIN-NNNN` and resume the original task.

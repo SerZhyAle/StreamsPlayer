@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>Help - External control</title>
+<link rel="icon" type="image/png" sizes="48x48" href="../product-48.png">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('theme');
+    var t = (q === 'light' || q === 'dark') ? q : (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* no script: help.css follows the system */ }
+})();
+</script>
+<link rel="stylesheet" href="../sza-kit.css">
+<link rel="stylesheet" href="../help.css">
+</head>
+<body class="help">
+<main class="container">
+
+  <nav class="help-crumbs" aria-label="Breadcrumb">
+    <a href="index.html">Help index</a><span class="sep" aria-hidden="true">/</span><span>External control</span>
+  </nav>
+  <header class="hero">
+    <p class="kicker">Window help</p>
+    <h1><img class="product" src="../product-48.png" srcset="../product-48.png 1x, ../product-96.png 2x" width="48" height="48" alt="STREAMS Player">External control</h1>
+    <p class="lead">Open this window from External control on the Exchange server page of Settings. You can open it before you sign in or turn on listening. Changes take effect as soon as they are saved.</p>
+  </header>
+
+  <h2>In this order</h2>
+  <ol class="order">
+    <li>Turn on <a href="#e-remote-listening">Listen to commands from my other devices</a> on this PC.</li>
+    <li>Find your other device under <a href="#e-remote-controllers">Who can control this device</a> and allow it.</li>
+    <li>Choose whether the device must ask you before it sends a command.</li>
+    <li>Use <a href="#e-remote-consent">Waiting for your answer</a> to answer a request, or <a href="#e-remote-log">Recent requests</a> to see how it ended.</li>
+  </ol>
+
+  <h2>The elements</h2>
+  <div class="elements">
+    <details class="el" id="e-remote-listening">
+      <summary><span><span class="name">Listen to commands from my other devices</span><span class="one">Turns listening on or off on this PC.</span></span></summary>
+      <div class="full">
+        <p>Listening starts off. This is the same switch as the one in Settings. While it is off, commands from other devices are refused. Turn it off at any time to stop accepting commands. The devices you allowed stay remembered.</p>
+        <p>The line below the switch tells you whether the exchange server can carry commands and whether you need to sign in again.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-consent">
+      <summary><span><span class="name">Waiting for your answer</span><span class="one">Shows the request that needs your answer on this PC.</span></span></summary>
+      <div class="full">
+        <p>The request also appears in a small window. Allow or decline it in either place. If you leave it unanswered for 60 seconds, it is declined.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-controllers">
+      <summary><span><span class="name">Who can control this device</span><span class="one">Chooses which of your devices may send commands.</span></span></summary>
+      <div class="full">
+        <p>Listening must be on and the other device must be signed in to the same account. Allow a device to give it Safe commands with Always allow. Choose No access to take away a kind of command, or Ask each time to approve it on this PC.</p>
+        <p>A device that leaves the account or changes its key loses its access.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-commands">
+      <summary><span><span class="name">Commands this program accepts</span><span class="one">Lists the commands that another device can ask this player to run.</span></span></summary>
+      <div class="full">
+        <p>Open the section to see each command and its kind. Commands that always need an answer on this PC say so.</p>
+      </div>
+    </details>
+    <details class="el" id="e-remote-log">
+      <summary><span><span class="name">Recent requests</span><span class="one">Shows the newest 20 requests, most recent first.</span></span></summary>
+      <div class="full">
+        <p>Open the full log to see all the requests still kept on this PC. The log keeps up to 500 entries. It records what happened and omits the values of the arguments, such as a stream address. The log stays on this PC.</p>
+      </div>
+    </details>
+  </div>
+
+  <h2>Related</h2>
+  <ul class="related">
+    <li><a href="settings.html"><b>STREAMS Player settings</b><span class="pill">Window</span><small>Where you connect to your exchange server.</small></a></li>
+  </ul>
+
+  <footer class="help-foot">
+    <span>Written against STREAMS Player 26.1021, 2026-10-21.</span>
+    <a href="index.html">Help index</a>
+    <a href="https://serzhyale.github.io/StreamsPlayer/support.html">Ask a question or report a problem</a>
+  </footer>
+
+</main>
+<script>
+/* Progressive enhancement only: the page is complete without it. */
+(function () {
+  function openHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    if (el && el.tagName === 'DETAILS') { el.open = true; }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+})();
+</script>
+</body>
+</html>

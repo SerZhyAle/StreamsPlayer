@@ -332,7 +332,8 @@ internal sealed partial class ExchangeSourceService
             }
 
             Account = cleared;
-            SignedOutNotice = reason == "signed-out";
+            // SP-0221 requirement 7: every ending the account performs says which, with the row the wire reason maps to.
+            SignInEndedNotice = ExchangeFailureRows.OfWire(reason);
             try
             {
                 _store.Save(cleared);

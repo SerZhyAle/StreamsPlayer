@@ -38,12 +38,13 @@ try {
         if ($LASTEXITCODE -ne 0 -and $runnerExit -eq 0) { $runnerExit = $LASTEXITCODE }
     }
     $result = Get-TestResultSummary -Directory $ResultsDirectory -ExpectedFiles $expected -RunnerExitCode $runnerExit
-    Write-Host "tests: $($result.Verdict) run=$($result.Run) skipped=$($result.Skipped)"
+    # BUILD-EVIDENCE rule 1: the line names the configuration it judged, so a Debug run is never quoted as evidence about Release.
+    Write-Host "tests: $($result.Verdict) ($Configuration, run=$($result.Run) skipped=$($result.Skipped))"
     exit $result.ExitCode
 }
 catch {
     Write-Host "tests: $($_.Exception.Message)"
-    Write-Host 'tests: COULD NOT VERIFY run=0 skipped=0'
+    Write-Host "tests: COULD NOT VERIFY ($Configuration, run=0 skipped=0)"
     exit 2
 }
 finally { Pop-Location }

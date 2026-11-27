@@ -25,6 +25,12 @@ public static class ExchangeSealedContext
     public static string Grant(string grantId) => "grant:" + grantId;
     public static string Broadcast(string broadcastId) => "broadcast:" + broadcastId;
     public const string Clipboard = "clipboard";
+
+    /// <summary>STRWIN-0303 / item GD: a <c>command-request</c> box.</summary>
+    public static string Command(string requestId) => "command:" + requestId;
+
+    /// <summary>STRWIN-0303 / item GD: a <c>command-result</c> box.</summary>
+    public static string CommandResult(string requestId) => "command-result:" + requestId;
 }
 
 /// <summary>One recipient entry of a box: the device it is for, the encapsulated key and the wrapped content key.</summary>

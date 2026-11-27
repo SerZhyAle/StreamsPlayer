@@ -2,7 +2,7 @@
 
 Pick the lowest level that proves the changed behaviour, then record `expected` and `actual`.
 
-**Between releases the ladder stops at 5 seconds** (canon `TESTING_AND_QA.md` §2, SP-0256): rung 1, the fast tier `pwsh -NoProfile -File ./scripts/check-fast.ps1 [-Area ..]`, and a direct call of what changed. Rungs 3 to 8 are release tier - they run at the release, or when the owner names that run. A rung a change would otherwise need is recorded in its audit as a `RELEASE` item naming the command the release runs, and the report says "not built, not tested until the release". The measured list is in `AGENTS.md` "Fast checks and the release tier".
+**Between releases the ladder stops at 5 seconds** (canon `TESTING_AND_QA.md` §2, SP-0256): rung 1, the fast tier `pwsh -NoProfile -File ./scripts/check-fast.ps1 [-Area ..]`, and a direct call of what changed. Rungs 3 to 8 are release tier - they run at the release, or when the owner names that run. A rung a change would otherwise need is recorded in its audit as a `RELEASE` item naming the command the release runs, and the report says "not built, not tested until the release". The measured list is in `.claude/rules/build-and-checks.md` ("Fast tier and release tier").
 
 1. Static inspection: file, symbol, reference, or project-boundary check.
 2. Formatting diagnostic: `dotnet format StreamsPlayer.sln --verify-no-changes`. It currently reports pre-existing line-ending/encoding issues, so do not treat it as a passing gate until a dedicated baseline-normalization ticket resolves them.

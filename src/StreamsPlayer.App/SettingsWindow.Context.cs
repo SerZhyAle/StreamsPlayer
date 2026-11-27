@@ -19,6 +19,10 @@ public partial class SettingsWindow
     private void SettingsWindow_Loaded(object sender, RoutedEventArgs e)
     {
         Loaded -= SettingsWindow_Loaded;
+        // The rail/drawer choice is re-read on every resize, so dragging across the breakpoint swaps the
+        // layouts live (SETTINGS-NAVIGATION 2.6); the first call runs once the window has an actual width.
+        SizeChanged += (_, _) => UpdateNavigationLayout();
+        UpdateNavigationLayout();
         RestoreViewportSoon();
         HandlerBoundary.Run(nameof(SettingsWindow_Loaded), LoadAudioDevicesAsync);
     }
@@ -49,8 +53,51 @@ public partial class SettingsWindow
         SyncHeader();
         ShowPageOnly(_currentPageIndex);
         CloseSearchResults();
+        // The drawer returns to the selected page: choosing a destination in the narrow layout closes the
+        // flyout and leaves the page it chose (SETTINGS-NAVIGATION 2.6).
+        NavDrawerPopup.IsOpen = false;
         RestoreViewportSoon();
     }
+
+    // SETTINGS-NAVIGATION 2.6, the documented narrow adaptation: below this width, measured at the Standard
+    // size and scaled with the chosen interface size, the side rail folds into the start-side drawer. Above
+    // it the rail is permanent. The number is recorded in the product profile (SP-0231 P6).
+    private const double NarrowRailBreakpoint = 720;
+
+    /// <summary>Brings the navigation to the window's current width: the permanent rail, or the drawer.</summary>
+    private void UpdateNavigationLayout()
+    {
+        var narrow = ActualWidth < NarrowRailBreakpoint * _windowScale;
+        if (narrow == (NavDrawerButton.Visibility == Visibility.Visible))
+        {
+            return;
+        }
+
+        // One element has one parent: WPF throws on Add while the other panel still holds the list.
+        if (narrow)
+        {
+            NavRailHost.Visibility = Visibility.Collapsed;
+            NavDrawerButton.Visibility = Visibility.Visible;
+            NavRailHost.Children.Remove(NavList);
+            NavDrawerHost.Children.Add(NavList);
+        }
+        else
+        {
+            NavDrawerPopup.IsOpen = false;
+            NavDrawerButton.Visibility = Visibility.Collapsed;
+            NavRailHost.Visibility = Visibility.Visible;
+            NavDrawerHost.Children.Remove(NavList);
+            NavRailHost.Children.Add(NavList);
+        }
+    }
+
+    private void NavDrawerButton_Click(object sender, RoutedEventArgs e)
+    {
+        UpdateNavigationLayout();
+        NavDrawerPopup.IsOpen = !NavDrawerPopup.IsOpen;
+    }
+
+    private void NavDrawerPopup_Closed(object sender, EventArgs e) => NavDrawerButton.Focus();
 
     /// <summary>Selects a page from code (a search result) without the list's handler re-entering.</summary>
     private void SelectPage(int page)

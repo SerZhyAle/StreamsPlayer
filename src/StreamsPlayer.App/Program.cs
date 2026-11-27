@@ -25,6 +25,12 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
+        if (args is [HelpWindowCapture.Argument] &&
+            Environment.GetEnvironmentVariable(HelpWindowCapture.DirectoryVariable) is { Length: > 0 } capture)
+        {
+            return HelpWindowCapture.Run(capture);
+        }
+
         var startup = Decide(args);
         if (startup.ExitCode is { } exitCode)
         {

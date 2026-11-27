@@ -16,7 +16,10 @@
                 are trimmed. The setup's FileVersion is the deliberate constant VersionInfoVersion of
                 installer/StreamsPlayer.iss and is not the stamp, so it is not judged.
 
-  One verdict line per assertion, then one summary line:
+  One verdict line per assertion, then one summary line. The first line is the subject banner (BUILD-EVIDENCE
+  rules 1 and 8): it names the version the gate judges and the artifacts it was given, so a workflow log shows
+  which release the read-back belongs to before any exit code is quoted.
+      release-version: subject = <version> (exe, zip, setup as named)
       release-version: PASS <assertion> - <evidence>
       release-version: FAIL <assertion> - <what was found>
       release-version: PASS (run=<n> skipped=0) | FAIL (<k> of <n> assertions) | COULD NOT VERIFY (<reason>)
@@ -38,6 +41,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $verdicts = [System.Collections.Generic.List[bool]]::new()
+$subjects = @(if ($ExePath) { 'exe' }; if ($ZipPath) { 'zip' }; if ($SetupPath) { 'setup' })
+# BUILD-EVIDENCE rules 1 and 8: the subject banner comes first, where a reader cannot miss it.
+Write-Host ("release-version: subject = {0} ({1})" -f $Version, $(if ($subjects.Count) { $subjects -join ', ' } else { 'no artifact named' }))
 function Write-Verdict([bool] $Passed, [string] $Assertion, [string] $Detail) {
     $verdicts.Add($Passed)
     Write-Host ("release-version: {0} {1} - {2}" -f $(if ($Passed) { 'PASS' } else { 'FAIL' }), $Assertion, $Detail)
